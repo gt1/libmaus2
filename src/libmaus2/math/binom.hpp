@@ -22,6 +22,9 @@
 
 #include <libmaus2/types/types.hpp>
 #include <libmaus2/math/gcd.hpp>
+#include <libmaus2/math/Rational.hpp>
+#include <libmaus2/math/GmpInteger.hpp>
+#include <libmaus2/math/GmpFloat.hpp>
 #include <vector>
 #include <cassert>
 #include <queue>
@@ -81,6 +84,22 @@ namespace libmaus2
 				return H.top();
 			}
 			
+			static libmaus2::math::Rational<libmaus2::math::GmpInteger> binomialCoefficientAsRational(uint64_t k, uint64_t n)
+			{
+				std::vector < uint64_t > cnt;
+				fillBinomialVector(k,n,cnt);
+
+				libmaus2::math::Rational<libmaus2::math::GmpInteger> R(libmaus2::math::GmpInteger(1));
+
+				if ( k == 0 || k == n )
+					return R;
+
+				for ( uint64_t i = 0; i < cnt.size(); ++i )
+					R *= libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(cnt[i]));
+
+				return R;
+			}
+
 			static uint64_t binomialCoefficientInteger(uint64_t k, uint64_t n)
 			{
 				std::vector < uint64_t > cnt;
@@ -105,7 +124,37 @@ namespace libmaus2
 				
 				return r;
 			}
-			
+
+			static GmpFloat slowPow(GmpFloat const & x, unsigned int const e, unsigned int const prec)
+			{
+				GmpFloat tx = x;
+				GmpFloat r(1,prec);
+
+				for ( uint64_t i = 1; i <= e; i <<=1 )
+				{
+					if ( i & e )
+						r *= tx;
+					tx = tx*tx;
+				}
+
+				return r;
+			}
+
+			static libmaus2::math::Rational<libmaus2::math::GmpInteger> slowPow(libmaus2::math::Rational<libmaus2::math::GmpInteger> const x, unsigned int const e)
+			{
+				libmaus2::math::Rational<libmaus2::math::GmpInteger> tx = x;
+				libmaus2::math::Rational<libmaus2::math::GmpInteger> r(libmaus2::math::GmpInteger(1));
+
+				for ( uint64_t i = 1; i <= e; i <<=1 )
+				{
+					if ( i & e )
+						r *= tx;
+					tx = tx*tx;
+				}
+
+				return r;
+			}
+
 			static double binomSingle(double const p, uint64_t const k, uint64_t const n)
 			{
 				return 
@@ -113,7 +162,12 @@ namespace libmaus2
 					slowPow(p,k) *
 					slowPow(1-p,n-k);
 			}
-			
+
+			static libmaus2::math::Rational<libmaus2::math::GmpInteger> binomSingleAsRational(libmaus2::math::Rational<libmaus2::math::GmpInteger> const p, uint64_t const k, uint64_t const n)
+			{
+				return binomialCoefficientAsRational(k,n) * slowPow(p,k) * slowPow(libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(1))-p,n-k);
+			}
+
 			static double binomRow(double const p, uint64_t const k, uint64_t const n)
 			{
 				double r = 0;
@@ -133,6 +187,25 @@ namespace libmaus2
 				return r;
 			}
 
+			static libmaus2::math::Rational<libmaus2::math::GmpInteger> binomRowAsRational(libmaus2::math::Rational<libmaus2::math::GmpInteger> const p, uint64_t const k, uint64_t const n)
+			{
+				libmaus2::math::Rational<libmaus2::math::GmpInteger> r(libmaus2::math::GmpInteger(0));
+				libmaus2::math::Rational<libmaus2::math::GmpInteger> const q = libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(1))-p;
+				libmaus2::math::Rational<libmaus2::math::GmpInteger> const tp = libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(1));
+				libmaus2::math::Rational<libmaus2::math::GmpInteger> const tq = slowPow(q,n);
+				libmaus2::math::Rational<libmaus2::math::GmpInteger> f = tp * tq;
+
+				for ( uint64_t i = 0; i <= k; ++i )
+				{
+					r += f;
+					f *= p;
+					f /= q;
+					f /= (libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(i))+libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(1)));
+					f *= (libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(n))-libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(i)));
+				}
+				return r;
+			}
+
 			static double binomRowUpper(double const p, uint64_t const k, uint64_t const n)
 			{
 				double r = 0;
@@ -140,7 +213,7 @@ namespace libmaus2
 				double const tp = 1.0;
 				double const tq = slowPow(q,n);
 				double f = 1.0 * tp * tq;
-				
+
 				for ( uint64_t i = 0; i < k; ++i )
 				{
 					f *= p;
@@ -158,6 +231,62 @@ namespace libmaus2
 					f *= (n-i);
 				}
 				
+				return r;
+			}
+
+			static libmaus2::math::GmpFloat binomRowUpperGmpFloat(libmaus2::math::GmpFloat const p, uint64_t const k, uint64_t const n, unsigned int const prec)
+			{
+				libmaus2::math::GmpFloat r(0,prec);
+				libmaus2::math::GmpFloat const q = libmaus2::math::GmpFloat(1.0,prec)-p;
+				libmaus2::math::GmpFloat const tp(1.0,prec);
+				libmaus2::math::GmpFloat const tq = slowPow(q,n,prec);
+				libmaus2::math::GmpFloat f = tp * tq;
+
+				for ( uint64_t i = 0; i < k; ++i )
+				{
+					f *= p;
+					f /= q;
+					f /= (libmaus2::math::GmpFloat(i,prec)+libmaus2::math::GmpFloat(1,prec));
+					f *= (libmaus2::math::GmpFloat(n,prec)-libmaus2::math::GmpFloat(i,prec));
+				}
+
+				for ( uint64_t i = k; i <= n; ++i )
+				{
+					r += f;
+					f *= p;
+					f /= q;
+					f /= (libmaus2::math::GmpFloat(i,prec)+libmaus2::math::GmpFloat(1,prec));
+					f *= (libmaus2::math::GmpFloat(n,prec)-libmaus2::math::GmpFloat(i,prec));
+				}
+
+				return r;
+			}
+
+			static libmaus2::math::Rational<libmaus2::math::GmpInteger> binomRowUpperAsRational(libmaus2::math::Rational<libmaus2::math::GmpInteger> const p, uint64_t const k, uint64_t const n)
+			{
+				libmaus2::math::Rational<libmaus2::math::GmpInteger> r = libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(0));
+				libmaus2::math::Rational<libmaus2::math::GmpInteger> const q = libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(1))-p;
+				libmaus2::math::Rational<libmaus2::math::GmpInteger> const tp = libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(1));;
+				libmaus2::math::Rational<libmaus2::math::GmpInteger> const tq = slowPow(q,n);
+				libmaus2::math::Rational<libmaus2::math::GmpInteger> f = tp * tq;
+
+				for ( uint64_t i = 0; i < k; ++i )
+				{
+					f *= p;
+					f /= q;
+					f /= (libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(i))+libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(1)));
+					f *= (libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(n))-libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(i)));
+				}
+
+				for ( uint64_t i = k; i <= n; ++i )
+				{
+					r += f;
+					f *= p;
+					f /= q;
+					f /= (libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(i))+libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(1)));
+					f *= (libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(n))-libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(i)));
+				}
+
 				return r;
 			}
 		};

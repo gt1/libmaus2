@@ -222,13 +222,15 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/dazzler/align/OverlapMeta.cpp \
 	libmaus2/lcs/DalignerLocalAlignment.cpp \
 	libmaus2/dazzler/align/Tandem.cpp \
-	libmaus2/dazzler/align/TandemVector.cpp
+	libmaus2/dazzler/align/TandemVector.cpp \
+	libmaus2/math/GmpInteger.cpp \
+	libmaus2/math/GmpFloat.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
-libmaus2_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@ @DALIGNERCPPFLAGS@
-libmaus2_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@ @NETTLELDFLAGS@ @DALIGNERLDFLAGS@
-libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ @DALIGNERLIBS@
+libmaus2_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@ @DALIGNERCPPFLAGS@ @GMPCPPFLAGS@
+libmaus2_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@ @NETTLELDFLAGS@ @DALIGNERLDFLAGS@ @GMPLDFLAGS@
+libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ @DALIGNERLIBS@ @GMPLIBS@
 
 libmaus2lsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus2lsf_la_SOURCES = libmaus2/lsf/LSFProcess.cpp
@@ -989,7 +991,9 @@ libmaus2math_include_HEADERS=\
 	libmaus2/math/Rational.hpp \
 	libmaus2/math/BernoulliNumber.hpp \
 	libmaus2/math/Faulhaber.hpp \
-	libmaus2/math/RepetetiveKmerFreqEstimate.hpp
+	libmaus2/math/RepetetiveKmerFreqEstimate.hpp \
+	libmaus2/math/GmpInteger.hpp \
+	libmaus2/math/GmpFloat.hpp
 
 libmaus2rl_includedir=$(includedir)/libmaus2/rl
 libmaus2rl_include_HEADERS=\

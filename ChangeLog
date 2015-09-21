@@ -1,3 +1,22 @@
+libmaus2 (2.0.84-1) unstable; urgency=medium
+
+  * fix compilation without gmp and with older versions of gcc 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 21 Sep 2015 20:55:31 +0200
+
+libmaus2 (2.0.83-1) unstable; urgency=medium
+
+  * add alternative code in RepetetiveKmerFreqEstimate class based on GMP fixed point numbers
+  * use binary search in RepetetiveKmerFreqEstimate instead of linear scan to find highest value still holding the threshold
+  * add functions variants binomialCoefficientAsRational, slowPow, binomSingleAsRational, binomRowAsRational, binomRowUpperGmpFloat, binomRowUpperAsRational in Binom class
+  * add GMP based integer and float interface classes
+  * add numbits64 function
+  * prepare Rational class for use with non builtin integer types
+  * fix to prevent large temp files in bamsormadup.
+  * support daligner library inclusion on system which do not support the -rpath linker flag
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 21 Sep 2015 18:28:04 +0200
+
 libmaus2 (2.0.82-1) unstable; urgency=medium
 
   * add off_a and off_b parameters for getKMatchOffsets function of AlignmentTraceContainer class

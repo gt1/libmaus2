@@ -78,8 +78,77 @@ void sigalrm(int)
 #include <libmaus2/lcs/EditDistance.hpp>
 #include <libmaus2/lcs/DalignerNP.hpp>
 
+#if 0
+#include <libmaus2/math/GmpInteger.hpp>
+#include <libmaus2/math/GmpFloat.hpp>
+#include <libmaus2/math/RepetetiveKmerFreqEstimate.hpp>
+#endif
+
 int main(int argc, char * argv[])
 {
+	#if 0
+	{
+		std::pair<uint64_t,double> const P = libmaus2::math::RepetetiveKmerFreqEstimate::estimateNumOcc( 20828 /* rep len */,5 /* period */,5 /* k */, 0.99 /* thres */, 0.15 /* e */, 1024);
+		std::cerr << P.first << " " << P.second << std::endl;
+
+		return 0;
+
+		libmaus2::math::Rational<> const R = libmaus2::math::Rational<>::doubleToRational(M_PI,32);
+		std::cerr << R << std::endl;
+
+		{
+		libmaus2::math::GmpInteger G(25);
+		std::cerr << G << std::endl;
+		}
+		{
+		libmaus2::math::GmpInteger G(std::numeric_limits<int64_t>::max());
+		std::cerr << G << " " << std::numeric_limits<int64_t>::max() << std::endl;
+
+		std::cerr << libmaus2::math::GmpInteger(5) + libmaus2::math::GmpInteger(7) << std::endl;
+		std::cerr << libmaus2::math::GmpInteger(5) - libmaus2::math::GmpInteger(7) << std::endl;
+		std::cerr << libmaus2::math::GmpInteger(5) * libmaus2::math::GmpInteger(7) << std::endl;
+		std::cerr << libmaus2::math::GmpInteger(7) / libmaus2::math::GmpInteger(5) << std::endl;
+		std::cerr << libmaus2::math::GmpInteger(7) % libmaus2::math::GmpInteger(5) << std::endl;
+		std::cerr << libmaus2::math::GmpInteger(-5) % libmaus2::math::GmpInteger(7) << (-5%7) << std::endl;
+		std::cerr << libmaus2::math::GmpInteger(-5) / libmaus2::math::GmpInteger(7) << (-5/7) << std::endl;
+		}
+
+		std::cerr << std::string(80,'-') << std::endl;
+
+		{
+			libmaus2::math::Rational<libmaus2::math::GmpInteger> const R = libmaus2::math::Rational<libmaus2::math::GmpInteger>::doubleToRational(M_PI,64);
+			std::cerr << R << std::endl;
+			std::cerr << static_cast<double>(R) << std::endl;
+		}
+
+		for ( uint64_t n = 0; n <= 10; ++n )
+			for ( uint64_t k = 0; k <= n; ++k )
+				std::cerr << "n=" << n << " k=" << k << " c=" << libmaus2::math::Binom::binomialCoefficientAsRational(k,n) << std::endl;
+
+		std::cerr << std::setprecision(20) << static_cast<double>(libmaus2::math::Binom::slowPow(libmaus2::math::Rational<libmaus2::math::GmpInteger>::doubleToRational(M_PI,64),3)) << std::endl;
+		std::cerr << std::setprecision(20) << (libmaus2::math::Binom::slowPow(libmaus2::math::Rational<libmaus2::math::GmpInteger>::doubleToRational(M_PI,64),3)).toDouble() << std::endl;
+
+		std::cerr << libmaus2::math::Binom::binomSingleAsRational(libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(1),libmaus2::math::GmpInteger(3)), 2, 5) << std::endl;
+		std::cerr << libmaus2::math::Binom::binomSingle(1.0/3.0, 2, 5) << std::endl;
+		std::cerr << libmaus2::math::Binom::binomRowAsRational(libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(1),libmaus2::math::GmpInteger(3)), 2, 5) << std::endl;
+		std::cerr << libmaus2::math::Binom::binomRow(1.0/3.0, 2, 5) << std::endl;
+		std::cerr << libmaus2::math::Binom::binomRowUpperAsRational(libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(1),libmaus2::math::GmpInteger(3)), 2, 5) << std::endl;
+		std::cerr << libmaus2::math::Binom::binomRowUpper(1.0/3.0, 2, 5) << std::endl;
+
+		std::cerr << static_cast<int64_t>(libmaus2::math::GmpInteger(std::numeric_limits<int64_t>::min())) << std::endl;
+		std::cerr << libmaus2::math::GmpInteger(std::numeric_limits<int64_t>::min()) << std::endl;
+
+		std::cerr << libmaus2::math::GmpFloat(5) << std::endl;
+		std::cerr << libmaus2::math::GmpFloat(5) + libmaus2::math::GmpFloat(7) << std::endl;
+		std::cerr << libmaus2::math::GmpFloat(5) - libmaus2::math::GmpFloat(7) << std::endl;
+		std::cerr << libmaus2::math::GmpFloat(5) * libmaus2::math::GmpFloat(7) << std::endl;
+		std::cerr << libmaus2::math::GmpFloat(5) / libmaus2::math::GmpFloat(7) << std::endl;
+		std::cerr << (libmaus2::math::GmpFloat(5) < libmaus2::math::GmpFloat(7)) << std::endl;
+
+		return 0;
+	}
+	#endif
+
 	{
 		libmaus2::lcs::NP NP;
 		std::string const b = "ATCTTATCTATCTTATCATCTATCATTATCTTTCTTATCATTATCTTATCTTATCTTATTTATCTTATATTATCTTATCTATATCTTATCATATCTTATCTTATCTTATCTTTCTTTTATTTCATTATCTTATCATATCTTATCTTATCT";
