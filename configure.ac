@@ -3087,7 +3087,29 @@ if test "${with_daligner}" != "no" ; then
 	LIBS_SAVE=${LIBS}
 	LDFLAGS_SAVE=${LDFLAGS}
 	
-	if test ! -z "${DALIGNERDIR}" ; then
+	if test -z "${DALIGNERDIR}" ; then
+		DALIGNERCPPFLAGS=
+		DALIGNERLDFLAGS=
+		DALIGNERLIBS="-lalign"
+		
+		CPPFLAGS="${CPPFLAGS} ${DALIGNERCPPFLAGS}"
+		LDFLAGS="${LDFLAGS} ${DALIGNERLDFLAGS}"
+		LIBS="${LIBS} ${DALIGNERLIBS}"
+
+                AC_LANG_PUSH([C++])
+                AC_CHECK_HEADER(align.h, [daligner_align_h=yes], [daligner_align_h=no])
+                AC_LANG_POP
+
+		if test "${daligner_align_h}" = "yes" ; then
+			AC_MSG_CHECKING([for align.h])
+			AC_LANG_PUSH([C++])
+			AC_TRY_LINK([#include <align.h>
+				],[
+				return 0;
+			],[daligner_align_h=yes],[daligner_align_h=no])
+			AC_MSG_RESULT([${daligner_align_h}])	
+                fi
+	else
 		DALIGNERCPPFLAGS="-I${DALIGNERDIR}/include"
 		DALIGNERLDFLAGS="-L${DALIGNERDIR}/lib -Wl,-rpath=${DALIGNERDIR}/lib"
 		DALIGNERLIBS="-lalign"
@@ -3095,21 +3117,52 @@ if test "${with_daligner}" != "no" ; then
 		CPPFLAGS="${CPPFLAGS} ${DALIGNERCPPFLAGS}"
 		LDFLAGS="${LDFLAGS} ${DALIGNERLDFLAGS}"
 		LIBS="${LIBS} ${DALIGNERLIBS}"
-	fi
+		
+		AC_LANG_PUSH([C++])
+		AC_CHECK_HEADER(align.h, [daligner_align_h=yes], [daligner_align_h=no])
+		AC_LANG_POP
 
-	AC_LANG_PUSH([C++])
-	AC_CHECK_HEADER(align.h, [daligner_align_h=yes], [daligner_align_h=no])
-	AC_LANG_POP
-	
-	if test "${daligner_align_h}" = "yes" ; then
-AC_MSG_CHECKING([for align.h])
-AC_LANG_PUSH([C++])
-	AC_TRY_LINK([#include <align.h>
-],[
-	return 0;
-],[daligner_align_h=yes],[daligner_align_h=no])
-AC_MSG_RESULT([${daligner_align_h}])	
+		if test "${daligner_align_h}" = "yes" ; then
+			AC_MSG_CHECKING([for align.h])
+			AC_LANG_PUSH([C++])
+			AC_TRY_LINK([#include <align.h>
+				],[
+				return 0;
+			],[daligner_align_h=yes],[daligner_align_h=no])
+			AC_MSG_RESULT([${daligner_align_h}])	
+                fi
+
+		AS_UNSET(ac_cv_header_align_h)
+		
+		if test ${daligner_align_h} = "no" ; then
+			CPPFLAGS=${CPPFLAGS_SAVE}
+			CXXFLAGS=${CXXFLAGS_SAVE}
+			LIBS=${LIBS_SAVE}
+			LDFLAGS=${LDFLAGS_SAVE}
+
+			DALIGNERCPPFLAGS="-I${DALIGNERDIR}"
+			DALIGNERLDFLAGS="-L${DALIGNERDIR}"
+			DALIGNERLIBS="-lalign"
+		
+			CPPFLAGS="${CPPFLAGS} ${DALIGNERCPPFLAGS}"
+			LDFLAGS="${LDFLAGS} ${DALIGNERLDFLAGS}"
+			LIBS="${LIBS} ${DALIGNERLIBS}"
+		
+			AC_LANG_PUSH([C++])
+			AC_CHECK_HEADER(align.h, [daligner_align_h=yes], [daligner_align_h=no])
+			AC_LANG_POP
+			if test "${daligner_align_h}" = "yes" ; then
+				AC_MSG_CHECKING([for align.h])
+				AC_LANG_PUSH([C++])
+				AC_TRY_LINK([#include <align.h>
+					],[
+					return 0;
+				],[daligner_align_h=yes],[daligner_align_h=no])
+				AC_MSG_RESULT([${daligner_align_h}])	
+			fi
+		fi
 	fi
+	
 	
 	if test "${daligner_align_h}" = "yes" ; then	
 AC_MSG_CHECKING([whether we can compile a program using the daligner library])
