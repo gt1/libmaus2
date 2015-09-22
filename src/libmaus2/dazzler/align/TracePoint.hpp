@@ -42,8 +42,18 @@ namespace libmaus2
 				{
 				
 				}
+
+				bool operator<(TracePoint const & T) const
+				{
+					if ( apos != T.apos )
+						return apos < T.apos;
+					else if ( bpos != T.bpos )
+						return bpos < T.bpos;
+					else
+						return id < T.id;
+				}
 			};
-			
+
 			std::ostream & operator<<(std::ostream & out, TracePoint const & TP);
 		}
 	}
