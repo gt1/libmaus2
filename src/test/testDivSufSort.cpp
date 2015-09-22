@@ -199,6 +199,8 @@ void testTempFileContainer()
 
 int main(int argc, char * argv[])
 {
+	std::cerr << libmaus2::suffixsort::SmallestRotation::smallestRotationAsString("bcabca") << std::endl;
+
 	testBin();
 
 	if ( argc < 2 )

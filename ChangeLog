@@ -1,3 +1,11 @@
+libmaus2 (2.0.86-1) unstable; urgency=medium
+
+  * adding TracePoint class
+  * adding getTracePoints method in Overlap class
+  * adding smallestRotationAsString function in SmallestRotation class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 22 Sep 2015 14:04:27 +0200
+
 libmaus2 (2.0.85-1) unstable; urgency=medium
 
   * fix compilation of RepetetiveKmerFreqEstimate without gmp 
