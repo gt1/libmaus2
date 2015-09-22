@@ -34,8 +34,9 @@ namespace libmaus2
 				double const e = 0.15,
 				unsigned int
 				#if defined(LIBMAUS2_HAVE_GMP)
-					prec = 8192 // fixed point precision
+					prec
 				#endif
+						= 8192 // fixed point precision
 			)
 			{
 				#if defined(LIBMAUS2_HAVE_GMP)
