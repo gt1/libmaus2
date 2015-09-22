@@ -22,6 +22,7 @@
 #include <libmaus2/lcs/Aligner.hpp>
 #include <libmaus2/math/IntegerInterval.hpp>
 #include <libmaus2/dazzler/align/TraceBlock.hpp>
+#include <libmaus2/dazzler/align/TracePoint.hpp>
 		
 namespace libmaus2
 {
@@ -470,7 +471,40 @@ namespace libmaus2
 					
 					return V;
 				}
-				
+
+				std::vector<TracePoint> getTracePoints(int64_t const tspace, uint64_t const traceid) const
+				{
+					// current point on A
+					int32_t a_i = ( path.abpos / tspace ) * tspace;
+					// current point on B
+					int32_t b_i = ( path.bbpos );
+
+					std::vector < TracePoint > V;
+
+					for ( size_t i = 0; i < path.path.size(); ++i )
+					{
+						// block start point on A
+						int32_t const a_i_0 = std::max ( a_i, static_cast<int32_t>(path.abpos) );
+						// block end point on A
+						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(path.aepos) );
+						// block end point on B
+						int32_t const b_i_1 = b_i + path.path[i].second;
+
+						V.push_back(TracePoint(a_i_0,b_i,traceid));
+
+						// update start points
+						b_i = b_i_1;
+						a_i = a_i_1;
+					}
+
+					if ( V.size() )
+						V.push_back(TracePoint(a_i,b_i,traceid));
+					else
+						V.push_back(TracePoint(path.abpos,path.bbpos,traceid));
+
+					return V;
+				}
+
 				std::vector<uint64_t> getFullBlocks(int64_t const tspace) const
 				{
 					std::vector<TraceBlock> const TB = getTraceBlocks(tspace);
