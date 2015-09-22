@@ -474,12 +474,17 @@ namespace libmaus2
 
 				std::vector<TracePoint> getTracePoints(int64_t const tspace, uint64_t const traceid) const
 				{
+					std::vector<TracePoint> V;
+					getTracePoints(tspace,traceid,V);
+					return V;
+				}
+
+				void getTracePoints(int64_t const tspace, uint64_t const traceid, std::vector<TracePoint> & V) const
+				{
 					// current point on A
 					int32_t a_i = ( path.abpos / tspace ) * tspace;
 					// current point on B
 					int32_t b_i = ( path.bbpos );
-
-					std::vector < TracePoint > V;
 
 					for ( size_t i = 0; i < path.path.size(); ++i )
 					{
@@ -501,8 +506,6 @@ namespace libmaus2
 						V.push_back(TracePoint(a_i,b_i,traceid));
 					else
 						V.push_back(TracePoint(path.abpos,path.bbpos,traceid));
-
-					return V;
 				}
 
 				std::vector<uint64_t> getFullBlocks(int64_t const tspace) const
