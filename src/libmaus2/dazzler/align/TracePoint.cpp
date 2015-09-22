@@ -19,5 +19,5 @@
 
 std::ostream & libmaus2::dazzler::align::operator<<(std::ostream & out, libmaus2::dazzler::align::TracePoint const & TP)
 {
-	return out << "TracePoint(bpos=" << TP.bpos << ",epos=" << TP.epos << ",id=" << TP.id << ")";
+	return out << "TracePoint(apos=" << TP.apos << ",bpos=" << TP.bpos << ",id=" << TP.id << ")";
 }

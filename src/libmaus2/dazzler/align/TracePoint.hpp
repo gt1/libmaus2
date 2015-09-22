@@ -29,16 +29,16 @@ namespace libmaus2
 		{
 			struct TracePoint
 			{
+				int64_t apos;
 				int64_t bpos;
-				int64_t epos;
 				int64_t id;
 				
 				TracePoint() {}
 				TracePoint(
+					int64_t const rapos,
 					int64_t const rbpos,
-					int64_t const repos,
 					int64_t const rid	
-				) : bpos(rbpos), epos(repos),id(rid)
+				) : apos(rapos), bpos(rbpos),id(rid)
 				{
 				
 				}
