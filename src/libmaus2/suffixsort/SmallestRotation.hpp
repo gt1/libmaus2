@@ -76,6 +76,15 @@ namespace libmaus2
 					return 0;
 				}
 			}
+
+			static std::string smallestRotationAsString(std::string const & s)
+			{
+				uint64_t const j = smallestRotation(s);
+				std::string r = s;
+				for ( uint64_t i = 0; i < s.size(); ++i )
+					r[i] = s[(i+j)%s.size()];
+				return r;
+			}
 		};
 	}
 }
