@@ -59,10 +59,26 @@ namespace libmaus2
 				{
 					return !getBInterval().intersection(O.getBInterval()).isEmpty();
 				}
-				
+
 				bool operator==(TraceBlock const & O) const
 				{
 					return A == O.A && B == O.B && err == O.err;
+				}
+
+				void swap()
+				{
+					std::swap(A,B);
+				}
+
+				void swap(int64_t const alen, int64_t const blen)
+				{
+					std::swap(A.first,A.second);
+					std::swap(B.first,B.second);
+					A.first = alen-A.first;
+					A.second = alen-A.second;
+					B.first = blen-B.first;
+					B.second = blen-B.second;
+					swap();
 				}
 			};
 			
