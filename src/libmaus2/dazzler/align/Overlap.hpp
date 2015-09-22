@@ -501,6 +501,7 @@ namespace libmaus2
 
 					for ( uint64_t i = 0; i < V.size(); ++i )
 						V[i].swap(alen,blen);
+					std::reverse(V.begin(),V.end());
 
 					return V;
 				}
