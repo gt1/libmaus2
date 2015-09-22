@@ -52,6 +52,18 @@ namespace libmaus2
 					else
 						return id < T.id;
 				}
+
+				void swap()
+				{
+					std::swap(apos,bpos);
+				}
+
+				void swap(int64_t const alen, int64_t const blen)
+				{
+					apos = alen-apos;
+					bpos = blen-bpos;
+					swap();
+				}
 			};
 
 			std::ostream & operator<<(std::ostream & out, TracePoint const & TP);
