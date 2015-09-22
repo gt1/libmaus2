@@ -437,7 +437,74 @@ namespace libmaus2
 					
 					return std::pair<uint64_t,uint64_t>(length,errors);
 				}
-				
+
+				Overlap getSwapped(int64_t const tspace) const
+				{
+					if ( ! isInverse() )
+					{
+						Overlap OVL;
+						OVL.path = getSwappedPath(tspace);
+						OVL.flags = flags;
+						OVL.aread = bread;
+						OVL.bread = aread;
+						return OVL;
+					}
+					else
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "Overlap::getSwapped(): not supported for inverse flagged overlaps" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+				}
+
+				Overlap getSwapped(int64_t const tspace, int64_t const alen, int64_t const blen) const
+				{
+					if ( ! isInverse() )
+					{
+						return getSwapped(tspace);
+					}
+					else
+					{
+						Overlap OVL;
+						OVL.path = getSwappedPathInverse(tspace,alen,blen);
+						OVL.flags = flags;
+						OVL.aread = bread;
+						OVL.bread = aread;
+						return OVL;
+					}
+				}
+
+				Path getSwappedPath(int64_t const tspace) const
+				{
+					return computePath(getSwappedTraceBlocks(tspace));
+				}
+
+				Path getSwappedPathInverse(int64_t const tspace, int64_t const alen, int64_t const blen) const
+				{
+					return computePath(getSwappedTraceBlocksInverse(tspace,alen,blen));
+				}
+
+				std::vector<TraceBlock> getSwappedTraceBlocks(int64_t const tspace) const
+				{
+					std::vector<TraceBlock> V = getTraceBlocks(tspace);
+
+					for ( uint64_t i = 0; i < V.size(); ++i )
+						V[i].swap();
+
+					return V;
+				}
+
+				std::vector<TraceBlock> getSwappedTraceBlocksInverse(int64_t const tspace, int64_t const alen, int64_t const blen) const
+				{
+					std::vector<TraceBlock> V = getTraceBlocks(tspace);
+
+					for ( uint64_t i = 0; i < V.size(); ++i )
+						V[i].swap(alen,blen);
+
+					return V;
+				}
+
 				std::vector<TraceBlock> getTraceBlocks(int64_t const tspace) const
 				{
 					// current point on A
@@ -506,6 +573,45 @@ namespace libmaus2
 						V.push_back(TracePoint(a_i,b_i,traceid));
 					else
 						V.push_back(TracePoint(path.abpos,path.bbpos,traceid));
+				}
+
+				std::vector<TracePoint> getSwappedTracePoints(int64_t const tspace, uint64_t const traceid) const
+				{
+					std::vector<TracePoint> V;
+					getSwappedTracePoints(tspace,traceid,V);
+					return V;
+				}
+
+				void getSwappedTracePoints(int64_t const tspace, uint64_t const traceid, std::vector<TracePoint> & V) const
+				{
+					// current point on A
+					int32_t a_i = ( path.abpos / tspace ) * tspace;
+					// current point on B
+					int32_t b_i = ( path.bbpos );
+
+					for ( size_t i = 0; i < path.path.size(); ++i )
+					{
+						// block start point on A
+						int32_t const a_i_0 = std::max ( a_i, static_cast<int32_t>(path.abpos) );
+						// block end point on A
+						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(path.aepos) );
+						// block end point on B
+						int32_t const b_i_1 = b_i + path.path[i].second;
+
+						V.push_back(TracePoint(a_i_0,b_i,traceid));
+
+						// update start points
+						b_i = b_i_1;
+						a_i = a_i_1;
+					}
+
+					if ( V.size() )
+						V.push_back(TracePoint(a_i,b_i,traceid));
+					else
+						V.push_back(TracePoint(path.abpos,path.bbpos,traceid));
+
+					for ( uint64_t i = 0; i < V.size(); ++i )
+						V[i].swap();
 				}
 
 				std::vector<uint64_t> getFullBlocks(int64_t const tspace) const

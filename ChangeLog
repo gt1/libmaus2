@@ -1,3 +1,9 @@
+libmaus2 (2.0.87-1) unstable; urgency=medium
+
+  * implement swapping of aread and bread roles in Overlap class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 22 Sep 2015 16:32:38 +0200
+
 libmaus2 (2.0.86-1) unstable; urgency=medium
 
   * adding TracePoint class
