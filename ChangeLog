@@ -1,3 +1,9 @@
+libmaus2 (2.0.89-1) unstable; urgency=medium
+
+  * return last loaded index from iterator based fill method in ReadContainer class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 23 Sep 2015 14:09:25 +0200
+
 libmaus2 (2.0.88-1) unstable; urgency=medium
 
   * fix swapping of a and b read roles in Overlap class 
