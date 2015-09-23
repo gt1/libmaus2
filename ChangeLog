@@ -1,3 +1,9 @@
+libmaus2 (2.0.88-1) unstable; urgency=medium
+
+  * fix swapping of a and b read roles in Overlap class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 23 Sep 2015 11:48:00 +0200
+
 libmaus2 (2.0.87-1) unstable; urgency=medium
 
   * implement swapping of aread and bread roles in Overlap class 
