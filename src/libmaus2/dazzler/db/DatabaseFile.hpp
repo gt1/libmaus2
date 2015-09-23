@@ -978,7 +978,7 @@ namespace libmaus2
 				{
 					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
 					std::istream & idxfile = *Pidxfile;
-					
+
 					uint64_t h = low;
 					uint64_t m = 0;
 					while ( h < size() && m < maxmem )
