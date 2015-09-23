@@ -23,6 +23,7 @@
 #include <libmaus2/math/IntegerInterval.hpp>
 #include <libmaus2/dazzler/align/TraceBlock.hpp>
 #include <libmaus2/dazzler/align/TracePoint.hpp>
+#include <libmaus2/fastx/acgtnMap.hpp>
 		
 namespace libmaus2
 {
@@ -293,7 +294,7 @@ namespace libmaus2
 					
 					// reset trace container
 					ATC.reset();
-					
+
 					for ( size_t i = 0; i < path.path.size(); ++i )
 					{
 						// block end point on A
@@ -304,22 +305,54 @@ namespace libmaus2
 						// block on A
 						uint8_t const * asubsub_b = aptr + std::max(a_i,path.abpos);
 						uint8_t const * asubsub_e = asubsub_b + a_i_1-std::max(a_i,path.abpos);
-						
+
 						// block on B
 						uint8_t const * bsubsub_b = bptr + b_i;
 						uint8_t const * bsubsub_e = bsubsub_b + (b_i_1-b_i);
 
 						aligner.align(asubsub_b,(asubsub_e-asubsub_b),bsubsub_b,bsubsub_e-bsubsub_b);
-						
+
 						// add trace to full alignment
 						ATC.push(aligner.getTraceContainer());
-						
+
 						// update start points
 						b_i = b_i_1;
 						a_i = a_i_1;
 					}
 				}
 
+				static void computeTrace(
+					std::vector<TraceBlock> const & TBV,
+					uint8_t const * aptr,
+					uint8_t const * bptr,
+					libmaus2::lcs::AlignmentTraceContainer & ATC,
+					libmaus2::lcs::Aligner & aligner
+				)
+				{
+					// reset trace container
+					ATC.reset();
+
+					for ( size_t i = 0; i < TBV.size(); ++i )
+					{
+						int32_t const a_i_0 = TBV[i].A.first;
+						int32_t const a_i_1 = TBV[i].A.second;
+						int32_t const b_i_0 = TBV[i].B.first;
+						int32_t const b_i_1 = TBV[i].B.second;
+
+						// block on A
+						uint8_t const * asubsub_b = aptr + a_i_0;
+						uint8_t const * asubsub_e = aptr + a_i_1;
+
+						// block on B
+						uint8_t const * bsubsub_b = bptr + b_i_0;
+						uint8_t const * bsubsub_e = bptr + b_i_1;
+
+						aligner.align(asubsub_b,(asubsub_e-asubsub_b),bsubsub_b,bsubsub_e-bsubsub_b);
+
+						// add trace to full alignment
+						ATC.push(aligner.getTraceContainer());
+					}
+				}
 				
 				/**
 				 * compute alignment trace
@@ -438,40 +471,58 @@ namespace libmaus2
 					return std::pair<uint64_t,uint64_t>(length,errors);
 				}
 
-				Overlap getSwapped(int64_t const tspace) const
+				Overlap getSwapped(
+					int64_t const tspace,
+					uint8_t const * aptr,
+					int64_t const alen, 
+					uint8_t const * bptr,
+					int64_t const blen,
+					libmaus2::autoarray::AutoArray<uint8_t> & Binv,
+					libmaus2::lcs::AlignmentTraceContainer & ATC,
+					libmaus2::lcs::Aligner & aligner
+				) const
 				{
 					if ( ! isInverse() )
 					{
+						computeTrace(path,aptr,bptr,tspace,ATC,aligner);
+						ATC.swapRoles();
+						// std::reverse(ATC.ta,ATC.te);
 						Overlap OVL;
-						OVL.path = getSwappedPath(tspace);
 						OVL.flags = flags;
 						OVL.aread = bread;
 						OVL.bread = aread;
+						OVL.path = computePath(
+							path.bbpos,
+							path.bepos,
+							path.abpos,
+							path.aepos,
+							tspace,ATC);
 						return OVL;
 					}
 					else
 					{
-						libmaus2::exception::LibMausException lme;
-						lme.getStream() << "Overlap::getSwapped(): not supported for inverse flagged overlaps" << std::endl;
-						lme.finish();
-						throw lme;
-					}
-				}
+						if ( static_cast<int64_t>(Binv.size()) < blen )
+							Binv.resize(blen);
+						std::copy(bptr,bptr+blen,Binv.begin());
+						std::reverse(Binv.begin(),Binv.begin()+blen);
+						for ( int64_t i = 0; i < blen; ++i )
+							Binv[i] = libmaus2::fastx::invertUnmapped(Binv[i]);
+							
+						computeTrace(path,aptr,Binv.begin(),tspace,ATC,aligner);
+						ATC.swapRoles();
+						std::reverse(ATC.ta,ATC.te);
+						Overlap OVL;
+						OVL.flags = flags;
+						OVL.aread = bread;
+						OVL.bread = aread;
+						OVL.path = computePath(
+							blen - path.bepos,
+							blen - path.bbpos,
+							alen - path.aepos,
+							alen - path.abpos,
+							tspace,ATC);
+						return OVL;
 
-				Overlap getSwapped(int64_t const tspace, int64_t const alen, int64_t const blen) const
-				{
-					if ( ! isInverse() )
-					{
-						return getSwapped(tspace);
-					}
-					else
-					{
-						Overlap OVL;
-						OVL.path = getSwappedPathInverse(tspace,alen,blen);
-						OVL.flags = flags;
-						OVL.aread = bread;
-						OVL.bread = aread;
-						return OVL;
 					}
 				}
 
