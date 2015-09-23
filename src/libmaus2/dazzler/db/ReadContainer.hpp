@@ -58,20 +58,25 @@ namespace libmaus2
 				}
 
 				template<typename iterator>	
-				void fill(iterator low, iterator high, uint64_t const maxmem, std::ostream * verbstr = 0)
+				int64_t fill(iterator low, iterator high, uint64_t const maxmem, std::ostream * verbstr = 0)
 				{
 					MM.clear();
 					B.resize(0);
 					O.resize(0);
-					
+
 					iterator itc = DB.getReadDataVectorMemInterval(low,high,maxmem,B,O);
 
 					uint64_t id = 0;
 					while ( low != itc )
 						MM[*(low++)] = id++;
-						
+
 					if ( verbstr )
 						(*verbstr) << "[V] refilled " << id << std::endl;
+
+					if ( MM.size() )
+						return MM.rbegin()->first;
+					else
+						return -1;
 				}
 
 				uint64_t fillMem(uint64_t const low, uint64_t const maxmem, std::ostream * verbstr = 0)
