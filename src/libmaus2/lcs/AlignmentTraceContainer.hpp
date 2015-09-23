@@ -466,7 +466,27 @@ namespace libmaus2
 				return (Abpos == Bbpos);
 			}
 
-			
+			static void swapRoles(step_type * ta, step_type * te)
+			{
+				for ( step_type * tc = ta; tc != te; ++tc )
+					switch ( *tc )
+					{
+						case STEP_INS:
+							*tc = STEP_DEL;
+							break;
+						case STEP_DEL:
+							*tc = STEP_INS;
+							break;
+						default:
+							break;
+					}
+			}
+
+			void swapRoles()
+			{
+				swapRoles(ta,te);
+			}
+
 			std::vector < ClipPair > lowQuality(int const k, unsigned int const thres) const
 			{
 				std::vector < ClipPair > R;
