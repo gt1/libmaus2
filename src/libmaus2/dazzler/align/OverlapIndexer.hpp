@@ -147,38 +147,50 @@ namespace libmaus2
 							lme.finish();
 							throw lme;
 						}
-						libmaus2::aio::InputStreamInstance::unique_ptr_type Tfile(new libmaus2::aio::InputStreamInstance(aligns));
-						Pfile = UNIQUE_PTR_MOVE(Tfile);
 
 						libmaus2::index::ExternalMemoryIndexDecoder<OverlapMeta,base_level_log,inner_level_log> EMID(getIndexName(aligns));
-						libmaus2::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<OverlapMeta> ER = EMID.findLargestSmaller(OverlapMeta(aread,0,0,0,0,0,0));
 
-						libmaus2::dazzler::align::AlignmentFile::unique_ptr_type Talgn(new libmaus2::dazzler::align::AlignmentFile(*Pfile));
-						Palgn = UNIQUE_PTR_MOVE(Talgn);
-						
-						Palgn->alre += (ER.blockid << base_level_log);
-						Pfile->clear();
-						Pfile->seekg(ER.P.first);
-						
-						libmaus2::dazzler::align::Overlap OVL;
-						
-						uint64_t ppos = Pfile->tellg();
-						
-						while ( Palgn->peekNextOverlap(*Pfile,OVL) && OVL.aread < aread )
+						if ( ! EMID.size() )
 						{
-							Palgn->getNextOverlap(*Pfile,OVL);
-							ppos = Pfile->tellg();
+							libmaus2::aio::InputStreamInstance::unique_ptr_type Tfile(new libmaus2::aio::InputStreamInstance(aligns));
+							Pfile = UNIQUE_PTR_MOVE(Tfile);
+							libmaus2::dazzler::align::AlignmentFile::unique_ptr_type Talgn(new libmaus2::dazzler::align::AlignmentFile(*Pfile));
+							Palgn = UNIQUE_PTR_MOVE(Talgn);
 						}
+						else
+						{
+							libmaus2::aio::InputStreamInstance::unique_ptr_type Tfile(new libmaus2::aio::InputStreamInstance(aligns));
+							Pfile = UNIQUE_PTR_MOVE(Tfile);
 
-						if ( Palgn->putbackslotactive )
-						{
-							Palgn->putbackslotactive = false;
-							assert ( Palgn->alre > 0 );
-							Palgn->alre -= 1;
+							libmaus2::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<OverlapMeta> ER = EMID.findLargestSmaller(OverlapMeta(aread,0,0,0,0,0,0));
+
+							libmaus2::dazzler::align::AlignmentFile::unique_ptr_type Talgn(new libmaus2::dazzler::align::AlignmentFile(*Pfile));
+							Palgn = UNIQUE_PTR_MOVE(Talgn);
+
+							Palgn->alre += (ER.blockid << base_level_log);
+							Pfile->clear();
+							Pfile->seekg(ER.P.first);
+
+							libmaus2::dazzler::align::Overlap OVL;
+
+							uint64_t ppos = Pfile->tellg();
+
+							while ( Palgn->peekNextOverlap(*Pfile,OVL) && OVL.aread < aread )
+							{
+								Palgn->getNextOverlap(*Pfile,OVL);
+								ppos = Pfile->tellg();
+							}
+
+							if ( Palgn->putbackslotactive )
+							{
+								Palgn->putbackslotactive = false;
+								assert ( Palgn->alre > 0 );
+								Palgn->alre -= 1;
+							}
+
+							Pfile->clear();
+							Pfile->seekg(ppos);
 						}
-						
-						Pfile->clear();
-						Pfile->seekg(ppos);
 					}
 				}
 				

@@ -1,3 +1,11 @@
+libmaus2 (2.0.90-1) unstable; urgency=medium
+
+  * add xz/lzma based input stream class
+  * add xz/lzma decoding support class
+  * fix case of empty file in openAlignmentFileAtRead function of OverlapIndexer class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 16 Oct 2015 13:31:18 +0200
+
 libmaus2 (2.0.89-1) unstable; urgency=medium
 
   * return last loaded index from iterator based fill method in ReadContainer class 
