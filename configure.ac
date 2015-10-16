@@ -1,4 +1,4 @@
-AC_INIT(libmaus2,2.0.90,[gt1@sanger.ac.uk],[libmaus2],[http://www.sanger.ac.uk])
+AC_INIT(libmaus2,2.0.90,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
 LIBRARY_VERSION=2:90:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
