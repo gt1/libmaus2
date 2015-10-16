@@ -416,7 +416,8 @@ libmaus2lz_include_HEADERS = libmaus2/lz/Inflate.hpp libmaus2/lz/Deflate.hpp lib
 	libmaus2/lz/BgzfDeflateZStreamBaseAllocator.hpp \
 	libmaus2/lz/BgzfDeflateZStreamBaseTypeInfo.hpp \
 	libmaus2/lz/BgzfInflateZStreamBaseAllocator.hpp \
-	libmaus2/lz/BgzfInflateZStreamBaseTypeInfo.hpp
+	libmaus2/lz/BgzfInflateZStreamBaseTypeInfo.hpp \
+	libmaus2/lz/XzDecoder.hpp
 
 libmaus2bambam_includedir=$(includedir)/libmaus2/bambam/
 libmaus2bambam_include_HEADERS = libmaus2/bambam/DecoderBase.hpp libmaus2/bambam/Chromosome.hpp \
@@ -1877,7 +1878,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testfastashred \
 	testalignerspeed \
 	testfastasingleline \
-	testdazzleralignmentrewrite
+	testdazzleralignmentrewrite \
+	testxz
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2360,3 +2362,7 @@ testfastasingleline_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testdazzleralignmentrewrite_SOURCES  = test/testdazzleralignmentrewrite.cpp
 testdazzleralignmentrewrite_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testdazzleralignmentrewrite_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testxz_SOURCES  = test/testxz.cpp
+testxz_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB} @LIBMAUS2_LZMA_LIBS@
+testxz_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
