@@ -1,9 +1,9 @@
 Source: libmaus2
-Maintainer: German Tischler <gt1@sanger.ac.uk>
+Maintainer: German Tischler <tischler@mpi-cbg.de>
 Section: libs
 Priority: optional
 Standards-Version: 3.9.5
-Build-Depends: debhelper (>= 9), dh-autoreconf, dh-exec, autoconf (>= 2.61), automake (>= 1.10), libtool (>= 2.2.6), pkg-config (>= 0.22), zlib1g-dev (>= 1.2.3), libsnappy-dev (>= 1.0.3), seqan-dev (>= 1.2), libstaden-read-dev (>= 1.13.0), libgnutls-dev (>= 2.12.14), yasm (>= 1.1.0), nettle-dev (>= 2.4)
+Build-Depends: debhelper (>= 9), dh-autoreconf, dh-exec, autoconf (>= 2.61), automake (>= 1.10), libtool (>= 2.2.6), pkg-config (>= 0.22), zlib1g-dev (>= 1.2.3), libsnappy-dev (>= 1.0.3), seqan-dev (>= 1.2), libstaden-read-dev (>= 1.13.0), libgnutls-dev (>= 2.12.14), yasm (>= 1.1.0), nettle-dev (>= 2.4), liblzma-dev (>= 5.1.0)
 Vcs-Git: https://github.com/gt1/libmaus2.git -b debian
 Vcs-browser: https://github.com/gt1/libmaus2/tree/debian
 Homepage: https://github.com/gt1/libmaus2
@@ -27,7 +27,7 @@ Package: libmaus2-dev
 Architecture: any
 Multi-Arch: same
 Section: libdevel
-Depends: ${shlibs:Depends}, ${misc:Depends}, libmaus2 (= ${binary:Version}), pkg-config (>= 0.22), zlib1g-dev (>= 1.2.3), libsnappy-dev (>= 1.0.3), seqan-dev (>= 1.2), libgnutls-dev (>= 2.12.14)
+Depends: ${shlibs:Depends}, ${misc:Depends}, libmaus2 (= ${binary:Version}), pkg-config (>= 0.22), zlib1g-dev (>= 1.2.3), libsnappy-dev (>= 1.0.3), seqan-dev (>= 1.2), libgnutls-dev (>= 2.12.14), liblzma-dev (>= 5.1.0)
 Description: Development files for libmaus2 (headers, libraries and pkg-config files)
  libmaus2 contains a collection of data structures and algorithms, many of
  which have applications in bio-informatics. In particular this includes
