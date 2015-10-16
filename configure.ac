@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.89,[gt1@sanger.ac.uk],[libmaus2],[http://www.sanger.ac.uk])
-LIBRARY_VERSION=2:89:0
+AC_INIT(libmaus2,2.0.90,[gt1@sanger.ac.uk],[libmaus2],[http://www.sanger.ac.uk])
+LIBRARY_VERSION=2:90:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -2628,6 +2628,7 @@ AC_LANG_PUSH([C++])
 AC_CHECK_HEADER(lzma.h, [have_lzma_h=yes], [have_lzma_h=no])
 AC_LANG_POP
 
+LIBMAUS2_HAVE_LZMA=
 if [[ "${have_lzma_h}" = "yes" ]] ; then
 	LIBS_SAVE="${LIBS}"
 	LIBS="${LIBS} -llzma"
@@ -2654,6 +2655,11 @@ if [[ "${have_lzma_h}" = "yes" ]] ; then
         AC_LANG_POP
 	
 	LIBS="${LIBS_SAVE}"
+
+	if test "${have_lzma}" = "yes" ; then
+		LIBMAUS2_HAVE_LZMA="#define LIBMAUS2_HAVE_LZMA"
+		LIBMAUS2_LZMA_LIBS="-llzma"
+	fi
 fi
 
 AC_ARG_WITH([gnutls],
@@ -2984,6 +2990,7 @@ TESTPROGS="${TESTPROGS} testtopologicalsorting testlinebuffer testsamdecoder tes
 TESTPROGS="${TESTPROGS} testunsignedinteger testmd5 testsha testsinglefileserver"
 TESTPROGS="${TESTPROGS} testparallelbamvalidation testparallelbamrewrite testbammateerase testparallelbamblocksort"
 TESTPROGS="${TESTPROGS} testmapperm testexternalmemoryindex testfastqtobam testsamrecoding testdazzlerdb testnd testfastashred testalignerspeed testfastasingleline testdazzleralignmentrewrite"
+TESTPROGS="${TESTPROGS} testxz"
 
 HDF5CPPFLAGS=
 HDF5CXXFLAGS=
@@ -3448,4 +3455,6 @@ AC_SUBST([DALIGNERCPPFLAGS])
 AC_SUBST([DALIGNERLDFLAGS])
 AC_SUBST([DALIGNERLIBS])
 AC_SUBST([PKGSSE4])
+AC_SUBST([LIBMAUS2_HAVE_LZMA])
+AC_SUBST([LIBMAUS2_LZMA_LIBS])
 AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2lsf.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp)

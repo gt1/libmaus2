@@ -2525,7 +2525,7 @@ namespace libmaus2
 				{
 					libmaus2::exception::LibMausException se;
 					se.getStream() 
-						<< "BamAlignmentDecoderBase::getAuxAsNumber called non present tag " << tag 
+						<< "BamAlignmentDecoderBase::getAuxAsNumberArray called non present tag " << tag 
 						<< " for read " 
 						<< getReadName(E)
 						<< std::endl;
@@ -2537,7 +2537,7 @@ namespace libmaus2
 				{
 					libmaus2::exception::LibMausException se;
 					se.getStream() 
-						<< "BamAlignmentDecoderBase::getAuxAsNumber called for non array field " << tag 
+						<< "BamAlignmentDecoderBase::getAuxAsNumberArray called for non array field " << tag 
 						<< " for read " 
 						<< getReadName(E)
 						<< std::endl;

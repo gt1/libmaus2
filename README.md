@@ -37,7 +37,7 @@ A full list of configuration parameters can be obtained by calling
 
 libmaus2 can use functionality from several other code bases. This includes:
 
- - snappy [http://code.google.com/p/snappy/] : a fast and lightweight Lempel-Ziv
+ - snappy [http://google.github.io/snappy/] : a fast and lightweight Lempel-Ziv
    type compression/decompression library. This can be used for the compression
    of temporary files (as used in name collating BAM input for instance).
  - io_lib [http://sourceforge.net/p/staden/code/HEAD/tree/io_lib/] : This is
