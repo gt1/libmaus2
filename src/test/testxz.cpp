@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus2/lz/XzDecoder.hpp>
+#include <libmaus2/lz/XzInputStream.hpp>
 #include <iostream>
 
 int main()
@@ -24,10 +24,13 @@ int main()
 	{
 		int const bufsize = 8192;
 		char inbuf[8192];
-		libmaus2::lz::XzDecoder xzin(std::cin,1024,1024);
-		size_t r = 0;
-		while ( (r = xzin.read(reinterpret_cast<uint8_t *>(&inbuf[0]),bufsize)) != 0 )
-			std::cout.write(&inbuf[0],r);
+		libmaus2::lz::XzInputStream xzin(std::cin);
+		xzin.exceptions ( std::istream::badbit );
+		while ( xzin )
+		{
+			xzin.read(&inbuf[0],bufsize);
+			std::cout.write(&inbuf[0],xzin.gcount());
+		}
 	}
 	catch(std::exception const & ex)
 	{
