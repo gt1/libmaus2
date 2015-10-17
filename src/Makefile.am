@@ -225,13 +225,14 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/dazzler/align/TandemVector.cpp \
 	libmaus2/math/GmpInteger.cpp \
 	libmaus2/math/GmpFloat.cpp \
-	libmaus2/dazzler/align/TracePoint.cpp
+	libmaus2/dazzler/align/TracePoint.cpp \
+	libmaus2/lz/XzDecoder.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
-libmaus2_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@ @DALIGNERCPPFLAGS@ @GMPCPPFLAGS@
+libmaus2_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@ @DALIGNERCPPFLAGS@ @GMPCPPFLAGS@ @LIBMAUS2_LZMA_CPPFLAGS@
 libmaus2_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@ @NETTLELDFLAGS@ @DALIGNERLDFLAGS@ @GMPLDFLAGS@
-libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ @DALIGNERLIBS@ @GMPLIBS@
+libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ @DALIGNERLIBS@ @GMPLIBS@ @LIBMAUS2_LZMA_LIBS@
 
 libmaus2lsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus2lsf_la_SOURCES = libmaus2/lsf/LSFProcess.cpp
@@ -2364,5 +2365,5 @@ testdazzleralignmentrewrite_LDADD    = libmaus2.la libmaus2_simd_align_128.la li
 testdazzleralignmentrewrite_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 
 testxz_SOURCES  = test/testxz.cpp
-testxz_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB} @LIBMAUS2_LZMA_LIBS@
+testxz_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testxz_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@

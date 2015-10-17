@@ -146,7 +146,21 @@ namespace libmaus2
 				    throw lme;
 				}
 			}
-			
+
+			static std::string modify(
+				std::string const & sub, 
+				double const substrate, double const delrate, double const insrate,
+				double const erateavg,
+				double const eratestddev,
+				ErrorStats * const estats = 0
+			)
+			{
+				DNABaseNoiseSpiker spiker(
+					substrate,delrate,insrate,erateavg,erateavg,eratestddev,eratestddev,1,0,1
+				);
+				return spiker.modify(sub,estats);
+			}
+
 			ErrorStats modify(
 				std::ostream & out,
 				std::string sub, 
