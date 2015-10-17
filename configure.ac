@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.90,[gt1@sanger.ac.uk],[libmaus2],[http://www.sanger.ac.uk])
-LIBRARY_VERSION=2:90:0
+AC_INIT(libmaus2,2.0.91,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
+LIBRARY_VERSION=2:91:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -2624,41 +2624,75 @@ if [[ "${flag_MSG_CMSG_CLOEXEC}" = "yes" ]] ; then
 	HAVEMSGCMSGCLOEXEC="#define LIBMAUS2_HAVE_MSG_CMSG_CLOEXEC"	
 fi
 
-AC_LANG_PUSH([C++])
-AC_CHECK_HEADER(lzma.h, [have_lzma_h=yes], [have_lzma_h=no])
-AC_LANG_POP
+AC_ARG_WITH([lzma],
+	[AS_HELP_STRING([--with-lzma@<:@=PATH@:>@], [path to installed lzma library @<:@default=no@:>@])],
+	[with_lzma=${withval}],
+	[with_lzma=no])
 
 LIBMAUS2_HAVE_LZMA=
-if [[ "${have_lzma_h}" = "yes" ]] ; then
-	LIBS_SAVE="${LIBS}"
-	LIBS="${LIBS} -llzma"
+LIBMAUS2_LZMA_LIBS=
+LIBMAUS2_LZMA_CPPFLAGS=
+LIBMAUS2_LZMA_REQ=
 
-	AC_MSG_CHECKING([whether we can compile a program using the lzma library])	
-	AC_LANG_PUSH([C++])
-        AC_TRY_LINK([#include <lzma.h>
+if test "${with_lzma}" != "no" ; then
+	if test ! -z "${with_lzma}" ; then
+		PKGCONFIGPATHSAVE="${PKG_CONFIG_PATH}"
+		if test -z "${PKG_CONFIG_PATH}" ; then
+			export PKG_CONFIG_PATH="${with_lzma}/lib/pkgconfig"
+		else
+			export PKG_CONFIG_PATH="${with_lzma}/lib/pkgconfig:${PKG_CONFIG_PATH}"
+		fi
+	fi
+
+	PKG_CHECK_MODULES([liblzma],[liblzma >= 5.1.0],[lzmapkg=yes],[lzmapkg=no])
+
+	if test ! -z "${with_lzma}" ; then
+		if test ! -z "${PKGCONFIGPATHSAVE}" ; then
+			export PKG_CONFIG_PATH="${PKGCONFIGPATHSAVE}"
+		fi
+	fi
+
+	if test "${lzmapkg}" = "yes" ; then
+		AC_LANG_PUSH([C++])
+
+		LIBSSAVE="${LIBS}"
+		LIBS="${LIBS} ${liblzma_LIBS}"
+		CPPFLAGSSAVE="${CPPFLAGS}"	
+		CPPFLAGS="${CPPFLAGS} ${liblzma_CFLAGS}"
+
+		AC_LANG_PUSH([C++])
+		AC_CHECK_HEADER(lzma.h, [have_lzma_h=yes], [have_lzma_h=no])
+		AC_LANG_POP
+
+		AC_MSG_CHECKING([whether we can compile a program using the lzma library])
+		AC_LANG_PUSH([C++])
+		AC_TRY_LINK([#include <lzma.h>
 #include <cstring>
 ],[
-        /* init LZMA decoder */
-        lzma_stream lstr = LZMA_STREAM_INIT;
+		/* init LZMA decoder */
+		lzma_stream lstr = LZMA_STREAM_INIT;
 
-        #if LZMA_VERSION <= UINT32_C(49990030)
-        int ret = lzma_auto_decoder(&lstr, NULL, NULL);
-        #else
-        int ret = lzma_auto_decoder(&lstr, UINT64_MAX, 0);
-        #endif
+		#if LZMA_VERSION <= UINT32_C(49990030)
+		int ret = lzma_auto_decoder(&lstr, NULL, NULL);
+		#else
+		int ret = lzma_auto_decoder(&lstr, UINT64_MAX, 0);
+		#endif
 
-	lzma_end(&lstr);
-	],[have_lzma=yes],[have_lzma=no])
-        AC_MSG_RESULT([${have_lzma}])
-	LIBS="${LIBSSAVE}"
-	CPPFLAGS="${CPPFLAGSSAVE}"
-        AC_LANG_POP
-	
-	LIBS="${LIBS_SAVE}"
+		lzma_end(&lstr);
+		],[have_lzma=yes],[have_lzma=no])
+		AC_MSG_RESULT([${have_lzma}])
 
-	if test "${have_lzma}" = "yes" ; then
-		LIBMAUS2_HAVE_LZMA="#define LIBMAUS2_HAVE_LZMA"
-		LIBMAUS2_LZMA_LIBS="-llzma"
+		LIBS="${LIBSSAVE}"
+		CPPFLAGS="${CPPFLAGSSAVE}"
+
+		AC_LANG_POP
+
+		if test "${have_lzma}" = "yes" ; then
+			LIBMAUS2_HAVE_LZMA="#define LIBMAUS2_HAVE_LZMA"
+			LIBMAUS2_LZMA_LIBS="${liblzma_LIBS}"
+			LIBMAUS2_LZMA_CPPFLAGS="${liblzma_CFLAGS}"
+			LIBMAUS2_LZMA_REQ="liblzma"
+		fi
 	fi
 fi
 
@@ -3457,4 +3491,6 @@ AC_SUBST([DALIGNERLIBS])
 AC_SUBST([PKGSSE4])
 AC_SUBST([LIBMAUS2_HAVE_LZMA])
 AC_SUBST([LIBMAUS2_LZMA_LIBS])
+AC_SUBST([LIBMAUS2_LZMA_CPPFLAGS])
+AC_SUBST([LIBMAUS2_LZMA_REQ])
 AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2lsf.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp)

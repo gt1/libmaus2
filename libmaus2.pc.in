@@ -5,7 +5,7 @@ includedir=@includedir@
 
 Name: libmaus2
 Description: succinct data structures
-Requires: @ZLIBREQ@ @GNUTLSREQ@ @NETTLEREQ@
+Requires: @ZLIBREQ@ @GNUTLSREQ@ @NETTLEREQ@ @LIBMAUS2_LZMA_REQ@
 Version: @VERSION@
 Libs: -L${libdir} -lmaus2 -lmaus2_simd_align_128 -lmaus2_simd_align_256 @LIBMAUSPKGLIBS@
 Cflags: @PKGSSE4@ @LIBMAUSCPPFLAGS@ @LIBMAUSPKGCPPFLAGS@ @LIBMAUSPKGCXXFLAGS@ @LIBMAUSARCHCFLAGS@ @ZLIBCPPFLAGS@ -I${includedir}
