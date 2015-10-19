@@ -672,6 +672,10 @@ namespace libmaus2
 					fileoffsets.resize(fileinfo.size());
 					for ( uint64_t i = 0; i < fileinfo.size(); ++i )
 						fileoffsets[i] = fileinfo[i].fnumreads;
+					// turn prefix sums into read counts
+					for ( uint64_t i = 1; i < fileoffsets.size(); ++i )
+						fileoffsets[fileoffsets.size()-i] -= fileoffsets[fileoffsets.size()-i-1];
+
 					uint64_t sum = 0;
 					for ( uint64_t i = 0; i < fileoffsets.size(); ++i )
 					{
@@ -680,7 +684,7 @@ namespace libmaus2
 						sum += t;
 					}
 					fileoffsets.push_back(sum);
-					
+										
 					if ( part )
 					{
 						indexbase.nreads = blocks[part].first - blocks[part-1].first;
@@ -723,7 +727,7 @@ namespace libmaus2
 						lme.finish();
 						throw lme;
 					}
-					
+										
 					std::vector<uint64_t>::const_iterator ita = std::lower_bound(fileoffsets.begin(),fileoffsets.end(),readid);
 					
 					assert ( ita != fileoffsets.end() );

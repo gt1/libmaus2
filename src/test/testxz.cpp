@@ -17,13 +17,17 @@
 */
 #include <libmaus2/lz/XzInputStream.hpp>
 #include <iostream>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/aio/ConcatInputStream.hpp>
 
-int main()
+int main(int argc, char * argv[])
 {
 	try
 	{
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		int const bufsize = 8192;
 		char inbuf[8192];
+		// libmaus2::aio::ConcatInputStream xzin(arginfo.restargs);
 		libmaus2::lz::XzInputStream xzin(std::cin);
 		xzin.exceptions ( std::istream::badbit );
 		while ( xzin )
