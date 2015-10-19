@@ -40,6 +40,16 @@ namespace libmaus2
 				int32_t aepos;
 				int32_t bepos;
 				
+				double getErrorRateA() const
+				{
+					return static_cast<double>(diffs) / (aepos-abpos);
+				}
+
+				double getErrorRateB() const
+				{
+					return static_cast<double>(diffs) / (bepos-bbpos);
+				}
+
 				bool operator==(Path const & O) const
 				{
 					return
