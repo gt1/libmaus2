@@ -2692,6 +2692,9 @@ if test "${with_lzma}" != "no" ; then
 			LIBMAUS2_LZMA_LIBS="${liblzma_LIBS}"
 			LIBMAUS2_LZMA_CPPFLAGS="${liblzma_CFLAGS}"
 			LIBMAUS2_LZMA_REQ="liblzma"
+
+			LIBMAUSCPPFLAGS="${LIBMAUSCPPFLAGS} ${LIBMAUS2_LZMA_CPPFLAGS}"
+			LIBMAUSLIBS="${LIBMAUSLIBS} ${LIBMAUS2_LZMA_LIBS}"
 		fi
 	fi
 fi
