@@ -459,27 +459,8 @@ namespace libmaus2
 						{
 							metrics[libid].readpairsexamined++;
 						
-							int64_t const pfirstrefid = libmaus2::bambam::BamAlignmentDecoderBase::getRefID(pfirst + sizeof(uint32_t));
-							int64_t const psecondrefid = libmaus2::bambam::BamAlignmentDecoderBase::getRefID(psecond + sizeof(uint32_t));
-							int64_t const pfirstcoord = libmaus2::bambam::BamAlignmentDecoderBase::getCoordinate(pfirst + sizeof(uint32_t));
-							int64_t const psecondcoord = libmaus2::bambam::BamAlignmentDecoderBase::getCoordinate(psecond + sizeof(uint32_t));
-							
-							if ( 
-								(psecondrefid > pfirstrefid)
-								||
-								(
-									(psecondrefid == pfirstrefid)
-									&& 
-									(psecondcoord >= pfirstcoord)
-								)
-							)
-							{
-							
-							}
-							else
-							{
+							if ( ! libmaus2::bambam::ReadEndsBase::orderOK(pfirst + sizeof(uint32_t),psecond + sizeof(uint32_t)) )
 								std::swap(pfirst,psecond);
-							}
 						
 							// std::cerr << libmaus2::bambam::BamAlignmentDecoderBase::getReadName(pfirst + sizeof(uint32_t)) << std::endl;
 							if ( create_dup_mark_info )
