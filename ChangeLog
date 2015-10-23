@@ -1,3 +1,9 @@
+libmaus2 (2.0.93-1) unstable; urgency=medium
+
+  * fix marking of FF and RR type alignments pairs on different strands in conventional BAM duplicate marking 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 23 Oct 2015 14:42:02 +0200
+
 libmaus2 (2.0.92-1) unstable; urgency=medium
 
   * add getErrorRateA and getErrorRateB methods in Path class
