@@ -913,28 +913,15 @@ namespace libmaus2
 				uint64_t const rtagId = 0
 			)
 			{
-				uint32_t const pflags = p.getFlags();
-				uint32_t const qflags = q.getFlags();
-				RE.orientation = computePairOrientation(pflags,qflags);
-
-				fillCommon(p,RE);
-
-				RE.read2Sequence = q.getRefIDChecked() + 1;
-				RE.read2Coordinate = signedEncode(q.getCoordinate() + 1);
-				RE.read2IndexInFile = q.getRank();
-
-				RE.score = p.getScore() + q.getScore();
-				
-				if ( p.isPaired() && (!p.isMateUnmap()) )
-					RE.read2Sequence = p.getNextRefIDChecked() + 1;
-				
-				int64_t const rg = p.getReadGroupId(header);
-								
-				RE.readGroup = rg + 1;
-				RE.libraryId = header.getLibraryId(rg);
-				RE.tagId = rtagId;
-
-				checkSameStrandCoordinates(p.D.begin(),pflags,q.D.begin(),RE);
+				fillFragPair(
+					p.D.begin(),
+					p.blocksize,
+					q.D.begin(),
+					q.blocksize,
+					header,
+					RE,
+					rtagId
+				);
 			}
 
 			#define READENDSBASECOMPACT
