@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.92,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
-LIBRARY_VERSION=2:92:0
+AC_INIT(libmaus2,2.0.93,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
+LIBRARY_VERSION=2:93:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -2692,6 +2692,9 @@ if test "${with_lzma}" != "no" ; then
 			LIBMAUS2_LZMA_LIBS="${liblzma_LIBS}"
 			LIBMAUS2_LZMA_CPPFLAGS="${liblzma_CFLAGS}"
 			LIBMAUS2_LZMA_REQ="liblzma"
+
+			LIBMAUSCPPFLAGS="${LIBMAUSCPPFLAGS} ${LIBMAUS2_LZMA_CPPFLAGS}"
+			LIBMAUSLIBS="${LIBMAUSLIBS} ${LIBMAUS2_LZMA_LIBS}"
 		fi
 	fi
 fi
