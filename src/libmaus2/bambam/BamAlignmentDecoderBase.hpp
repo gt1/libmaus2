@@ -985,7 +985,10 @@ namespace libmaus2
 
 				unsigned int l = 0;
 				while ( n )
+				{
 					n /= 10;
+					l += 1;
+				}
 
 				return l;
 			}
