@@ -1330,6 +1330,17 @@ namespace libmaus2
 			}
 			
 			/**
+			 * get cigar string
+			 *
+			 * @param A array to store string, will be reallocated if necessary
+			 * @return l length of stored cigar string (without terminating nul byte)
+			 **/
+			size_t getCigarString(libmaus2::autoarray::AutoArray<char> & A) const
+			{
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getCigarString(D.begin(),A);
+			}
+
+			/**
 			 * @return string representation of flags
 			 **/
 			std::string getFlagsS() const

@@ -973,6 +973,108 @@ namespace libmaus2
 			}
 
 			/**
+			 * compute length of number in decimal notation
+			 *
+			 * @param n number
+			 * @return length of n in decimal notation
+			 **/
+			static unsigned int getDecLength(uint64_t n)
+			{
+				if ( ! n )
+					return 1;
+
+				unsigned int l = 0;
+				while ( n )
+					n /= 10;
+
+				return l;
+			}
+
+			template<typename iterator>
+			static iterator putDecimalNumber(uint64_t n, iterator p)
+			{
+				char c[22];
+				char * ce = &c[sizeof(c)];
+				char * cp = ce;
+
+				if ( !n )
+				{
+					*(--cp) = '0';
+				}
+				else
+				{
+					while ( n )
+					{
+						*(--cp) = (n % 10)+'0';
+						n /= 10;
+					}
+				}
+
+				while ( cp != ce )
+					*(p++) = *(cp++);
+
+				return p;
+			}
+
+			/**
+			 * compute length of cigar operation vector in string form
+			 *
+			 * @param D alignment block
+			 * @return length of cigar operation vector in string form
+			 **/
+			static unsigned int getCigarStringLength(uint8_t const * D)
+			{
+				unsigned int l = 0;
+				uint32_t const numops = getNCigar(D);
+
+				uint8_t const * p = getCigar(D);
+
+				for ( uint64_t i = 0; i < numops; ++i, p += 4 )
+				{
+					uint32_t const lop = getLEInteger(p,4);
+					unsigned int const ll = lop >> 4;
+					l += ( 1 + getDecLength(ll) );
+				}
+
+				return l;
+			}
+
+			template<typename iterator>
+			static iterator getCigarString(uint8_t const * D, iterator c)
+			{
+				uint32_t const numops = getNCigar(D);
+				uint8_t const * p = getCigar(D);
+
+				for ( uint64_t i = 0; i < numops; ++i, p += 4 )
+				{
+					uint32_t const lop = getLEInteger(p,4);
+					uint32_t const ll = lop >> 4;
+					uint32_t const op = lop & ((1ul<<4)-1);
+					c = putDecimalNumber(ll,c);
+					*(c++) = cigarOpToChar(op);
+				}
+
+				*(c++) = 0;
+
+				return c;
+			}
+
+			/**
+			 * put cigar string into string buffer
+			 **/
+			static size_t getCigarString(uint8_t const * D, libmaus2::autoarray::AutoArray<char> & A)
+			{
+				size_t const l = getCigarStringLength(D);
+
+				if ( A.size() < l+1 )
+					A.resize(l+1);
+
+				getCigarString(D,A.begin());
+
+				return l;
+			}
+
+			/**
 			 * get cigar operations vector
 			 *
 			 * @param D alignment block
