@@ -60,7 +60,7 @@ namespace libmaus2
 				libmaus2::bambam::BamAuxFilterVector MQMCMSMTfilter;
 				std::string const tagtag;
 				char const * ctagtag;
-				
+
 				FragmentAlignmentBufferRewriteReadEndsWorkPackageDispatcher(
 					FragmentAlignmentBufferRewriteReadEndsWorkPackageReturnInterface & rpackageReturnInterface,
 					FragmentAlignmentBufferRewriteFragmentCompleteInterface & rfragmentCompleteInterface,
@@ -88,6 +88,9 @@ namespace libmaus2
 					MQMCMSMTfilter.set("mc");
 					MQMCMSMTfilter.set("ms");
 					MQMCMSMTfilter.set("mt");
+
+					MQMCMSMTfilter.set("MC");
+					MCMSMTfilter.set("MC");
 				}
 			
 				virtual void dispatch(
@@ -119,6 +122,8 @@ namespace libmaus2
 					std::map<uint64_t,libmaus2::bambam::DuplicationMetrics> metrics;
 					libmaus2::autoarray::AutoArray<uint8_t> ATA1;
 					libmaus2::autoarray::AutoArray<uint8_t> ATA2;
+					libmaus2::autoarray::AutoArray<char> AmateCigar1;
+					libmaus2::autoarray::AutoArray<char> AmateCigar2;
 					// 2(Tag) + 1(Z) + String + nul = String + 4
 					
 					while ( looplow < loopend )
@@ -183,6 +188,8 @@ namespace libmaus2
 						int64_t secondo = -1;
 						size_t ATA1len = 0;
 						size_t ATA2len = 0;
+						int64_t mateCigar1l = -1;
+						int64_t mateCigar2l = -1;
 
 						// look for first and second primary alignment
 						if ( fixmates || dupmarksupport )
@@ -238,7 +245,10 @@ namespace libmaus2
 								MSP.second = ::libmaus2::bambam::BamAlignmentDecoderBase::getScore(Pfirst.first);
 								MCP.first = ::libmaus2::bambam::BamAlignmentDecoderBase::getCoordinate(Psecond.first);
 								MCP.second = ::libmaus2::bambam::BamAlignmentDecoderBase::getCoordinate(Pfirst.first);
-								
+
+								mateCigar1l = ::libmaus2::bambam::BamAlignmentDecoderBase::getCigarString(Psecond.first,AmateCigar1);
+								mateCigar2l = ::libmaus2::bambam::BamAlignmentDecoderBase::getCigarString(Pfirst.first ,AmateCigar2);
+
 								char const * TA1 = ::libmaus2::bambam::BamAlignmentDecoderBase::getAuxString(
 									Psecond.first, Psecond.second, ctagtag);
 								char const * TA2 = ::libmaus2::bambam::BamAlignmentDecoderBase::getAuxString(
@@ -339,6 +349,18 @@ namespace libmaus2
 									P.second += ATA1len;
 									subbuf->replaceLength(offset,P.second);
 								}
+								if ( mateCigar1l >= 0 )
+								{
+									uint8_t const T[3] = { 'M', 'C', 'Z' };
+
+									subbuf->push(&T[0],sizeof(T));
+									P.second += sizeof(T);
+									subbuf->replaceLength(offset,P.second);
+
+									subbuf->push(reinterpret_cast<uint8_t const *>(AmateCigar1.begin()),mateCigar1l+1);
+									P.second += mateCigar1l+1;
+									subbuf->replaceLength(offset,P.second);
+								}
 							}
 							else if ( static_cast<ssize_t>(i) == secondi )
 							{
@@ -381,6 +403,18 @@ namespace libmaus2
 								{
 									subbuf->push(ATA2.begin(),ATA2len);
 									P.second += ATA2len;
+									subbuf->replaceLength(offset,P.second);
+								}
+								if ( mateCigar2l >= 0 )
+								{
+									uint8_t const T[3] = { 'M', 'C', 'Z' };
+
+									subbuf->push(&T[0],sizeof(T));
+									P.second += sizeof(T);
+									subbuf->replaceLength(offset,P.second);
+
+									subbuf->push(reinterpret_cast<uint8_t const *>(AmateCigar2.begin()),mateCigar2l+1);
+									P.second += mateCigar2l+1;
 									subbuf->replaceLength(offset,P.second);
 								}
 							}
