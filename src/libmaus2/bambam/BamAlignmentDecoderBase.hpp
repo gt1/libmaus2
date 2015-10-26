@@ -31,6 +31,7 @@
 #include <libmaus2/bambam/MdStringComputationContext.hpp>
 #include <libmaus2/hashing/hash.hpp>
 #include <libmaus2/bambam/CigarOperation.hpp>
+#include <libmaus2/bambam/CigarStringParser.hpp>
 #include <libmaus2/math/IPower.hpp>
 
 namespace libmaus2
@@ -1259,6 +1260,35 @@ namespace libmaus2
 				
 				return reflen;
 			}
+
+			/**
+			 * get number of reference sequence bases covered by alignment described by cigar vector
+			 *
+			 * @param ita cigar vector start iterator
+			 * @param ite cigar vector end iterator
+			 * @return number of reference sequence bases covered by alignment in D
+			 **/
+			template<typename iterator>
+			static uint64_t getReferenceLengthVector(iterator ita, iterator ite)
+			{
+				uint64_t reflen = 0;
+
+				for ( ; ita != ite ; ++ita )
+				{
+					switch ( ita->first )
+					{
+						case BamFlagBase::LIBMAUS2_BAMBAM_CMATCH: // M
+						case BamFlagBase::LIBMAUS2_BAMBAM_CDEL: // D
+						case BamFlagBase::LIBMAUS2_BAMBAM_CREF_SKIP: // N
+						case BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL: // =
+						case BamFlagBase::LIBMAUS2_BAMBAM_CDIFF: // X
+							reflen += ita->second;
+							break;
+					}
+				}
+
+				return reflen;
+			}
 			
 			/**
 			 * get number of bases clipped of the front of query sequence by cigar operations H or S in alignment block D
@@ -1284,6 +1314,33 @@ namespace libmaus2
 				}
 				
 				return frontclip;
+			}
+
+
+			/**
+			 * get number of front clipped bases
+			 *
+			 * @param ita cigar vector start iterator
+			 * @param ite cigar vector end iterator
+			 * @return number of front clipped bases
+			 **/
+			template<typename iterator>
+			static uint64_t getFrontClippingVector(iterator ita, iterator ite)
+			{
+				uint64_t clip = 0;
+
+				for ( ; ita != ite ; ++ita )
+				{
+					uint32_t const op = ita->first;
+					uint32_t const len = ita->second;
+
+					if ( op == BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP /* S */ || op == BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP /* H */ )
+						clip += len;
+					else
+						break;
+				}
+
+				return clip;
 			}
 
 			/**
@@ -1345,6 +1402,35 @@ namespace libmaus2
 				return backclip;
 			}
 
+
+			/**
+			 * get number of back clipped bases
+			 *
+			 * @param ita cigar vector start iterator
+			 * @param ite cigar vector end iterator
+			 * @return number of back clipped bases
+			 **/
+			template<typename iterator>
+			static uint64_t getBackClippingVector(iterator ita, iterator ite)
+			{
+				uint64_t clip = 0;
+
+				while ( ita != ite )
+				{
+					--ite;
+
+					uint32_t const op = ite->first;
+					uint32_t const len = ite->second;
+
+					if ( op == BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP /* S */ || op == BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP /* H */ )
+						clip += len;
+					else
+						break;
+				}
+
+				return clip;
+			}
+
 			/**
 			 * get number of bases clipped of the back of the query sequence by cigar operations S in alignment block D
 			 *
@@ -1390,6 +1476,25 @@ namespace libmaus2
 			}
 
 			/**
+			 * get first position of aligned base on reference (1 based coordinate)
+			 *
+			 * @param p pos
+			 * @return first position of aligned base on reference (1 based coordinate)
+			 **/
+			static int64_t getAlignmentStart(int64_t const p)
+			{
+				return p+1;
+			}
+
+			/**
+			 *
+			 **/
+			static int64_t getNextAlignmentStart(uint8_t const * D)
+			{
+				return getAlignmentStart(getNextPos(D));
+			}
+
+			/**
 			 * get last position of aligned base on reference
 			 *
 			 * @param D alignment block
@@ -1400,6 +1505,34 @@ namespace libmaus2
 				return getAlignmentStart(D) + getReferenceLength(D) - 1;
 			}
 			
+			/**
+			 * get last position of aligned base on reference
+			 *
+			 * @param p position
+			 * @param ita cigar vector start
+			 * @param ite cigar vector end
+			 * @return last position of aligned base on reference
+			 **/
+			template<typename iterator>
+			static int64_t getAlignmentEnd(int64_t const p, iterator ita, iterator ite)
+			{
+				return getAlignmentStart(p) + getReferenceLengthVector(ita,ite) - 1;
+			}
+
+			/**
+			 * get end of next alignment
+			 *
+			 * @param D alignment block
+			 * @param ita start of next cigar
+			 * @param ite end of next cigar
+			 * @return end of next alignment
+			 **/
+			template<typename iterator>
+			static int64_t getNextAlignmentEnd(uint8_t const * D, iterator ita, iterator ite)
+			{
+				return getAlignmentEnd(getNextPos(D),ita,ite);
+			}
+
 			/**
 			 * get alignment start minus front clipping in alignment block D
 			 *
@@ -1414,6 +1547,22 @@ namespace libmaus2
 			}
 
 			/**
+			 * get unclipped start of next
+			 *
+			 * @param D alignment block
+			 * @param ita start of next cigar
+			 * @param ite end of next cigar
+			 * @return unclipped start of next
+			 **/
+			template<typename iterator>
+			static int64_t getNextUnclippedStart(uint8_t const * D, iterator ita, iterator ite)
+			{
+				return
+					static_cast<int64_t>(getNextAlignmentStart(D)) -
+					static_cast<int64_t>(getFrontClippingVector(ita,ite));
+			}
+
+			/**
 			 * get alignment end plus back clipping in alignment block D
 			 *
 			 * @param D alignment block
@@ -1425,7 +1574,18 @@ namespace libmaus2
 					static_cast<int64_t>(getAlignmentEnd(D)) +
 					static_cast<int64_t>(getBackClipping(D));
 			}
-			
+
+			/**
+			 * get next unclipped end
+			 **/
+			template<typename iterator>
+			static int64_t getNextUnclippedEnd(uint8_t const * D, iterator ita, iterator ite)
+			{
+				return
+					static_cast<int64_t>(getNextAlignmentEnd(D,ita,ite))+
+					static_cast<int64_t>(getBackClippingVector(ita,ite));
+			}
+
 			/**
 			 * get coordinate (position of unclipped 5' end) from alignment block D
 			 *
@@ -1442,6 +1602,47 @@ namespace libmaus2
 				{
 					return getUnclippedStart(D);
 				}
+			}
+
+			/**
+			 * get coordinate of next
+			 *
+			 * @param D alignment block
+			 * @param ita start of next cigar
+			 * @param ite end of next cigar
+			 * @return coordinate of next
+			 **/
+			template<typename iterator>
+			static int64_t getNextCoordinate(uint8_t const * D, iterator ita, iterator ite)
+			{
+				if ( isMateReverse(getFlags(D)) )
+				{
+					return getNextUnclippedEnd(D,ita,ite);
+				}
+				else
+				{
+					return getNextUnclippedStart(D,ita,ite);
+				}
+			}
+
+			/**
+			 *
+			 **/
+			static int64_t getNextCoordinate(uint8_t const * D, uint64_t const blocksize, libmaus2::autoarray::AutoArray<cigar_operation> & Aop)
+			{
+				char const * MC = getAuxString(D,blocksize,"MC");
+
+				if ( ! MC )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "BamAlignmentDecoderBase::getNextCoordinate: MC aux field is not present" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+
+				size_t const numcigop = libmaus2::bambam::CigarStringParser::parseCigarString(MC,Aop);
+
+				return getNextCoordinate(D,Aop.begin(),Aop.begin()+numcigop);
 			}
 
 			/**

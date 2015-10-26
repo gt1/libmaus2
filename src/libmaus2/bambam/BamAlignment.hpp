@@ -2238,6 +2238,14 @@ namespace libmaus2
 				A.getCigarString(C);
 				B.putAuxString("MC", C.begin());
 			}
+
+			int64_t getNextCoordinate(libmaus2::autoarray::AutoArray<cigar_operation> & Aop) const
+			{
+				if ( isMateUnmap() )
+					return -1;
+				else
+					return libmaus2::bambam::BamAlignmentDecoderBase::getNextCoordinate(D.begin(),blocksize,Aop);
+			}
 		};
 	}
 }
