@@ -1277,7 +1277,7 @@ namespace libmaus2
 					uint32_t const v = getLEInteger(cigar,4);
 					uint8_t const op = v & ((1ull<<(4))-1);
 					
-					if ( op == 4 /* S */ || op == 5 /* H */ )
+					if ( op == BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP /* S */ || op == BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP /* H */ )
 						frontclip += static_cast<int64_t>((v >> 4) & ((1ull<<(32-4))-1));
 					else
 						break;
@@ -1336,7 +1336,7 @@ namespace libmaus2
 					uint32_t const v = getLEInteger(cigar,4);
 					uint8_t const op = v & ((1ull<<(4))-1);
 					
-					if ( op == 4 /* S */ || op == 5 /* H */ )
+					if ( op == BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP /* S */ || op == BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP /* H */ )
 						backclip += static_cast<int64_t>((v >> 4) & ((1ull<<(32-4))-1));
 					else
 						break;
