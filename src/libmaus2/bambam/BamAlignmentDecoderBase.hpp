@@ -1628,6 +1628,24 @@ namespace libmaus2
 			/**
 			 *
 			 **/
+			static size_t getNextCigarVector(uint8_t const * D, uint64_t const blocksize, libmaus2::autoarray::AutoArray<cigar_operation> & Aop)
+			{
+				char const * MC = getAuxString(D,blocksize,"MC");
+
+				if ( ! MC )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "BamAlignmentDecoderBase::getNextCigarVector: MC aux field is not present" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+
+				return libmaus2::bambam::CigarStringParser::parseCigarString(MC,Aop);
+			}
+
+			/**
+			 *
+			 **/
 			static int64_t getNextCoordinate(uint8_t const * D, uint64_t const blocksize, libmaus2::autoarray::AutoArray<cigar_operation> & Aop)
 			{
 				char const * MC = getAuxString(D,blocksize,"MC");
