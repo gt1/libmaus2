@@ -110,7 +110,7 @@ size_t libmaus2::bambam::CigarStringParser::parseCigarString(char const * c, lib
 
 		uint32_t op = 0;
 
-		switch ( *c )
+		switch ( *(c++) )
 		{
 			case 'M':
 				op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CMATCH;
