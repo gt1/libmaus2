@@ -2220,13 +2220,18 @@ namespace libmaus2
 			 * @param A first read alignment block
 			 * @param B second read alignment block
 			 * @param C aux array
+			 * @param MCfilter aux filter for removing any previously existing MC aux fields
 			 **/
 			static void addMateCigarString(
 				libmaus2::bambam::BamAlignment & A,
 				libmaus2::bambam::BamAlignment & B,
-				libmaus2::autoarray::AutoArray<char> & C
+				libmaus2::autoarray::AutoArray<char> & C,
+				libmaus2::bambam::BamAuxFilterVector const & MCfilter
 			)
 			{
+				A.filterOutAux(MCfilter);
+				B.filterOutAux(MCfilter);
+
 				B.getCigarString(C);
 				A.putAuxString("MC", C.begin());
 
