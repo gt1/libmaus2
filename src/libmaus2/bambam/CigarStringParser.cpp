@@ -18,6 +18,7 @@
 */
 
 #include <libmaus2/bambam/CigarStringParser.hpp>
+#include <libmaus2/bambam/BamFlagBase.hpp>
 #include <cassert>
 #include <sstream>
 
@@ -47,31 +48,31 @@ std::vector< libmaus2::bambam::cigar_operation > libmaus2::bambam::CigarStringPa
 		switch ( cigar[0] )
 		{
 			case 'M':
-				op = 0;
+				op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CMATCH;
 				break;
 			case 'I':
-				op = 1;
+				op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CINS;
 				break;
 			case 'D':
-				op = 2;
+				op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDEL;
 				break;
 			case 'N':
-				op = 3;
+				op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CREF_SKIP;
 				break;
 			case 'S':
-				op = 4;
+				op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP;
 				break;
 			case 'H':
-				op = 5;
+				op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP;
 				break;
 			case 'P':
-				op = 6;
+				op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CPAD;
 				break;
 			case '=':
-				op = 7;
+				op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL;
 				break;
 			case 'X':
-				op = 8;
+				op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF;
 				break;
 			default:
 				op = 9;
@@ -84,4 +85,86 @@ std::vector< libmaus2::bambam::cigar_operation > libmaus2::bambam::CigarStringPa
 	}
 	
 	return ops;
+}
+
+size_t libmaus2::bambam::CigarStringParser::parseCigarString(char const * c, libmaus2::autoarray::AutoArray<libmaus2::bambam::cigar_operation> & Aop)
+{
+	size_t nc = 0;
+
+	while ( *c )
+	{
+		if ( ! isdigit(*c) )
+		{
+			libmaus2::exception::LibMausException lme;
+			lme.getStream() << "CigarStringParser::parseCigarString: unexpected symbol " << *c << std::endl;
+			lme.finish();
+			throw lme;
+		}
+
+		uint64_t n = 0;
+		while ( isdigit(*c) )
+		{
+			n *= 10;
+			n += *(c++) - '0';
+		}
+
+		uint32_t op = 0;
+
+		switch ( *c )
+		{
+			case 'M':
+				op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CMATCH;
+				break;
+			case 'I':
+				op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CINS;
+				break;
+			case 'D':
+				op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDEL;
+				break;
+			case 'N':
+				op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CREF_SKIP;
+				break;
+			case 'S':
+				op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP;
+				break;
+			case 'H':
+				op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP;
+				break;
+			case 'P':
+				op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CPAD;
+				break;
+			case '=':
+				op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL;
+				break;
+			case 'X':
+				op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF;
+				break;
+			case 0:
+			{
+				libmaus2::exception::LibMausException lme;
+				lme.getStream() << "CigarStringParser::parseCigarString: unexpected end of string" << std::endl;
+				lme.finish();
+				throw lme;
+			}
+			default:
+			{
+				libmaus2::exception::LibMausException lme;
+				lme.getStream() << "CigarStringParser::parseCigarString: unknown/invalid symbol " << *c << std::endl;
+				lme.finish();
+				throw lme;
+			}
+		}
+
+		while ( nc >= Aop.size() )
+		{
+			if ( ! Aop.size() )
+				Aop.resize(1);
+			else
+				Aop.resize(2*Aop.size());
+		}
+
+		Aop[nc++] = libmaus2::bambam::cigar_operation(op,n);
+	}
+
+	return nc;
 }
