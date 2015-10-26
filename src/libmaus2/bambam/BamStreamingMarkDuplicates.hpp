@@ -168,6 +168,8 @@ namespace libmaus2
 			
 			bool const putrank;
 			uint64_t nextrank;
+
+			libmaus2::autoarray::AutoArray<cigar_operation> Aop;
 			
 			static std::vector<std::string> getFilterTags(const bool filterold = false)
 			{
@@ -231,7 +233,8 @@ namespace libmaus2
 			  ctag(havetag ? tag.c_str() : 0),
 			  cnucltag(havenucltag ? nucltag.c_str() : 0),
 			  putrank(rputrank),
-			  nextrank(0)
+			  nextrank(0),
+			  Aop()
 			{
 				libmaus2::util::TempFileRemovalContainer::addTempFile(optfn);
 
@@ -450,7 +453,7 @@ namespace libmaus2
 					 * - tag
 					 * - mate tag
 					 */
-					PairHashKeyType HK(algn,header,tagid);
+					PairHashKeyType HK(algn,header,Aop,tagid);
 
 					if ( algn.isRead1() )
 						met.readpairsexamined++;

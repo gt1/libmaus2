@@ -66,7 +66,7 @@ namespace libmaus2
 
 				key_type key;
 
-				enum pair_orientation_type { pair_orientaton_FF=0, pair_orientaton_FR=1, pair_orientaton_RF=2, pair_orientaton_RR=3 };
+				enum pair_orientation_type { pair_orientation_FF=0, pair_orientation_FR=1, pair_orientation_RF=2, pair_orientation_RR=3 };
 				
 				PairHashKeyType() : key() {}
 				
@@ -78,61 +78,111 @@ namespace libmaus2
 				PairHashKeyType(
 					libmaus2::bambam::BamAlignment const & algn,
 					libmaus2::bambam::BamHeader const & header,
+					libmaus2::autoarray::AutoArray<cigar_operation> & Aop,
 					uint64_t tagid
 				) : key()
 				{
-					int64_t const thisref = algn.getRefID();
-					int64_t const thiscoord = algn.getCoordinate();
-					int64_t const otherref = algn.getNextRefID();
-					int64_t const othercoord = algn.getAuxAsNumberNC<int32_t>("mc");
-					
 					// is this the left mapping end?
-					bool const isleft =
-						(thisref < otherref) ||
-						(thisref == otherref && thiscoord < othercoord ) ||
-						(thisref == otherref && thiscoord == othercoord && algn.isRead1());
-					
+					bool const isleft = libmaus2::bambam::ReadEndsBase::isLeft(algn.D.begin(),algn.blocksize,Aop);
+
 					// as number for hash key
-					uint64_t leftflag = isleft ? 0 : 1;
+					uint64_t const leftflag = isleft ? 0 : 1;
+
+					int64_t const thisref = algn.getRefID();
+					int64_t       thiscoord = algn.getCoordinate();
+					int64_t const otherref = algn.getNextRefID();
+					int64_t       othercoord = algn.getNextCoordinate(Aop);
 					
 					pair_orientation_type orientation;
 					
-					// orientation of end pair
+					// compute orientation of end pair
+
+					// this alignment is on the left
 					if ( isleft )
 					{
-						if ( ! algn.isReverse() )
+						if ( algn.isReverse() != algn.isMateReverse() )
 						{
-							if ( ! algn.isMateReverse() )
-								orientation = pair_orientaton_FF;
+							if ( ! algn.isReverse() )
+								orientation = pair_orientation_FR;
 							else
-								orientation = pair_orientaton_FR;
+								orientation = pair_orientation_RF;
 						}
 						else
 						{
-							if ( ! algn.isMateReverse() )
-								orientation = pair_orientaton_RF;
+							if ( ! algn.isReverse() )
+							{
+								if ( algn.isRead1() )
+									orientation = pair_orientation_FF;
+								else
+									orientation = pair_orientation_RR;
+							}
 							else
-								orientation = pair_orientaton_RR;
+							{
+								if ( algn.isRead1() )
+									orientation = pair_orientation_RR;
+								else
+									orientation = pair_orientation_FF;
+							}
 						}
 					}
+					// this alignment is on the right
 					else
 					{
-						if ( ! algn.isMateReverse() )
+						if ( algn.isReverse() != algn.isMateReverse() )
 						{
 							if ( ! algn.isReverse() )
-								orientation = pair_orientaton_FF;
+								orientation = pair_orientation_RF;
 							else
-								orientation = pair_orientaton_FR;
+								orientation = pair_orientation_FR;
 						}
 						else
 						{
 							if ( ! algn.isReverse() )
-								orientation = pair_orientaton_RF;
+							{
+								if ( algn.isRead1() )
+									orientation = pair_orientation_RR;
+								else
+									orientation = pair_orientation_FF;
+							}
 							else
-								orientation = pair_orientaton_RR;
+							{
+								if ( algn.isRead1() )
+									orientation = pair_orientation_FF;
+								else
+									orientation = pair_orientation_RR;
+							}
 						}
 					}
 					
+					// rewrite coordinates for FF and RR pairs
+					if ( orientation == pair_orientation_FF || orientation == pair_orientation_RR )
+					{
+						size_t const numcigop = algn.getNextCigarVector(Aop);
+
+						if ( algn.isReverse() )
+						{
+							if ( isleft )
+							{
+								thiscoord = libmaus2::bambam::BamAlignmentDecoderBase::getUnclippedStart(algn.D.begin());
+							}
+							else
+							{
+								othercoord = libmaus2::bambam::BamAlignmentDecoderBase::getNextUnclippedStart(algn.D.begin(),Aop.begin(),Aop.begin()+numcigop);
+							}
+						}
+						else
+						{
+							if ( isleft )
+							{
+								othercoord = libmaus2::bambam::BamAlignmentDecoderBase::getNextUnclippedEnd(algn.D.begin(),Aop.begin(),Aop.begin()+numcigop);
+							}
+							else
+							{
+								thiscoord = libmaus2::bambam::BamAlignmentDecoderBase::getUnclippedEnd(algn.D.begin());
+							}
+						}
+					}
+
 					// orientation as number		
 					uint64_t uorientation = static_cast<uint64_t>(orientation);
 
@@ -186,7 +236,7 @@ namespace libmaus2
 
 				pair_orientation_type getOrientation() const
 				{
-					return static_cast<pair_orientation_type>((key.A[1] >> 1) & 0x3);
+					return static_cast<pair_orientation_type>((key.A[2] >> 1) & 0x3);
 				}
 
 				int32_t getLeft() const

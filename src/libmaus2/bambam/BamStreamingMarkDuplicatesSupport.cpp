@@ -25,10 +25,10 @@ std::ostream & libmaus2::bambam::operator<<(
 {
 	switch ( ori )
 	{
-		case libmaus2::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType::pair_orientaton_FF: return out << "FF";
-		case libmaus2::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType::pair_orientaton_FR: return out << "FR";
-		case libmaus2::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType::pair_orientaton_RF: return out << "RF";
-		case libmaus2::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType::pair_orientaton_RR: return out << "RR";
+		case libmaus2::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType::pair_orientation_FF: return out << "FF";
+		case libmaus2::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType::pair_orientation_FR: return out << "FR";
+		case libmaus2::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType::pair_orientation_RF: return out << "RF";
+		case libmaus2::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType::pair_orientation_RR: return out << "RR";
 		default: return out << "unknown_orientation";
 	}
 }
