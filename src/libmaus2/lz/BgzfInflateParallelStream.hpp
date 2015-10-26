@@ -38,39 +38,39 @@ namespace libmaus2
 			: ::libmaus2::lz::BgzfInflateParallelWrapper(in), 
 			  ::libmaus2::lz::BgzfStreamWrapper< ::libmaus2::lz::BgzfInflateParallel >(::libmaus2::lz::BgzfInflateParallelWrapper::bgzf,64*1024,0)
 			{
-				exceptions(std::ios::badbit);
+				::std::istream::exceptions(std::ios::badbit);
 			}
 			BgzfInflateParallelStream(std::istream & in, uint64_t const numthreads)
 			: ::libmaus2::lz::BgzfInflateParallelWrapper(in,numthreads), 
 			  ::libmaus2::lz::BgzfStreamWrapper< ::libmaus2::lz::BgzfInflateParallel >(::libmaus2::lz::BgzfInflateParallelWrapper::bgzf,64*1024,0)
 			{
-				exceptions(std::ios::badbit);			
+				::std::istream::exceptions(std::ios::badbit);
 			}
 			BgzfInflateParallelStream(std::istream & in, uint64_t const numthreads, uint64_t const numblocks)
 			: ::libmaus2::lz::BgzfInflateParallelWrapper(in,numthreads,numblocks), 
 			  ::libmaus2::lz::BgzfStreamWrapper< ::libmaus2::lz::BgzfInflateParallel >(::libmaus2::lz::BgzfInflateParallelWrapper::bgzf,64*1024,0)
 			{
-				exceptions(std::ios::badbit);			
+				::std::istream::exceptions(std::ios::badbit);
 			}	
 
 			BgzfInflateParallelStream(std::istream & in, std::ostream & out)
 			: ::libmaus2::lz::BgzfInflateParallelWrapper(in,out), 
 			  ::libmaus2::lz::BgzfStreamWrapper< ::libmaus2::lz::BgzfInflateParallel >(::libmaus2::lz::BgzfInflateParallelWrapper::bgzf,64*1024,0)
 			{
-				exceptions(std::ios::badbit);			
+				::std::istream::exceptions(std::ios::badbit);
 			}
 			
 			BgzfInflateParallelStream(std::istream & in, std::ostream & out, uint64_t const numthreads)
 			: ::libmaus2::lz::BgzfInflateParallelWrapper(in,out,numthreads), 
 			  ::libmaus2::lz::BgzfStreamWrapper< ::libmaus2::lz::BgzfInflateParallel >(::libmaus2::lz::BgzfInflateParallelWrapper::bgzf,64*1024,0)
 			{
-				exceptions(std::ios::badbit);			
+				::std::istream::exceptions(std::ios::badbit);
 			}
 			BgzfInflateParallelStream(std::istream & in, std::ostream & out, uint64_t const numthreads, uint64_t const numblocks)
 			: ::libmaus2::lz::BgzfInflateParallelWrapper(in,out,numthreads,numblocks), 
 			  ::libmaus2::lz::BgzfStreamWrapper< ::libmaus2::lz::BgzfInflateParallel >(::libmaus2::lz::BgzfInflateParallelWrapper::bgzf,64*1024,0)
 			{
-				exceptions(std::ios::badbit);			
+				::std::istream::exceptions(std::ios::badbit);
 			}	
 		};
 	}

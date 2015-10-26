@@ -96,22 +96,65 @@ namespace libmaus2
                                         release();
                                 }
                         };
+
+			void initCond()
+			{
+				if ( pthread_cond_init(&cond,NULL) != 0 )
+				{
+					int const error = errno;
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "PosixConditionSemaphore::initCond(): failed pthread_cond_init " << strerror(error) << std::endl;
+					lme.finish();
+					throw lme;
+				}
+			}
+
+			void initMutex()
+			{
+				if ( pthread_mutex_init(&mutex,NULL) != 0 )
+				{
+					int const error = errno;
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "PosixConditionSemaphore::initMutex(): failed pthread_mutex_init " << strerror(error) << std::endl;
+					lme.finish();
+					throw lme;
+				}
+			}
                                                 
                         TerminatableSynchronousHeap(uint64_t const rterminatedthreshold = 1)
-                        : mutex(PTHREAD_MUTEX_INITIALIZER), cond(PTHREAD_COND_INITIALIZER), numwait(0), Q(), terminated(0), terminatedthreshold(rterminatedthreshold)
-                        {
-                        
-                        }
+                        : numwait(0), Q(), terminated(0), terminatedthreshold(rterminatedthreshold)
+			{
+				initMutex();
+				try
+				{
+					initCond();
+				}
+				catch(...)
+				{
+					pthread_mutex_destroy(&mutex);
+					throw;
+				}
+			}
 
-                        TerminatableSynchronousHeap(compare const & comp, uint64_t const rterminatedthreshold = 1)
-                        : mutex(PTHREAD_MUTEX_INITIALIZER), cond(PTHREAD_COND_INITIALIZER), numwait(0), Q(comp), terminated(0), terminatedthreshold(rterminatedthreshold)
-                        {
-                        
-                        }
+			TerminatableSynchronousHeap(compare const & comp, uint64_t const rterminatedthreshold = 1)
+			: numwait(0), Q(comp), terminated(0), terminatedthreshold(rterminatedthreshold)
+			{
+				initMutex();
+				try
+				{
+					initCond();
+				}
+				catch(...)
+				{
+					pthread_mutex_destroy(&mutex);
+					throw;
+				}
+			}
                         
                         ~TerminatableSynchronousHeap()
                         {
-                        
+				pthread_mutex_destroy(&mutex);
+				pthread_cond_destroy(&cond);
                         }
 
                         void enque(value_type const v)
