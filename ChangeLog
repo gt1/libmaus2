@@ -1,3 +1,24 @@
+libmaus2 (2.0.94-1) unstable; urgency=medium
+
+  * rewrite streaming duplicate marking to correctly handle FF and RR pairs
+  * add methods getNextCoordinate, getNextCigarVector, getNextUnclippedStart and getNextUnclippedEnd in BamAlignment class
+  * add isLeft function in ReadEndsBase class
+  * add getNextCigarVector function in BamAlignmentDecoderBase
+  * add getNextCoordinate method in BamAlignment and support methods in BamAlignmentDecoderBase class
+  * replace numeric by symbolic constants in BamAlignmentDecoderBase
+  * add cigar string parsing for c string input
+  * add addMateCigarString function in BamAlignment class
+  * add MC tag (mate cigar string) if dupmarksupport is set in FragmentAlignmentBufferRewriteReadEndsWorkPackageDispatcher
+  * add cigar string related methods/functions in BamAlignmentDecoderBase and BamAlignment
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 26 Oct 2015 15:42:07 +0100
+
+libmaus2 (2.0.93-1) unstable; urgency=medium
+
+  * fix marking of FF and RR type alignments pairs on different strands in conventional BAM duplicate marking 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 23 Oct 2015 14:42:02 +0200
+
 libmaus2 (2.0.92-1) unstable; urgency=medium
 
   * add getErrorRateA and getErrorRateB methods in Path class

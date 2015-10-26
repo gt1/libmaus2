@@ -693,7 +693,7 @@ namespace libmaus2
 			)
 			{
 				fillCommon(p,RE);
-				
+
 				RE.orientation = p.isReverse() ? ::libmaus2::bambam::ReadEndsBase::R : ::libmaus2::bambam::ReadEndsBase::F;
 
 				RE.score = p.getScore();
@@ -705,6 +705,206 @@ namespace libmaus2
 				RE.readGroup = rg + 1;
 				RE.libraryId = header.getLibraryId(rg);
 				RE.tagId = rtagid;
+			}
+
+			/**
+			 * check whether alignment is left one of a pair
+			 **/
+			static bool isLeft(uint8_t const * pD, uint64_t const blocksize, libmaus2::autoarray::AutoArray<cigar_operation> & Aop)
+			{
+				// check for ref id order
+				int32_t const prefid = libmaus2::bambam::BamAlignmentDecoderBase::getRefID(pD);
+				int32_t const qrefid = libmaus2::bambam::BamAlignmentDecoderBase::getNextRefID(pD);
+
+				if ( prefid != qrefid )
+					return prefid < qrefid;
+
+				// get flags
+				uint32_t const pflags = libmaus2::bambam::BamAlignmentDecoderBase::getFlags(pD);
+
+				// extract reverse bit
+				bool const preverse = pflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREVERSE;
+				bool const qreverse = pflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMREVERSE;
+
+				size_t const numcigop = libmaus2::bambam::BamAlignmentDecoderBase::getNextCigarVector(pD,blocksize,Aop);
+
+				// are the reads mapped to different strands?
+				if ( preverse != qreverse )
+				{
+					// q is on reverse
+					if ( qreverse )
+					{
+						int32_t const pleftmost = libmaus2::bambam::BamAlignmentDecoderBase::getUnclippedStart(pD);
+						int32_t const qrightmost = libmaus2::bambam::BamAlignmentDecoderBase::getNextUnclippedEnd(pD,Aop.begin(),Aop.begin()+numcigop);
+						return pleftmost <= qrightmost;
+					}
+					// p is on reverse
+					else
+					{
+						int32_t const prightmost = libmaus2::bambam::BamAlignmentDecoderBase::getUnclippedEnd(pD);
+						int32_t const qleftmost = libmaus2::bambam::BamAlignmentDecoderBase::getNextUnclippedStart(pD,Aop.begin(),Aop.begin()+numcigop);
+						return prightmost <= qleftmost;
+					}
+				}
+				// reads are on the same strand
+				else
+				{
+					if ( qreverse )
+					{
+						int32_t const prightmost = libmaus2::bambam::BamAlignmentDecoderBase::getUnclippedEnd(pD);
+						int32_t const qrightmost = libmaus2::bambam::BamAlignmentDecoderBase::getNextUnclippedEnd(pD,Aop.begin(),Aop.begin()+numcigop);
+						return prightmost <= qrightmost;
+					}
+					// both on forward
+					else
+					{
+						int32_t const pleftmost = libmaus2::bambam::BamAlignmentDecoderBase::getUnclippedStart(pD);
+						int32_t const qleftmost = libmaus2::bambam::BamAlignmentDecoderBase::getNextUnclippedStart(pD,Aop.begin(),Aop.begin()+numcigop);
+						return pleftmost <= qleftmost;
+					}
+				}
+			}
+
+			/**
+			 * check whether order of two fragments is ok (return true) or needs to be swapped (return false)
+			 **/
+			static bool orderOK(uint8_t const * pD, uint8_t const * qD)
+			{
+				// check for ref id order
+				int32_t const prefid = libmaus2::bambam::BamAlignmentDecoderBase::getRefID(pD);
+				int32_t const qrefid = libmaus2::bambam::BamAlignmentDecoderBase::getRefID(qD);
+
+				if ( prefid != qrefid )
+					return prefid < qrefid;
+
+				// get flags
+				uint32_t const pflags = libmaus2::bambam::BamAlignmentDecoderBase::getFlags(pD);
+				uint32_t const qflags = libmaus2::bambam::BamAlignmentDecoderBase::getFlags(qD);
+
+				// extract reverse bit
+				bool const preverse = pflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREVERSE;
+				bool const qreverse = qflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREVERSE;
+
+				// are the reads mapped to different strands?
+				if ( preverse != qreverse )
+				{
+					// q is on reverse
+					if ( qreverse )
+					{
+						int32_t const pleftmost = libmaus2::bambam::BamAlignmentDecoderBase::getUnclippedStart(pD);
+						int32_t const qrightmost = libmaus2::bambam::BamAlignmentDecoderBase::getUnclippedEnd(qD);
+						return pleftmost <= qrightmost;
+					}
+					// p is on reverse
+					else
+					{
+						int32_t const prightmost = libmaus2::bambam::BamAlignmentDecoderBase::getUnclippedEnd(pD);
+						int32_t const qleftmost = libmaus2::bambam::BamAlignmentDecoderBase::getUnclippedStart(qD);
+						return prightmost <= qleftmost;
+					}
+				}
+				// reads are on the same strand
+				else
+				{
+					if ( qreverse )
+					{
+						int32_t const prightmost = libmaus2::bambam::BamAlignmentDecoderBase::getUnclippedEnd(pD);
+						int32_t const qrightmost = libmaus2::bambam::BamAlignmentDecoderBase::getUnclippedEnd(qD);
+						return prightmost <= qrightmost;
+					}
+					// both on forward
+					else
+					{
+						int32_t const pleftmost = libmaus2::bambam::BamAlignmentDecoderBase::getUnclippedStart(pD);
+						int32_t const qleftmost = libmaus2::bambam::BamAlignmentDecoderBase::getUnclippedStart(qD);
+						return pleftmost <= qleftmost;
+					}
+				}
+			}
+
+			/**
+			 * check whether order of two fragments is ok (return true) or needs to be swapped (return false)
+			 **/
+			static bool orderOK(libmaus2::bambam::BamAlignment const & A, libmaus2::bambam::BamAlignment const & B)
+			{
+				return orderOK(A.D.begin(),B.D.begin());
+			}
+
+			/**
+			 * compute orientation of a pair (which needs to be in correct order as given by orderOK)
+			 **/
+			static read_end_orientation computePairOrientation(
+				uint32_t const pflags,
+				uint32_t const qflags
+			)
+			{
+				bool const preverse = pflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREVERSE;
+				bool const qreverse = qflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREVERSE;
+
+				read_end_orientation orientation;
+
+				if ( preverse != qreverse )
+				{
+					if ( ! preverse )
+						orientation = ::libmaus2::bambam::ReadEndsBase::FR;
+					else
+						orientation = ::libmaus2::bambam::ReadEndsBase::RF;
+				}
+				else
+				{
+					bool const pisread1 = pflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1;
+
+					if ( ! preverse )
+					{
+						if ( pisread1 )
+							orientation = ::libmaus2::bambam::ReadEndsBase::FF;
+						else
+							orientation = ::libmaus2::bambam::ReadEndsBase::RR;
+					}
+					else
+					{
+						if ( pisread1 )
+							orientation = ::libmaus2::bambam::ReadEndsBase::RR;
+						else
+							orientation = ::libmaus2::bambam::ReadEndsBase::FF;
+					}
+				}
+
+				return orientation;
+			}
+
+			static void checkSameStrandCoordinates(
+				uint8_t const * pD,
+				uint32_t const pflags,
+				uint8_t const * qD,
+				::libmaus2::bambam::ReadEndsBase & RE
+			)
+			{
+				switch ( RE.orientation )
+				{
+					case FF:
+					case RR:
+					{
+						bool const flagreverse = pflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREVERSE;
+
+						if ( flagreverse )
+						{
+							// suspected start of sequenced molecule
+							RE.read1Coordinate = signedEncode(libmaus2::bambam::BamAlignmentDecoderBase::getUnclippedStart(pD) + 1);
+						}
+						else
+						{
+							// suspected end of sequenced molecule
+							RE.read2Coordinate = signedEncode(libmaus2::bambam::BamAlignmentDecoderBase::getUnclippedEnd(qD) + 1);
+						}
+
+						break;
+					}
+					default:
+					{
+						break;
+					}
+				}
 			}
 
 			/**
@@ -726,30 +926,16 @@ namespace libmaus2
 				uint64_t const rtagId = 0
 			)
 			{
+				uint32_t const pflags = libmaus2::bambam::BamAlignmentDecoderBase::getFlags(pD);
+				uint32_t const qflags = libmaus2::bambam::BamAlignmentDecoderBase::getFlags(qD);
+				RE.orientation = computePairOrientation(pflags,qflags);
+
 				fillCommon(pD,pblocksize,RE);
 
 				RE.read2Sequence = libmaus2::bambam::BamAlignmentDecoderBase::getRefIDChecked(qD) + 1;
 				RE.read2Coordinate = signedEncode(libmaus2::bambam::BamAlignmentDecoderBase::getCoordinate(qD) + 1);
 				RE.read2IndexInFile = libmaus2::bambam::BamAlignmentDecoderBase::getRank(qD,qblocksize);
-				
-				uint32_t const pflags = libmaus2::bambam::BamAlignmentDecoderBase::getFlags(pD);
-				uint32_t const qflags = libmaus2::bambam::BamAlignmentDecoderBase::getFlags(qD);
-				
-				bool const preverse = pflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREVERSE;
-				bool const qreverse = qflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREVERSE;
-				
-				if ( ! preverse )
-					if ( ! qreverse )
-						RE.orientation = ::libmaus2::bambam::ReadEndsBase::FF;
-					else
-						RE.orientation = ::libmaus2::bambam::ReadEndsBase::FR;
-				else
-					if ( ! qreverse )
-						RE.orientation = ::libmaus2::bambam::ReadEndsBase::RF;
-					else
-						RE.orientation = ::libmaus2::bambam::ReadEndsBase::RR;
-				
-				
+
 				RE.score = libmaus2::bambam::BamAlignmentDecoderBase::getScore(pD) + libmaus2::bambam::BamAlignmentDecoderBase::getScore(qD);
 				
 				if ( 
@@ -763,7 +949,9 @@ namespace libmaus2
 								
 				RE.readGroup = rg + 1;
 				RE.libraryId = header.getLibraryId(rg);
-				RE.tagId = rtagId;				
+				RE.tagId = rtagId;
+
+				checkSameStrandCoordinates(pD,pflags,qD,RE);
 			}
 
 			/**
@@ -783,36 +971,17 @@ namespace libmaus2
 				uint64_t const rtagId = 0
 			)
 			{
-				fillCommon(p,RE);
-
-				RE.read2Sequence = q.getRefIDChecked() + 1;
-				RE.read2Coordinate = signedEncode(q.getCoordinate() + 1);
-				RE.read2IndexInFile = q.getRank();
-				
-				if ( ! p.isReverse() )
-					if ( ! q.isReverse() )
-						RE.orientation = ::libmaus2::bambam::ReadEndsBase::FF;
-					else
-						RE.orientation = ::libmaus2::bambam::ReadEndsBase::FR;
-				else
-					if ( ! q.isReverse() )
-						RE.orientation = ::libmaus2::bambam::ReadEndsBase::RF;
-					else
-						RE.orientation = ::libmaus2::bambam::ReadEndsBase::RR;
-				
-				
-				RE.score = p.getScore() + q.getScore();
-				
-				if ( p.isPaired() && (!p.isMateUnmap()) )
-					RE.read2Sequence = p.getNextRefIDChecked() + 1;
-				
-				int64_t const rg = p.getReadGroupId(header);
-								
-				RE.readGroup = rg + 1;
-				RE.libraryId = header.getLibraryId(rg);
-				RE.tagId = rtagId;				
+				fillFragPair(
+					p.D.begin(),
+					p.blocksize,
+					q.D.begin(),
+					q.blocksize,
+					header,
+					RE,
+					rtagId
+				);
 			}
-			
+
 			#define READENDSBASECOMPACT
 
 			/**

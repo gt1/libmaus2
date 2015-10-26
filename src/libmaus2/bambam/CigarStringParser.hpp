@@ -21,6 +21,7 @@
 #define LIBMAUS2_BAMBAM_CIGARSTRINGPARSER_HPP
 
 #include <libmaus2/bambam/CigarOperation.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 #include <vector>
 #include <string>
 
@@ -40,6 +41,14 @@ namespace libmaus2
 			 * @return encoded cigar operation vector (pairs of operation and length)
 			 **/
 			static std::vector<cigar_operation> parseCigarString(std::string cigar);
+			/**
+			 * parse cigar string
+			 *
+			 * @param c pointer to C string storing cigar string in string form
+			 * @param Aop array for storing parsed vector, will be extended if necessary
+			 * @return length of cigar operation vector stored in Aop
+			 **/
+			static size_t parseCigarString(char const * c, libmaus2::autoarray::AutoArray<cigar_operation> & Aop);
 		};
 	}
 }

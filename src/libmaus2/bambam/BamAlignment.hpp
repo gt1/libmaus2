@@ -1330,6 +1330,17 @@ namespace libmaus2
 			}
 			
 			/**
+			 * get cigar string
+			 *
+			 * @param A array to store string, will be reallocated if necessary
+			 * @return l length of stored cigar string (without terminating nul byte)
+			 **/
+			size_t getCigarString(libmaus2::autoarray::AutoArray<char> & A) const
+			{
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getCigarString(D.begin(),A);
+			}
+
+			/**
 			 * @return string representation of flags
 			 **/
 			std::string getFlagsS() const
@@ -2201,6 +2212,62 @@ namespace libmaus2
 					A.begin() + len - getBackSoftClipping(),
 					A.begin() + len
 				);
+			}
+
+			/**
+			 * add mate cigar string aux field
+			 *
+			 * @param A first read alignment block
+			 * @param B second read alignment block
+			 * @param C aux array
+			 * @param MCfilter aux filter for removing any previously existing MC aux fields
+			 **/
+			static void addMateCigarString(
+				libmaus2::bambam::BamAlignment & A,
+				libmaus2::bambam::BamAlignment & B,
+				libmaus2::autoarray::AutoArray<char> & C,
+				libmaus2::bambam::BamAuxFilterVector const & MCfilter
+			)
+			{
+				A.filterOutAux(MCfilter);
+				B.filterOutAux(MCfilter);
+
+				B.getCigarString(C);
+				A.putAuxString("MC", C.begin());
+
+				A.getCigarString(C);
+				B.putAuxString("MC", C.begin());
+			}
+
+			int64_t getNextCoordinate(libmaus2::autoarray::AutoArray<cigar_operation> & Aop) const
+			{
+				if ( isMateUnmap() )
+					return -1;
+				else
+					return libmaus2::bambam::BamAlignmentDecoderBase::getNextCoordinate(D.begin(),blocksize,Aop);
+			}
+
+			int64_t getNextCoordinate(libmaus2::autoarray::AutoArray<cigar_operation> & Aop, size_t const numcigop) const
+			{
+				if ( isMateUnmap() )
+					return -1;
+				else
+					return libmaus2::bambam::BamAlignmentDecoderBase::getNextCoordinate(D.begin(),Aop.begin(),Aop.begin()+numcigop);
+			}
+
+			size_t getNextCigarVector(libmaus2::autoarray::AutoArray<cigar_operation> & Aop) const
+			{
+				return libmaus2::bambam::BamAlignmentDecoderBase::getNextCigarVector(D.begin(),blocksize,Aop);
+			}
+
+			int64_t getNextUnclippedStart(libmaus2::autoarray::AutoArray<cigar_operation> & Aop, size_t const numcigop) const
+			{
+				return libmaus2::bambam::BamAlignmentDecoderBase::getNextUnclippedStart(D.begin(),Aop.begin(),Aop.begin()+numcigop);
+			}
+
+			int64_t getNextUnclippedEnd(libmaus2::autoarray::AutoArray<cigar_operation> & Aop, size_t const numcigop) const
+			{
+				return libmaus2::bambam::BamAlignmentDecoderBase::getNextUnclippedEnd(D.begin(),Aop.begin(),Aop.begin()+numcigop);
 			}
 		};
 	}
