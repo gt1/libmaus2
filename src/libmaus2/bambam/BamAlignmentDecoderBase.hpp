@@ -1215,11 +1215,11 @@ namespace libmaus2
 					// MIS=X
 					switch ( op )
 					{
-						case 0: // M
-						case 1: // I
-						case 4: // S
-						case 7: // =
-						case 8: // X
+						case BamFlagBase::LIBMAUS2_BAMBAM_CMATCH: // M
+						case BamFlagBase::LIBMAUS2_BAMBAM_CINS: // I
+						case BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP: // S
+						case BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL: // =
+						case BamFlagBase::LIBMAUS2_BAMBAM_CDIFF: // X
 							seqlen += (v >> 4) & ((1ull<<(32-4))-1);
 							break;
 					}
@@ -1247,11 +1247,11 @@ namespace libmaus2
 					
 					switch ( op )
 					{
-						case 0: // M
-						case 2: // D
-						case 3: // N
-						case 7: // =
-						case 8: // X
+						case BamFlagBase::LIBMAUS2_BAMBAM_CMATCH: // M
+						case BamFlagBase::LIBMAUS2_BAMBAM_CDEL: // D
+						case BamFlagBase::LIBMAUS2_BAMBAM_CREF_SKIP: // N
+						case BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL: // =
+						case BamFlagBase::LIBMAUS2_BAMBAM_CDIFF: // X
 							reflen += (v >> 4) & ((1ull<<(32-4))-1);
 							break;
 					}
