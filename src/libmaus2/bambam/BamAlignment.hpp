@@ -2213,6 +2213,26 @@ namespace libmaus2
 					A.begin() + len
 				);
 			}
+
+			/**
+			 * add mate cigar string aux field
+			 *
+			 * @param A first read alignment block
+			 * @param B second read alignment block
+			 * @param C aux array
+			 **/
+			static void addMateCigarString(
+				libmaus2::bambam::BamAlignment & A,
+				libmaus2::bambam::BamAlignment & B,
+				libmaus2::autoarray::AutoArray<char> & C
+			)
+			{
+				B.getCigarString(C);
+				A.putAuxString("MC", C.begin());
+
+				A.getCigarString(C);
+				B.putAuxString("MC", C.begin());
+			}
 		};
 	}
 }
