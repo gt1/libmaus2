@@ -2246,6 +2246,29 @@ namespace libmaus2
 				else
 					return libmaus2::bambam::BamAlignmentDecoderBase::getNextCoordinate(D.begin(),blocksize,Aop);
 			}
+
+			int64_t getNextCoordinate(libmaus2::autoarray::AutoArray<cigar_operation> & Aop, size_t const numcigop) const
+			{
+				if ( isMateUnmap() )
+					return -1;
+				else
+					return libmaus2::bambam::BamAlignmentDecoderBase::getNextCoordinate(D.begin(),Aop.begin(),Aop.begin()+numcigop);
+			}
+
+			size_t getNextCigarVector(libmaus2::autoarray::AutoArray<cigar_operation> & Aop) const
+			{
+				return libmaus2::bambam::BamAlignmentDecoderBase::getNextCigarVector(D.begin(),blocksize,Aop);
+			}
+
+			int64_t getNextUnclippedStart(libmaus2::autoarray::AutoArray<cigar_operation> & Aop, size_t const numcigop) const
+			{
+				return libmaus2::bambam::BamAlignmentDecoderBase::getNextUnclippedStart(D.begin(),Aop.begin(),Aop.begin()+numcigop);
+			}
+
+			int64_t getNextUnclippedEnd(libmaus2::autoarray::AutoArray<cigar_operation> & Aop, size_t const numcigop) const
+			{
+				return libmaus2::bambam::BamAlignmentDecoderBase::getNextUnclippedEnd(D.begin(),Aop.begin(),Aop.begin()+numcigop);
+			}
 		};
 	}
 }
