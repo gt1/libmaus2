@@ -708,6 +708,64 @@ namespace libmaus2
 			}
 
 			/**
+			 * check whether alignment is left one of a pair
+			 **/
+			static bool isLeft(uint8_t const * pD, uint64_t const blocksize, libmaus2::autoarray::AutoArray<cigar_operation> & Aop)
+			{
+				// check for ref id order
+				int32_t const prefid = libmaus2::bambam::BamAlignmentDecoderBase::getRefID(pD);
+				int32_t const qrefid = libmaus2::bambam::BamAlignmentDecoderBase::getNextRefID(pD);
+
+				if ( prefid != qrefid )
+					return prefid < qrefid;
+
+				// get flags
+				uint32_t const pflags = libmaus2::bambam::BamAlignmentDecoderBase::getFlags(pD);
+
+				// extract reverse bit
+				bool const preverse = pflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREVERSE;
+				bool const qreverse = pflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMREVERSE;
+
+				size_t const numcigop = libmaus2::bambam::BamAlignmentDecoderBase::getNextCigarVector(pD,blocksize,Aop);
+
+				// are the reads mapped to different strands?
+				if ( preverse != qreverse )
+				{
+					// q is on reverse
+					if ( qreverse )
+					{
+						int32_t const pleftmost = libmaus2::bambam::BamAlignmentDecoderBase::getUnclippedStart(pD);
+						int32_t const qrightmost = libmaus2::bambam::BamAlignmentDecoderBase::getNextUnclippedEnd(pD,Aop.begin(),Aop.begin()+numcigop);
+						return pleftmost <= qrightmost;
+					}
+					// p is on reverse
+					else
+					{
+						int32_t const prightmost = libmaus2::bambam::BamAlignmentDecoderBase::getUnclippedEnd(pD);
+						int32_t const qleftmost = libmaus2::bambam::BamAlignmentDecoderBase::getNextUnclippedStart(pD,Aop.begin(),Aop.begin()+numcigop);
+						return prightmost <= qleftmost;
+					}
+				}
+				// reads are on the same strand
+				else
+				{
+					if ( qreverse )
+					{
+						int32_t const prightmost = libmaus2::bambam::BamAlignmentDecoderBase::getUnclippedEnd(pD);
+						int32_t const qrightmost = libmaus2::bambam::BamAlignmentDecoderBase::getNextUnclippedEnd(pD,Aop.begin(),Aop.begin()+numcigop);
+						return prightmost <= qrightmost;
+					}
+					// both on forward
+					else
+					{
+						int32_t const pleftmost = libmaus2::bambam::BamAlignmentDecoderBase::getUnclippedStart(pD);
+						int32_t const qleftmost = libmaus2::bambam::BamAlignmentDecoderBase::getNextUnclippedStart(pD,Aop.begin(),Aop.begin()+numcigop);
+						return pleftmost <= qleftmost;
+					}
+				}
+			}
+
+			/**
 			 * check whether order of two fragments is ok (return true) or needs to be swapped (return false)
 			 **/
 			static bool orderOK(uint8_t const * pD, uint8_t const * qD)
