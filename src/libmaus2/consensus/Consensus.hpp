@@ -26,16 +26,19 @@
 #include <vector>
 #include <cassert>
 
+typedef int (*libmaus2_consensus_ConsensusComputationBase_computeMultipleAlignment_wrapperC_type)(void const * thisptr, void * R, void const * V);
 typedef int (*libmaus2_consensus_ConsensusComputationBase_computeConsensusX_wrapperC_type)(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
 typedef int (*libmaus2_consensus_ConsensusComputationBase_construct_wrapperC_type)(void ** P);
 typedef int (*libmaus2_consensus_ConsensusComputationBase_destruct_wrapperC_type)(void * P);
 
+extern int libmaus2_consensus_ConsensusComputationBase_computeMultipleAlignment_wrapper(void const * thisptr, void * R, void const * V);
 extern int libmaus2_consensus_ConsensusComputationBase_computeConsensusA_wrapper(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
 extern int libmaus2_consensus_ConsensusComputationBase_computeConsensusQ_wrapper(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
 extern int libmaus2_consensus_ConsensusComputationBase_construct_wrapper(void ** P);
 extern int libmaus2_consensus_ConsensusComputationBase_destruct_wrapper(void * P);
 
 extern "C" {
+	extern int libmaus2_consensus_ConsensusComputationBase_computeMultipleAlignment_wrapperC(void const * thisptr, void * R, void const * V);
 	extern int libmaus2_consensus_ConsensusComputationBase_computeConsensusA_wrapperC(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
 	extern int libmaus2_consensus_ConsensusComputationBase_computeConsensusQ_wrapperC(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
 	extern int libmaus2_consensus_ConsensusComputationBase_construct_wrapperC(void ** P);
@@ -54,11 +57,14 @@ namespace libmaus2
 		
 			private:
 			::libmaus2::util::ObjectBase::unique_ptr_type const mscoring;
+			void computeMultipleAlignment(void * vR, void const * vV) const;
 			void computeConsensusA(void * R, void const * V, int const verbose, void * ostr) const;
 			void computeConsensusQ(void * R, void const * V, int const verbose, void * ostr) const;
+			static void computeMultipleAlignment(void const * thisptr, void * R, void const * V);
 			static void computeConsensusA(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
 			static void computeConsensusQ(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
 
+			friend int ::libmaus2_consensus_ConsensusComputationBase_computeMultipleAlignment_wrapper(void const * thisptr, void * R, void const * V);
 			friend int ::libmaus2_consensus_ConsensusComputationBase_computeConsensusA_wrapper(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
 			friend int ::libmaus2_consensus_ConsensusComputationBase_computeConsensusQ_wrapper(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
 			friend int ::libmaus2_consensus_ConsensusComputationBase_construct_wrapper(void ** P);
@@ -66,6 +72,7 @@ namespace libmaus2
 			ConsensusComputationBase();
 						
 			public:
+			static std::vector<std::string> computeMultipleAlignment(void const * obj, std::vector<std::string> const & V);
 			static std::string computeConsensus(void const * obj, std::vector<std::string> const & V, int const verbose = false, std::ostream * ostr = 0);
 			static std::string computeConsensus(void const * obj, std::vector< ::libmaus2::fastx::FastQElement > const & V, int const verbose = false, std::ostream * ostr = 0);
 			static void construct(void ** P);
@@ -91,6 +98,10 @@ namespace libmaus2
 				//std::cerr << "Destructing...";
 				ConsensusComputationBase::destruct(obj);
 				// std::cerr << "done." << std::endl;
+			}
+			std::vector<std::string> computeMultipleAlignment(std::vector<std::string> const & V)
+			{
+				return ConsensusComputationBase::computeMultipleAlignment(obj,V);
 			}
 			std::string computeConsensus(std::vector<std::string> const & V, int const verbose = false, std::ostream * ostr = 0)
 			{
