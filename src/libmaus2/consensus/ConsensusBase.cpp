@@ -27,6 +27,10 @@
 
 extern "C"
 {
+	int libmaus2_consensus_ConsensusComputationBase_computeMultipleAlignment_wrapperC(void const * thisptr, void * R, void const * V)
+	{
+		return libmaus2_consensus_ConsensusComputationBase_computeMultipleAlignment_wrapper(thisptr,R,V);	
+	}
 	int libmaus2_consensus_ConsensusComputationBase_computeConsensusA_wrapperC(void const * thisptr, void * R, void const * V, int const verbose, void * ostr)
 	{
 		return libmaus2_consensus_ConsensusComputationBase_computeConsensusA_wrapper(thisptr,R,V,verbose,ostr);
@@ -80,6 +84,20 @@ int libmaus2_consensus_ConsensusComputationBase_destruct_wrapper(void * vP)
 	}
 }
 
+int libmaus2_consensus_ConsensusComputationBase_computeMultipleAlignment_wrapper(void const * thisptr, void * R, void const * V)
+{
+	try
+	{
+		libmaus2::consensus::ConsensusComputationBase::computeMultipleAlignment(thisptr,R,V);
+		return 0;
+	}
+	catch(std::exception const & ex)
+	{
+		std::cerr << ex.what() << std::endl;
+		return -1;
+	}
+}
+
 int libmaus2_consensus_ConsensusComputationBase_computeConsensusA_wrapper(void const * thisptr, void * R, void const * V, int const verbose, void * ostr)
 {
 	try
@@ -109,6 +127,12 @@ int libmaus2_consensus_ConsensusComputationBase_computeConsensusQ_wrapper(void c
 }
 
 
+void libmaus2::consensus::ConsensusComputationBase::computeMultipleAlignment(void const * thisptr, void * R, void const * V)
+{
+	libmaus2::consensus::ConsensusComputationBase const * obj = reinterpret_cast<libmaus2::consensus::ConsensusComputationBase const *>(thisptr);	
+	//std::cerr << "A using ptr " << thisptr << " == " << obj << std::endl;
+	obj->computeMultipleAlignment(R,V);
+}
 void libmaus2::consensus::ConsensusComputationBase::computeConsensusA(void const * thisptr, void * R, void const * V, int const verbose, void * ostr)
 {
 	libmaus2::consensus::ConsensusComputationBase const * obj = reinterpret_cast<libmaus2::consensus::ConsensusComputationBase const *>(thisptr);	
@@ -165,6 +189,61 @@ static uint64_t getMaxRowLength(seqan::Align< seqan::String<seqan::Dna5> > const
 	
 	return static_cast<uint64_t>(maxviewpos+1);
 }
+
+void libmaus2::consensus::ConsensusComputationBase::computeMultipleAlignment(void * vR, void const * vV) const
+{
+	std::vector<std::string> * R = reinterpret_cast<std::vector<std::string> *>(vR);
+	std::vector< std::string > const * V = reinterpret_cast< std::vector< std::string > const * >(vV);
+
+	ScoringMatrix::base_type const & scoring = dynamic_cast<ScoringMatrix const &>(*mscoring);
+
+	seqan::Align< seqan::String<seqan::Dna5> > align;
+	seqan::resize(rows(align), V->size());
+
+	for ( uint64_t i = 0; i < V->size(); ++i )
+		seqan::assignSource(row(align, i),(*V)[i]);	
+
+	// compute multiple alignment
+	seqan::globalMsaAlignment(align, scoring);
+	
+	// get maximum row length
+	uint64_t const rowlen = getMaxRowLength(align);
+
+	// iterate over rows
+	for ( uint64_t r = 0; r < length(rows(align)); ++r )
+	{
+		std::vector<char> RowV;
+		seqan::Gaps< seqan::String<seqan::Dna5>, seqan::ArrayGaps > const & arow = rows(align)[r];
+		
+		uint64_t exp = 0;
+		for ( uint64_t i = 0; i < length(source(arow)); ++i )
+		{
+			// column in multi alignment
+			uint64_t const viewpos = toViewPosition(arow, i);
+			
+			// insert padding until we have reached it
+			while ( exp < viewpos )
+			{
+				RowV.push_back('-');
+				exp++;
+			}
+
+			// push source character
+			RowV.push_back(source(arow)[i]);
+			
+			exp++;
+		}
+		
+		while ( exp < rowlen )
+		{		
+			RowV.push_back('-');
+			exp++;
+		}
+		
+		R->push_back(std::string(RowV.begin(),RowV.end()));		
+	}	
+}
+
 
 void libmaus2::consensus::ConsensusComputationBase::computeConsensusA(void * vR, void const * vV, int const verbose, void * vostr) const
 {

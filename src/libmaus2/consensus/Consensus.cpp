@@ -25,6 +25,35 @@
 
 #if defined(LIBMAUS2_HAVE_SEQAN)
 
+std::vector<std::string> libmaus2::consensus::ConsensusComputationBase::computeMultipleAlignment(
+	void const * obj,
+	std::vector< std::string > const & V
+)
+{
+	#if defined(LIBMAUS2_HAVE_DL_FUNCS)
+	::libmaus2::util::DynamicLibraryFunction<libmaus2_consensus_ConsensusComputationBase_computeMultipleAlignment_wrapperC_type> DLF(
+		"libmaus2_consensus_mod.so","libmaus2_consensus_ConsensusComputationBase_computeMultipleAlignment_wrapperC");
+	
+	std::vector<std::string> R;
+	int const r = DLF.func(obj,&R,&V);
+	
+	if ( r < 0 )
+	{
+		::libmaus2::exception::LibMausException se;
+		se.getStream() << "libmaus2::consensus::ConsensusComputationBase::computeMultipleAlignment failed." << std::endl;
+		se.finish();
+		throw se;
+	}
+	
+	return R;
+	#else
+	::libmaus2::exception::LibMausException se;
+	se.getStream() << "libmaus2::consensus::ConsensusComputationBase::computeMultipleAlignment called but dynamic loading is not supported." << std::endl;
+	se.finish();
+	throw se;
+	#endif
+}
+
 std::string libmaus2::consensus::ConsensusComputationBase::computeConsensus(
 	void const * obj,
 	std::vector< ::libmaus2::fastx::FastQElement > const & V, int const verbose, std::ostream * ostr
