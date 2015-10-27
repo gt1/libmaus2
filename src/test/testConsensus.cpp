@@ -60,6 +60,18 @@ void computeConsensus()
 int main()
 {
 	#if defined(LIBMAUS2_HAVE_SEQAN)
+	std::vector<std::string> V;
+	V.push_back("ACGTACGTGA");
+	V.push_back("ACTACGTGA");
+	V.push_back("ACGTAGTGA");
+	V.push_back("ATGTACGTGA");
+	V.push_back("ACGTACGTTTTTTTTTTGA");
+	::libmaus2::consensus::ConsensusComputation CC;
+	std::vector<std::string> R = CC.computeMultipleAlignment(V);
+	
+	for ( uint64_t i = 0; i < R.size(); ++i )
+		std::cerr << R[i] << std::endl;
+	
 	computeConsensus();
 	#else
 	std::cerr << "libmaus2 is compiled without SeqAN support. Consensus computation is thus not present." << std::endl;
