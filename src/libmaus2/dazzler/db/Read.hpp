@@ -19,6 +19,7 @@
 #define LIBMAUS2_DAZZLER_DB_READ_HPP
 
 #include <libmaus2/dazzler/db/InputBase.hpp>
+#include <libmaus2/dazzler/db/OutputBase.hpp>
 #include <libmaus2/dazzler/db/GetByteCounter.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/fastx/acgtnMap.hpp>
@@ -30,7 +31,7 @@ namespace libmaus2
 	{
 		namespace db
 		{
-			struct Read : public libmaus2::dazzler::db::InputBase
+			struct Read : public libmaus2::dazzler::db::InputBase, public libmaus2::dazzler::db::OutputBase
 			{
 				static int32_t const DB_QV = 0x3ff;
 				static int32_t const DB_CSS = 0x400;
@@ -62,7 +63,20 @@ namespace libmaus2
 					boff   = getLittleEndianInteger8(in,offset);
 					coff   = getLittleEndianInteger8(in,offset);
 					flags  = getLittleEndianInteger4(in,offset);
-					align(in,sizeof(int64_t),offset);
+					libmaus2::dazzler::db::InputBase::align(in,sizeof(int64_t),offset);
+				}
+
+				uint64_t serialise(std::ostream & out) const
+				{
+					uint64_t offset = 0;
+					putLittleEndianInteger4(out,origin,offset);
+					putLittleEndianInteger4(out,rlen,offset);
+					putLittleEndianInteger4(out,fpulse,offset);
+					putLittleEndianInteger8(out,boff,offset);
+					putLittleEndianInteger8(out,coff,offset);
+					putLittleEndianInteger4(out,flags,offset);
+					libmaus2::dazzler::db::OutputBase::align(out,sizeof(int64_t),offset);
+					return offset;
 				}
 				
 				Read()
