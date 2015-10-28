@@ -1564,9 +1564,23 @@ namespace libmaus2
 					return UNIQUE_PTR_MOVE(track);
 				}
 
-				static std::ostream & serialiseSingleFileRawDatabase(std::ostream & out, uint64_t const numreads)
+				static std::ostream & serialiseSingleFileRawDatabase(std::ostream & out, uint64_t const numreads, std::string const prolog, std::string const fn)
 				{
-					return out << "files =         " << 1 << "\n" << "         " << numreads << " L0 L0\n";
+					out << "files = " << std::setw(9) << std::setfill(' ') << 1 << std::setw(0) << "\n";
+					out << "  " << std::setw(9) << std::setfill(' ') << numreads << std::setw(0) << " " << prolog << " " << fn << "\n";
+					out << "blocks = " << std::setw(9) << std::setfill(' ') << 1 << std::setw(0) << "\n";
+					out << "size = " << std::setw(9) << std::setfill(' ') << 200 << std::setw(0)
+						<< " cutoff = " << std::setw(9) << std::setfill(' ') << 0 << std::setw(0)
+						<< " all = " << std::setw(1) << std::setfill(' ') << 0 << std::setw(0)
+						<< "\n";
+					out << " " 
+						<< std::setw(9) << std::setfill(' ') << 0 << std::setw(0) << " "
+						<< std::setw(9) << std::setfill(' ') << 0 << std::setw(0) << "\n";
+					out << " " 
+						<< std::setw(9) << std::setfill(' ') << numreads << std::setw(0) << " "
+						<< std::setw(9) << std::setfill(' ') << numreads << std::setw(0) << "\n";
+
+					return out;				
 				}
 			};
 
