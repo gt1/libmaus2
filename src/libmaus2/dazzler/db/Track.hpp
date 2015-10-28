@@ -45,6 +45,22 @@ namespace libmaus2
 				{
 					return *PDanno;
 				}
+
+				std::string getString(uint64_t const i) const
+				{
+					if ( ! Adata )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "Track::getString(): no data array loaded" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					uint64_t const low = getAnno()[i];
+					uint64_t const high = getAnno()[i+1];
+
+					return std::string(Adata->begin()+low,Adata->begin()+high);
+				}
 			};
 		}
 	}

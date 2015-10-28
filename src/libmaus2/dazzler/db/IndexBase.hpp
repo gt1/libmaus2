@@ -19,6 +19,7 @@
 #define LIBMAUS2_DAZZLER_DB_HITSINDEXBASE_HPP
 
 #include <libmaus2/dazzler/db/InputBase.hpp>
+#include <libmaus2/dazzler/db/OutputBase.hpp>
 #include <istream>
 
 namespace libmaus2
@@ -27,7 +28,7 @@ namespace libmaus2
 	{
 		namespace db
 		{
-			struct IndexBase : public InputBase
+			struct IndexBase : public InputBase, public OutputBase
 			{
 				// untrimmed number of reads
 				int32_t ureads;
@@ -69,10 +70,40 @@ namespace libmaus2
 					deserialise(in);
 				}
 				
+				uint64_t serialise(std::ostream & out) const
+				{
+					uint64_t offset = 0;
+
+					putLittleEndianInteger4(out,ureads,offset);
+					putLittleEndianInteger4(out,treads,offset);
+					putLittleEndianInteger4(out,cutoff,offset);
+					putLittleEndianInteger4(out,all,offset);
+
+					for ( size_t i = 0; i < sizeof(freq)/sizeof(freq[0]); ++i )
+						putFloat(out,freq[i],offset);
+
+					putLittleEndianInteger4(out,maxlen,offset);
+					putLittleEndianInteger8(out,totlen,offset);
+					putLittleEndianInteger4(out,nreads,offset);
+					putLittleEndianInteger4(out,trimmed,offset);
+
+					putLittleEndianInteger4(out,0,offset); // part
+					putLittleEndianInteger4(out,0,offset); // ufirst
+					putLittleEndianInteger4(out,0,offset); // tfirst
+
+					putLittleEndianInteger8(out,0,offset); // path
+					putLittleEndianInteger4(out,0,offset); // loaded
+					putLittleEndianInteger8(out,0,offset); // bases
+					putLittleEndianInteger8(out,0,offset); // reads
+					putLittleEndianInteger8(out,0,offset); // tracks
+
+					return offset;
+				}
+				
 				void deserialise(std::istream & in)
 				{
 					uint64_t offset = 0;
-				
+
 					ureads  = getLittleEndianInteger4(in,offset); // number of reads in untrimmed database
 					treads  = getLittleEndianInteger4(in,offset); // number of reads in trimmed database
 					cutoff  = getLittleEndianInteger4(in,offset); // length cut off
@@ -86,18 +117,18 @@ namespace libmaus2
 					totlen  = getLittleEndianInteger8(in,offset); // total length
 					/* nreads  = */ getLittleEndianInteger4(in,offset); // number of reads
 					trimmed = getLittleEndianInteger4(in,offset); 
-					
+
 					/* part = */   getLittleEndianInteger4(in,offset);
 					/* ufirst = */ getLittleEndianInteger4(in,offset);
 					/* tfirst = */ getLittleEndianInteger4(in,offset);
-					
+
 					/* path =   */ getLittleEndianInteger8(in,offset); // 8 byte pointer
 					/* loaded = */ getLittleEndianInteger4(in,offset);
 					/* bases =  */ getLittleEndianInteger8(in,offset); // 8 byte pointer
-					
+
 					/* reads =  */ getLittleEndianInteger8(in,offset); // 8 byte pointer
 					/* tracks = */ getLittleEndianInteger8(in,offset); // 8 byte pointer				
-					
+
 					nreads = ureads; /* number of untrimmed reads */
 				}
 			};

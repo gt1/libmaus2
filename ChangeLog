@@ -1,3 +1,16 @@
+libmaus2 (2.0.96-1) unstable; urgency=medium
+
+  * add concatenation option in BamMultiAlignmentDecoderFactory
+  * add getString method in Track class
+  * add StringTrackWriter class
+  * add serialiseSingleFileRawDatabase function in libmaus2::dazzler::db::DatabaseFile
+  * add encode function in libmaus2::dazzler::db::Read
+  * add cigar string generation in DNABaseNoiseSpiker
+  * add serialise method in Read class
+  * add serialise method in libmaus2::dazzler::db::IndexBase class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 28 Oct 2015 12:10:02 +0100
+
 libmaus2 (2.0.95-1) unstable; urgency=medium
 
   * add interface to SeqAN multiple sequence alignment 

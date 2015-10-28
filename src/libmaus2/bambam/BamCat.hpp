@@ -210,6 +210,41 @@ namespace libmaus2
 				return *(header.bamheader);
 			}
 		};
+
+		struct BamCatWrapper : public BamAlignmentDecoderWrapper
+		{
+			typedef BamCatWrapper this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
+			BamCat bamcat;
+
+			BamCatWrapper(
+				libmaus2::util::ArgInfo const & arginfo,
+				std::vector<std::string> const & rfilenames,
+				bool const putrank = false,
+				bool const rstreaming = false
+			) : bamcat(arginfo,rfilenames,putrank,rstreaming) {}
+
+			BamCatWrapper(
+				std::vector<std::string> const & rfilenames,
+				bool const putrank = false,
+				bool const rstreaming = false
+			) : bamcat(rfilenames,putrank,rstreaming) {}
+
+			BamCatWrapper(
+				std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> const & rinfos,
+				bool const putrank = false,
+				bool const rstreaming = false
+			) : bamcat(rinfos,putrank,rstreaming) {}
+
+			virtual ~BamCatWrapper() {}
+			virtual BamAlignmentDecoder & getDecoder()
+			{
+				return bamcat;
+			}
+		};
+
 	}
 }
 #endif
