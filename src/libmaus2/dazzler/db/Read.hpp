@@ -88,7 +88,30 @@ namespace libmaus2
 				{
 					deserialise(in);
 				}
-				
+
+				template<typename iterator>
+				static size_t encode(std::ostream & out, iterator ita, iterator ite)
+				{
+					uint64_t s = 0;
+
+					while ( ita != ite )
+					{
+						unsigned int c = 0;
+						char C[4] = {0,0,0,0};
+						while ( ita != ite && c < 4 )
+							C[c++] = libmaus2::fastx::mapChar(*(ita++)) & 3;
+						uint8_t const v =
+							(C[0] << 6) |
+							(C[1] << 4) |
+							(C[2] << 2) |
+							(C[3] << 0);
+						out.put(v);
+						++s;
+					}
+
+					return s;
+				}
+
 				size_t decode(std::istream & in, libmaus2::autoarray::AutoArray<char> & C, bool const seek = true)
 				{
 					if ( seek )
