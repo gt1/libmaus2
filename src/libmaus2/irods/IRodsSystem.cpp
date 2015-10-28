@@ -114,9 +114,11 @@ std::string libmaus2::irods::IRodsSystem::setComm(std::string const & filename)
 	std::string user;
 	int port;
 	
-	std::string file = parseIRodsURI(filename, host, zone, user, port); 	
+	std::string file = parseIRodsURI(filename, host, zone, user, port);
+	std::stringstream port_to_string;
+	port_to_string << port;	
 	
-	std::string search = host + ":" + std::to_string(port);
+	std::string search = host + ":" + port_to_string.str();
 	
 	if ( comms.find(search) != comms.end() ) 
 	{
@@ -125,7 +127,7 @@ std::string libmaus2::irods::IRodsSystem::setComm(std::string const & filename)
 	else
 	{
 	    	// open connection to iRODS server
-	    
+
 	    	int status = -1;
 	    	rErrMsg_t errorMessage;
 	    	comm = rcConnect(
@@ -152,6 +154,9 @@ std::string libmaus2::irods::IRodsSystem::setComm(std::string const & filename)
 		// perform login
 		if ( (status = clientLogin(comm)) < 0 )
 		{
+		    	// clean up the lingering connection
+		    	rcDisconnect(comm);
+		
 			char * subname = 0;
 			char * name = rodsErrorName(status, &subname);
 
