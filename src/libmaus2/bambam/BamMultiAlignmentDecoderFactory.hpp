@@ -21,6 +21,7 @@
 
 #include <libmaus2/bambam/BamAlignmentDecoderFactory.hpp>
 #include <libmaus2/bambam/BamMergeCoordinate.hpp>
+#include <libmaus2/bambam/BamCat.hpp>
 
 namespace libmaus2
 {
@@ -57,13 +58,23 @@ namespace libmaus2
 			static libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
 				std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> const & BADI,
 				bool const putrank = false,
-				std::istream & istdin = std::cin
+				std::istream & istdin = std::cin,
+				bool cat = false,
+				bool streaming = false
 			)
 			{
 				if ( ! BADI.size() || BADI.size() > 1 )
 				{
-					libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(new libmaus2::bambam::BamMergeCoordinate(BADI,putrank));
-					return UNIQUE_PTR_MOVE(tptr);
+					if ( cat )
+					{
+						libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(new libmaus2::bambam::BamCatWrapper(BADI,putrank,streaming));
+						return UNIQUE_PTR_MOVE(tptr);
+					}
+					else
+					{
+						libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(new libmaus2::bambam::BamMergeCoordinate(BADI,putrank));
+						return UNIQUE_PTR_MOVE(tptr);
+					}
 				}
 				else
 				{
@@ -78,7 +89,9 @@ namespace libmaus2
 				libmaus2::util::ArgInfo const & arginfo,
 				bool const putrank = false, 
 				std::ostream * copystr = 0,
-				std::istream & istdin = std::cin
+				std::istream & istdin = std::cin,
+				bool cat = false,
+				bool streaming = false
 			)
 			{
 				std::vector<std::string> const I = arginfo.getPairValues("I");
@@ -89,7 +102,7 @@ namespace libmaus2
 				if ( ! I.size() )
 					V.push_back(libmaus2::bambam::BamAlignmentDecoderInfo::constructInfo(arginfo,"-",false,copystr));
 
-				libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(construct(V,putrank,istdin));
+				libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(construct(V,putrank,istdin,cat,streaming));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 		};
