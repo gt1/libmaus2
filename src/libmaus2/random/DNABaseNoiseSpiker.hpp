@@ -147,6 +147,27 @@ namespace libmaus2
 				}
 			}
 
+			std::pair<std::string,std::string> modifyAndComment(std::string const & sub, ErrorStats * const estats = 0) const
+			{
+				std::ostringstream ostr;
+				ErrorStats const E = modify(ostr,sub,0,0,0,0);
+				if ( estats )
+					*estats = E;
+				std::istringstream istr(ostr.str());
+			        libmaus2::fastx::StreamFastAReaderWrapper SFQR(istr);
+				libmaus2::fastx::StreamFastAReaderWrapper::pattern_type pattern;
+
+				if ( SFQR.getNextPatternUnlocked(pattern) )
+					return std::pair<std::string,std::string>(pattern.spattern,pattern.sid);
+				else
+				{
+				    libmaus2::exception::LibMausException lme;
+				    lme.getStream() << "DNABaseNoiseSpiker: failed to produce sequence" << std::endl;
+				    lme.finish();
+				    throw lme;
+				}
+			}
+
 			static std::string modify(
 				std::string const & sub, 
 				double const substrate, double const delrate, double const insrate,
@@ -161,6 +182,20 @@ namespace libmaus2
 				return spiker.modify(sub,estats);
 			}
 
+			static std::pair<std::string,std::string> modifyAndComment(
+				std::string const & sub,
+				double const substrate, double const delrate, double const insrate,
+				double const erateavg,
+				double const eratestddev,
+				ErrorStats * const estats = 0
+			)
+			{
+				DNABaseNoiseSpiker spiker(
+					substrate,delrate,insrate,erateavg,erateavg,eratestddev,eratestddev,1,0,1
+				);
+				return spiker.modifyAndComment(sub,estats);
+			}
+
 			ErrorStats modify(
 				std::ostream & out,
 				std::string sub, 
@@ -172,6 +207,7 @@ namespace libmaus2
 			{
 				std::ostringstream errostr;
 				std::ostringstream baseostr;
+				std::ostringstream cigopstr;
 			
 				std::vector < state_enum > states;
 				state_enum state = (libmaus2::random::UniformUnitRandom::uniformUnitRandom() < state_start_map.find(state_error_low)->second) ? state_error_low : state_error_high;
@@ -286,6 +322,7 @@ namespace libmaus2
 					    }
 					    baseostr.put(insbase);
 					    errostr << 'i' << static_cast<char>(insbase);
+					    cigopstr.put('I');
 					    numins += 1;
 					}
 
@@ -305,22 +342,38 @@ namespace libmaus2
 					    }                    
 					    baseostr.put(insbase);
 					    errostr << 's' << static_cast<char>(insbase);
+					    cigopstr.put('X');
 					    numsubst += 1;
 					}
 					else
 					{
 					   baseostr.put(sub[pos]); 
 					   errostr << 'o';
+					   cigopstr.put('=');
 					}
 				    }
 				    else
 				    {
 					errostr.put('d');
 					numdel += 1;
+					cigopstr.put('D');
 				    }
 				}
 				
-				out << '>' << 'L' << runid << '/' << (readid) << '/' << 0 << '_' << baseostr.str().size() << " RQ=0.851 " << errostr.str() << '\n';
+				std::string const cigprestr = cigopstr.str();
+				uint64_t z = 0;
+				std::ostringstream cigfinalstr;
+				while ( z < cigprestr.size() )
+				{
+					uint64_t h = z;
+					while ( h < cigprestr.size() && cigprestr[z] == cigprestr[h] )
+						++h;
+					cigfinalstr << h-z << cigprestr[z];
+					z = h;
+				}
+				std::string const cigstr = cigfinalstr.str();
+
+				out << '>' << 'L' << runid << '/' << (readid) << '/' << 0 << '_' << baseostr.str().size() << " RQ=0.851 " << errostr.str() << " CIGAR=[" << cigstr << "]\n";
 
 				uint64_t b_low = 0;
 				std::string const bases = baseostr.str();
