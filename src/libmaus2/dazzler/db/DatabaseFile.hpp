@@ -1566,7 +1566,7 @@ namespace libmaus2
 
 				static std::ostream & serialiseSingleFileRawDatabase(std::ostream & out, uint64_t const numreads)
 				{
-					return out << "files =         " << numreads << "\n" << "         81 L0 L0\n";
+					return out << "files =         " << 1 << "\n" << "         " << numreads << " L0 L0\n";
 				}
 			};
 
