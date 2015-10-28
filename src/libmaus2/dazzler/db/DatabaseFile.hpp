@@ -1564,6 +1564,10 @@ namespace libmaus2
 					return UNIQUE_PTR_MOVE(track);
 				}
 
+				static std::ostream & serialiseSingleFileRawDatabase(std::ostream & out, uint64_t const numreads)
+				{
+					return out << "files =         " << numreads << "\n" << "         81 L0 L0\n";
+				}
 			};
 
 			std::ostream & operator<<(std::ostream & out, DatabaseFile const & D);
