@@ -51,6 +51,7 @@ namespace libmaus2
 			rodsEnv irodsEnvironment;
 			rcComm_t * comm;
 			sighandler_t prevpipesighandler;
+			std::map<std::string, rcComm_t *> comms; 
 			#endif
 
 			static IRodsFileBase::unique_ptr_type openFile(IRodsSystem::shared_ptr_type commProvider, std::string const & filename);
@@ -68,6 +69,13 @@ namespace libmaus2
 			{
 				return comm;
 			}
+			#endif
+			
+			#if defined(LIBMAUS2_HAVE_IRODS)
+			private:
+			    std::string setComm(std::string const & filename);
+    	    	    	    std::string parseIRodsURI(std::string const & uri, std::string & host, std::string & zone, 
+			    	    	    	      std::string & user, int & port);			
 			#endif
 		};		
 	}

@@ -44,7 +44,10 @@ namespace libmaus2
 
 			bool fdvalid;
 			long fd; /* file descriptor returned by rcDataObjCreate() */
-			libmaus2::irods::IRodsCommProvider::shared_ptr_type commProvider;
+			
+			#if defined(LIBMAUS2_HAVE_IRODS)
+			rcComm_t * comm;
+			#endif
 			
 			private:
 			IRodsFileBase();
