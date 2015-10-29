@@ -20,7 +20,6 @@
 
 libmaus2::irods::IRodsFileBase::IRodsFileBase() : fdvalid(false)
 {
-
 }
 
 libmaus2::irods::IRodsFileBase::~IRodsFileBase()
@@ -32,7 +31,7 @@ libmaus2::irods::IRodsFileBase::~IRodsFileBase()
 		memset (&closeHandle, 0, sizeof (closeHandle));
 		closeHandle.l1descInx = fd;
 		
-		int const status = rcDataObjClose(commProvider->getComm(), &closeHandle);
+		int const status = rcDataObjClose(comm, &closeHandle);
 		
 		if ( status < 0 )
 		{
@@ -71,7 +70,7 @@ uint64_t libmaus2::irods::IRodsFileBase::read(
 	readOutHandle.buf   = buffer;
 	readOutHandle.len   = len;
 	
-	long const status = rcDataObjRead(commProvider->getComm(), &readInHandle, &readOutHandle);
+	long const status = rcDataObjRead(comm, &readInHandle, &readOutHandle);
 	
 	if ( status < 0 )
 	{
@@ -107,12 +106,12 @@ uint64_t libmaus2::irods::IRodsFileBase::seek(
 	openedDataObjInp_t seekInput;
 	fileLseekOut_t* seekOutput = NULL;
 	int status = -1;
-	
+
 	memset(&seekInput, 0, sizeof(seekInput));
 	seekInput.l1descInx = fd;
 	seekInput.offset    = offset;
 	seekInput.whence    = whence;
-	if((status = rcDataObjLseek(commProvider->getComm(), &seekInput, &seekOutput)) < 0) 
+	if((status = rcDataObjLseek(comm, &seekInput, &seekOutput)) < 0) 
 	{
 		char * subname = 0;
 		char * name = rodsErrorName(status,&subname);
