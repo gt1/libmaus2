@@ -2934,8 +2934,9 @@ if test "${with_irods}" != "no" ; then
 	if test ! -z "${IRODSDIR}" ; then
 		CPPFLAGS="${CPPFLAGS} -I${IRODSDIR}/lib/api/include -I ${IRODSDIR}/lib/core/include -I ${IRODSDIR}/lib/sha1/include -I ${IRODSDIR}/lib/md5/include -I ${IRODSDIR}/server/core/include -I ${IRODSDIR}/server/icat/include -I ${IRODSDIR}/server/drivers/include -I ${IRODSDIR}/server/re/include"
 		LDFLAGS="${LDFLAGS} -L${IRODSDIR}/lib/core/obj"
-		LIBS="${LIBS} -lRodsAPIs -pthread -ldl -lgssapi_krb5"
 	fi
+
+	LIBS="-lRodsAPIs -pthread -ldl -lgssapi_krb5 ${LIBS}"
 
 	AC_LANG_PUSH([C++])
 	AC_CHECK_HEADER(rodsClient.h, [rodsclient_h=yes], [rodsclient_h=no])
