@@ -1,3 +1,9 @@
+libmaus2 (2.0.97-1) unstable; urgency=medium
+
+  * add an experimental iRODS uri handler (code update by Andrew Whitwham) 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 29 Oct 2015 09:45:40 +0100
+
 libmaus2 (2.0.96-1) unstable; urgency=medium
 
   * add concatenation option in BamMultiAlignmentDecoderFactory
