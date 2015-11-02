@@ -7,5 +7,5 @@ Name: libmaus2irods
 Description: non pic irods interface in libmaus2
 Requires: 
 Version: @VERSION@
-Libs: -L${libdir} -lmaus2_irods -L@IRODSDIR@/lib/core/obj -lRodsAPIs -lgssapi_krb5 -pthread -ldl
+Libs: -L${libdir} -lmaus2_irods -L@IRODSDIR@/lib/core/obj @IRODSLIBS@
 Cflags: -I@IRODSDIR@/lib/api/include -I@IRODSDIR@/lib/core/include -I@IRODSDIR@/lib/sha1/include -I@IRODSDIR@/lib/md5/include -I@IRODSDIR@/server/core/include -I@IRODSDIR@/server/icat/include -I@IRODSDIR@/server/drivers/include -I@IRODSDIR@/server/re/include @LIBMAUSCPPFLAGS@ @LIBMAUSPKGCPPFLAGS@ @LIBMAUSPKGCXXFLAGS@ @LIBMAUSARCHCFLAGS@ -I${includedir}

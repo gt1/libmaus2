@@ -2919,6 +2919,11 @@ AC_ARG_WITH([irods],
 	[with_irods=${withval}],
 	[with_irods=no])
 LIBMAUS2_HAVE_IRODS=
+LIBMAUS2_IRODS_NEED_PREFIX=
+IRODSCPPFLAGS=
+IRODSLDFLAGS=
+IRODSLIBS=
+IRODSCXXFLAGS=
 
 if test "${with_irods}" != "no" ; then
 	IRODSDIR=
@@ -2932,30 +2937,94 @@ if test "${with_irods}" != "no" ; then
 	LDFLAGS_SAVE=${LDFLAGS}
 	
 	if test ! -z "${IRODSDIR}" ; then
-		CPPFLAGS="${CPPFLAGS} -I${IRODSDIR}/lib/api/include -I ${IRODSDIR}/lib/core/include -I ${IRODSDIR}/lib/sha1/include -I ${IRODSDIR}/lib/md5/include -I ${IRODSDIR}/server/core/include -I ${IRODSDIR}/server/icat/include -I ${IRODSDIR}/server/drivers/include -I ${IRODSDIR}/server/re/include"
-		LDFLAGS="${LDFLAGS} -L${IRODSDIR}/lib/core/obj"
+		IRODSCPPFLAGS="-I${IRODSDIR}/lib/api/include -I ${IRODSDIR}/lib/core/include -I ${IRODSDIR}/lib/sha1/include -I ${IRODSDIR}/lib/md5/include -I ${IRODSDIR}/server/core/include -I ${IRODSDIR}/server/icat/include -I ${IRODSDIR}/server/drivers/include -I ${IRODSDIR}/server/re/include"
+		IRODSLDFLAGS="-L${IRODSDIR}/lib/core/obj"
+	else
+		IRODSCPPFLAGS=
+		IRODSLDFLAGS=
 	fi
 
-	LIBS="-lRodsAPIs -pthread -ldl -lgssapi_krb5 ${LIBS}"
+	CPPFLAGS="${CPPFLAGS} ${IRODSCPPFLAGS}"
+	LDFLAGS="${LDFLAGS} ${IRODSLDFLAGS}"
+
 
 	AC_LANG_PUSH([C++])
 	AC_CHECK_HEADER(rodsClient.h, [rodsclient_h=yes], [rodsclient_h=no])
 	AC_LANG_POP
-	
-	if test "${rodsclient_h}" = "yes" ; then
-AC_MSG_CHECKING([for rodsClient.h])
+
+	AC_LANG_PUSH([C++])
+	AC_CHECK_HEADER(irods/rodsClient.h, [irods_rodsclient_h=yes], [irods_rodsclient_h=no])
+	AC_LANG_POP
+
+	if test ${rodsclient_h} = "yes" -o ${irods_rodsclient_h} = "yes" ; then
+		have_rodsclient_h="yes"
+	else
+		have_rodsclient_h="no"
+	fi
+
+	if test ${rodsclient_h} = "no" -a ${irods_rodsclient_h} = "yes" ; then
+		rods_need_irods_prefix="yes"
+		LIBMAUS2_IRODS_NEED_PREFIX="#define LIBMAUS2_IRODS_NEED_PREFIX"
+		LIBMAUS2_IRODS_HEADER="irods/rodsClient.h"
+	else
+		rods_need_irods_prefix="no"
+		LIBMAUS2_IRODS_HEADER="rodsClient.h"
+	fi
+
+	if test "${have_rodsclient_h}" = "yes" ; then
+AC_MSG_CHECKING([whether irods version is 3])
 AC_LANG_PUSH([C++])
-	AC_TRY_LINK([#include <rodsClient.h>
+	AC_TRY_COMPILE([#include <${LIBMAUS2_IRODS_HEADER}>
+],[
+	#if defined(IRODS_VERSION_MAJOR) && IRODS_VERSION_MAJOR == 3
+
+	#else
+	#error "Not version 3"
+	#endif
+],[irods_is_version_3=yes],[irods_is_version_3=no])
+AC_MSG_RESULT([${irods_is_version_3}])
+	fi
+
+	if test "${have_rodsclient_h}" = "yes" ; then
+AC_MSG_CHECKING([whether irods version is >= 4])
+AC_LANG_PUSH([C++])
+	AC_TRY_COMPILE([#include <${LIBMAUS2_IRODS_HEADER}>
+],[
+	#if defined(IRODS_VERSION_MAJOR) && IRODS_VERSION_MAJOR >= 4
+
+	#else
+	#error "Not version 4"
+	#endif
+],[irods_is_version_4=yes],[irods_is_version_4=no])
+AC_MSG_RESULT([${irods_is_version_4}])
+	fi
+
+	if test ${irods_is_version_3} = "yes" ; then
+		IRODSLIBS="-lRodsAPIs -pthread -ldl -lgssapi_krb5"
+	elif test ${irods_is_version_4} = "yes" ; then
+		IRODSLIBS="-lRodsAPIs -pthread -ldl -lgssapi_krb5 -lboost_regex -lboost_thread -lboost_system -lboost_filesystem -lboost_chrono -ljansson -lssl -lcrypto"
+	else
+		IRODSLIBS=
+		have_rodsclient_h=no
+		AC_MSG_NOTICE([unknown irods version, not compiling irods support])
+	fi
+
+	LIBS="${IRODSLIBS} ${LIBS}"
+
+	if test "${have_rodsclient_h}" = "yes" ; then
+AC_MSG_CHECKING([for ${LIBMAUS2_IRODS_HEADER}])
+AC_LANG_PUSH([C++])
+	AC_TRY_LINK([#include <${LIBMAUS2_IRODS_HEADER}>
 ],[
 	return 0;
 ],[rodsclient_h=yes],[rodsclient_h=no])
 AC_MSG_RESULT([${rodsclient_h}])	
 	fi
-	
+
 	if test "${rodsclient_h}" = "yes" ; then	
 AC_MSG_CHECKING([whether we can compile a program using the IRODS library])
 AC_LANG_PUSH([C++])
-	AC_TRY_LINK([#include <rodsClient.h>],[
+	AC_TRY_LINK([#include <${LIBMAUS2_IRODS_HEADER}>],[
 	rodsEnv myRodsEnv;
 	int const status = getRodsEnv (&myRodsEnv);
 	return 0;
@@ -3043,18 +3112,14 @@ if test ! -z "${LIBMAUS2_HAVE_HDF5}" ; then
 	HDF5LIBS="-lhdf5_hl -lhdf5"
 fi
 
-IRODSCPPFLAGS=
-IRODSCXXFLAGS=
-IRODSLDFLAGS=
-IRODSLIBS=
 if test ! -z "${LIBMAUS2_HAVE_IRODS}" ; then
 	TESTPROGS="${TESTPROGS} testirods"
-	if test ! -z "${IRODSDIR}" ; then
-		IRODSCPPFLAGS="-I${IRODSDIR}/lib/api/include -I ${IRODSDIR}/lib/core/include -I ${IRODSDIR}/lib/sha1/include -I ${IRODSDIR}/lib/md5/include -I ${IRODSDIR}/server/core/include -I ${IRODSDIR}/server/icat/include -I ${IRODSDIR}/server/drivers/include -I ${IRODSDIR}/server/re/include"
-		IRODSLDFLAGS="-L${IRODSDIR}/lib/core/obj"
-	fi
-	IRODSLIBS="-lRodsAPIs -lgssapi_krb5 -pthread -ldl"
 	LIBMAUSIRODSPC="libmaus2irods.pc"
+else
+	IRODSCPPFLAGS=
+	IRODSCXXFLAGS=
+	IRODSLDFLAGS=
+	IRODSLIBS=
 fi
 
 AC_ARG_WITH([gmp],
@@ -3497,4 +3562,5 @@ AC_SUBST([LIBMAUS2_HAVE_LZMA])
 AC_SUBST([LIBMAUS2_LZMA_LIBS])
 AC_SUBST([LIBMAUS2_LZMA_CPPFLAGS])
 AC_SUBST([LIBMAUS2_LZMA_REQ])
+AC_SUBST([LIBMAUS2_IRODS_NEED_PREFIX])
 AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2lsf.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp)
