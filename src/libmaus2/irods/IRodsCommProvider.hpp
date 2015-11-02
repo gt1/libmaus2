@@ -23,7 +23,11 @@
 #include <libmaus2/util/shared_ptr.hpp>
 
 #if defined(LIBMAUS2_HAVE_IRODS)
+#if defined(LIBMAUS2_IRODS_NEED_PREFIX)
+#include <irods/rodsClient.h>
+#else
 #include <rodsClient.h>
+#endif
 #endif
 
 namespace libmaus2
