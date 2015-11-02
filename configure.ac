@@ -2972,20 +2972,6 @@ if test "${with_irods}" != "no" ; then
 	fi
 
 	if test "${have_rodsclient_h}" = "yes" ; then
-AC_MSG_CHECKING([whether irods version is 3])
-AC_LANG_PUSH([C++])
-	AC_TRY_COMPILE([#include <${LIBMAUS2_IRODS_HEADER}>
-],[
-	#if defined(IRODS_VERSION_MAJOR) && IRODS_VERSION_MAJOR == 3
-
-	#else
-	#error "Not version 3"
-	#endif
-],[irods_is_version_3=yes],[irods_is_version_3=no])
-AC_MSG_RESULT([${irods_is_version_3}])
-	fi
-
-	if test "${have_rodsclient_h}" = "yes" ; then
 AC_MSG_CHECKING([whether irods version is >= 4])
 AC_LANG_PUSH([C++])
 	AC_TRY_COMPILE([#include <${LIBMAUS2_IRODS_HEADER}>
@@ -2999,14 +2985,10 @@ AC_LANG_PUSH([C++])
 AC_MSG_RESULT([${irods_is_version_4}])
 	fi
 
-	if test ${irods_is_version_3} = "yes" ; then
-		IRODSLIBS="-lRodsAPIs -pthread -ldl -lgssapi_krb5"
-	elif test ${irods_is_version_4} = "yes" ; then
+	if test ${irods_is_version_4} = "yes" ; then
 		IRODSLIBS="-lRodsAPIs -pthread -ldl -lgssapi_krb5 -lboost_regex -lboost_thread -lboost_system -lboost_filesystem -lboost_chrono -ljansson -lssl -lcrypto"
 	else
-		IRODSLIBS=
-		have_rodsclient_h=no
-		AC_MSG_NOTICE([unknown irods version, not compiling irods support])
+		IRODSLIBS="-lRodsAPIs -pthread -ldl -lgssapi_krb5"
 	fi
 
 	LIBS="${IRODSLIBS} ${LIBS}"
