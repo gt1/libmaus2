@@ -1,3 +1,9 @@
+libmaus2 (2.0.99-1) unstable; urgency=medium
+
+  * improve irods 3 detection 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 02 Nov 2015 14:11:54 +0100
+
 libmaus2 (2.0.98-1) unstable; urgency=medium
 
   * improve irods 3/4 detection
