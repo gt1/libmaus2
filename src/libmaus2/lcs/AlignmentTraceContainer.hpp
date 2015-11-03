@@ -1186,13 +1186,20 @@ namespace libmaus2
 				return R;
 			}
 
-			std::vector < std::pair<uint64_t,uint64_t> > getKMatchOffsets(unsigned int const k, uint64_t const off_a = 0, uint64_t const off_b = 0) const
+			std::vector < std::pair<uint64_t,uint64_t> >
+				getKMatchOffsets(unsigned int const k, uint64_t const off_a = 0, uint64_t const off_b = 0) const
+			{
+				std::vector < std::pair<uint64_t,uint64_t> > R;
+				getKMatchOffsets(k,R,off_a,off_b);
+				return R;
+			}
+
+			static void getKMatchOffsets(step_type const * ta, step_type const * te, unsigned int const k, std::vector < std::pair<uint64_t,uint64_t> > & R,  uint64_t const off_a = 0, uint64_t const off_b = 0)
 			{
 				uint64_t apos = 0, bpos = 0;
 				uint64_t const kmask = libmaus2::math::lowbits(k);
 				uint64_t const kmask1 = k ? libmaus2::math::lowbits(k-1) : 0;
 				uint64_t e = 0;
-				std::vector < std::pair<uint64_t,uint64_t> > R;
 
 				for ( step_type const * tc = ta; tc != te; ++tc )
 				{
@@ -1234,8 +1241,12 @@ namespace libmaus2
 					assert ( bpos >= k );
 					R.push_back(std::pair<uint64_t,uint64_t>(apos-k+off_a,bpos-k+off_b));				
 				}
+			}
 
-				return R;
+			void
+				getKMatchOffsets(unsigned int const k, std::vector < std::pair<uint64_t,uint64_t> > & R,  uint64_t const off_a = 0, uint64_t const off_b = 0) const
+			{
+				getKMatchOffsets(ta,te,k,R,off_a,off_b);
 			}
 			
 			template<typename it>
