@@ -1,3 +1,12 @@
+libmaus2 (2.0.100-1) unstable; urgency=medium
+
+  * add getKMatchOffsets variants in AlignmentTraceContainer class
+  * add cigarToTrace function CigarStringParser class
+  * fix ftp url download via FtpSocket constructor
+  * add toStringDNA method in SingleWordDNABitBuffer class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 03 Nov 2015 10:06:04 +0100
+
 libmaus2 (2.0.99-1) unstable; urgency=medium
 
   * improve irods 3 detection 

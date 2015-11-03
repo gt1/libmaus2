@@ -230,6 +230,23 @@ namespace libmaus2
 				ostr << *this;
 				return ostr.str();
 			}
+
+			std::string toStringDNA() const
+			{
+				std::string s = toString();
+
+				for ( std::string::size_type i = 0; i < s.size(); ++i )
+					switch ( s[i] )
+					{
+						case '0': s[i] = 'A'; break;
+						case '1': s[i] = 'C'; break;
+						case '2': s[i] = 'G'; break;
+						case '3': s[i] = 'T'; break;
+						default: break;
+					}
+
+				return s;
+			}
 		};
 		
 		std::ostream & operator<<(std::ostream & out, SingleWordDNABitBuffer const & S);

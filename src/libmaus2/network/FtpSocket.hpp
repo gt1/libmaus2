@@ -285,7 +285,6 @@ namespace libmaus2
 						new libmaus2::network::ClientSocket(passiveport,passivehost.c_str())
 					);
 					recsock = UNIQUE_PTR_MOVE(tCS);
-
 				}
 				// server does not support passive mode, try active
 				else
@@ -334,7 +333,7 @@ namespace libmaus2
 					if ( verbose )
 						std::cerr << statusline << std::endl;
 				}
-				
+
 				// send RETR command
 				writeCommand(datacommand);
 				checkedReadServerMessage();
@@ -360,14 +359,16 @@ namespace libmaus2
 				sendSize(file);
 				std::ostringstream retrostr;
 				retrostr << "RETR " << file << "\r\n";
-				setupDataStream(retrostr.str(),restartpoint);
+				std::string const command = retrostr.str();
+				setupDataStream(command,restartpoint);
 			}
 
 			void setupListStream()
 			{
 				std::ostringstream retrostr;
 				retrostr << "LIST\r\n";
-				setupDataStream(retrostr.str());
+				std::string const command = retrostr.str();
+				setupDataStream(command);
 			}
 
 			void sendQuit()
@@ -400,7 +401,12 @@ namespace libmaus2
 					sendCwd(dir);	
 					
 					if ( file.size() )
-						setupDataStream(file,restartpoint);
+					{
+						std::ostringstream retrostr;
+						retrostr << "RETR " << file << "\r\n";
+						std::string const command = retrostr.str();
+						setupDataStream(command,restartpoint);
+					}
 				}
 			}
 			
