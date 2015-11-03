@@ -22,6 +22,8 @@
 
 #include <libmaus2/bambam/CigarOperation.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/lcs/AlignmentTraceContainer.hpp>
+#include <libmaus2/bambam/BamFlagBase.hpp>
 #include <vector>
 #include <string>
 
@@ -49,6 +51,52 @@ namespace libmaus2
 			 * @return length of cigar operation vector stored in Aop
 			 **/
 			static size_t parseCigarString(char const * c, libmaus2::autoarray::AutoArray<cigar_operation> & Aop);
+			/**
+			 * convert cigar operation vector to alignment trace
+			 **/
+			template<typename iterator>
+			static void cigarToTrace(iterator ita, iterator ite, libmaus2::lcs::AlignmentTraceContainer & ATC, bool ignoreUnknown = true)
+			{
+				std::vector < libmaus2::lcs::BaseConstants::step_type > ATCV;
+
+				for ( iterator itc = ita; itc != ite; ++itc )
+					switch ( itc->first )
+					{
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CMATCH:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CREF_SKIP:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CPAD:
+							if ( !ignoreUnknown )
+							{
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "CigarStringParser::cigarToTrace(): unsupported CIGAR operation " << itc->first << std::endl;
+								lme.finish();
+								throw lme;
+							}
+							break;
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CINS:
+							for ( uint64_t i = 0; i < itc->second; ++i )
+								ATCV.push_back(libmaus2::lcs::BaseConstants::STEP_INS);
+							break;
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDEL:
+							for ( uint64_t i = 0; i < itc->second; ++i )
+								ATCV.push_back(libmaus2::lcs::BaseConstants::STEP_DEL);
+							break;
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL:
+							for ( uint64_t i = 0; i < itc->second; ++i )
+								ATCV.push_back(libmaus2::lcs::BaseConstants::STEP_MATCH);
+							break;
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF:
+							for ( uint64_t i = 0; i < itc->second; ++i )
+								ATCV.push_back(libmaus2::lcs::BaseConstants::STEP_MISMATCH);
+							break;
+					}
+
+				ATC.resize(ATCV.size());
+				for ( uint64_t i = 0; i < ATCV.size(); ++i )
+					*(--ATC.ta) = ATCV[ATCV.size()-i-1];
+			}
 		};
 	}
 }
