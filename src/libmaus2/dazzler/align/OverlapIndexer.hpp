@@ -58,7 +58,7 @@ namespace libmaus2
 					}
 					else
 					{
-						return std::pair<bool,uint64_t>(false,0);	
+						return std::pair<bool,uint64_t>(false,pos);
 					}
 				}
 				
@@ -76,6 +76,11 @@ namespace libmaus2
 					}
 				}
 				
+				static std::string getDalignerIndexName(std::string const & aligns)
+				{
+					return aligns + ".idx";
+				}
+
 				static bool haveIndex(std::string const & aligns)
 				{
 					return libmaus2::aio::InputStreamFactoryContainer::tryOpen(getIndexName(aligns));
@@ -339,8 +344,16 @@ namespace libmaus2
 				static std::string constructIndex(std::string const & aligns, std::ostream * verbstr = 0)
 				{
 					std::string const indexfn = getIndexName(aligns);
+					std::string const dalignerindexfn = getDalignerIndexName(aligns);
 					libmaus2::index::ExternalMemoryIndexGenerator<OverlapMeta,base_level_log,inner_level_log> EMIG(indexfn);
 					EMIG.setup();
+					libmaus2::aio::OutputStreamInstance::unique_ptr_type DOFS(new libmaus2::aio::OutputStreamInstance(dalignerindexfn));
+
+					uint64_t doffset = 0;
+					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(*DOFS,0,doffset);
+					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(*DOFS,0,doffset);
+					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(*DOFS,0,doffset);
+					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(*DOFS,0,doffset);
 
 					// open alignment file
 					libmaus2::aio::InputStreamInstance algnfile(aligns);
@@ -351,8 +364,20 @@ namespace libmaus2
 					libmaus2::dazzler::align::Overlap OVLprev;
 					bool haveprev = false;
 					uint64_t lp = 0;
+					int64_t nextid = 0;
 					std::pair<bool,uint64_t> P;
 
+					// maximum trace length
+					int64_t tmax = 0;
+					// maximum out degree (pile depth)
+					int64_t omax = 0;
+					// total number of trace points
+					int64_t ttot = 0;
+					// maximum number of trace points for an overlap
+					int64_t smax = 0;
+
+					int64_t odeg = 0;
+					int64_t sdeg = 0;
 					// get next overlap                                                                                                                                                                                                                                
 					while ( (P=OverlapIndexer::getOverlapAndOffset(algn,algnfile,OVL)).first )
 					{
@@ -371,7 +396,29 @@ namespace libmaus2
 								throw lme;
 							}
 						}
-						
+
+						if ( (! haveprev) || (haveprev && (OVLprev.aread != OVL.aread)) )
+						{
+							while ( nextid < OVL.aread )
+							{
+								libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(*DOFS,P.second,doffset);
+								nextid += 1;
+							}
+
+							omax = std::max(omax,odeg);
+							smax = std::max(smax,sdeg);
+
+							libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(*DOFS,P.second,doffset);
+							nextid += 1;
+							odeg = 1; // start new pile count
+							sdeg = OVL.path.tlen; // start new trace points per pile
+						}
+						else
+						{
+							odeg += 1; // increment overlaps in pile
+							sdeg += OVL.path.tlen; // add to trace points per pile
+						}
+
 						if ( ((lp++) & EMIG.base_index_mask) == 0 )
 						{
 							EMIG.put(
@@ -379,18 +426,36 @@ namespace libmaus2
 								std::pair<uint64_t,uint64_t>(P.second,0)
 							);
 						}
-					
+
+						// update maximum number of trace points in any overlap
+						tmax = std::max(static_cast<int64_t>(OVL.path.tlen),tmax);
+						// update total number of trace points in LAS file
+						ttot += OVL.path.tlen;
+
 						haveprev = true;
 						OVLprev = OVL;
-						
+
 						if ( verbstr && ((lp & (1024*1024-1)) == 0) )
 						{
 							(*verbstr) << "[V] " << static_cast<double>(lp)/algn.novl << std::endl;
 						}
 					}
+
+					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(*DOFS,P.second,doffset);
+
+					omax = std::max(omax,odeg);
+					smax = std::max(smax,sdeg);
 					
+					DOFS->seekp(0,std::ios::beg);
+					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(*DOFS,omax,doffset);
+					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(*DOFS,ttot,doffset);
+					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(*DOFS,smax,doffset);
+					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(*DOFS,tmax,doffset);
+					DOFS->flush();
+					DOFS.reset();
+
 					EMIG.flush();
-					
+
 					return indexfn;
 				}
 			};
