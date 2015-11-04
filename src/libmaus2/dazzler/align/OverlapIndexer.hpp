@@ -61,11 +61,25 @@ namespace libmaus2
 						return std::pair<bool,uint64_t>(false,pos);
 					}
 				}
-				
+
 				static std::string getIndexName(std::string const & aligns)
 				{
 					std::string::size_type const p = aligns.find_last_of('/');
 				
+					if ( p == std::string::npos )
+						return std::string(".") + aligns + std::string(".bidx");
+					else
+					{
+						std::string const prefix = aligns.substr(0,p);
+						std::string const suffix = aligns.substr(p+1);
+						return prefix + "/." + suffix + ".bidx";
+					}
+				}
+
+				static std::string getDalignerIndexName(std::string const & aligns)
+				{
+					std::string::size_type const p = aligns.find_last_of('/');
+
 					if ( p == std::string::npos )
 						return std::string(".") + aligns + std::string(".idx");
 					else
@@ -74,11 +88,6 @@ namespace libmaus2
 						std::string const suffix = aligns.substr(p+1);
 						return prefix + "/." + suffix + ".idx";
 					}
-				}
-				
-				static std::string getDalignerIndexName(std::string const & aligns)
-				{
-					return aligns + ".idx";
 				}
 
 				static bool haveIndex(std::string const & aligns)
