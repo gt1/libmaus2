@@ -265,7 +265,8 @@ int main(int argc, char * argv[])
 
 				char inqualtrackname[] = "inqual";
 
-				int const tr = Check_Track(&db,&inqualtrackname[0]);
+				int kind = CUSTOM_TRACK;
+				int const tr = Check_Track(&db,&inqualtrackname[0],&kind);
 
 				std::cerr << "tr=" << tr << std::endl;
 
