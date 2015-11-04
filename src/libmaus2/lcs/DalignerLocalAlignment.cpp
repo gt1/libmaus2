@@ -201,7 +201,7 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 		seedposb+seedposa /* anti diagonal */,-1,-1);
 
 	// compute dense dataobject->alignment
-	Compute_Trace_PTS(&(dataobject->align),dataobject->workdata,Trace_Spacing(dataobject->spec));
+	Compute_Trace_PTS(&(dataobject->align),dataobject->workdata,Trace_Spacing(dataobject->spec),LOWERMOST);
 
 	// check for output size
 	if ( EditDistanceTraceContainer::capacity() < n + m )
