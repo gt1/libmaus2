@@ -71,7 +71,7 @@ namespace libmaus2
 					return UNIQUE_PTR_MOVE(Pptr);
 				}
 				
-				static indexer_type::unique_ptr_type creatIndexer(std::iostream * IOSI)
+				static indexer_type::unique_ptr_type createIndexer(std::iostream * IOSI)
 				{
 					indexer_type::unique_ptr_type Pptr;
 					
@@ -90,7 +90,7 @@ namespace libmaus2
 				  PDOSI(new libmaus2::aio::OutputStreamInstance(fn)),
 				  DOSI(*PDOSI),
 				  PIOSI(openIndexStream(ifn,createindex)),
-				  PEMIG(creatIndexer(PIOSI.get())),
+				  PEMIG(createIndexer(PIOSI.get())),
 				  tspace(rtspace),
 				  small(libmaus2::dazzler::align::AlignmentFile::tspaceToSmall(tspace)),
 				  novlexptd(rnovlexptd),
@@ -108,7 +108,7 @@ namespace libmaus2
 				  PDOSI(),
 				  DOSI(rDOSI),
 				  PIOSI(),
-				  PEMIG(creatIndexer(PIOSI.get())),
+				  PEMIG(createIndexer(PIOSI.get())),
 				  tspace(rtspace),
 				  small(libmaus2::dazzler::align::AlignmentFile::tspaceToSmall(tspace)),
 				  novlexptd(rnovlexptd),
@@ -126,7 +126,7 @@ namespace libmaus2
 				  PDOSI(),
 				  DOSI(rDOSI),
 				  PIOSI(),
-				  PEMIG(creatIndexer(&indexstream)),
+				  PEMIG(createIndexer(&indexstream)),
 				  tspace(rtspace),
 				  small(libmaus2::dazzler::align::AlignmentFile::tspaceToSmall(tspace)),
 				  novlexptd(rnovlexptd),
