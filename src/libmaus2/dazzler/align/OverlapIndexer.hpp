@@ -408,6 +408,9 @@ namespace libmaus2
 
 						if ( (! haveprev) || (haveprev && (OVLprev.aread != OVL.aread)) )
 						{
+							if ( ! haveprev )
+								nextid = OVL.aread;
+
 							while ( nextid < OVL.aread )
 							{
 								libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(*DOFS,P.second,doffset);
