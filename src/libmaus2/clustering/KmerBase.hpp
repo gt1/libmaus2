@@ -330,7 +330,61 @@ namespace libmaus2
 				typename pattern_iterator_type,
 				typename callback_type
 			>
-			void kmerCallbackPosForwardOnlyCircular(
+			void kmerCallbackPosForwardOnlyReverseCircular(
+				pattern_iterator_type const pattern_a,
+				unsigned int const l,
+				callback_type & callback,
+				single_word_buffer_type & forw,
+				unsigned int const k,
+				uint64_t const minhash = 0,
+				uint64_t const maxhash = std::numeric_limits<uint64_t>::max(),
+				unsigned int const hashshift = 0
+			) const
+			{
+				if ( l >= k )
+				{
+					forw.reset();
+
+					// error bit mask
+					uint64_t const emask = libmaus2::math::lowbits(k);
+					// error bit vector
+					uint64_t e = 0;
+
+					// end of sequence
+					pattern_iterator_type psequence = pattern_a + l;
+
+					pattern_iterator_type primseq = pattern_a + k;
+					// fill in kmer
+					for ( unsigned int i = 0; i < k; ++i )
+					{
+						char const base = *(--primseq);
+						e = (e << 1) | (E [ base ] ? 1ull : 0ull);
+						forw.pushFront( S [ base ]  );
+					}
+
+					// iterate over kmers
+					for ( unsigned int z = 0; z < l; ++z )
+					{
+						char const base = *(--psequence);
+						e = ((e << 1) & emask) | (E [ base ] ? 1ull : 0ull);
+						forw.pushFront( S[base] );
+
+						if ( ! e )
+						{
+							uint64_t const fword = forw.buffer;
+
+							if ( (fword>>hashshift) >= minhash && (fword>>hashshift) < maxhash )
+								callback(fword,-static_cast<int>(z)-1);
+						}
+					}
+				}
+			}
+
+			template<
+				typename pattern_iterator_type,
+				typename callback_type
+			>
+			void kmerCallbackPosForwardOnlyForwardCircular(
 				pattern_iterator_type const pattern_a,
 				pattern_iterator_type const pattern_e,
 				unsigned int const l,
@@ -362,7 +416,7 @@ namespace libmaus2
 					}
 
 					// iterate over kmers
-					for ( unsigned int z = 0; z < l-k+1; )
+					for ( unsigned int z = 0; z < l; ++z )
 					{
 						if ( e < 1 )
 						{
@@ -373,19 +427,16 @@ namespace libmaus2
 						}
 
 						// compute next kmer data if there are more bases
-						if ( ++z < l-k+1 )
-						{
-							e -= E[*(fsequence++)];
-							if ( fsequence == pattern_e )
-								fsequence = pattern_a;
+						e -= E[*(fsequence++)];
+						if ( fsequence == pattern_e )
+							fsequence = pattern_a;
 
-							char const base = *(sequence++);
-							if ( sequence == pattern_e )
-								sequence = pattern_a;
-							forw.pushBackMasked( S[base] );
+						char const base = *(sequence++);
+						if ( sequence == pattern_e )
+							sequence = pattern_a;
+						forw.pushBackMasked( S[base] );
 
-							e += E[base];
-						}
+						e += E[base];
 					}
 				}
 			}
