@@ -42,11 +42,11 @@ namespace libmaus2
 				s += W->serialize(out);
 				return s;
 			}
-				
+
 			static ::libmaus2::autoarray::AutoArray<uint64_t> computeD(wt_type const * W)
 			{
 				::libmaus2::autoarray::AutoArray<uint64_t> D( (1ull << W->getB()) + 1 , true );
-				
+
 				for ( uint64_t i = 0; i < (1ull << W->getB()); ++i )
 					D[i] = W->rank(i, W->getN()-1);
 
@@ -62,7 +62,7 @@ namespace libmaus2
 
 				return D;
 			}
-			
+
 			uint64_t sortedSymbol(uint64_t r) const
 			{
 				uint64_t const syms = (1ull<< W->getB());
@@ -71,19 +71,19 @@ namespace libmaus2
 						return syms-i-1;
 				return 0;
 			}
-			
+
 			uint64_t phi(uint64_t r) const
 			{
 				#if 0
 				uint64_t const sym = W->sortedSymbol(r);
-				#else		
+				#else
 				uint64_t const sym = sortedSymbol(r);
 				#endif
-				
+
 				r -= D[sym];
 				return W->select(sym,r);
 			}
-			
+
 			uint64_t getN() const
 			{
 				return W->getN();
@@ -92,7 +92,7 @@ namespace libmaus2
 			{
 				return W->getB();
 			}
-			
+
 			uint64_t deserialize(std::istream & istr)
 			{
 				uint64_t s = 0;
@@ -112,22 +112,22 @@ namespace libmaus2
 			{
 				s += deserialize(istr);
 			}
-			
+
 			LFBase( wt_ptr_type & rW )
 			: W(UNIQUE_PTR_MOVE(rW)), D(computeD(W.get()))
 			{
 				// std::cerr << "moved " << W.get() << std::endl;
 			}
-			
+
 			LFBase( bitio::CompactArray::unique_ptr_type & ABWT )
 			{
 				// compute wavelet tree bits
 				::libmaus2::autoarray::AutoArray<uint64_t> AW = ::libmaus2::wavelet::toWaveletTreeBitsParallel ( ABWT.get() );
 				wt_ptr_type tW( new wt_type( AW, ABWT->n, ABWT->getB()) );
 				W = UNIQUE_PTR_MOVE(tW);
-				
+
 				D = computeD(W.get());
-				
+
 				ABWT.reset(0);
 			}
 			LFBase( bitio::CompactArray::unique_ptr_type & ABWT, ::libmaus2::util::shared_ptr < huffman::HuffmanTreeNode >::type /* ahnode */ )
@@ -136,12 +136,12 @@ namespace libmaus2
 				::libmaus2::autoarray::AutoArray<uint64_t> AW = ::libmaus2::wavelet::toWaveletTreeBitsParallel ( ABWT.get() );
 				wt_ptr_type tW( new wt_type ( AW, ABWT->n, ABWT->getB()) );
 				W = UNIQUE_PTR_MOVE(tW);
-				
+
 				D = computeD(W.get());
-				
+
 				ABWT.reset(0);
 			}
-			
+
 			uint64_t operator()(uint64_t const r) const
 			{
 				std::pair< typename wt_type::symbol_type,uint64_t> const is = W->inverseSelect(r);
@@ -155,15 +155,15 @@ namespace libmaus2
 
 			private:
 			uint64_t rankm1(uint64_t const k, uint64_t const sp) const { return sp ? W->rank(k,sp-1) : 0; }
-			
+
 			public:
 			uint64_t step(uint64_t const k, uint64_t const sp) const { return D[k] + rankm1(k,sp); }
 
-			template<typename iterator>	
+			template<typename iterator>
 			inline void search(iterator query, uint64_t const m, uint64_t & sp, uint64_t & ep) const
 			{
 				sp = 0, ep = W->getN();
-				
+
 				for ( uint64_t i = 0; i < m && sp != ep; ++i )
 					sp = step(query[m-i-1],sp),
 					ep = step(query[m-i-1],ep);
@@ -177,12 +177,12 @@ namespace libmaus2
 				// find rank of position 0 (i.e. search terminating symbol)
 				uint64_t r = 0;
 				uint64_t const n = W->getN();
-				
+
 				for ( uint64_t i = 0; i < n; ++i )
 				{
 					if ( (i & ( 32*1024*1024-1)) == 0 )
 						std::cerr << "(" << (static_cast<double>(i)/n) << ")";
-				
+
 					if ( ! (*W)[i] )
 					{
 						r = i;

@@ -40,14 +40,14 @@ uint64_t libmaus2::util::NearestNeighbourDictionary::size() const
 libmaus2::util::NearestNeighbourDictionary::NearestNeighbourDictionary(::libmaus2::bitio::BitVector const & v)
 {
 	assert ( nndblocksize );
-	
+
 	uint64_t max_distance_between_two_ones = 0;
 	uint64_t ones = 0; // counter for the ones in v
 	// get maximal distance between to ones in the bit vector
 	// speed this up by broadword computing
-	for (uint64_t i=0, last_one_pos_plus_1=0; i < v.size(); ++i) 
+	for (uint64_t i=0, last_one_pos_plus_1=0; i < v.size(); ++i)
 	{
-		if ( (v)[i]) 
+		if ( (v)[i])
 		{
 			if (i+1-last_one_pos_plus_1 > max_distance_between_two_ones)
 				max_distance_between_two_ones = i+1-last_one_pos_plus_1;
@@ -68,13 +68,13 @@ libmaus2::util::NearestNeighbourDictionary::NearestNeighbourDictionary(::libmaus
 	m_contains_abs_sample = UNIQUE_PTR_MOVE(tm_contains_abs_sample);
 
 	ones = 0;
-	for (uint64_t i=0, last_one_pos=0; i < v.size(); ++i) 
+	for (uint64_t i=0, last_one_pos=0; i < v.size(); ++i)
 	{
-		if ( (v)[i]) 
+		if ( (v)[i])
 		{
 			++ones;
-			if ((ones % nndblocksize) == 0) 
-			{ 
+			if ((ones % nndblocksize) == 0)
+			{
 				// insert absolute samples
 				assert ( ones/nndblocksize < m_abs_samples->size() );
 				(*m_abs_samples)[ones/nndblocksize] = i;
@@ -94,20 +94,20 @@ libmaus2::util::NearestNeighbourDictionary::NearestNeighbourDictionary(::libmaus
 
 /**
  * rank excluding index idx
- **/	
+ **/
 uint64_t libmaus2::util::NearestNeighbourDictionary::rankm1(uint64_t idx) const
 {
 	assert(idx <= m_size);
-	
+
 	if ( idx == m_size )
 		return m_ones;
 
 	uint64_t r = m_contains_abs_sample->rankm1(idx/nndblocksize);
 	uint64_t result = r*nndblocksize;
 	uint64_t i = (*m_abs_samples)[r];
-	while (++result <= m_ones) 
+	while (++result <= m_ones)
 	{
-		if ((result % nndblocksize) == 0) 
+		if ((result % nndblocksize) == 0)
 		{
 			i = (*m_abs_samples)[result/nndblocksize];
 		}
@@ -128,11 +128,10 @@ uint64_t libmaus2::util::NearestNeighbourDictionary::selectp(uint64_t i) const
 	uint64_t j = i/nndblocksize;
 	uint64_t result = (*m_abs_samples)[j];
 	j = j*nndblocksize - j;
-	
-	for (uint64_t end = j + (i%nndblocksize); j < end; ++j) 
+
+	for (uint64_t end = j + (i%nndblocksize); j < end; ++j)
 	{
 		result += (*m_differences)[j];
 	}
 	return result;
 }
-

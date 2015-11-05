@@ -28,9 +28,9 @@ namespace libmaus2
 		struct BgzfDeflateZStreamBaseAllocator
 		{
 			int level;
-			
+
 			BgzfDeflateZStreamBaseAllocator(int const rlevel = Z_DEFAULT_COMPRESSION) : level(rlevel) {}
-			
+
 			BgzfDeflateZStreamBase::shared_ptr_type operator()()
 			{
 				BgzfDeflateZStreamBase::shared_ptr_type tptr(new BgzfDeflateZStreamBase(level));

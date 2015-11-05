@@ -24,16 +24,16 @@ int main(int argc, char * argv[])
 	try
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
-		
+
 		std::string const bamname = arginfo.getRestArg<std::string>(0);
 		std::string const range = arginfo.restargs.at(1); // "3:100000-200000";
-		
+
 		libmaus2::bambam::BamRangeDecoder bamdec(bamname,range);
 		while ( bamdec.readAlignment() )
 		{
-			libmaus2::bambam::BamAlignment const & algn = bamdec.getAlignment();		
+			libmaus2::bambam::BamAlignment const & algn = bamdec.getAlignment();
 			std::cout << algn.formatAlignment(bamdec.getHeader()) << std::endl;
-		}	
+		}
 	}
 	catch(std::exception const & ex)
 	{

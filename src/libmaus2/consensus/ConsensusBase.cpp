@@ -29,7 +29,7 @@ extern "C"
 {
 	int libmaus2_consensus_ConsensusComputationBase_computeMultipleAlignment_wrapperC(void const * thisptr, void * R, void const * V)
 	{
-		return libmaus2_consensus_ConsensusComputationBase_computeMultipleAlignment_wrapper(thisptr,R,V);	
+		return libmaus2_consensus_ConsensusComputationBase_computeMultipleAlignment_wrapper(thisptr,R,V);
 	}
 	int libmaus2_consensus_ConsensusComputationBase_computeConsensusA_wrapperC(void const * thisptr, void * R, void const * V, int const verbose, void * ostr)
 	{
@@ -129,13 +129,13 @@ int libmaus2_consensus_ConsensusComputationBase_computeConsensusQ_wrapper(void c
 
 void libmaus2::consensus::ConsensusComputationBase::computeMultipleAlignment(void const * thisptr, void * R, void const * V)
 {
-	libmaus2::consensus::ConsensusComputationBase const * obj = reinterpret_cast<libmaus2::consensus::ConsensusComputationBase const *>(thisptr);	
+	libmaus2::consensus::ConsensusComputationBase const * obj = reinterpret_cast<libmaus2::consensus::ConsensusComputationBase const *>(thisptr);
 	//std::cerr << "A using ptr " << thisptr << " == " << obj << std::endl;
 	obj->computeMultipleAlignment(R,V);
 }
 void libmaus2::consensus::ConsensusComputationBase::computeConsensusA(void const * thisptr, void * R, void const * V, int const verbose, void * ostr)
 {
-	libmaus2::consensus::ConsensusComputationBase const * obj = reinterpret_cast<libmaus2::consensus::ConsensusComputationBase const *>(thisptr);	
+	libmaus2::consensus::ConsensusComputationBase const * obj = reinterpret_cast<libmaus2::consensus::ConsensusComputationBase const *>(thisptr);
 	//std::cerr << "A using ptr " << thisptr << " == " << obj << std::endl;
 	obj->computeConsensusA(R,V,verbose,ostr);
 }
@@ -186,7 +186,7 @@ static uint64_t getMaxRowLength(seqan::Align< seqan::String<seqan::Dna5> > const
 			maxviewpos = std::max(maxviewpos,viewpos);
 		}
 	}
-	
+
 	return static_cast<uint64_t>(maxviewpos+1);
 }
 
@@ -201,11 +201,11 @@ void libmaus2::consensus::ConsensusComputationBase::computeMultipleAlignment(voi
 	seqan::resize(rows(align), V->size());
 
 	for ( uint64_t i = 0; i < V->size(); ++i )
-		seqan::assignSource(row(align, i),(*V)[i]);	
+		seqan::assignSource(row(align, i),(*V)[i]);
 
 	// compute multiple alignment
 	seqan::globalMsaAlignment(align, scoring);
-	
+
 	// get maximum row length
 	uint64_t const rowlen = getMaxRowLength(align);
 
@@ -214,13 +214,13 @@ void libmaus2::consensus::ConsensusComputationBase::computeMultipleAlignment(voi
 	{
 		std::vector<char> RowV;
 		seqan::Gaps< seqan::String<seqan::Dna5>, seqan::ArrayGaps > const & arow = rows(align)[r];
-		
+
 		uint64_t exp = 0;
 		for ( uint64_t i = 0; i < length(source(arow)); ++i )
 		{
 			// column in multi alignment
 			uint64_t const viewpos = toViewPosition(arow, i);
-			
+
 			// insert padding until we have reached it
 			while ( exp < viewpos )
 			{
@@ -230,18 +230,18 @@ void libmaus2::consensus::ConsensusComputationBase::computeMultipleAlignment(voi
 
 			// push source character
 			RowV.push_back(source(arow)[i]);
-			
+
 			exp++;
 		}
-		
+
 		while ( exp < rowlen )
-		{		
+		{
 			RowV.push_back('-');
 			exp++;
 		}
-		
-		R->push_back(std::string(RowV.begin(),RowV.end()));		
-	}	
+
+		R->push_back(std::string(RowV.begin(),RowV.end()));
+	}
 }
 
 
@@ -257,18 +257,18 @@ void libmaus2::consensus::ConsensusComputationBase::computeConsensusA(void * vR,
 	seqan::resize(rows(align), V->size());
 
 	for ( uint64_t i = 0; i < V->size(); ++i )
-		seqan::assignSource(row(align, i),(*V)[i]);	
+		seqan::assignSource(row(align, i),(*V)[i]);
 
 	// compute multiple alignment
 	seqan::globalMsaAlignment(align, scoring);
-	
+
 	if ( ostr && (verbose & 1) )
 		(*ostr) << align;
 
 	// get maximum row length
 	uint64_t const rowlen = getMaxRowLength(align);
 
-	// compute frequencies per column	
+	// compute frequencies per column
 	std::vector < int > cons(6*rowlen);
 
 	// iterate over rows
@@ -278,19 +278,19 @@ void libmaus2::consensus::ConsensusComputationBase::computeConsensusA(void * vR,
 
 		if ( ostr && (verbose & 2) )
 			(*ostr) << arow << "\t";
-		
+
 		uint64_t exp = 0;
 		for ( uint64_t i = 0; i < length(source(arow)); ++i )
 		{
 			uint64_t const viewpos = toViewPosition(arow, i) ;
-			
+
 			while ( exp < viewpos )
 			{
 				if ( exp < rowlen )
 					cons[(exp * 6) + mapChar('-')] ++;
 				exp++;
 			}
-		
+
 			if ( ostr && (verbose & 2) )
 				(*ostr) << viewpos
 					<< "(" << source(arow)[i] << ")"
@@ -305,20 +305,20 @@ void libmaus2::consensus::ConsensusComputationBase::computeConsensusA(void * vR,
 			{
 				std::cerr << "[[!!OVERFLOW!!]]" << std::endl;
 			}
-			
+
 			exp++;
 		}
-		
+
 		while ( exp < rowlen )
-		{		
+		{
 			cons[(exp * 6) + mapChar('-')] ++;
 			exp++;
 		}
-		
+
 		if ( ostr && (verbose & 2) )
 			(*ostr) << std::endl;
 	}
-	
+
 	// compute pre consensus by majority vote
 	// (use lex. smallest character with maximum freq per column)
 	std::string preconsensus(rowlen,'-');
@@ -328,38 +328,38 @@ void libmaus2::consensus::ConsensusComputationBase::computeConsensusA(void * vR,
 		int sum = 0;
 		int maxval = -1;
 		int maxchar = -1;
-		
+
 		for ( uint64_t i = 0; i < 6; ++i )
 		{
 			if ( cons[c*6+i] )
 			{
 				if ( ostr && (verbose & 4) )
 					(*ostr) << remapChar(i) << ":" << cons[c*6+i] << ";";
-				
+
 				if ( cons[c*6+i] > maxval )
 				{
 					maxval = cons[c*6+i];
 					maxchar = i;
 				}
 			}
-				
+
 			sum += cons[c*6+i];
 		}
-		
+
 		assert ( sum == static_cast<int>(length(rows(align))) );
-		
+
 		preconsensus[c] = remapChar(maxchar);
-		
+
 		if ( maxchar >= 0 && maxchar <= 4 )
 			conslen++;
-		
+
 		if ( ostr && (verbose & 4) )
 			(*ostr) << std::endl;
 	}
-	
+
 	// build final consensus from pre consensus by dropping - columns
 	std::string consensus(conslen,'\0');
-	
+
 	for ( uint64_t i = 0, j = 0; i < preconsensus.size(); ++i )
 		if ( preconsensus[i] != '-' )
 			consensus[j++] = preconsensus[i];
@@ -384,14 +384,14 @@ void libmaus2::consensus::ConsensusComputationBase::computeConsensusQ(
 
 	// compute multiple alignment
 	seqan::globalMsaAlignment(align, scoring);
-	
+
 	if ( ostr && (verbose & 1) )
 		(*ostr) << align;
 
 	// get maximum row length of multiple alignment
 	uint64_t const rowlen = getMaxRowLength(align);
 
-	// compute frequencies per column	
+	// compute frequencies per column
 	std::vector < int    > cons    (6*rowlen);
 	// accumulated (non normalized) "probabilities" of base correctness
 	std::vector < double > consprob(6*rowlen);
@@ -406,13 +406,13 @@ void libmaus2::consensus::ConsensusComputationBase::computeConsensusQ(
 
 		if ( ostr && (verbose & 2) )
 			(*ostr) << arow << "\t";
-		
+
 		uint64_t exp = 0;
 		for ( uint64_t i = 0; i < length(source(arow)); ++i )
 		{
 			// position of character in multiple alignment
 			uint64_t const viewpos = toViewPosition(arow, i) ;
-			
+
 			while ( exp < viewpos )
 			{
 				if ( exp < rowlen )
@@ -422,7 +422,7 @@ void libmaus2::consensus::ConsensusComputationBase::computeConsensusQ(
 				}
 				exp++;
 			}
-		
+
 			if ( ostr && (verbose & 2) )
 				(*ostr) << viewpos
 					<< "(" << source(arow)[i] << ")"
@@ -440,21 +440,21 @@ void libmaus2::consensus::ConsensusComputationBase::computeConsensusQ(
 			{
 				std::cerr << "[[!!OVERFLOW!!]]" << std::endl;
 			}
-			
+
 			exp++;
 		}
-		
+
 		while ( exp < rowlen )
-		{		
+		{
 			cons    [(exp * 6) + mapChar('-')] ++;
 			consprob[(exp * 6) + mapChar('-')] += nprob;
 			exp++;
 		}
-		
+
 		if ( ostr && (verbose & 2) )
 			(*ostr) << std::endl;
 	}
-	
+
 	// compute pre consensus by majority vote
 	// (use lex. smallest character with maximum acc. correctness probability)
 	std::string preconsensus(rowlen,'-');
@@ -472,34 +472,34 @@ void libmaus2::consensus::ConsensusComputationBase::computeConsensusQ(
 			consprob [ c*6 + i ] /= sum;
 
 		assert ( sum == static_cast<int>(length(rows(align))) );
-			
+
 		for ( uint64_t i = 0; i < 6; ++i )
 		{
 			if ( cons[c*6+i] )
 			{
 				if ( ostr && (verbose & 4) )
 					(*ostr) << remapChar(i) << ":" << cons[c*6+i] << ":" << consprob[c*6+i] << ";";
-				
+
 				if ( consprob[c*6+i] > maxval )
 				{
 					maxval = consprob[c*6+i];
 					maxchar = i;
 				}
-			}		
+			}
 		}
-				
+
 		preconsensus[c] = remapChar(maxchar);
-		
+
 		if ( maxchar >= 0 && maxchar <= 4 )
 			conslen++;
-		
+
 		if ( ostr && (verbose & 4) )
 			(*ostr) << std::endl;
 	}
-	
+
 	// build final consensus from pre consensus by dropping - columns
 	std::string consensus(conslen,'\0');
-	
+
 	for ( uint64_t i = 0, j = 0; i < preconsensus.size(); ++i )
 		if ( preconsensus[i] != '-' )
 			consensus[j++] = preconsensus[i];

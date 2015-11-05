@@ -37,12 +37,12 @@ namespace libmaus2
 			libmaus2::parallel::OMPLock lock;
 			#endif
 			volatile bool b;
-			
+
 			LockedBool(bool const rb)
 			: b(rb)
 			{
 			}
-			
+
 			bool get()
 			{
 				bool rb;
@@ -51,7 +51,7 @@ namespace libmaus2
 				lock.unlock();
 				return rb;
 			}
-			
+
 			void set(bool const rb)
 			{
 				lock.lock();

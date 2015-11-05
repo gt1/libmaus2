@@ -37,10 +37,10 @@ namespace libmaus2
 				return 1;
 				#endif
 			}
-			
+
 			uint64_t const prevnumthreads;
-		
-			OMPNumThreadsScope(uint64_t const 
+
+			OMPNumThreadsScope(uint64_t const
 				#if defined(_OPENMP)
 				newnumthreads = getMaxThreads()
 				#endif
@@ -55,7 +55,7 @@ namespace libmaus2
 			{
 				#if defined(_OPENMP)
 				omp_set_num_threads(prevnumthreads);
-				#endif			
+				#endif
 			}
 		};
 	}

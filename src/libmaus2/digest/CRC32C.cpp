@@ -21,10 +21,10 @@
 
 libmaus2::digest::CRC32C::CRC32C() : ctx(0) {}
 libmaus2::digest::CRC32C::~CRC32C() {}
-	
+
 void libmaus2::digest::CRC32C::init() { ctx = 0; }
 void libmaus2::digest::CRC32C::update(uint8_t const * t, size_t l) { ctx = libmaus2::digest::CRC32C_Core::crc32c_core(ctx,t,l); }
-void libmaus2::digest::CRC32C::digest(uint8_t * digest) 
+void libmaus2::digest::CRC32C::digest(uint8_t * digest)
 {
 	digest[0] = (ctx >> 24) & 0xFF;
 	digest[1] = (ctx >> 16) & 0xFF;

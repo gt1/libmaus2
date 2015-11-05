@@ -62,7 +62,7 @@ namespace libmaus2
 				#endif
 			);
 			~DalignerLocalAlignment();
-			
+
 			LocalEditDistanceResult process(
 				#if defined(LIBMAUS2_HAVE_DALIGNER)
 				uint8_t const * a, uint64_t const n, uint64_t const seedposa, uint8_t const * b, uint64_t const m, uint64_t const seedposb

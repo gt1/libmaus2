@@ -34,13 +34,13 @@ namespace libmaus2
 
 			EdgeListLocalFlush EBLF;
 			EdgeBuffer < EdgeListLocalFlush > EB;
-			
+
 			EdgeBufferLocal(EdgeList & EL, uint64_t const bufsize)
 			: EBLF(EL), EB(bufsize,EBLF)
 			{
-			
+
 			}
-			
+
 			void put(::libmaus2::graph::TripleEdge const & T)
 			{
 				EB.put(T);

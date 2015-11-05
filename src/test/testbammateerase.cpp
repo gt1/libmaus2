@@ -30,14 +30,14 @@ int main(int argc, char * argv[])
 		int const level = arginfo.getValue<int>("level",-1);
 		bool const randomer = arginfo.getValue<int>("random",1);
 		srand(time(0));
-		
+
 		libmaus2::bambam::BamDecoder bamdec(std::cin);
-		libmaus2::bambam::BamAlignment & algn = bamdec.getAlignment();		
+		libmaus2::bambam::BamAlignment & algn = bamdec.getAlignment();
 		libmaus2::bambam::BamWriter bamwr(std::cout,bamdec.getHeader(),level);
 		libmaus2::bambam::BamWriter::stream_type & wrstream = bamwr.getStream();
 		libmaus2::bambam::BamAuxFilterVector MQfilter;
 		MQfilter.set('M','Q');
-		
+
 		while ( bamdec.readAlignment() )
 		{
 			if ( randomer )
@@ -47,26 +47,26 @@ int main(int argc, char * argv[])
 				if ( (rand() & 1) == 1 )
 					algn.putNextPos(-1);
 				if ( (rand() & 1) == 1 )
-					algn.putTlen(0);			
+					algn.putTlen(0);
 				if ( (rand() & 1) == 1 )
 					algn.putFlags( algn.getFlags() & (~(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMUNMAP)) );
 				if ( (rand() & 1) == 1 )
 					algn.putFlags( algn.getFlags() & (~(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMREVERSE)) );
 				if ( (rand() & 1) == 1 )
 					algn.filterOutAux(MQfilter);
-				algn.serialise(wrstream);			
+				algn.serialise(wrstream);
 			}
 			else
 			{
 				algn.putNextRefId(-1);
 				algn.putNextPos(-1);
-				algn.putTlen(0);			
+				algn.putTlen(0);
 				algn.putFlags( algn.getFlags() & (~(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMUNMAP)) );
 				algn.putFlags( algn.getFlags() & (~(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMREVERSE)) );
 				algn.filterOutAux(MQfilter);
 				algn.serialise(wrstream);
 			}
-		}	
+		}
 	}
 	catch(std::exception const & ex)
 	{

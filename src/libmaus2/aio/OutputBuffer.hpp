@@ -47,12 +47,12 @@ namespace libmaus2
 			 **/
 			void writeBuffer()
 			{
-				W.write ( 
+				W.write (
 					reinterpret_cast<char const *>(pa),
 					reinterpret_cast<char const *>(pc));
 				pc = pa;
 			}
-		
+
 			public:
 			/**
 			 * constructor
@@ -63,9 +63,9 @@ namespace libmaus2
 			OutputBuffer(std::string const & filename, uint64_t const bufsize)
 			: B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN()), W(filename,16)
 			{
-		
+
 			}
-		
+
 			/**
 			 * flush the output buffer
 			 **/
@@ -74,7 +74,7 @@ namespace libmaus2
 				writeBuffer();
 				W.flush();
 			}
-		
+
 			/**
 			 * put one element and flush buffer it is full afterwards
 			 *

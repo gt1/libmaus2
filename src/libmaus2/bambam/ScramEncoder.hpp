@@ -43,7 +43,7 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			private:
 			//! scram module
 			::libmaus2::util::DynamicLibrary scram_mod;
@@ -67,12 +67,12 @@ namespace libmaus2
 			 **/
 			ScramEncoder(
 				libmaus2::bambam::BamHeader const & header,
-				std::string const & filename, 
-				std::string const & mode, 
+				std::string const & filename,
+				std::string const & mode,
 				std::string const & reference,
 				bool const verbose = false
 			)
-			: 
+			:
 				scram_mod("libmaus2_scram_mod.so"),
 				e_new(scram_mod,"libmaus2_bambam_ScramEncoder_New"),
 				e_delete(scram_mod,"libmaus2_bambam_ScramEncoder_Delete"),
@@ -85,7 +85,7 @@ namespace libmaus2
 					reference.size() ? reference.c_str() : 0,
 					verbose
 				);
-			
+
 				if ( ! encoder )
 				{
 					libmaus2::exception::LibMausException se;
@@ -94,7 +94,7 @@ namespace libmaus2
 					throw se;
 				}
 			}
-			
+
 			virtual ~ScramEncoder()
 			{
 				e_delete.func(encoder);
@@ -106,7 +106,7 @@ namespace libmaus2
 			void writeBamBlock(uint8_t const * data, uint64_t const blocksize)
 			{
 				int const r = e_encode.func(encoder,data,blocksize);
-				
+
 				if ( r < 0 )
 				{
 					libmaus2::exception::LibMausException se;
@@ -124,4 +124,3 @@ namespace libmaus2
 	}
 }
 #endif
-

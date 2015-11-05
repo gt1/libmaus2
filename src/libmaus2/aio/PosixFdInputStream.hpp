@@ -32,12 +32,12 @@ namespace libmaus2
 			typedef PosixFdInputStream this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
-			PosixFdInputStream(int const rfd, int64_t const bufsize = -1, uint64_t const pushbacksize = 0) 
+
+			PosixFdInputStream(int const rfd, int64_t const bufsize = -1, uint64_t const pushbacksize = 0)
 			: PosixFdInputWrapper(rfd), PosixFdInputStreamBuffer(PosixFdInputWrapper::object,bufsize,pushbacksize),
 			  std::istream(this)
 			{}
-			PosixFdInputStream(std::string const & filename, int64_t const bufsize = -1, uint64_t const pushbacksize = 0, int const rflags = PosixFdInput::getDefaultFlags()) 
+			PosixFdInputStream(std::string const & filename, int64_t const bufsize = -1, uint64_t const pushbacksize = 0, int const rflags = PosixFdInput::getDefaultFlags())
 			: PosixFdInputWrapper(filename,rflags), PosixFdInputStreamBuffer(PosixFdInputWrapper::object,bufsize,pushbacksize),
 			  std::istream(this)
 			{}

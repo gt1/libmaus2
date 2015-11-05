@@ -45,7 +45,7 @@ namespace libmaus2
 			uint8_t c;
 			//! true if number of elements written so far is odd (and partial information is in c)
 			bool odd;
-			
+
 			public:
 			/**
 			 * constructor
@@ -59,7 +59,7 @@ namespace libmaus2
 				::libmaus2::util::NumberSerialisation::serialiseNumber(ostr,n);
 				SGO = ::libmaus2::aio::SynchronousGenericOutput<uint8_t>::unique_ptr_type(new ::libmaus2::aio::SynchronousGenericOutput<uint8_t>(ostr,64*1024));
 			}
-			
+
 			/**
 			 * put next number val
 			 *
@@ -78,7 +78,7 @@ namespace libmaus2
 				}
 				odd = !odd;
 			}
-			
+
 			/**
 			 * flush output
 			 **/

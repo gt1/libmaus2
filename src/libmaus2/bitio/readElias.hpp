@@ -31,50 +31,50 @@ namespace libmaus2
 		inline uint64_t readUnary(reader_type & reader)
 		{
 			uint64_t i = 0;
-			
+
 			while ( ! reader.readBit() )
 				i++;
-			
+
 			return i;
 		}
 		template<typename iterator>
 		inline uint64_t readUnary(iterator A, uint64_t & offset)
 		{
 			uint64_t i = 0;
-			
+
 			while ( ! getBit(A,offset++) )
 				i++;
-			
+
 			return i;
 		}
 		template<typename reader_type>
 		inline uint64_t readBinary(reader_type & reader, uint64_t const l)
 		{
 			uint64_t m = 0;
-			
+
 			for ( uint64_t i = 0; i < l; ++i )
 			{
 				m <<= 1;
-				
+
 				if ( reader.readBit() )
 					m |= 1;
 			}
-				
+
 			return m;
 		}
 		template<typename iterator>
 		inline uint64_t readBinary(iterator A, uint64_t & offset, uint64_t const l)
 		{
 			uint64_t m = 0;
-			
+
 			for ( uint64_t i = 0; i < l; ++i )
 			{
 				m <<= 1;
-				
+
 				if ( getBit(A,offset++) )
 					m |= 1;
 			}
-				
+
 			return m;
 		}
 		template<typename iterator>

@@ -31,13 +31,13 @@ namespace libmaus2
 			typedef ConcatInputStream this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			ConcatInputStream(std::vector<std::string> const & inputfilenames, uint64_t const bufsize = 64*1024, uint64_t const pushbacksize = 64*1024)
 			: ConcatInputStreamBuffer(inputfilenames,bufsize,pushbacksize), std::istream(this)
 			{
-			
-			}	
-		};		
+
+			}
+		};
 	}
 }
 #endif

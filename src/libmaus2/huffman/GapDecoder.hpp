@@ -34,7 +34,7 @@ namespace libmaus2
 {
 	namespace huffman
 	{
-		
+
 		struct GapDecoder
 		{
 			typedef GapDecoder this_type;
@@ -42,16 +42,16 @@ namespace libmaus2
 
 			::libmaus2::huffman::IndexDecoderDataArray::unique_ptr_type const Pidda;
 			::libmaus2::huffman::IndexDecoderDataArray const & idda;
-			
+
 			libmaus2::aio::InputStreamInstance::unique_ptr_type istr;
 			typedef ::libmaus2::huffman::BitInputBuffer4 sbis_type;
 			typedef sbis_type::unique_ptr_type sbis_ptr_type;
-			sbis_ptr_type SBIS;			
+			sbis_ptr_type SBIS;
 			bool needescape;
-			
+
 			::libmaus2::huffman::EscapeCanonicalEncoder::unique_ptr_type ECE;
 			::libmaus2::huffman::CanonicalEncoder::unique_ptr_type CE;
-			
+
 			::libmaus2::autoarray::AutoArray<uint64_t, ::libmaus2::autoarray::alloc_type_c > decodebuf;
 			uint64_t * pa;
 			uint64_t * pc;
@@ -68,7 +68,7 @@ namespace libmaus2
 					libmaus2::aio::InputStreamInstance::unique_ptr_type tistr(
                                                 new libmaus2::aio::InputStreamInstance(idda.data[fileptr].filename));
 					istr = UNIQUE_PTR_MOVE(tistr);
-											
+
 					/* inst SBIS */
 					sbis_type::raw_input_ptr_type ript(new sbis_type::raw_input_type(*istr));
 					sbis_ptr_type tSBIS(new sbis_type(ript,64*1024));
@@ -92,12 +92,12 @@ namespace libmaus2
 						::libmaus2::huffman::CanonicalEncoder::unique_ptr_type tCE(new ::libmaus2::huffman::CanonicalEncoder(dist));
 						CE = UNIQUE_PTR_MOVE(tCE);
 					}
-					
+
 					/* seek to block */
 					if ( blockptr < idda.data[fileptr].numentries )
 					{
 						uint64_t const pos = idda.data[fileptr].getPos(blockptr);
-					
+
 						istr->clear();
 						istr->seekg ( pos , std::ios::beg );
 						assert ( static_cast<int64_t>(istr->tellg()) == static_cast<int64_t>(pos) );
@@ -107,12 +107,12 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			uint64_t getN() const
 			{
 				return idda.kvec.size() ? idda.kvec[idda.kvec.size()-1] : 0;
 			}
-			
+
 			void init(uint64_t offset = 0, uint64_t * psymoffset = 0)
 			{
 				if ( ((idda.kvec.size()!=0) && (idda.kvec[idda.kvec.size()-1] != 0)) )
@@ -128,48 +128,48 @@ namespace libmaus2
 						fileptr = FBO.fileptr;
 						blockptr = FBO.blockptr;
 						offset = FBO.offset;
-					
+
 						/* open file and seek to block */
 						openNewFile();
 						/* decode block in question */
 						bool const blockok = decodeBlock();
 						assert ( blockok );
 						assert ( static_cast<int64_t>(offset) < (pe-pc) );
-						
+
 						/* symbol offset of block (sum over elements of previous blocks) */
 						uint64_t symoffset = idda.data[FBO.fileptr].getValueCnt(FBO.blockptr);
 						/* decode symbols up to offset in block */
 						for ( uint64_t i = 0; i < offset; ++i )
 							symoffset += decode();
-						
+
 						/* store prefix sum if pointer is given */
 						if ( psymoffset )
 							*psymoffset = symoffset;
 					}
 				}
 			}
-			
+
 
 			void initKV(uint64_t kvtarget, KvInitResult & result)
 			{
 				result = KvInitResult();
-			
-				if ( 
+
+				if (
 					(
-						(idda.kvec.size()!=0) 
-						&& 
+						(idda.kvec.size()!=0)
+						&&
 						(idda.kvec[idda.kvec.size()-1] != 0)
-					) 
+					)
 				)
 				{
-					if ( 
-						kvtarget >= 
+					if (
+						kvtarget >=
 						idda.kvec[idda.kvec.size()-1] + idda.vvec[idda.vvec.size()-1]
 					)
 					{
 						fileptr = idda.data.size();
 						blockptr = 0;
-						
+
 						result.koffset = idda.kvec[idda.kvec.size()-1];
 						result.voffset = idda.vvec[idda.vvec.size()-1];
 						result.kvoffset = result.koffset + result.voffset;
@@ -180,23 +180,23 @@ namespace libmaus2
 						::libmaus2::huffman::FileBlockOffset const FBO = idda.findKVBlock(kvtarget);
 						fileptr = FBO.fileptr;
 						blockptr = FBO.blockptr;
-					
+
 						/* open file and seek to block */
 						openNewFile();
 						/* decode block in question */
 						bool const blockok = decodeBlock();
 						assert ( blockok );
-						
+
 						/* key/symbol offset of block (sum over elements of previous blocks) */
 						uint64_t kvoffset = idda.data[FBO.fileptr].getKeyValueCnt(FBO.blockptr);
 						uint64_t voffset = idda.data[FBO.fileptr].getValueCnt(FBO.blockptr);
 						uint64_t koffset = idda.data[FBO.fileptr].getKeyCnt(FBO.blockptr);
-						
+
 						assert ( kvtarget >= kvoffset );
 						kvtarget -= kvoffset;
-						
+
 						// std::cerr << "fileptr=" << fileptr << " blockptr=" << blockptr << " kvtarget=" << kvtarget << std::endl;
-						
+
 						while ( kvtarget >= peek() + 1 )
 						{
 							uint64_t const gi = decode();
@@ -221,7 +221,7 @@ namespace libmaus2
 
 							*pc -= kvtarget;
 						}
-						
+
 						result.koffset  = koffset;
 						result.voffset  = voffset;
 						result.kvoffset = kvoffset;
@@ -229,17 +229,17 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			GapDecoder(
 				::libmaus2::huffman::IndexDecoderDataArray const & ridda,
 				uint64_t kvtarget,
-				KvInitResult & result 
+				KvInitResult & result
 			)
 			:
 			  Pidda(),
 			  idda(ridda),
 			  /* buffer */
-			  decodebuf(), pa(0), pc(0), pe(0), 
+			  decodebuf(), pa(0), pc(0), pe(0),
 			  /* file and segment pointers */
 			  fileptr(0), blockptr(0)
 			{
@@ -249,13 +249,13 @@ namespace libmaus2
 			GapDecoder(
 				std::vector<std::string> const & rfilenames,
 				uint64_t kvtarget,
-				KvInitResult & result 
+				KvInitResult & result
 			)
 			:
 			  Pidda(::libmaus2::huffman::IndexDecoderDataArray::construct(rfilenames)),
 			  idda(*Pidda),
 			  /* buffer */
-			  decodebuf(), pa(0), pc(0), pe(0), 
+			  decodebuf(), pa(0), pc(0), pe(0),
 			  /* file and segment pointers */
 			  fileptr(0), blockptr(0)
 			{
@@ -263,15 +263,15 @@ namespace libmaus2
 			}
 
 			GapDecoder(
-				std::vector<std::string> const & rfilenames, 
-				uint64_t offset = 0, 
+				std::vector<std::string> const & rfilenames,
+				uint64_t offset = 0,
 				uint64_t * psymoffset = 0
 			)
 			:
 			  Pidda(::libmaus2::huffman::IndexDecoderDataArray::construct(rfilenames)),
 			  idda(*Pidda),
 			  /* buffer */
-			  decodebuf(), pa(0), pc(0), pe(0), 
+			  decodebuf(), pa(0), pc(0), pe(0),
 			  /* file and segment pointers */
 			  fileptr(0), blockptr(0)
 			{
@@ -280,20 +280,20 @@ namespace libmaus2
 
 			GapDecoder(
 				::libmaus2::huffman::IndexDecoderDataArray const & ridda,
-				uint64_t offset = 0, 
+				uint64_t offset = 0,
 				uint64_t * psymoffset = 0
 			)
 			:
 			  Pidda(),
 			  idda(ridda),
 			  /* buffer */
-			  decodebuf(), pa(0), pc(0), pe(0), 
+			  decodebuf(), pa(0), pc(0), pe(0),
 			  /* file and segment pointers */
 			  fileptr(0), blockptr(0)
 			{
 				init(offset,psymoffset);
 			}
-			
+
 			/* decode next block */
 			bool decodeBlock()
 			{
@@ -317,7 +317,7 @@ namespace libmaus2
 
 				/* align to byte boundary */
 				SBIS->flush();
-			
+
 				/* increase size of memory buffer if necessary */
 				if ( blocksize > decodebuf.size() )
 					decodebuf.resize(blocksize);
@@ -343,28 +343,28 @@ namespace libmaus2
 
 				/* increment block pointer */
 				blockptr++;
-				
+
 				return true;
 			}
-			
+
 			/* decode next symbol */
 			uint64_t decode()
 			{
 				if ( pc == pe )
 					decodeBlock();
 				assert ( pc != pe );
-				return *(pc++);	
+				return *(pc++);
 			}
-			
+
 			/* peek at next symbol without advancing decode pointer */
 			uint64_t peek()
 			{
 				if ( pc == pe )
 					decodeBlock();
 				assert ( pc != pe );
-				return *pc;				
+				return *pc;
 			}
-			
+
 			/* set current symbol to v */
 			void adjust(uint64_t const v)
 			{
@@ -376,11 +376,11 @@ namespace libmaus2
 			static uint64_t getLength(std::string const & filename)
 			{
 				libmaus2::aio::InputStreamInstance istr(filename);
-				::libmaus2::bitio::StreamBitInputStream SBIS(istr);	
+				::libmaus2::bitio::StreamBitInputStream SBIS(istr);
 				SBIS.readBit(); // need escape
 				return ::libmaus2::bitio::readElias2(SBIS);
 			}
-			
+
 			// get length of vector of files in symbols
 			static uint64_t getLength(std::vector<std::string> const & filenames)
 			{

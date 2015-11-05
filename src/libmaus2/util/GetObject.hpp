@@ -42,21 +42,21 @@ namespace libmaus2
 			typedef typename ::std::iterator_traits<iterator>::value_type value_type;
 			//! iterator
 			iterator p;
-			
+
 			/**
 			 * constructor
 			 *
 			 * @param rp iterator
 			 **/
 			GetObject(iterator rp) : p(rp) {}
-			
+
 			/**
 			 * @return next element
 			 **/
 			value_type get() { return *(p++); }
-			
+
 			/**
-			 * read next n elements and store them starting at q 
+			 * read next n elements and store them starting at q
 			 *
 			 * @param q output iterator
 			 * @param n number of elements to extract

@@ -40,7 +40,7 @@ const libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTidx libmaus2::rmq::Fisc
 	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,35357670}
 };
 
-const char libmaus2::rmq::FischerSystematicSuccinctRMQBase::LSBTable256[256] = 
+const char libmaus2::rmq::FischerSystematicSuccinctRMQBase::LSBTable256[256] =
 	{
 		0,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
 		4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
@@ -60,7 +60,7 @@ const char libmaus2::rmq::FischerSystematicSuccinctRMQBase::LSBTable256[256] =
 		4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0
 	};
 
-const char libmaus2::rmq::FischerSystematicSuccinctRMQBase::LogTable256[256] = 
+const char libmaus2::rmq::FischerSystematicSuccinctRMQBase::LogTable256[256] =
 	{
 		0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,
 		4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
@@ -80,15 +80,14 @@ const char libmaus2::rmq::FischerSystematicSuccinctRMQBase::LogTable256[256] =
 		7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7
 	};
 
-const libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc 
+const libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc
 	libmaus2::rmq::FischerSystematicSuccinctRMQBase::HighestBitsSet[8] = {
-		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~0), 
-		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~1), 
-		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~3), 
-		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~7), 
-		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~15), 
-		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~31), 
-		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~63), 
+		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~0),
+		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~1),
+		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~3),
+		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~7),
+		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~15),
+		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~31),
+		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~63),
 		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~127)
 	};
-

@@ -32,10 +32,10 @@ namespace libmaus2
 			typedef BamAlignmentDecoderFactory this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> const BADI;
 			bool const putrank;
-			
+
 			BamMultiAlignmentDecoderFactory(std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> const & rBADI, bool const rputrank = false) : BADI(rBADI), putrank(rputrank) {}
 			virtual ~BamMultiAlignmentDecoderFactory() {}
 
@@ -43,12 +43,12 @@ namespace libmaus2
 			{
 				return libmaus2::bambam::BamAlignmentDecoderFactory::getValidInputFormatsSet();
 			}
-			
+
 			static std::string getValidInputFormats()
 			{
 				return libmaus2::bambam::BamAlignmentDecoderFactory::getValidInputFormats();
 			}
-			
+
 			libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type operator()() const
 			{
 				libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(construct(BADI,putrank));
@@ -82,12 +82,12 @@ namespace libmaus2
 						libmaus2::bambam::BamAlignmentDecoderFactory::construct(BADI[0],putrank,istdin)
 					);
 					return UNIQUE_PTR_MOVE(tptr);
-				}			
+				}
 			}
-			
+
 			static libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
 				libmaus2::util::ArgInfo const & arginfo,
-				bool const putrank = false, 
+				bool const putrank = false,
 				std::ostream * copystr = 0,
 				std::istream & istdin = std::cin,
 				bool cat = false,

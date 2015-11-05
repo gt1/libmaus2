@@ -37,39 +37,39 @@ namespace libmaus2
 
 			bool const streaming;
 			std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> infos;
-			
-			wrapper_pointer_array_pointer_type Pwrappers;			
-			
+
+			wrapper_pointer_array_pointer_type Pwrappers;
+
 			libmaus2::bambam::BamCatHeader::unique_ptr_type const Pheader;
 			libmaus2::bambam::BamCatHeader const & header;
-			
+
 			std::vector<std::string>::const_iterator filenameit;
 			int64_t fileid;
 			wrapper_pointer_type wrapper;
 			libmaus2::bambam::BamAlignmentDecoder * decoder;
 			libmaus2::bambam::BamAlignment * algnptr;
-			
+
 			static wrapper_pointer_array_pointer_type constructWrappers(std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> const & infos, bool const streaming)
 			{
 				wrapper_pointer_array_pointer_type Pwrappers;
-				
+
 				if ( streaming )
 				{
 					wrapper_pointer_array_pointer_type Twrappers(new wrapper_pointer_array_type(infos.size()));
 					Pwrappers = UNIQUE_PTR_MOVE(Twrappers);
-					
+
 					for ( uint64_t i = 0; i < infos.size(); ++i )
 					{
 						wrapper_pointer_type tptr ( libmaus2::bambam::BamAlignmentDecoderFactory::construct(infos[i]) );
 						(*Pwrappers)[i] = UNIQUE_PTR_MOVE(tptr);
 					}
 				}
-				
+
 				return UNIQUE_PTR_MOVE(Pwrappers);
 			}
-			
+
 			static libmaus2::bambam::BamCatHeader::unique_ptr_type constructHeader(
-				std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> const & infos, 
+				std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> const & infos,
 				wrapper_pointer_array_pointer_type & Pwrappers
 			)
 			{
@@ -92,67 +92,67 @@ namespace libmaus2
 			static libmaus2::bambam::BamCatHeader::unique_ptr_type constructHeader(libmaus2::util::ArgInfo const & arginfo, std::vector<std::string> const & filenames)
 			{
 				libmaus2::bambam::BamCatHeader::unique_ptr_type tptr(new libmaus2::bambam::BamCatHeader(arginfo,filenames));
-				return UNIQUE_PTR_MOVE(tptr);				
+				return UNIQUE_PTR_MOVE(tptr);
 			}
 
 			static libmaus2::bambam::BamCatHeader::unique_ptr_type constructHeader(std::vector<std::string> const & filenames)
 			{
 				libmaus2::bambam::BamCatHeader::unique_ptr_type tptr(new libmaus2::bambam::BamCatHeader(filenames));
-				return UNIQUE_PTR_MOVE(tptr);				
+				return UNIQUE_PTR_MOVE(tptr);
 			}
-			
+
 			BamCat(
 				libmaus2::util::ArgInfo const & arginfo,
-				std::vector<std::string> const & rfilenames, 
+				std::vector<std::string> const & rfilenames,
 				bool const putrank = false,
 				bool const rstreaming = false
-			) 
-			: BamAlignmentDecoder(putrank), 
+			)
+			: BamAlignmentDecoder(putrank),
 			  streaming(rstreaming),
-			  infos(libmaus2::bambam::BamAlignmentDecoderInfo::filenameToInfo(arginfo,rfilenames)), 
+			  infos(libmaus2::bambam::BamAlignmentDecoderInfo::filenameToInfo(arginfo,rfilenames)),
 			  Pwrappers(constructWrappers(infos,streaming)),
 			  Pheader(streaming ? constructHeader(infos,Pwrappers) : constructHeader(arginfo,rfilenames)),
 			  header(*Pheader),
-			  fileid(-1), 
-			  wrapper(), 
+			  fileid(-1),
+			  wrapper(),
 			  decoder(0)
 			{
 			}
 
 			BamCat(
-				std::vector<std::string> const & rfilenames, 
+				std::vector<std::string> const & rfilenames,
 				bool const putrank = false,
 				bool const rstreaming = false
-			) 
-			: BamAlignmentDecoder(putrank), 
+			)
+			: BamAlignmentDecoder(putrank),
 			  streaming(rstreaming),
-			  infos(libmaus2::bambam::BamAlignmentDecoderInfo::filenameToInfo(rfilenames)), 
+			  infos(libmaus2::bambam::BamAlignmentDecoderInfo::filenameToInfo(rfilenames)),
 			  Pwrappers(constructWrappers(infos,streaming)),
 			  Pheader(streaming ? constructHeader(infos,Pwrappers) : constructHeader(rfilenames)),
 			  header(*Pheader),
-			  fileid(-1), 
-			  wrapper(), 
+			  fileid(-1),
+			  wrapper(),
 			  decoder(0)
 			{
 			}
 
 			BamCat(
-				std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> const & rinfos, 
+				std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> const & rinfos,
 				bool const putrank = false,
 				bool const rstreaming = false
-			) 
-			: BamAlignmentDecoder(putrank), 
+			)
+			: BamAlignmentDecoder(putrank),
 			  streaming(rstreaming),
-			  infos(rinfos), 
+			  infos(rinfos),
 			  Pwrappers(constructWrappers(infos,streaming)),
 			  Pheader(constructHeader(infos,Pwrappers)),
 			  header(*Pheader),
-			  fileid(-1), 
-			  wrapper(), 
+			  fileid(-1),
+			  wrapper(),
 			  decoder(0)
 			{
 			}
-		
+
 			/**
 			 * input method
 			 *
@@ -183,16 +183,16 @@ namespace libmaus2
 							algnptr = &(decoder->getAlignment());
 						}
 					}
-					
+
 					bool const ok = decoder->readAlignment();
-					
+
 					if ( expect_true(ok) )
 					{
 						alignment.swap(*algnptr);
 
 						if ( ! delayPutRank )
 							putRank();
-							
+
 						header.updateAlignment(fileid,alignment);
 						return true;
 					}
@@ -204,7 +204,7 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			virtual libmaus2::bambam::BamHeader const & getHeader() const
 			{
 				return *(header.bamheader);

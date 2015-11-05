@@ -33,7 +33,7 @@ namespace libmaus2
 				typedef GenericInputControlCompressionPending this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				// block number (-1 for header)
 				 int64_t blockid;
 				// sub id inside block
@@ -48,8 +48,8 @@ namespace libmaus2
 				libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type outblock;
 				// flush info from BGZF compressor
 				libmaus2::lz::BgzfDeflateZStreamBaseFlushInfo flushinfo;
-			
-				GenericInputControlCompressionPending() {}	
+
+				GenericInputControlCompressionPending() {}
 				GenericInputControlCompressionPending(
 					 int64_t const rblockid,
 					uint64_t const rsubid,

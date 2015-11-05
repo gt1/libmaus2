@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <libmaus2/bambam/BamFlagBase.hpp>
-		
+
 std::ostream & operator<<(std::ostream & out, libmaus2::bambam::BamFlagBase::bam_flags const f)
 {
 	switch ( f )
@@ -36,6 +36,6 @@ std::ostream & operator<<(std::ostream & out, libmaus2::bambam::BamFlagBase::bam
 		case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSUPPLEMENTARY: out << "LIBMAUS2_BAMBAM_FSUPPLEMENTARY"; break;
 		case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FCIGAR32: out << "LIBMAUS2_BAMBAM_FCIGAR32"; break;
 	}
-	
+
 	return out;
 }

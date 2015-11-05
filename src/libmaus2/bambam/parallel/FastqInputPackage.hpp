@@ -27,22 +27,22 @@ namespace libmaus2
 	namespace bambam
 	{
 		namespace parallel
-		{			
+		{
 			struct FastqInputPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef FastqInputPackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				FastQInputDesc * data;
-			
+
 				FastqInputPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), data(0)
-				{				
-				}		
+				{
+				}
 				FastqInputPackage(uint64_t const rpriority, uint64_t const rdispatcherid, FastQInputDesc * rdata)
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), data(rdata)
 				{
-				
+
 				}
 
 				char const * getPackageName() const

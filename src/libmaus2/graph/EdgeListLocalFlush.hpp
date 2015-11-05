@@ -29,14 +29,14 @@ namespace libmaus2
 		struct EdgeListLocalFlush
 		{
 			typedef ::libmaus2::graph::TripleEdge edge_type;
-			
+
 			EdgeList & EL;
-			
+
 			EdgeListLocalFlush(EdgeList & rEL)
 			: EL(rEL)
 			{
 			}
-			
+
 			void operator()(edge_type const * pa, uint64_t const n)
 			{
 				EL(pa,n);

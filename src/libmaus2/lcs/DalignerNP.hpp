@@ -30,14 +30,14 @@ namespace libmaus2
 			typedef DalignerNP this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			private:
 			#if defined(LIBMAUS2_HAVE_DALIGNER)
 			libmaus2::autoarray::AutoArray<char> A;
 			libmaus2::autoarray::AutoArray<char> B;
 			void * data;
 			#endif
-				
+
 			public:
 			DalignerNP();
 			~DalignerNP();

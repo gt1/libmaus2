@@ -35,14 +35,14 @@ namespace libmaus2
 			std::vector < uint8_t > addr;
 			std::vector < uint8_t > baddr;
 			std::vector < uint8_t > naddr;
-			
+
 			Interface()
 			: addr(4), baddr(4), naddr(4)
 			{}
 			Interface(std::string const & rname, std::vector<uint8_t> const & raddr, std::vector<uint8_t> const & rbaddr,
 				std::vector<uint8_t> const & rnaddr)
 			: name(rname), addr(raddr),baddr(rbaddr), naddr(rnaddr) {}
-			
+
 			std::ostream & serialise(std::ostream & out) const
 			{
 				::libmaus2::util::StringSerialisation::serialiseString(out,name);
@@ -51,7 +51,7 @@ namespace libmaus2
 				::libmaus2::util::NumberSerialisation::serialiseNumberVector(out,naddr);
 				return out;
 			}
-			
+
 			std::string serialise() const
 			{
 				std::ostringstream out;
@@ -65,9 +65,9 @@ namespace libmaus2
 			  baddr(::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint8_t>(in)),
 			  naddr(::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint8_t>(in))
 			{
-			
+
 			}
-			
+
 			Interface(std::string const & s)
 			{
 				std::istringstream in(s);
@@ -76,7 +76,7 @@ namespace libmaus2
 				baddr = ::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint8_t>(in);
 				naddr = ::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint8_t>(in);
 			}
-			
+
 			uint8_t getLowA() const { return addr[0]&naddr[0]; }
 			uint8_t getLowB() const { return addr[1]&naddr[1]; }
 			uint8_t getLowC() const { return addr[2]&naddr[2]; }
@@ -89,7 +89,7 @@ namespace libmaus2
 			uint8_t getHighB() const { return getLowB() + getSizeB(); }
 			uint8_t getHighC() const { return getLowC() + getSizeC(); }
 			uint8_t getHighD() const { return getLowD() + getSizeD(); }
-			
+
 			bool onInterface(std::vector<uint8_t> const & V) const
 			{
 				return
@@ -110,21 +110,21 @@ namespace libmaus2
 			uint8_t const nethighb = interface.getHighB();
 			uint8_t const nethighc = interface.getHighC();
 			uint8_t const nethighd = interface.getHighD();
-			
-			out << "Interface(" << interface.name << "," 
-				<< static_cast<int>(interface.addr[0]) << "." 
-				<< static_cast<int>(interface.addr[1]) << "." 
-				<< static_cast<int>(interface.addr[2]) << "." 
+
+			out << "Interface(" << interface.name << ","
+				<< static_cast<int>(interface.addr[0]) << "."
+				<< static_cast<int>(interface.addr[1]) << "."
+				<< static_cast<int>(interface.addr[2]) << "."
 				<< static_cast<int>(interface.addr[3])
 				<< ","
-				<< static_cast<int>(interface.baddr[0]) << "." 
-				<< static_cast<int>(interface.baddr[1]) << "." 
-				<< static_cast<int>(interface.baddr[2]) << "." 
+				<< static_cast<int>(interface.baddr[0]) << "."
+				<< static_cast<int>(interface.baddr[1]) << "."
+				<< static_cast<int>(interface.baddr[2]) << "."
 				<< static_cast<int>(interface.baddr[3])
 				<< ","
-				<< static_cast<int>(interface.naddr[0]) << "." 
-				<< static_cast<int>(interface.naddr[1]) << "." 
-				<< static_cast<int>(interface.naddr[2]) << "." 
+				<< static_cast<int>(interface.naddr[0]) << "."
+				<< static_cast<int>(interface.naddr[1]) << "."
+				<< static_cast<int>(interface.naddr[2]) << "."
 				<< static_cast<int>(interface.naddr[3])
 				<< ",";
 			if ( nethigha-netlowa )
@@ -143,9 +143,9 @@ namespace libmaus2
 				out << "[" << static_cast<int>(netlowd) << "," << static_cast<int>(nethighd) << "]";
 			else
 				out << static_cast<int>(netlowd);
-				
+
 			out << ")";
-			
+
 			return out;
 		}
 	}

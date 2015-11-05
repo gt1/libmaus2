@@ -33,17 +33,17 @@ namespace libmaus2
 			typedef Lz4Decoder this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			Lz4Decoder(std::string const & filename)
 			: Lz4DecoderBuffer(filename), ::std::istream(this)
 			{
-				
+
 			}
-			
+
 			Lz4Decoder(std::istream & in)
 			: Lz4DecoderBuffer(in), ::std::istream(this)
 			{
-			
+
 			}
 
 			static int getSymbolAtPosition(std::string const & filename, uint64_t const offset)

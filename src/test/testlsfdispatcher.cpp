@@ -24,7 +24,7 @@ int main(int argc, char ** argv)
 {
 	try
 	{
-		::libmaus2::util::ArgInfo const arginfo(argc,argv);			
+		::libmaus2::util::ArgInfo const arginfo(argc,argv);
 		::libmaus2::network::LsfDispatchCallback LDC;
 		::libmaus2::network::LogReceiverDispatcherBase::dispatch(argc,argv,&LDC);
 	}

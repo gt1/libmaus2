@@ -37,12 +37,12 @@ namespace libmaus2
 		struct Inflate
 		{
 			static unsigned int const input_buffer_size = 64*1024;
-		
+
 			z_stream strm;
-			
+
 			typedef libmaus2::aio::InputStreamInstance istr_file_type;
 			typedef ::libmaus2::util::unique_ptr<istr_file_type>::type istr_file_ptr_type;
-			
+
 			istr_file_ptr_type pin;
 			std::istream & in;
 			::libmaus2::autoarray::AutoArray<uint8_t> inbuf;
@@ -58,29 +58,29 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Inflate::zreset(): inflateReset failed";
 					se.finish();
-					throw se;									
+					throw se;
 				}
-				
+
 				ret = Z_OK;
 				outbuffill = 0;
 				op = 0;
 			}
-						
+
 			void init(int windowSizeLog)
 			{
 				memset(&strm,0,sizeof(z_stream));
-				
+
 				strm.zalloc = Z_NULL;
 				strm.zfree = Z_NULL;
 				strm.opaque = Z_NULL;
 				strm.avail_in = 0;
 				strm.next_in = Z_NULL;
-				
+
 				if ( windowSizeLog )
 					ret = inflateInit2(&strm,windowSizeLog);
 				else
 					ret = inflateInit(&strm);
-					
+
 				if (ret != Z_OK)
 				{
 					::libmaus2::exception::LibMausException se;
@@ -89,14 +89,14 @@ namespace libmaus2
 					throw se;
 				}
 			}
-			
-			Inflate(std::istream & rin, int windowSizeLog = 0) 
+
+			Inflate(std::istream & rin, int windowSizeLog = 0)
 			: in(rin), inbuf(input_buffer_size,false), outbuf(16*1024,false), outbuffill(0), op(0)
 			{
 				init(windowSizeLog);
 			}
-			Inflate(std::string const & filename, int windowSizeLog = 0) 
-			: pin(new istr_file_type(filename)), 
+			Inflate(std::string const & filename, int windowSizeLog = 0)
+			: pin(new istr_file_type(filename)),
 			  in(*pin), inbuf(input_buffer_size,false), outbuf(16*1024,false), outbuffill(0), op(0)
 			{
 				init(windowSizeLog);
@@ -113,51 +113,51 @@ namespace libmaus2
 					bool const ok = fillBuffer();
 					if ( ! ok )
 						return -1;
-					
+
 					// assert ( outbuffill );
 				}
-				
+
 				// assert ( outbuffill );
 				// std::cerr << "outbuffill=" << outbuffill << std::endl;
-				
+
 				int const c = *(op++);
 				outbuffill--;
-				
+
 				return c;
 			}
-			
+
 			uint64_t read(char * buffer, uint64_t const n)
 			{
 				uint64_t red = 0;
-				
+
 				while ( red < n )
 				{
 					while ( ! outbuffill )
 					{
-						bool const ok = fillBuffer();					
+						bool const ok = fillBuffer();
 						if ( ! ok )
 							return red;
 					}
-					
+
 					uint64_t const tocopy = std::min(outbuffill,n-red);
 					std::copy ( op, op + tocopy, buffer + red );
 					op += tocopy;
 					red += tocopy;
 					outbuffill -= tocopy;
 				}
-				
+
 				return red;
 			}
-			
+
 			bool fillBuffer()
 			{
 				if ( ret == Z_STREAM_END )
 					return false;
-									
+
 				while ( (ret == Z_OK) && (! outbuffill) )
 				{
 					/* read a block of data */
-					in.read ( reinterpret_cast<char *>(inbuf.get()), inbuf.size() );	
+					in.read ( reinterpret_cast<char *>(inbuf.get()), inbuf.size() );
 					uint64_t const read = in.gcount();
 					if ( ! read )
 					{
@@ -170,7 +170,7 @@ namespace libmaus2
 					{
 						// std::cerr << "Got " << read << " in fillBuffer()" << std::endl;
 					}
-					
+
 					strm.avail_in = read;
 					strm.next_in = reinterpret_cast<Bytef *>(inbuf.get());
 
@@ -183,7 +183,7 @@ namespace libmaus2
 						strm.avail_out = avail_out;
 						strm.next_out = reinterpret_cast<Bytef *>(outbuf.get() + outbuffill);
 						ret = inflate(&strm, Z_NO_FLUSH);
-						
+
 						if ( ret == Z_OK || ret == Z_STREAM_END )
 							outbuffill += (avail_out - strm.avail_out);
 					}
@@ -193,7 +193,7 @@ namespace libmaus2
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Inflate::fillBuffer(): zlib state clobbered after inflate(), state is ";
-					
+
 					switch ( ret )
 					{
 						case Z_NEED_DICT: se.getStream() << "Z_NEED_DICT"; break;
@@ -206,53 +206,53 @@ namespace libmaus2
 						default: se.getStream() << "Unknown error code"; break;
 					}
 					se.getStream() << " output size " << outbuffill << std::endl;
-					
+
 					se.finish();
 					throw se;
 				}
-			
+
 				op = outbuf.begin();
-												
+
 				return true;
 			}
-			
+
 			std::pair<uint8_t const *, uint8_t const *> getRest() const
 			{
 				return std::pair<uint8_t const *, uint8_t const *>(
 					strm.next_in,strm.next_in+strm.avail_in
 				);
 			}
-			
+
 			void ungetRest()
 			{
 				if ( in.eof() )
 					in.clear();
-				
+
 				for ( uint64_t i = 0; i < strm.avail_in; ++i )
 					in.putback(strm.next_in[strm.avail_in-i-1]);
 			}
 		};
-		
+
 		struct BlockInflate
 		{
 			typedef BlockInflate this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			typedef libmaus2::aio::InputStreamInstance istream_type;
 			typedef ::libmaus2::util::unique_ptr<istream_type>::type istream_ptr_type;
 
 			std::vector < std::pair<uint64_t,uint64_t> > index;
 			uint64_t blockptr;
 			uint64_t n;
-			
+
 			istream_ptr_type Pistr;
 			istream_type & istr;
-			
+
 			::libmaus2::autoarray::AutoArray<uint8_t,::libmaus2::autoarray::alloc_type_c> B;
 			uint8_t * pa;
 			uint8_t * pc;
 			uint8_t * pe;
-			
+
 			static std::vector < std::pair<uint64_t,uint64_t> > loadIndex(std::string const & filename)
 			{
 				libmaus2::aio::InputStreamInstance istr(filename);
@@ -273,9 +273,9 @@ namespace libmaus2
 				}
 				istr.seekg(0,std::ios::beg);
 
-				return index;				
+				return index;
 			}
-			
+
 			static uint64_t computeSize(std::vector < std::pair<uint64_t,uint64_t> > const & index)
 			{
 				uint64_t n = 0;
@@ -283,12 +283,12 @@ namespace libmaus2
 					n += index[i].second;
 				return n;
 			}
-			
+
 			static uint64_t computeSize(std::string const & filename)
 			{
 				return computeSize(loadIndex(filename));
 			}
-			
+
 			static uint64_t computeSize(std::vector<std::string> const & filenames)
 			{
 				uint64_t n = 0;
@@ -296,7 +296,7 @@ namespace libmaus2
 					n += computeSize(filenames[i]);
 				return n;
 			}
-			
+
 			static std::vector<uint64_t> computeSizeVector(std::vector<std::string> const & filenames)
 			{
 				std::vector<uint64_t> sizes;
@@ -304,7 +304,7 @@ namespace libmaus2
 					sizes.push_back ( computeSize(filenames[i]) );
 				return sizes;
 			}
-			
+
 			BlockInflate(std::string const & filename, uint64_t pos = 0)
 			: index(loadIndex(filename)), blockptr(0), n(computeSize(index)),
 			  Pistr(new istream_type(filename)), istr(*Pistr),
@@ -321,15 +321,15 @@ namespace libmaus2
 				assert ( pc + pos <= pe );
 				pc += pos;
 			}
-			
+
 			uint64_t read(uint8_t * p, uint64_t n)
 			{
 				uint64_t red = 0;
-				
+
 				while ( n )
 				{
 					// std::cerr << "n=" << n << " red=" << red << std::endl;
-				
+
 					if ( pc == pe )
 					{
 						if ( ! decodeBlock() )
@@ -343,10 +343,10 @@ namespace libmaus2
 					red += toread;
 					n -= toread;
 				}
-				
+
 				return red;
 			}
-						
+
 			int get()
 			{
 				if ( pc == pe )
@@ -357,12 +357,12 @@ namespace libmaus2
 				assert ( pc != pe );
 				return *(pc++);
 			}
-			
+
 			bool decodeBlock()
 			{
 				if ( blockptr >= index.size() )
 					return false;
-					
+
 				istr.clear();
 				istr.seekg ( index[blockptr].first, std::ios::beg );
 				uint64_t const blocklen = ::libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
@@ -375,60 +375,60 @@ namespace libmaus2
 				pe = pa + blocklen;
 				Inflate inflate(istr);
 				inflate.read(reinterpret_cast<char *>(pa),blocklen);
-				
+
 				blockptr++;
 				return true;
 			}
-			
+
 			::libmaus2::autoarray::AutoArray<uint8_t> getReverse()
 			{
 				::libmaus2::autoarray::AutoArray<uint8_t> A(n,false);
 				uint8_t * outptr = A.begin();
-				
+
 				for ( uint64_t i = 0; i < index.size(); ++i )
 				{
 					blockptr = index.size()-i-1;
-					decodeBlock(); 
+					decodeBlock();
 					std::reverse(pa,pe);
 					while ( pc != pe )
 						*(outptr++) = *(pc++);
 				}
-				
+
 				assert ( outptr == A.end() );
-				
+
 				return A;
 			}
 		};
-		
+
 		struct ConcatBlockInflate
 		{
 			typedef ConcatBlockInflate this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-					
+
 			std::vector<std::string> const filenames;
 			uint64_t fileptr;
 			std::vector < uint64_t > sizevec;
-			
+
 			BlockInflate::unique_ptr_type BI;
-			
+
 			uint64_t n;
-			
+
 			template<typename filename_container_type>
 			ConcatBlockInflate(filename_container_type const & rfilenames, uint64_t offset)
-			: filenames(rfilenames.begin(),rfilenames.end()), fileptr(0), 
+			: filenames(rfilenames.begin(),rfilenames.end()), fileptr(0),
 			  sizevec(BlockInflate::computeSizeVector(filenames)), n(0)
 			{
 				for ( uint64_t i = 0; i < sizevec.size(); ++i )
 				{
 					n += sizevec[i];
 				}
-			
+
 				while ( fileptr < sizevec.size() && offset >= sizevec[fileptr] )
 				{
 					offset -= sizevec[fileptr];
 					fileptr++;
 				}
-				
+
 				if ( fileptr < sizevec.size() )
 				{
 					assert ( offset < sizevec[fileptr] );
@@ -439,8 +439,8 @@ namespace libmaus2
 				else
 				{
 					#if 0
-					std::cerr << "fileptr=" << fileptr << " offset=" << offset 
-						<< " sizevec.size()=" << sizevec.size() 
+					std::cerr << "fileptr=" << fileptr << " offset=" << offset
+						<< " sizevec.size()=" << sizevec.size()
 						<< " filenames.size()=" << filenames.size()
 						<< std::endl;
 					#endif
@@ -459,7 +459,7 @@ namespace libmaus2
 				std::vector<std::string> const VV(V.begin(),V.end());
 				uint64_t const n = BlockInflate::computeSize(VV);
 				std::vector < uint64_t > points(segments);
-				
+
 				/*
 				 * compute the split points
 				 */
@@ -477,10 +477,10 @@ namespace libmaus2
 					points[i] = scanstart + offset;
 					// std::cerr << "offset " << offset << std::endl;
 				}
-				
+
 				/*
 				 * check that positions lead to terminators
-				 */				
+				 */
 				#if defined(_OPENMP)
 				#pragma omp parallel for schedule(dynamic,1)
 				#endif
@@ -492,8 +492,8 @@ namespace libmaus2
 						if ( val != 0 )
 						{
 							::libmaus2::exception::LibMausException se;
-							se.getStream() << "Failed to set correct split point at " << points[i] 
-								<< " expected 0 got " << val 
+							se.getStream() << "Failed to set correct split point at " << points[i]
+								<< " expected 0 got " << val
 								<< " point " << i << " points.size()=" << points.size()
 								<< std::endl;
 							se.finish();
@@ -503,23 +503,23 @@ namespace libmaus2
 
 				/*
 				 * add end of file
-				 */					
+				 */
 				points.push_back(n);
-				
+
 				return points;
 			}
-			
+
 			uint64_t read(uint8_t * p, uint64_t n)
 			{
 				uint64_t red = 0;
-				
+
 				while ( n && BI )
 				{
 					uint64_t const lred = BI->read ( p, n );
 					p += lred;
 					n -= lred;
 					red += lred;
-					
+
 					if ( ! lred )
 					{
 						fileptr++;
@@ -531,10 +531,10 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				return red;
 			}
-			
+
 			int get()
 			{
 				uint8_t c;

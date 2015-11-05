@@ -41,7 +41,7 @@ namespace libmaus2
 
 			libmaus2::autoarray::AutoArray<uint8_t> const R0;
 			libmaus2::autoarray::AutoArray<uint8_t> const R1;
-			
+
 			static libmaus2::autoarray::AutoArray<uint8_t> computeR0()
 			{
 				libmaus2::autoarray::AutoArray<uint8_t> R0(256,false);
@@ -63,41 +63,41 @@ namespace libmaus2
 				R1['t'] = R1['T'] = 3;
 				return R1;
 			}
-			
+
 			HammingOverlapDetection()
 			: R0(computeR0()), R1(computeR1())
 			{
-			
+
 			}
-			
+
 			static void printStringPair(
-				std::ostream & out, 
-				std::string s, std::string t, 
+				std::ostream & out,
+				std::string s, std::string t,
 				uint64_t const prelinelength = ::libmaus2::util::Terminal::getColumns()
 			)
 			{
 				uint64_t const linelength = prelinelength-2;
-				
+
 				uint64_t const maxlen = std::max(s.size(),t.size());
-				
+
 				if ( s.size() < maxlen )
 					s = s + std::string(maxlen-s.size(),' ');
 				if ( t.size() < maxlen )
 					t = t + std::string(maxlen-t.size(),' ');
-					
+
 				for ( uint64_t l = 0; l < (maxlen+linelength-1)/linelength; ++l )
 				{
 					uint64_t const low  = l*linelength;
 					uint64_t const high = std::min(low+linelength,maxlen);
 					uint64_t const len = high-low;
-					
+
 					out << "A " << s.substr(low,len) << std::endl;
 					out << "B " << t.substr(low,len) << std::endl;
 				}
 			}
-			
+
 			void detect(
-				std::string const & a, std::string const & b, unsigned int const maxmisperc, libmaus2::lcs::OverlapOrientation::overlap_orientation & orientation,				
+				std::string const & a, std::string const & b, unsigned int const maxmisperc, libmaus2::lcs::OverlapOrientation::overlap_orientation & orientation,
 				libmaus2::lcs::OverlapOrientation::overlap_orientation const cover_complete,
 				libmaus2::lcs::OverlapOrientation::overlap_orientation const cover_a_b,
 				libmaus2::lcs::OverlapOrientation::overlap_orientation const cover_b_a,
@@ -109,17 +109,17 @@ namespace libmaus2
 				bool const verbose = false
 			) const
 			{
-				uint64_t seed = 0;		
+				uint64_t seed = 0;
 				std::string::const_iterator ita = a.end()-seedlen, ite = a.end();
-				
+
 				// std::cerr << "seed: " << std::string(ita,a.end()) << std::endl;
-				
+
 				while ( ita != ite )
 				{
 					seed <<= seedk;
 					seed |= R0[*(ita++)];
 				}
-				
+
 				// start from end of b
 				std::string::const_reverse_iterator bita = b.rbegin();
 				// compute query q
@@ -129,7 +129,7 @@ namespace libmaus2
 					q >>= seedk;
 					q |= static_cast<uint64_t>(R1[*(bita++)]) << (seedk*(seedlen-1));
 				}
-				
+
 				while ( bita != b.rend() )
 				{
 					q >>= seedk;
@@ -152,7 +152,7 @@ namespace libmaus2
 						uint64_t const restoverlap = overlaplength - seedlen;
 						uint64_t const fullrestwords = restoverlap / symsperword;
 						uint64_t const fracrestsyms = restoverlap - fullrestwords * symsperword;
-						
+
 						std::string::const_iterator rita = a.begin() + aoverlapstart;
 						std::string::const_iterator ritb = b.begin() + boverlapstart;
 						uint64_t mis = seedmis;
@@ -166,8 +166,8 @@ namespace libmaus2
 								wb <<= seedk;
 								wb |= R1[*(ritb++)];
 							}
-						
-							mis += libmaus2::fastx::KBlockBitCount<seedk>::diff(wa,wb);					
+
+							mis += libmaus2::fastx::KBlockBitCount<seedk>::diff(wa,wb);
 						}
 						if ( fracrestsyms )
 						{
@@ -181,14 +181,14 @@ namespace libmaus2
 							}
 							mis += libmaus2::fastx::KBlockBitCount<seedk>::diff(wa,wb);
 						}
-						
+
 						uint64_t const maxmis = (maxmisperc * overlaplength)/100;
-						
+
 						if ( mis <=  maxmis )
 						{
 							uint64_t const matches = overlaplength - mis;
 							int64_t const score = static_cast<int64_t>(matches * match_gain) - static_cast<int64_t>(mis * mismatch_penalty);
-											
+
 							if ( score > maxscore )
 							{
 								if ( overlaplength == a.size() && overlaplength == b.size() )
@@ -201,7 +201,7 @@ namespace libmaus2
 								else if ( overlaplength == a.size() )
 								{
 									maxscore = score;
-								
+
 									orientation = cover_b_a;
 
 									if ( coverflag )
@@ -218,9 +218,9 @@ namespace libmaus2
 								else
 								{
 									maxscore = score;
-									
+
 									orientation = dovetail;
-									
+
 									if ( overhangab )
 										overhang = aboverhang;
 									else
@@ -229,7 +229,7 @@ namespace libmaus2
 
 								if ( verbose )
 								{
-									std::cerr 
+									std::cerr
 										<< "mismatches " << mis << "/" << maxmis << " score " << score
 										<< " overlap " << overlaplength
 										<< " aboverhang " << aboverhang
@@ -242,9 +242,9 @@ namespace libmaus2
 										<< " cover_b_a " << cover_b_a
 										<< " dovetail " << dovetail
 										<< "\n";
-									
+
 									uint64_t const linelen = ::libmaus2::util::Terminal::getColumns();
-																		
+
 									if ( orientation == dovetail || orientation == cover_complete )
 									{
 										printStringPair(
@@ -276,7 +276,7 @@ namespace libmaus2
 							}
 						}
 					}
-				}		
+				}
 			}
 
 			static void printOverlap(
@@ -289,7 +289,7 @@ namespace libmaus2
 			{
 				uint64_t const overlap = b.size() - overhang;
 				uint64_t const indent = a.size()-overlap;
-				
+
 				switch ( o )
 				{
 					case libmaus2::lcs::OverlapOrientation::overlap_a_back_dovetail_b_front:
@@ -315,7 +315,7 @@ namespace libmaus2
 						uint64_t const bbackadd = overhang;
 						uint64_t const bprint = b.size();
 						uint64_t const bfrontadd = a.size()-(bprint+bbackadd);
-						printStringPair(out,a,std::string(bfrontadd,' ')+b+std::string(bbackadd,' '));						
+						printStringPair(out,a,std::string(bfrontadd,' ')+b+std::string(bbackadd,' '));
 						break;
 					}
 					case libmaus2::lcs::OverlapOrientation::overlap_b_covers_a:
@@ -330,7 +330,7 @@ namespace libmaus2
 					{
 						uint64_t const bbackadd = overhang;
 						uint64_t const bprint = b.size();
-						uint64_t const bfrontadd = a.size()-(bprint+bbackadd);	
+						uint64_t const bfrontadd = a.size()-(bprint+bbackadd);
 						printStringPair(out,libmaus2::fastx::reverseComplementUnmapped(a),
 							std::string(bfrontadd,' ')+b+std::string(bbackadd,' '));
 						break;
@@ -342,7 +342,7 @@ namespace libmaus2
 						uint64_t const afrontadd = b.size() - (abackadd+aprint);
 						printStringPair(out,std::string(afrontadd,' ')+libmaus2::fastx::reverseComplementUnmapped(a)+std::string(abackadd,' '),b);
 						break;
-					}                                                                                                                               
+					}
 					default:
 						break;
 				}
@@ -360,10 +360,10 @@ namespace libmaus2
 
 				maxscore = ::std::numeric_limits<int64_t>::min();
 
-				detect(a,b,maxmisperc,orientation,libmaus2::lcs::OverlapOrientation::overlap_a_complete_b,libmaus2::lcs::OverlapOrientation::overlap_a_covers_b,libmaus2::lcs::OverlapOrientation::overlap_b_covers_a,libmaus2::lcs::OverlapOrientation::overlap_a_back_dovetail_b_front,true,true,overhang,maxscore,verbose); 
-				detect(b,a,maxmisperc,orientation,libmaus2::lcs::OverlapOrientation::overlap_a_complete_b,libmaus2::lcs::OverlapOrientation::overlap_b_covers_a,libmaus2::lcs::OverlapOrientation::overlap_a_covers_b,libmaus2::lcs::OverlapOrientation::overlap_a_front_dovetail_b_back,false,true,overhang,maxscore,verbose); 
-				detect(ar,b,maxmisperc,orientation,libmaus2::lcs::OverlapOrientation::overlap_ar_complete_b,libmaus2::lcs::OverlapOrientation::overlap_ar_covers_b,libmaus2::lcs::OverlapOrientation::overlap_b_covers_ar,libmaus2::lcs::OverlapOrientation::overlap_a_front_dovetail_b_front,true,true,overhang,maxscore,verbose); 
-				detect(b,ar,maxmisperc,orientation,libmaus2::lcs::OverlapOrientation::overlap_ar_complete_b,libmaus2::lcs::OverlapOrientation::overlap_b_covers_ar,libmaus2::lcs::OverlapOrientation::overlap_ar_covers_b,libmaus2::lcs::OverlapOrientation::overlap_a_back_dovetail_b_back,false,true,overhang,maxscore,verbose); 
+				detect(a,b,maxmisperc,orientation,libmaus2::lcs::OverlapOrientation::overlap_a_complete_b,libmaus2::lcs::OverlapOrientation::overlap_a_covers_b,libmaus2::lcs::OverlapOrientation::overlap_b_covers_a,libmaus2::lcs::OverlapOrientation::overlap_a_back_dovetail_b_front,true,true,overhang,maxscore,verbose);
+				detect(b,a,maxmisperc,orientation,libmaus2::lcs::OverlapOrientation::overlap_a_complete_b,libmaus2::lcs::OverlapOrientation::overlap_b_covers_a,libmaus2::lcs::OverlapOrientation::overlap_a_covers_b,libmaus2::lcs::OverlapOrientation::overlap_a_front_dovetail_b_back,false,true,overhang,maxscore,verbose);
+				detect(ar,b,maxmisperc,orientation,libmaus2::lcs::OverlapOrientation::overlap_ar_complete_b,libmaus2::lcs::OverlapOrientation::overlap_ar_covers_b,libmaus2::lcs::OverlapOrientation::overlap_b_covers_ar,libmaus2::lcs::OverlapOrientation::overlap_a_front_dovetail_b_front,true,true,overhang,maxscore,verbose);
+				detect(b,ar,maxmisperc,orientation,libmaus2::lcs::OverlapOrientation::overlap_ar_complete_b,libmaus2::lcs::OverlapOrientation::overlap_b_covers_ar,libmaus2::lcs::OverlapOrientation::overlap_ar_covers_b,libmaus2::lcs::OverlapOrientation::overlap_a_back_dovetail_b_back,false,true,overhang,maxscore,verbose);
 
 				// br ar = a b
 				detect(br,ar,maxmisperc,orientation,libmaus2::lcs::OverlapOrientation::overlap_a_complete_b,
@@ -374,7 +374,7 @@ namespace libmaus2
 					false,
 					overhang,
 					maxscore,verbose
-				); 
+				);
 				// ar br = b a
 				detect(ar,br,maxmisperc,orientation,libmaus2::lcs::OverlapOrientation::overlap_a_complete_b,
 					libmaus2::lcs::OverlapOrientation::overlap_a_covers_b,
@@ -383,7 +383,7 @@ namespace libmaus2
 					true, // order is a b
 					false,
 					overhang,maxscore,verbose
-				); 
+				);
 				// br a = ar b
 				detect(br,a,maxmisperc,orientation,libmaus2::lcs::OverlapOrientation::overlap_ar_complete_b,
 					libmaus2::lcs::OverlapOrientation::overlap_b_covers_ar,
@@ -392,7 +392,7 @@ namespace libmaus2
 					false, // order is b a
 					false,
 					overhang,maxscore,verbose
-				); 
+				);
 				// a br = b ar
 				detect(a,br,maxmisperc,orientation,libmaus2::lcs::OverlapOrientation::overlap_ar_complete_b,
 					libmaus2::lcs::OverlapOrientation::overlap_ar_covers_b,
@@ -401,15 +401,15 @@ namespace libmaus2
 					true, // order is a b
 					false,
 					overhang,maxscore,verbose
-				); 
-			
+				);
+
 				if ( verbose && (maxscore != ::std::numeric_limits<int64_t>::min()) )
 					printOverlap(std::cerr,a,b,orientation,overhang);
-				
+
 				return maxscore != ::std::numeric_limits<int64_t>::min();
 			}
-			
-			
+
+
 			static void testOverlapCombinations(bool const verbose = false)
 			{
 				this_type OD;
@@ -437,31 +437,31 @@ namespace libmaus2
 
 				// overlap_a_front_dovetail_b_back:10
 				OD.detect(b,a,10,orientation,overhang,maxscore,verbose);
-				
+
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
 
 				// overlap_a_front_dovetail_b_front:14
 				OD.detect(af,bf,10,orientation,overhang,maxscore,verbose);
-				
+
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
 
 				// overlap_a_back_dovetail_b_back:14
 				OD.detect(ar,br,10,orientation,overhang,maxscore,verbose);
-				
+
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
 
 				// overlap_a_complete_b:14
 				OD.detect(a,a,10,orientation,overhang,maxscore,verbose);
-				
+
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
 
 				// overlap_ar_complete_b:14
 				OD.detect(a,libmaus2::fastx::reverseComplementUnmapped(a),10,orientation,overhang,maxscore,verbose);
-				
+
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
 
@@ -474,24 +474,24 @@ namespace libmaus2
 
 				// overlap_a_front_dovetail_b_back:10 -> overlap_a_front_dovetail_b_front:10
 				OD.detect(b,libmaus2::fastx::reverseComplementUnmapped(a),10,orientation,overhang,maxscore,verbose);
-				
+
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
 
 				// overlap_a_front_dovetail_b_front:14 -> overlap_a_front_dovetail_b_back:14
 				OD.detect(af,libmaus2::fastx::reverseComplementUnmapped(bf),10,orientation,overhang,maxscore,verbose);
-				
+
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
 
 				// overlap_a_back_dovetail_b_back:14 -> overlap_a_back_dovetail_b_front:14
 				OD.detect(ar,libmaus2::fastx::reverseComplementUnmapped(br),10,orientation,overhang,maxscore,verbose);
-				
+
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
-				
+
 				std::string const aerr = "AGATGCTGATGCTGATGCTGATCGATGCTGATGCTGATGCTGACTGATGCATGCTTGTATGTT";
-				
+
 				// overlap_a_back_dovetail_b_front:6
 				OD.detect(aerr,b,12,orientation,overhang,maxscore,verbose);
 
@@ -510,34 +510,34 @@ namespace libmaus2
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
 
-				// 
+				//
 				OD.detect(b,libmaus2::fastx::reverseComplementUnmapped(a),14,orientation,overhang,maxscore,verbose);
 
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
-					
+
 				std::string shortb = "ACGTGCTTGCATGCATGGTCAGTGCA";
 				std::string longa = "GTGATTGATTA" + shortb + "GTGATTGAGGTTATA";
 
-				// 
+				//
 				OD.detect(shortb,longa,14,orientation,overhang,maxscore,verbose);
 
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
 
-				// 
+				//
 				OD.detect(longa,shortb,14,orientation,overhang,maxscore,verbose);
 
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
 
-				// 
+				//
 				OD.detect(libmaus2::fastx::reverseComplementUnmapped(shortb),longa,14,orientation,overhang,maxscore,verbose);
 
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
 
-				// 
+				//
 				OD.detect(longa,libmaus2::fastx::reverseComplementUnmapped(shortb),14,orientation,overhang,maxscore,verbose);
 
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )

@@ -34,12 +34,12 @@ namespace libmaus2
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-				WritePendingObject obj;			
-	
+				WritePendingObject obj;
+
 				WriteBlockWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), obj()
 				{
 				}
-				
+
 				WriteBlockWorkPackage(
 					uint64_t const rpriority,
 					WritePendingObject const & robj,
@@ -47,7 +47,7 @@ namespace libmaus2
 				) : libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdecompressDispatcherId), obj(robj)
 				{
 				}
-			
+
 				char const * getPackageName() const
 				{
 					return "WriteBlockWorkPackage";

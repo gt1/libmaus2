@@ -48,29 +48,29 @@ namespace libmaus2
                         {
                         	int status;
                         	#if 0
-                        	pid_t pid = 
+                        	pid_t pid =
                         	#endif
                         		waitpid(-1,&status,WNOHANG);
                         }
-                        
+
                         SingleFileServer(
                                 std::string const & rfilename,
                                 std::string const & shostname,
                                 unsigned short rport = 4444,
                                 unsigned int const backlog = 128)
-                        : filename(rfilename), data(libmaus2::autoarray::AutoArray<char>::readFile(filename)), port(rport), 
+                        : filename(rfilename), data(libmaus2::autoarray::AutoArray<char>::readFile(filename)), port(rport),
                           seso((server_socket_type::allocateServerSocket(port,backlog,shostname.c_str(),8*1024)))
                         {
                         }
-                        
+
                         ~SingleFileServer()
                         {
                         }
-                        
+
                         void exec()
                         {
                                 pid = fork();
-                                
+
                                 if ( pid < 0 )
                                 {
                                         ::libmaus2::exception::LibMausException ex;
@@ -78,19 +78,19 @@ namespace libmaus2
                                         ex.finish();
                                         throw ex;
                                 }
-                                
+
                                 if ( ! pid )
                                 {
                                 	signal(SIGCHLD,sigchildhandler);
-                                
+
                                         while ( true )
-                                        {        
+                                        {
                                                 try
                                                 {
 	                                                ::libmaus2::network::SocketBase::unique_ptr_type recsock = seso->accept();
-	                                                
+
                                                         pid_t childpid = fork();
-                                                        
+
                                                         if ( childpid == 0 )
                                                         {
                                                         	try
@@ -98,11 +98,11 @@ namespace libmaus2
                                                         		char const * ptr = data.begin();
                                                         		char const * ptre = data.end();
                                                         		uint64_t const bs = 4096;
-                                                        		
+
                                                         		while ( ptr != ptre )
                                                         		{
                                                         			uint64_t const rest = ptre-ptr;
-                                                        			uint64_t const towrite = std::min(bs,rest); 
+                                                        			uint64_t const towrite = std::min(bs,rest);
                                                         			recsock->write(ptr,towrite);
                                                         			ptr += towrite;
                                                         		}
@@ -120,16 +120,16 @@ namespace libmaus2
                                                         std::cerr << "Error in SingleFileServer: " << ex.what() << std::endl;
                                                 }
                                         }
-                                
+
                                         _exit(0);
                                 }
                         }
-                        
+
                         void shutdown()
                         {
                                 kill(pid,SIGTERM);
                         }
-                        
+
                         pid_t getPid() const
                         {
                         	return pid;

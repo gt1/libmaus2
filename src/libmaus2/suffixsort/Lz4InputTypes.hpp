@@ -37,7 +37,7 @@ namespace libmaus2
 			typedef ::libmaus2::suffixsort::Lz4CircularSuffixComparator circular_suffix_comparator;
 			typedef ::libmaus2::util::OctetString string_type;
 			typedef ::libmaus2::aio::CircularWrapper octet_circular_wrapper;
-			
+
 			static bwt_merge_sort_input_type getType()
 			{
 				return bwt_merge_input_type_lz4;
@@ -73,7 +73,7 @@ namespace libmaus2
 				std::map<int64_t,uint64_t> const & /* freqs */)
 			{
 				return 0;
-			}	
+			}
 		};
 	}
 }

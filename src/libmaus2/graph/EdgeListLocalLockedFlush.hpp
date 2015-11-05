@@ -30,17 +30,17 @@ namespace libmaus2
 		{
 			typedef EdgeListLocalLockedFlush this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			typedef ::libmaus2::graph::TripleEdge edge_type;
-			
+
 			EdgeList & EL;
 			::libmaus2::parallel::OMPLock lock;
-			
+
 			EdgeListLocalLockedFlush(EdgeList & rEL)
 			: EL(rEL)
 			{
 			}
-			
+
 			void operator()(edge_type const * pa, uint64_t const n)
 			{
 				lock.lock();

@@ -43,25 +43,25 @@ namespace libmaus2
 			typedef IRodsFileBase this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			friend struct IRodsSystem;
 
 			bool fdvalid;
 			long fd; /* file descriptor returned by rcDataObjCreate() */
-			
+
 			#if defined(LIBMAUS2_HAVE_IRODS)
 			rcComm_t * comm;
 			#endif
-			
+
 			private:
 			IRodsFileBase();
-			
+
 			public:
 			~IRodsFileBase();
-			
+
 			// read block of data
 			uint64_t read(char * buffer, uint64_t len);
-			
+
 			// perform seek operation and return new position in stream
 			uint64_t seek(long offset, int whence);
 

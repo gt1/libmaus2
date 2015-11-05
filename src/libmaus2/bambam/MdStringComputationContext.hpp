@@ -39,13 +39,13 @@ namespace libmaus2
 			bool nmdiff;
 			bool diff;
 			bool eraseold;
-			
+
 			void checkSize(uint64_t const cigsum)
 			{
 				if ( 2*cigsum+1 > md.size() )
 					md = libmaus2::autoarray::AutoArray<char>(2*cigsum+1);
 			}
-			
+
 			MdStringComputationContext()
 			: T0(256,false), T1(256,false), nm(0)
 			{
@@ -75,7 +75,7 @@ namespace libmaus2
 					c[numlen-i-1] = (tn % 10)+'0';
 					i++;
 					tn /= 10;
-				} 
+				}
 				for ( i = 0; i < numlen; ++i )
 					*(p++) = c[i];
 

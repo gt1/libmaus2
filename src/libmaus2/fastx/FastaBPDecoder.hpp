@@ -27,7 +27,7 @@ namespace libmaus2
 	namespace fastx
 	{
 		struct FastaBPDecoder
-		{	
+		{
 			private:
 			// block size
 			uint64_t bs;
@@ -35,7 +35,7 @@ namespace libmaus2
 			uint64_t metapos;
 			// number of sequences
 			uint64_t numseq;
-			
+
 			//! read magic and block size
 			uint64_t readBlockSize(std::istream & in) const
 			{
@@ -46,19 +46,19 @@ namespace libmaus2
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "FastaBPDecoder::readBlockSize(): EOF/error while reading magic" << std::endl;
 					lme.finish();
-					throw lme;	
+					throw lme;
 				}
 				if ( std::string(&magic[0],&magic[8]) != std::string("FASTABP\0",8) )
 				{
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "FastaBPDecoder::readBlockSize(): magic is wrong, this is not a fab file" << std::endl;
 					lme.finish();
-					throw lme;		
+					throw lme;
 				}
-				
+
 				return libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 			}
-			
+
 			// read position of meta data
 			uint64_t readMetaPos(std::istream & in) const
 			{
@@ -85,14 +85,14 @@ namespace libmaus2
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "FastaBPDecoder::readSequencePointer: sequence id " << seq << " is out of range." << std::endl;
 					lme.finish();
-					throw lme;		
+					throw lme;
 				}
 
 				in.clear();
 				in.seekg(metapos + (1+seq)*sizeof(uint64_t),std::ios::beg);
 				return libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 			}
-			
+
 			libmaus2::fastx::FastAInfo readSequenceInfo(std::istream & in, uint64_t const seq) const
 			{
 				uint64_t const seqpos = readSequencePointer(in,seq);
@@ -101,13 +101,13 @@ namespace libmaus2
 				libmaus2::fastx::FastAInfo info(in);
 				return info;
 			}
-			
+
 			uint64_t getNumBlocks(std::istream & in, uint64_t const seq) const
 			{
 				libmaus2::fastx::FastAInfo info = readSequenceInfo(in,seq);
 				return (info.len+bs-1)/bs;
 			}
-			
+
 			std::string getSequenceName(std::istream & in, uint64_t const seq) const
 			{
 				return readSequenceInfo(in,seq).sid;
@@ -117,8 +117,8 @@ namespace libmaus2
 			{
 				return readSequenceInfo(in,seq).len;
 			}
-			
-			
+
+
 			uint64_t getBlockPointer(std::istream & in, uint64_t const seq, uint64_t const blockid) const
 			{
 				uint64_t const numblocks = getNumBlocks(in,seq);
@@ -128,26 +128,26 @@ namespace libmaus2
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "FastaBPDecoder::readSequencePointer: block id " << blockid << " is out of range for sequence " << seq << std::endl;
 					lme.finish();
-					throw lme;		
+					throw lme;
 				}
 
 				in.clear();
 				in.seekg(blockid * sizeof(uint64_t), std::ios::cur);
 				return libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 			}
-			
+
 			uint64_t getRestSymbols(std::istream & in, uint64_t const seq, uint64_t const blockid) const
 			{
 				uint64_t const numblocks = getNumBlocks(in,seq);
-				
+
 				if ( blockid >= numblocks )
 				{
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "FastaBPDecoder::readSequencePointer: block id " << blockid << " is out of range for sequence " << seq << std::endl;
 					lme.finish();
-					throw lme;		
+					throw lme;
 				}
-				
+
 				return getSequenceLength(in,seq) - blockid * bs;
 			}
 
@@ -163,7 +163,7 @@ namespace libmaus2
 				assert ( bp == p );
 				in.clear();
 				in.seekg(p,std::ios::beg);
-					
+
 				uint64_t n = 0;
 				while ( (n = ptr->read(Bout.begin(),Bout.size())) )
 				{
@@ -173,18 +173,18 @@ namespace libmaus2
 						uint64_t const bp = getBlockPointer(in,seq,i++);
 						assert ( bp == p );
 						in.clear();
-						in.seekg(p,std::ios::beg);	
+						in.seekg(p,std::ios::beg);
 					}
 				}
 			}
-				
+
 			public:
 			FastaBPDecoder(std::istream & in)
 			{
 				bs = readBlockSize(in);
 				metapos = readMetaPos(in);
 				numseq = readNumSeq(in);
-			}	
+			}
 
 			uint64_t getTotalSequenceLength(std::istream & in) const
 			{
@@ -202,12 +202,12 @@ namespace libmaus2
 				libmaus2::fastx::FastaBPSequenceDecoder::unique_ptr_type tptr(new libmaus2::fastx::FastaBPSequenceDecoder(in,bs));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
-			
+
 
 			void checkBlockPointers(std::istream & in) const
 			{
 				for ( uint64_t i = 0; i < numseq; ++i )
-					checkBlockPointers(in,i);	
+					checkBlockPointers(in,i);
 			}
 
 			void decodeSequenceNull(std::istream & in, uint64_t const seq) const
@@ -216,7 +216,7 @@ namespace libmaus2
 
 				libmaus2::autoarray::AutoArray<char> Bout(bs,false);
 				libmaus2::fastx::FastaBPSequenceDecoder::unique_ptr_type ptr(getSequenceDecoder(in,seq,0));
-					
+
 				uint64_t n = 0;
 				while ( (n = ptr->read(Bout.begin(),Bout.size())) )
 				{
@@ -235,19 +235,19 @@ namespace libmaus2
 
 				libmaus2::autoarray::AutoArray<char> Bout(bs,false);
 				libmaus2::fastx::FastaBPSequenceDecoder::unique_ptr_type ptr(getSequenceDecoder(in,seq,0));
-					
+
 				uint64_t n = 0;
 				while ( (n = ptr->read(Bout.begin(),Bout.size())) )
 					std::cout.write(Bout.begin(),n);
-				out.put('\n');	
+				out.put('\n');
 			}
-			
+
 			void printSequences(std::istream & in, std::ostream & out) const
 			{
 				for ( uint64_t i = 0; i < numseq; ++i )
-					printSequence(in,out,i);	
+					printSequence(in,out,i);
 			}
-			
+
 			libmaus2::autoarray::AutoArray<char> decodeSequence(std::istream & in, uint64_t const seq) const
 			{
 				uint64_t const seqlen = getSequenceLength(in,seq);
@@ -263,10 +263,10 @@ namespace libmaus2
 					n -= r;
 					p += r;
 				}
-				
+
 				return A;
 			}
-			
+
 			uint64_t getNumSeq() const
 			{
 				return numseq;

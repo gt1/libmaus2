@@ -41,7 +41,7 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			/**
 			 * constructor from filename
 			 * @param filename name of file
@@ -50,14 +50,14 @@ namespace libmaus2
 			 * @param pushbackspace size of push back buffer
 			 **/
 			CircularWrapper(
-				std::string const & filename, 
+				std::string const & filename,
 				uint64_t const offset = 0,
-				uint64_t const buffersize = 64*1024, 
+				uint64_t const buffersize = 64*1024,
 				uint64_t const pushbackspace = 64
 			)
 			: CircularBuffer(filename,offset,buffersize,pushbackspace), ::std::istream(this)
 			{
-				
+
 			}
 			/**
 			 * constructor istream object
@@ -67,16 +67,16 @@ namespace libmaus2
 			 * @param pushbackspace size of push back buffer
 			 **/
 			CircularWrapper(
-				std::istream & rin, 
+				std::istream & rin,
 				uint64_t const offset = 0,
-				uint64_t const buffersize = 64*1024, 
+				uint64_t const buffersize = 64*1024,
 				uint64_t const pushbackspace = 64
 			)
 			: CircularBuffer(rin,offset,buffersize,pushbackspace), ::std::istream(this)
 			{
-				
+
 			}
-			
+
 			/**
 			 * return read position in absolute stream
 			 **/
@@ -97,7 +97,7 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			/**
 			 * constructor from filename
 			 * @param filename name of file
@@ -106,14 +106,14 @@ namespace libmaus2
 			 * @param pushbackspace size of push back buffer
 			 **/
 			Utf8CircularWrapper(
-				std::string const & filename, 
+				std::string const & filename,
 				uint64_t const offset = 0,
-				uint64_t const buffersize = 64*1024, 
+				uint64_t const buffersize = 64*1024,
 				uint64_t const pushbackspace = 64
 			)
 			: Utf8CircularBuffer(filename,offset,buffersize,pushbackspace), ::std::wistream(this)
 			{
-				
+
 			}
 			/**
 			 * constructor istream object
@@ -123,14 +123,14 @@ namespace libmaus2
 			 * @param pushbackspace size of push back buffer
 			 **/
 			Utf8CircularWrapper(
-				std::wistream & rin, 
+				std::wistream & rin,
 				uint64_t const offset = 0,
-				uint64_t const buffersize = 64*1024, 
+				uint64_t const buffersize = 64*1024,
 				uint64_t const pushbackspace = 64
 			)
 			: Utf8CircularBuffer(rin,offset,buffersize,pushbackspace), ::std::wistream(this)
 			{
-				
+
 			}
 			/**
 			 * return symbol read position in absolute stream
@@ -161,14 +161,14 @@ namespace libmaus2
 			 * @param pushbackspace size of push back buffer
 			 **/
 			CircularReverseWrapper(
-				std::string const & filename, 
+				std::string const & filename,
 				uint64_t const offset = 0,
-				uint64_t const buffersize = 64*1024, 
+				uint64_t const buffersize = 64*1024,
 				uint64_t const pushbackspace = 64
 			)
 			: CircularReverseBuffer(filename,offset,buffersize,pushbackspace), ::std::istream(this)
 			{
-				
+
 			}
 			/**
 			 * constructor istream object
@@ -178,14 +178,14 @@ namespace libmaus2
 			 * @param pushbackspace size of push back buffer
 			 **/
 			CircularReverseWrapper(
-				std::istream & rin, 
+				std::istream & rin,
 				uint64_t const offset = 0,
-				uint64_t const buffersize = 64*1024, 
+				uint64_t const buffersize = 64*1024,
 				uint64_t const pushbackspace = 64
 			)
 			: CircularReverseBuffer(rin,offset,buffersize,pushbackspace), ::std::istream(this)
 			{
-				
+
 			}
 			/**
 			 * return symbol read position in absolute stream
@@ -216,14 +216,14 @@ namespace libmaus2
 			 * @param pushbackspace size of push back buffer
 			 **/
 			Utf8CircularReverseWrapper(
-				std::string const & filename, 
+				std::string const & filename,
 				uint64_t const offset = 0,
-				uint64_t const buffersize = 64*1024, 
+				uint64_t const buffersize = 64*1024,
 				uint64_t const pushbackspace = 64
 			)
 			: Utf8CircularReverseBuffer(filename,offset,buffersize,pushbackspace), ::std::wistream(this)
 			{
-				
+
 			}
 			/**
 			 * constructor istream object
@@ -233,14 +233,14 @@ namespace libmaus2
 			 * @param pushbackspace size of push back buffer
 			 **/
 			Utf8CircularReverseWrapper(
-				std::wistream & rin, 
+				std::wistream & rin,
 				uint64_t const offset = 0,
-				uint64_t const buffersize = 64*1024, 
+				uint64_t const buffersize = 64*1024,
 				uint64_t const pushbackspace = 64
 			)
 			: Utf8CircularReverseBuffer(rin,offset,buffersize,pushbackspace), ::std::wistream(this)
 			{
-				
+
 			}
 			/**
 			 * return symbol read position in absolute stream
@@ -250,7 +250,7 @@ namespace libmaus2
 				return Utf8CircularReverseBuffer::tellg();
 			}
 		};
-		
+
 
 		/**
 		 * class wrapping an object of type Utf8DecoderWrapper
@@ -259,7 +259,7 @@ namespace libmaus2
 		{
 			//! wrapped object
 			::libmaus2::util::Utf8DecoderWrapper stream;
-			
+
 			/**
 			 * constructor from file name
 			 *
@@ -267,10 +267,10 @@ namespace libmaus2
 			 **/
 			Utf8DecoderWrapperWrapper(std::string const & filename) : stream(filename)
 			{
-			
+
 			}
 		};
-		
+
 		/**
 		 * class wrapping an object of type libmaus2::bitio::CompactDecoderWrapper
 		 **/
@@ -278,7 +278,7 @@ namespace libmaus2
 		{
 			//! wrapped object
 			::libmaus2::bitio::CompactDecoderWrapper stream;
-			
+
 			/**
 			 * constructor from file name
 			 *
@@ -287,7 +287,7 @@ namespace libmaus2
 			CompactDecoderWrapperWrapper(std::string const & filename)
 			: stream(filename)
 			{
-			
+
 			}
 		};
 
@@ -298,7 +298,7 @@ namespace libmaus2
 		{
 			//! wrapped object
 			::libmaus2::bitio::PacDecoderWrapper stream;
-			
+
 			/**
 			 * constructor from file name
 			 *
@@ -307,7 +307,7 @@ namespace libmaus2
 			PacDecoderWrapperWrapper(std::string const & filename)
 			: stream(filename)
 			{
-			
+
 			}
 		};
 
@@ -318,7 +318,7 @@ namespace libmaus2
 		{
 			//! wrapped object
 			::libmaus2::bitio::PacDecoderTermWrapper stream;
-			
+
 			/**
 			 * constructor from file name
 			 *
@@ -327,10 +327,10 @@ namespace libmaus2
 			PacDecoderTermWrapperWrapper(std::string const & filename)
 			: stream(filename)
 			{
-			
+
 			}
 		};
-		
+
 		/**
 		 * class wrapping an object of type libmaus2::lz::Lz4Decoder
 		 **/
@@ -338,7 +338,7 @@ namespace libmaus2
 		{
 			//! wrapped object
 			::libmaus2::lz::Lz4Decoder stream;
-			
+
 			/**
 			 * constructor from file name
 			 *
@@ -347,7 +347,7 @@ namespace libmaus2
 			Lz4DecoderWrapper(std::string const & filename)
 			: stream(filename)
 			{
-			
+
 			}
 		};
 
@@ -366,14 +366,14 @@ namespace libmaus2
 			 * @param pushbackspace size of push back buffer
 			 **/
 			CompactCircularWrapper(
-				std::string const & filename, 
-				uint64_t const offset, 
-				uint64_t const buffersize = 64*1024, 
+				std::string const & filename,
+				uint64_t const offset,
+				uint64_t const buffersize = 64*1024,
 				uint64_t const pushbackspace = 64
 			)
 			: CompactDecoderWrapperWrapper(filename), CircularWrapper(CompactDecoderWrapperWrapper::stream,offset,buffersize,pushbackspace)
 			{
-			
+
 			}
 		};
 
@@ -391,14 +391,14 @@ namespace libmaus2
 			 * @param pushbackspace size of push back buffer
 			 **/
 			PacCircularWrapper(
-				std::string const & filename, 
-				uint64_t const offset, 
-				uint64_t const buffersize = 64*1024, 
+				std::string const & filename,
+				uint64_t const offset,
+				uint64_t const buffersize = 64*1024,
 				uint64_t const pushbackspace = 64
 			)
 			: PacDecoderWrapperWrapper(filename), CircularWrapper(PacDecoderWrapperWrapper::stream,offset,buffersize,pushbackspace)
 			{
-			
+
 			}
 		};
 
@@ -418,7 +418,7 @@ namespace libmaus2
 			PacTermCircularWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
 			: PacDecoderTermWrapperWrapper(filename), CircularWrapper(PacDecoderTermWrapperWrapper::stream,offset,buffersize,pushbackspace)
 			{
-			
+
 			}
 		};
 
@@ -438,7 +438,7 @@ namespace libmaus2
 			Lz4CircularWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
 			: Lz4DecoderWrapper(filename), CircularWrapper(Lz4DecoderWrapper::stream,offset,buffersize,pushbackspace)
 			{
-			
+
 			}
 		};
 
@@ -458,7 +458,7 @@ namespace libmaus2
 			Utf8CircularWrapperWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
 			: Utf8DecoderWrapperWrapper(filename), Utf8CircularWrapper(Utf8DecoderWrapperWrapper::stream,offset,buffersize,pushbackspace)
 			{
-			
+
 			}
 		};
 
@@ -479,7 +479,7 @@ namespace libmaus2
 			CompactCircularReverseWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
 			: CompactDecoderWrapperWrapper(filename), CircularReverseWrapper(CompactDecoderWrapperWrapper::stream,offset,buffersize,pushbackspace)
 			{
-			
+
 			}
 		};
 
@@ -499,7 +499,7 @@ namespace libmaus2
 			PacCircularReverseWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
 			: PacDecoderWrapperWrapper(filename), CircularReverseWrapper(PacDecoderWrapperWrapper::stream,offset,buffersize,pushbackspace)
 			{
-			
+
 			}
 		};
 
@@ -519,7 +519,7 @@ namespace libmaus2
 			PacTermCircularReverseWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
 			: PacDecoderTermWrapperWrapper(filename), CircularReverseWrapper(PacDecoderTermWrapperWrapper::stream,offset,buffersize,pushbackspace)
 			{
-			
+
 			}
 		};
 
@@ -539,7 +539,7 @@ namespace libmaus2
 			Lz4CircularReverseWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
 			: Lz4DecoderWrapper(filename), CircularReverseWrapper(Lz4DecoderWrapper::stream,offset,buffersize,pushbackspace)
 			{
-			
+
 			}
 		};
 
@@ -559,7 +559,7 @@ namespace libmaus2
 			Utf8CircularReverseWrapperWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
 			: Utf8DecoderWrapperWrapper(filename), Utf8CircularReverseWrapper(Utf8DecoderWrapperWrapper::stream,offset,buffersize,pushbackspace)
 			{
-			
+
 			}
 		};
 	}

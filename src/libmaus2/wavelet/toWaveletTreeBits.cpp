@@ -37,7 +37,7 @@ namespace libmaus2
 		struct BitLevelComparator
 		{
 			uint64_t const mask;
-			
+
 			BitLevelComparator(unsigned int rb)
 			: mask ( 1ull << rb ) {}
 
@@ -51,19 +51,19 @@ namespace libmaus2
 		{
 			uint64_t const pn = ((C->n + 63) / 64)*64;
 			::libmaus2::autoarray::AutoArray<uint64_t> B( pn/64 , false );
-			
+
 			typedef std::pair<uint64_t, uint64_t> qtype;
 			std::deque < qtype > Q;
 			Q.push_back( qtype(0,C->n) );
 
 			if ( verbose )
 				std::cerr << "(Sorting bits...";
-				
+
 			for ( int ib = (C->getB())-1; ib>=0; --ib )
 			{
 				std::deque < qtype > Q2;
 				uint64_t const sb = (C->getB()-ib-1);
-			
+
 				uint64_t const mask = (1ull << ib);
 				if ( verbose )
 					std::cerr << "(l=" << ib << ")";
@@ -74,9 +74,9 @@ namespace libmaus2
 				{
 					uint64_t l = Q.front().first, r = Q.front().second;
 					Q.pop_front();
-					
+
 					// std::cerr << "[" << l << "," << r << "]" << std::endl;
-					
+
 					uint64_t ones = 0;
 					for ( uint64_t i = l; i < r; ++i )
 					{
@@ -87,7 +87,7 @@ namespace libmaus2
 					}
 
 					uint64_t zeros = (r-l)-ones;
-					
+
 					#if 1
 					::libmaus2::bitio::CompactArray CZ(zeros, C->getB() - sb);
 					::libmaus2::bitio::CompactArray CO(ones, C->getB() - sb);
@@ -96,16 +96,16 @@ namespace libmaus2
 					for ( uint64_t i = l; i < r; ++i )
 					{
 						uint64_t const v = S.get(i);
-						
+
 						if ( v & mask )
 							CO.set ( oc++, v);
 						else
 							CZ.set ( zc++, v);
 					}
-					
+
 					assert ( zc == zeros );
 					assert ( oc == ones );
-					
+
 					uint64_t ac = l;
 					for ( zc = 0; zc < zeros; ++zc )
 						S.set(ac++, CZ.get(zc) );
@@ -138,22 +138,22 @@ namespace libmaus2
 			}
 			if ( verbose )
 				std::cerr << "done)";
-			
+
 			B.release();
-			
+
 			#if 0
 			for ( unsigned int i = 1; i < C->n; ++i )
 				assert ( C->get(i-1) <= C->get(i) );
 			#endif
-			
+
 			uint64_t const bb = (C->n * C->getB());
 			uint64_t const bb64 = ((bb+63)/64)*64;
-			
+
 			typedef ::libmaus2::rank::ERank222B::writer_type writer_type;
 			::libmaus2::autoarray::AutoArray< uint64_t > A(bb64/64,false);
 			std::fill(A.get(), A.get()+(bb64/64), 0);
 			writer_type AW(A.get());
-			
+
 			if ( verbose )
 				std::cerr << "(resorting...";
 			for ( int ib = (C->getB())-1; ib>=0; --ib )
@@ -170,7 +170,7 @@ namespace libmaus2
 			AW.flush();
 			if ( verbose )
 				std::cerr << "done)";
-			
+
 			return A;
 		}
 
@@ -190,11 +190,11 @@ namespace libmaus2
 			uint64_t h;
 			uint64_t low;
 			uint64_t high;
-			
+
 			CopyBackPacket() {}
-			CopyBackPacket(uint64_t const rh, uint64_t const rlow, uint64_t const rhigh) 
+			CopyBackPacket(uint64_t const rh, uint64_t const rlow, uint64_t const rhigh)
 			: h(rh), low(rlow), high(rhigh) {}
-			
+
 			uint64_t getHighBitIndex(uint64_t const b) const
 			{
 				return high * b - 1;
@@ -216,7 +216,7 @@ namespace libmaus2
 			uint64_t const pn = ((C->n + 63) / 64)*64;
 			::libmaus2::autoarray::AutoArray<uint64_t> B( pn/64 , false );
 			::libmaus2::parallel::OMPLock block;
-			
+
 			typedef std::pair<uint64_t, uint64_t> qtype;
 			std::deque < qtype > Q;
 			Q.push_back( qtype(0,C->n) );
@@ -226,7 +226,7 @@ namespace libmaus2
 			{
 				std::deque < qtype > Q2;
 				uint64_t const sb = (C->getB()-ib-1);
-			
+
 				uint64_t const mask = (1ull << ib);
 				std::cerr << "(l=" << ib << ")";
 
@@ -236,9 +236,9 @@ namespace libmaus2
 				{
 					uint64_t l = Q.front().first, r = Q.front().second;
 					Q.pop_front();
-					
+
 					// std::cerr << "[" << l << "," << r << "]" << std::endl;
-					
+
 					uint64_t const numpackets = getMaxThreads() * 2;
 					::libmaus2::autoarray::AutoArray < uint64_t > aones(numpackets+1);
 					::libmaus2::autoarray::AutoArray < uint64_t > azeroes(numpackets+1);
@@ -271,7 +271,7 @@ namespace libmaus2
 							::libmaus2::bitio::putBit(B.get(), low, v);
 						}
 						block.unlock();
-							
+
 						/**
 						 * handle full blocks of 64 values
 						 **/
@@ -279,14 +279,14 @@ namespace libmaus2
 						{
 							assert ( low % 64 == 0 );
 							assert ( high64 >= low );
-								
+
 							uint64_t * Bptr = B.get() + (low/64);
-								
+
 							while ( low != high64 )
 							{
 								uint64_t vb = 0;
 								uint64_t const lh = low+64;
-								
+
 								for ( ; low != lh ; ++low )
 								{
 									uint64_t const v = (C->get(low)&mask)>>ib;
@@ -294,10 +294,10 @@ namespace libmaus2
 									vb <<= 1;
 									vb |= v;
 								}
-									
+
 								(*Bptr++) = vb;
 							}
-						}				
+						}
 
 						/**
 						 * handle rest
@@ -310,21 +310,21 @@ namespace libmaus2
 							::libmaus2::bitio::putBit(B.get(), low, v);
 						}
 						block.unlock();
-						
+
 						uint64_t const zeroes = (high-rlow)-ones;
 
 						aones [ h ] = ones;
 						azeroes [ h ] = zeroes;
 					}
-					
+
 					std::cerr << ")";
-					
+
 					/**
 					 * compute prefix sums for zeroes and ones
 					 **/
 					{
 						uint64_t c = 0;
-						
+
 						for ( uint64_t i = 0; i < numpackets + 1; ++i )
 						{
 							uint64_t const t = aones[i];
@@ -334,7 +334,7 @@ namespace libmaus2
 					}
 					{
 						uint64_t c = 0;
-						
+
 						for ( uint64_t i = 0; i < numpackets + 1; ++i )
 						{
 							uint64_t const t = azeroes[i];
@@ -345,11 +345,11 @@ namespace libmaus2
 
 					uint64_t const ones = aones[numpackets];
 					uint64_t const zeros = (r-l)-ones;
-					
+
 					::libmaus2::autoarray::AutoArray < ::libmaus2::bitio::CompactArray::unique_ptr_type > ACZ(numpackets);
 					::libmaus2::autoarray::AutoArray < ::libmaus2::bitio::CompactArray::unique_ptr_type > ACO(numpackets);
 
-					std::cerr << "(a";					
+					std::cerr << "(a";
 					for ( uint64_t h = 0; h < numpackets; ++h )
 					{
 						::libmaus2::bitio::CompactArray::unique_ptr_type tACZ(
@@ -380,24 +380,24 @@ namespace libmaus2
 						for ( uint64_t i = low; i != high; ++i )
 						{
 							uint64_t const v = S.get(i);
-						
+
 							if ( v & mask )
 								CO.set ( op++, v);
 							else
 								CZ.set ( zp++, v);
 						}
-						
+
 						assert ( zp == azeroes[h+1]-azeroes[h] );
 						assert ( op == aones[h+1]-aones[h] );
 					}
 					std::cerr << ")";
-					
+
 					std::vector < CopyBackPacket > zpacketstodo;
 					for ( int64_t h = 0; h < static_cast<int64_t>(numpackets); ++h )
 					{
 						uint64_t const low = l + azeroes[h];
 						uint64_t const high = low + (azeroes[h+1]-azeroes[h]);
-						
+
 						if ( high-low )
 							zpacketstodo.push_back ( CopyBackPacket(h,low,high) );
 					}
@@ -406,7 +406,7 @@ namespace libmaus2
 					{
 						uint64_t const low = l + azeroes[numpackets ] + aones[h];
 						uint64_t const high = low + (aones[h+1]-aones[h]);
-						
+
 						if ( high-low )
 							opacketstodo.push_back ( CopyBackPacket(h,low,high) );
 					}
@@ -415,10 +415,10 @@ namespace libmaus2
 					while ( zpacketstodo.size() )
 					{
 						std::vector < CopyBackPacket > zpacketsnewtodo;
-						
+
 						std::vector < CopyBackPacket > nlist;
 						nlist.push_back(zpacketstodo.front());
-						
+
 						for ( uint64_t i = 1; i < zpacketstodo.size(); ++i )
 							if ( CopyBackPacket::overlap(nlist.back(), zpacketstodo[i], C->getB()) )
 								zpacketsnewtodo.push_back(zpacketstodo[i]);
@@ -434,10 +434,10 @@ namespace libmaus2
 					while ( opacketstodo.size() )
 					{
 						std::vector < CopyBackPacket > opacketsnewtodo;
-						
+
 						std::vector < CopyBackPacket > nlist;
 						nlist.push_back(opacketstodo.front());
-						
+
 						for ( uint64_t i = 1; i < opacketstodo.size(); ++i )
 							if ( CopyBackPacket::overlap(nlist.back(), opacketstodo[i], C->getB()) )
 								opacketsnewtodo.push_back(opacketstodo[i]);
@@ -480,7 +480,7 @@ namespace libmaus2
 								S.set ( ac++ , CO.get(oc) );
 						}
 					std::cerr << ")";
-					
+
 					if ( zeros )
 						Q2.push_back ( qtype(l,l+zeros) );
 					if ( ones )
@@ -497,7 +497,7 @@ namespace libmaus2
 				{
 					uint64_t const low = std::min(h*packetsize,C->n);
 					uint64_t const high = std::min(low+packetsize,C->n);
-						
+
 					if ( high-low )
 						packetstodo.push_back ( CopyBackPacket(h,low,high) );
 				}
@@ -505,10 +505,10 @@ namespace libmaus2
 				while ( packetstodo.size() )
 				{
 					std::vector < CopyBackPacket > packetsnewtodo;
-					
+
 					std::vector < CopyBackPacket > nlist;
 					nlist.push_back(packetstodo.front());
-					
+
 					for ( uint64_t i = 1; i < packetstodo.size(); ++i )
 						if ( CopyBackPacket::overlap(nlist.back(), packetstodo[i], C->getB()) )
 							packetsnewtodo.push_back(packetstodo[i]);
@@ -527,7 +527,7 @@ namespace libmaus2
 					for ( int64_t h = 0; h < static_cast<int64_t>(packets[q].size()); ++h )
 					{
 						CopyBackPacket const CBP = packets[q][h];
-					
+
 						for ( uint64_t i = CBP.low; i < CBP.high; ++i )
 							::libmaus2::bitio::putBit ( C->D , i*C->getB() + sb , ::libmaus2::bitio::getBit(B.get(), i) );
 					}
@@ -535,17 +535,17 @@ namespace libmaus2
 				Q = Q2;
 			}
 			std::cerr << "done)";
-			
+
 			B.release();
-			
+
 			uint64_t const bb = (C->n * C->getB());
 			uint64_t const bb64 = ((bb+63)/64)*64;
-			
+
 			typedef ::libmaus2::rank::ERank222B::writer_type writer_type;
 			::libmaus2::autoarray::AutoArray< uint64_t > A(bb64/64,false);
 			std::fill(A.get(), A.get()+(bb64/64), 0);
 			writer_type AW(A.get());
-			
+
 			std::cerr << "(resorting...";
 			for ( int ib = (C->getB())-1; ib>=0; --ib )
 			{
@@ -560,7 +560,7 @@ namespace libmaus2
 			}
 			AW.flush();
 			std::cerr << "done)";
-			
+
 			return A;
 		}
 	}

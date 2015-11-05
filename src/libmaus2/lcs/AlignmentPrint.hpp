@@ -31,7 +31,7 @@ namespace libmaus2
 		struct AlignmentPrint : public BaseConstants
 		{
 			virtual ~AlignmentPrint() {}
-		
+
 			static std::string stepToString(step_type const s)
 			{
 				switch ( s )
@@ -43,10 +43,10 @@ namespace libmaus2
 					default: return "?";
 				}
 			}
-			
+
 			template<typename alignment_iterator>
 			static std::ostream & printTrace(
-				std::ostream & out, 
+				std::ostream & out,
 				alignment_iterator const rta,
 				alignment_iterator const rte,
 				uint64_t const offset = 0
@@ -60,7 +60,7 @@ namespace libmaus2
 
 			template<typename string_iterator, typename alignment_iterator>
 			static std::ostream & printAlignment(
-				std::ostream & out, 
+				std::ostream & out,
 				string_iterator ita,
 				string_iterator itb,
 				alignment_iterator const rta,
@@ -69,7 +69,7 @@ namespace libmaus2
 			{
 				printTrace(out,rta,rte);
 				out << std::endl;
-			
+
 				for ( alignment_iterator ta = rta; ta != rte; ++ta )
 				{
 					switch ( *ta )
@@ -88,7 +88,7 @@ namespace libmaus2
 					}
 				}
 				out << std::endl;
-				
+
 				for ( alignment_iterator ta = rta; ta != rte; ++ta )
 				{
 					switch ( *ta )
@@ -107,10 +107,10 @@ namespace libmaus2
 					}
 				}
 				out << std::endl;
-				
+
 				return out;
 			}
-		
+
 			template<typename alignment_iterator>
 			static std::ostream & printAlignmentLines(
 				std::ostream & out, std::string const & a, std::string const & b,
@@ -120,9 +120,9 @@ namespace libmaus2
 			)
 			{
 				std::ostringstream astr;
-				
+
 				std::string::const_iterator ita = a.begin();
-				
+
 				for ( alignment_iterator ta = rta; ta != rte; ++ta )
 				{
 					switch ( *ta )
@@ -143,7 +143,7 @@ namespace libmaus2
 					}
 				}
 				astr << std::string(ita,a.end());
-				
+
 				std::ostringstream bstr;
 				// out << std::string(SPR.aclip,' ') << std::endl;
 
@@ -169,7 +169,7 @@ namespace libmaus2
 					}
 				}
 				bstr << std::string(itb,b.end());
-				
+
 				std::ostringstream cstr;
 				printTrace(cstr,rta,rte);
 
@@ -178,11 +178,11 @@ namespace libmaus2
 				std::string const ca = cstr.str();
 				uint64_t const linewidth = rlinewidth-2;
 				uint64_t const numlines = (std::max(aa.size(),ba.size()) + linewidth-1) / linewidth;
-				
+
 				for ( uint64_t i = 0; i < numlines; ++i )
 				{
 					uint64_t pl = i*linewidth;
-					
+
 					out << "A ";
 					if ( pl < aa.size() )
 					{
@@ -190,7 +190,7 @@ namespace libmaus2
 						out << aa.substr(pl,alen);
 					}
 					out << std::endl;
-					
+
 					out << "B ";
 					if ( pl < ba.size() )
 					{
@@ -207,13 +207,13 @@ namespace libmaus2
 					}
 					out << std::endl;
 				}
-				
+
 				return out;
 			}
 
 			template<typename alignment_iterator, typename iterator_a, typename iterator_b>
 			static std::ostream & printAlignmentLines(
-				std::ostream & out, 
+				std::ostream & out,
 				iterator_a a,
 				size_t const an,
 				iterator_b b,
@@ -224,10 +224,10 @@ namespace libmaus2
 			)
 			{
 				std::ostringstream astr;
-				
+
 				iterator_a ita = a;
 				iterator_a itae = a + an;
-				
+
 				for ( alignment_iterator ta = rta; ta != rte; ++ta )
 				{
 					switch ( *ta )
@@ -248,7 +248,7 @@ namespace libmaus2
 					}
 				}
 				astr << std::string(ita,itae);
-				
+
 				std::ostringstream bstr;
 				// out << std::string(SPR.aclip,' ') << std::endl;
 
@@ -275,7 +275,7 @@ namespace libmaus2
 					}
 				}
 				bstr << std::string(itb,itbe);
-				
+
 				std::ostringstream cstr;
 				printTrace(cstr,rta,rte);
 
@@ -284,11 +284,11 @@ namespace libmaus2
 				std::string const ca = cstr.str();
 				uint64_t const linewidth = rlinewidth-2;
 				uint64_t const numlines = (std::max(aa.size(),ba.size()) + linewidth-1) / linewidth;
-				
+
 				for ( uint64_t i = 0; i < numlines; ++i )
 				{
 					uint64_t pl = i*linewidth;
-					
+
 					out << "A ";
 					if ( pl < aa.size() )
 					{
@@ -296,7 +296,7 @@ namespace libmaus2
 						out << aa.substr(pl,alen);
 					}
 					out << std::endl;
-					
+
 					out << "B ";
 					if ( pl < ba.size() )
 					{
@@ -313,10 +313,10 @@ namespace libmaus2
 					}
 					out << std::endl;
 				}
-				
+
 				return out;
 			}
-			
+
 			template<typename map_function_t>
 			static std::string mapString(std::string s, map_function_t map_function)
 			{
@@ -327,7 +327,7 @@ namespace libmaus2
 
 			template<typename alignment_iterator, typename iterator_a, typename iterator_b, typename map_function_t>
 			static std::ostream & printAlignmentLines(
-				std::ostream & out, 
+				std::ostream & out,
 				iterator_a a,
 				size_t const an,
 				iterator_b b,
@@ -339,10 +339,10 @@ namespace libmaus2
 			)
 			{
 				std::ostringstream astr;
-				
+
 				iterator_a ita = a;
 				iterator_a itae = a + an;
-				
+
 				for ( alignment_iterator ta = rta; ta != rte; ++ta )
 				{
 					switch ( *ta )
@@ -363,7 +363,7 @@ namespace libmaus2
 					}
 				}
 				astr << mapString(std::string(ita,itae),map_function);
-				
+
 				std::ostringstream bstr;
 				// out << std::string(SPR.aclip,' ') << std::endl;
 
@@ -390,7 +390,7 @@ namespace libmaus2
 					}
 				}
 				bstr << mapString(std::string(itb,itbe),map_function);
-				
+
 				std::ostringstream cstr;
 				printTrace(cstr,rta,rte);
 
@@ -399,11 +399,11 @@ namespace libmaus2
 				std::string const ca = cstr.str();
 				uint64_t const linewidth = rlinewidth-2;
 				uint64_t const numlines = (std::max(aa.size(),ba.size()) + linewidth-1) / linewidth;
-				
+
 				for ( uint64_t i = 0; i < numlines; ++i )
 				{
 					uint64_t pl = i*linewidth;
-					
+
 					out << "A ";
 					if ( pl < aa.size() )
 					{
@@ -411,7 +411,7 @@ namespace libmaus2
 						out << aa.substr(pl,alen);
 					}
 					out << std::endl;
-					
+
 					out << "B ";
 					if ( pl < ba.size() )
 					{
@@ -428,7 +428,7 @@ namespace libmaus2
 					}
 					out << std::endl;
 				}
-				
+
 				return out;
 			}
 		};

@@ -25,12 +25,12 @@
 namespace libmaus2
 {
 	namespace util
-	{	
+	{
 		template<typename _key_type>
 		struct SimpleHashMapHashCompute
 		{
 			typedef _key_type key_type;
-			
+
 			inline static uint64_t hash(uint64_t const v)
 			{
 				return libmaus2::hashing::EvaHash::hash642(&v,1);
@@ -42,7 +42,7 @@ namespace libmaus2
 		struct SimpleHashMapHashCompute<libmaus2::uint128_t>
 		{
 			typedef libmaus2::uint128_t key_type;
-			
+
 			inline static uint64_t hash(libmaus2::uint128_t const v)
 			{
 				return libmaus2::hashing::EvaHash::hash642(reinterpret_cast<uint64_t const *>(&v),2);

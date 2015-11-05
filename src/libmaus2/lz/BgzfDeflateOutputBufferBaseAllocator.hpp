@@ -28,9 +28,9 @@ namespace libmaus2
 		struct BgzfDeflateOutputBufferBaseAllocator
 		{
 			int level;
-			
+
 			BgzfDeflateOutputBufferBaseAllocator(int const rlevel) : level(rlevel) {}
-			
+
 			libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type operator()()
 			{
 				libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type tptr(

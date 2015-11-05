@@ -38,12 +38,12 @@ namespace libmaus2
 		{
 			virtual ~SignalHandler()
 			{
-			
+
 			}
-			
+
 			virtual void operator()(int const sig) = 0;
 		};
-	
+
 		struct SignalHandlerContainer
 		{
 			#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__)
@@ -51,21 +51,21 @@ namespace libmaus2
 			#else
 			typedef ::sighandler_t sighandler_t;
 			#endif
-			
+
 			static ::libmaus2::parallel::OMPLock lock;
-			
+
 			static sighandler_t siginthandler;
 			static sighandler_t sigtermhandler;
 			static sighandler_t sighuphandler;
 			static sighandler_t sigpipehandler;
-			
+
 			static bool setupComplete;
-			
+
 			static std::map < uint64_t, SignalHandler * > siginthandlers;
 			static std::map < uint64_t, SignalHandler * > sigtermhandlers;
 			static std::map < uint64_t, SignalHandler * > sighuphandlers;
 			static std::map < uint64_t, SignalHandler * > sigpipehandlers;
-			
+
 			static uint64_t addIntHandler(SignalHandler * handler)
 			{
 				lock.lock();
@@ -101,7 +101,7 @@ namespace libmaus2
 				lock.unlock();
 				return id;
 			}
-			
+
 			static uint64_t addAllHandler(SignalHandler * handler)
 			{
 				lock.lock();
@@ -115,12 +115,12 @@ namespace libmaus2
 				sigtermhandlers[allid] = handler;
 				sighuphandlers[allid] = handler;
 				sigpipehandlers[allid] = handler;
-				
+
 				lock.unlock();
-				
+
 				return allid;
 			}
-			
+
 			static void removeIntHandler(uint64_t const id)
 			{
 				lock.lock();
@@ -158,7 +158,7 @@ namespace libmaus2
 				sigpipehandlers.erase(sigpipehandlers.find(id));
 				lock.unlock();
 			}
-			
+
 			static void sigIntHandler(int arg)
 			{
 				for ( std::map < uint64_t, SignalHandler * >::iterator ita = siginthandlers.begin();
@@ -246,7 +246,7 @@ namespace libmaus2
 				lock.unlock();
 			}
 		};
-	
+
 		struct TempFileRemovalContainer
 		{
 			#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__)
@@ -254,7 +254,7 @@ namespace libmaus2
 			#else
 			typedef ::sighandler_t sighandler_t;
 			#endif
-			
+
 			static ::libmaus2::parallel::OMPLock lock;
 			static std::vector < std::string > tmpfilenames;
 			static std::vector < std::string > tmpsemaphores;
@@ -266,7 +266,7 @@ namespace libmaus2
 			static sighandler_t sigpipehandler;
 
 			static bool setupComplete;
-			
+
 			static void cleanup()
 			{
 				removeTempFiles();
@@ -285,7 +285,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < tmpfilenames.size(); ++i )
 					libmaus2::aio::FileRemoval::removeFile(tmpfilenames[i]);
 			}
-			
+
 			static void removeSemaphores()
 			{
 				for ( uint64_t i = 0; i < tmpsemaphores.size(); ++i )
@@ -356,14 +356,14 @@ namespace libmaus2
 				sighuphandler = signal(SIGHUP,sigHupHandler);
 				atexit(cleanup);
 			}
-			
+
 			static void setupUnlocked()
 			{
 				if ( ! setupComplete )
 				{
 					setupTempFileRemovalRoutines();
 					setupComplete = true;
-				}			
+				}
 			}
 
 			static void setup()
@@ -372,7 +372,7 @@ namespace libmaus2
 				setupUnlocked();
 				lock.unlock();
 			}
-			
+
 			static void addTempFile(std::string const & filename)
 			{
 				lock.lock();

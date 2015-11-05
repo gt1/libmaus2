@@ -26,23 +26,23 @@ std::ostream & libmaus2::dazzler::db::operator<<(std::ostream & out, libmaus2::d
 		<< "part=" << D.part << ","
 		<< "dbpath=" << D.dbpath << ","
 		<< "nfiles=" << D.nfiles << ",";
-		
+
 	for ( uint64_t i = 0; i < D.fileinfo.size(); ++i )
 		out << D.fileinfo[i];
 	out << ",";
-		
-	out 
+
+	out
 		<< "numblocks=" << D.numblocks << ","
 		<< "blocksize=" << D.blocksize << ","
 		<< "cutoff=" << D.cutoff << ","
 		<< "all=" << D.all << ",";
-	
+
 	out << "blocks=";
 	for ( uint64_t i = 0; i < D.blocks.size(); ++i )
 		out << "(" << D.blocks[i].first << "," << D.blocks[i].second << ")";
 	out << ",";
-				
-	out << "idxpath=" << D.idxpath << ",";				
+
+	out << "idxpath=" << D.idxpath << ",";
 	out << D.indexbase << ",";
 	out << "indexoffset=" << D.indexoffset;
 

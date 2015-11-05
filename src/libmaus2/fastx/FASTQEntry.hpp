@@ -32,21 +32,21 @@ namespace libmaus2
 		        typedef FASTQEntry this_type;
                         typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
                         typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			std::string plus;
 			std::string quality;
-                
+
 			unsigned int getQuality(unsigned int i) const
 			{
 				return quality[i];
 			}
-			
+
 			void reverse()
 			{
 			    Pattern::reverse();
 			    std::reverse(quality.begin(),quality.end());
 			}
-			
+
 			FASTQEntry & operator=(FASTQEntry const & o)
 			{
 				if ( this != &o )

@@ -49,19 +49,19 @@ namespace libmaus2
 
 			typedef FastWriteBitWriterTemplate<data_type,data_iterator,basemask,fullmask> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			private:
 			data_iterator U;
 			data_type mask;
 			data_type cur;
 			unsigned int bitsleft;
-			
+
 			public:
 			/**
 			 * initialize writer with pointer to array
 			 **/
 			FastWriteBitWriterTemplate(data_iterator rU) : U(rU), mask(basemask), cur(0), bitsleft(8 * sizeof(data_type)) {}
-			
+
 			void reset(data_iterator rU)
 			{
 				U = rU;
@@ -69,14 +69,14 @@ namespace libmaus2
 				cur = 0;
 				bitsleft = 8 * sizeof(data_type);
 			}
-			
+
 			void writeUnary(uint64_t k)
 			{
 				for ( uint64_t i = 0; i < k; ++i )
 					writeBit(0);
 				writeBit(1);
 			}
-			
+
 			/**
 			 *
 			 **/
@@ -87,32 +87,32 @@ namespace libmaus2
 				unsigned int log_1 = ::libmaus2::math::numbits(n);
 				// number of bits to store log_1
 				unsigned int log_2 = ::libmaus2::math::numbits(log_1);
-				
+
 				// std::cerr << "Writing " << n << " log_1=" << log_1 << " log_2=" << log_2 << std::endl;
-								
+
 				// write log_2 in unary form
 				writeUnary(log_2);
-				
+
 				// write log_1 using log_2 bits
 				write(log_1,log_2);
-				
+
 				// write n using log_1 bits
 				write(n,log_1);
 			}
-			
+
 			void reset()
 			{
 				mask = basemask;
 				cur = 0;
 				bitsleft = 8*sizeof(data_type);
 			}
-			
+
 			void writeCurrent()
 			{
 				*(U++) = cur;
 				reset();
 			}
-			
+
 			static std::string curToBitString(uint64_t const cur)
 			{
 				std::ostringstream ostr;
@@ -123,12 +123,12 @@ namespace libmaus2
 				}
 				return ostr.str();
 			}
-			
+
 			std::string curToBitString()
 			{
 				return curToBitString(cur);
 			}
-			
+
 			/**
 			 * write a b bit number n
 			 * @param n number to be written
@@ -148,24 +148,24 @@ namespace libmaus2
 					cur |= static_cast<data_type>(n >> (b-bitsleft));
 					b -= bitsleft;
 					writeCurrent();
-					write<N>(n & ::libmaus2::math::lowbits(b) , b);					
+					write<N>(n & ::libmaus2::math::lowbits(b) , b);
 				}
 			}
-			
+
 			/**
 			 * write one bit to stream
 			 * @param bit
 			 **/
 			void writeBit(bool const bit)
 			{
-				if ( bit ) 
+				if ( bit )
 				{
 					cur |= mask;
 				}
-				
+
 				mask >>= 1;
 				bitsleft -= 1;
-				
+
 				if ( ! mask )
 					writeCurrent();
 			}

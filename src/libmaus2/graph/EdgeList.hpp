@@ -37,11 +37,11 @@ namespace libmaus2
 			typedef uint32_t edge_count_type;
 			typedef uint64_t edge_target_type;
 			typedef uint16_t edge_weight_type;
-			
+
 			static unsigned int const maxweight;
 			static edge_target_type const edge_list_term;
 		};
-			
+
 		template<bool bininsert>
 		struct EdgeListTemplate : public EdgeListBase
 		{
@@ -53,14 +53,14 @@ namespace libmaus2
 			uint64_t maxedges;
 			::libmaus2::autoarray::AutoArray<edge_target_type> edges;
 			::libmaus2::autoarray::AutoArray<edge_weight_type> weights;
-			
+
 			static uint64_t memPerEdge()
 			{
 				return sizeof(edge_target_type) + sizeof(edge_weight_type);
 			}
-			
+
 			EdgeListTemplate(uint64_t const redgelow, uint64_t const redgehigh, uint64_t const rmaxedges)
-			: edgelow(redgelow), edgehigh(redgehigh), maxedges(rmaxedges), 
+			: edgelow(redgelow), edgehigh(redgehigh), maxedges(rmaxedges),
 			  edges( (edgehigh-edgelow)*maxedges, false ),
 			  weights( (edgehigh-edgelow)*maxedges, false )
 			{
@@ -68,7 +68,7 @@ namespace libmaus2
 				::std::fill ( edges.get(), edges.get()+edges.getN(), edge_list_term );
 				::std::fill ( weights.get(), weights.get()+weights.getN(), 0 );
 				#else
-				
+
 				#pragma omp parallel for
 				for ( int64_t i = 0; i < static_cast<int64_t>(edges.getN()); ++i )
 					edges[i] = edge_list_term;
@@ -76,10 +76,10 @@ namespace libmaus2
 				#pragma omp parallel for
 				for ( int64_t i = 0; i < static_cast<int64_t>(weights.getN()); ++i )
 					weights[i] = 0;
-				
+
 				#endif
 			}
-			
+
 			unsigned int getNumEdges(uint64_t const src) const
 			{
 				edge_target_type const * const pa = edges.get() + (src-edgelow)*maxedges;
@@ -88,10 +88,10 @@ namespace libmaus2
 				if ( ! bininsert )
 				{
 					edge_target_type const * pc = pa;
-					
+
 					while ( (pc != pe) && (*pc != edge_list_term) )
 						++pc;
-					
+
 					return pc-pa;
 				}
 				else
@@ -99,51 +99,51 @@ namespace libmaus2
 					return ::std::lower_bound(pa,pe,edge_list_term) - pa;
 				}
 			}
-			
+
 			std::map<unsigned int,uint64_t> getNumEdgeDist() const
 			{
 				::libmaus2::autoarray::AutoArray<uint64_t> D256(256);
 				std::map < unsigned int, uint64_t > D;
-				
+
 				for ( uint64_t i = edgelow; i < edgehigh; ++i )
 				{
 					uint64_t const numedges = getNumEdges(i);
-					
+
 					if ( numedges < 256 )
 						D256[numedges]++;
 					else
 						D[numedges]++;
 				}
-				
+
 				for ( uint64_t i = 0; i < D256.size(); ++i )
 					if ( D256[i] )
 						D[i] += D256[i];
-				
+
 				return D;
 			}
-			
+
 			template<typename a, typename b>
 			static std::string serialiseMap(std::map<a,b> const & M)
 			{
 				std::ostringstream out;
-				
+
 				::libmaus2::serialize::Serialize<uint64_t>::serialize(out,M.size());
-				
+
 				for ( typename std::map<a,b>::const_iterator ita = M.begin(); ita != M.end(); ++ita )
 				{
 					::libmaus2::serialize::Serialize<a>::serialize(out,ita->first);
 					::libmaus2::serialize::Serialize<b>::serialize(out,ita->second);
 				}
-				
+
 				return out.str();
 			}
-			
+
 			std::string getSerialisedNumEdgeDist() const
 			{
 				std::map<unsigned int, uint64_t> M = getNumEdgeDist();
 				return serialiseMap(M);
 			}
-			
+
 			template<typename a, typename b>
 			static std::map<a,b> deserialiseMap(std::string const & s)
 			{
@@ -157,7 +157,7 @@ namespace libmaus2
 				uint64_t m;
 				::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&m);
 				std::map<a,b> M;
-				
+
 				for ( uint64_t i = 0; i < m; ++i )
 				{
 					a A;
@@ -165,13 +165,13 @@ namespace libmaus2
 
 					::libmaus2::serialize::Serialize<a>::deserialize(in,&A);
 					::libmaus2::serialize::Serialize<b>::deserialize(in,&B);
-					
+
 					M[A] = B;
 				}
-				
+
 				return M;
 			}
-			
+
 			static std::map<unsigned int, uint64_t> getDeserialisedNumEdgeDist(std::istream & in)
 			{
 				return deserialiseMap<unsigned int, uint64_t>(in);
@@ -180,19 +180,19 @@ namespace libmaus2
 			{
 				return deserialiseMap<unsigned int, uint64_t>(s);
 			}
-			
+
 			static std::map<unsigned int,uint64_t> mergeNumEdgeDists(
 				std::map<unsigned int,uint64_t> const & M0,
 				std::map<unsigned int,uint64_t> const & M1
 			)
 			{
 				std::map<unsigned int,uint64_t> M2;
-				
+
 				for ( std::map<unsigned int,uint64_t>::const_iterator ita = M0.begin(); ita != M0.end(); ++ita )
 					M2[ita->first] += ita->second;
 				for ( std::map<unsigned int,uint64_t>::const_iterator ita = M1.begin(); ita != M1.end(); ++ita )
 					M2[ita->first] += ita->second;
-					
+
 				return M2;
 			}
 
@@ -206,18 +206,18 @@ namespace libmaus2
 					out.put( lnumedges );
 					numedges += lnumedges;
 				}
-						
-				out.flush();		
-				
-				return numedges;	
+
+				out.flush();
+
+				return numedges;
 			}
 
 			uint64_t writeNumEdgeFile(std::string const & filename) const
 			{
 				::libmaus2::aio::SynchronousGenericOutput<edge_count_type> out(filename,8*1024);
-				return writeNumEdgeStream(out);				
+				return writeNumEdgeStream(out);
 			}
-			
+
 			uint64_t writeNumEdgeSocket(
 				::libmaus2::network::SocketBase * const socket
 			)
@@ -227,9 +227,9 @@ namespace libmaus2
 				socket->writeMessage<uint64_t>(1,0,0);
 				return numedges;
 			}
-			
+
 			template<typename type>
-			static void receiveSocket(				
+			static void receiveSocket(
 				::libmaus2::network::SocketBase * const socket,
 				std::string const & filename,
 				bool const /* append */
@@ -251,18 +251,18 @@ namespace libmaus2
 					edge_target_type const * const pa = edges.get() + (src-edgelow)*maxedges;
 					edge_target_type const * pc = pa;
 					edge_target_type const * const pe = pc + maxedges;
-				
+
 					while ( (pc != pe) && (*pc != edge_list_term) )
 						out.put( *(pc++) );
 				}
-				
-				out.flush();			
+
+				out.flush();
 			}
-			
+
 			void writeEdgeTargets(std::string const & filename) const
 			{
 				::libmaus2::aio::SynchronousGenericOutput<edge_target_type> out(filename,8*1024);
-				writeEdgeTargetsStream(out);	
+				writeEdgeTargetsStream(out);
 			}
 
 			void writeEdgeTargetsSocket(
@@ -283,16 +283,16 @@ namespace libmaus2
 					edge_target_type const * pc = pa;
 					edge_target_type const * const pe = pc + maxedges;
 					edge_weight_type const * wc = weights.get() + (src-edgelow)*maxedges;
-				
+
 					while ( (pc != pe) && (*pc != edge_list_term) )
 					{
 						out.put( *(wc++) );
 						pc++;
 					}
 				}
-				
-				out.flush();			
-			}			
+
+				out.flush();
+			}
 
 			void writeEdgeWeights(std::string const & filename) const
 			{
@@ -308,22 +308,22 @@ namespace libmaus2
 				writeEdgeWeightStream(SOB);
 				socket->writeMessage<uint64_t>(1,0,0);
 			}
-			
+
 			void operator()(uint64_t const src, uint64_t const dst, unsigned int weight)
 			{
 				assert ( src >= edgelow );
 				assert ( src < edgehigh );
-			
+
 				edge_target_type * const pa = edges.get() + (src-edgelow)*maxedges;
 				edge_target_type * const pe = pa + maxedges;
-				
+
 				if ( ! bininsert )
 				{
 					edge_target_type * pc = pa;
-				
+
 					while ( (pc != pe) && (*pc != static_cast<edge_target_type>(dst)) && (*pc != edge_list_term) )
 						++pc;
-				
+
 					if ( pc != pe )
 					{
 						*pc = dst;
@@ -334,24 +334,24 @@ namespace libmaus2
 				{
 					// where do we need to insert the element?
 					edge_target_type * pc = ::std::lower_bound(pa,pe,dst);
-					
+
 					// post end?
 					if ( pc != pe )
 					{
 						// insert index
 						uint64_t const off = pc-pa;
-						
+
 						// element already present?
 						if ( *pc != dst )
 						{
 							edge_target_type * cb = ::std::lower_bound(pa,pe,edge_list_term);
-						
+
 							// still space
 							if ( cb != pe )
 							{
 								uint64_t const eoff = cb-pa;
 								edge_weight_type * wa = weights.get() + (src-edgelow)*maxedges;
-							
+
 								::std::copy_backward(pc,cb,cb+1);
 								::std::copy_backward(
 									wa+off,
@@ -368,7 +368,7 @@ namespace libmaus2
 							else
 							{
 								edge_weight_type * wa = weights.get() + (src-edgelow)*maxedges;
-								
+
 								// std::cerr << "Pushout copy" << std::endl;
 								::std::copy_backward(pc,cb-1,cb);
 								::std::copy_backward(
@@ -394,7 +394,7 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				/*
 				print(std::cerr);
 				std::cerr << "---" << std::endl;
@@ -405,20 +405,20 @@ namespace libmaus2
 			{
 				(*this)(T.a,T.b,T.c);
 			}
-			
+
 			void operator()(::libmaus2::graph::TripleEdge const * T, uint64_t const n)
 			{
 				for ( uint64_t i = 0; i < n; ++i )
 					(*this)(T[i]);
 			}
-			
+
 			void print(std::ostream & out) const
 			{
 				for ( uint64_t i = 0; i < edgehigh-edgelow; ++i )
 				{
 					edge_target_type const * p = edges.get() + i * maxedges;
 					edge_weight_type const * w = weights.get() + i*maxedges;
-					
+
 					for ( uint64_t j = 0; j < maxedges && p[j] != edge_list_term; ++j )
 						out << (i+edgelow) << "," << p[j] << "," << static_cast<int>(w[j]) << std::endl;
 				}
@@ -430,23 +430,23 @@ namespace libmaus2
 				{
 					edge_target_type const * p = edges.get() + i * maxedges;
 					edge_weight_type const * w = weights.get() + i*maxedges;
-					
+
 					for ( uint64_t j = 0; j < maxedges && p[j] != edge_list_term; ++j )
-						out 
+						out
 							<< std::hex << std::setw(16) << std::setfill('0')
-							<< (i+edgelow) 
+							<< (i+edgelow)
 							<< std::setw(0)
-							<< "," 
+							<< ","
 							<< std::hex << std::setw(16) << std::setfill('0')
-							<< p[j] 
+							<< p[j]
 							<< std::setw(0)
-							<< "," 
-							<< static_cast<int>(w[j]) 
+							<< ","
+							<< static_cast<int>(w[j])
 							<< std::endl;
 				}
 			}
 		};
-		
+
 		typedef EdgeListTemplate<true> EdgeList;
 	}
 }

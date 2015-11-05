@@ -28,7 +28,7 @@ namespace libmaus2
 		struct BamAlignmentReg2Bin
 		{
 			/**
-			 * reg2bin as defined in sam file format spec 
+			 * reg2bin as defined in sam file format spec
 			 *
 			 * @param beg alignment start (inclusive)
 			 * @param end alignment end (exclusive)
@@ -43,7 +43,7 @@ namespace libmaus2
 				if (beg>>23 == end>>23) return ((1ul<<6)-1ul)/7ul + (beg>>23);
 				if (beg>>26 == end>>26) return ((1ul<<3)-1ul)/7ul + (beg>>26);
 				return 0;
-			}		
+			}
 		};
 	}
 }

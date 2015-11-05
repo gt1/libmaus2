@@ -33,11 +33,11 @@ namespace libmaus2
 			typedef AutoArray2d<N,atype> this_type;
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			uint64_t n; // rows
 			uint64_t m; // columns
 			::libmaus2::autoarray::AutoArray<N,atype> A;
-			
+
 			/**
 			 * compute prefix sums for row i
 			 *
@@ -48,7 +48,7 @@ namespace libmaus2
 			{
 				N * p = &(at(i,0));
 				N * const pe = p + m;
-				
+
 				N s = 0;
 				for ( ; p != pe; ++p )
 				{
@@ -56,10 +56,10 @@ namespace libmaus2
 					*p = s;
 					s += t;
 				}
-				
+
 				return s;
 			}
-			
+
 			/**
 			 * compute prefix sums for all rows
 			 **/
@@ -68,11 +68,11 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < n; ++i )
 					prefixSums(i);
 			}
-			
+
 			AutoArray2d() : n(0), m(0), A() {}
 			AutoArray2d(uint64_t const rn, uint64_t const rm, bool const rinit = true) : n(rn), m(rm), A(n*m,rinit) {}
 			AutoArray2d(AutoArray2d<N,atype> const & o) : n(o.n), m(o.m), A(o.A) {}
-			
+
 			AutoArray2d<N,atype> & operator=(AutoArray2d<N,atype> const & o)
 			{
 				if ( this != &o )
@@ -81,15 +81,15 @@ namespace libmaus2
 					m = o.m;
 					A = o.A;
 				}
-				
+
 				return *this;
 			}
-			
+
 			N       & operator()(uint64_t const i, uint64_t const j)       { return A[i*m+j]; }
 			N const & operator()(uint64_t const i, uint64_t const j) const { return A[i*m+j]; }
-			
-			N       & at(uint64_t const i, uint64_t const j) 
-			{ 
+
+			N       & at(uint64_t const i, uint64_t const j)
+			{
 				if ( i < n && j < m )
 					return A.at(i*m+j);
 				else
@@ -102,9 +102,9 @@ namespace libmaus2
 			}
 
 			N const & at(uint64_t const i, uint64_t const j) const
-			{ 
+			{
 				if ( i < n && j < m )
-					return A.at(i*m+j); 
+					return A.at(i*m+j);
 				else
 				{
 					libmaus2::exception::LibMausException ex;
@@ -113,7 +113,7 @@ namespace libmaus2
 					throw ex;
 				}
 			}
-			
+
 			N const * operator[](uint64_t const i) const
 			{
 				return &(at(i,0));
@@ -122,7 +122,7 @@ namespace libmaus2
 			{
 				return &(at(i,0));
 			}
-		};	
+		};
 	}
 }
 #endif

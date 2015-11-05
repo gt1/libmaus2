@@ -44,7 +44,7 @@ namespace libmaus2
 			node_ptr_type ptr;
 			bit_count_type cnt;
 			one_count_type bcnt;
-			
+
 			BitBTreeInnerNodeData() : ptr(0), cnt(0), bcnt(0) {}
 			BitBTreeInnerNodeData(BitBTreeInnerNodeData<node_ptr_type,bit_count_type,one_count_type> const & o)
 			: ptr(o.ptr), cnt(o.cnt), bcnt(o.bcnt) {}
@@ -54,10 +54,10 @@ namespace libmaus2
 		struct BitBTreeInnerNode
 		{
 			typedef BitBTreeInnerNodeData<node_ptr_type,bit_count_type,one_count_type> data_type;
-			
+
 			data_type data[2*k];
 			unsigned int dataFilled;
-			
+
 			BitBTreeInnerNode() : dataFilled(0) {}
 		};
 
@@ -65,12 +65,12 @@ namespace libmaus2
 		struct BitBTreeLeaf
 		{
 			::libmaus2::uint::UInt<w> data;
-			
+
 			void serialise(std::ostream & out) const
 			{
 				data.serialise(out);
 			}
-			
+
 			void deserialise(std::istream & in)
 			{
 				data.deserialise(in);
@@ -85,7 +85,7 @@ namespace libmaus2
 			typedef bit_count_type one_count_type;
 			typedef BitBTreeLeaf<w> leaf_type;
 			typedef BitBTreeInnerNode<node_ptr_type,bit_count_type,one_count_type,k> inner_node_type;
-			
+
 			typedef BitBTree<k,w> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
@@ -96,28 +96,28 @@ namespace libmaus2
 			#define bitbtree_leaf_mask 0x80000000UL
 			#define bitbtree_node_base_mask 0x7FFFFFFFUL
 			#endif
-			
+
 			bool identical(this_type const & O, node_ptr_type ptr, node_ptr_type optr) const
 			{
 				if ( isLeaf(ptr) != O.isLeaf(optr) )
 					return false;
-				
+
 				if ( isLeaf(ptr) )
 				{
 					leaf_type const & anode = getLeaf(ptr);
 					leaf_type const & bnode = O.getLeaf(optr);
 					bool const ok = ( anode.data == bnode.data );
-					
+
 					if ( ! ok )
 						std::cerr << "data" << std::endl;
-					
+
 					return ok;
 				}
 				else
 				{
 					inner_node_type const & inode = getNode(ptr);
-					inner_node_type const & onode = O.getNode(optr);				
-					
+					inner_node_type const & onode = O.getNode(optr);
+
 					if ( inode.dataFilled != onode.dataFilled )
 					{
 						std::cerr << "data filled " << inode.dataFilled << " " << onode.dataFilled << std::endl;
@@ -139,11 +139,11 @@ namespace libmaus2
 						if ( ! identical(O,inode.data[i].ptr,onode.data[i].ptr) )
 							return false;
 					}
-					
+
 					return true;
 				}
 			}
-			
+
 			bool identical(this_type const & O) const
 			{
 				if ( root_cnt != O.root_cnt )
@@ -171,16 +171,16 @@ namespace libmaus2
 				else
 					return true;
 			}
-			
+
 			void serialise(std::ostream & out, node_ptr_type ptr) const
 			{
 				int const d = isLeaf(ptr) ? 255 : 254;
 				out.put(d);
-				
+
 				if ( isLeaf(ptr) )
 				{
 					leaf_type const & lnode = getLeaf(ptr);
-					lnode.serialise(out);					
+					lnode.serialise(out);
 				}
 				else
 				{
@@ -199,7 +199,7 @@ namespace libmaus2
 			node_ptr_type deserialiseNode(std::istream & in)
 			{
 				int const d = in.get();
-				
+
 				if ( d < 0 )
 				{
 					libmaus2::exception::LibMausException lme;
@@ -207,13 +207,13 @@ namespace libmaus2
 					lme.finish();
 					throw lme;
 				}
-				
+
 				if ( d == 255 )
 				{
-					node_ptr_type pleaf = allocateLeaf();					
+					node_ptr_type pleaf = allocateLeaf();
 					leaf_type & lnode = getLeaf(pleaf);
 					lnode.deserialise(in);
-					
+
 					return pleaf;
 				}
 				else if ( d == 254 )
@@ -228,7 +228,7 @@ namespace libmaus2
 						inode.data[i].bcnt = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 						inode.data[i].ptr = deserialiseNode(in);
 					}
-					
+
 					return pin;
 				}
 				else
@@ -236,7 +236,7 @@ namespace libmaus2
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "libmaus2::bitbtree::BitBTree::deserialiseNode(): unknown node type" << std::endl;
 					lme.finish();
-					throw lme;					
+					throw lme;
 				}
 			}
 
@@ -249,7 +249,7 @@ namespace libmaus2
 				if ( ! empty )
 					serialise(out,root);
 			}
-			
+
 			void deserialise(std::istream & in)
 			{
 				if ( ! empty )
@@ -259,10 +259,10 @@ namespace libmaus2
 					lme.finish();
 					throw lme;
 				}
-				
+
 				root_cnt = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				root_bcnt = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
-				
+
 				int const dempty = in.get();
 
 				if ( dempty < 0 )
@@ -272,7 +272,7 @@ namespace libmaus2
 					lme.finish();
 					throw lme;
 				}
-				
+
 				empty = dempty;
 
 				depth = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
@@ -280,8 +280,8 @@ namespace libmaus2
 				if ( ! empty )
 					root = deserialiseNode(in);
 			}
-			
-			template<typename writer_type> 
+
+			template<typename writer_type>
 			void serialize(writer_type & writer, node_ptr_type ptr, bit_count_type cnt) const
 			{
 				if ( isLeaf(ptr) )
@@ -296,14 +296,14 @@ namespace libmaus2
 						serialize ( writer, inode.data[i].ptr, inode.data[i].cnt );
 				}
 			}
-			
+
 			template<typename writer_type>
 			void serialize(writer_type & writer) const
 			{
 				if ( ! empty )
 					serialize(writer, root, root_cnt);
 			}
-			
+
 			void serializeAsAutoArray(std::ostream & out) const
 			{
 				uint64_t const n = root_cnt;
@@ -328,11 +328,11 @@ namespace libmaus2
 				node_type * nodes;
 				uint64_t allocatedNodes;
 				std::stack < node_ptr_type > nodeFreeList;
-				
+
 				NodeAllocator()
 				: nodes(0), allocatedNodes(0)
-				{} 
-				
+				{}
+
 				node_type const & operator[](node_ptr_type const & i) const
 				{
 					return nodes[i & bitbtree_node_base_mask_value];
@@ -341,7 +341,7 @@ namespace libmaus2
 				{
 					return nodes[i & bitbtree_node_base_mask_value];
 				}
-				
+
 				node_ptr_type allocate()
 				{
 					if ( nodeFreeList.empty() )
@@ -351,13 +351,13 @@ namespace libmaus2
 						std::copy(nodes, nodes+allocatedNodes, NAnodes.get());
 						Anodes = NAnodes;
 						nodes = Anodes.get();
-						
+
 						for ( uint64_t i = allocatedNodes; i < newAllocatedNodes; ++i )
 							nodeFreeList.push(i);
-							
-						allocatedNodes = newAllocatedNodes;	
+
+						allocatedNodes = newAllocatedNodes;
 					}
-					
+
 					node_ptr_type node = nodeFreeList.top();
 					nodeFreeList.pop();
 					return (node | mask);
@@ -366,21 +366,21 @@ namespace libmaus2
 				{
 					nodeFreeList.push(node & bitbtree_node_base_mask);
 				}
-				
+
 				shared_ptr_type clone() const
 				{
 					shared_ptr_type cloned (
 						new NodeAllocator<node_type, node_ptr_type, mask, bitbtree_node_base_mask>()
 						);
-					
+
 					cloned->Anodes = Anodes.clone();
 					cloned->nodes = cloned->Anodes.get();
 					cloned->allocatedNodes = allocatedNodes;
 					cloned->nodeFreeList = nodeFreeList;
-					
+
 					return cloned;
 				}
-				
+
 				uint64_t bitSize() const
 				{
 					return
@@ -388,7 +388,7 @@ namespace libmaus2
 						sizeof(node_type *)*8+
 						sizeof(uint64_t)*8+
 						nodeFreeList.size() * sizeof(node_ptr_type) * 8;
-				} 
+				}
 			};
 
 			template<typename node_type, typename node_ptr_type, node_ptr_type mask, node_ptr_type bitbtree_node_base_mask_value>
@@ -403,12 +403,12 @@ namespace libmaus2
 				static uint64_t const blockmask = blocksize-1;
 				typedef autoarray::AutoArray<node_type> block_type;
 				typedef typename block_type::shared_ptr_type block_ptr_type;
-				
+
 				std::vector < block_ptr_type  > blocks;
 				std::stack < node_ptr_type > nodeFreeList;
-				
+
 				BlockNodeAllocator() : blocks(), nodeFreeList() {}
-				
+
 				node_type const & operator[](node_ptr_type const & i) const
 				{
 					return (*blocks[(i & bitbtree_node_base_mask_value)>>blockshift])[(i & bitbtree_node_base_mask_value)&blockmask];
@@ -417,22 +417,22 @@ namespace libmaus2
 				{
 					return (*blocks[(i & bitbtree_node_base_mask_value)>>blockshift])[(i & bitbtree_node_base_mask_value)&blockmask];
 				}
-				
+
 				node_ptr_type allocate()
 				{
 					if ( nodeFreeList.empty() )
 					{
 						uint64_t newblockid = blocks.size();
 						blocks.push_back( typename autoarray::AutoArray<node_type>::shared_ptr_type() );
-						blocks.back() = 
+						blocks.back() =
 							typename autoarray::AutoArray<node_type>::shared_ptr_type(
 								new autoarray::AutoArray<node_type>(blocksize)
 							);
-						
+
 						for ( uint64_t i = 0; i < blocksize; ++i )
 							nodeFreeList.push( newblockid*blocksize + i );
 					}
-					
+
 					node_ptr_type node = nodeFreeList.top();
 					nodeFreeList.pop();
 					return (node | mask);
@@ -441,39 +441,39 @@ namespace libmaus2
 				{
 					nodeFreeList.push(node & bitbtree_node_base_mask_value);
 				}
-				
+
 				shared_ptr_type clone() const
 				{
 					shared_ptr_type cloned (
 						new BlockNodeAllocator<node_type, node_ptr_type, mask, bitbtree_node_base_mask_value>()
 						);
-					
+
 					cloned->blocks.resize( blocks.size() );
-					
+
 					for ( uint64_t i = 0; i < blocks.size(); ++i )
 					{
 						cloned->blocks[i] = typename autoarray::AutoArray<node_type>::shared_ptr_type( new block_type );
 						*(cloned->blocks[i]) = blocks[i]->clone();
 					}
-					
+
 					cloned->nodeFreeList = nodeFreeList;
-					
+
 					return cloned;
 				}
-				
+
 				uint64_t bitSize() const
 				{
 					uint64_t s = 0;
-					
+
 					if ( blocks.size() )
 						s += blocks.size() * blocks[0]->byteSize() * 8;
 
 					s += nodeFreeList.size() * sizeof(node_ptr_type) * 8;
-						
+
 					return s;
-				} 
+				}
 			};
-			
+
 			static bool isLeaf(node_ptr_type node)
 			{
 				return node & bitbtree_leaf_mask;
@@ -483,9 +483,9 @@ namespace libmaus2
 			uint64_t root_cnt;
 			uint64_t root_bcnt;
 			bool empty;
-			
+
 			uint64_t depth;
-			
+
 			// typedef NodeAllocator<inner_node_type,node_ptr_type,0,bitbtree_node_base_mask> inner_node_allocator_type;
 			// typedef NodeAllocator<leaf_type,node_ptr_type,bitbtree_leaf_mask,bitbtree_node_base_mask> leaf_node_allocator_type;
 
@@ -496,7 +496,7 @@ namespace libmaus2
 			inner_node_allocator_type * innernodes;
 			typename leaf_node_allocator_type::shared_ptr_type aleafnodes;
 			leaf_node_allocator_type * leafnodes;
-			
+
 			uint64_t bitSize() const
 			{
 				return
@@ -508,7 +508,7 @@ namespace libmaus2
 					innernodes->bitSize()+
 					leafnodes->bitSize();
 			}
-			
+
 			uint64_t count1() const
 			{
 				if ( empty )
@@ -516,7 +516,7 @@ namespace libmaus2
 				else
 					return root_bcnt;
 			}
-			
+
 			uint64_t count0() const
 			{
 				if ( empty )
@@ -524,7 +524,7 @@ namespace libmaus2
 				else
 					return root_cnt - root_bcnt;
 			}
-			
+
 			bool hasNext1() const
 			{
 				return count1() != 0;
@@ -534,13 +534,13 @@ namespace libmaus2
 			{
 				return count0() != 0;
 			}
-			
+
 			uint64_t next1(uint64_t const p) const
 			{
 				assert ( hasNext1() );
-				
+
 				std::pair<uint64_t,uint64_t> const is1 = inverseSelect1(p);
-				
+
 				// 1 bit at position p?
 				if ( is1.first )
 					return p;
@@ -556,9 +556,9 @@ namespace libmaus2
 			uint64_t next0(uint64_t const p) const
 			{
 				assert ( hasNext0() );
-				
+
 				std::pair<uint64_t,uint64_t> const is0 = inverseSelect0(p);
-				
+
 				// 0 bit at position p?
 				if ( !is0.first )
 					return p;
@@ -570,7 +570,7 @@ namespace libmaus2
 						return select0(is0.second);
 				}
 			}
-			
+
 			uint64_t size() const
 			{
 				if ( empty )
@@ -591,24 +591,24 @@ namespace libmaus2
 			{
 				if ( isLeaf(node) )
 					return true;
-				
+
 				inner_node_type const & innernode = getNode(node);
-				
+
 				if ( innernode.dataFilled == 0 )
 				{
 					std::cerr << "Found empty inner node." << std::endl;
 					return false;
 				}
-				
+
 				bool const childrenAreLeafs = isLeaf(innernode.data[0].ptr);
-				
+
 				for ( uint64_t i = 0; i < innernode.dataFilled; ++i )
 					if ( isLeaf(innernode.data[i].ptr) != childrenAreLeafs )
 					{
 						std::cerr << "Found mixed node." << std::endl;
 						return false;
 					}
-				
+
 				if ( ! childrenAreLeafs )
 				{
 					for ( uint64_t i = 0; i < innernode.dataFilled; ++i )
@@ -621,7 +621,7 @@ namespace libmaus2
 							subcnt += innersubnode.data[j].cnt;
 							subbcnt += innersubnode.data[j].bcnt;
 						}
-						
+
 						if ( subcnt != innernode.data[i].cnt )
 						{
 							std::cerr << "cnt is wrong for node " << node << " child " << innernode.data[i].ptr << std::endl;
@@ -632,7 +632,7 @@ namespace libmaus2
 							std::cerr << "bcnt is wrong." << std::endl;
 							return false;
 						}
-					}	
+					}
 				}
 				else
 				{
@@ -641,12 +641,12 @@ namespace libmaus2
 						assert ( isLeaf ( innernode.data[i].ptr ) );
 						leaf_type const & leaf = getLeaf(innernode.data[i].ptr);
 						assert ( innernode.data[i].cnt != 0 );
-						
+
 						uint64_t const bcnt = leaf.data.rank1(innernode.data[i].cnt-1);
 						if ( bcnt != innernode.data[i].bcnt )
 						{
 							std::cerr << "leaf bcnt is wrong for node " << node << " child " << innernode.data[i].ptr << std::endl;
-							std::cerr << "computed " << bcnt << " stored " << innernode.data[i].bcnt 
+							std::cerr << "computed " << bcnt << " stored " << innernode.data[i].bcnt
 								<< " cnt " << innernode.data[i].cnt
 								<< std::endl;
 							std::cerr << "uinit: " << leaf.data << std::endl;
@@ -660,31 +660,31 @@ namespace libmaus2
 
 				return true;
 			}
-			
+
 			unique_ptr_type clone()
 			{
 				unique_ptr_type newtree ( new BitBTree<k,w> );
-				
+
 				newtree->root = root;
 				newtree->root_cnt = root_cnt;
 				newtree->root_bcnt = root_bcnt;
 				newtree->empty = empty;
 				newtree->depth = depth;
-				
+
 				newtree->ainnernodes = ainnernodes->clone();
 				newtree->innernodes = newtree->ainnernodes.get();
 				newtree->aleafnodes = aleafnodes->clone();
 				newtree->leafnodes = newtree->aleafnodes.get();
-				
+
 				return UNIQUE_PTR_MOVE(newtree);
 			}
-			
+
 			struct VectorConstructionTuple
 			{
 				node_ptr_type node;
-				bit_count_type cnt; 
+				bit_count_type cnt;
 				one_count_type bcnt;
-				
+
 				VectorConstructionTuple() : node(0), cnt(0), bcnt(0) {}
 				VectorConstructionTuple(
 					node_ptr_type const rnode,
@@ -692,32 +692,32 @@ namespace libmaus2
 					one_count_type const rbcnt)
 				: node(rnode), cnt(rcnt), bcnt(rbcnt) {}
 			};
-			
+
 			std::vector < VectorConstructionTuple > getHomogenuousLeafs(uint64_t const bsize, bool const v)
 			{
 				uint64_t const bitsperleaf = w*(8*sizeof(uint64_t));
 				uint64_t const fullleafs = bsize / bitsperleaf;
 				uint64_t const fracsyms = bsize - fullleafs*bitsperleaf;
-			
+
 				// std::cerr << "Full leafs " << fullleafs << " fracsyms " << fracsyms << " bits per leaf " << bitsperleaf << std::endl;
-			
+
 				// std::vector < std::pair<node_ptr_type,uint64_t> > todo;
 				std::vector < VectorConstructionTuple > todo;
-			
+
 				for ( uint64_t i = 0; i < fullleafs; ++i )
 				{
 					node_ptr_type const ptr = allocateLeaf();
 					leaf_type & lnode = getLeaf(ptr);
-					
+
 					for ( uint64_t j = 0; j < bitsperleaf; ++j )
 						lnode.data.setBit(j,v);
-					
+
 					// todo.push_back( std::pair<node_ptr_type,uint64_t>(ptr,bitsperleaf));
 					todo . push_back(VectorConstructionTuple(ptr,bitsperleaf,v?bitsperleaf:0));
-					
+
 					// std::cerr << "pushed " << todo.back().first << " with " << todo.back().second << " bits." << std::endl;
 				}
-			
+
 				if ( fracsyms )
 				{
 					node_ptr_type const ptr = allocateLeaf();
@@ -731,7 +731,7 @@ namespace libmaus2
 
 					// std::cerr << "pushed " << todo.back().first << " with " << todo.back().second << " bits." << std::endl;
 				}
-			
+
 				return todo;
 			}
 
@@ -740,27 +740,27 @@ namespace libmaus2
 				uint64_t const bitsperleaf = w*(8*sizeof(uint64_t));
 				uint64_t const fullleafs = bsize / bitsperleaf;
 				uint64_t const fracsyms = bsize - fullleafs*bitsperleaf;
-			
+
 				// std::cerr << "Full leafs " << fullleafs << " fracsyms " << fracsyms << " bits per leaf " << bitsperleaf << std::endl;
-			
+
 				// std::vector < std::pair<node_ptr_type,uint64_t> > todo;
 				std::vector < VectorConstructionTuple > todo;
-			
+
 				uint64_t z = 0;
 				for ( uint64_t i = 0; i < fullleafs; ++i )
 				{
 					node_ptr_type const ptr = allocateLeaf();
 					leaf_type & lnode = getLeaf(ptr);
-					
+
 					for ( uint64_t j = 0; j < bitsperleaf; ++j )
 						lnode.data.setBit(j,::libmaus2::bitio::getBit(A,z++));
-					
+
 					// todo.push_back( std::pair<node_ptr_type,uint64_t>(ptr,bitsperleaf));
 					todo . push_back(VectorConstructionTuple(ptr,bitsperleaf,lnode.data.rank1(bitsperleaf-1)));
-					
+
 					// std::cerr << "pushed " << todo.back().first << " with " << todo.back().second << " bits." << std::endl;
 				}
-			
+
 				if ( fracsyms )
 				{
 					node_ptr_type const ptr = allocateLeaf();
@@ -774,19 +774,19 @@ namespace libmaus2
 
 					// std::cerr << "pushed " << todo.back().first << " with " << todo.back().second << " bits." << std::endl;
 				}
-			
+
 				return todo;
 			}
-			
+
 			void mergeConstructionTuples(std::vector < VectorConstructionTuple > & todo)
-			{			
+			{
 				while ( todo.size() > 1 )
 				{
 					std::vector < VectorConstructionTuple > newtodo;
-					
+
 					uint64_t const numinner = (todo.size() + 2*k-1)/(2*k);
 					// std::cerr << "numinner " << numinner << std::endl;
-					
+
 					for ( uint64_t i = 0; i < numinner; ++i )
 					{
 						uint64_t const low = i*2*k;
@@ -798,7 +798,7 @@ namespace libmaus2
 						node.dataFilled = high-low;
 
 						// std::cerr << "low=" << low << " high=" << high << " dataFilled " << node.dataFilled << std::endl;
-						
+
 						uint64_t cnt = 0;
 						uint64_t bcnt = 0;
 						for ( uint64_t j = low; j < high; ++j )
@@ -810,16 +810,16 @@ namespace libmaus2
 							cnt += todo[j].cnt;
 							bcnt += todo[j].bcnt;
 						}
-						
+
 						// newtodo.push_back( std::pair<node_ptr_type,uint64_t >(ptr,cnt) );
 						newtodo.push_back( VectorConstructionTuple(ptr,cnt,bcnt) );
-					}						
+					}
 
 					depth++;
 					todo = newtodo;
 					// todo.swap(newtodo);
 				}
-				
+
 				// std::cerr << "Total bits " << todo[0].second << std::endl;
 
 				root = todo[0].node;
@@ -857,7 +857,7 @@ namespace libmaus2
 					assert ( root_cnt == bsize );
 				}
 			}
-			
+
 			BitBTree()
 			: root(0), root_cnt(0), root_bcnt(0), empty(true), depth(0),
 			  ainnernodes ( new inner_node_allocator_type ),
@@ -878,15 +878,15 @@ namespace libmaus2
 			  leafnodes ( aleafnodes.get() )
 			{
 			}
-			
+
 			struct InsertInfo
 			{
 				bool nodeCreated;
 				node_ptr_type newnode;
-				
+
 				bit_count_type oldnodecnt;
 				bit_count_type newnodecnt;
-				
+
 				one_count_type oldnodebcnt;
 				one_count_type newnodebcnt;
 
@@ -896,15 +896,15 @@ namespace libmaus2
 			struct DeleteInfo
 			{
 				bool deleteNode;
-				
+
 				bit_count_type oldnodecnt;
 				one_count_type oldnodebcnt;
-				
+
 				DeleteInfo()
 				: deleteNode(false), oldnodecnt(0), oldnodebcnt(0)
 				{}
 			};
-			
+
 			/**
 			 * merge node i and a neighbour
 			 **/
@@ -913,7 +913,7 @@ namespace libmaus2
 			)
 			{
 				#if 0
-				std::cerr << "mergeNodes(parent=" << parent << ",i=" << i << ")" << std::endl;	
+				std::cerr << "mergeNodes(parent=" << parent << ",i=" << i << ")" << std::endl;
 				#endif
 
 				/**
@@ -924,7 +924,7 @@ namespace libmaus2
 					#if 0
 					std::cerr << "Parent not leaf." << std::endl;
 					#endif
-					
+
 					// get parent node
 					inner_node_type * pparent = &getNode(parent);
 
@@ -934,10 +934,10 @@ namespace libmaus2
 						#if 0
 						std::cerr << "Parent is not singular." << std::endl;
 						#endif
-					
+
 						// determine left and right merged index
 						uint64_t left_index, right_index;
-						
+
 						if ( i+1 < pparent->dataFilled )
 						{
 							left_index = i;
@@ -948,22 +948,22 @@ namespace libmaus2
 							left_index = i-1;
 							right_index = i;
 						}
-						
+
 						#if 0
 						std::cerr << "i=" << i << " left_index=" << left_index << " right_index=" << right_index << std::endl;
 						#endif
-						
+
 						if ( isLeaf ( pparent->data[left_index].ptr ) )
 						{
 							uint64_t const left_cnt = pparent->data[left_index].cnt;
 							uint64_t const right_cnt = pparent->data[right_index].cnt;
 							uint64_t const total_cnt = left_cnt+right_cnt;
-							
+
 							node_ptr_type const left_ptr = pparent->data[left_index].ptr;
 							leaf_type * const left_leaf = &(getLeaf(left_ptr));
 							node_ptr_type const right_ptr = pparent->data[right_index].ptr;
 							leaf_type * const right_leaf = &(getLeaf(right_ptr));
-							
+
 							::libmaus2::uint::UInt<2*w> U(right_leaf->data);
 							U <<= left_cnt;
 							U |= left_leaf->data;
@@ -976,15 +976,15 @@ namespace libmaus2
 								#if 0
 								std::cerr << "Merged data fits in one leaf." << std::endl;
 								#endif
-								
+
 								// remove right index
 								for ( uint64_t j = right_index; j+1 < pparent->dataFilled; ++j )
 									pparent->data[j] = pparent->data[j+1];
 
 								// copy data to left leaf
 								left_leaf->data = U;
-								
-								#if 0	
+
+								#if 0
 								for ( uint64_t j = 0; j < w; ++j )
 									left_leaf->data.A[j] = U.A[j];
 								#endif
@@ -1002,22 +1002,22 @@ namespace libmaus2
 								#if 0
 								std::cerr << "Merged data does not fit in one leaf." << std::endl;
 								#endif
-							
+
 								uint64_t const left_cnt = (total_cnt + 1)/2;
 								uint64_t const right_cnt = total_cnt - left_cnt;
-								
+
 								::libmaus2::uint::UInt<2*w> UUleft = U;
-								UUleft.keepLowBits(left_cnt);							
+								UUleft.keepLowBits(left_cnt);
 								U >>= left_cnt;
-								
+
 								left_leaf->data = UUleft;
 								right_leaf->data = U; // UUright;
-								
+
 								pparent->data[left_index].cnt = left_cnt;
 								pparent->data[left_index].bcnt = left_leaf->data.rank1(left_cnt-1);
 								pparent->data[right_index].cnt = right_cnt;
 								pparent->data[right_index].bcnt = right_leaf->data.rank1(right_cnt-1);
-							}	
+							}
 						}
 						else
 						{
@@ -1025,38 +1025,38 @@ namespace libmaus2
 							std::cerr << "Merging inner nodes." << std::endl;
 							// sleep ( 3 );
 							#endif
-						
+
 							node_ptr_type left_ptr = pparent->data[left_index].ptr;
 							node_ptr_type right_ptr = pparent->data[right_index].ptr;
 							inner_node_type * left_node = &(getNode(left_ptr));
 							inner_node_type * right_node = &(getNode(right_ptr));
-							
+
 							typedef typename inner_node_type::data_type data_type;
 							data_type data[4*k];
-							
+
 							for ( uint64_t j = 0; j < left_node->dataFilled; ++j )
 								data[j] = left_node->data[j];
 							for ( uint64_t j = 0; j < right_node->dataFilled; ++j )
 								data[j+left_node->dataFilled] = right_node->data[j];
-							
+
 							uint64_t totalFilled = left_node->dataFilled + right_node->dataFilled;
 							uint64_t totalcnt = pparent->data[left_index].cnt + pparent->data[right_index].cnt;
 							uint64_t totalbcnt = pparent->data[left_index].bcnt + pparent->data[right_index].bcnt;
-							
+
 							if ( totalFilled <= 2*k )
 							{
 								#if 0
 								std::cerr << "Merged data fits in one node." << std::endl;
 								#endif
-							
+
 								// remove right index
 								for ( uint64_t j = right_index; j+1 < pparent->dataFilled; ++j )
 									pparent->data[j] = pparent->data[j+1];
-									
+
 								for ( uint64_t j = 0; j < totalFilled; ++j )
 									left_node->data[j] = data[j];
 								left_node->dataFilled = totalFilled;
-								
+
 								pparent->data[left_index].cnt = totalcnt;
 								pparent->data[left_index].bcnt = totalbcnt;
 								pparent->dataFilled -= 1;
@@ -1069,8 +1069,8 @@ namespace libmaus2
 								#endif
 								uint64_t const leftFilled = (totalFilled + 1)/2;
 								uint64_t const rightFilled = totalFilled - leftFilled;
-								
-								uint64_t left_cnt = 0; 
+
+								uint64_t left_cnt = 0;
 								uint64_t left_bcnt = 0;
 								for ( uint64_t j = 0; j < leftFilled; ++j )
 								{
@@ -1081,14 +1081,14 @@ namespace libmaus2
 								pparent->data[left_index].cnt = left_cnt;
 								pparent->data[left_index].bcnt = left_bcnt;
 								left_node->dataFilled = leftFilled;
-									
-								uint64_t right_cnt = 0; 
+
+								uint64_t right_cnt = 0;
 								uint64_t right_bcnt = 0;
 								for ( uint64_t j = 0; j < rightFilled; ++j )
 								{
 									right_node->data[j] = data[leftFilled+j];
 									right_cnt += right_node->data[j].cnt;
-									right_bcnt += right_node->data[j].bcnt;							
+									right_bcnt += right_node->data[j].bcnt;
 								}
 								pparent->data[right_index].cnt = right_cnt;
 								pparent->data[right_index].bcnt = right_bcnt;
@@ -1098,21 +1098,21 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			DeleteInfo deleteBit(uint64_t node, uint64_t pos, uint64_t const cnt, uint64_t const bcnt)
 			{
 				if ( isLeaf(node) )
 				{
 					DeleteInfo info;
-					
+
 					leaf_type & leaf = getLeaf(node);
-					
+
 					bool const bit = leaf.data.getBit(pos);
 					leaf.data.deleteBit(pos);
-					
+
 					info.oldnodecnt = cnt-1;
 					info.oldnodebcnt = info.oldnodecnt ? leaf.data.rank1(info.oldnodecnt-1) : 0;
-					
+
 					if ( bit )
 					{
 						if ( info.oldnodebcnt != bcnt-1 )
@@ -1123,23 +1123,23 @@ namespace libmaus2
 					}
 					else
 						assert ( info.oldnodebcnt == bcnt );
-					
+
 					#if 0
 					std::cerr << "node=" << node << " cnt=" << cnt << " info.oldnodecnt=" << info.oldnodecnt << std::endl;
 					#endif
-					
+
 					info.deleteNode = info.oldnodecnt < (64*w)/2;
-					
+
 					return info;
 				}
 				else
 				{
 					DeleteInfo info;
-					
+
 					inner_node_type * innernode = &(getNode(node));
-					
+
 					bool deleted = false;
-					
+
 					for ( uint64_t i = 0; (!deleted) && (i < innernode->dataFilled); ++i )
 					{
 						if ( pos < innernode->data[i].cnt )
@@ -1148,12 +1148,12 @@ namespace libmaus2
 							innernode = &(getNode(node));
 							innernode->data[i].cnt = subinfo.oldnodecnt;
 							innernode->data[i].bcnt = subinfo.oldnodebcnt;
-							
+
 							if ( subinfo.deleteNode )
 								mergeNodes(node,i);
 
 							innernode = &(getNode(node));
-							
+
 							for ( uint64_t j = 0; j < innernode->dataFilled; ++j )
 							{
 								info.oldnodecnt += innernode->data[j].cnt;
@@ -1168,10 +1168,10 @@ namespace libmaus2
 							pos -= innernode->data[i].cnt;
 						}
 					}
-					
+
 					if ( ! deleted )
 						throw std::out_of_range("deleteBit called on non-existent position.");
-					
+
 					return info;
 				}
 			}
@@ -1179,9 +1179,9 @@ namespace libmaus2
 			{
 				if ( pos >= getN() )
 					throw std::out_of_range("deleteBit called on non-existent position.");
-			
+
 				DeleteInfo info = deleteBit(root,pos,root_cnt,root_bcnt);
-			
+
 				if ( info.oldnodecnt == 0 )
 				{
 					if ( isLeaf(root ) )
@@ -1190,7 +1190,7 @@ namespace libmaus2
 						freeNode(root);
 					empty = true;
 				}
-				
+
 				root_cnt = info.oldnodecnt;
 				root_bcnt = info.oldnodebcnt;
 
@@ -1199,17 +1199,17 @@ namespace libmaus2
 					throw std::runtime_error("Tree structure corrupt.");
 		#endif
 			}
-			
+
 			InsertInfo insertBit(uint64_t const node, uint64_t pos, bool const b, uint64_t const cnt)
 			{
 				if ( isLeaf(node) )
 				{
 					InsertInfo info;
 
-					#if 0			
+					#if 0
 					std::cerr << "Inserting into leaf." << std::endl;
 					#endif
-					
+
 					if ( cnt < 64*w )
 					{
 						info.nodeCreated = false;
@@ -1224,15 +1224,15 @@ namespace libmaus2
 					else
 					{
 						info.nodeCreated = true;
-						
+
 						info.newnode = allocateLeaf();
 						leaf_type & leaf = getLeaf(node);
 						leaf_type & newleaf = getLeaf(info.newnode);
-						
+
 						newleaf.data = leaf.data;
 						newleaf.data >>= ((64*w)/2);
 						leaf.data.keepLowHalf();
-						
+
 						if ( pos <= ((64*w)/2) )
 						{
 							leaf.data.insertBit(pos, b);
@@ -1245,15 +1245,15 @@ namespace libmaus2
 							info.oldnodecnt = ((64*w)/2);
 							info.newnodecnt = ((64*w)/2)+1;
 						}
-						
+
 						info.oldnodebcnt = leaf.data.rank1(info.oldnodecnt-1);
-						info.newnodebcnt = newleaf.data.rank1(info.newnodecnt-1);								
-						
+						info.newnodebcnt = newleaf.data.rank1(info.newnodecnt-1);
+
 						#if 0
 						std::cerr << "Leaf split." << std::endl;
 						#endif
-					}		
-					
+					}
+
 					return info;
 				}
 				else
@@ -1262,12 +1262,12 @@ namespace libmaus2
 					inner_node_type * innernode = &(getNode(node));
 
 					assert ( innernode->dataFilled );
-					
+
 					bool const childrenAreLeafs = isLeaf ( innernode->data[0].ptr );
 
 					#if 0
 					std::cerr << "Entering with pos " << pos << std::endl;
-					
+
 					for ( uint64_t i = 0; i < innernode->dataFilled; ++i )
 					{
 						std::cerr << "subtree size " << i << " is " << innernode->data[i].cnt << std::endl;
@@ -1276,7 +1276,7 @@ namespace libmaus2
 
 					uint64_t const prepos = pos;
 					bool continued = false;
-					
+
 					bool inserted = false;
 					for ( uint64_t i = 0; (!inserted) && i < innernode->dataFilled; ++i )
 					{
@@ -1285,7 +1285,7 @@ namespace libmaus2
 							// std::cerr << "***** i = " << i << std::endl;
 							continued = false;
 						}
-					
+
 						if( pos <= innernode->data[i].cnt )
 						{
 							if ( childrenAreLeafs )
@@ -1293,7 +1293,7 @@ namespace libmaus2
 								if ( innernode->data[i].cnt == (64*w) )
 								{
 									bool threewaymerge = false;
-								
+
 									if ( i == 0 && (innernode->dataFilled>=2) )
 									{
 										uint64_t const middle_index = i;
@@ -1308,7 +1308,7 @@ namespace libmaus2
 										if ( right_cnt + middle_cnt <= (2*64*w)-2 )
 										{
 											// std::cerr << "here." << std::endl;
-										
+
 											::libmaus2::uint::UInt<2*w> U ( right_leaf->data );
 											U <<= middle_cnt;
 											U |= middle_leaf->data;
@@ -1316,30 +1316,30 @@ namespace libmaus2
 											uint64_t const total_cnt = middle_cnt + right_cnt;
 											uint64_t const new_middle_cnt = (total_cnt+1)/2;
 											uint64_t const new_right_cnt = total_cnt - new_middle_cnt;
-												
+
 											middle_leaf->data = U;
 											middle_leaf->data.keepLowBits(new_middle_cnt);
 											innernode->data[middle_index].cnt = new_middle_cnt;
 											innernode->data[middle_index].bcnt = middle_leaf->data.rank1(new_middle_cnt-1);
-											
+
 											U >>= new_middle_cnt;
 											right_leaf->data = U;
 											innernode->data[right_index].cnt = new_right_cnt;
 											innernode->data[right_index].bcnt = right_leaf->data.rank1(new_right_cnt-1);
-												
+
 											/**
 											 * restart loop
 											 **/
 											i = -1;
 											pos = prepos;
 											continued = true;
-											
+
 											continue;
 										}
 										else
 										{
 											threewaymerge = true;
-											// std::cerr << "*** right " << right_cnt << " middle " << middle_cnt << std::endl;		
+											// std::cerr << "*** right " << right_cnt << " middle " << middle_cnt << std::endl;
 										}
 									}
 									else if ( (i == innernode->dataFilled-1) && (innernode->dataFilled>=2) )
@@ -1352,27 +1352,27 @@ namespace libmaus2
 										leaf_type * const middle_leaf =  &(getLeaf(middle_ptr));
 										uint64_t const left_cnt = innernode->data[left_index].cnt;
 										uint64_t const middle_cnt = innernode->data[middle_index].cnt;
-										
+
 										if ( left_cnt + middle_cnt <= (2*64*w)-2 )
 										{
 											::libmaus2::uint::UInt<2*w> U ( middle_leaf->data );
 											U <<= left_cnt;
 											U |= left_leaf->data;
-											
+
 											uint64_t const total_cnt = left_cnt + middle_cnt;
 											uint64_t const new_left_cnt = (total_cnt+1)/2;
 											uint64_t const new_middle_cnt = total_cnt - new_left_cnt;
-											
+
 											left_leaf->data = U;
 											left_leaf->data.keepLowBits(new_left_cnt);
 											innernode->data[left_index].cnt = new_left_cnt;
 											innernode->data[left_index].bcnt = left_leaf->data.rank1(new_left_cnt-1);
-											
+
 											U >>= new_left_cnt;
 											middle_leaf->data = U;
 											innernode->data[middle_index].cnt = new_middle_cnt;
 											innernode->data[middle_index].bcnt = middle_leaf->data.rank1(new_middle_cnt-1);
-											
+
 											/**
 											 * restart loop
 											 **/
@@ -1380,13 +1380,13 @@ namespace libmaus2
 											// i -= 1;
 											pos = prepos;
 											continued = true;
-											
+
 											continue;
 										}
 										else
 										{
 											threewaymerge = true;
-											// std::cerr << "*** left " << left_cnt << " middle " << middle_cnt << std::endl;												
+											// std::cerr << "*** left " << left_cnt << " middle " << middle_cnt << std::endl;
 										}
 									}
 									else if ( innernode->dataFilled >= 3 )
@@ -1403,7 +1403,7 @@ namespace libmaus2
 										uint64_t const left_cnt = innernode->data[left_index].cnt;
 										uint64_t const middle_cnt = innernode->data[middle_index].cnt;
 										uint64_t const right_cnt = innernode->data[right_index].cnt;
-										
+
 										if ( left_cnt < right_cnt )
 										{
 											if ( left_cnt + middle_cnt <= (2*64*w)-2 )
@@ -1411,21 +1411,21 @@ namespace libmaus2
 												::libmaus2::uint::UInt<2*w> U ( middle_leaf->data );
 												U <<= left_cnt;
 												U |= left_leaf->data;
-												
+
 												uint64_t const total_cnt = left_cnt + middle_cnt;
 												uint64_t const new_left_cnt = (total_cnt+1)/2;
 												uint64_t const new_middle_cnt = total_cnt - new_left_cnt;
-												
+
 												left_leaf->data = U;
 												left_leaf->data.keepLowBits(new_left_cnt);
 												innernode->data[left_index].cnt = new_left_cnt;
 												innernode->data[left_index].bcnt = left_leaf->data.rank1(new_left_cnt-1);
-												
+
 												U >>= new_left_cnt;
 												middle_leaf->data = U;
 												innernode->data[middle_index].cnt = new_middle_cnt;
 												innernode->data[middle_index].bcnt = middle_leaf->data.rank1(new_middle_cnt-1);
-												
+
 												/**
 												 * restart loop
 												 **/
@@ -1433,16 +1433,16 @@ namespace libmaus2
 												// i -= 1;
 												pos = prepos;
 												continued = true;
-												
+
 												continue;
 											}
 											else
 											{
 												threewaymerge = true;
-												// std::cerr << "*** left " << left_cnt << " middle " << middle_cnt << std::endl;												
+												// std::cerr << "*** left " << left_cnt << " middle " << middle_cnt << std::endl;
 											}
 										}
-										else // if ( right_cnt < left_cnt )											
+										else // if ( right_cnt < left_cnt )
 										{
 											if ( right_cnt + middle_cnt <= (2*64*w)-2 )
 											{
@@ -1453,39 +1453,39 @@ namespace libmaus2
 												uint64_t const total_cnt = middle_cnt + right_cnt;
 												uint64_t const new_middle_cnt = (total_cnt+1)/2;
 												uint64_t const new_right_cnt = total_cnt - new_middle_cnt;
-												
+
 												middle_leaf->data = U;
 												middle_leaf->data.keepLowBits(new_middle_cnt);
 												innernode->data[middle_index].cnt = new_middle_cnt;
 												innernode->data[middle_index].bcnt = middle_leaf->data.rank1(new_middle_cnt-1);
-												
+
 												U >>= new_middle_cnt;
 												right_leaf->data = U;
 												innernode->data[right_index].cnt = new_right_cnt;
 												innernode->data[right_index].bcnt = right_leaf->data.rank1(new_right_cnt-1);
-												
+
 												/**
 												 * restart loop
 												 **/
 												i = -1;
 												pos = prepos;
 												continued = true;
-												
+
 												continue;
 											}
 											else
 											{
 												threewaymerge = true;
-												// std::cerr << "*** right " << right_cnt << " middle " << middle_cnt << std::endl;		
+												// std::cerr << "*** right " << right_cnt << " middle " << middle_cnt << std::endl;
 											}
 										}
-										
+
 									}
-									
+
 									if ( threewaymerge )
 									{
 										uint64_t left_index, middle_index;
-										
+
 										if ( i == innernode->dataFilled-1 )
 										{
 											left_index = i-1;
@@ -1496,7 +1496,7 @@ namespace libmaus2
 											left_index = i;
 											middle_index = i+1;
 										}
-										
+
 										uint64_t const left_cnt = innernode->data[left_index].cnt;
 										uint64_t const middle_cnt = innernode->data[middle_index].cnt;
 										uint64_t const total_cnt = left_cnt + middle_cnt;
@@ -1504,23 +1504,23 @@ namespace libmaus2
 										uint64_t const middle_ptr = innernode->data[middle_index].ptr;
 										leaf_type * const left_leaf =  &(getLeaf(left_ptr));
 										leaf_type * const middle_leaf = &(getLeaf(middle_ptr));
-										
+
 										uint64_t const new_left_cnt = (total_cnt + 2)/3;
 										uint64_t const new_rest_cnt = total_cnt - new_left_cnt;
 										uint64_t const new_middle_cnt = (new_rest_cnt + 1)/2;
 										uint64_t const new_right_cnt = new_rest_cnt - new_middle_cnt;
-										
+
 										assert ( (new_left_cnt + new_middle_cnt + new_right_cnt) == total_cnt );
-										
+
 										::libmaus2::uint::UInt<2*w> U = middle_leaf->data;
 										U <<= left_cnt;
 										U |= left_leaf->data;
-										
+
 										// std::cerr << "three way merge " << left_cnt << " " << middle_cnt << std::endl;
 									}
 								}
 							}
-						
+
 							#if 0
 							std::cerr << "Inserting into node " << node << " after child " << i << " at position " << pos << std::endl;
 							#endif
@@ -1531,22 +1531,22 @@ namespace libmaus2
 							#if 0
 							std::cerr << "Returned from inserting at node " << node << " child " << i << std::endl;
 							#endif
-							
+
 							if ( subinfo.nodeCreated )
 							{
 								#if 0
 								std::cerr << "New node was created." << std::endl;
 								#endif
-							
+
 								if ( innernode->dataFilled < 2*k )
 								{
 									#if 0
-									std::cerr << "Inserting node " 
-										<< subinfo.newnode 
-										<< " into inner node " << node 
+									std::cerr << "Inserting node "
+										<< subinfo.newnode
+										<< " into inner node " << node
 										<< " after child " << i << ", no split." << std::endl;
 									#endif
-								
+
 									for ( uint64_t j = 0; j < 2*k-i-2; ++j )
 									{
 										#if 0
@@ -1559,22 +1559,22 @@ namespace libmaus2
 									#if 0
 									std::cerr << (i+1) << " should now be free." << std::endl;
 									#endif
-									
+
 									innernode->data[i].cnt = subinfo.oldnodecnt;
 									innernode->data[i].bcnt = subinfo.oldnodebcnt;
 									innernode->data[i+1].cnt = subinfo.newnodecnt;
 									innernode->data[i+1].bcnt = subinfo.newnodebcnt;
 									innernode->data[i+1].ptr = subinfo.newnode;
-									innernode->dataFilled += 1;							
+									innernode->dataFilled += 1;
 								}
 								else
 								{
 									#if 0
-									std::cerr << "Inserting node " 
-										<< subinfo.newnode 
+									std::cerr << "Inserting node "
+										<< subinfo.newnode
 										<< " into inner node "<< node << " after child " << i << ", split." << std::endl;
 									#endif
-								
+
 									typedef typename inner_node_type::data_type data_type;
 									data_type localdata[2*k+1];
 									for ( uint64_t j = 0 ; j < innernode->dataFilled; ++j )
@@ -1592,13 +1592,13 @@ namespace libmaus2
 									#if 0
 									std::cerr << (i+1) << " should now be free." << std::endl;
 									#endif
-									
+
 									localdata[i].cnt = subinfo.oldnodecnt;
 									localdata[i].bcnt = subinfo.oldnodebcnt;
 									localdata[i+1].cnt = subinfo.newnodecnt;
 									localdata[i+1].bcnt = subinfo.newnodebcnt;
 									localdata[i+1].ptr = subinfo.newnode;
-									
+
 									info.newnode = allocateNode();
 									#if 0
 									std::cerr << "allocated inner node " << info.newnode << std::endl;
@@ -1606,24 +1606,24 @@ namespace libmaus2
 									info.nodeCreated = true;
 									inner_node_type * newinnernode = &(getNode(info.newnode));
 									innernode = &(getNode(node));
-									
+
 									for ( uint64_t j = 0; j < k; ++j )
 										innernode->data[j] = localdata[j];
 									innernode->dataFilled = k;
-									
+
 									for ( uint64_t j = 0; j < k+1; ++j )
 										newinnernode->data[j] = localdata[k+j];
 									newinnernode->dataFilled = k+1;
-								
+
 									// throw std::runtime_error("Node insertion not supported.");
 								}
 							}
 							else
 							{
 								innernode->data[i].cnt = subinfo.oldnodecnt;
-								innernode->data[i].bcnt = subinfo.oldnodebcnt;			
+								innernode->data[i].bcnt = subinfo.oldnodebcnt;
 							}
-							
+
 							for ( uint64_t j = 0; j < innernode->dataFilled; ++j )
 							{
 								info.oldnodecnt += innernode->data[j].cnt;
@@ -1638,23 +1638,23 @@ namespace libmaus2
 									info.newnodecnt += newinnernode->data[j].cnt;
 									info.newnodebcnt += newinnernode->data[j].bcnt;
 								}
-							
+
 							}
-							
+
 							inserted = true;
 						}
-					
+
 						#if 0
-						std::cerr << "Subtracting " << innernode->data[i].cnt << " from pos " << std::endl;	
+						std::cerr << "Subtracting " << innernode->data[i].cnt << " from pos " << std::endl;
 						#endif
 						pos -= innernode->data[i].cnt;
 					}
-					
+
 					if ( ! inserted )
 						throw std::out_of_range("Inserted bit beyond last position.");
-					
+
 					return info;
-				}		
+				}
 			}
 
 			void set(uint64_t const pos, bool const b)
@@ -1664,17 +1664,17 @@ namespace libmaus2
 				#if 0
 				uint64_t const precnt = root_cnt, prebcnt = root_bcnt;
 				#endif
-				
+
 				deleteBit(pos);
-				
+
 				#if 0
 				checkTree();
 				assert ( root_cnt == precnt-1 );
 				assert ( root_bcnt == prebcnt || root_bcnt == prebcnt-1 );
 				#endif
-				
+
 				insertBit(pos,b);
-				
+
 				#if 0
 				assert ( root_cnt == precnt );
 				#endif
@@ -1690,7 +1690,7 @@ namespace libmaus2
 				}
 
 				InsertInfo info = insertBit(root,pos,b,root_cnt);
-				
+
 				if ( info.nodeCreated )
 				{
 					node_ptr_type newroot = allocateNode();
@@ -1698,18 +1698,18 @@ namespace libmaus2
 					std::cerr << "newroot=" << newroot << std::endl;
 					#endif
 					inner_node_type & newrootnode = getNode(newroot);
-					
+
 					newrootnode.data[0].ptr = root;
 					newrootnode.data[0].cnt = info.oldnodecnt;
 					newrootnode.data[0].bcnt = info.oldnodebcnt;
-					
+
 					newrootnode.data[1].ptr = info.newnode;
 					newrootnode.data[1].cnt = info.newnodecnt;
 					newrootnode.data[1].bcnt = info.newnodebcnt;
-					
-					newrootnode.dataFilled = 2;		
-					
-					root = newroot;			
+
+					newrootnode.dataFilled = 2;
+
+					root = newroot;
 					root_cnt = info.oldnodecnt + info.newnodecnt;
 					root_bcnt = info.oldnodebcnt + info.newnodebcnt;
 
@@ -1718,25 +1718,25 @@ namespace libmaus2
 				else
 				{
 					root_cnt = info.oldnodecnt;
-					root_bcnt = info.oldnodebcnt;	
+					root_bcnt = info.oldnodebcnt;
 				}
-				
+
 		#if defined(BITTREE_DEBUG)
 				if ( ! checkTree() )
 					throw std::runtime_error("Tree structure corrupt.");
 		#endif
 			}
-			
+
 			uint64_t getN() const
 			{
 				return root_cnt;
 			}
-			
+
 			bool setBitQuick(uint64_t i, bool const b)
 			{
 				assert ( i < size() );
-				bool const changed = setBitQuick(root,i,b);	
-				
+				bool const changed = setBitQuick(root,i,b);
+
 				if ( changed )
 				{
 					if ( b )
@@ -1744,10 +1744,10 @@ namespace libmaus2
 					else
 						--root_bcnt;
 				}
-				
+
 				return changed;
 			}
-			
+
 			bool setBitQuick(uint64_t node, uint64_t i, bool const b)
 			{
 				if ( isLeaf(node) )
@@ -1767,7 +1767,7 @@ namespace libmaus2
 				else
 				{
 					inner_node_type & innernode = getNode(node);
-					
+
 					for ( uint64_t j = 0; j < innernode.dataFilled; ++j )
 					{
 						if ( i < innernode.data[j].cnt )
@@ -1785,7 +1785,7 @@ namespace libmaus2
 						else
 							i -= innernode.data[j].cnt;
 					}
-					
+
 					throw std::out_of_range("setBitQuick: Position does not exist.");
 				}
 			}
@@ -1800,7 +1800,7 @@ namespace libmaus2
 				else
 				{
 					inner_node_type const & innernode = getNode(node);
-					
+
 					for ( uint64_t j = 0; j < innernode.dataFilled; ++j )
 					{
 						if ( i < innernode.data[j].cnt )
@@ -1808,7 +1808,7 @@ namespace libmaus2
 						else
 							i -= innernode.data[j].cnt;
 					}
-					
+
 					throw std::out_of_range("access: Position does not exist.");
 				}
 			}
@@ -1823,9 +1823,9 @@ namespace libmaus2
 				else
 				{
 					inner_node_type const & innernode = getNode(node);
-					
+
 					uint64_t bcnt = 0;
-					
+
 					for ( uint64_t j = 0; j < innernode.dataFilled; ++j )
 					{
 						if ( i < innernode.data[j].cnt )
@@ -1836,7 +1836,7 @@ namespace libmaus2
 							bcnt += innernode.data[j].bcnt;
 						}
 					}
-					
+
 					throw std::out_of_range("rank1: Position does not exist.");
 				}
 			}
@@ -1851,9 +1851,9 @@ namespace libmaus2
 				else
 				{
 					inner_node_type const & innernode = getNode(node);
-					
+
 					uint64_t bcnt = 0;
-					
+
 					for ( uint64_t j = 0; j < innernode.dataFilled; ++j )
 					{
 						if ( i < innernode.data[j].cnt )
@@ -1867,7 +1867,7 @@ namespace libmaus2
 							bcnt += innernode.data[j].bcnt;
 						}
 					}
-					
+
 					throw std::out_of_range("inverseSelect1: Position does not exist.");
 				}
 			}
@@ -1882,9 +1882,9 @@ namespace libmaus2
 				else
 				{
 					inner_node_type const & innernode = getNode(node);
-					
+
 					uint64_t zcnt = 0;
-					
+
 					for ( uint64_t j = 0; j < innernode.dataFilled; ++j )
 					{
 						if ( i < innernode.data[j].cnt )
@@ -1898,7 +1898,7 @@ namespace libmaus2
 							zcnt += (innernode.data[j].cnt - innernode.data[j].bcnt);
 						}
 					}
-					
+
 					throw std::out_of_range("inverseSelect0: Position does not exist.");
 				}
 			}
@@ -1913,7 +1913,7 @@ namespace libmaus2
 				else
 				{
 					inner_node_type const & innernode = getNode(node);
-					
+
 					uint64_t cnt = 0;
 
 					for ( uint64_t j = 0; j < innernode.dataFilled; ++j )
@@ -1926,7 +1926,7 @@ namespace libmaus2
 							cnt += innernode.data[j].cnt;
 						}
 					}
-					
+
 					throw std::out_of_range("Rank does not exist.");
 				}
 			}
@@ -1941,14 +1941,14 @@ namespace libmaus2
 				else
 				{
 					inner_node_type const & innernode = getNode(node);
-					
+
 					uint64_t cnt = 0;
 
 					for ( uint64_t j = 0; j < innernode.dataFilled; ++j )
 					{
-						uint64_t bcnt = 
+						uint64_t bcnt =
 							innernode.data[j].cnt-innernode.data[j].bcnt;
-					
+
 						if ( i < bcnt )
 							return cnt + select0(innernode.data[j].ptr,i);
 						else
@@ -1957,14 +1957,14 @@ namespace libmaus2
 							cnt += innernode.data[j].cnt;
 						}
 					}
-					
+
 					throw std::out_of_range("Rank does not exist.");
 				}
 			}
-			
+
 			bool operator==(this_type const & o) const
 			{
-				if ( 
+				if (
 					this->root_cnt != o.root_cnt ||
 					this->root_bcnt != o.root_bcnt ||
 					this->empty != o.empty
@@ -1973,7 +1973,7 @@ namespace libmaus2
 				else
 					return true;
 			}
-			
+
 			bool operator[](uint64_t i) const
 			{
 				return access(root,i);
@@ -2008,7 +2008,7 @@ namespace libmaus2
 			{
 				return select0(root,i);
 			}
-			
+
 			void toString(std::ostream & out) const
 			{
 				if ( empty )
@@ -2052,7 +2052,7 @@ namespace libmaus2
 					out << ")" << std::endl;
 				}
 			}
-					
+
 			node_ptr_type allocateNode() { return innernodes->allocate(); }
 			void freeNode(node_ptr_type const node) { innernodes->free(node); }
 			inner_node_type & getNode(node_ptr_type node) { return (*innernodes)[node]; }

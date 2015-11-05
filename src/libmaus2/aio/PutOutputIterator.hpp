@@ -21,7 +21,7 @@
 #define LIBMAUS2_AIO_PUTOUTPUTITERATOR_HPP
 
 #include <iterator>
-                    
+
 namespace libmaus2
 {
 	namespace aio
@@ -49,7 +49,7 @@ namespace libmaus2
 			typedef typename ::std::iterator< ::std::output_iterator_tag, data_type>::reference reference;
 			//! pointer type
 			typedef typename ::std::iterator< ::std::output_iterator_tag, data_type>::pointer pointer;
-                
+
 			//! owner object used for actual output
                 	owner_type * SGOP;
 
@@ -59,7 +59,7 @@ namespace libmaus2
 			PutOutputIterator() : SGOP(0) {}
 			/**
 			 * construct put iterator from object rSGOP
-			 * 
+			 *
 			 * @param rSGOP owner
 			 **/
                 	PutOutputIterator(owner_type & rSGOP) : SGOP(&rSGOP) {}
@@ -86,7 +86,7 @@ namespace libmaus2
                 	 * @return this
                 	 **/
                 	this_type & operator++(int) { return *this; }
-                	
+
                 	/**
                 	 * assignment operator
                 	 *
@@ -94,7 +94,7 @@ namespace libmaus2
                 	 * @return *this
                 	 **/
                 	this_type & operator=(data_type const & v) { SGOP->put(v); return *this; }
-                };                
+                };
 	}
 }
 #endif

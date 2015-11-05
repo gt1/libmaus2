@@ -24,25 +24,25 @@
 namespace libmaus2
 {
 	namespace util
-	{		
+	{
 		struct Utf8StringPairAdapter
 		{
 			Utf8String::shared_ptr_type U;
-			
+
 			Utf8StringPairAdapter(Utf8String::shared_ptr_type rU) : U(rU) {}
-			
+
 			uint64_t size() const
 			{
 				return 2*U->size();
 			}
-			
+
 			wchar_t operator[](uint64_t const i) const
 			{
 				static unsigned int const shift = 12;
 				static wchar_t const mask = (1u << shift)-1;
-				
+
 				wchar_t const full = U->get(i>>1);
-				
+
 				if ( i & 1 )
 					return full & mask;
 				else

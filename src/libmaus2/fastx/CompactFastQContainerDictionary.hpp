@@ -47,27 +47,27 @@ namespace libmaus2
 			}
 
 			CompactFastQContainerDictionary(std::istream & in)
-			: 
-				designators(new ::libmaus2::rank::ImpCacheLineRank(in)), 
-				longptrs(in), 
-				shortptrs(in), 
-				FI(::libmaus2::fastx::FastInterval::deserialise(in)) 
+			:
+				designators(new ::libmaus2::rank::ImpCacheLineRank(in)),
+				longptrs(in),
+				shortptrs(in),
+				FI(::libmaus2::fastx::FastInterval::deserialise(in))
 			{
 				// std::cerr << "Dict FI " << FI << std::endl;
 			}
-			
+
 			CompactFastQContainerDictionary(::libmaus2::network::SocketBase * in)
-			: 
-				designators(new ::libmaus2::rank::ImpCacheLineRank(in)), 
-				longptrs(in->readMessageInBlocks<uint64_t,::libmaus2::autoarray::alloc_type_cxx>()), 
-				shortptrs(in->readMessageInBlocks<uint16_t,::libmaus2::autoarray::alloc_type_cxx>()), 
-				FI(::libmaus2::fastx::FastInterval::deserialise(in->readString())) 
+			:
+				designators(new ::libmaus2::rank::ImpCacheLineRank(in)),
+				longptrs(in->readMessageInBlocks<uint64_t,::libmaus2::autoarray::alloc_type_cxx>()),
+				shortptrs(in->readMessageInBlocks<uint16_t,::libmaus2::autoarray::alloc_type_cxx>()),
+				FI(::libmaus2::fastx::FastInterval::deserialise(in->readString()))
 			{
 				// std::cerr << "Dict FI " << FI << std::endl;
 			}
-			
-			
-			
+
+
+
 			void serialise(std::ostream & out) const
 			{
 				designators->serialise(out);

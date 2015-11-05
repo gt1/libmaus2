@@ -41,19 +41,19 @@ namespace libmaus2
 		struct UInt
 		{
 			static unsigned int const words = _words;
-		
+
 			uint64_t A[words];
 
 			static unsigned int popcnt(uint64_t const u)
 			{
 				return ::libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(u);
 			}
-			
+
 			void keepLowBits(uint64_t pos)
 			{
 				uint64_t const eword = pos/64;
 				uint64_t const ebit = pos-eword*64;
-				
+
 				if ( ebit )
 				{
 					A[eword] &= (1ull << ebit)-1;
@@ -62,11 +62,11 @@ namespace libmaus2
 				{
 					A[eword] = 0;
 				}
-				
+
 				for ( uint64_t i = eword+1; i < words; ++i )
 					A[i] = 0;
 			}
-			
+
 			void keepLowHalf()
 			{
 				if ( words % 2 == 0 )
@@ -81,12 +81,12 @@ namespace libmaus2
 					A[words/2] &= 0xFFFFFFFFULL;
 				}
 			}
-			
+
 			uint64_t select1(uint64_t rank) const
 			{
 				uint64_t pos = 0;
 
-				uint64_t crank;		
+				uint64_t crank;
 				uint64_t i = 0;
 				while ( rank >= (crank=popcnt(A[i])) )
 				{
@@ -94,9 +94,9 @@ namespace libmaus2
 					pos += 64;
 					i++;
 				}
-				
+
 				uint64_t word = A[i];
-				
+
 				if ( rank >= (crank=popcnt(word&0x00000000FFFFFFFFULL)) )
 				{
 					rank -= crank;
@@ -121,7 +121,7 @@ namespace libmaus2
 					pos += 4;
 					word >>= 4;
 				}
-				if ( rank >= (crank=popcnt(word&0x0000000000000003ULL)) )  
+				if ( rank >= (crank=popcnt(word&0x0000000000000003ULL)) )
 				{
 					rank -= crank;
 					pos += 2;
@@ -133,10 +133,10 @@ namespace libmaus2
 					pos += 1;
 					word >>= 1;
 				}
-				
+
 				assert ( rank == 0 );
 				assert ( (word & 1) != 0 );
-				
+
 				return pos;
 			}
 
@@ -144,7 +144,7 @@ namespace libmaus2
 			{
 				uint64_t pos = 0;
 
-				uint64_t crank;		
+				uint64_t crank;
 				uint64_t i = 0;
 				while ( rank >= (crank=popcnt(~A[i])) )
 				{
@@ -152,9 +152,9 @@ namespace libmaus2
 					pos += 64;
 					i++;
 				}
-				
+
 				uint64_t word = ~A[i];
-				
+
 				if ( rank >= (crank=popcnt(word&0xFFFFFFFFUL)) )
 				{
 					rank -= crank;
@@ -191,13 +191,13 @@ namespace libmaus2
 					pos += 1;
 					word >>= 1;
 				}
-				
+
 				assert ( rank == 0 );
 				assert ( (word & 1) != 0 );
-				
+
 				return pos;
 			}
-			
+
 			uint64_t rank1(uint64_t pos) const
 			{
 				pos += 1;
@@ -205,15 +205,15 @@ namespace libmaus2
 				uint64_t const ebit = pos - eword*64;
 				uint64_t const emask = (1ull<<ebit)-1;
 				uint64_t pc = 0;
-				
+
 				for ( uint64_t i = 0; i < eword; ++i )
 				{
 					pc += popcnt(A[i]);
 				}
-				
+
 				if ( ebit )
 					pc += popcnt(A[eword] & emask);
-					
+
 				return pc;
 			}
 
@@ -224,18 +224,18 @@ namespace libmaus2
 				uint64_t const ebit = pos - eword*64;
 				uint64_t const emask = (1ull<<ebit)-1;
 				uint64_t pc = 0;
-				
+
 				for ( uint64_t i = 0; i < eword; ++i )
 				{
 					pc += popcnt(~A[i]);
 				}
-				
+
 				if ( ebit )
 					pc += popcnt((~A[eword]) & emask);
-					
+
 				return pc;
 			}
-			
+
 			bool getBit(uint64_t pos) const
 			{
 				uint64_t const eword = pos/64;
@@ -270,18 +270,18 @@ namespace libmaus2
 				}
 				else
 					highmask.A[fullwords] = 0xFFFFFFFFFFFFFFFFull;
-				
+
 				for ( uint64_t i = fullwords+1; i < words; ++i )
 					highmask.A[i] = 0xFFFFFFFFFFFFFFFFull;
-				
+
 				UInt<words> low = (*this);
 				low &= lowmask;
 				UInt<words> bit(static_cast<uint64_t>(b));
 				bit <<= pos;
-				UInt<words> high = (*this);	
+				UInt<words> high = (*this);
 				high &= highmask;
 				high <<= 1;
-				
+
 				for ( uint64_t i = 0; i < words; ++i )
 					A[i] = low.A[i] | bit.A[i] | high.A[i];
 			}
@@ -303,24 +303,24 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < words; ++i )
 					highmask.A[i] = ~(lowmask.A[i]);
 				highmask.setBit(pos,false);
-				
+
 				UInt<words> low = (*this);
 				low &= lowmask;
-				
-				UInt<words> high = (*this);	
+
+				UInt<words> high = (*this);
 				high &= highmask;
 				high >>= 1;
-				
+
 				for ( uint64_t i = 0; i < words; ++i )
-					A[i] = low.A[i] | high.A[i];		
+					A[i] = low.A[i] | high.A[i];
 			}
-			
+
 			operator uint64_t() const
 			{
 				return A[0];
 			}
 
-			
+
 			bool operator==(UInt<words> const & u) const
 			{
 				for ( unsigned int i = 0; i < words; ++i )
@@ -335,20 +335,20 @@ namespace libmaus2
 						return true;
 				return false;
 			}
-			
-			UInt() 
-			{ 
-				for ( unsigned int i = 0; i < words; ++i ) A[i] = 0; 
+
+			UInt()
+			{
+				for ( unsigned int i = 0; i < words; ++i ) A[i] = 0;
 			}
-			UInt(uint64_t v) 
-			{ 
-				for ( unsigned int i = 0; i < words; ++i ) A[i] = 0; A[0] = v; 
+			UInt(uint64_t v)
+			{
+				for ( unsigned int i = 0; i < words; ++i ) A[i] = 0; A[0] = v;
 			}
 			template<unsigned int otherwords>
 			UInt(UInt<otherwords> const & u)
 			{
 				for ( unsigned int i = 0; i < ((words<otherwords)?words:otherwords); ++i )
-					A[i] = u.A[i];	
+					A[i] = u.A[i];
 				if ( words > otherwords )
 					for ( unsigned int i = otherwords; i != words; ++i )
 						A[i] = 0;
@@ -357,11 +357,11 @@ namespace libmaus2
 			UInt<words> & operator=(UInt<otherwords> const & u)
 			{
 				for ( unsigned int i = 0; i < ((words<otherwords)?words:otherwords); ++i )
-					A[i] = u.A[i];	
+					A[i] = u.A[i];
 				return *this;
 			}
-			UInt(std::istream & in) 
-			{ 
+			UInt(std::istream & in)
+			{
 				deserialize(in);
 			}
 
@@ -384,11 +384,11 @@ namespace libmaus2
 				i -= 64*fullword;
 				return ((A[fullword] >> i) & 1);
 			}
-				
+
 			void operator<<=(unsigned int c)
 			{
 				unsigned int const fullwords = c/64;
-				
+
 				// std::cerr << "fullwords: " << fullwords << std::endl;
 
 				if ( fullwords >= words )
@@ -407,29 +407,29 @@ namespace libmaus2
 					}
 					for ( unsigned int i = 0; i < fullwords; ++i )
 						A [ i ] = 0;
-					
+
 					c -= fullwords * 64;
-					
+
 					#if 0
 					std::cerr << "rest of c is " << c << std::endl;
 					#endif
-					
+
 					uint64_t const andmask = (1ull << c) - 1;
 					unsigned int const shift = 64-c;
-					
+
 					for ( unsigned int i = 0; i+1 < words; ++i )
 					{
 						A[ words - i - 1 ] <<= c;
 						A[ words - i - 1 ] |= (A [ words - i - 2 ] >> shift) & andmask;
 					}
-					
-					A [ 0 ] <<= c;			
+
+					A [ 0 ] <<= c;
 				}
 			}
 			void operator>>=(unsigned int c)
 			{
 				unsigned int const fullwords = c/64;
-				
+
 				#if 0
 				std::cerr << "fullwords: " << fullwords << std::endl;
 				#endif
@@ -450,22 +450,22 @@ namespace libmaus2
 					}
 					for ( unsigned int i = 0; i < fullwords; ++i )
 						A [ words-i-1 ] = 0;
-					
+
 					c -= fullwords * 64;
-					
+
 					#if 0
 					std::cerr << "rest of c is " << c << std::endl;
 					#endif
 
 					uint64_t const andmask = (1ull<<c)-1;
 					unsigned int const shift = 64-c;
-					
+
 					for ( unsigned int i = 0; i+1 < words; ++i )
 					{
 						A[ i ] >>= c;
 						A[ i ] |= (A [ i+1 ] & andmask) << shift;
 					}
-					
+
 					A [ words-1 ] >>= c;
 				}
 			}
@@ -475,7 +475,7 @@ namespace libmaus2
 				for ( size_t i = 0; i < words; ++i )
 					libmaus2::util::NumberSerialisation::serialiseNumber(out,A[i]);
 			}
-			
+
 			void deserialise(std::istream & in)
 			{
 				for ( size_t i = 0; i < words; ++i )
@@ -490,11 +490,11 @@ namespace libmaus2
 			{
 				in.read ( reinterpret_cast<char *>(&A[0]) , words * sizeof(uint64_t) );
 			}
-			
+
 			void serializeSlow(bitio::BitOutputStream & out, unsigned int numbits) const
 			{
 				UInt<words> U(1ull); U <<= (numbits-1);
-				
+
 				for ( unsigned int i = 0; i < numbits; ++i, U >>= 1 )
 					out.writeBit ( (U & (*this)) != UInt<words>(0ull) );
 			}
@@ -503,9 +503,9 @@ namespace libmaus2
 			{
 				if ( numbits % 64 )
 					out.write ( A[ numbits / 64 ], numbits % 64 );
-				
+
 				unsigned int const restwords = numbits / 64;
-				
+
 				for ( unsigned int i = 0; i < restwords; ++i )
 					out.write ( A[restwords-i-1], 64 );
 			}
@@ -513,20 +513,20 @@ namespace libmaus2
 			void serialize(uint64_t * const acode, uint64_t offset, unsigned int numbits) const
 			{
 				unsigned int mod = numbits % 64;
-				
+
 				if ( mod )
 				{
 					bitio::putBits ( acode, offset, mod, A[numbits/64] & ((1ull<<mod)-1) );
 					offset += mod;
 				}
-				
+
 				unsigned int const restwords = numbits / 64;
-				
+
 				for ( unsigned int i = 0; i < restwords; ++i )
 				{
 					bitio::putBits ( acode, offset, 64, A[restwords-i-1]);
 					offset += 64;
-				}		
+				}
 			}
 
 			template<typename writer_type>
@@ -555,7 +555,7 @@ namespace libmaus2
 				for ( unsigned int i = 0; i < words; ++i )
 					if ( A[words-i-1] )
 						return (words-i-1)*64 + numBits ( A[words-i-1] );
-					
+
 				return 0;
 			}
 			/**
@@ -565,16 +565,16 @@ namespace libmaus2
 			std::string bitsToString() const
 			{
 				unsigned int const c = numBits();
-				
+
 				if ( ! c )
 					return std::string();
-				
+
 				UInt<words> highestbit(1);
 				highestbit <<= (c-1);
 				assert ( ((*this) & highestbit) != UInt<words>() );
-				
+
 				std::string s(c,' ');
-				
+
 				for ( unsigned int i = 0; i < c; ++ i, highestbit >>= 1 )
 				{
 					if ( ((*this) & highestbit) != UInt<words>() )
@@ -582,7 +582,7 @@ namespace libmaus2
 					else
 						s[i] = ')';
 				}
-				
+
 				return s;
 			}
 			/**
@@ -599,7 +599,7 @@ namespace libmaus2
 					(*this) <<= 1;
 					if ( s[i] == '(' )
 						(*this) |= UInt<words>(1);
-				}		
+				}
 			}
 		};
 
@@ -650,13 +650,13 @@ namespace libmaus2
 			for ( unsigned int i = 0; i < words; ++i )
 			{
 				uint64_t v = u.A[i];
-				
+
 				for ( unsigned int j = 0; j < 64; ++j, v>>=1 )
 					s[p++] = (v & 1) ? '1' : '0';
 			}
-			
+
 			out << s;
-			
+
 			return out;
 		}
 
@@ -665,7 +665,7 @@ namespace libmaus2
 		{
 			UInt<words> mask (1);
 			unsigned int num = u.numBits();
-			
+
 			for ( unsigned int i = 0; i < num; ++i, mask <<= 1 )
 				if ( (u & mask) != UInt<words>(0) )
 					out << '1';
@@ -679,7 +679,7 @@ namespace libmaus2
 		std::ostream & print (std::ostream & out, UInt<words> const & u, unsigned int const num)
 		{
 			UInt<words> mask (1);
-			
+
 			for ( unsigned int i = 0; i < num; ++i, mask <<= 1 )
 				if ( (u & mask) != UInt<words>(0) )
 					out << '1';

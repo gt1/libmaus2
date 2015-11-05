@@ -25,7 +25,7 @@
  * ISAAC 2008
  * Original code by Simon Puglisi, added bugs by German Tischler
  */
- 
+
 #if ! defined(DC_LCP_ORACLE_HPP)
 #define DC_LCP_ORACLE_HPP
 
@@ -47,7 +47,7 @@ namespace libmaus2
          static const uint32_t max_precomputed_cover;
          static const uint32_t _cover_sizes[];
       };
-      
+
       template<typename value_type>
       struct DefaultComparator
       {
@@ -61,7 +61,7 @@ namespace libmaus2
          static bool equal(value_type a, value_type b) { return a == b && (a != 0); }
          static bool unequal(value_type a, value_type b) { return !equal(a,b); }
       };
-   
+
       template<
          typename iterator_type,
          template<class> class rmq_type_template,
@@ -83,10 +83,10 @@ namespace libmaus2
          uint32_t const * const _cover;
          uint32_t const _cover_size;
          uint32_t _m;
-         
+
          /* size <= 256 for _logv <= 8 */
          ::libmaus2::autoarray::AutoArray<int32_t> _rev_cover;
-         /* _delta <= 256 for _logv <= 8 */ 
+         /* _delta <= 256 for _logv <= 8 */
          ::libmaus2::autoarray::AutoArray<uint32_t> _delta;
          /* _n/256 * 20 for _logv=8 equals 0.3125 bytes per symbol */
          ::libmaus2::autoarray::AutoArray<uint32_t> _ess;
@@ -116,10 +116,10 @@ namespace libmaus2
                se.finish();
                throw se;
             }
-            
+
             //fprintf(stderr,"_m = %d\n",_m);
             //fprintf(stderr,"_v = %d\n",_v);
-          
+
             //compute _rev_cover
             uint32_t j = 0;
             for(uint32_t i = 0; i < _v; i++)
@@ -135,7 +135,7 @@ namespace libmaus2
                   j++;
                }
             }
-            
+
             #if 0
             uint64_t ___m = 0;
             for ( uint64_t i = 0; i < _n; ++i )
@@ -144,7 +144,7 @@ namespace libmaus2
                if ( _rev_cover[ si & _mask ] != -1 )
                   ++___m;
             }
-            
+
             std::cerr << "_m=" << _m << " ___m=" << ___m << std::endl;
             #endif
 
@@ -242,12 +242,12 @@ namespace libmaus2
             uint32_t longcount = 0;
             uint32_t shortcount = 0;
             uint32_t maxlcp = 0;
-            
+
             // uint32_t s0 = _sa[0];
-            
+
             for(uint32_t i = 1; i < _n; i++){
                // uint32_t const s1 = _sa[i];
-            
+
                //if(i % 10000000 == 0){
                //   fprintf(stderr,"Processed %d entires\n",i);
                //}
@@ -255,7 +255,7 @@ namespace libmaus2
                uint32_t const s0 = _sa[i-1];
                uint32_t const s1 = _sa[i];
                #endif
-               
+
                //check if lcp(SA[i-1],SA[i]) < v
                uint32_t j = 0;
                while(
@@ -264,7 +264,7 @@ namespace libmaus2
                  (s1+j < _n)
                  &&
                  ( comparator_type::equal(_x[s0+j],_x[s1+j]))
-                 && 
+                 &&
                  (j < _v)
                )
                {
@@ -306,7 +306,7 @@ namespace libmaus2
                   }
                   #endif
                }
-               
+
                // s0 = s1;
             }
             //fprintf(stderr,"maxlcp = %d\n",maxlcp);
@@ -318,7 +318,7 @@ namespace libmaus2
          {
             OracleLCP oracle(x,SA,n,logv);
             oracle.dc_lcp_construct();
-            
+
             if ( n )
             {
                for ( uint32_t i = n-1; i != 0; --i )
@@ -330,4 +330,3 @@ namespace libmaus2
    }
 }
 #endif
-

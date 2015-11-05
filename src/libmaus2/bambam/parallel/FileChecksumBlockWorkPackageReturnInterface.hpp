@@ -20,13 +20,13 @@
 #define LIBMAUS2_BAMBAM_PARALLEL_FILECHECKSUMBLOCKWORKPACKAGERETURNINTERFACE_HPP
 
 #include <libmaus2/bambam/parallel/FileChecksumBlockWorkPackage.hpp>
-			
+
 namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
-		{			
+		{
 			struct FileChecksumBlockWorkPackageReturnInterface
 			{
 				virtual ~FileChecksumBlockWorkPackageReturnInterface() {}

@@ -33,61 +33,61 @@ namespace libmaus2
                 struct OutputBuffer
                 {
                         typedef _data_type data_type;
-                        
+
                         unsigned int const n;
                         ::libmaus2::autoarray::AutoArray<data_type> B;
                         unsigned int f;
                         std::ostream & out;
-                        
+
                         OutputBuffer(unsigned int const rn, std::ostream & rout) : n(rn), B(n,false), f(0), out(rout) {}
                         ~OutputBuffer() { flush(); }
-                        
+
                         void writeContents()
                         {
                                 // std::cerr << "writing buffer of " << f << " words." << std::endl;
                                 out.write( reinterpret_cast<char const *>(B.get()), f * sizeof(data_type) );
                                 f = 0;
                         }
-                        
+
                         void flush()
                         {
                                 writeContents();
                                 out.flush();
                         }
-                        
+
                         void writeData(data_type D)
                         {
                                 // std::cerr << "Writing " << D << std::endl;
-                                
+
                                 B[f++] = D;
-                                
+
                                 if ( f == n )
                                         writeContents();
                         }
                 };
-                
+
                 template<typename _data_type>
                 struct OutputFile : public libmaus2::aio::OutputStreamInstance, OutputBuffer<_data_type>
                 {
                         OutputFile(unsigned int const rn, std::string const & filename)
                         : libmaus2::aio::OutputStreamInstance(filename), OutputBuffer<_data_type>(rn,*this) {}
                         ~OutputFile() {}
-                        
+
                         void flush()
                         {
                                 OutputBuffer<_data_type>::flush();
                         }
                 };
-                
+
                 template<typename _data_type>
                 struct OutputBufferIteratorProxy
                 {
                         typedef _data_type data_type;
-                
+
                         OutputBuffer<_data_type> & buffer;
-                        
+
                         OutputBufferIteratorProxy(OutputBuffer<_data_type> & rbuffer) : buffer(rbuffer) {}
-                        
+
                          OutputBufferIteratorProxy<data_type> & operator=(data_type D)
                          {
                                 buffer.writeData(D);
@@ -98,12 +98,12 @@ namespace libmaus2
                 template<typename _data_type>
                 struct OutputBufferIterator
                 {
-                        typedef _data_type data_type;	
+                        typedef _data_type data_type;
                         OutputBufferIteratorProxy<data_type> proxy;
-                        
+
                         OutputBufferIterator(OutputBuffer<data_type> & rbuffer) : proxy(rbuffer) {}
                         ~OutputBufferIterator() {}
-                        
+
                         OutputBufferIteratorProxy<data_type> & operator*()
                         {
                                 return proxy;
@@ -118,16 +118,16 @@ namespace libmaus2
                 struct InputBuffer
                 {
                         typedef _data_type data_type;
-                        
+
                         unsigned int const n;
                         ::libmaus2::autoarray::AutoArray<data_type> B;
                         unsigned int c;
                         unsigned int f;
                         std::istream & in;
-                        
+
                         InputBuffer(unsigned int const rn, std::istream & rin) : n(rn), B(n,false), f(0), c(0), in(rin) {}
                         ~InputBuffer() { }
-                        
+
                         void fillBuffer()
                         {
                                 in.read( reinterpret_cast<char *>(B.get()), n * sizeof(data_type) );
@@ -135,7 +135,7 @@ namespace libmaus2
                                 c = 0;
                                 f = in.gcount() / sizeof(data_type);
                         }
-                        
+
                         data_type readData()
                         {
                                 if ( c == f )

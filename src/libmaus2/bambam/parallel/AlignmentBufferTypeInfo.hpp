@@ -30,15 +30,15 @@ namespace libmaus2
 			struct AlignmentBufferTypeInfo
 			{
 				typedef AlignmentBufferTypeInfo this_type;
-				
+
 				typedef libmaus2::bambam::parallel::AlignmentBuffer::shared_ptr_type pointer_type;
-				
+
 				static pointer_type getNullPointer()
 				{
 					pointer_type p;
 					return p;
 				}
-				
+
 				static pointer_type deallocate(pointer_type /* p */)
 				{
 					return getNullPointer();

@@ -26,9 +26,9 @@ namespace libmaus2
 	namespace parallel
 	{
 		template<
-			typename _element_type, 
+			typename _element_type,
 			typename _allocator_type = libmaus2::util::FreeListDefaultAllocator<_element_type>,
-			typename _type_info_type = libmaus2::util::FreeListDefaultTypeInfo<_element_type> 
+			typename _type_info_type = libmaus2::util::FreeListDefaultTypeInfo<_element_type>
 		>
 		struct LockedGrowingFreeList : private libmaus2::util::GrowingFreeList<_element_type,_allocator_type,_type_info_type>
 		{
@@ -46,17 +46,17 @@ namespace libmaus2
 			: base_type(allocator)
 			{
 			}
-			
+
 			virtual ~LockedGrowingFreeList()
 			{
 			}
-			
+
 			bool empty() const
 			{
 				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				return base_type::empty();
 			}
-			
+
 			typename type_info_type::pointer_type get()
 			{
 				libmaus2::parallel::ScopePosixSpinLock slock(lock);
@@ -72,15 +72,15 @@ namespace libmaus2
 			void put(std::vector < typename type_info_type::pointer_type > V)
 			{
 				libmaus2::parallel::ScopePosixSpinLock slock(lock);
-				base_type::put(V);				
+				base_type::put(V);
 			}
 
 			std::vector < typename type_info_type::pointer_type > getAll()
 			{
 				libmaus2::parallel::ScopePosixSpinLock slock(lock);
-				return base_type::getAll();			
+				return base_type::getAll();
 			}
-			
+
 			size_t byteSize()
 			{
 				return base_type::byteSize();
@@ -90,13 +90,13 @@ namespace libmaus2
 			{
 				return base_type::getAllSize();
 			}
-			
+
 			size_t capacity()
-			{				
+			{
 				libmaus2::parallel::ScopePosixSpinLock slock(lock);
-				return base_type::capacity();			
+				return base_type::capacity();
 			}
-			
+
 			size_t freeUnlocked()
 			{
 				return base_type::free();

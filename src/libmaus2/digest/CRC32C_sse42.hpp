@@ -28,10 +28,10 @@ namespace libmaus2
 		struct CRC32C_sse42 : public DigestBase<4 /* digest length */, 0 /* block size shift */, 0 /* need padding */, 0 /* number length */, false>
 		{
 			uint32_t ctx;
-			
+
 			CRC32C_sse42();
 			~CRC32C_sse42();
-			
+
 			void init();
 			void update(uint8_t const * t, size_t l);
 			void digest(uint8_t * digest);

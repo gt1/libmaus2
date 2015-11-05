@@ -26,7 +26,7 @@
 namespace libmaus2
 {
 	namespace digest
-	{		
+	{
 		template<size_t _digestlength, size_t _blockshift, bool _needpad, size_t _numlen, bool _prefersinglecall>
 		struct DigestBase : public DigestInterface
 		{
@@ -35,7 +35,7 @@ namespace libmaus2
 			enum { needpad = _needpad };
 			enum { numlen = _numlen };
 			enum { prefersinglecall = _prefersinglecall };
-		
+
 			virtual ~DigestBase() {}
 			virtual void digest(uint8_t * digest) = 0;
 
@@ -60,7 +60,7 @@ namespace libmaus2
 					uint64_t const blocksize = (1ull << blockshift);
 					// sanity check
 					assert ( rest < blocksize );
-					
+
 					if ( blocksize-rest  >= (1 + numlen) )
 						return (fullblocks+1)<<blockshift;
 					else
@@ -68,16 +68,16 @@ namespace libmaus2
 				}
 			}
 
-			libmaus2::math::UnsignedInteger<digestlength/4> digestui() 
+			libmaus2::math::UnsignedInteger<digestlength/4> digestui()
 			{
 				uint8_t adigest[digestlength];
 				digest(adigest);
-				
+
 				libmaus2::math::UnsignedInteger<digestlength/4> U;
 				uint8_t * udigest = &adigest[0];
 				for ( size_t i = 0; i < digestlength/4; ++i )
 				{
-					U[digestlength/4-i-1] = 
+					U[digestlength/4-i-1] =
 						(static_cast<uint32_t>(udigest[0]) << 24) |
 						(static_cast<uint32_t>(udigest[1]) << 16) |
 						(static_cast<uint32_t>(udigest[2]) <<  8) |
@@ -85,10 +85,10 @@ namespace libmaus2
 						;
 					udigest += 4;
 				}
-				
+
 				return U;
 			}
-			
+
 			static std::string digestToString(uint8_t const * digest)
 			{
 				std::ostringstream ostr;
@@ -116,16 +116,16 @@ namespace libmaus2
 			enum { needpad = _needpad };
 			enum { numlen = _numlen };
 			enum { prefersinglecall = _prefersinglecall };
-		
+
 			virtual ~DigestBase() {}
 			virtual void digest(uint8_t * digest) = 0;
 
 			static uint64_t getPaddedMessageLength(uint64_t const n)
-			{	
+			{
 				return n;
 			}
 
-			libmaus2::math::UnsignedInteger<0> digestui() 
+			libmaus2::math::UnsignedInteger<0> digestui()
 			{
 				return libmaus2::math::UnsignedInteger<0>();
 			}

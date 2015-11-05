@@ -31,23 +31,23 @@ namespace libmaus2
 				typedef AlignmentFileRegion this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				libmaus2::aio::InputStreamInstance::unique_ptr_type Pfile;
 				libmaus2::dazzler::align::AlignmentFile::unique_ptr_type Palgn;
-				
+
 				AlignmentFileRegion(
 					libmaus2::aio::InputStreamInstance::unique_ptr_type & rPfile,
 					libmaus2::dazzler::align::AlignmentFile::unique_ptr_type & rPalgn
 				) : Pfile(UNIQUE_PTR_MOVE(rPfile)), Palgn(UNIQUE_PTR_MOVE(rPalgn))
 				{
-				
-				}					
+
+				}
 
 				bool peekNextOverlap(Overlap & OVL)
 				{
 					return Palgn->peekNextOverlap(*Pfile,OVL);
 				}
-				
+
 				bool getNextOverlap(Overlap & OVL)
 				{
 					return Palgn->getNextOverlap(*Pfile,OVL);
@@ -55,7 +55,7 @@ namespace libmaus2
 
 				bool getNextOverlap(Overlap & OVL, uint64_t & s)
 				{
-					return Palgn->getNextOverlap(*Pfile,OVL,s);				
+					return Palgn->getNextOverlap(*Pfile,OVL,s);
 				}
 			};
 		}

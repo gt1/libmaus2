@@ -32,7 +32,7 @@ namespace libmaus2
 			uint64_t end;
 			uint64_t mapped;
 			uint64_t unmapped;
-			
+
 			BamIndexMetaInfo() : refid(-1), start(0), end(0), mapped(0), unmapped(0) {}
 			BamIndexMetaInfo(
 				int64_t const rrefid,

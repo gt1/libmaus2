@@ -50,17 +50,17 @@ namespace libmaus2
 			static unsigned int popcnt(uint64_t i)
 			{
 				unsigned int j = 0;
-		
+
 				while ( i )
 				{
 					if ( i & 1 )
 						++j;
 					i >>= 1;
 				}
-		
+
 				return j;
 			}
-			
+
 			virtual ~CodeBase() {}
 		};
 	}

@@ -25,54 +25,54 @@ namespace libmaus2
 	namespace parallel
 	{
 		struct DummyThreadWorkPackageMeta;
-				
+
 		struct DummyThreadWorkPackage : public SimpleThreadWorkPackage
 		{
 			typedef DummyThreadWorkPackage this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			libmaus2::parallel::PosixMutex * mutex;
-			
+
 			DummyThreadWorkPackageMeta * meta;
-		
+
 			DummyThreadWorkPackage() : mutex(0), meta(0) {}
 			DummyThreadWorkPackage(
-				uint64_t const rpriority, 
-				uint64_t const rdispatcherid, 
+				uint64_t const rpriority,
+				uint64_t const rdispatcherid,
 				libmaus2::parallel::PosixMutex * rmutex,
 				DummyThreadWorkPackageMeta * rmeta,
 				uint64_t const rpackageid = 0
 			)
 			: SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), mutex(rmutex), meta(rmeta)
 			{
-			
-			}			
+
+			}
 
 			virtual char const * getPackageName() const
 			{
 				return "DummyThreadWorkPackage";
 			}
 		};
-		
+
 		struct DummyThreadWorkPackageMeta
 		{
 			libmaus2::parallel::PosixMutex lock;
 
 			SimpleThreadPoolWorkPackageFreeList<DummyThreadWorkPackage> freelist;
 			libmaus2::parallel::SynchronousCounter<uint64_t> finished;
-			
+
 			DummyThreadWorkPackageMeta() : finished(0)
 			{
-			
-			}			
+
+			}
 		};
 
 		struct DummyThreadWorkPackageDispatcher : public SimpleThreadWorkPackageDispatcher
 		{
 			virtual ~DummyThreadWorkPackageDispatcher() {}
 			virtual void dispatch(
-				SimpleThreadWorkPackage * P, 
+				SimpleThreadWorkPackage * P,
 				SimpleThreadPoolInterfaceEnqueTermInterface & tpi
 			)
 			{
@@ -107,12 +107,12 @@ namespace libmaus2
 				}
 				catch(...)
 				{
-				
+
 				}
-				
+
 				if ( ++ meta->finished == numpacks )
 					tpi.terminate();
-				
+
 				meta->freelist.returnPackage(DP);
 			}
 		};
@@ -121,7 +121,7 @@ namespace libmaus2
 		{
 			virtual ~DummyThreadWorkPackageRandomExceptionDispatcher() {}
 			virtual void dispatch(
-				SimpleThreadWorkPackage * P, 
+				SimpleThreadWorkPackage * P,
 				SimpleThreadPoolInterfaceEnqueTermInterface & tpi
 			)
 			{
@@ -156,10 +156,10 @@ namespace libmaus2
 						tpi.enque(pack0);
 					}
 				}
-				
+
 				if ( ++ meta->finished == numpacks )
 					tpi.terminate();
-				
+
 				meta->freelist.returnPackage(DP);
 			}
 		};
@@ -174,16 +174,16 @@ void testDummyPackages()
 
 	libmaus2::parallel::DummyThreadWorkPackageDispatcher dummydisp;
 	TP.registerDispatcher(dispid,&dummydisp);
-	
+
 	libmaus2::parallel::DummyThreadWorkPackageMeta meta;
 	libmaus2::parallel::PosixMutex printmutex;
-	
+
 	libmaus2::parallel::DummyThreadWorkPackage * pack = meta.freelist.getPackage(); //(0,dispid,&printmutex,&meta);
 	*pack = libmaus2::parallel::DummyThreadWorkPackage(0 /* priority */, dispid, &printmutex, &meta);
 
 	TP.enque(pack);
-	
-	TP.join();	
+
+	TP.join();
 }
 
 void testDummyRandomExceptionPackages()
@@ -196,16 +196,16 @@ void testDummyRandomExceptionPackages()
 
 		libmaus2::parallel::DummyThreadWorkPackageRandomExceptionDispatcher dummydisp;
 		TP.registerDispatcher(dispid,&dummydisp);
-		
+
 		libmaus2::parallel::DummyThreadWorkPackageMeta meta;
 		libmaus2::parallel::PosixMutex printmutex;
-		
+
 		libmaus2::parallel::DummyThreadWorkPackage * pack = meta.freelist.getPackage(); //(0,dispid,&printmutex,&meta);
 		*pack = libmaus2::parallel::DummyThreadWorkPackage(0 /* priority */, dispid, &printmutex, &meta);
 
 		TP.enque(pack);
-		
-		TP.join();	
+
+		TP.join();
 	}
 	catch(std::exception const & ex)
 	{

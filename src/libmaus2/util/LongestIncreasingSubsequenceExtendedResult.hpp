@@ -26,17 +26,17 @@ namespace libmaus2
 	{
 		template<typename iterator_type, typename comparator_type>
 		struct LongestIncreasingSubsequence;
-		
+
 		struct LongestIncreasingSubsequenceExtendedResult
 		{
 			typedef LongestIncreasingSubsequenceExtendedResult this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			private:
 			template<typename,typename>
 			friend struct LongestIncreasingSubsequence;
-		
+
 			// next index in longest increasing subsequence
 			::libmaus2::autoarray::AutoArray<uint64_t> const P;
 			// length of LISS starting at index i
@@ -49,19 +49,19 @@ namespace libmaus2
 			{
 				assert ( P.size() == L.size() );
 			}
-			
+
 			public:
 			size_t size() const
 			{
 				return P.size();
 			}
-			
+
 			uint64_t getLength(uint64_t const i) const
 			{
 				assert ( i < size() );
 				return L[i];
 			}
-			
+
 			uint64_t getMaximumLength() const
 			{
 				if ( L.size() )
@@ -82,18 +82,18 @@ namespace libmaus2
 					return std::pair<uint64_t,uint64_t>(0,0);
 				}
 			}
-			
+
 			bool hasNext(uint64_t const i) const
 			{
 				return P[i] != i;
 			}
-			
+
 			uint64_t getNext(uint64_t const i) const
 			{
 				return P[i];
 			}
 		};
-		
+
 		std::ostream & operator<<(std::ostream & out, LongestIncreasingSubsequenceExtendedResult const & R);
 	}
 }

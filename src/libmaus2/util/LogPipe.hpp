@@ -33,15 +33,15 @@ namespace libmaus2
 		{
 			typedef LogPipe this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			int stdoutpipe[2];
 			int stderrpipe[2];
 
 			::libmaus2::network::ClientSocket::unique_ptr_type outsock;
 			::libmaus2::network::ClientSocket::unique_ptr_type errsock;
-			
+
 			pid_t pid;
-			
+
 			LogPipe(
 				std::string const & serverhostname,
 				unsigned short outport,

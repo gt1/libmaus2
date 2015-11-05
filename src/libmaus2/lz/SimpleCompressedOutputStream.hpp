@@ -35,7 +35,7 @@ namespace libmaus2
 			typedef _stream_type stream_type;
 			typedef SimpleCompressedOutputStream<stream_type> this_type;
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			stream_type & out;
 			CompressorObject::unique_ptr_type compressor;
 			::libmaus2::autoarray::AutoArray<char> B;
@@ -46,7 +46,7 @@ namespace libmaus2
 			::libmaus2::autoarray::AutoArray<char> O;
 
 			uint64_t compressedwritten;
-			
+
 			SimpleCompressedOutputStream(
 				stream_type & rout,
 				CompressorObjectFactory & cfactory,
@@ -60,27 +60,27 @@ namespace libmaus2
 				flush();
 				out.flush();
 			}
-			
+
 			operator bool()
 			{
 				return out;
 			}
-			
+
 			void flush()
 			{
 				if ( pc != pa )
 				{
 					// byte counter
 					libmaus2::util::CountPutObject CPO;
-					
+
 					// compress data
 					// std::string const cdata = compressor->compress(std::string(pa,pc));
 					uint64_t const cdatasize = compressor->compress(pa,(pc-pa),O);
 
-					// number of uncompressed bytes					
+					// number of uncompressed bytes
 					::libmaus2::util::UTF8::encodeUTF8(pc-pa,out);
 					::libmaus2::util::UTF8::encodeUTF8(pc-pa,CPO);
-					
+
 					//  number of compressed bytes
 					::libmaus2::util::NumberSerialisation::serialiseNumber(out,cdatasize);
 					::libmaus2::util::NumberSerialisation::serialiseNumber(CPO,cdatasize);
@@ -88,7 +88,7 @@ namespace libmaus2
 					// write compressed data
 					out.write(O.begin(),cdatasize);
 					CPO.write(O.begin(),cdatasize);
-					
+
 					if ( ! out )
 					{
 						::libmaus2::exception::LibMausException se;
@@ -96,13 +96,13 @@ namespace libmaus2
 						se.finish();
 						throw se;
 					}
-					
+
 					compressedwritten += CPO.c;
 
 					pc = pa;
-				}			
+				}
 			}
-			
+
 			void put(int const c)
 			{
 				if ( pc == pe )
@@ -110,10 +110,10 @@ namespace libmaus2
 					flush();
 					assert ( pc != pe );
 				}
-				
+
 				*(pc++) = c;
 			}
-			
+
 			void write(char const * c, uint64_t n)
 			{
 				while ( n )
@@ -133,7 +133,7 @@ namespace libmaus2
 					n -= tocopy;
 				}
 			}
-			
+
 			std::pair<uint64_t,uint64_t> getOffset() const
 			{
 				return std::pair<uint64_t,uint64_t>(compressedwritten,pc-pa);

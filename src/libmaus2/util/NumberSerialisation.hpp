@@ -34,7 +34,7 @@ namespace libmaus2
 	{
 		struct NumberSerialisation
 		{
-		
+
 		        static std::string formatNumber(uint64_t const n, unsigned int const w)
 		        {
 		                std::ostringstream ostr;
@@ -42,12 +42,12 @@ namespace libmaus2
 		                return ostr.str();
 		        }
 
-		        template<typename stream_type>		
+		        template<typename stream_type>
 			static uint64_t serialiseNumber(stream_type & out, uint64_t const n, uint64_t const k)
 			{
 			        for ( uint64_t i = 0; i < k; ++i )
 			                out.put ((n >> (k-i-1)*8) & 0xFF );
-				
+
 				if ( ! out )
 				{
 				        ::libmaus2::exception::LibMausException se;
@@ -55,11 +55,11 @@ namespace libmaus2
 					se.finish();
 					throw se;
                                 }
-                                
+
                                 return k;
 			}
 
-                        template<typename stream_type>		
+                        template<typename stream_type>
 			static uint64_t serialiseNumber(stream_type & out, uint64_t const n)
 			{
 				out.put ( (n >>  (7*8)) & 0xFF);
@@ -70,7 +70,7 @@ namespace libmaus2
 				out.put ( (n >>  (2*8)) & 0xFF);
 				out.put ( (n >>  (1*8)) & 0xFF);
 				out.put ( (n >>  (0*8)) & 0xFF);
-				
+
 				if ( ! out )
 				{
 				        ::libmaus2::exception::LibMausException se;
@@ -78,7 +78,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
                                 }
-                                
+
                                 return 8;
 			}
 
@@ -87,17 +87,17 @@ namespace libmaus2
 		        {
 		        	uint64_t  s = 0;
 		        	s += serialiseNumber(out, V.size());
-		                for ( uint64_t i = 0; i < V.size(); ++i )	                        
+		                for ( uint64_t i = 0; i < V.size(); ++i )
 					s += serialiseNumber(out, V[i]);
 				return s;
 		        }
-			
-			
+
+
 			template<typename stream_type>
 			static uint64_t deserialiseNumber(stream_type & in, uint64_t const k)
 			{
 			        uint64_t v = 0;
-			        
+
 			        for ( uint64_t i = 0; i < k; ++i )
 			        {
 			                int const c = in.get();
@@ -106,13 +106,13 @@ namespace libmaus2
                                                 ::libmaus2::exception::LibMausException se;
                                                 se.getStream() << "EOF/failure in ::libmaus2::util::NumberSerialisation::deserialiseNumber()";
                                                 se.finish();
-                                                throw se;			                
+                                                throw se;
 			                }
 			                uint64_t const u = c;
 			                v <<= 8;
 			                v |= u;
 			        }
-			        
+
 			        return v;
 			}
 
@@ -145,7 +145,7 @@ namespace libmaus2
 				uint64_t const u6 = c6;
 				uint64_t const u7 = c7;
 
-				uint64_t const u = 
+				uint64_t const u =
 					  (u0 << (7*8))
 					| (u1 << (6*8))
 					| (u2 << (5*8))
@@ -155,7 +155,7 @@ namespace libmaus2
 					| (u6 << (1*8))
 					| (u7 << (0*8))
 					;
-					
+
 				return u;
 			}
 
@@ -176,7 +176,7 @@ namespace libmaus2
                                 return V;
 			}
 
-                        template<typename stream_type>		
+                        template<typename stream_type>
 			static uint64_t serialiseDouble(stream_type & out, double const d)
 			{
 				serialiseNumber(out,::libmaus2::math::DoubleCode::encodeDouble(d));
@@ -191,7 +191,7 @@ namespace libmaus2
 		        {
 		        	uint64_t  s = 0;
 		        	s += serialiseNumber(out, V.size());
-		                for ( uint64_t i = 0; i < V.size(); ++i )	                        
+		                for ( uint64_t i = 0; i < V.size(); ++i )
 					s += serialiseDouble(out, V[i]);
 				return s;
 		        }
@@ -207,12 +207,12 @@ namespace libmaus2
 			static unsigned int countBytes(uint64_t n)
 			{
 				unsigned int c = 0;
-				
+
 				if ( n > 0xFFFFFFFFull ) { c += 4; n >>= (4*8); } assert ( n <= 0xFFFFFFFFull );
 				if ( n > 0xFFFFull     ) { c += 2; n >>= (2*8); } assert ( n <= 0xFFFFull     );
 				if ( n > 0xFFull       ) { c += 1; n >>= (1*8); } assert ( n <= 0xFFull       );
 				if ( n                 ) { c += 1; n >>= (1*8); } assert ( n == 0 );
-				
+
 				return c;
 			}
 
@@ -222,16 +222,16 @@ namespace libmaus2
 				uint8_t f;
 				unsigned int b;
 				uint64_t n;
-				
+
 				if ( m < 0 )
 				{
 					n = -m;
 					b = countBytes(n);
 					// f = 0x80 | (8-b);
 					f = (8-b);
-					
+
 					// std::cerr << "m=" << m << " n=" << n << " b=" << b << std::endl;
-					
+
 					switch ( b )
 					{
 						case 0: break;
@@ -252,7 +252,7 @@ namespace libmaus2
 					// f = b;
 					f = 0x80 | b;
 				}
-				
+
 				unsigned int o = 1;
 				// put sign bit and length of number
 				P.put(f);
@@ -271,7 +271,7 @@ namespace libmaus2
 			{
 				uint8_t const f = G.get();
 				uint8_t b;
-				
+
 				// positive
 				if ( f & 0xf0 )
 				{
@@ -282,18 +282,18 @@ namespace libmaus2
 				{
 					b = 8-(f & 0x7F);
 				}
-					
+
 				uint64_t n = 0;
-					
+
 				for ( unsigned int ib = 0; ib < b; ++ib )
 				{
 					n <<= 8;
 					n |= G.get();
 				}
-				
+
 				if ( f & 0xf0 )
 				{
-					return n;				
+					return n;
 				}
 				else
 				{
@@ -308,8 +308,8 @@ namespace libmaus2
 						case 6: assert (n <=     0xffffffffffffull ); n =     0xffffffffffffull-n; break;
 						case 7: assert (n <=   0xffffffffffffffull ); n =   0xffffffffffffffull-n; break;
 						case 8: assert (n <= 0xffffffffffffffffull ); n = 0xffffffffffffffffull-n; break;
-					}	
-					
+					}
+
 					return - static_cast<int64_t>(n);
 				}
 			}
@@ -320,7 +320,7 @@ namespace libmaus2
 				uint8_t const f = G.get();
 				s += 1;
 				uint8_t b;
-				
+
 				// positive
 				if ( f & 0xf0 )
 				{
@@ -331,19 +331,19 @@ namespace libmaus2
 				{
 					b = 8-(f & 0x7F);
 				}
-					
+
 				uint64_t n = 0;
-					
+
 				for ( unsigned int ib = 0; ib < b; ++ib )
 				{
 					n <<= 8;
 					n |= G.get();
 					s += 1;
 				}
-				
+
 				if ( f & 0xf0 )
 				{
-					return n;				
+					return n;
 				}
 				else
 				{
@@ -358,8 +358,8 @@ namespace libmaus2
 						case 6: assert (n <=     0xffffffffffffull ); n =     0xffffffffffffull-n; break;
 						case 7: assert (n <=   0xffffffffffffffull ); n =   0xffffffffffffffull-n; break;
 						case 8: assert (n <= 0xffffffffffffffffull ); n = 0xffffffffffffffffull-n; break;
-					}	
-					
+					}
+
 					return - static_cast<int64_t>(n);
 				}
 			}
@@ -371,7 +371,7 @@ namespace libmaus2
 				std::istringstream istr(ostr.str());
 				return ::libmaus2::util::NumberSerialisation::deserialiseSignedNumber(istr);
 			}
-			
+
 			virtual ~NumberSerialisation() {}
 		};
 	}

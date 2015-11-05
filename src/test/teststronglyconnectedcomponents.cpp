@@ -33,41 +33,41 @@ void testStronglyConnectedComponents()
 	edges[2].push_back(4);
 	edges[4].push_back(2);
 	edges[3].push_back(4);
-	
+
 	edges[4].push_back(5);
 
 	edges[5].push_back(6);
 	edges[6].push_back(5);
 	edges[5].push_back(9);
 	edges[9].push_back(5);
-	
+
 	edges[6].push_back(7);
 	edges[7].push_back(8);
 	edges[8].push_back(9);
 	edges[9].push_back(6);
 	edges[9].push_back(10);
 	edges[10].push_back(9);
-	#else			
+	#else
 	edges[0].push_back(1);
 	#endif
-	
+
 	std::cout << "digraph {\n";
-	
+
 	for ( std::map< uint64_t,std::vector<uint64_t> >::const_iterator ita = edges.begin(); ita != edges.end(); ++ita )
 	{
 		std::vector<uint64_t> const & V = ita->second;
 		for ( uint64_t i = 0; i < V.size(); ++i )
 			std::cout << ita->first << " -> " << V[i] << "\n";
 	}
-	
+
 	std::cout << "}\n";
 
 	{
-		std::pair< std::vector< uint64_t >, std::vector< uint64_t > >  components = 
+		std::pair< std::vector< uint64_t >, std::vector< uint64_t > >  components =
 			libmaus2::graph::StronglyConnectedComponents::strongConnectContract<uint64_t,libmaus2::graph::IdentityTargetProjector>(edges,0);
-			
+
 		std::vector< uint64_t > const & componentsizes = components.second;
-			
+
 		for ( uint64_t i = 1; i < componentsizes.size(); ++i )
 		{
 			for ( uint64_t j = componentsizes[i-1]; j < componentsizes[i]; ++j )
@@ -77,12 +77,12 @@ void testStronglyConnectedComponents()
 	}
 
 	#if 0
-	{	
-		std::pair< std::vector< uint64_t >, std::vector< uint64_t > >  components = 
+	{
+		std::pair< std::vector< uint64_t >, std::vector< uint64_t > >  components =
 			libmaus2::graph::StronglyConnectedComponents::strongConnect<uint64_t,libmaus2::graph::IdentityTargetProjector>(edges,0);
-			
+
 		std::vector< uint64_t > const & componentsizes = components.second;
-			
+
 		for ( uint64_t i = 1; i < componentsizes.size(); ++i )
 		{
 			for ( uint64_t j = componentsizes[i-1]; j < componentsizes[i]; ++j )
@@ -92,13 +92,13 @@ void testStronglyConnectedComponents()
 	}
 
 	std::cerr << std::string(80,'*') << std::endl;
-	
+
 	{
-		std::pair< std::vector< uint64_t >, std::vector< uint64_t > >  components = 
+		std::pair< std::vector< uint64_t >, std::vector< uint64_t > >  components =
 			libmaus2::graph::StronglyConnectedComponents::strongConnectKosaraju<uint64_t,libmaus2::graph::IdentityTargetProjector>(edges,0);
-				
+
 		std::vector< uint64_t > const & componentsizes = components.second;
-			
+
 		for ( uint64_t i = 1; i < componentsizes.size(); ++i )
 		{
 			for ( uint64_t j = componentsizes[i-1]; j < componentsizes[i]; ++j )

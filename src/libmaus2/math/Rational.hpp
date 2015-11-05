@@ -40,7 +40,7 @@ namespace libmaus2
 		Rational<N> operator*(Rational<N> const & A, Rational<N> const & B);
 		template<typename N>
 		Rational<N> operator/(Rational<N> const & A, Rational<N> const & B);
-	
+
 		template<typename _N = int64_t>
 		struct Rational
 		{
@@ -55,7 +55,7 @@ namespace libmaus2
 					a = -a;
 				if ( b < N() )
 					b = -b;
-					
+
 				while ( b != N() )
 				{
 					N const ob = b;
@@ -114,10 +114,10 @@ namespace libmaus2
 
 			N c;
 			N d;
-			
+
 			Rational() : c(N()), d(N(1)) {}
 			Rational(N const rc) : c(rc), d(N(1)) {}
-			Rational(N const rc, N const rd) : c(rc), d(rd) 
+			Rational(N const rc, N const rd) : c(rc), d(rd)
 			{
 				if ( d == N() )
 				{
@@ -132,14 +132,14 @@ namespace libmaus2
 					d = -d;
 					c = -c;
 				}
-				
+
 				N const g = gcd(c,d);
 				c = (c/g);
 				d = (d/g);
-				
+
 				assert ( !(d < N()) );
 			}
-			
+
 			static Rational<N> doubleToRational(double v, unsigned int const bindig = 8*sizeof(double))
 			{
 				Rational<N> R(N(),N(1));
@@ -226,28 +226,28 @@ namespace libmaus2
 
 				return *this;
 			}
-			
+
 			Rational<N> & operator*=(Rational<N> const & o)
 			{
 				N oc = o.c;
 				N od = o.d;
-				
+
 				N const g_c_od = gcd(c,od);
 				c = c/g_c_od;
 				od = od/g_c_od;
-				
+
 				N const g_oc_d = gcd(oc,d);
 				oc = oc/g_oc_d;
 				d = d/g_oc_d;
-				
+
 				c = mult(c,oc);
 				d = mult(d,od);
-				
+
 				assert ( gcd(c,d) == N(1) );
-								
+
 				return *this;
 			}
-			
+
 			Rational<N> & operator/=(Rational<N> const & o)
 			{
 				if ( o.c == N() )
@@ -260,28 +260,28 @@ namespace libmaus2
 
 				N oc = o.d;
 				N od = o.c;
-				
+
 				N const g_c_od = gcd(c,od);
 				c = c/g_c_od;
 				od = od/g_c_od;
-				
+
 				N const g_oc_d = gcd(oc,d);
 				oc = oc/g_oc_d;
 				d = d/g_oc_d;
-				
+
 				c = mult(c,oc);
 				d = mult(d,od);
 
 				assert ( gcd(c,d) == N(1) );
-				
+
 				return *this;
 			}
-			
+
 			operator double() const
 			{
 				return static_cast<double>(c) / static_cast<double>(d);
 			}
-			
+
 			double toDouble(unsigned int const bindig = 64) const
 			{
 				Rational<N> R = *this;
@@ -353,13 +353,13 @@ namespace libmaus2
 			{
 				return !(*this == O);
 			}
-			
+
 			Rational<N> operator-() const
 			{
 				return Rational<N>(-c,d);
 			}
 		};
-		
+
 		template<typename N>
 		Rational<N> operator+(Rational<N> const & A, Rational<N> const & B)
 		{
@@ -391,7 +391,7 @@ namespace libmaus2
 			R /= B;
 			return R;
 		}
-		
+
 
 		template<typename _N>
 		std::ostream & operator<<(std::ostream & out, Rational<_N> const & R)

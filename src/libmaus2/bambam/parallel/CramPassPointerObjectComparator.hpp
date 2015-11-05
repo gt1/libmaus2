@@ -27,7 +27,7 @@ namespace libmaus2
 	{
 		namespace parallel
 		{
-			
+
 			struct CramPassPointerObjectComparator
 			{
 				bool operator()(CramPassPointerObject::shared_ptr_type const & A, CramPassPointerObject::shared_ptr_type const & B) const

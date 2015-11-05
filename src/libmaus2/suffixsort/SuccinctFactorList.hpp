@@ -35,7 +35,7 @@ namespace libmaus2
 	{
 		template<typename _iterator>
 		struct SuccinctFactorList;
-		
+
 		template<typename _iterator>
 		struct SuccinctFactorListContext
 		{
@@ -52,7 +52,7 @@ namespace libmaus2
 			{
 				return (3*logn+b-1)/ b;
 			}
-		
+
 			// text
 			uint64_t const n;
 			uint16_t const logn;
@@ -62,7 +62,7 @@ namespace libmaus2
 			// text iterator
 			iterator const I;
 			uint64_t const sentinel;
-		
+
 			SuccinctFactorListContext(
 				uint64_t const rn,
 				unsigned int const rb,
@@ -70,46 +70,46 @@ namespace libmaus2
 				uint64_t const rsentinel
 			)
 			: n(rn),
-			  logn(::libmaus2::math::numbits(rn)), 
-			  b(rb), 
+			  logn(::libmaus2::math::numbits(rn)),
+			  b(rb),
 			  smallthres(computeSmallThres(logn,b)),
 			  smalllen( ::libmaus2::math::numbits(smallthres) ),
 			  I(rI),
 			  sentinel(rsentinel)
 			{
-			
+
 			}
 		};
-		
+
 		template<typename _iterator>
 		struct SuccinctFactorListBlock
 		{
 			//private:
 			template<typename iterator> friend struct SuccinctFactorList;
-			
+
 			typedef _iterator iterator;
 			typedef SuccinctFactorListBlock<iterator> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			typedef uint32_t bit_ptr_type;
-			
+
 			// bit block
 			::libmaus2::autoarray::AutoArray < uint64_t > B;
 			bit_ptr_type outptr;
 			bit_ptr_type inptr;
 
 			SuccinctFactorListContext<iterator> const * context;
-			
+
 			uint64_t byteSize() const
 			{
-				return 
+				return
 					B.byteSize() +
 					2*sizeof(uint16_t) +
 					sizeof(SuccinctFactorListContext<iterator> const *);
 			}
 
 			enum storage_type { storage_explicit, storage_implicit };
-			
+
 			storage_type getType(uint64_t const ptr) const
 			{
 				if ( ::libmaus2::bitio::getBit(B.get(),ptr) )
@@ -122,13 +122,13 @@ namespace libmaus2
 			{
 				uint64_t ptr;
 				SuccinctFactorListBlock<iterator> const * owner;
-			
-				const_iterator() : ptr(0), owner(0) {}	
+
+				const_iterator() : ptr(0), owner(0) {}
 				const_iterator(uint64_t const rptr, SuccinctFactorListBlock<iterator> const * rowner)
 				: ptr(rptr), owner(rowner) {}
 				const_iterator(const_iterator const & o)
 				: ptr(o.ptr), owner(o.owner) {}
-				
+
 				bool operator==(const_iterator const & o) const
 				{
 					return ptr == o.ptr && owner == o.owner;
@@ -137,7 +137,7 @@ namespace libmaus2
 				{
 					return !(*this == o);
 				}
-				
+
 				// prefix increment
 				const_iterator operator++()
 				{
@@ -145,7 +145,7 @@ namespace libmaus2
 					ptr = owner->skip(ptr);
 					return *this;
 				}
-				
+
 				// postfix increment
 				const_iterator operator++(int)
 				{
@@ -153,17 +153,17 @@ namespace libmaus2
 					++(*this);
 					return copy;
 				}
-				
+
 				storage_type getType() const
 				{
 					return owner->getType(ptr);
 				}
-				
+
 				void print(std::ostream & out) const
 				{
 					owner->printSingle(out,ptr);
 				}
-				
+
 				uint64_t peek() const
 				{
 					return owner->peek(ptr);
@@ -173,22 +173,22 @@ namespace libmaus2
 				{
 					return owner->peekPre(ptr);
 				}
-				
+
 				uint64_t size() const
 				{
 					return owner->size(ptr);
 				}
-				
+
 				uint64_t operator[](uint64_t const i) const
 				{
 					return (*owner)(ptr,i);
 				}
-				
+
 				bool operator<(const_iterator const & o) const
 				{
 					uint64_t l0 = size(), l1 = o.size();
 					uint64_t i0 = 0, i1 = 0;
-					
+
 					// compare until we reach the end of one factor
 					for ( ; i0 < l0 && i1 < l1 ; i0++, i1++ )
 					{
@@ -197,15 +197,15 @@ namespace libmaus2
 						if ( c0 != c1 )
 							return c0 < c1;
 					}
-					
-					// reduce length			
+
+					// reduce length
 					l0 -= i0;
 					l1 -= i1;
-					
+
 					return l0 > l1;
 				}
 			};
-			
+
 			const_iterator begin() const
 			{
 				return const_iterator(outptr,this);
@@ -214,7 +214,7 @@ namespace libmaus2
 			{
 				return const_iterator(inptr,this);
 			}
-			
+
 			inline uint64_t getBits() const
 			{
 				return B.size() << 6; // * 64
@@ -252,13 +252,13 @@ namespace libmaus2
 					::libmaus2::bitio::putBits(B.get(),inptr,1       /*numbits*/,0   /*explicit*/); inptr += 1;
 					::libmaus2::bitio::putBits(B.get(),inptr,context->smalllen/*numbits*/,j-i /*explicit*/); inptr += context->smalllen;
 					::libmaus2::bitio::putBits(B.get(),inptr,context->smalllen/*numbits*/,k-i /*explicit*/); inptr += context->smalllen;
-					
+
 					for ( uint64_t l = i; l < j; ++l )
 					{
-						::libmaus2::bitio::putBits(B.get(),inptr,context->b,context->I[l]); 
+						::libmaus2::bitio::putBits(B.get(),inptr,context->b,context->I[l]);
 						inptr += context->b;
 					}
-					
+
 					return true;
 				}
 			}
@@ -286,30 +286,30 @@ namespace libmaus2
 				{
 					uint64_t const i = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
 					uint64_t const j = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
-					uint64_t const k = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); 
-					
+					uint64_t const k = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/);
+
 					if ( k == i )
 						::libmaus2::bitio::putBits(B.get(),ptr,context->logn/*numbits*/,j-1/*implicit*/);
 					else
 						::libmaus2::bitio::putBits(B.get(),ptr,context->logn/*numbits*/,k-1/*implicit*/);
-								
+
 					ptr += context->logn;
-					
+
 					return ptr;
 				}
 				else
 				{
 					uint64_t const len = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
-					uint64_t const shift = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); 
-					
+					uint64_t const shift = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/);
+
 					if ( shift == 0 )
 						::libmaus2::bitio::putBits(B.get(),ptr,context->smalllen/*numbits*/,len-1/*implicit*/);
 					else
 						::libmaus2::bitio::putBits(B.get(),ptr,context->smalllen/*numbits*/,shift-1/*implicit*/);
 
-					ptr += context->smalllen;			
+					ptr += context->smalllen;
 					ptr += len*context->b;
-					
+
 					return ptr;
 				}
 			}
@@ -321,18 +321,18 @@ namespace libmaus2
 				return (3*logn+b-1)/ b;
 			}
 			#endif
-			
+
 			SuccinctFactorListBlock(
 				SuccinctFactorListContext<iterator> const * rcontext,
 				uint64_t const bufsize
 			)
-			: 
-				B(bufsize,false), 
-				outptr(0), 
+			:
+				B(bufsize,false),
+				outptr(0),
 				inptr(0),
 				context(rcontext)
 			{
-				// std::cerr << "smalthres " << smallthres << " context->smalllen=" << context->smalllen << std::endl;	
+				// std::cerr << "smalthres " << smallthres << " context->smalllen=" << context->smalllen << std::endl;
 			}
 
 			bool push(uint64_t const i, uint64_t const j, uint64_t const k)
@@ -342,7 +342,7 @@ namespace libmaus2
 				else
 					return pushImplicit(i,j,k);
 			}
-			
+
 			bool pushExplicitWord(uint64_t const word, uint64_t const len)
 			{
 				if ( (1+2*context->smalllen+(len)*context->b) > getBits()-inptr )
@@ -354,9 +354,9 @@ namespace libmaus2
 					::libmaus2::bitio::putBits(B.get(),inptr,1       /*numbits*/,0   /*explicit*/); inptr += 1;
 					::libmaus2::bitio::putBits(B.get(),inptr,context->smalllen/*numbits*/,len /*explicit*/); inptr += context->smalllen;
 					::libmaus2::bitio::putBits(B.get(),inptr,context->smalllen/*numbits*/,len /*explicit*/); inptr += context->smalllen;
-					::libmaus2::bitio::putBits(B.get(),inptr,len*context->b,word); 
+					::libmaus2::bitio::putBits(B.get(),inptr,len*context->b,word);
 					inptr += len*context->b;
-					
+
 					return true;
 				}
 			}
@@ -367,18 +367,18 @@ namespace libmaus2
 				while ( ptr != inptr )
 					ptr = cycle(ptr);
 			}
-			
+
 			void cycle()
 			{
 				assert ( outptr != inptr );
 				cycle(outptr);
 			}
-			
+
 			void print(std::ostream & out) const
 			{
 				out << "buf" << std::endl;
 				uint64_t ptr = outptr;
-				
+
 				while ( ptr != inptr )
 				{
 					ptr = printSingle(out,ptr);
@@ -390,7 +390,7 @@ namespace libmaus2
 			{
 				return printSingle(out,outptr);
 			}
-			
+
 			uint64_t skip(uint64_t ptr) const
 			{
 				assert ( ptr != inptr );
@@ -408,14 +408,14 @@ namespace libmaus2
 				}
 
 				return ptr;
-				
+
 			}
 
 			template<typename iterator>
 			void peekHistory(iterator & it) const
 			{
 				uint64_t ptr = outptr;
-				
+
 				while ( ptr != inptr )
 				{
 					it [ peek(ptr) ]++;
@@ -426,26 +426,26 @@ namespace libmaus2
 			uint64_t printSingle(std::ostream & out, uint64_t ptr) const
 			{
 				assert ( ptr != inptr );
-				
+
 				// implicit
 				if ( ::libmaus2::bitio::getBit(B.get(),ptr++) )
 				{
 					uint64_t const i = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
 					uint64_t const j = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
 					uint64_t const k = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
-					out 
+					out
 						<< "implicit(" << i << "," << j << "," << k << ",";
 
 					for ( uint64_t l = i; l < j; ++l )
 						out << static_cast<char>(context->I[l]);
-						
+
 					out << ",";
 					for ( uint64_t l = i; l < k; ++l )
 						out << static_cast<char>(context->I[l]);
 					out << ",";
 					for ( uint64_t l = k; l < j; ++l )
 						out << static_cast<char>(context->I[l]);
-						
+
 					out
 						<< ")";
 				}
@@ -459,30 +459,30 @@ namespace libmaus2
 					for ( uint64_t l = 0; l < len; ++l )
 					{
 						uint64_t const c = ::libmaus2::bitio::getBits(B.get(),ptr + (l*context->b),context->b/*numbits*/);
-						out << static_cast<char>(c);				
+						out << static_cast<char>(c);
 					}
 
 					out << ",";
 					for ( uint64_t l = 0; l < shift; ++l )
 					{
 						uint64_t const c = ::libmaus2::bitio::getBits(B.get(),ptr + (l*context->b),context->b/*numbits*/);
-						out << static_cast<char>(c);				
+						out << static_cast<char>(c);
 					}
 					out << ",";
 					for ( uint64_t l = shift; l < len; ++l )
 					{
 						uint64_t const c = ::libmaus2::bitio::getBits(B.get(),ptr + (l*context->b),context->b/*numbits*/);
-						out << static_cast<char>(c);				
+						out << static_cast<char>(c);
 					}
-					
+
 					ptr += len*context->b;
-					
+
 					out << ")";
 				}
 
 				return ptr;
 			}
-			
+
 			// return reverse of this block
 			unique_ptr_type reverse() const
 			{
@@ -490,7 +490,7 @@ namespace libmaus2
 
 				uint64_t ptr = outptr;
 				uint64_t pptr = inptr - outptr;
-				
+
 				while ( ptr != inptr )
 				{
 					// implicit
@@ -499,7 +499,7 @@ namespace libmaus2
 						uint64_t const i = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
 						uint64_t const j = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
 						uint64_t const k = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
-						
+
 						pptr -= (1 + 3*context->logn);
 						::libmaus2::bitio::putBits(P->B.get(),pptr,1             /*numbits*/,1/*implicit*/);
 						::libmaus2::bitio::putBits(P->B.get(),pptr+1,context->logn        /*numbits*/,i/*implicit*/);
@@ -511,13 +511,13 @@ namespace libmaus2
 					{
 						uint64_t const len = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
 						uint64_t const shift = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
-						
+
 						pptr -= (1 + 2*context->smalllen + len*context->b);
 
 						::libmaus2::bitio::putBits(P->B.get(),pptr,           1        /*numbits*/,0/*explicit*/);
 						::libmaus2::bitio::putBits(P->B.get(),pptr+1,         context->smalllen /*numbits*/,len);
 						::libmaus2::bitio::putBits(P->B.get(),pptr+1+context->smalllen,context->smalllen /*numbits*/,shift);
-						
+
 						for ( uint64_t i = 0; i < len; ++i )
 						{
 							uint64_t const c = ::libmaus2::bitio::getBits(B.get(),ptr,context->b/*numbits*/); ptr += context->b;
@@ -525,15 +525,15 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				assert ( pptr == 0 );
-				
+
 				P->outptr = 0;
 				P->inptr = (inptr-outptr);
-				
+
 				return UNIQUE_PTR_MOVE(P);
 			}
-			
+
 			// look at last character of front element
 			uint64_t peek() const
 			{
@@ -547,10 +547,10 @@ namespace libmaus2
 				if ( ::libmaus2::bitio::getBit(B.get(),ptr++) )
 				{
 					uint64_t const i = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
-					//uint64_t const j = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); 
+					//uint64_t const j = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/);
 					ptr += context->logn;
 					uint64_t const k = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
-					
+
 					if ( k == i )
 						return context->sentinel;
 					else
@@ -559,13 +559,13 @@ namespace libmaus2
 				// explicit
 				else
 				{
-					// uint64_t const len = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); 
+					// uint64_t const len = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/);
 					ptr += context->smalllen;
 					uint64_t const shift = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
-					
+
 					if ( ! shift )
 						return context->sentinel;
-					else		
+					else
 						return ::libmaus2::bitio::getBits(B.get(),ptr + (shift-1)*context->b,context->b/*numbits*/);
 				}
 			}
@@ -576,27 +576,27 @@ namespace libmaus2
 				return peekPre(outptr);
 			}
 
-			// 
+			//
 			uint64_t peekPre(uint64_t ptr) const
 			{
 				// implicit
 				if ( ::libmaus2::bitio::getBit(B.get(),ptr++) )
 				{
-					//uint64_t const i = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); 
+					//uint64_t const i = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/);
 					ptr += context->logn;
-					//uint64_t const j = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); 
+					//uint64_t const j = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/);
 					ptr += context->logn;
 					uint64_t const k = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
-					
+
 					return context->I[k];
 				}
 				// explicit
 				else
 				{
-					// uint64_t const len = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); 
+					// uint64_t const len = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/);
 					ptr += context->smalllen;
 					uint64_t const shift = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
-					
+
 					return ::libmaus2::bitio::getBits(B.get(),ptr + (shift)*context->b,context->b/*numbits*/);
 				}
 			}
@@ -627,19 +627,19 @@ namespace libmaus2
 				// explicit
 				else
 				{
-					uint64_t const len = ::libmaus2::bitio::getBits(B.get(),outptr,context->smalllen/*numbits*/);   
+					uint64_t const len = ::libmaus2::bitio::getBits(B.get(),outptr,context->smalllen/*numbits*/);
 					outptr += 2*context->smalllen + len*context->b;
 				}
-				
+
 				return outptr == inptr;
 			}
-			
+
 			// copy element from O to this
 			bool copy(this_type const & O)
 			{
 				assert ( O.outptr != O.inptr );
 				uint64_t ptr = O.outptr;
-						
+
 				// implicit
 				if ( ::libmaus2::bitio::getBit(O.B.get(),ptr++) )
 				{
@@ -654,7 +654,7 @@ namespace libmaus2
 					::libmaus2::bitio::putBits(B.get(),inptr,context->logn /*numbits*/,i/*implicit*/); inptr += context->logn;
 					::libmaus2::bitio::putBits(B.get(),inptr,context->logn /*numbits*/,j/*implicit*/); inptr += context->logn;
 					::libmaus2::bitio::putBits(B.get(),inptr,context->logn /*numbits*/,k/*implicit*/); inptr += context->logn;
-					
+
 					return true;
 				}
 				// explicit
@@ -665,20 +665,20 @@ namespace libmaus2
 
 					if ( getBits()-inptr < 1+2*context->smalllen+context->b*len )
 						return false;
-					
+
 					::libmaus2::bitio::putBits(B.get(),inptr,1        /*numbits*/,   0  /*explicit*/); inptr += 1;
 					::libmaus2::bitio::putBits(B.get(),inptr,context->smalllen /*numbits*/,   len/*explicit*/); inptr += context->smalllen;
 					::libmaus2::bitio::putBits(B.get(),inptr,context->smalllen    /*numbits*/,shift/*explicit*/); inptr += context->smalllen;
-					
+
 					for ( uint64_t i = 0; i < len; ++i )
 					{
 						uint64_t const c = ::libmaus2::bitio::getBits(O.B.get(),ptr,context->b/*numbits*/); ptr += context->b;
-						::libmaus2::bitio::putBits(B.get(),inptr,context->b /*numbits*/,c/*explicit*/); inptr += context->b;		
+						::libmaus2::bitio::putBits(B.get(),inptr,context->b /*numbits*/,c/*explicit*/); inptr += context->b;
 					}
-					
+
 					return true;
 				}
-				
+
 			}
 
 			// copy element from O to this
@@ -686,7 +686,7 @@ namespace libmaus2
 			{
 				assert ( O.outptr != O.inptr );
 				uint64_t ptr = O.outptr;
-						
+
 				// implicit
 				if ( ::libmaus2::bitio::getBit(O.B.get(),ptr++) )
 				{
@@ -701,7 +701,7 @@ namespace libmaus2
 					::libmaus2::bitio::putBits(B.get(),inptr,context->logn /*numbits*/,i/*implicit*/); inptr += context->logn;
 					::libmaus2::bitio::putBits(B.get(),inptr,context->logn /*numbits*/,j/*implicit*/); inptr += context->logn;
 					::libmaus2::bitio::putBits(B.get(),inptr,context->logn /*numbits*/,j/*implicit*/); inptr += context->logn;
-					
+
 					return true;
 				}
 				// explicit
@@ -713,20 +713,20 @@ namespace libmaus2
 
 					if ( getBits()-inptr < 1+2*context->smalllen+context->b*len )
 						return false;
-					
+
 					::libmaus2::bitio::putBits(B.get(),inptr,1        /*numbits*/,   0  /*explicit*/); inptr += 1;
 					::libmaus2::bitio::putBits(B.get(),inptr,context->smalllen /*numbits*/,   len/*explicit*/); inptr += context->smalllen;
 					::libmaus2::bitio::putBits(B.get(),inptr,context->smalllen    /*numbits*/,len/*explicit*/); inptr += context->smalllen;
-					
+
 					for ( uint64_t i = 0; i < len; ++i )
 					{
 						uint64_t const c = ::libmaus2::bitio::getBits(O.B.get(),ptr,context->b/*numbits*/); ptr += context->b;
-						::libmaus2::bitio::putBits(B.get(),inptr,context->b /*numbits*/,c/*explicit*/); inptr += context->b;		
+						::libmaus2::bitio::putBits(B.get(),inptr,context->b /*numbits*/,c/*explicit*/); inptr += context->b;
 					}
-					
+
 					return true;
 				}
-				
+
 			}
 		};
 
@@ -734,13 +734,13 @@ namespace libmaus2
 		struct SuccinctFactorList
 		{
 			typedef _iterator iterator;
-			
+
 			typedef SuccinctFactorListContext<iterator> context_type;
 			typedef typename context_type::unique_ptr_type context_ptr_type;
 
 			typedef SuccinctFactorListBlock<iterator> block_type;
 			typedef typename block_type::unique_ptr_type block_ptr_type;
-			
+
 			typedef SuccinctFactorList<iterator> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
@@ -748,8 +748,8 @@ namespace libmaus2
 			static unsigned int const prebufsize = 512u;
 			static unsigned int const bitptrbits = 8*sizeof(typename block_type::bit_ptr_type);
 			static unsigned int const bitptrval = 1ull << bitptrbits;
-			static unsigned int const bufsize = 
-				((prebufsize * 64ull) >= (1ull << 16)) ? 
+			static unsigned int const bufsize =
+				((prebufsize * 64ull) >= (1ull << 16)) ?
 				(((1ull << 16) >> 6)-1) : prebufsize;
 			// static unsigned int const bufsize = 2;
 
@@ -762,11 +762,11 @@ namespace libmaus2
 			unsigned int const b;
 			uint64_t const sentinel;
 			*/
-			
+
 			::libmaus2::autoarray::AutoArray < 	block_ptr_type > B;
 			uint32_t blow;
 			uint32_t bhigh;
-						
+
 			uint64_t byteSize() const
 			{
 				uint64_t s = sizeof(context) + 2*sizeof(uint32_t);
@@ -783,16 +783,16 @@ namespace libmaus2
 						type_explicit++;
 					else
 						type_implicit++;
-				
+
 				return std::pair<uint64_t,uint64_t>(type_explicit,type_implicit);
 			}
-			
+
 			struct const_iterator
 			{
 				SuccinctFactorList<iterator> const * owner;
 				uint64_t blockptr;
 				typename block_type::const_iterator subit;
-				
+
 				const_iterator() : owner(0), blockptr(0), subit() {}
 				const_iterator(SuccinctFactorList<iterator> const * rowner, uint64_t const rblockptr, typename block_type::const_iterator const & rsubit)
 				: owner(rowner), blockptr(rblockptr), subit(rsubit)
@@ -800,17 +800,17 @@ namespace libmaus2
 				const_iterator(const_iterator const & o)
 				: owner(o.owner), blockptr(o.blockptr), subit(o.subit)
 				{}
-				
+
 				const_iterator & operator++()
 				{
 					assert ( blockptr != owner->bhigh );
 					assert ( subit != owner->B[blockptr]->end() );
-					
+
 					++subit;
 
-					while ( 
-						blockptr != owner->bhigh 
-						&& 
+					while (
+						blockptr != owner->bhigh
+						&&
 						subit == owner->B[blockptr]->end()
 					)
 					{
@@ -820,8 +820,8 @@ namespace libmaus2
 						else
 							subit = typename block_type::const_iterator(0,0);
 					}
-					
-					return *this;			
+
+					return *this;
 				}
 				const_iterator operator++(int)
 				{
@@ -829,22 +829,22 @@ namespace libmaus2
 					++(*this);
 					return copy;
 				}
-				
+
 				void print(std::ostream & out) const
 				{
 					subit.print(out);
 				}
-				
+
 				bool operator==(const_iterator const & o) const
 				{
 					return owner==o.owner && blockptr==o.blockptr && subit==o.subit;
 				}
-				
+
 				bool operator!=(const_iterator const & o) const
 				{
 					return !(*this==o);
 				}
-				
+
 				uint64_t peek() const
 				{
 					return subit.peek();
@@ -859,7 +859,7 @@ namespace libmaus2
 				{
 					return subit.size();
 				}
-				
+
 				uint64_t operator[](uint64_t const i) const
 				{
 					return subit[i];
@@ -899,15 +899,15 @@ namespace libmaus2
 					(*hist)(it.size());
 				return UNIQUE_PTR_MOVE(hist);
 			}
-			
+
 			void extendBlockArray()
 			{
 				uint64_t const nb = B.size() ? 2*B.size() : 1;
 				::libmaus2::autoarray::AutoArray < 	block_ptr_type > NB(nb);
-				
+
 				for ( uint64_t i = 0; i < B.size(); ++i )
 					NB[i] = UNIQUE_PTR_MOVE(B[i]);
-				
+
 				B = NB;
 			}
 			void pushBlock()
@@ -917,29 +917,29 @@ namespace libmaus2
 				block_ptr_type tBhigh(new block_type(context.get(),bufsize));
 				B[bhigh++] = UNIQUE_PTR_MOVE(tBhigh);
 			}
-			
+
 			static uint64_t computeLogN(uint64_t const n)
 			{
 				return ::libmaus2::math::numbits(n);
 			}
-			
+
 			SuccinctFactorList(
-				iterator rI, 
-				uint64_t const rn, 
-				uint64_t const rb, 
+				iterator rI,
+				uint64_t const rn,
+				uint64_t const rb,
 				uint64_t const rsentinel
 			)
 			: context(new context_type(rn,rb,rI,rsentinel)),
 			  B(), blow(0), bhigh(0)
 			{
-			
+
 			}
-			
+
 			void pushExplicitWord(uint64_t const word, uint64_t const len)
 			{
 				if ( blow==bhigh )
 					pushBlock();
-					
+
 				if ( ! B[bhigh-1]->pushExplicitWord(word,len) )
 				{
 					pushBlock();
@@ -947,7 +947,7 @@ namespace libmaus2
 					assert ( ok );
 				}
 			}
-			
+
 			void push(uint64_t const i, uint64_t const j, uint64_t const k)
 			{
 				if ( blow==bhigh )
@@ -964,7 +964,7 @@ namespace libmaus2
 			{
 				push(i,j,j);
 			}
-			
+
 			void print(std::ostream & out) const
 			{
 				for ( uint64_t i = blow; i < bhigh; ++i )
@@ -976,7 +976,7 @@ namespace libmaus2
 				assert ( !empty() );
 				B[blow]->printSingle(out);
 			}
-			
+
 			std::string printSingle() const
 			{
 				std::ostringstream out;
@@ -989,7 +989,7 @@ namespace libmaus2
 				for ( uint64_t i = blow; i < bhigh; ++i )
 					B[i]->cycleAll();
 			}
-			
+
 			void reverse()
 			{
 				for ( uint64_t i = 0; i < (bhigh-blow)/2; ++i )
@@ -1012,7 +1012,7 @@ namespace libmaus2
 				for ( uint64_t i = blow; i < bhigh; ++i )
 					B[i]->peekHistory(it);
 			}
-			
+
 			uint64_t peek()
 			{
 				if ( blow == bhigh )
@@ -1054,7 +1054,7 @@ namespace libmaus2
 				{
 					return B[blow]->cycle();
 				}
-				
+
 			}
 			void pop()
 			{
@@ -1075,7 +1075,7 @@ namespace libmaus2
 			{
 				return blow==bhigh;
 			}
-			
+
 			// copy element from O to this
 			void copy(this_type const & O)
 			{

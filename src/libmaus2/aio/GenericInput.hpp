@@ -70,7 +70,7 @@ namespace libmaus2
 			uint64_t const totalwords;
 			//! total words read
 			uint64_t totalwordsread;
-			
+
 			public:
 			/**
 			 * read an array of type input_type from the file named inputfilename
@@ -87,7 +87,7 @@ namespace libmaus2
 
 				::libmaus2::aio::GenericInput<input_type> in(inputfilename,64*1024);
 				::libmaus2::autoarray::AutoArray<input_type> A(n,false);
-			
+
 				for ( uint64_t i = 0; i < n; ++i )
 				{
 					input_type v;
@@ -95,7 +95,7 @@ namespace libmaus2
 					assert ( ok );
 					A[i] = v;
 				}
-				
+
 				return A;
 			}
 
@@ -107,8 +107,8 @@ namespace libmaus2
 			 * @param roffset offset in file in elements
 			 **/
 			GenericInput(std::string const & filename, uint64_t const rbufsize, uint64_t const roffset = 0)
-			: bufsize(rbufsize), 
-				ABR(filename, 16, bufsize*sizeof(input_type), roffset * sizeof(input_type)), 
+			: bufsize(rbufsize),
+				ABR(filename, 16, bufsize*sizeof(input_type), roffset * sizeof(input_type)),
 				curbufleft(0),
 				curbuf(reinterpret_cast<char const *>(0),0),
 				curword(0),
@@ -145,7 +145,7 @@ namespace libmaus2
 					if ( ! curbuf.second )
 						return false;
 					assert ( curbuf.second % sizeof(input_type) == 0 );
-					
+
 					curbufleft = curbuf.second / sizeof(input_type);
 					assert ( curbufleft );
 					curword = reinterpret_cast<input_type const *>(curbuf.first);

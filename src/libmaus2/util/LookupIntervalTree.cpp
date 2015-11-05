@@ -28,13 +28,13 @@
 		uint64_t const low = i << (rangebits-sublookupbits);
 		uint64_t const high = low | ((1ull << (rangebits-sublookupbits))-1ull);
 		L[i] = I.lca(low,high);
-		
+
 		#if 0
 		std::cerr << std::hex << low << "\t" << high << std::dec
 			<< "\t" << L[i]->isLeaf() << std::endl;
 		#endif
 	}
-	
+
 	return L;
 }
 
@@ -55,10 +55,10 @@ void libmaus2::util::LookupIntervalTree::test(bool setupRandom) const
 		assert (  find ( H[i].first ) == I.find(H[i].first) );
 		assert (  find ( H[i].second-1 ) == I.find(H[i].second-1) );
 	}
-	
+
 	if ( setupRandom )
 		::libmaus2::random::Random::setup();
-	
+
 	for ( uint64_t i = 0; i < 64*1024; ++i )
 	{
 		uint64_t const v = ::libmaus2::random::Random::rand64() & ((1ull << (rangebits))-1);

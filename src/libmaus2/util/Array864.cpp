@@ -18,7 +18,7 @@
 */
 
 #include <libmaus2/util/Array864.hpp>
-			
+
 void libmaus2::util::Array864::serialise(std::ostream & out) const
 {
 	::libmaus2::serialize::Serialize<uint64_t>::serialize(out,n);

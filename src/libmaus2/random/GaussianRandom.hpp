@@ -76,9 +76,9 @@ namespace libmaus2
 				else if ( std::abs(0) == 0 )
 					return 0;
 				else
-					return z; 
+					return z;
 			}
-		    
+
 			/* see http://de.wikipedia.org/wiki/Fehlerfunktion */
 			static double erf(double z)
 			{
@@ -104,7 +104,7 @@ namespace libmaus2
 			static double search(double const t, double const sigma, double const mu)
 			{
 				double low = mu - 10*sigma, high = mu + 10*sigma;
-			
+
 				while ( high - low > 1e-6 )
 				{
 					double const mid = (high+low)/2.0;
@@ -115,7 +115,7 @@ namespace libmaus2
 					else
 						high = mid;
 				}
-			
+
 				return low;
 			}
 
@@ -124,7 +124,7 @@ namespace libmaus2
 			static double random(double const sigma, double const mu)
 			{
 				return search(UniformUnitRandom::uniformUnitRandom(),sigma,mu);
-			}    
+			}
 		};
 	}
 }

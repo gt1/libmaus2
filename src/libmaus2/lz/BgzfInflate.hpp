@@ -44,46 +44,46 @@ namespace libmaus2
 			bool const haveoffsets;
 			libmaus2::lz::BgzfVirtualOffset const startoffset;
 			libmaus2::lz::BgzfVirtualOffset const endoffset;
-			
+
 			uint64_t compressedread;
-			
+
 			bool terminated;
 
-			public:	
-			BgzfInflate(stream_type & rstream) 
-			: stream(rstream), gcnt(0), ostr(0), 
+			public:
+			BgzfInflate(stream_type & rstream)
+			: stream(rstream), gcnt(0), ostr(0),
 			  haveoffsets(false), startoffset(0), endoffset(0), compressedread(0), terminated(false) {}
 			BgzfInflate(
-				stream_type & rstream, 
+				stream_type & rstream,
 				libmaus2::lz::BgzfVirtualOffset const rstartoffset,
 				libmaus2::lz::BgzfVirtualOffset const rendoffset
-			) 
-			: 
+			)
+			:
 				stream(rstream),
-				gcnt(0), ostr(0), 
-				haveoffsets(true), startoffset(rstartoffset), endoffset(rendoffset), 
-				compressedread(0), terminated(false) 
+				gcnt(0), ostr(0),
+				haveoffsets(true), startoffset(rstartoffset), endoffset(rendoffset),
+				compressedread(0), terminated(false)
 			{
 				stream.clear();
 				stream.seekg(startoffset.getBlockOffset(), std::ios::beg);
 				stream.clear();
 			}
-			BgzfInflate(stream_type & rstream, std::ostream & rostr) 
-			: stream(rstream), gcnt(0), ostr(&rostr), 
+			BgzfInflate(stream_type & rstream, std::ostream & rostr)
+			: stream(rstream), gcnt(0), ostr(&rostr),
 			  haveoffsets(false), startoffset(0), endoffset(0), compressedread(0), terminated(false) {}
 
 
 			BgzfInflateInfo readAndInfo(char * const decomp, uint64_t const n)
 			{
-				/* check if buffer given is large enough */	
+				/* check if buffer given is large enough */
 				if ( n < getBgzfMaxBlockSize() )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): provided buffer is too small: " << n << " < " << getBgzfMaxBlockSize();
 					se.finish();
-					throw se;				
+					throw se;
 				}
-				
+
 				/* reset gcnt */
 				gcnt = 0;
 
@@ -92,10 +92,10 @@ namespace libmaus2
 					return BgzfInflateInfo(0,0,true);
 
 				/* first block flag if we are processing an interval on the file */
-				bool const firstblock = haveoffsets && (compressedread == 0);	
+				bool const firstblock = haveoffsets && (compressedread == 0);
 				/* last block flag if we are processing an interval on the file	*/
 				bool const lastblock = haveoffsets && (compressedread == endoffset.getBlockOffset()-startoffset.getBlockOffset());
-			
+
 				/* read block */
 				std::pair<uint64_t,uint64_t> const blockinfo = readBlock(stream);
 
@@ -104,7 +104,7 @@ namespace libmaus2
 				{
 					ostr->write(reinterpret_cast<char const *>(header.begin()),getBgzfHeaderSize());
 					ostr->write(reinterpret_cast<char const *>(block.begin()),blockinfo.first + getBgzfFooterSize());
-					
+
 					if ( ! (*ostr) )
 					{
 						libmaus2::exception::LibMausException ex;
@@ -152,7 +152,7 @@ namespace libmaus2
 
 				/* increase number of compressed bytes we have read by this block */
 				compressedread += getBgzfHeaderSize() + blockinfo.first + getBgzfFooterSize();
-				
+
 				return BgzfInflateInfo(
 					blockinfo.first+getBgzfHeaderSize()+getBgzfFooterSize(),
 					gcnt,
@@ -162,14 +162,14 @@ namespace libmaus2
 
 			/**
 			 * read a BGZF block
-			 * 
+			 *
 			 * @param decomp space for decompressed data
 			 * @param n number of bytes availabel in decomp, must be at least the BGZF block size (64k)
 			 * @return (number of compressed bytes read, number of uncompressed bytes returned)
 			 **/
 			std::pair<uint64_t,uint64_t> readPlusInfo(char * const decomp, uint64_t const n)
 			{
-				BgzfInflateInfo const info = readAndInfo(decomp,n);				
+				BgzfInflateInfo const info = readAndInfo(decomp,n);
 				return std::pair<uint64_t,uint64_t>(info.compressed,info.uncompressed);
 			}
 
@@ -181,13 +181,13 @@ namespace libmaus2
 			 * @return number of bytes in block
 			 **/
 			uint64_t read(char * const decomp, uint64_t const n)
-			{			
+			{
 				return readAndInfo(decomp,n).uncompressed;
 			}
 
 			/**
 			 * @return number of uncompressed bytes returned by last read call
-			 **/			
+			 **/
 			uint64_t gcount() const
 			{
 				return gcnt;

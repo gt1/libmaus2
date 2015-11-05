@@ -36,20 +36,20 @@ namespace libmaus2
 				typedef FragmentAlignmentBufferReorderWorkPackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				libmaus2::bambam::parallel::FragmentAlignmentBuffer::FragmentAlignmentBufferCopyRequest copyReq;
 
 				FragmentAlignmentBufferReorderWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage()
 				{
-				
-				}		
+
+				}
 				FragmentAlignmentBufferReorderWorkPackage(
 					libmaus2::bambam::parallel::FragmentAlignmentBuffer::FragmentAlignmentBufferCopyRequest const & rcopyReq,
 					uint64_t const rpriority, uint64_t const rdispatcherid, uint64_t const rpackageid = 0
 				)
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), copyReq(rcopyReq)
 				{
-				
+
 				}
 
 				char const * getPackageName() const

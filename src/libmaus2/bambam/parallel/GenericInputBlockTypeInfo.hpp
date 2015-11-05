@@ -32,14 +32,14 @@ namespace libmaus2
 			{
 				typedef _meta_data_type meta_data_type;
 				typedef GenericInputBlock<meta_data_type> element_type;
-				typedef typename element_type::shared_ptr_type pointer_type;			
-				
+				typedef typename element_type::shared_ptr_type pointer_type;
+
 				static pointer_type deallocate(pointer_type /*p*/)
 				{
 					pointer_type ptr = getNullPointer();
 					return ptr;
 				}
-				
+
 				static pointer_type getNullPointer()
 				{
 					pointer_type ptr;

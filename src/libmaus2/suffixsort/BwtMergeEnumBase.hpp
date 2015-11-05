@@ -25,7 +25,7 @@ namespace libmaus2
 	{
 		struct BwtMergeEnumBase
 		{
-			enum bwt_merge_sort_input_type 
+			enum bwt_merge_sort_input_type
 			{
 				bwt_merge_input_type_byte = 0,
 				bwt_merge_input_type_compact = 1,

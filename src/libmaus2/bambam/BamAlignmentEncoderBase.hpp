@@ -18,7 +18,7 @@
 */
 #if ! defined(LIBMAUS2_BAMBAM_BAMALIGNMENTENCODERBASE_HPP)
 #define LIBMAUS2_BAMBAM_BAMALIGNMENTENCODERBASE_HPP
-	
+
 #include <libmaus2/bambam/BamAlignmentDecoderBase.hpp>
 #include <libmaus2/bambam/BamAlignmentReg2Bin.hpp>
 #include <libmaus2/bambam/BamFlagBase.hpp>
@@ -26,19 +26,19 @@
 #include <libmaus2/bambam/CigarStringParser.hpp>
 #include <libmaus2/bambam/EncoderBase.hpp>
 #include <libmaus2/util/PutObject.hpp>
-	
+
 namespace libmaus2
 {
 	namespace bambam
 	{
-		
+
 		/**
 		 * BAM encoding base class
 		 **/
 		struct BamAlignmentEncoderBase : public EncoderBase, public BamAlignmentReg2Bin
 		{
 			/**
-			 * calculate end position of an alignment 
+			 * calculate end position of an alignment
 			 *
 			 * @param pos start position
 			 * @param cigar encoded cigar string
@@ -49,17 +49,17 @@ namespace libmaus2
 			static uint32_t endpos(
 				int32_t const pos,
 				cigar_iterator cigar,
-				uint32_t const cigarlen				
+				uint32_t const cigarlen
 			)
 			{
 				uint32_t end = pos;
-				
-				for (uint32_t i = 0; i < cigarlen; ++i) 
+
+				for (uint32_t i = 0; i < cigarlen; ++i)
 				{
 					cigar_operation const & cop = cigar[i];
 					uint32_t const op = cop.first;
 					uint32_t const len = cop.second;
-					
+
 					switch ( op )
 					{
 						case 0: // M
@@ -72,7 +72,7 @@ namespace libmaus2
 				}
 				return end;
 			}
-			
+
 			/**
 			 * put a single little endian number v in D at offset; the length of
 			 * v is extracted from the data type (value_type) of v
@@ -95,7 +95,7 @@ namespace libmaus2
 					{
 						::libmaus2::util::PutObject<uint8_t *> P(D + offset);
 						putLE< ::libmaus2::util::PutObject<uint8_t *>,value_type >(P,v);
-						break;	
+						break;
 					}
 				}
 				#else
@@ -103,7 +103,7 @@ namespace libmaus2
 				putLE< ::libmaus2::util::PutObject<uint8_t *>,value_type >(P,v);
 				#endif
 			}
-			
+
 			/**
 			 * put reference id v in D
 			 *
@@ -159,11 +159,11 @@ namespace libmaus2
 			 * @param D alignment block
 			 * @param v new value
 			 **/
-			static void putCigarLen(uint8_t * D, uint32_t const v) 
+			static void putCigarLen(uint8_t * D, uint32_t const v)
 			{
 				// put low 16 bits
-				putLESingle<uint16_t>(D,12,v & 0xFFFFul); 
-				
+				putLESingle<uint16_t>(D,12,v & 0xFFFFul);
+
 				// get flags
 				uint16_t flags = static_cast<uint16_t>(D[14]) | (static_cast<uint16_t>(D[15])<<8);
 				// flag for value requiring more than 16 bits
@@ -175,7 +175,7 @@ namespace libmaus2
 					// erase LIBMAUS2_BAMBAM_FCIGAR32 flag
 					flags &= ~flag32;
 					// store flags
-					putFlags(D,flags);					
+					putFlags(D,flags);
 				}
 				else
 				{
@@ -200,9 +200,9 @@ namespace libmaus2
 
 				// put bin value if bin field is not used for storing top 16 bits of cigar length value
 				if ( expect_true( !(flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FCIGAR32) ) )
-					putLESingle<uint16_t>(D,10,v);					
+					putLESingle<uint16_t>(D,10,v);
 			}
-			
+
 			/**
 			 * put length of query sequence v in D
 			 *
@@ -221,7 +221,7 @@ namespace libmaus2
 				// single byte
 				D[9] = v;
 			}
-			
+
 			/**
 			 * encode cigar string in buffer
 			 *
@@ -243,9 +243,9 @@ namespace libmaus2
 					uint32_t const op = cop.first;
 					uint32_t const len = cop.second;
 					putLE< buffer_type,uint32_t>(buffer,(len << 4) | op);
-				}			
+				}
 			}
-			
+
 			/**
 			 * encode query sequence
 			 *
@@ -266,7 +266,7 @@ namespace libmaus2
 				{
 					uint8_t const high = seqenc[(*(seq++))];
 					uint8_t const low  = seqenc[(*(seq++))];
-					
+
 					if ( high >= 16 )
 					{
 						libmaus2::exception::LibMausException lme;
@@ -281,11 +281,11 @@ namespace libmaus2
 						lme.finish();
 						throw lme;
 					}
-					
+
 					buffer.put( (high << 4) | low );
 				}
 				if ( seqlen & 1 )
-				{				
+				{
 					uint8_t const high = seqenc[(*(seq++))];
 
 					if ( high >= 16 )
@@ -299,7 +299,7 @@ namespace libmaus2
 					buffer.put( high<<4 );
 				}
 			}
-			
+
 			/**
 			 * encode a complete alignment block
 			 *
@@ -320,7 +320,7 @@ namespace libmaus2
 			 * @param seqlen length of query sequence
 			 * @param qual quality string
 			 * @param qualoffset quality offset (default 33)
-			 **/	
+			 **/
 			template<
 				typename name_iterator,
 				typename cigar_iterator,
@@ -350,7 +350,7 @@ namespace libmaus2
 			)
 			{
 				typedef ::libmaus2::fastx::EntityBuffer<uint8_t,alloc_type> buffer_type;
-			
+
 				if ( ! libmaus2::bambam::BamAlignmentDecoderBase::nameValid(name,name+namelen) )
 				{
 					libmaus2::exception::LibMausException lme;
@@ -358,30 +358,30 @@ namespace libmaus2
 					lme.finish();
 					throw lme;
 				}
-			
+
 				// typedef ::libmaus2::fastx::UCharBuffer UCharBuffer;
-				
+
 				if ( resetBuffer )
 					buffer.reset();
-				
-				uint32_t const bin = 
+
+				uint32_t const bin =
 					(cigarlen > 0xFFFFul)
 					?
 					(cigarlen >> 16)
 					:
-					(flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP) ? 
-						((pos < 0) ? 4680 : reg2bin(pos,0)) 
-						: 
+					(flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP) ?
+						((pos < 0) ? 4680 : reg2bin(pos,0))
+						:
 						reg2bin(pos,endpos(pos,cigar,cigarlen)
 					);
 				uint32_t const cflags = (cigarlen > 0xFFFFul) ? (flags | libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FCIGAR32) : flags;
-				
+
 				assert ( namelen+1 < (1ul << 8) );
 				assert ( mapq < (1ul << 8) );
 				assert ( bin < (1ul << 16) );
 				assert ( flags < (1ul << 16) );
 				assert ( cigarlen < (1ul << 16) );
-				
+
 				putLE<buffer_type, int32_t>(buffer,refid); // offset 0
 				putLE<buffer_type, int32_t>(buffer,pos);   // offset 4
 				putLE<buffer_type,uint32_t>(buffer,((bin & 0xFFFFul) << 16)|((mapq & 0xFF) << 8)|(namelen+1)); // offset 8
@@ -390,17 +390,17 @@ namespace libmaus2
 				putLE<buffer_type, int32_t>(buffer,nextrefid); // offset 20
 				putLE<buffer_type, int32_t>(buffer,nextpos); // offset 24
 				putLE<buffer_type, int32_t>(buffer,tlen); // offset 28
-				
+
 				// name
 				buffer.put(name,namelen);
 				buffer.put(0);
 
-				// encode cigar string				
+				// encode cigar string
 				encodeCigar(buffer,cigar,cigarlen);
 
-				// encode sequence				
+				// encode sequence
 				encodeSeq(buffer,seqenc,seq,seqlen);
-				
+
 				// encode quality
 				for ( uint32_t i = 0; i < seqlen; ++i )
 					buffer.put ( (*(qual++)) - qualoffset );
@@ -423,7 +423,7 @@ namespace libmaus2
 			 * @param seq string containing the query string
 			 * @param qual string containing the quality string
 			 * @param qualoffset quality offset (default 33)
-			 **/	
+			 **/
 			static void encodeAlignment(
 				::libmaus2::fastx::UCharBuffer & buffer,
 				BamSeqEncodeTable const & seqenc,
@@ -442,13 +442,13 @@ namespace libmaus2
 				bool const resetBuffer = true
 			)
 			{
-				std::vector<cigar_operation> cigvec = 
+				std::vector<cigar_operation> cigvec =
 					CigarStringParser::parseCigarString(cigar);
 				encodeAlignment(
 					buffer,seqenc,
 					name.begin(),name.size(),
 					refid,pos,mapq,flags,
-					cigvec.begin(),cigvec.size(),							
+					cigvec.begin(),cigvec.size(),
 					nextrefid,nextpos,tlen,
 					seq.begin(),seq.size(),
 					qual.begin(),qualoffset,
@@ -465,16 +465,16 @@ namespace libmaus2
 			template<typename buffer_type, typename value_type>
 			static void putAuxString(
 				buffer_type & data,
-				std::string const & tag, 
+				std::string const & tag,
 				value_type const & value
 			)
 			{
 				assert ( tag.size() == 2 );
-				
+
 				data.bufferPush(tag[0]);
 				data.bufferPush(tag[1]);
 				data.bufferPush('Z');
-				
+
 				char const * c = reinterpret_cast<char const *>(value);
 				uint64_t const len = strlen(c);
 				for ( uint64_t i = 0; i < len; ++i )
@@ -492,7 +492,7 @@ namespace libmaus2
 			template<typename buffer_type, typename value_type>
 			static void putAuxString(
 				buffer_type & data,
-				char const * tag, 
+				char const * tag,
 				value_type const & value
 			)
 			{
@@ -500,11 +500,11 @@ namespace libmaus2
 				assert ( tag[0] );
 				assert ( tag[1] );
 				assert ( ! tag[2] );
-				
+
 				data.bufferPush(tag[0]);
 				data.bufferPush(tag[1]);
 				data.bufferPush('Z');
-				
+
 				char const * c = reinterpret_cast<char const *>(value);
 				uint64_t const len = strlen(c);
 				for ( uint64_t i = 0; i < len; ++i )
@@ -523,7 +523,7 @@ namespace libmaus2
 			template<typename buffer_type, typename iterator_type>
 			static void putAuxString(
 				buffer_type & data,
-				char const * tag, 
+				char const * tag,
 				iterator_type pa,
 				iterator_type pe
 			)
@@ -532,11 +532,11 @@ namespace libmaus2
 				assert ( tag[0] );
 				assert ( tag[1] );
 				assert ( ! tag[2] );
-				
+
 				data.bufferPush(tag[0]);
 				data.bufferPush(tag[1]);
 				data.bufferPush('Z');
-				
+
 				while ( pa != pe )
 					data.bufferPush( *(pa++) );
 				data.bufferPush(0);
@@ -553,7 +553,7 @@ namespace libmaus2
 			template<typename buffer_type, typename iterator_type>
 			static void putAuxHexString(
 				buffer_type & data,
-				char const * tag, 
+				char const * tag,
 				iterator_type pa,
 				iterator_type pe
 			)
@@ -562,11 +562,11 @@ namespace libmaus2
 				assert ( tag[0] );
 				assert ( tag[1] );
 				assert ( ! tag[2] );
-				
+
 				data.bufferPush(tag[0]);
 				data.bufferPush(tag[1]);
 				data.bufferPush('H');
-				
+
 				while ( pa != pe )
 					data.bufferPush( *(pa++) );
 				data.bufferPush(0);
@@ -593,12 +593,12 @@ namespace libmaus2
 			static void putAuxNumber(
 				buffer_type & data,
 				std::string const & tag,
-				char const type, 
+				char const type,
 				value_type const & value
 			)
 			{
 				assert ( tag.size() == 2 );
-				
+
 				data.bufferPush(tag[0]);
 				data.bufferPush(tag[1]);
 				data.bufferPush(type);
@@ -630,7 +630,7 @@ namespace libmaus2
 					{
 						numberpun np;
 						np.fvalue = value;
-						
+
 						putLE< buffer_type,uint32_t>(
 							data, np.uvalue
 						);
@@ -651,7 +651,7 @@ namespace libmaus2
 			static void putAuxNumber(
 				buffer_type & data,
 				char const * const tag,
-				char const type, 
+				char const type,
 				value_type const & value
 			)
 			{
@@ -659,7 +659,7 @@ namespace libmaus2
 				assert ( tag[0] );
 				assert ( tag[1] );
 				assert ( ! tag[2] );
-				
+
 				data.bufferPush(tag[0]);
 				data.bufferPush(tag[1]);
 				data.bufferPush(type);
@@ -691,7 +691,7 @@ namespace libmaus2
 					{
 						numberpun np;
 						np.fvalue = value;
-						
+
 						putLE< buffer_type,uint32_t>(
 							data, np.uvalue
 						);
@@ -711,20 +711,20 @@ namespace libmaus2
 			template<typename buffer_type, typename value_type>
 			static void putAuxNumberArray(
 				buffer_type & data,
-				std::string const & tag, 
-				char const type, 
+				std::string const & tag,
+				char const type,
 				std::vector<value_type> const & values
 			)
 			{
 				assert ( tag.size() == 2 );
-				
+
 				data.bufferPush(tag[0]);
 				data.bufferPush(tag[1]);
 				data.bufferPush('B');
 				data.bufferPush(type);
 
 				putLE<buffer_type,uint32_t>(data,values.size());
-				
+
 				for ( uint64_t i = 0; i < values.size(); ++i )
 				{
 					switch ( type )
@@ -754,7 +754,7 @@ namespace libmaus2
 						{
 							numberpun np;
 							np.fvalue = values[i];
-							
+
 							putLE< buffer_type,uint32_t>(
 								data, np.uvalue
 							);
@@ -776,21 +776,21 @@ namespace libmaus2
 			template<typename buffer_type, typename iterator_type>
 			static void putAuxNumberArray(
 				buffer_type & data,
-				std::string const & tag, 
-				char const type, 
+				std::string const & tag,
+				char const type,
 				iterator_type values,
 				uint64_t const n
 			)
 			{
 				assert ( tag.size() == 2 );
-				
+
 				data.bufferPush(tag[0]);
 				data.bufferPush(tag[1]);
 				data.bufferPush('B');
 				data.bufferPush(type);
 
 				putLE<buffer_type,uint32_t>(data,n);
-				
+
 				for ( uint64_t i = 0; i < n; ++i )
 				{
 					switch ( type )
@@ -820,7 +820,7 @@ namespace libmaus2
 						{
 							numberpun np;
 							np.fvalue = *(values++);
-							
+
 							putLE< buffer_type,uint32_t>(
 								data, np.uvalue
 							);
@@ -843,7 +843,7 @@ namespace libmaus2
 			static void putAuxNumberArray(
 				buffer_type & data,
 				char const * const tag,
-				char const type, 
+				char const type,
 				iterator_type values,
 				uint64_t const n
 			)
@@ -852,14 +852,14 @@ namespace libmaus2
 				assert ( tag[0] );
 				assert ( tag[1] );
 				assert ( ! tag[2] );
-				
+
 				data.bufferPush(tag[0]);
 				data.bufferPush(tag[1]);
 				data.bufferPush('B');
 				data.bufferPush(type);
 
 				putLE<buffer_type,uint32_t>(data,n);
-				
+
 				for ( uint64_t i = 0; i < n; ++i )
 				{
 					switch ( type )
@@ -889,7 +889,7 @@ namespace libmaus2
 						{
 							numberpun np;
 							np.fvalue = *(values++);
-							
+
 							putLE< buffer_type,uint32_t>(
 								data, np.uvalue
 							);
@@ -898,7 +898,7 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			/**
 			 * write create alignment in buffer to stream
 			 *
@@ -930,9 +930,9 @@ namespace libmaus2
 				bool const rec1unmap = libmaus2::bambam::BamAlignmentDecoderBase::isUnmap(rec1flags);
 				bool const rec2unmap = libmaus2::bambam::BamAlignmentDecoderBase::isUnmap(rec2flags);
 				int16_t mq1, mq2;
-				
+
 				// both mapped
-				if ( (!rec1unmap) && (!rec2unmap) ) 
+				if ( (!rec1unmap) && (!rec2unmap) )
 				{
 					libmaus2::bambam::BamAlignmentEncoderBase::putNextRefId(rec1u,libmaus2::bambam::BamAlignmentDecoderBase::getRefID(rec2u));
 					libmaus2::bambam::BamAlignmentEncoderBase::putNextPos(rec1u,libmaus2::bambam::BamAlignmentDecoderBase::getPos(rec2u));
@@ -965,7 +965,7 @@ namespace libmaus2
 					libmaus2::bambam::BamAlignmentEncoderBase::putNextPos(rec2u,-1);
 					libmaus2::bambam::BamAlignmentEncoderBase::putFlags(rec2u,(libmaus2::bambam::BamAlignmentDecoderBase::isReverse(rec1flags) ? (rec2flags | next_rev_flag) : (rec2flags & (~next_rev_flag))) | (next_unmap_flag) );
 					libmaus2::bambam::BamAlignmentEncoderBase::putTlen(rec2u,0);
-					
+
 					mq1 = -1;
 					mq2 = -1;
 				}
@@ -976,7 +976,7 @@ namespace libmaus2
 					uint8_t * unmappedu = rec1unmap ? rec1u : rec2u;
 					uint32_t const mappedflags = rec1unmap ? rec2flags : rec1flags;
 					uint32_t const unmappedflags = rec1unmap ? rec1flags : rec2flags;
-					
+
 					// copy refid and pos from mapped to unmapped
 					libmaus2::bambam::BamAlignmentEncoderBase::putRefId(unmappedu,libmaus2::bambam::BamAlignmentDecoderBase::getRefID(mappedu));
 					libmaus2::bambam::BamAlignmentEncoderBase::putPos(unmappedu,libmaus2::bambam::BamAlignmentDecoderBase::getPos(mappedu));

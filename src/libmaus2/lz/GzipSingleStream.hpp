@@ -34,12 +34,12 @@ namespace libmaus2
 			std::istream & in;
 			::libmaus2::lz::Inflate infl;
 			bool finished;
-			
-			GzipSingleStream(std::istream & rin) 
-			: in(rin), infl(in,-15), finished(true) 
+
+			GzipSingleStream(std::istream & rin)
+			: in(rin), infl(in,-15), finished(true)
 			{
 			}
-			
+
 			bool startNewBlock()
 			{
 				try
@@ -55,14 +55,14 @@ namespace libmaus2
 					return false;
 				}
 			}
-			
+
 			uint64_t read(char * buffer, uint64_t n)
 			{
 				if ( finished )
 					return 0;
-					
+
 				uint64_t red = 0;
-				
+
 				while ( n )
 				{
 					uint64_t subred = infl.read(buffer,n);
@@ -73,7 +73,7 @@ namespace libmaus2
 						infl.ungetRest();
 						// ignore CRC and timestamp
 						in.ignore(8);
-						
+
 						finished = true;
 
 						return red;
@@ -82,10 +82,10 @@ namespace libmaus2
 					n -= subred;
 					buffer += subred;
 				}
-				
+
 				return red;
 			}
 		};
 	}
 }
-#endif		
+#endif

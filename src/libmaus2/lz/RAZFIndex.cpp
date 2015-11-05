@@ -27,9 +27,9 @@ std::ostream & libmaus2::lz::operator<<(std::ostream & out, libmaus2::lz::RAZFIn
 
 	for ( uint64_t i = 0; i < index.binoffsets.size(); ++i )
 		out << "binoffsets[" << i << "]=" << index.binoffsets[i] << std::endl;
-			
+
 	for ( uint64_t i = 0; i < index.celloffsets.size(); ++i )
 		out << "celloffsets[" << i << "]=" << index.celloffsets[i] << std::endl;
-		
+
 	return out;
 }

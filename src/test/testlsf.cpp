@@ -23,26 +23,26 @@ void testBunch(::libmaus2::util::ArgInfo const & arginfo)
 	try
 	{
 		std::cerr << "--- testing bunch setting ---" << std::endl;
-	
+
 		bool const verbose = arginfo.getValue<uint64_t>("verbose",0);
 		::libmaus2::lsf::SimpleDispatchedLsfProcessSet SDLPS("testlsf",verbose);
 		uint64_t const numprocs = arginfo.getValue<uint64_t>("numprocs",8);
 		std::vector < uint64_t > const ids = SDLPS.startProcessesAndWait(numprocs/* wait for all */,numprocs,arginfo,"testlsfdispatcher","testlsfclient",1,100);
-	
+
 		std::cerr << "active size is " << SDLPS.active.size() << std::endl;
-	
-		// sleep(30);	
+
+		// sleep(30);
 		// sleep(1);
-		
+
 		for ( uint64_t i = 0; i < ids.size(); ++i )
 		{
 			uint64_t const id = ids[i];
-			
+
 			while ( ! SDLPS.isActive(id) && ! SDLPS.isFinished(id) )
 			{
 				sleep(1);
 			}
-			
+
 			if ( SDLPS.isActive(id) )
 			{
 				try
@@ -58,7 +58,7 @@ void testBunch(::libmaus2::util::ArgInfo const & arginfo)
 				{
 					std::cerr << ex.what() << std::endl;
 				}
-				
+
 				SDLPS.deactivate(id);
 			}
 			else
@@ -66,14 +66,14 @@ void testBunch(::libmaus2::util::ArgInfo const & arginfo)
 				std::cerr << "Process " << id << " seems to have failed before we talked to it." << std::endl;
 			}
 		}
-		
+
 		while ( SDLPS.numFinished() < ids.size() )
 			sleep(1);
-	
+
 	}
 	catch(std::exception const & ex)
 	{
-	
+
 	}
 }
 
@@ -82,7 +82,7 @@ struct TestLsfTaskQueue : public ::libmaus2::lsf::LsfTaskQueue
 	std::deque < uint64_t > Q;
 	std::vector < std::string > payloads;
 	uint64_t curproc; // number of jobs currently running
-	
+
 	TestLsfTaskQueue(uint64_t const taskcnt)
 	: curproc(0)
 	{
@@ -94,12 +94,12 @@ struct TestLsfTaskQueue : public ::libmaus2::lsf::LsfTaskQueue
 			payloads.push_back(ostr.str());
 		}
 	}
-	
+
 	bool empty() { return Q.empty(); }
 	uint64_t next() { uint64_t const id = Q.front(); Q.pop_front(); curproc++; return id; }
 	std::string payload(uint64_t const i) { return payloads[i]; }
 	void putback(uint64_t const id) { Q.push_front(id); curproc--; }
-	void finished(uint64_t const id, std::string reply) { 
+	void finished(uint64_t const id, std::string reply) {
 		// std::cerr << "*** id " << id << " finished." << std::endl;
 		std::cerr << "*** id " << id << " finished, reply is " << reply << std::endl;
 		curproc--;
@@ -113,7 +113,7 @@ struct TestLsfTaskQueue : public ::libmaus2::lsf::LsfTaskQueue
         {
         	return "termpacket";
         }
-        
+
         virtual uint64_t numUnfinished()
         {
         	return Q.size() + curproc;
@@ -125,11 +125,11 @@ void testFarmerWorker(::libmaus2::util::ArgInfo const & arginfo)
 	try
 	{
 		std::cerr << "--- testing farmer/worker setting ---" << std::endl;
-		
+
 		bool const verbose = arginfo.getValue<uint64_t>("verbose",0);
 		::libmaus2::lsf::SimpleDispatchedLsfProcessSet SDLPS("testlsf",verbose);
 		uint64_t const numprocs = arginfo.getValue<uint64_t>("numprocs",8);
-					
+
 		uint64_t const taskcnt = 128;
 		TestLsfTaskQueue TLTQ(taskcnt);
 
@@ -137,7 +137,7 @@ void testFarmerWorker(::libmaus2::util::ArgInfo const & arginfo)
 	}
 	catch(std::exception const & ex)
 	{
-	
+
 	}
 }
 
@@ -153,15 +153,15 @@ int main(int argc, char ** argv)
 
 		#if 0
 		::libmaus2::network::LogReceiver::unique_ptr_type LR(new ::libmaus2::network::LogReceiver("testlsf",4444,1024));
-		
-		std::vector < DispatchedLsfProcess::shared_ptr_type > procs = 
+
+		std::vector < DispatchedLsfProcess::shared_ptr_type > procs =
 			DispatchedLsfProcess::start(arginfo,LR->sid,LR->hostname,LR->port,8/*id*/,"testlsfdispatcher","testlsfclient",1/* numthreads*/,100/*mem*/,0/*hosts*/,0/*cwd*/,0/*tmpspace*/,false/*valgrind*/);
-			
+
 		DispatchedLsfProcess::join(procs);
 
 		#if 0
 		DispatchedLsfProcess proc(arginfo,LR->sid,LR->hostname,LR->port,0/*id*/,"testlsfdispatcher","testlsfclient",1/* numthreads*/,100/*mem*/,0/*hosts*/,0/*cwd*/,0/*tmpspace*/,false/*valgrind*/);
-		
+
 		proc.waitKnown();
 
 		while ( proc.isUnfinished() )
@@ -169,7 +169,7 @@ int main(int argc, char ** argv)
 			std::cerr << "Waiting for process to finish." << std::endl;
 			sleep(1);
 		}
-		#endif	
+		#endif
 		#endif
 	}
 	catch(std::exception const & ex)

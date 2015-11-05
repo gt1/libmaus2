@@ -16,14 +16,14 @@ int main(int argc, char * argv[])
 		while ( ::libmaus2::util::GetFileSize::fileExists(defoutname) )
 			defoutname += "_";
 		std::string const outfilename = arginfo.getValue<std::string>("outfilename",defoutname);
-		
+
 		std::cerr << "output file name " << defoutname << std::endl;
-		
+
 		::std::vector< ::libmaus2::fastx::FastAReader::RewriteInfo > const info = ::libmaus2::fastx::FastAReader::rewriteFiles(inputfilenames,outfilename);
-		
+
 		for ( uint64_t i = 0; i < info.size(); ++i )
 			std::cerr << info[i].valid << "\t" << info[i].idlen << "\t" << info[i].seqlen << "\t" << info[i].getIdPrefix() << std::endl;
-	
+
 		return EXIT_SUCCESS;
 	}
 	catch(std::exception const & ex)
@@ -32,4 +32,3 @@ int main(int argc, char * argv[])
 		return EXIT_FAILURE;
 	}
 }
-

@@ -39,7 +39,7 @@ namespace libmaus2
 		{
 			typedef GammaRLDecoder this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			::libmaus2::huffman::IndexDecoderDataArray::unique_ptr_type Pidda;
 			::libmaus2::huffman::IndexDecoderDataArray const & idda;
 
@@ -59,7 +59,7 @@ namespace libmaus2
 			uint64_t fileptr;
 			uint64_t blockptr;
 			unsigned int albits;
-			
+
 			uint64_t bufsize;
 
 			uint64_t getN() const
@@ -79,7 +79,7 @@ namespace libmaus2
 				);
 				return SGI.get();
 			}
-			
+
 			// get alphabet bits
 			static unsigned int getAlBits(std::string const & filename)
 			{
@@ -96,18 +96,18 @@ namespace libmaus2
 			{
 				if ( ! filenames.size() )
 					return 0;
-					
+
 				unsigned int const albits_0 = getAlBits(filenames[0]);
-				
+
 				for ( uint64_t i = 1; i < filenames.size(); ++i )
 				{
 					unsigned int const albits_i = getAlBits(filenames[i]);
 					assert ( albits_i == albits_0 );
 				}
-				
+
 				return albits_0;
 			}
-			
+
 			// get length of vector of files in symbols
 			static uint64_t getLength(std::vector<std::string> const & filenames)
 			{
@@ -122,7 +122,7 @@ namespace libmaus2
 				if ( fileptr < idda.data.size() ) // file ptr valid, does file exist?
 				{
 					assert ( blockptr < idda.data[fileptr].numentries ); // check block pointer
-					
+
 					albits = getAlBits(idda.data[fileptr].filename);
 
 					// open new input file stream
@@ -130,7 +130,7 @@ namespace libmaus2
                                                         new ::libmaus2::aio::InputStreamInstance(idda.data[fileptr].filename)
                                                 );
 					CIS = UNIQUE_PTR_MOVE(tCIS);
-					
+
 					// seek to position and check if we succeeded
 					if ( iecv )
 						CIS->seekg(iecv->A[fileptr]->index[blockptr].pos,std::ios::beg);
@@ -143,7 +143,7 @@ namespace libmaus2
                                                         )
                                                 );
 					SGI = UNIQUE_PTR_MOVE(tSGI);
-					
+
 					::libmaus2::gamma::GammaDecoder< ::libmaus2::aio::SynchronousGenericInput<uint64_t> >::unique_ptr_type tGD(
                                                         new ::libmaus2::gamma::GammaDecoder< ::libmaus2::aio::SynchronousGenericInput<uint64_t> >(*SGI)
                                                 );
@@ -160,7 +160,7 @@ namespace libmaus2
 			bool fillBuffer()
 			{
 				bool newfile = false;
-				
+
 				// check if we need to open a new file
 				while ( fileptr < idda.data.size() && blockptr == idda.data[fileptr].numentries )
 				{
@@ -174,19 +174,19 @@ namespace libmaus2
 				// open new file if necessary
 				if ( newfile )
 					openNewFile();
-			
+
 				// read block size
 				uint64_t const bs = GD->decode();
-				
+
 				// increase buffersize if necessary
 				if ( bs > rlbuffer.size() )
 					rlbuffer = ::libmaus2::autoarray::AutoArray < rl_pair >(bs,false);
-				
+
 				// set up pointers
 				pa = rlbuffer.begin();
 				pc = pa;
 				pe = pc + bs;
-				
+
 				// decode symbols
 				for ( uint64_t i = 0; i < bs; ++i )
 				{
@@ -200,7 +200,7 @@ namespace libmaus2
 
 				// next block
 				blockptr++;
-			
+
 				return true;
 			}
 
@@ -233,12 +233,12 @@ namespace libmaus2
 				++pc;
 				return std::pair<int64_t,uint64_t>(sym,freq);
 			}
-			
+
 			inline void putBack(std::pair<int64_t,uint64_t> const & P)
 			{
 				*(--pc) = P;
 			}
-			
+
 			inline int get()
 			{
 				return decode();
@@ -251,7 +251,7 @@ namespace libmaus2
 				if ( offset < idda.vvec[idda.vvec.size()-1] )
 				{
 					uint64_t restoffset;
-				
+
 					if ( iecv )
 					{
 						std::pair<uint64_t,uint64_t> P = iecv->lookupValue(offset);
@@ -266,24 +266,24 @@ namespace libmaus2
 						blockptr = FBO.blockptr;
 						restoffset = FBO.offset;
 					}
-					
+
 					#if 0
 					if ( iecv )
 					{
 						std::pair<uint64_t,uint64_t> P2 = iecv->lookupValue(offset);
-						
+
 						uint64_t const fileptr2 = P2.first;
 						uint64_t const blockptr2 = P2.second;
-						uint64_t const restoffset2 = 
+						uint64_t const restoffset2 =
 							offset - iecv->A[fileptr2]->index[blockptr2].vcnt;
-							
+
 						bool const ok =
 							(fileptr==fileptr2)
 							&&
 							(blockptr==blockptr2)
 							&&
 							(restoffset2 == restoffset);
-							
+
 						if ( ok )
 						{
 							std::cerr << "***OK****" << std::endl;
@@ -291,29 +291,29 @@ namespace libmaus2
 						else
 						{
 							std::cerr << "***FAILURE: "
-								<< " fileptr=" << fileptr << " fileptr2=" << fileptr2 
-								<< " blockptr=" << blockptr << " blockptr2=" << blockptr2 
+								<< " fileptr=" << fileptr << " fileptr2=" << fileptr2
+								<< " blockptr=" << blockptr << " blockptr2=" << blockptr2
 								<< " restoffset=" << restoffset << " restoffset2=" << restoffset2
-								<< std::endl; 
+								<< std::endl;
 						}
 					}
 					#endif
-										
+
 					openNewFile();
-					
+
 					// this would be quicker using run lengths
 					while ( restoffset )
 					{
 						decode();
 						--restoffset;
 					}
-				}			
+				}
 			}
-			
+
 			GammaRLDecoder(
 				std::vector<std::string> const & rfilenames, uint64_t offset = 0, uint64_t const rbufsize = 64*1024
 			)
-			: 
+			:
 			  Pidda(::libmaus2::huffman::IndexDecoderDataArray::construct(rfilenames)),
 			  idda(*Pidda),
 			  iecv(0),
@@ -331,14 +331,14 @@ namespace libmaus2
 			)
 			:
 			  Pidda(),
-			  idda(ridda), 
+			  idda(ridda),
 			  iecv(0),
 			  pa(0), pc(0), pe(0),
 			  fileptr(0), blockptr(0),
 			  bufsize(rbufsize)
 			{
 				init(offset);
-			}			
+			}
 
 			GammaRLDecoder(
 				::libmaus2::huffman::IndexDecoderDataArray const & ridda,
@@ -348,19 +348,19 @@ namespace libmaus2
 			)
 			:
 			  Pidda(),
-			  idda(ridda), 
+			  idda(ridda),
 			  iecv(riecv),
 			  pa(0), pc(0), pe(0),
 			  fileptr(0), blockptr(0),
 			  bufsize(rbufsize)
 			{
 				init(offset);
-			}			
+			}
 
 			static bool haveAlphabetBits()
-			{ 
+			{
 				return true;
-			}                                                                                      
+			}
 		};
 	}
 }

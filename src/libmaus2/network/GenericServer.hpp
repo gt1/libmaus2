@@ -56,26 +56,26 @@ namespace libmaus2
                         	pid_t pid = waitpid(-1,&status,WNOHANG);
                         	// std::cerr << "sigchld for id " << pid << std::endl;
                         }
-                        
+
                         GenericServer(
                                 std::set<std::string> const & rfilenames,
                                 std::string const & shostname,
                                 unsigned short rport = 4444,
                                 unsigned int const backlog = 128)
-                        : filenames(rfilenames), port(rport), 
+                        : filenames(rfilenames), port(rport),
                           seso(UNIQUE_PTR_MOVE(server_socket_type::allocateServerSocket(port,backlog,shostname.c_str(),8*1024)))
                         {
                         }
-                        
+
                         ~GenericServer()
                         {
                                 shutdown();
                         }
-                        
+
                         void exec()
                         {
                                 pid = fork();
-                                
+
                                 if ( pid < 0 )
                                 {
                                         ::libmaus2::exception::LibMausException ex;
@@ -83,27 +83,27 @@ namespace libmaus2
                                         ex.finish();
                                         throw ex;
                                 }
-                                
+
                                 if ( ! pid )
                                 {
                                 	signal(SIGCHLD,sigchildhandler);
-                                
+
                                         while ( true )
                                         {
-                                                
+
                                                 try
                                                 {
 	                                                ::libmaus2::network::SocketBase::unique_ptr_type recsock = seso->accept();
-	                                                
+
                                                         pid_t childpid = fork();
-                                                        
+
                                                         if ( childpid == 0 )
                                                         {
                                                         	try
                                                         	{
 									uint64_t tag;
 									std::string const filename = recsock->readString(tag);
-									
+
 									if ( filenames.find(filename) != filenames.end() )
 									{
 										uint64_t offset, n;
@@ -114,7 +114,7 @@ namespace libmaus2
 										uint64_t const blocksize = 16*1024*sizeof(type);
 										uint64_t const byteoffset = offset*sizeof(type);
 										uint64_t todo = ::libmaus2::util::GetFileSize::getFileSize(filename) - byteoffset;
-										
+
 										if ( limit != std::numeric_limits<uint64_t>::max() )
 											todo = std::min(todo,limit*sizeof(type));
 
@@ -128,7 +128,7 @@ namespace libmaus2
 
 										uint64_t todowords = todo/sizeof(type);
 										recsock->writeMessage<uint64_t>(0,&todowords,1);
-										
+
 										::libmaus2::aio::SynchronousFastReaderBase SFRB(
 											filename,0,blocksize,byteoffset
 										);
@@ -138,13 +138,13 @@ namespace libmaus2
 										while ( todo )
 										{
 											uint64_t const toproc = std::min(blocksize,todo);
-											
+
 											for ( uint64_t k = 0; k < toproc; ++k )
 												B[k] = SFRB.getNextCharacter();
 											recsock->write(B.get(),toproc);
-											
+
 											todo -= toproc;
-										} 
+										}
 									}
 								}
 								catch(std::exception const & ex)
@@ -160,11 +160,11 @@ namespace libmaus2
                                                         std::cerr << "Error in GenericServer: " << ex.what() << std::endl;
                                                 }
                                         }
-                                
+
                                         _exit(0);
                                 }
                         }
-                        
+
                         void shutdown()
                         {
                                 kill(pid,SIGTERM);
@@ -175,20 +175,20 @@ namespace libmaus2
 		struct GenericClient
 		{
 			typedef input_type value_type;
-		
+
 			uint64_t const bufsize;
 			::libmaus2::autoarray::AutoArray<input_type> buffer;
 			input_type const * const pa;
 			input_type const * pc;
 			input_type const * pe;
-			
+
 			typedef ::libmaus2::network::ClientSocket socket_type;
 			typedef socket_type::unique_ptr_type socket_ptr_type;
 			socket_ptr_type socket;
 
 			uint64_t totalwords;
 			uint64_t totalwordsread;
-			
+
 			typedef GenericClient<input_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
@@ -201,7 +201,7 @@ namespace libmaus2
 				GenericClient<input_type> in(servername,serverport,inputfilename,64*1024);
 				uint64_t const n = in.totalwords;
 				::libmaus2::autoarray::AutoArray<input_type> A(n,false);
-			
+
 				for ( uint64_t i = 0; i < n; ++i )
 				{
 					input_type v;
@@ -209,19 +209,19 @@ namespace libmaus2
 					assert ( ok );
 					A[i] = v;
 				}
-				
+
 				return A;
 			}
 
 			GenericClient(
 				std::string const & servername,
 				unsigned short const serverport,
-				std::string const & filename, 
+				std::string const & filename,
 				uint64_t const rbufsize,
 				uint64_t const roffset = 0,
 				uint64_t const rtotalwords = std::numeric_limits<uint64_t>::max()
 			)
-			: bufsize(rbufsize), buffer(bufsize,false), 
+			: bufsize(rbufsize), buffer(bufsize,false),
 			  pa(buffer.get()), pc(pa), pe(pa),
 			  totalwords (0),
 			  totalwordsread(0)
@@ -243,14 +243,14 @@ namespace libmaus2
 					assert ( totalwordsread <= totalwords );
 					uint64_t const remwords = totalwords-totalwordsread;
 					uint64_t const toreadwords = std::min(remwords,bufsize);
-				
+
 					uint64_t const bytesread = socket->read ( reinterpret_cast<char *>(buffer.get()), toreadwords * sizeof(input_type));
 					assert ( bytesread % sizeof(input_type) == 0 );
 					uint64_t const wordsread = bytesread / sizeof(input_type);
-					
+
 					if ( wordsread == 0 )
 						return false;
-					
+
 					pc = pa;
 					pe = pa + wordsread;
 				}
@@ -283,27 +283,27 @@ namespace libmaus2
                         	/* pid_t pid = */ waitpid(-1,&status,WNOHANG);
                         	// std::cerr << "sigchld for id " << pid << std::endl;
                         }
-                        
+
                         GenericConcatServer(
                                 std::vector<std::string> const & rfilenames,
                                 ::libmaus2::autoarray::AutoArray< std::pair <uint64_t,uint64_t> > const & rP,
                                 std::string const & shostname,
                                 unsigned short rport = 4444,
                                 unsigned int const backlog = 128)
-                        : filenames(rfilenames), P(rP), port(rport), 
+                        : filenames(rfilenames), P(rP), port(rport),
                           seso(UNIQUE_PTR_MOVE(server_socket_type::allocateServerSocket(port,backlog,shostname.c_str(),8*1024)))
                         {
                         }
-                        
+
                         ~GenericConcatServer()
                         {
                                 shutdown();
                         }
-                        
+
                         void exec()
                         {
                                 pid = fork();
-                                
+
                                 if ( pid < 0 )
                                 {
                                         ::libmaus2::exception::LibMausException ex;
@@ -311,31 +311,31 @@ namespace libmaus2
                                         ex.finish();
                                         throw ex;
                                 }
-                                
+
                                 if ( ! pid )
                                 {
                                 	signal(SIGCHLD,sigchildhandler);
-                                
+
                                         while ( true )
                                         {
-                                                
+
                                                 try
                                                 {
 	                                                ::libmaus2::network::SocketBase::unique_ptr_type recsock = seso->accept();
-	                                                
+
                                                         pid_t childpid = fork();
-                                                        
+
                                                         if ( childpid == 0 )
                                                         {
                                                         	try
                                                         	{
                                                         	        uint64_t const fileid = recsock->readSingle<uint64_t>();
-									
+
 									if ( fileid < P.size() )
 									{
 									        uint64_t const blocksize = 64*1024;
 										uint64_t todo = P[fileid].second-P[fileid].first;
-										
+
 										recsock->writeSingle(todo);
 
 										// std::cerr << "Opening file...";
@@ -343,36 +343,36 @@ namespace libmaus2
 										typename ::libmaus2::aio::ReorderConcatGenericInput<type>::unique_ptr_type file =
 										        ::libmaus2::aio::ReorderConcatGenericInput<type>::openConcatFile(
 										                filenames,64*1024,todo,P[fileid].first);
-										        
+
 										// std::cerr << "Opened file, todo=" << todo << std::endl;
-										
+
 										::libmaus2::autoarray::AutoArray<type> B(blocksize,false);
 
 										while ( todo )
 										{
 											uint64_t const toproc = std::min(blocksize,todo);
-											
+
 											// std::cerr << "getting" << toproc << "...";
-											
+
 											file->fillBlock(B.get(), toproc);
 											/*
 											for ( uint64_t k = 0; k < toproc; ++k )
 												file->getNext(B[k]);
                                                                                         */
-												
+
                                                                                         // std::cerr << "gotok";
 
 											recsock->write(reinterpret_cast<char const *>(B.get()),toproc*sizeof(type));
-											
+
 											// std::cerr << "writeok";
-											
+
 											todo -= toproc;
-										} 
+										}
 									}
 									else
 									{
                                                                                 std::cerr << "Client asked for nonexisting file." << std::endl;
-										recsock->writeSingle(0);                                                                        
+										recsock->writeSingle(0);
 									}
 								}
 								catch(std::exception const & ex)
@@ -388,11 +388,11 @@ namespace libmaus2
                                                         std::cerr << "Error in GenericConcatServer: " << ex.what() << std::endl;
                                                 }
                                         }
-                                
+
                                         _exit(0);
                                 }
                         }
-                        
+
                         void shutdown()
                         {
                                 kill(pid,SIGTERM);
@@ -403,20 +403,20 @@ namespace libmaus2
 		struct GenericConcatClient
 		{
 			typedef input_type value_type;
-		
+
 			uint64_t const bufsize;
 			::libmaus2::autoarray::AutoArray<input_type> buffer;
 			input_type const * const pa;
 			input_type const * pc;
 			input_type const * pe;
-			
+
 			typedef ::libmaus2::network::ClientSocket socket_type;
 			typedef socket_type::unique_ptr_type socket_ptr_type;
 			socket_ptr_type socket;
 
 			uint64_t totalwords;
 			uint64_t totalwordsread;
-			
+
 			typedef GenericConcatClient<input_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
@@ -429,7 +429,7 @@ namespace libmaus2
 				GenericConcatClient<input_type> in(servername,serverport,inputfilename,64*1024);
 				uint64_t const n = in.totalwords;
 				::libmaus2::autoarray::AutoArray<input_type> A(n,false);
-			
+
 				for ( uint64_t i = 0; i < n; ++i )
 				{
 					input_type v;
@@ -437,7 +437,7 @@ namespace libmaus2
 					assert ( ok );
 					A[i] = v;
 				}
-				
+
 				return A;
 			}
 
@@ -447,7 +447,7 @@ namespace libmaus2
 				uint64_t const fileid,
 				uint64_t const rbufsize
 			)
-			: bufsize(rbufsize), buffer(bufsize,false), 
+			: bufsize(rbufsize), buffer(bufsize,false),
 			  pa(buffer.get()), pc(pa), pe(pa),
 			  totalwords (0),
 			  totalwordsread(0)
@@ -464,23 +464,23 @@ namespace libmaus2
 				if ( pc == pe )
 				{
 				        // std::cerr << "*";
-				
+
 					assert ( totalwordsread <= totalwords );
 					uint64_t const remwords = totalwords-totalwordsread;
 					uint64_t const toreadwords = std::min(remwords,bufsize);
-				
+
 					uint64_t const bytesread = socket->read ( reinterpret_cast<char *>(buffer.get()), toreadwords * sizeof(input_type));
 					assert ( bytesread % sizeof(input_type) == 0 );
 					uint64_t const wordsread = bytesread / sizeof(input_type);
-					
+
 					// std::cerr << "#";
-					
+
 					if ( wordsread == 0 )
 						return false;
-					
+
 					pc = pa;
 					pe = pa + wordsread;
-					
+
 					// std::cerr << "/";
 				}
 
@@ -499,7 +499,7 @@ namespace libmaus2
 			typedef ::libmaus2::network::ClientSocket socket_type;
 			typedef socket_type::unique_ptr_type socket_ptr_type;
 			socket_ptr_type socket;
-		
+
 			uint64_t const bufsize;
 
 			uint64_t totalwords;
@@ -510,10 +510,10 @@ namespace libmaus2
 			::libmaus2::autoarray::AutoArray<input_type> outbuffer;
 			input_type const * pc;
 			input_type const * pe;
-			
+
 			::libmaus2::parallel::SynchronousQueue<uint64_t> emptyqueue;
 			::libmaus2::parallel::SynchronousQueue<uint64_t> fullqueue;
-			
+
 			virtual void * run()
 			{
 			        bool running = true;
@@ -521,25 +521,25 @@ namespace libmaus2
 			        while ( running )
 			        {
 			                emptyqueue.deque();
-			        
+
                                         assert ( totalwordsread <= totalwords );
                                         uint64_t const remwords = totalwords-totalwordsread;
                                         uint64_t const toreadwords = std::min(remwords,bufsize);
-                                        
+
                                         inbuffer = ::libmaus2::autoarray::AutoArray<input_type>(toreadwords);
-                        
+
                                         uint64_t const bytesread = socket->read ( reinterpret_cast<char *>(inbuffer.get()), toreadwords * sizeof(input_type));
                                         assert ( bytesread % sizeof(input_type) == 0 );
                                         uint64_t const wordsread = bytesread / sizeof(input_type);
-                                        
+
                                         fullqueue.enque(wordsread);
-                                        
+
                                         running = (wordsread!=0);
                                 }
-                                
+
                                 return 0;
 			}
-			
+
 			typedef AsynchronousGenericConcatClient<input_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
@@ -552,7 +552,7 @@ namespace libmaus2
 				AsynchronousGenericConcatClient<input_type> in(servername,serverport,inputfilename,64*1024);
 				uint64_t const n = in.totalwords;
 				::libmaus2::autoarray::AutoArray<input_type> A(n,false);
-			
+
 				for ( uint64_t i = 0; i < n; ++i )
 				{
 					input_type v;
@@ -560,7 +560,7 @@ namespace libmaus2
 					assert ( ok );
 					A[i] = v;
 				}
-				
+
 				return A;
 			}
 
@@ -571,7 +571,7 @@ namespace libmaus2
 				uint64_t const rbufsize,
 				uint64_t const affinity
 			)
-			: bufsize(rbufsize), 
+			: bufsize(rbufsize),
 			  totalwords (0),
 			  totalwordsread(0),
 			  pc(0),
@@ -587,23 +587,23 @@ namespace libmaus2
 			{
 				join();
 			}
-			
+
 			bool fillBuffer()
 			{
 			        uint64_t const wordsread = fullqueue.deque();
 
                                 if ( wordsread == 0 )
                                         return false;
-                                
+
                                 outbuffer = inbuffer;
                                 pc = outbuffer.begin();
                                 pe = pc + wordsread;
-                                
+
                                 emptyqueue.enque(0);
 
-                                return true;			
+                                return true;
 			}
-			
+
 			bool getNext(input_type & word)
 			{
 				if ( pc == pe )

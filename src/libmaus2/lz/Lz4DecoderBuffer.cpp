@@ -20,7 +20,7 @@
 #include <libmaus2/lz/lz4.h>
 
 int libmaus2::lz::Lz4DecoderBuffer::decompressBlock(
-	char const * input, char * output, 
+	char const * input, char * output,
 	uint64_t const inputsize,
 	uint64_t const maxoutputsize
 )

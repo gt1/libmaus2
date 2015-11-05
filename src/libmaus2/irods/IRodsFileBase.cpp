@@ -27,34 +27,34 @@ libmaus2::irods::IRodsFileBase::~IRodsFileBase()
 	#if defined(LIBMAUS2_HAVE_IRODS)
 	if ( fdvalid )
 	{
-		openedDataObjInp_t closeHandle;		
+		openedDataObjInp_t closeHandle;
 		memset (&closeHandle, 0, sizeof (closeHandle));
 		closeHandle.l1descInx = fd;
-		
+
 		int const status = rcDataObjClose(comm, &closeHandle);
-		
+
 		if ( status < 0 )
 		{
 			char * subname = 0;
 			char * name = rodsErrorName(status,&subname);
-			
+
 			libmaus2::exception::LibMausException lme;
 			lme.getStream() << "IRodsFileBase::~IRodsFileBase: failed to close data object: " << status << " (" << name << ")" << std::endl;
 			lme.finish();
-			throw lme;		
-		}			
+			throw lme;
+		}
 	}
 	#endif
 }
 
 // read block of data
 uint64_t libmaus2::irods::IRodsFileBase::read(
-	char * 
+	char *
 		#if defined(LIBMAUS2_HAVE_IRODS)
 		buffer
 		#endif
-		, 
-	uint64_t 
+		,
+	uint64_t
 		#if defined(LIBMAUS2_HAVE_IRODS)
 		len
 		#endif
@@ -69,20 +69,20 @@ uint64_t libmaus2::irods::IRodsFileBase::read(
 	readInHandle.len       = len;
 	readOutHandle.buf   = buffer;
 	readOutHandle.len   = len;
-	
+
 	long const status = rcDataObjRead(comm, &readInHandle, &readOutHandle);
-	
+
 	if ( status < 0 )
 	{
 		char * subname = 0;
 		char * name = rodsErrorName(status,&subname);
-			
+
 		libmaus2::exception::LibMausException lme;
 		lme.getStream() << "IRodsFileBase::read(): failed with status " << status << " (" << name << ")" << std::endl;
 		lme.finish();
 		throw lme;
 	}
-	
+
 	return status;
 	#else
 	return 0;
@@ -95,7 +95,7 @@ uint64_t libmaus2::irods::IRodsFileBase::seek(
 		#if defined(LIBMAUS2_HAVE_IRODS)
 		offset
 		#endif
-		, 
+		,
 	int
 		#if defined(LIBMAUS2_HAVE_IRODS)
 		whence
@@ -111,17 +111,17 @@ uint64_t libmaus2::irods::IRodsFileBase::seek(
 	seekInput.l1descInx = fd;
 	seekInput.offset    = offset;
 	seekInput.whence    = whence;
-	if((status = rcDataObjLseek(comm, &seekInput, &seekOutput)) < 0) 
+	if((status = rcDataObjLseek(comm, &seekInput, &seekOutput)) < 0)
 	{
 		char * subname = 0;
 		char * name = rodsErrorName(status,&subname);
-			
+
 		libmaus2::exception::LibMausException lme;
 		lme.getStream() << "IRodsFileBase::seek(): failed with status " << status << " (" << name << ")" << std::endl;
 		lme.finish();
 		throw lme;
 	}
-	
+
 	return seekOutput->offset;
 	#else
 	return 0;

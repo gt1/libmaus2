@@ -30,8 +30,8 @@ namespace libmaus2
 		struct OverlapOrientation
 		{
 			virtual ~OverlapOrientation() {}
-		
-			enum overlap_orientation 
+
+			enum overlap_orientation
 			{
 				overlap_cover_complete = 0,
 				overlap_a_back_dovetail_b_front   = 1,
@@ -45,7 +45,7 @@ namespace libmaus2
 				overlap_a_complete_b   = 9,
 				overlap_ar_complete_b  = 10
 			};
-			
+
 			static bool isDovetail(overlap_orientation const o)
 			{
 				switch ( o )
@@ -57,9 +57,9 @@ namespace libmaus2
 						return true;
 					default:
 						return false;
-				}			
+				}
 			}
-			
+
 			static overlap_orientation getInverse(overlap_orientation const o)
 			{
 				switch ( o )
@@ -73,7 +73,7 @@ namespace libmaus2
 					//
 					case overlap_a_front_dovetail_b_back:
 						return overlap_a_back_dovetail_b_front;
-						
+
 					//
 					case overlap_a_front_dovetail_b_front:
 						return overlap_a_front_dovetail_b_front;
@@ -102,7 +102,7 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			static bool isRightEdge(overlap_orientation const & o)
 			{
 				switch ( o )
@@ -135,17 +135,17 @@ namespace libmaus2
 					return 2;
 			}
 		};
-		
+
 		struct OverlapOrientationOrder
 		{
 			bool operator()(OverlapOrientation::overlap_orientation const a, OverlapOrientation::overlap_orientation const b) const
 			{
 				int const ia = OverlapOrientation::leftRightOther(a);
 				int const ib = OverlapOrientation::leftRightOther(b);
-				
+
 				if ( ia != ib )
 					return ia < ib;
-					
+
 				return static_cast<int>(a) < static_cast<int>(b);
 			}
 		};

@@ -36,18 +36,18 @@ namespace libmaus2
 		{
 			::libmaus2::timing::RealTimeClock rtc;
 			uint64_t const n;
-			
+
 			LinearETA(uint64_t const rn)
 			: rtc(), n(rn)
 			{
 				rtc.start();
 			}
-			
+
 			void reset()
 			{
 				rtc.start();
 			}
-			
+
 			static std::string secondsToString(double resttime)
 			{
 				resttime = std::floor(resttime + 0.5);
@@ -59,21 +59,21 @@ namespace libmaus2
 				uint64_t restsecs = resttime;
 
 				std::ostringstream hourstr; hourstr << resthours;
-				std::ostringstream minstr; if ( restmins < 10 ) minstr << "0"; minstr << restmins;	
-				std::ostringstream secstr; if ( restsecs < 10 ) secstr << "0"; secstr << restsecs;	
-				
+				std::ostringstream minstr; if ( restmins < 10 ) minstr << "0"; minstr << restmins;
+				std::ostringstream secstr; if ( restsecs < 10 ) secstr << "0"; secstr << restsecs;
+
 				return hourstr.str() + ":" + minstr.str() + ":" + secstr.str();
 			}
-			
+
 			std::string eta(uint64_t i) const
 			{
 				double const timeelapsed = rtc.getElapsedSeconds();
 				double const timeperelement = timeelapsed / i;
 				double const restsize = n-i;
-				double const resttime = restsize*timeperelement;	
+				double const resttime = restsize*timeperelement;
 				return secondsToString(resttime);
 			}
-			
+
 			std::string elapsed() const
 			{
 				return secondsToString ( rtc.getElapsedSeconds() );

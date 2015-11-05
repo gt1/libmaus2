@@ -24,7 +24,7 @@
 namespace libmaus2
 {
 	namespace dazzler
-	{	
+	{
 		namespace db
 		{
 			template<typename _element_type>

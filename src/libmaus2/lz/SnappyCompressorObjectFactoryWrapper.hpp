@@ -29,7 +29,7 @@ namespace libmaus2
 		struct SnappyCompressorObjectFactoryWrapper
 		{
 			libmaus2::lz::SnappyCompressorObjectFactory::shared_ptr_type factory;
-			
+
 			SnappyCompressorObjectFactoryWrapper(libmaus2::lz::SnappyCompressorObjectFactory::shared_ptr_type rfactory)
 			: factory(rfactory)
 			{

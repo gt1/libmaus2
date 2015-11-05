@@ -22,12 +22,12 @@
 #include <libmaus2/util/CountPutObject.hpp>
 #include <libmaus2/index/ExternalMemoryIndexGenerator.hpp>
 #include <libmaus2/dazzler/align/OverlapMeta.hpp>
-#include <libmaus2/dazzler/align/OverlapIndexerBase.hpp>		
+#include <libmaus2/dazzler/align/OverlapIndexerBase.hpp>
 #include <libmaus2/dazzler/align/AlignmentFile.hpp>
 #include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <libmaus2/index/ExternalMemoryIndexDecoder.hpp>
 #include <libmaus2/aio/InputStreamInstance.hpp>
-		
+
 
 namespace libmaus2
 {
@@ -44,7 +44,7 @@ namespace libmaus2
 				)
 				{
 					std::streampos pos = algnfile.tellg();
-					
+
 					if ( algn.getNextOverlap(algnfile,OVL) )
 					{
 						if ( pos < 0 )
@@ -65,7 +65,7 @@ namespace libmaus2
 				static std::string getIndexName(std::string const & aligns)
 				{
 					std::string::size_type const p = aligns.find_last_of('/');
-				
+
 					if ( p == std::string::npos )
 						return std::string(".") + aligns + std::string(".bidx");
 					else
@@ -94,7 +94,7 @@ namespace libmaus2
 				{
 					return libmaus2::aio::InputStreamFactoryContainer::tryOpen(getIndexName(aligns));
 				}
-				
+
 				static uint64_t getReadStartPosition(std::string const & aligns, int64_t const aread)
 				{
 					if ( ! haveIndex(aligns) )
@@ -110,15 +110,15 @@ namespace libmaus2
 					libmaus2::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<OverlapMeta> ER = EMID.findLargestSmaller(OverlapMeta(aread,0,0,0,0,0,0));
 
 					libmaus2::dazzler::align::AlignmentFile::unique_ptr_type Palgn(new libmaus2::dazzler::align::AlignmentFile(*Pfile));
-					
+
 					Palgn->alre += (ER.blockid << base_level_log);
 					Pfile->clear();
 					Pfile->seekg(ER.P.first);
-					
+
 					libmaus2::dazzler::align::Overlap OVL;
-					
+
 					uint64_t ppos = Pfile->tellg();
-					
+
 					while ( Palgn->peekNextOverlap(*Pfile,OVL) && OVL.aread < aread )
 					{
 						Palgn->getNextOverlap(*Pfile,OVL);
@@ -131,10 +131,10 @@ namespace libmaus2
 						assert ( Palgn->alre > 0 );
 						Palgn->alre -= 1;
 					}
-					
+
 					Pfile->clear();
 					Pfile->seekg(ppos);
-					
+
 					return ppos;
 				}
 
@@ -207,7 +207,7 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				static int64_t getMaximumARead(std::string const & aligns)
 				{
 					if ( ! haveIndex(aligns) )
@@ -217,27 +217,27 @@ namespace libmaus2
 						lme.finish();
 						throw lme;
 					}
-				
+
 					libmaus2::aio::InputStreamInstance::unique_ptr_type Pfile(new libmaus2::aio::InputStreamInstance(aligns));
-					
+
 					libmaus2::index::ExternalMemoryIndexDecoder<OverlapMeta,base_level_log,inner_level_log> EMID(getIndexName(aligns));
-					
+
 					// empty file?
 					if ( !EMID.size() )
 						return -1;
-					
+
 					std::pair<uint64_t,uint64_t> const P = EMID[EMID.size()-1];
-					
+
 					libmaus2::dazzler::align::AlignmentFile::unique_ptr_type Palgn(new libmaus2::dazzler::align::AlignmentFile(*Pfile));
 					Palgn->novl -= ((EMID.size()-1) << base_level_log);
 					Pfile->clear();
 					Pfile->seekg(P.first);
-						
+
 					libmaus2::dazzler::align::Overlap OVL;
 					int64_t aread = -1;
 					while ( Palgn->getNextOverlap(*Pfile,OVL) )
 						aread = OVL.aread;
-						
+
 					return aread;
 				}
 
@@ -249,10 +249,10 @@ namespace libmaus2
 					int64_t aread = -1;
 					if ( Palgn->getNextOverlap(*Pfile,OVL) )
 						aread = OVL.aread;
-						
+
 					return aread;
 				}
-				
+
 				struct OpenAlignmentFileRegionInfo
 				{
 					std::streampos gposbelow;
@@ -266,7 +266,7 @@ namespace libmaus2
 					{
 					}
 				};
-				
+
 				static OpenAlignmentFileRegionInfo openAlignmentFileRegion(
 					std::string const & aligns,
 					int64_t afrom, // lower bound, included
@@ -387,7 +387,7 @@ namespace libmaus2
 
 					int64_t odeg = 0;
 					int64_t sdeg = 0;
-					// get next overlap                                                                                                                                                                                                                                
+					// get next overlap
 					while ( (P=OverlapIndexer::getOverlapAndOffset(algn,algnfile,OVL)).first )
 					{
 						if ( haveprev )
@@ -408,6 +408,9 @@ namespace libmaus2
 
 						if ( (! haveprev) || (haveprev && (OVLprev.aread != OVL.aread)) )
 						{
+							if ( ! haveprev )
+								nextid = OVL.aread;
+
 							while ( nextid < OVL.aread )
 							{
 								libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(*DOFS,P.second,doffset);
@@ -454,7 +457,7 @@ namespace libmaus2
 
 					omax = std::max(omax,odeg);
 					smax = std::max(smax,sdeg);
-					
+
 					DOFS->seekp(0,std::ios::beg);
 					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(*DOFS,omax,doffset);
 					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(*DOFS,ttot,doffset);

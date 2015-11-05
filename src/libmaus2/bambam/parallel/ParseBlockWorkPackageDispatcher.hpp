@@ -40,7 +40,7 @@ namespace libmaus2
 				ParsedBlockAddPendingInterface       & addParsedPendingInterface;
 				ParsedBlockStallInterface            & parseStallInterface;
 				ParsePackageReturnInterface          & packageReturnInterface;
-	
+
 				ParseBlockWorkPackageDispatcher(
 					DecompressedBlockAddPendingInterface & raddDecompressedPendingInterface,
 					DecompressedBlockReturnInterface     & rreturnDecompressedInterface,
@@ -53,24 +53,24 @@ namespace libmaus2
 				    parseStallInterface(rparseStallInterface),
 				    packageReturnInterface(rpackageReturnInterface)
 				{
-				
+
 				}
-			
+
 				virtual void dispatch(
-					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadWorkPackage * P,
 					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
 					ParseBlockWorkPackage * BP = dynamic_cast<ParseBlockWorkPackage *>(P);
 					assert ( BP );
-										
+
 					// tpi.addLogStringWithThreadId("ParseBlockWorkPackageDispatcher::dispatch() block id " + libmaus2::util::NumberSerialisation::formatNumber(BP->decompressedblock->blockid,0));
-					
+
 					// can we parse all information in the decompressed input block?
 					if ( BP->parseInfo->parseBlock(*(BP->decompressedblock),*(BP->parseBlock)) )
 					{
 						// tpi.addLogStringWithThreadId("ParseBlockWorkPackageDispatcher::dispatch() parseBlock true");
-						
+
 						// if this is the last input block
 						if ( BP->decompressedblock->final )
 						{
@@ -79,7 +79,7 @@ namespace libmaus2
 							BP->parseBlock->final = true;
 							BP->parseBlock->low   = BP->parseInfo->parseacc;
 							BP->parseInfo->parseacc += BP->parseBlock->fill();
-							addParsedPendingInterface.putParsedBlockAddPending(BP->parseBlock);						
+							addParsedPendingInterface.putParsedBlockAddPending(BP->parseBlock);
 						}
 						// otherwise parse block might not be full yet, stall it
 						else
@@ -87,14 +87,14 @@ namespace libmaus2
 							// std::cerr << "stalling on " << BP->decompressedblock->blockid << std::endl;
 							parseStallInterface.putParsedBlockStall(BP->parseBlock);
 						}
-						
+
 						// return decompressed input block (implies we are ready for the next one)
 						returnDecompressedInterface.putDecompressedBlockReturn(BP->decompressedblock);
 					}
 					else
 					{
 						// tpi.addLogStringWithThreadId("ParseBlockWorkPackageDispatcher::dispatch() parseBlock false");
-						
+
 						// post process block (reorder pointers to original input order)
 						BP->parseBlock->reorder();
 						// put back last name
@@ -105,16 +105,16 @@ namespace libmaus2
 						BP->parseBlock->low   = BP->parseInfo->parseacc;
 						// increase number of reads seen
 						BP->parseInfo->parseacc += BP->parseBlock->fill();
-						
+
 						// parse block is full, add it to pending list
 						addParsedPendingInterface.putParsedBlockAddPending(BP->parseBlock);
 						// decompressed input block still has more data, mark it as pending again
 						addDecompressedPendingInterface.putDecompressedBlockAddPending(BP->decompressedblock);
 					}
-	
-					// return the work package				
-					packageReturnInterface.putReturnParsePackage(BP);				
-				}		
+
+					// return the work package
+					packageReturnInterface.putReturnParsePackage(BP);
+				}
 			};
 		}
 	}

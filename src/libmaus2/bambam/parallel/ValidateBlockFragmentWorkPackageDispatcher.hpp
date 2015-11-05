@@ -38,7 +38,7 @@ namespace libmaus2
 				ValidateBlockFragmentAddPendingInterface & addValidatedPendingInterface;
 				ChecksumsInterfaceGetInterface & getChecksumsInterface;
 				ChecksumsInterfacePutInterface & putChecksumsInterface;
-	
+
 				ValidateBlockFragmentWorkPackageDispatcher(
 					ValidateBlockFragmentPackageReturnInterface & rpackageReturnInterface,
 					ValidateBlockFragmentAddPendingInterface    & raddValidatedPendingInterface,
@@ -48,17 +48,17 @@ namespace libmaus2
 				    getChecksumsInterface(rgetChecksumsInterface), putChecksumsInterface(rputChecksumsInterface)
 				{
 				}
-			
+
 				virtual void dispatch(
-					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadWorkPackage * P,
 					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
 					ValidateBlockFragmentWorkPackage * BP = dynamic_cast<ValidateBlockFragmentWorkPackage *>(P);
 					assert ( BP );
-	
+
 					bool const ok = BP->dispatch();
-					
+
 					if ( ok )
 					{
 						ChecksumsInterface::shared_ptr_type Schksums = getChecksumsInterface.getSeqChecksumsObject();
@@ -68,12 +68,12 @@ namespace libmaus2
 							putChecksumsInterface.returnSeqChecksumsObject(Schksums);
 						}
 					}
-									
+
 					addValidatedPendingInterface.validateBlockFragmentFinished(BP->fragment,ok);
-									
-					// return the work package				
-					packageReturnInterface.putReturnValidateBlockFragmentPackage(BP);				
-				}		
+
+					// return the work package
+					packageReturnInterface.putReturnValidateBlockFragmentPackage(BP);
+				}
 			};
 		}
 	}

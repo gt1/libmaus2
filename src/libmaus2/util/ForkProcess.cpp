@@ -61,18 +61,18 @@ void libmaus2::util::ForkProcess::init(
 	typedef string_type::unique_ptr_type string_ptr_type;
 	::libmaus2::autoarray::AutoArray< string_ptr_type > wargv(args.size());
 	::libmaus2::autoarray::AutoArray< char * > aargv(args.size()+1);
-	
+
 	for ( uint64_t i = 0; i < args.size(); ++i )
 	{
 		string_ptr_type twargvi(new string_type(args[i]));
 		wargv[i] = UNIQUE_PTR_MOVE(twargvi);
 		aargv[i] = wargv[i]->A.get();
 	}
-	
+
 	aargv[args.size()] = 0;
-	
+
 	int const fpr = pipe(&failpipe[0]);
-	
+
 	if ( fpr == -1 )
 	{
 		::libmaus2::exception::LibMausException se;
@@ -80,7 +80,7 @@ void libmaus2::util::ForkProcess::init(
 		se.finish();
 		throw se;
 	}
-	
+
 	id = fork();
 
 	if ( id == static_cast<pid_t>(-1) )
@@ -93,7 +93,7 @@ void libmaus2::util::ForkProcess::init(
 	else if ( id == 0 )
 	{
 		close(failpipe[0]);
-		
+
 		try
 		{
 			int const dirret = chdir ( pwd.c_str() );
@@ -107,7 +107,7 @@ void libmaus2::util::ForkProcess::init(
 
 			if ( maxmem != std::numeric_limits<uint64_t>::max() )
 				::libmaus2::util::MemLimit::setLimits(maxmem);
-			
+
 			if ( infilename != std::string() )
 			{
 				close(STDIN_FILENO);
@@ -117,14 +117,14 @@ void libmaus2::util::ForkProcess::init(
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "open(\"" << infilename.c_str() << "\",O_RDONLY) failed: " << strerror(errno) << std::endl;
 					se.finish();
-					throw se;															
+					throw se;
 				}
 				if ( dup2(infd,STDIN_FILENO) == -1 )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "dup2() failed for STDIN_FILENO: " << strerror(errno) << std::endl;
 					se.finish();
-					throw se;																				
+					throw se;
 				}
 			}
 
@@ -137,14 +137,14 @@ void libmaus2::util::ForkProcess::init(
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "open(\"" << outfilename.c_str() << "\",O_WRONLY|O_CREAT," << 0644 <<") failed: " << strerror(errno) << std::endl;
 					se.finish();
-					throw se;															
+					throw se;
 				}
 				if ( dup2(outfd,STDOUT_FILENO) == -1 )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "dup2() failed for STDOUT_FILENO: " << strerror(errno) << std::endl;
 					se.finish();
-					throw se;																				
+					throw se;
 				}
 			}
 
@@ -157,19 +157,19 @@ void libmaus2::util::ForkProcess::init(
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "open(\"" << errfilename.c_str() << "\",O_WRONLY|O_CREAT," << 0644 <<") failed: " << strerror(errno) << std::endl;
 					se.finish();
-					throw se;															
+					throw se;
 				}
 				if ( dup2(errfd,STDERR_FILENO) == -1 )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "dup2() failed for STDERR_FILENO: " << strerror(errno) << std::endl;
 					se.finish();
-					throw se;																				
+					throw se;
 				}
 			}
-		
+
 			execv(exe.c_str(),aargv.get());
-							
+
 			::libmaus2::exception::LibMausException se;
 			se.getStream() << "execv(\""<< exe <<"\") failed: " << strerror(errno) << std::endl;
 			se.finish();
@@ -184,8 +184,8 @@ void libmaus2::util::ForkProcess::init(
 			if ( w != static_cast<ssize_t>(err.size()) )
 				std::cerr << "Write failed: " << strerror(errno) << std::endl;
 		}
-		
-		close ( failpipe[1] );			
+
+		close ( failpipe[1] );
 		_exit(1);
 	}
 	else
@@ -220,7 +220,7 @@ libmaus2::util::ForkProcess::ForkProcess(
 {
 	std::deque<std::string> tokens =
 		::libmaus2::util::stringFunctions::tokenize(cmdline,std::string(" "));
-	
+
 	bool foundcmd = false;
 	std::string cmd;
 	std::vector < std::string > args;
@@ -235,7 +235,7 @@ libmaus2::util::ForkProcess::ForkProcess(
 			else
 				args.push_back(tokens[i]);
 		}
-	
+
 	if ( foundcmd )
 		init(cmd,pwd,args,maxmem,infilename,outfilename,errfilename);
 	else
@@ -278,7 +278,6 @@ bool libmaus2::util::ForkProcess::join()
 		joined = true;
 		result = static_cast<bool>(WIFEXITED(status) && (WEXITSTATUS(status) == 0));
 	}
-	
+
 	return result;
 }
-		

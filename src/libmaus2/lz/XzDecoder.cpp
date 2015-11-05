@@ -25,7 +25,7 @@ void libmaus2::lz::XzDecoder::initDecoder()
 	#else
 	lzma_ret const ret = lzma_auto_decoder(&lstr, UINT64_MAX, 0);
 	#endif
-	
+
 	if ( ret != LZMA_OK )
 	{
 		libmaus2::exception::LibMausException lme;
@@ -43,7 +43,7 @@ void libmaus2::lz::XzDecoder::initDecoder()
 
 libmaus2::lz::XzDecoder::XzDecoder(std::istream & rin, size_t const inbufsize, size_t const outbufsize)
 : in(rin), Ainbuf(inbufsize), Aoutbuf(outbufsize), pa(Aoutbuf.end()), pc(Aoutbuf.end()), pe(Aoutbuf.end())
-	#if defined(LIBMAUS2_HAVE_LZMA)	
+	#if defined(LIBMAUS2_HAVE_LZMA)
 	, lstr(LZMA_STREAM_INIT), lastret(LZMA_STREAM_END)
 	#endif
 {
@@ -52,7 +52,7 @@ libmaus2::lz::XzDecoder::XzDecoder(std::istream & rin, size_t const inbufsize, s
 
 libmaus2::lz::XzDecoder::~XzDecoder()
 {
-	#if defined(LIBMAUS2_HAVE_LZMA)	
+	#if defined(LIBMAUS2_HAVE_LZMA)
 	lzma_end(&lstr);
 	#endif
 }
@@ -60,33 +60,33 @@ libmaus2::lz::XzDecoder::~XzDecoder()
 size_t libmaus2::lz::XzDecoder::fillInputBuffer()
 {
 	in.read(reinterpret_cast<char *>(Ainbuf.begin()),Ainbuf.size());
-	
+
 	if ( in.bad() )
 	{
 		libmaus2::exception::LibMausException lme;
 		lme.getStream() << "XzDecoder::fillInputBuffer(): stream bad" << std::endl;
 		lme.finish();
-		throw lme;	
+		throw lme;
 	}
-	
+
 	return in.gcount();
 }
 
 size_t libmaus2::lz::XzDecoder::read(
-	uint8_t * 
-		#if defined(LIBMAUS2_HAVE_LZMA)	
+	uint8_t *
+		#if defined(LIBMAUS2_HAVE_LZMA)
 		A
 		#endif
-		, 
-	size_t 
-		#if defined(LIBMAUS2_HAVE_LZMA)	
+		,
+	size_t
+		#if defined(LIBMAUS2_HAVE_LZMA)
 		s
 		#endif
 )
 {
 	size_t r = 0;
-	
-	#if defined(LIBMAUS2_HAVE_LZMA)	
+
+	#if defined(LIBMAUS2_HAVE_LZMA)
 	while ( s )
 	{
 		// if output data buffer is empty
@@ -98,12 +98,12 @@ size_t libmaus2::lz::XzDecoder::read(
 				lstr.avail_in = fillInputBuffer();
 				lstr.next_in = Ainbuf.begin();
 			}
-			
+
 			// still no data, end of the file
 			if ( ! lstr.avail_in )
 			{
 				s = 0;
-									
+
 				if ( lastret != LZMA_STREAM_END )
 				{
 					libmaus2::exception::LibMausException lme;
@@ -125,7 +125,7 @@ size_t libmaus2::lz::XzDecoder::read(
 				pa = Aoutbuf.begin();
 				pc = Aoutbuf.begin();
 				pe = Aoutbuf.begin() + Aoutbuf.size() - lstr.avail_out;
-				
+
 				switch ( ret )
 				{
 					/*
@@ -144,7 +144,7 @@ size_t libmaus2::lz::XzDecoder::read(
 						memmove(Ainbuf.begin(),lstr.next_in,lstr.avail_in);
 						size_t const g = lstr.avail_in;
 						lzma_end(&lstr);
-						
+
 						initDecoder();
 
 						lstr.next_in = Ainbuf.begin();
@@ -166,7 +166,7 @@ size_t libmaus2::lz::XzDecoder::read(
 				}
 			}
 		}
-		
+
 		size_t const tocopy = std::min(s,static_cast<size_t>(pe-pc));
 		std::copy(pc,pc+tocopy,A);
 		A += tocopy;
@@ -175,6 +175,6 @@ size_t libmaus2::lz::XzDecoder::read(
 		r += tocopy;
 	}
 	#endif
-	
+
 	return r;
 }

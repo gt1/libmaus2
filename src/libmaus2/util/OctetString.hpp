@@ -34,7 +34,7 @@ namespace libmaus2
 			typedef uint8_t const * const_iterator;
 
 			::libmaus2::autoarray::AutoArray<uint8_t> A;
-			
+
 			const_iterator begin() const
 			{
 				return A.begin();
@@ -44,25 +44,25 @@ namespace libmaus2
 			{
 				return A.end();
 			}
-			
+
 			template<typename stream_type>
 			static uint64_t computeOctetLengthFromFile(std::string const & fn, uint64_t const len)
 			{
 				stream_type stream(fn);
 				return computeOctetLength(stream,len);
 			}
-		
+
 			static uint64_t computeOctetLength(std::istream &, uint64_t const len);
 
 			static shared_ptr_type constructRaw(
-				std::string const & filename, 
-				uint64_t const offset = 0, 
+				std::string const & filename,
+				uint64_t const offset = 0,
 				uint64_t const blength = std::numeric_limits<uint64_t>::max()
 			);
 
 			OctetString(
-				std::string const & filename, 
-				uint64_t offset = 0, 
+				std::string const & filename,
+				uint64_t offset = 0,
 				uint64_t blength = std::numeric_limits<uint64_t>::max());
 			OctetString(std::istream & CIS, uint64_t blength);
 			OctetString(std::istream & CIS, uint64_t const octetlength, uint64_t const symlength);
@@ -71,7 +71,7 @@ namespace libmaus2
 			{
 				return A.size();
 			}
-			
+
 			uint8_t operator[](uint64_t const i) const
 			{
 				return A[i];
@@ -87,10 +87,10 @@ namespace libmaus2
 			typedef ::libmaus2::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int32_t *,int32_t const *,256,true> sort_type_parallel;
 			typedef ::libmaus2::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int32_t *,int32_t const *,256,false> sort_type_serial;
 			typedef sort_type_serial::saidx_t saidx_t;
-		
-			::libmaus2::autoarray::AutoArray<saidx_t,::libmaus2::autoarray::alloc_type_c> 
+
+			::libmaus2::autoarray::AutoArray<saidx_t,::libmaus2::autoarray::alloc_type_c>
 				computeSuffixArray32(bool const parallel = false) const;
-		};		
+		};
 	}
 }
 #endif

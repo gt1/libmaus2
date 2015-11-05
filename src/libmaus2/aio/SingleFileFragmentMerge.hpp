@@ -48,7 +48,7 @@ namespace libmaus2
 				{
 					bool const A_lt_B = A.second < B.second;
 					bool const B_lt_A = B.second < A.second;
-					
+
 					// if A.second != B.second
 					if ( A_lt_B || B_lt_A )
 						return !(A_lt_B);
@@ -61,13 +61,13 @@ namespace libmaus2
 			std::string const & fn;
 			libmaus2::aio::InputStream::unique_ptr_type pCIS;
 			std::vector< std::pair<uint64_t,uint64_t> > frags;
-			
+
 			std::priority_queue<
 				std::pair< uint64_t, element_type >,
 				std::vector< std::pair< uint64_t, element_type > >,
 				SingleFileFragmentMergeHeapComparator<element_type>
 			> Q;
-			
+
 			SingleFileFragmentMerge(std::string const & rfn, std::vector< std::pair<uint64_t,uint64_t> > const & rfrags)
 			: fn(rfn), pCIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(fn)), frags(rfrags)
 			{
@@ -81,16 +81,16 @@ namespace libmaus2
 						Q.push(std::pair< uint64_t, element_type >(i,BC));
 					}
 			}
-			
+
 			bool getNext(element_type & BC)
 			{
 				if ( ! Q.size() )
 					return false;
-				
+
 				std::pair< uint64_t, element_type > const P = Q.top();
 				BC = P.second;
 				Q.pop();
-				
+
 				uint64_t const fragindex = P.first;
 				if ( frags[fragindex].first < frags[fragindex].second )
 				{
@@ -99,10 +99,10 @@ namespace libmaus2
 
 					pCIS->read(reinterpret_cast<char *>(&NBC), sizeof(element_type));
 					Q.push(std::pair< uint64_t, element_type >(fragindex,NBC));
-					
+
 					frags[fragindex].first += sizeof(element_type);
 				}
-				
+
 				return true;
 			}
 
@@ -122,7 +122,7 @@ namespace libmaus2
 					pCOS->write(reinterpret_cast<char const *>(&BC),sizeof(element_type));
 				pCOS->flush();
 				pCOS.reset();
-				
+
 				return nfile;
 			}
 		};

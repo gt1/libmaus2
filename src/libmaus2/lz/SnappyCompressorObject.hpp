@@ -31,7 +31,7 @@ namespace libmaus2
 			typedef SnappyCompressorObject this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			SnappyCompressorObject() {}
 			~SnappyCompressorObject() {}
 
@@ -40,7 +40,7 @@ namespace libmaus2
 				uint64_t compressBound = SnappyCompress::compressBound(inputLength);
 				if ( output.size() < compressBound )
 					output = libmaus2::autoarray::AutoArray<char>(compressBound,false);
-				
+
 				return SnappyCompress::rawcompress(input,inputLength,output.begin());
 			}
 			virtual std::string getDescription() const

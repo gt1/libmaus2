@@ -40,22 +40,22 @@ namespace libmaus2
 		{
 			typedef _lf_type lf_type;
 			typedef typename lf_type::unique_ptr_type lf_ptr_type;
-			
+
 			typedef typename lf_type::wt_type rank_dictionary_type;
 			typedef typename rank_dictionary_type::unique_ptr_type rank_dictionary_ptr_type;
-			
+
 			typedef ::libmaus2::fm::DictionaryInfo<rank_dictionary_type> rank_dictionary_info_type;
-			
+
 			typedef libmaus2::fm::SimpleSampledSA<lf_type> sa_type;
 			typedef typename sa_type::unique_ptr_type sa_ptr_type;
-			
+
 			std::string const dictname;
 			std::string const basename;
 			std::string const saname;
 			lf_ptr_type LF;
 			sa_ptr_type SA;
 			::libmaus2::autoarray::AutoArray<int64_t> const symbols;
-			
+
 			static ::libmaus2::autoarray::AutoArray<int64_t> computeSymbolVector()
 			{
 				::libmaus2::autoarray::AutoArray<int64_t> S(6);
@@ -63,9 +63,9 @@ namespace libmaus2
 					S[i] = i;
 				return S;
 			}
-			
+
 			BidirectionalDnaIndexTemplate(std::string const & rdictname)
-			: dictname(rdictname), 
+			: dictname(rdictname),
 			  basename(libmaus2::util::OutputFileNameTools::clipOff(dictname,rank_dictionary_info_type::getDictionaryFileSuffix())),
 			  saname(basename+rank_dictionary_info_type::getSampledSuffixArraySuffix()),
 			  LF(lf_type::load(dictname)),
@@ -75,18 +75,18 @@ namespace libmaus2
 			{
 				if ( LF->D.size() < 6 )
 					LF->recomputeD(5);
-			}	
+			}
 
 			libmaus2::fm::BidirectionalIndexInterval epsilon() const
 			{
 				return libmaus2::fm::BidirectionalIndexInterval(0,0,LF->n);
 			}
-			
+
 			template<typename iterator>
 			libmaus2::fm::BidirectionalIndexInterval biSearchBackward(iterator A, uint64_t const m) const
 			{
 				libmaus2::fm::BidirectionalIndexInterval BI = epsilon();
-				
+
 				for ( uint64_t i = 0; i < m; ++i )
 					BI = backwardExtend(BI,A[m-i-1]);
 
@@ -97,7 +97,7 @@ namespace libmaus2
 			libmaus2::fm::BidirectionalIndexInterval biSearchForward(iterator A, uint64_t const m) const
 			{
 				libmaus2::fm::BidirectionalIndexInterval BI = epsilon();
-				
+
 				for ( uint64_t i = 0; i < m; ++i )
 					BI = forwardExtend(BI,A[i]);
 
@@ -113,7 +113,7 @@ namespace libmaus2
 				#else
 				extend_elem_type * E = reinterpret_cast<extend_elem_type *>( alloca( symbols.size() * sizeof(extend_elem_type) ));
 				#endif
-				
+
 				memset(E,0,symbols.size() * sizeof(extend_elem_type));
 				LF->W->stepDivArray(BI.spf, BI.spf+BI.siz, E);
 
@@ -124,9 +124,9 @@ namespace libmaus2
 						{
 							case 1: // straight A, rc T
 								*(PP++) = libmaus2::fm::BidirectionalIndexIntervalSymbol(s,libmaus2::fm::BidirectionalIndexInterval(
-									LF->D[1] + E[1].first /* bw for sym 1=A, rc(A)=T=4 */, 
-									BI.spr + 
-										E[0].second /* zero < T */ + 
+									LF->D[1] + E[1].first /* bw for sym 1=A, rc(A)=T=4 */,
+									BI.spr +
+										E[0].second /* zero < T */ +
 										E[2].second /* 2=C, rc(C)=G < T */ +
 										E[3].second /* 3=G, rc(G)=C < T */ +
 										E[4].second /* 4=T, rc(T)=A < T */ ,
@@ -134,25 +134,25 @@ namespace libmaus2
 								break;
 							case 2: // straight C, rc G
 								*(PP++) = libmaus2::fm::BidirectionalIndexIntervalSymbol(s,libmaus2::fm::BidirectionalIndexInterval(
-									LF->D[2] + E[2].first /* bw for sym 1=C, rc(C)=G=3 */, 
-									BI.spr + 
-										E[0].second /* zero < G */ + 
+									LF->D[2] + E[2].first /* bw for sym 1=C, rc(C)=G=3 */,
+									BI.spr +
+										E[0].second /* zero < G */ +
 										E[3].second /* 3=G, rc(G)=C < G */ +
 										E[4].second /* 4=T, rc(T)=A < G */ ,
 									E[2].second /* number of 2=C symbols */));
 								break;
 							case 3: // straight G, rc C
 								*(PP++) = libmaus2::fm::BidirectionalIndexIntervalSymbol(s,libmaus2::fm::BidirectionalIndexInterval(
-									LF->D[3] + E[3].first /* bw for sym 3=G, rc(G)=C=2 */, 
-									BI.spr + 
-										E[0].second /* zero < C */ + 
+									LF->D[3] + E[3].first /* bw for sym 3=G, rc(G)=C=2 */,
+									BI.spr +
+										E[0].second /* zero < C */ +
 										E[4].second /* 4=T, rc(T)=A < C */ ,
 									E[3].second /* number of 3=G symbols */));
 								break;
 							case 4: // straight T, rc A
 								*(PP++) = libmaus2::fm::BidirectionalIndexIntervalSymbol(s,libmaus2::fm::BidirectionalIndexInterval(
-									LF->D[4] + E[4].first /* bw for sym 4=T, rc(T)=A=1 */, 
-									BI.spr + 
+									LF->D[4] + E[4].first /* bw for sym 4=T, rc(T)=A=1 */,
+									BI.spr +
 										E[0].second /* zero < A */,
 									E[4].second /* number of 4=T symbols */));
 								break;
@@ -163,8 +163,8 @@ namespace libmaus2
 									BI.spr + E[0].second + E[1].second + E[2].second + E[3].second + E[4].second,
 									E[5].second));
 								break;
-						}				
-				
+						}
+
 				return PP-P;
 			}
 
@@ -175,7 +175,7 @@ namespace libmaus2
 				#else
 				extend_elem_type * E = reinterpret_cast<extend_elem_type *>( alloca( symbols.size() * sizeof(extend_elem_type) ));
 				#endif
-				
+
 				memset(E,0,symbols.size() * sizeof(extend_elem_type));
 				LF->W->stepDivArray(BI.spf, BI.spf+BI.siz, E);
 
@@ -186,16 +186,16 @@ namespace libmaus2
 						{
 							case 0: // term
 								*(PP++) = libmaus2::fm::BidirectionalIndexIntervalSymbol(s,libmaus2::fm::BidirectionalIndexInterval(
-									LF->D[0] + E[0].first /* bw for sym 0 */, 
-									BI.spr /* nothing smaller than 0 */, 
-									E[0].second /* number of 0 symbols */ 
+									LF->D[0] + E[0].first /* bw for sym 0 */,
+									BI.spr /* nothing smaller than 0 */,
+									E[0].second /* number of 0 symbols */
 								));
 								break;
 							case 1: // straight A, rc T
 								*(PP++) = libmaus2::fm::BidirectionalIndexIntervalSymbol(s,libmaus2::fm::BidirectionalIndexInterval(
-									LF->D[1] + E[1].first /* bw for sym 1=A, rc(A)=T=4 */, 
-									BI.spr + 
-										E[0].second /* zero < T */ + 
+									LF->D[1] + E[1].first /* bw for sym 1=A, rc(A)=T=4 */,
+									BI.spr +
+										E[0].second /* zero < T */ +
 										E[2].second /* 2=C, rc(C)=G < T */ +
 										E[3].second /* 3=G, rc(G)=C < T */ +
 										E[4].second /* 4=T, rc(T)=A < T */ ,
@@ -203,25 +203,25 @@ namespace libmaus2
 								break;
 							case 2: // straight C, rc G
 								*(PP++) = libmaus2::fm::BidirectionalIndexIntervalSymbol(s,libmaus2::fm::BidirectionalIndexInterval(
-									LF->D[2] + E[2].first /* bw for sym 1=C, rc(C)=G=3 */, 
-									BI.spr + 
-										E[0].second /* zero < G */ + 
+									LF->D[2] + E[2].first /* bw for sym 1=C, rc(C)=G=3 */,
+									BI.spr +
+										E[0].second /* zero < G */ +
 										E[3].second /* 3=G, rc(G)=C < G */ +
 										E[4].second /* 4=T, rc(T)=A < G */ ,
 									E[2].second /* number of 2=C symbols */));
 								break;
 							case 3: // straight G, rc C
 								*(PP++) = libmaus2::fm::BidirectionalIndexIntervalSymbol(s,libmaus2::fm::BidirectionalIndexInterval(
-									LF->D[3] + E[3].first /* bw for sym 3=G, rc(G)=C=2 */, 
-									BI.spr + 
-										E[0].second /* zero < C */ + 
+									LF->D[3] + E[3].first /* bw for sym 3=G, rc(G)=C=2 */,
+									BI.spr +
+										E[0].second /* zero < C */ +
 										E[4].second /* 4=T, rc(T)=A < C */ ,
 									E[3].second /* number of 3=G symbols */));
 								break;
 							case 4: // straight T, rc A
 								*(PP++) = libmaus2::fm::BidirectionalIndexIntervalSymbol(s,libmaus2::fm::BidirectionalIndexInterval(
-									LF->D[4] + E[4].first /* bw for sym 4=T, rc(T)=A=1 */, 
-									BI.spr + 
+									LF->D[4] + E[4].first /* bw for sym 4=T, rc(T)=A=1 */,
+									BI.spr +
 										E[0].second /* zero < A */,
 									E[4].second /* number of 4=T symbols */));
 								break;
@@ -232,59 +232,59 @@ namespace libmaus2
 									BI.spr + E[0].second + E[1].second + E[2].second + E[3].second + E[4].second,
 									E[5].second));
 								break;
-						}				
-				
+						}
+
 				return PP-P;
-			}	
+			}
 
 			libmaus2::fm::BidirectionalIndexInterval backwardExtend(libmaus2::fm::BidirectionalIndexInterval const & BI, int64_t const sym) const
-			{		
+			{
 				#if defined(_MSC_VER) || defined(__MINGW32__)
 				extend_elem_type * E = reinterpret_cast<extend_elem_type *>(_alloca( symbols.size() * sizeof(extend_elem_type) ));
 				#else
 				extend_elem_type * E = reinterpret_cast<extend_elem_type *>( alloca( symbols.size() * sizeof(extend_elem_type) ));
 				#endif
-				
+
 				memset(E,0,symbols.size() * sizeof(extend_elem_type));
 
 				LF->W->stepDivArray(BI.spf, BI.spf+BI.siz, E);
-				
+
 				switch ( sym )
 				{
 					case 0: // term
 						return libmaus2::fm::BidirectionalIndexInterval(
-							LF->D[0] + E[0].first /* bw for sym 0 */, 
-							BI.spr /* nothing smaller than 0 */, 
-							E[0].second /* number of 0 symbols */ 
+							LF->D[0] + E[0].first /* bw for sym 0 */,
+							BI.spr /* nothing smaller than 0 */,
+							E[0].second /* number of 0 symbols */
 						);
 					case 1: // straight A, rc T
 						return libmaus2::fm::BidirectionalIndexInterval(
-							LF->D[1] + E[1].first /* bw for sym 1=A, rc(A)=T=4 */, 
-							BI.spr + 
-								E[0].second /* zero < T */ + 
+							LF->D[1] + E[1].first /* bw for sym 1=A, rc(A)=T=4 */,
+							BI.spr +
+								E[0].second /* zero < T */ +
 								E[2].second /* 2=C, rc(C)=G < T */ +
 								E[3].second /* 3=G, rc(G)=C < T */ +
 								E[4].second /* 4=T, rc(T)=A < T */ ,
 							E[1].second /* number of 1=A symbols */);
 					case 2: // straight C, rc G
 						return libmaus2::fm::BidirectionalIndexInterval(
-							LF->D[2] + E[2].first /* bw for sym 1=C, rc(C)=G=3 */, 
-							BI.spr + 
-								E[0].second /* zero < G */ + 
+							LF->D[2] + E[2].first /* bw for sym 1=C, rc(C)=G=3 */,
+							BI.spr +
+								E[0].second /* zero < G */ +
 								E[3].second /* 3=G, rc(G)=C < G */ +
 								E[4].second /* 4=T, rc(T)=A < G */ ,
 							E[2].second /* number of 2=C symbols */);
 					case 3: // straight G, rc C
 						return libmaus2::fm::BidirectionalIndexInterval(
-							LF->D[3] + E[3].first /* bw for sym 3=G, rc(G)=C=2 */, 
-							BI.spr + 
-								E[0].second /* zero < C */ + 
+							LF->D[3] + E[3].first /* bw for sym 3=G, rc(G)=C=2 */,
+							BI.spr +
+								E[0].second /* zero < C */ +
 								E[4].second /* 4=T, rc(T)=A < C */ ,
 							E[3].second /* number of 3=G symbols */);
 					case 4: // straight T, rc A
 						return libmaus2::fm::BidirectionalIndexInterval(
-							LF->D[4] + E[4].first /* bw for sym 4=T, rc(T)=A=1 */, 
-							BI.spr + 
+							LF->D[4] + E[4].first /* bw for sym 4=T, rc(T)=A=1 */,
+							BI.spr +
 								E[0].second /* zero < A */,
 							E[4].second /* number of 4=T symbols */);
 					case 5:
@@ -323,7 +323,7 @@ namespace libmaus2
 					P[i].swapInPlace();
 				return num;
 			}
-			
+
 			template<typename iterator>
 			uint64_t getRightExtensions(libmaus2::fm::BidirectionalIndexInterval const & BI, iterator P) const
 			{
@@ -331,14 +331,14 @@ namespace libmaus2
 				{
 					lf_type const & RLF = *LF;
 					rank_dictionary_type const & RW = *(RLF.W);
-					
+
 					uint64_t const numex = RW.enumerateSymbolsInRangeUnsorted(BI.spr,BI.spr+BI.siz,P);
-					
+
 					for ( uint64_t i = 0; i < numex; ++i )
 						P[i].first = rc(P[i].first);
-						
+
 					std::sort(P,P+numex);
-						
+
 					return numex;
 				}
 				else
@@ -351,13 +351,13 @@ namespace libmaus2
 				if ( BI.siz )
 				{
 					lf_type const & RLF = *LF;
-					rank_dictionary_type const & RW = *(RLF.W);		
+					rank_dictionary_type const & RW = *(RLF.W);
 					return RW.enumerateSymbolsInRangeSorted(BI.spf,BI.spf+BI.siz,P);
 				}
 				else
 					return 0;
 			}
-			
+
 			uint64_t countLeftExtensions(libmaus2::fm::BidirectionalIndexInterval const & BI, int64_t const sym) const
 			{
 				if ( BI.siz )
@@ -393,13 +393,13 @@ namespace libmaus2
 			{
 				std::string s(len,' ');
 				std::string::iterator ita = s.begin();
-				
+
 				while ( len-- )
 				{
 					r = LF->phi(r);
 					*(ita++) = (*LF)[r];
 				}
-				
+
 				return s;
 			}
 
@@ -408,13 +408,13 @@ namespace libmaus2
 			{
 				std::string s(len,' ');
 				std::string::iterator ita = s.begin();
-				
+
 				while ( len-- )
 				{
 					r = LF->phi(r);
 					*(ita++) = libmaus2::fastx::remapChar((*LF)[r]-1);
 				}
-				
+
 				return s;
 			}
 
@@ -422,22 +422,22 @@ namespace libmaus2
 			std::string getTextUnmapped(uint64_t r) const
 			{
 				std::vector<char> V;
-				
+
 				while ( true )
 				{
 					r = LF->phi(r);
-					
+
 					char const u = (*LF)[r];
-					
+
 					if ( u )
 						V.push_back(libmaus2::fastx::remapChar(u-1));
 					else
 						break;
 				}
-				
+
 				return std::string(V.begin(),V.end());
 			}
-			
+
 			// get start positions of sequences (positions cyclically before terminators
 			std::vector<uint64_t> getSeqStartPositions() const
 			{
@@ -494,22 +494,22 @@ namespace libmaus2
 						std::cerr << std::endl;
 					}
 					#endif
-					
+
 					VBI.push_back(BI);
-					
+
 					totalmatches += BI.siz;
-					
+
 					return BI.siz;
 				}
 				else
 				{
 					// query symbol
-					int64_t const qsym = s[s.size()-backoffset-1];			
+					int64_t const qsym = s[s.size()-backoffset-1];
 					// number of symbols we can extend by
 					uint64_t const nsym = backwardExtendMulti(BI,E);
 					// number of matches
 					uint64_t nump = 0;
-					
+
 					for ( uint64_t i = 0; i < nsym; ++i )
 					{
 						assert ( E[i].siz );
@@ -528,7 +528,7 @@ namespace libmaus2
 							nump += hammingSearchRec(s,E[i],backoffset+1,curdif+1,maxdif,E+symbols.size(),VBI,totalmatches,maxtotalmatches);
 						}
 					}
-					
+
 					return nump;
 				}
 			}
@@ -578,22 +578,22 @@ namespace libmaus2
 						std::cerr << std::endl;
 					}
 					#endif
-					
+
 					VBI.push_back(std::pair<uint64_t, libmaus2::fm::BidirectionalIndexInterval>(curdif,BI));
-					
+
 					totalmatches += BI.siz;
-					
+
 					return BI.siz;
 				}
 				else
 				{
 					// query symbol
-					int64_t const qsym = s[s.size()-backoffset-1];			
+					int64_t const qsym = s[s.size()-backoffset-1];
 					// number of symbols we can extend by
 					uint64_t const nsym = backwardExtendMulti(BI,E);
 					// number of matches
 					uint64_t nump = 0;
-					
+
 					for ( uint64_t i = 0; i < nsym; ++i )
 					{
 						assert ( E[i].siz );
@@ -612,23 +612,23 @@ namespace libmaus2
 							nump += hammingSearchRec(s,E[i],backoffset+1,curdif+1,maxdif,E+symbols.size(),VBI,totalmatches,maxtotalmatches);
 						}
 					}
-					
+
 					return nump;
 				}
 			}
-			
+
 			static void mapStringInPlace(std::string & s)
 			{
 				for ( uint64_t i = 0; i < s.size(); ++i )
 					s[i] = libmaus2::fastx::mapChar(s[i])+1;
 			}
-			
+
 			static void remapStringInPlace(std::string & s)
 			{
 				for ( uint64_t i = 0; i < s.size(); ++i )
 					s[i] = libmaus2::fastx::remapChar(s[i]-1);
 			}
-			
+
 			static std::string mapString(std::string const & s)
 			{
 				std::string t = s;
@@ -641,7 +641,7 @@ namespace libmaus2
 				remapStringInPlace(t);
 				return t;
 			}
-			
+
 
 			/*
 			 * search a pattern with up to maxdif mismatches
@@ -650,7 +650,7 @@ namespace libmaus2
 			{
 				// compute reverse complement
 				std::string rquery = libmaus2::fastx::reverseComplementUnmapped(query);
-				
+
 				// map clear text to codes used in index
 				mapStringInPlace(query);
 				mapStringInPlace(rquery);
@@ -660,29 +660,29 @@ namespace libmaus2
 
 				// total matches
 				uint64_t totalmatches = 0;
-				
+
 				// search reverse complement
 				hammingSearchRec(rquery,epsilon(),0,0,maxdif,E.begin(),VBI,totalmatches,maxtotalmatches);
 				// turn into intervals for forward
 				for ( uint64_t i = 0; i < VBI.size(); ++i )
 					VBI[i].swapInPlace();
-					
+
 				// reset number of matches
 				totalmatches = 0;
 				// search straight/non rc pattern
 				hammingSearchRec(query ,epsilon(),0,0,maxdif,E.begin(),VBI,totalmatches,maxtotalmatches);
-				
+
 				// sort intervals
 				std::sort(VBI.begin(),VBI.end());
-				
+
 				// drop duplicates
 				VBI.resize(std::unique(VBI.begin(),VBI.end())-VBI.begin());
-				
+
 				// compute number of matches
 				uint64_t nump = 0;
 				for ( uint64_t i = 0; i < VBI.size(); ++i )
 					nump += VBI[i].siz;
-				
+
 				return nump;
 			}
 
@@ -704,7 +704,7 @@ namespace libmaus2
 			{
 				// compute reverse complement
 				std::string rquery = libmaus2::fastx::reverseComplementUnmapped(query);
-				
+
 				// map clear text to codes used in index
 				mapStringInPlace(query);
 				mapStringInPlace(rquery);
@@ -714,38 +714,38 @@ namespace libmaus2
 
 				// total matches
 				uint64_t totalmatches = 0;
-				
+
 				// search reverse complement
 				hammingSearchRec(rquery,epsilon(),0,0,maxdif,E.begin(),VBI,totalmatches,maxtotalmatches);
 				// turn into intervals for forward
 				for ( uint64_t i = 0; i < VBI.size(); ++i )
 					VBI[i].second.swapInPlace();
-					
+
 				// reset number of matches
 				totalmatches = 0;
 				// search straight/non rc pattern
 				hammingSearchRec(query ,epsilon(),0,0,maxdif,E.begin(),VBI,totalmatches,maxtotalmatches);
-				
+
 				// sort intervals
 				std::sort(VBI.begin(),VBI.end());
-				
+
 				// drop duplicates
 				VBI.resize(std::unique(VBI.begin(),VBI.end())-VBI.begin());
-				
+
 				// compute number of matches
 				uint64_t nump = 0;
 				for ( uint64_t i = 0; i < VBI.size(); ++i )
 					nump += VBI[i].second.siz;
-				
+
 				return nump;
 			}
-			
+
 			template<typename iterator>
 			void extractText(iterator const it, uint64_t const low, uint64_t const high, uint64_t r) const
 			{
 				iterator ita = it + low;
 				iterator ite = it + high;
-				
+
 				while ( ite != ita )
 				{
 					std::pair<int64_t,uint64_t> const P = LF->extendedLF(r);
@@ -753,7 +753,7 @@ namespace libmaus2
 					r = P.second;
 				}
 			}
-			
+
 			template<typename iterator>
 			void extractText(iterator const it)
 			{

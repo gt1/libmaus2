@@ -31,15 +31,15 @@ namespace libmaus2
 			libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO;
 			uint64_t v;
 			unsigned int b;
-			
+
 			BitVectorOutput(std::string const & filename) : pout(new libmaus2::aio::OutputStreamInstance(filename)), SGO(*pout,8*1024), v(0), b(64) {}
 			BitVectorOutput(std::ostream & out) : pout(), SGO(out,8192), v(0), b(64) {}
-			
+
 			void writeBit(bool const bit)
 			{
 				v <<= 1;
 				v |= static_cast<uint64_t>(bit);
-				
+
 				if ( ! --b )
 				{
 					SGO.put(v);
@@ -47,7 +47,7 @@ namespace libmaus2
 					b = 64;
 				}
 			}
-			
+
 			void flush()
 			{
 				// number of bits in file

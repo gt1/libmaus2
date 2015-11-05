@@ -42,7 +42,7 @@ namespace libmaus2
 			static inline unsigned int diagid_f(unsigned int x, unsigned int y)
 			{
 				int const dif = static_cast<int>(x)-static_cast<int>(y);
-				
+
 				if ( dif < 0 )
 				{
 					return ((-dif)<<1);
@@ -54,7 +54,7 @@ namespace libmaus2
 				else
 				{
 					return 0;
-				}	
+				}
 			}
 
 			// offset on diagonal
@@ -92,14 +92,14 @@ namespace libmaus2
 				assert ( diagaccess_get_f(V,ptr) == step_none );
 				V.at(ptr>>2) |= static_cast<int>(e) << ((ptr&3)<<1);
 			}
-			
+
 			std::vector<unsigned char> editops;
-			
+
 			public:
 			ND()
 			{
 			}
-			
+
 			void printMatrix(std::ostream & out, size_t const na, size_t const nb) const
 			{
 				// min size
@@ -114,7 +114,7 @@ namespace libmaus2
 					{
 						if ( diagptr_f(pa,pb,diaglen)/4 < editops.size() )
 						{
-							switch ( 
+							switch (
 								diagaccess_get_f(editops,diagptr_f(pa,pb,diaglen))
 							)
 							{
@@ -129,47 +129,47 @@ namespace libmaus2
 							out.put(' ');
 						}
 					}
-					
+
 					out << "\n";
 				}
 			}
-			
+
 			template<typename iterator_a, typename iterator_b>
 			inline upair slide(
-				upair const & P, 
+				upair const & P,
 				iterator_a a,
-				uint64_t const na, 
+				uint64_t const na,
 				iterator_b b,
-				uint64_t const nb, 
+				uint64_t const nb,
 				uint64_t const diaglen
 			)
 			{
-				// start point on a	
+				// start point on a
 				unsigned int pa = P.first;
 				// start point on b
 				unsigned int pb = P.second;
 				// diagonal pointer
 				unsigned int diagptr = diagptr_f(pa,pb,diaglen);
-				
-				// steps we can go along a		
+
+				// steps we can go along a
 				unsigned int const sa = na-pa;
 				// steps we can go along b
 				unsigned int const sb = nb-pb;
 				// minimum of the two
 				unsigned int s = sa < sb ? sa : sb;
-				
+
 				// slide
 				while ( s && a[pa] == b[pb] && (diagaccess_get_f(editops,diagptr+1) == step_none) )
 				{
 					// assert ( diagaccess_get_f(editops,diagptr+1) == step_none );
 					diagaccess_set_f(editops,++diagptr,step_diag);
-					--s, ++pa, ++pb;						
+					--s, ++pa, ++pb;
 				}
 
 
 				return upair(pa,pb);
 			}
-			
+
 			template<typename iterator_a, typename iterator_b>
 			bool process(
 				iterator_a a,
@@ -188,9 +188,9 @@ namespace libmaus2
 				size_t const basesize = ((2+1) * diaglen ) / elperbyte;
 				if ( editops.size() < basesize )
 					editops.resize(basesize);
-				std::fill(editops.begin(),editops.begin()+basesize,0);		
+				std::fill(editops.begin(),editops.begin()+basesize,0);
 
-				// todo queue	
+				// todo queue
 				std::deque<upair> Q;
 				// insert origin
 				Q.push_back(slide(upair(0,0),a,na,b,nb,diaglen));
@@ -210,19 +210,19 @@ namespace libmaus2
 						std::fill(editops.begin()+prevsize,editops.begin()+nextsize,0);
 					}
 					uint64_t const numpoints = Q.size();
-										
+
 					// error phase
 					for ( uint64_t i = 0; i < numpoints; ++i )
 					{
 						upair P = Q.front();
 						Q.pop_front();
 
-						// start point on a	
+						// start point on a
 						unsigned int pa = P.first;
 						// start point on b
 						unsigned int pb = P.second;
 
-						// at least one not at end	
+						// at least one not at end
 						if ( (na-pa) | (nb-pb) )
 						{
 							// one more error is still in range
@@ -264,7 +264,7 @@ namespace libmaus2
 											diagaccess_set_f(editops,diagptr_f(pa+1,pb,diaglen),step_del);
 											Q.push_back(slide(upair(pa+1,pb),a,na,b,nb,diaglen));
 										}
-									}	
+									}
 								}
 								else // na == pa
 								{
@@ -287,8 +287,8 @@ namespace libmaus2
 				}
 
 				// did we reach the bottom right corner?
-				if ( 
-					// diagaccess_get_f(editops,diagptr_f(na,nb,diaglen)) != step_none 
+				if (
+					// diagaccess_get_f(editops,diagptr_f(na,nb,diaglen)) != step_none
 					aligned
 				)
 				{
@@ -310,7 +310,7 @@ namespace libmaus2
 								}
 								else
 								{
-									*(--EditDistanceTraceContainer::ta) = STEP_MISMATCH;									
+									*(--EditDistanceTraceContainer::ta) = STEP_MISMATCH;
 								}
 								break;
 							case step_del:
@@ -325,7 +325,7 @@ namespace libmaus2
 								assert ( false );
 								break;
 						}
-					}					
+					}
 
 					return true;
 				}
@@ -333,14 +333,14 @@ namespace libmaus2
 				{
 					return false;
 				}
-				
+
 			}
 
 			void align(uint8_t const * a,size_t const l_a,uint8_t const * b,size_t const l_b)
 			{
 				process(a,l_a,b,l_b);
 			}
-			
+
 			AlignmentTraceContainer const & getTraceContainer() const
 			{
 				return *this;

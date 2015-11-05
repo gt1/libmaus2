@@ -24,6 +24,6 @@ std::ostream & libmaus2::dazzler::align::operator<<(std::ostream & out, Overlap 
 		    << "flags=" << O.flags << ";"
 		    << "aread=" << O.aread << ";"
 		    << "bread=" << O.bread << ";"
-		    << O.path		    
+		    << O.path
 		    << ")";
 }

@@ -37,11 +37,11 @@ namespace libmaus2
 			 * @param in input stream
 			 * @return next byte
 			 **/
-			template<typename stream_type>	
+			template<typename stream_type>
 			static uint8_t getByte(stream_type & in)
 			{
 				int const c = in.get();
-				
+
 				if ( c < 0 )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -49,17 +49,17 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				return c;
 			}
-			
+
 			/**
 			 * get next byte from stream as a word; throws exception on EOF
 			 *
 			 * @param in input stream
 			 * @return next byte as word
 			 **/
-			template<typename stream_type>	
+			template<typename stream_type>
 			static uint64_t getByteAsWord(stream_type & in)
 			{
 				return getByte(in);
@@ -72,7 +72,7 @@ namespace libmaus2
 			 * @param l length of number
 			 * @return decoded number
 			 **/
-			template<typename stream_type>	
+			template<typename stream_type>
 			static uint64_t getLEInteger(stream_type & in, unsigned int const l)
 			{
 				uint64_t v = 0;

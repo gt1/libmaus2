@@ -26,22 +26,22 @@
 void computeConsensus()
 {
 	::libmaus2::consensus::ConsensusComputation::unique_ptr_type CC(new ::libmaus2::consensus::ConsensusComputation);
-	
+
 	typedef ::libmaus2::fastx::SocketFastAReader reader_type;
 	typedef reader_type::pattern_type pattern_type;
-	
+
 	::libmaus2::network::SocketBase sockbase(STDIN_FILENO);
 	reader_type sockreader(&sockbase);
 
 	std::vector<std::string> V;
 	pattern_type pattern;
-	
+
 	while ( sockreader.getNextPatternUnlocked(pattern) )
 	{
 		V.push_back(pattern.spattern);
 		std::cerr << V.back() << std::endl;
 	}
-	
+
 	try
 	{
 		std::string const consensus = CC->computeConsensus(V,7,&(std::cerr));
@@ -52,7 +52,7 @@ void computeConsensus()
 		std::cerr << ex.what() << std::endl;
 	}
 
-	CC.reset();		
+	CC.reset();
 }
 #endif
 
@@ -68,14 +68,14 @@ int main()
 	V.push_back("ACGTACGTTTTTTTTTTGA");
 	::libmaus2::consensus::ConsensusComputation CC;
 	std::vector<std::string> R = CC.computeMultipleAlignment(V);
-	
+
 	for ( uint64_t i = 0; i < R.size(); ++i )
 		std::cerr << R[i] << std::endl;
-	
+
 	computeConsensus();
 	#else
 	std::cerr << "libmaus2 is compiled without SeqAN support. Consensus computation is thus not present." << std::endl;
 	#endif
-	           
+
 	return 0;
 }

@@ -86,7 +86,7 @@ namespace libmaus2
 				M['N'].push_back('T');
 			}
 		};
-		
+
 		std::ostream & operator<<(std::ostream & out, FastAMatchTable const & F);
 	}
 }

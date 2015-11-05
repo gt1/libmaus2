@@ -36,12 +36,12 @@ namespace libmaus2
 			uint64_t shortptr;
 			uint64_t longidx;
 			uint64_t shortidx;
-			
+
 			::libmaus2::rank::ImpCacheLineRank::unique_ptr_type designators;
 			::libmaus2::rank::ImpCacheLineRank::WriteContext desigwc;
 			::libmaus2::autoarray::AutoArray<uint64_t> longptrs;
 			::libmaus2::autoarray::AutoArray<uint16_t> shortptrs;
-			
+
 			uint64_t byteSize() const
 			{
 				uint64_t s = 0;
@@ -51,7 +51,7 @@ namespace libmaus2
 				s += shortptrs.byteSize();
 				return s;
 			}
-			
+
 			void reset()
 			{
 				longptr = 0;
@@ -61,29 +61,29 @@ namespace libmaus2
 			CompactFastQContainerDictionaryCreator()
 			: numlong(0), numshort(0), longidx(0), shortidx(0)
 			{
-				reset();	
+				reset();
 			}
-			
+
 			void shiftLongPointers(uint64_t const offset)
 			{
 				for ( uint64_t i = 0; i < longptrs.size(); ++i )
 					longptrs[i] += offset;
 			}
-			
-			
+
+
 			void setupDataStructures()
 			{
 				reset();
-				
+
 				designators = UNIQUE_PTR_MOVE(::libmaus2::rank::ImpCacheLineRank::unique_ptr_type(
 					new ::libmaus2::rank::ImpCacheLineRank(numshort)
 				));
 				desigwc = designators->getWriteContext();
-				
+
 				longptrs = ::libmaus2::autoarray::AutoArray<uint64_t>(numlong);
 				shortptrs = ::libmaus2::autoarray::AutoArray<uint16_t>(numshort);
 			}
-			
+
 			void serialise(std::ostream & out)
 			{
 				assert ( designators );
@@ -91,16 +91,16 @@ namespace libmaus2
 				longptrs.serialize(out);
 				shortptrs.serialize(out);
 			}
-				
+
 			void flush()
 			{
 				desigwc.flush();
-			
-				#if 0	
+
+				#if 0
 				std::cerr << "longidx=" << longidx << " numlong=" << numlong << std::endl;
 				std::cerr << "shortidx=" << shortidx << " numshort=" << numshort << std::endl;
 				#endif
-				
+
 				assert ( longidx == numlong );
 				assert ( shortidx == numshort );
 			}
@@ -114,10 +114,10 @@ namespace libmaus2
 						numlong++;
 						shortptr = 0;
 					}
-					
+
 					longptr += codelen;
-					shortptr += codelen;				
-					numshort++;			
+					shortptr += codelen;
+					numshort++;
 				}
 				else
 				{
@@ -132,12 +132,12 @@ namespace libmaus2
 					{
 						desigwc.writeBit(0);
 					}
-					
+
 					assert ( shortidx < shortptrs.size() );
 					shortptrs[shortidx++] = shortptr;
-					
+
 					longptr += codelen;
-					shortptr += codelen;				
+					shortptr += codelen;
 				}
 			}
 		};

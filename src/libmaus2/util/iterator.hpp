@@ -35,22 +35,22 @@ namespace libmaus2
 			{
 				return *this;
 			}
-			
+
 			public:
 			owner_type * owner;
 			int64_t i;
 
 			AssignmentProxy() : owner(0), i(0) {}
-			AssignmentProxy(owner_type * const rowner, int64_t const ri = 0) : owner(rowner), i(ri) 
+			AssignmentProxy(owner_type * const rowner, int64_t const ri = 0) : owner(rowner), i(ri)
 			{
 			}
 			~AssignmentProxy()
 			{
 			}
-			
+
 			AssignmentProxy<owner_type,data_type> & operator=(data_type const v)
 			{
-				owner->set ( i, v );							
+				owner->set ( i, v );
 				return *this;
 			}
 
@@ -59,7 +59,7 @@ namespace libmaus2
 				return owner->get(i);
 			}
 		};
-	
+
 		template<typename _owner_type, typename _data_type>
 		struct AssignmentProxyIterator
 		{
@@ -67,7 +67,7 @@ namespace libmaus2
 			typedef _data_type data_type;
 			typedef AssignmentProxy<owner_type,data_type> proxy_type;
 			typedef AssignmentProxyIterator<owner_type,data_type> this_type;
-		
+
 			typedef std::random_access_iterator_tag iterator_category;
 			typedef proxy_type   reference;
 			typedef proxy_type * pointer;
@@ -76,11 +76,11 @@ namespace libmaus2
 
 			owner_type * owner;
 			int64_t i;
-			
+
 			AssignmentProxyIterator() : owner(0), i(0) {}
 			AssignmentProxyIterator(owner_type * const rowner, int64_t const ri = 0) : owner(rowner), i(ri) {}
 			AssignmentProxyIterator(this_type const & o) : owner(o.owner), i(o.i) {}
-			
+
 			AssignmentProxyIterator & operator=(this_type const & o)
 			{
 				if ( this != &o )
@@ -90,12 +90,12 @@ namespace libmaus2
 				}
 				return *this;
 			}
-			
+
 			proxy_type operator*()
 			{
 				return proxy_type(owner,i);
 			}
-			
+
 			proxy_type operator[](int64_t j) const
 			{
 				return proxy_type(owner,i+j);
@@ -134,7 +134,7 @@ namespace libmaus2
 				i -= j;
 				return *this;
 			}
-			
+
 			bool operator<(this_type I) const
 			{
 				return i < I.i;
@@ -195,17 +195,17 @@ namespace libmaus2
 
 			owner_type const * owner;
 			int64_t i;
-			
+
 			ConstIterator() : owner(0), i(0) {}
 			ConstIterator(owner_type const * rowner, int64_t const ri = 0) : owner(rowner), i(ri) {}
 			ConstIterator(ConstIterator const & o) : owner(o.owner), i(o.i) {}
 			ConstIterator(iterator const & o) : owner(o.owner), i(o.i) {}
-			
+
 			data_type operator*() const
 			{
 				return owner->get(i);
 			}
-			
+
 			data_type operator[](int64_t j) const
 			{
 				return owner->get(i+j);
@@ -244,7 +244,7 @@ namespace libmaus2
 				i -= j;
 				return *this;
 			}
-			
+
 			bool operator<(this_type const & I) const
 			{
 				return i < I.i;
@@ -309,16 +309,16 @@ namespace libmaus2
 
 			owner_ptr_type owner;
 			int64_t i;
-			
+
 			ConstIteratorSharedPointer() : owner(), i(0) {}
 			ConstIteratorSharedPointer(owner_ptr_type const & rowner, int64_t const ri = 0) : owner(rowner), i(ri) {}
 			ConstIteratorSharedPointer(ConstIteratorSharedPointer const & o) : owner(o.owner), i(o.i) {}
-			
+
 			data_type operator*() const
 			{
 				return owner->get(i);
 			}
-			
+
 			data_type operator[](int64_t j) const
 			{
 				return owner->get(i+j);
@@ -357,7 +357,7 @@ namespace libmaus2
 				i -= j;
 				return *this;
 			}
-			
+
 			bool operator<(this_type const & I) const
 			{
 				return i < I.i;

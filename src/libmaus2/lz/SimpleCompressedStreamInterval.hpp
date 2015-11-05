@@ -30,14 +30,14 @@ namespace libmaus2
 		{
 			std::pair<uint64_t,uint64_t> start;
 			std::pair<uint64_t,uint64_t> end;
-			
+
 			SimpleCompressedStreamInterval() : start(0,0), end(0,0) {}
 			SimpleCompressedStreamInterval(
 				std::pair<uint64_t,uint64_t> const & rstart,
 				std::pair<uint64_t,uint64_t> const & rend
 			) : start(rstart), end(rend)
 			{
-			
+
 			}
 		};
 	}

@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus2/bambam/CircularHashCollatingBamDecoder.hpp>	
+#include <libmaus2/bambam/CircularHashCollatingBamDecoder.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
 #include <libmaus2/util/ArgInfo.hpp>
 
@@ -36,7 +36,7 @@ int main(int argc, char * argv[])
 	try
 	{
 		ArgInfo const arginfo(argc,argv);
-		
+
 		libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type decwrapper(
 			libmaus2::bambam::BamMultiAlignmentDecoderFactory::construct(
 				arginfo,false // put rank
@@ -62,7 +62,7 @@ int main(int argc, char * argv[])
 		// collator_type C(cin,8,tmpfilename);
 		pair<alignment_ptr_type,alignment_ptr_type> P;
 
-		/* read alignments */	
+		/* read alignments */
 		while ( C.tryPair(P) )
 			/* if we have a pair, then print both ends as FastQ */
 			if ( P.first && P.second )
@@ -70,7 +70,7 @@ int main(int argc, char * argv[])
 				cout << P.first->formatFastq();
 				cout << P.second->formatFastq();
 			}
-			
+
 		return EXIT_SUCCESS;
 	}
 	catch(std::exception const & ex)

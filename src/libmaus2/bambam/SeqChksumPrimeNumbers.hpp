@@ -41,7 +41,7 @@ namespace libmaus2
 				M[0] = 1;
 				M <<= 521;
 				M -= 1;
-				
+
 				return libmaus2::math::UnsignedInteger<k>(M);
 			}
 

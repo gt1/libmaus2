@@ -33,7 +33,7 @@ namespace libmaus2
 			SnappyStringInputStream(std::string const & data)
 			: istr(data), instream(istr,0,true)
 			{
-			
+
 			}
 			int get() { return instream.get(); }
 			uint64_t read(char * c, uint64_t const n) { return instream.read(c,n); }

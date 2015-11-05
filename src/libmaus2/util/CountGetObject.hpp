@@ -35,12 +35,12 @@ namespace libmaus2
 			typedef _iterator iterator;
 			//! value type
 			typedef typename ::std::iterator_traits<iterator>::value_type value_type;
-		
+
 			//! wrapped iterator
 			iterator p;
 			//! elements extracted by last read or get operation
 			uint64_t gcnt;
-			
+
 			/**
 			 * constructor
 			 *
@@ -84,12 +84,12 @@ namespace libmaus2
 			typedef char const * iterator;
 			//! value_type
 			typedef ::std::iterator_traits<iterator>::value_type value_type;
-		
+
 			//! iterator
 			iterator p;
 			//! number of elements extracted by last read/get operation
 			uint64_t gcnt;
-			
+
 			/**
 			 * constructor
 			 *

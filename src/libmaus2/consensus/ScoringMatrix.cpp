@@ -27,7 +27,7 @@ void libmaus2::consensus::ScoringMatrix::showMatrix(std::ostream & out) const
 	for (unsigned i = 0; i < seqan::ValueSize<TSequenceValue>::VALUE; ++i)
 		std::cout << "\t" << TSequenceValue(i);
 	out << std::endl;
-	
+
 	// Print each row.
 	for (unsigned i = 0; i < seqan::ValueSize<TSequenceValue>::VALUE; ++i) {
 		std::cout << TSequenceValue(i);

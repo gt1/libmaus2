@@ -61,7 +61,7 @@ namespace libmaus2
 
 			static unsigned int getCacheLineSizeSingle(unsigned int const val);
 			static unsigned int getCacheLineSize(unsigned int const reg);
-			
+
 			public:
 			/**
 			 * @return cache line size (0 if it cannot be determined)

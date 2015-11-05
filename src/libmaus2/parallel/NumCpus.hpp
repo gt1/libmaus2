@@ -33,7 +33,7 @@
 
 #if defined(__linux__)
 #include <unistd.h>
-#include <linux/sysctl.h>              
+#include <linux/sysctl.h>
 #endif
 
 namespace libmaus2
@@ -45,20 +45,20 @@ namespace libmaus2
 			static uint64_t getNumLogicalProcessors()
 			{
 				#if defined(_OPENMP)
-				return omp_get_max_threads();				
+				return omp_get_max_threads();
 				#elif defined(__linux__)
 				return sysconf(_SC_NPROCESSORS_ONLN);
 				#elif defined(__APPLE__)
 				uint32_t numlog = 0;
 				size_t numloglen = sizeof(numlog);
-				int const sysctlretname = sysctlbyname("hw.logicalcpu_max", &numlog, &numloglen, 0, 0);			
+				int const sysctlretname = sysctlbyname("hw.logicalcpu_max", &numlog, &numloglen, 0, 0);
 				assert ( ! sysctlretname );
 				return numlog;
 				#else
 				return 1;
 				#endif
 			}
-		};	
+		};
 	}
 }
 #endif

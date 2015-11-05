@@ -36,10 +36,10 @@ namespace libmaus2
 			::libmaus2::aio::OutputStreamInstance::unique_ptr_type COS;
 			::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type SGO;
 			::libmaus2::bitio::FastWriteBitWriterBuffer64Sync::unique_ptr_type FWBW;
-			
+
 			uint64_t       n;
 			uint64_t const b;
-			
+
 			void setup()
 			{
 				SGO->put(b);
@@ -53,7 +53,7 @@ namespace libmaus2
                                         );
 				FWBW = UNIQUE_PTR_MOVE(tFWBW);
 			}
-			
+
 			CompactArrayWriterFile(std::string const & filename, uint64_t const rb)
 			:
 				COS(new ::libmaus2::aio::OutputStreamInstance(filename)),
@@ -67,20 +67,20 @@ namespace libmaus2
 			{
 				flush();
 			}
-			
+
 			void put(uint64_t const v)
 			{
 				FWBW->write(v,b);
 				n += 1;
 			}
-			
+
 			template<typename iterator>
 			void write(iterator it, uint64_t len)
 			{
 				while ( len-- )
 					put(*(it++));
 			}
-			
+
 			void flush()
 			{
 				if ( FWBW )
@@ -96,7 +96,7 @@ namespace libmaus2
 				if ( COS )
 				{
 					COS->flush();
-					
+
 					// construct header
 					std::ostringstream ostr;
 					::libmaus2::aio::SynchronousGenericOutput<uint64_t> HSGO(ostr,8);
@@ -107,12 +107,12 @@ namespace libmaus2
 					HSGO.flush();
 					std::string const header = ostr.str();
 					assert ( header.size() == (sizeof(uint64_t)*4) );
-					
+
 					// write header
 					COS->clear();
 					COS->seekp(0);
 					COS->write(header.c_str(),header.size());
-					
+
 					// close file
 					// COS->close();
 					COS.reset();

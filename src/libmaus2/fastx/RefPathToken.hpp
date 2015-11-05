@@ -29,16 +29,16 @@ namespace libmaus2
 		struct RefPathToken
 		{
 			enum path_token { path_token_literal, path_token_s };
-			
+
 			path_token token;
 			std::string s;
 			size_t n;
-			
+
 			RefPathToken() : token(path_token_literal), s(), n(0) {}
 			RefPathToken(std::string const & rs) : token(path_token_literal), s(rs), n(0) {}
-			RefPathToken(size_t const rn) : token(path_token_s), s(), n(rn) {}			
+			RefPathToken(size_t const rn) : token(path_token_s), s(), n(rn) {}
 		};
-		
+
 		std::ostream & operator<<(std::ostream & out, RefPathToken const & O);
 	}
 }

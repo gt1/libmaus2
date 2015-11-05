@@ -36,7 +36,7 @@ namespace libmaus2
 			typedef _sort_check_type sort_check_type;
 			typedef BamMergeTemplate<heap_comparator_type,sort_check_type> this_type;
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			typedef libmaus2::bambam::BamAlignmentDecoderWrapper decoder_wrapper_type;
 			typedef decoder_wrapper_type::unique_ptr_type decoder_wrapper_pointer_type;
 			typedef libmaus2::autoarray::AutoArray<decoder_wrapper_pointer_type> wrapper_array_type;
@@ -45,7 +45,7 @@ namespace libmaus2
 			typedef decoder_array_type::unique_ptr_type decoder_array_pointer_type;
 			typedef libmaus2::autoarray::AutoArray<libmaus2::bambam::BamAlignment *> algns_array_type;
 			typedef algns_array_type::unique_ptr_type algns_array_pointer_type;
-			
+
 			std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> infos;
 			std::vector<std::string> const filenames;
 			wrapper_array_pointer_type Pwrappers;
@@ -53,14 +53,14 @@ namespace libmaus2
 
 			decoder_array_pointer_type Pdecoders;
 			decoder_array_type & decoders;
-			
+
 			algns_array_pointer_type Palgns;
 			algns_array_type & algns;
-			
+
 			libmaus2::bambam::BamCatHeader header;
 			heap_comparator_type comp;
 			std::priority_queue < uint64_t, std::vector< uint64_t >, heap_comparator_type > Q;
-			
+
 			void tryLoad(uint64_t const id)
 			{
 				if ( decoders[id]->readAlignment() )
@@ -69,39 +69,39 @@ namespace libmaus2
 					Q.push(id);
 				}
 			}
-			
+
 			static wrapper_array_pointer_type constructWrappers(std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> const & infos)
 			{
 				wrapper_array_pointer_type Pwrappers(new wrapper_array_type(infos.size()));
-				
+
 				for ( uint64_t i = 0; i < infos.size(); ++i )
 				{
 					libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr ( libmaus2::bambam::BamAlignmentDecoderFactory::construct(infos[i]) );
 					(*Pwrappers)[i] = UNIQUE_PTR_MOVE(tptr);
 				}
-				
+
 				return UNIQUE_PTR_MOVE(Pwrappers);
 			}
 
 			static decoder_array_pointer_type constructDecoderArray(wrapper_array_type & wrappers)
 			{
 				decoder_array_pointer_type Pdecoders(new decoder_array_type(wrappers.size()));
-				
+
 				for ( uint64_t i = 0; i < wrappers.size(); ++i )
 				{
 					(*Pdecoders)[i] = &(wrappers[i]->getDecoder());
 				}
-				
+
 				return UNIQUE_PTR_MOVE(Pdecoders);
 			}
-			
+
 			static algns_array_pointer_type constructAlgnsArray(decoder_array_type & decoders)
 			{
 				algns_array_pointer_type Palgns(new algns_array_type(decoders.size()));
-				
+
 				for ( uint64_t i = 0; i < decoders.size(); ++i )
 					(*Palgns)[i] = &(decoders[i]->getAlignment());
-					
+
 				return UNIQUE_PTR_MOVE(Palgns);
 			}
 
@@ -114,24 +114,24 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				if ( ! sort_check_type::istopological(header) )
 				{
 					libmaus2::exception::LibMausException se;
 					se.getStream() << "BamMergeTemplate::BamMergeTemplate(): cannot merge, order of reference sequences is inconsistent between files (no topological sorting of order graph possible)." << std::endl;
 					se.finish();
-					throw se;				
+					throw se;
 				}
-				
+
 				header.bamheader->changeSortOrder(sort_check_type::getSortOrder());
-			
+
 				for ( uint64_t i = 0; i < infos.size(); ++i )
 					tryLoad(i);
 			}
-			
+
 			public:
-			BamMergeTemplate(libmaus2::util::ArgInfo const & arginfo, std::vector<std::string> const & rfilenames, bool const putrank = false) 
-			: BamAlignmentDecoder(putrank), 
+			BamMergeTemplate(libmaus2::util::ArgInfo const & arginfo, std::vector<std::string> const & rfilenames, bool const putrank = false)
+			: BamAlignmentDecoder(putrank),
 			  infos(libmaus2::bambam::BamAlignmentDecoderInfo::filenameToInfo(arginfo,rfilenames)),
 			  Pwrappers(constructWrappers(infos)),
 			  wrappers(*Pwrappers),
@@ -140,14 +140,14 @@ namespace libmaus2
 			  Palgns(constructAlgnsArray(decoders)),
 			  algns(*Palgns),
 			  header(decoders),
-			  comp(algns.begin()), 
+			  comp(algns.begin()),
 			  Q(comp)
 			{
 				init();
 			}
 
-			BamMergeTemplate(std::vector<std::string> const & rfilenames, bool const putrank = false) 
-			: BamAlignmentDecoder(putrank), 
+			BamMergeTemplate(std::vector<std::string> const & rfilenames, bool const putrank = false)
+			: BamAlignmentDecoder(putrank),
 			  infos(libmaus2::bambam::BamAlignmentDecoderInfo::filenameToInfo(rfilenames)),
 			  Pwrappers(constructWrappers(infos)),
 			  wrappers(*Pwrappers),
@@ -156,14 +156,14 @@ namespace libmaus2
 			  Palgns(constructAlgnsArray(decoders)),
 			  algns(*Palgns),
 			  header(decoders),
-			  comp(algns.begin()), 
+			  comp(algns.begin()),
 			  Q(comp)
 			{
 				init();
 			}
 
 			BamMergeTemplate(std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> const & rinfos, bool const putrank = false)
-			: BamAlignmentDecoder(putrank), 
+			: BamAlignmentDecoder(putrank),
 			  infos(rinfos),
 			  Pwrappers(constructWrappers(infos)),
 			  wrappers(*Pwrappers),
@@ -172,7 +172,7 @@ namespace libmaus2
 			  Palgns(constructAlgnsArray(decoders)),
 			  algns(*Palgns),
 			  header(decoders),
-			  comp(algns.begin()), 
+			  comp(algns.begin()),
 			  Q(comp)
 			{
 				init();
@@ -189,14 +189,14 @@ namespace libmaus2
 				{
 					uint64_t const id = Q.top();
 					Q.pop();
-					
+
 					alignment.swap(*algns[id]);
 
 					if ( ! delayPutRank )
 						putRank();
 
 					tryLoad(id);
-					
+
 					return true;
 				}
 				else
@@ -204,12 +204,12 @@ namespace libmaus2
 					return false;
 				}
 			}
-			
+
 			virtual libmaus2::bambam::BamHeader const & getHeader() const
 			{
 				return *(header.bamheader);
 			}
-			
+
 			virtual libmaus2::bambam::BamAlignmentDecoder & getDecoder()
 			{
 				return *this;

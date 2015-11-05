@@ -38,29 +38,29 @@ namespace libmaus2
 			typedef BgzfDeflateZStreamBase this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			private:
 			z_stream strm;
 			unsigned int deflbound;
 			int level;
-		
+
 			void deflatedestroy()
 			{
 				if ( level >= Z_DEFAULT_COMPRESSION && level <= Z_BEST_COMPRESSION )
 					deflatedestroyz(&strm);
 			}
-			
+
 			void deflateinit(int const rlevel)
 			{
 				level = rlevel;
-				
+
 				if ( level >= Z_DEFAULT_COMPRESSION && level <= Z_BEST_COMPRESSION )
 				{
 					deflateinitz(&strm,level);
 
 					// search for number of bytes that will never produce more compressed space than we have
 					unsigned int bound = getBgzfMaxBlockSize();
-				
+
 					while ( deflateBound(&strm,bound) > (getBgzfMaxBlockSize()-(getBgzfHeaderSize()+getBgzfFooterSize())) )
 						--bound;
 
@@ -78,10 +78,10 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfDeflateZStreamBase::deflateinit(): unknown/unsupported compression level " << level << std::endl;
 					se.finish();
-					throw se;							
+					throw se;
 				}
 			}
-			
+
 
 			void resetz()
 			{
@@ -90,8 +90,8 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "deflateReset failed." << std::endl;
 					se.finish();
-					throw se;		
-				}			
+					throw se;
+				}
 			}
 
 			// compress block of length len from input pa to output outbuf
@@ -99,10 +99,10 @@ namespace libmaus2
 			uint64_t compressBlock(uint8_t * pa, uint64_t const len, uint8_t * outbuf)
 			{
 				if ( level >= Z_DEFAULT_COMPRESSION && level <= Z_BEST_COMPRESSION )
-				{				
+				{
 					// reset zlib object
 					resetz();
-					
+
 					// maximum number of output bytes
 					strm.avail_out = getBgzfMaxPayLoad();
 					// next compressed output byte
@@ -111,7 +111,7 @@ namespace libmaus2
 					strm.avail_in  = len;
 					// data to be compressed
 					strm.next_in   = reinterpret_cast<Bytef *>(pa);
-					
+
 					// call deflate
 					if ( deflate(&strm,Z_FINISH) != Z_STREAM_END )
 					{
@@ -120,7 +120,7 @@ namespace libmaus2
 						se.finish(false /* do not translate stack trace */);
 						throw se;
 					}
-					
+
 					return getBgzfMaxPayLoad() - strm.avail_out;
 				}
 				#if defined(LIBMAUS2_HAVE_IGZIP)
@@ -129,15 +129,15 @@ namespace libmaus2
 					int64_t const compsize = libmaus2::lz::IGzipDeflate::deflate(
 						pa,len,outbuf+getBgzfHeaderSize(),getBgzfMaxPayLoad()
 					);
-					
+
 					if ( compsize < 0 )
 					{
 						libmaus2::exception::LibMausException se;
 						se.getStream() << "deflate() failed." << std::endl;
 						se.finish(false /* do not translate stack trace */);
-						throw se;					
+						throw se;
 					}
-					
+
 					return compsize;
 				}
 				#endif
@@ -151,9 +151,9 @@ namespace libmaus2
 			}
 
 			BgzfDeflateZStreamBaseFlushInfo flushBound(
-				BgzfDeflateInputBufferBase & in, 
-				BgzfDeflateOutputBufferBase & out, 
-				bool const fullflush 
+				BgzfDeflateInputBufferBase & in,
+				BgzfDeflateOutputBufferBase & out,
+				bool const fullflush
 			)
 			{
 				// full flush, compress block in two halves
@@ -166,14 +166,14 @@ namespace libmaus2
 					/* compress first half of data */
 					uint64_t const payload0 = compressBlock(in.pa,flush0,out.outbuf.begin());
 					fillHeaderFooter(in.pa,out.outbuf.begin(),payload0,flush0);
-					
+
 					/* compress second half of data */
 					setupHeader(out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize());
 					uint64_t const payload1 = compressBlock(in.pa+flush0,flush1,out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize());
 					fillHeaderFooter(in.pa+flush0,out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize(),payload1,flush1);
-					
+
 					assert ( 2*getBgzfHeaderSize()+2*getBgzfFooterSize()+payload0+payload1 <= out.outbuf.size() );
-										
+
 					in.pc = in.pa;
 
 					return
@@ -188,19 +188,19 @@ namespace libmaus2
 				{
 					unsigned int const toflush = std::min(static_cast<unsigned int>(in.pc-in.pa),deflbound);
 					unsigned int const unflushed = (in.pc-in.pa)-toflush;
-					
+
 					/*
 					 * write out compressed data
 					 */
 					uint64_t const payloadsize = compressBlock(in.pa,toflush,out.outbuf.begin());
 					fillHeaderFooter(in.pa,out.outbuf.begin(),payloadsize,toflush);
-					
+
 					#if 0
 					/*
 					 * copy rest of uncompressed data to front of buffer
 					 */
 					if ( unflushed )
-						memmove(in.pa,in.pc-unflushed,unflushed);		
+						memmove(in.pa,in.pc-unflushed,unflushed);
 
 					// set new output pointer
 					in.pc = in.pa + unflushed;
@@ -217,7 +217,7 @@ namespace libmaus2
 					);
 				}
 			}
-			
+
 			public:
 			static uint64_t computeDeflateBound(int const rlevel)
 			{
@@ -226,13 +226,13 @@ namespace libmaus2
 
 				// search for number of bytes that will never produce more compressed space than we have
 				unsigned int bound = getBgzfMaxBlockSize();
-				
-				while ( 
-					deflateBound(&strm,bound) > 
-					(getBgzfMaxBlockSize()-(getBgzfHeaderSize()+getBgzfFooterSize())) 
+
+				while (
+					deflateBound(&strm,bound) >
+					(getBgzfMaxBlockSize()-(getBgzfHeaderSize()+getBgzfFooterSize()))
 				)
 					--bound;
-					
+
 				return bound;
 			}
 
@@ -253,7 +253,7 @@ namespace libmaus2
 
 				deflateinit(rlevel);
 			}
-			
+
 			~BgzfDeflateZStreamBase()
 			{
 				deflatedestroy();
@@ -261,8 +261,8 @@ namespace libmaus2
 
 			// flush input buffer into output buffer
 			BgzfDeflateZStreamBaseFlushInfo flush(
-				BgzfDeflateInputBufferBase & in, 
-				BgzfDeflateOutputBufferBase & out, 
+				BgzfDeflateInputBufferBase & in,
+				BgzfDeflateOutputBufferBase & out,
 				bool const fullflush
 			)
 			{
@@ -282,7 +282,7 @@ namespace libmaus2
 					return flushBound(in,out,fullflush);
 				}
 			}
-			
+
 			BgzfDeflateZStreamBaseFlushInfo flush(uint8_t * const pa, uint8_t * const pe, BgzfDeflateOutputBufferBase & out)
 			{
 				if ( pe-pa > static_cast<ptrdiff_t>(getBgzfMaxBlockSize()) )
@@ -290,9 +290,9 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfDeflateZStreamBase()::flush: block is too big for BGZF" << std::endl;
 					se.finish();
-					throw se;				
+					throw se;
 				}
-			
+
 				try
 				{
 					uint64_t const uncompressedsize = pe-pa;
@@ -309,14 +309,14 @@ namespace libmaus2
 					/* compress first half of data */
 					uint64_t const payload0 = compressBlock(pa,flush0,out.outbuf.begin());
 					fillHeaderFooter(pa,out.outbuf.begin(),payload0,flush0);
-					
+
 					/* compress second half of data */
 					setupHeader(out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize());
 					uint64_t const payload1 = compressBlock(pa+flush0,flush1,out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize());
 					fillHeaderFooter(pa+flush0,out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize(),payload1,flush1);
-					
+
 					assert ( 2*getBgzfHeaderSize()+2*getBgzfFooterSize()+payload0+payload1 <= out.outbuf.size() );
-										
+
 					return
 						BgzfDeflateZStreamBaseFlushInfo(
 							flush0,
@@ -324,7 +324,7 @@ namespace libmaus2
 							flush1,
 							getBgzfHeaderSize()+getBgzfFooterSize()+payload1
 						);
-				}				
+				}
 			}
 
 			void deflatereinit(int const rlevel = Z_DEFAULT_COMPRESSION)

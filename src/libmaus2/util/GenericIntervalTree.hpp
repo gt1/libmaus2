@@ -35,7 +35,7 @@ namespace libmaus2
 			typedef GenericIntervalTree this_type;
 			//! unique pointer type
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			/**
 			 * compute array of non empty intervals
 			 *
@@ -50,14 +50,14 @@ namespace libmaus2
 			 * @return bit vector with 1s for non empty and 0s for empty intervals
 			 **/
 			static ::libmaus2::bitio::IndexedBitVector::unique_ptr_type computeNonEmptyBV(::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & V);
-			
+
 			//! array of non empty intervals
 			::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > nonempty;
 			//! bit vector for mapping non empty to empty intervals
 			::libmaus2::bitio::IndexedBitVector::unique_ptr_type BV;
 			//! interval tree on non empty interval array
 			IntervalTree::unique_ptr_type IT;
-			
+
 			/**
 			 * constructor by interval array [a_0,a_1),[a_1,a_2],... where a_i <= a_{i+1}
 			 *

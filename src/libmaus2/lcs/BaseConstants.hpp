@@ -31,10 +31,10 @@ namespace libmaus2
 			enum step_type { STEP_MATCH, STEP_MISMATCH, STEP_INS, STEP_DEL, STEP_RESET };
 			typedef step_type * step_type_ptr;
 			typedef step_type const * step_type_const_ptr;
-			
+
 			virtual ~BaseConstants() {}
 		};
-		
+
 		inline std::ostream & operator<<(std::ostream & out, BaseConstants::step_type const s)
 		{
 			switch ( s )

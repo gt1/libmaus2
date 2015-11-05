@@ -37,7 +37,7 @@ namespace libmaus2
 			typedef OMPLock this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 #if defined(_OPENMP)
 			omp_lock_t lock_obj;
 #endif
@@ -61,26 +61,26 @@ namespace libmaus2
 			{
 #if defined(_OPENMP)
 				omp_set_lock(&lock_obj);
-#endif		
+#endif
 			}
 			void unlock()
 			{
 #if defined(_OPENMP)
 				omp_unset_lock(&lock_obj);
-#endif	
+#endif
 			}
 		};
-		
+
 		struct ScopeLock
 		{
 			OMPLock & lock;
-		
+
 			ScopeLock(OMPLock & rlock)
 			: lock(rlock)
 			{
 				lock.lock();
 			}
-			
+
 			~ScopeLock()
 			{
 				lock.unlock();

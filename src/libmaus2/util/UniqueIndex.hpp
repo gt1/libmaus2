@@ -42,7 +42,7 @@ namespace libmaus2
 		{
 			typedef UniqueIndex2 this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			typedef uint8_t char_type;
 			#if 0
 			enum { ALPHABET_SIZE=256 };
@@ -57,7 +57,7 @@ namespace libmaus2
 			typedef text_array_type::unique_ptr_type text_array_ptr_type;
 			typedef ::libmaus2::bitio::CompactArray::const_iterator compact_const_it;
 			typedef ::libmaus2::bitio::CompactArray::iterator compact_it;
-			typedef ::libmaus2::rank::ERank222B rank_type;			
+			typedef ::libmaus2::rank::ERank222B rank_type;
 			typedef rank_type::writer_type rank_writer_type;
 			typedef rank_writer_type::data_type rank_data_type;
 			typedef rank_type::unique_ptr_type rank_ptr_type;
@@ -122,12 +122,12 @@ namespace libmaus2
 			{
 				::libmaus2::aio::SynchronousFastReaderBase SFR(filenames);
 				std::string line;
-				
+
 				uint64_t numc = 0;
 				uint64_t numsep = 0;
 				bool lastwasdata = true;
 				bool first = true;
-				
+
 				while ( SFR.getLine(line) )
 					if ( line.size() )
 					{
@@ -150,7 +150,7 @@ namespace libmaus2
 							lastwasdata = false;
 						}
 					}
-				
+
 				// numc += 1;
 
 				return std::pair<uint64_t,uint64_t>(numc,numsep);
@@ -161,20 +161,20 @@ namespace libmaus2
 			{
 				uint64_t const alphsize = (2*numsep+1) /* separators between reads */ + 5 /* ACGTN */ + 1 /* 0 terminator */;
 				uint64_t const albits = ::libmaus2::math::bitsPerNum(alphsize-1);
-			
+
 				text_array_ptr_type A = text_array_ptr_type(new text_array_type(2*numc+2,albits));
 				::libmaus2::aio::SynchronousFastReaderBase SFR(filenames);
 				std::string line;
-				
+
 				compact_it p(A.get());
 				compact_it pa(A.get());
 				compact_it pr(A.get()); pr += numc;
 
 				char_type sep = 6;
-				
+
 				bool lastwasdata = true;
 				bool first = true;
-				
+
 				while ( SFR.getLine(line) )
 					if ( line.size() )
 					{
@@ -184,12 +184,12 @@ namespace libmaus2
 							{
 								*(p++) = (sep++);
 								*(pr++) = (sep++);
-								
+
 								compact_it pt = p-1;
 								do {
 									*(pr++) = rc(*(--pt));
 								} while ( pt != pa );
-								
+
 								pa = p;
 							}
 							for ( uint64_t i = 0; i < line.size(); ++i )
@@ -204,7 +204,7 @@ namespace libmaus2
 											*(p++) = fw('N'); break;
 									}
 								}
-							
+
 							lastwasdata = true;
 							first = false;
 						}
@@ -216,14 +216,14 @@ namespace libmaus2
 
 				*(p++) = (sep++);
 				*(pr++) = (sep++);
-								
+
 				compact_it pt = p-1;
 				do {
 					*(pr++) = rc(*(--pt));
 				} while ( pt != pa );
-				
+
 				*(pr++) = 0;
-					
+
 				assert ( pr.i == A->n );
 
 				#if 0
@@ -240,7 +240,7 @@ namespace libmaus2
 
 				return A;
 			}
-			
+
 
 			/**
 			 * algorithm nsv864
@@ -257,7 +257,7 @@ namespace libmaus2
 					// initialize next for rank n-1
 					next[n-1] = n;
 				}
-			  
+
 				// compute next for the remaining ranks
 				for ( int64_t r = static_cast<int64_t>(n)-2; r >= 0; --r )
 				{
@@ -267,14 +267,14 @@ namespace libmaus2
 						t = next[t];
 					next[r] = t;
 				}
-			  
+
 				for ( int64_t r = 0; r < n; ++r )
 				{
 					next[r] = next[r]-r;
 				}
 
 				::libmaus2::util::Array864::unique_ptr_type anext(new ::libmaus2::util::Array864(next.begin(),next.end()));
-			  
+
 				// return result
 				return ::libmaus2::util::PositiveDifferenceArray64::unique_ptr_type(new ::libmaus2::util::PositiveDifferenceArray64(anext));
 			}
@@ -295,16 +295,16 @@ namespace libmaus2
 				for ( uint64_t r = 1; r < n; ++r )
 				{
 					uint64_t t = r - 1;
-			  
+
 					while ( (t > 0) && (LCP[t] >= LCP[r]) )
 						t = prev[t];
 
 					prev[r] = t;
 				}
-			  
+
 				for ( uint64_t r = 0; r < n; ++r )
 					prev[r] = r-prev[r];
-				
+
 				::libmaus2::util::Array864::unique_ptr_type aprev(new ::libmaus2::util::Array864(prev.begin(),prev.end()));
 
 				return ::libmaus2::util::NegativeDifferenceArray64::unique_ptr_type(new ::libmaus2::util::NegativeDifferenceArray64(aprev));
@@ -334,7 +334,7 @@ namespace libmaus2
 
 				void operator()(uint64_t const sym, uint64_t const sp, uint64_t const ep)
 				{
-					std::cerr << "sym=" << sym << " sp=" << sp << " ep=" << ep << " B=" << std::endl;   
+					std::cerr << "sym=" << sym << " sp=" << sp << " ep=" << ep << " B=" << std::endl;
 				}
 			};
 
@@ -355,13 +355,13 @@ namespace libmaus2
 				}
 
 				::libmaus2::autoarray::AutoArray<uint64_t> symfreq( (1ull<< LF->getB()) );
-							
+
 				for ( uint64_t i = 0; i < symfreq.getN(); ++i )
 					symfreq[i] = n?LF->W->rank(i,n-1):0;
 
 				::libmaus2::autoarray::AutoArray<lcp_elem_type> WLCP(n+1,false);
 				std::fill ( WLCP.get(), WLCP.get()+WLCP.getN(), std::numeric_limits<lcp_elem_type>::max() );
-							
+
 				::libmaus2::suffixsort::CompactQueue Q0(n);
 				::libmaus2::suffixsort::CompactQueue Q1(n);
 				::libmaus2::suffixsort::CompactQueue * PQ0 = &Q0;
@@ -372,7 +372,7 @@ namespace libmaus2
 					WLCP[i] = 0;
 					Q0.enque(i,i+1);
 				}
-							
+
 				uint64_t acc = symfreq[0];
 				for ( uint64_t i = 1; i < symfreq.getN(); ++i )
 				{
@@ -382,7 +382,7 @@ namespace libmaus2
 						Q0.enque(acc,acc+symfreq[i]);
 						acc += symfreq[i];
 					}
-				}                
+				}
 				WLCP[n] = 0;
 
 				::libmaus2::timing::RealTimeClock lcprtc; lcprtc.start();
@@ -395,7 +395,7 @@ namespace libmaus2
 				{
 					if ( PQ0->fill >= fillthres )
 						seenabove = true;
-				
+
 					std::cerr << "cur_l=" << static_cast<uint64_t>(cur_l) << " fill=" << PQ0->fill << std::endl;
 
 					PQ1->reset();
@@ -405,7 +405,7 @@ namespace libmaus2
 					#else
 					uint64_t const numthreads = 1;
 					#endif
-					
+
 					uint64_t const numcontexts = numthreads;
 					::libmaus2::autoarray::AutoArray < ::libmaus2::suffixsort::CompactQueue::DequeContext::unique_ptr_type > deqcontexts = PQ0->getContextList(numcontexts);
 
@@ -416,52 +416,52 @@ namespace libmaus2
 					{
 					  ::libmaus2::suffixsort::CompactQueue::DequeContext * deqcontext = deqcontexts[c].get();
 					  ::libmaus2::suffixsort::CompactQueue::EnqueBuffer::unique_ptr_type encbuf = PQ1->createEnqueBuffer();
-					  
+
 					  while ( !deqcontext->done() )
 					  {
 						  std::pair<uint64_t,uint64_t> const qe = PQ0->deque(deqcontext);
 						  LF->W->multiRankLCPSet(qe.first,qe.second,LF->D.get(),WLCP.get(),unset,cur_l,encbuf.get());
 					  }
-					  
+
 					  assert ( deqcontext->fill == 0 );
 					}
 					std::swap(PQ0,PQ1);
-					
+
 					cur_l ++;
-					
+
 					if ( seenabove && PQ0->fill < fillthres )
 					{
 						std::cerr << "Fill below threshold, switching to sparse queue." << std::endl;
 						break;
 					}
 				}
-				
+
 				if ( PQ0->fill )
 				{
 					std::deque< std::pair<uint64_t,uint64_t> > SQ0, SQ1;
 					::libmaus2::suffixsort::CompactQueue::DequeContext::unique_ptr_type pcontext = PQ0->getGlobalDequeContext();
 					while ( !(pcontext->done()) )
 						SQ0.push_back(PQ0->deque(pcontext.get()));
-						
+
 					uint64_t prefill = 0;
 					while ( SQ0.size() )
 					{
 						if ( (cur_l & (128*1024-1)) == 0 || SQ0.size() != prefill )
 							std::cerr << "cur_l=" << cur_l << " fill=" << SQ0.size() << std::endl;
-						
+
 						prefill = SQ0.size();
-						
+
 						while ( SQ0.size() )
 						{
 							std::pair<uint64_t,uint64_t> const qe = SQ0.front(); SQ0.pop_front();
 							LF->W->multiRankLCPSet(qe.first,qe.second,LF->D.get(),WLCP.get(),unset,cur_l,&SQ1);
 						}
-						
+
 						cur_l++;
 						SQ0.swap(SQ1);
 					}
 				}
-			     
+
 				::libmaus2::util::Array864::unique_ptr_type LCP = ::libmaus2::util::Array864::unique_ptr_type(
 					new ::libmaus2::util::Array864(WLCP.begin(),WLCP.end())
 				);
@@ -475,12 +475,12 @@ namespace libmaus2
 				uint64_t left;
 				uint64_t right;
 				uint64_t depth;
-				
+
 				Node() : left(0), right(0), depth(0) {}
 				Node(uint64_t r) : left(r), right(r), depth(0) {}
 				Node(uint64_t rleft, uint64_t rright, uint64_t rdepth)
 				: left(rleft), right(rright), depth(rdepth) {}
-				
+
 				std::string toString() const
 				{
 					std::ostringstream ostr;
@@ -488,7 +488,7 @@ namespace libmaus2
 					return ostr.str();
 				}
 			};
-			
+
 			inline Node parent(Node const & I) const
 			{
 				if ( I.left == 0 && I.right == n-1 )
@@ -496,12 +496,12 @@ namespace libmaus2
 					std::cerr << "Warning, called parent on root node, returning root." << std::endl;
 					return Node(0,n-1,0);
 				}
-					
+
 				uint64_t const k = ( (I.right+1 >= n) || ((*LCP)[I.left] > (*LCP)[I.right+1]) ) ? I.left : (I.right+1);
 				// depth LCP[k]
 				return Node ((*prev)[k],(*next)[k]-1, (*LCP)[k]);
 			}
-			
+
 			uint64_t nextImproper(uint64_t const p) const
 			{
 				if ( ::libmaus2::bitio::getBit(R.get(),p) )
@@ -513,9 +513,9 @@ namespace libmaus2
 			struct ThreadLimit
 			{
 				uint64_t numthreads;
-				
+
 				ThreadLimit(uint64_t const setthreads)
-				: 
+				:
 					numthreads(
 						#if defined(_OPENMP)
 						omp_get_max_threads()
@@ -535,7 +535,7 @@ namespace libmaus2
 					#endif
 				}
 			};
-			
+
 			void readText(::libmaus2::util::ArgInfo const & arginfo, uint64_t & numc, uint64_t & numsep)
 			{
 				std::cerr << "Counting characters...";
@@ -543,13 +543,13 @@ namespace libmaus2
 				numc = NC.first;
 				numsep = NC.second;
 				std::cerr << "done, numc="<<numc<<", numsep=" << numsep << std::endl;
-				
+
 				std::cerr << "Reading data...";
 				data = readFiles(arginfo.restargs, numc, numsep);
 				n = data->size();
 				std::cerr << "done, got " << n << " symbols." << std::endl;
 			}
-			
+
 			void readDolVec()
 			{
 				std::cerr << "Loading proper symbol vector...";
@@ -557,8 +557,8 @@ namespace libmaus2
 				R = libmaus2::autoarray::AutoArray<uint64_t>(dolistr);
 				assert ( dolistr );
 				dolistr.close();
-				std::cerr << "done." << std::endl;				
-			
+				std::cerr << "done." << std::endl;
+
 				std::cerr << "Constructing rank dictionary for proper symbol vector...";
 				dolrank = rank_ptr_type(new rank_type(R.get(),R.size()*sizeof(rank_data_type)*8));
 				std::cerr << "done." << std::endl;
@@ -580,12 +580,12 @@ namespace libmaus2
 				::libmaus2::util::TempFileNameGenerator tmpgen("tmp",2);
 
 
-				if ( 
+				if (
 					(! ::libmaus2::util::GetFileSize::fileExists(fufilename))
-				) 
+				)
 				{
-					if ( 
-						(! ::libmaus2::util::GetFileSize::fileExists(fbwtname)) 
+					if (
+						(! ::libmaus2::util::GetFileSize::fileExists(fbwtname))
 						||
 						(! ::libmaus2::util::GetFileSize::fileExists(fsisafilename))
 					)
@@ -594,7 +594,7 @@ namespace libmaus2
 
 						uint64_t numc, numsep;
 						readText(arginfo, numc, numsep);
-									
+
 						std::cerr << "Constucting proper symbol vector...";
 						uint64_t rankbitsperword = 8*sizeof(rank_data_type);
 						uint64_t rankdatawords = ((numc+1)+rankbitsperword-1)/rankbitsperword;
@@ -604,7 +604,7 @@ namespace libmaus2
 							rwt.writeBit( data->get(i) < 1 || data->get(i) > 4 );
 						rwt.flush();
 						std::cerr << "done." << std::endl;
-						
+
 						std::cerr << "Writing proper symbol vector to disk...";
 						{
 						libmaus2::aio::OutputStreamInstance dolvecostr(dolvecname);
@@ -612,7 +612,7 @@ namespace libmaus2
 						dolvecostr.flush();
 						}
 						std::cerr << "done." << std::endl;
-						
+
 						assert ( numc == n/2-1 );
 
 						::libmaus2::bitio::SignedCompactArray::unique_ptr_type CSA;
@@ -624,7 +624,7 @@ namespace libmaus2
 							typedef ::libmaus2::bitio::SignedCompactArray::iterator compact_index_it;
 							unsigned int const bitwidth = 64;
 							typedef ::libmaus2::suffixsort::DivSufSort<bitwidth,compact_it,compact_const_it,compact_index_it,compact_index_const_it> compact_index_sort_type;
-							
+
 							if ( (2*numsep+1)+5+1 > compact_index_sort_type::ALPHABET_SIZE )
 							{
 								::libmaus2::exception::LibMausException se;
@@ -632,7 +632,7 @@ namespace libmaus2
 								se.finish();
 								throw se;
 							}
-							
+
 							compact_const_it cci = data->begin();
 							compact_index_it cii = CSA->begin();
 							std::cerr << "Running divsufsort on double compact representation using " << CSA->getB() << " bits per position...";
@@ -659,8 +659,8 @@ namespace libmaus2
 								bitwidth,compact_it,compact_const_it,compact_index_it,compact_index_const_it>::sufcheck(cci,cii,n,1);
 							std::cerr << r << "," << "done." << std::endl;
 							#endif
-						
-							#if 0	
+
+							#if 0
 							for ( uint64_t r = 0; r < n; ++r )
 							{
 								std::cerr << r << "\t" << CSA->get(r) << "\t";
@@ -681,7 +681,7 @@ namespace libmaus2
 							std::cerr << "done." << std::endl;
 							assert ( CSA->size() == n );
 						}
-						
+
 						if ( ! ::libmaus2::util::GetFileSize::fileExists(fsisafilename) )
 						{
 							std::cerr << "Computing sampled inverse suffix array...";
@@ -694,7 +694,7 @@ namespace libmaus2
 									if ( CSA->get(i)/sasamplingrate < SISA.size() )
 										SISA [ CSA->get(i)/sasamplingrate ] = i;
 							std::cerr << "done." << std::endl;
-							
+
 							std::cerr << "Storing sampled inverse suffix array on disk...";
 							{
 							libmaus2::aio::OutputStreamInstance ostr(fsisafilename);
@@ -711,7 +711,7 @@ namespace libmaus2
 							assert ( istr );
 							std::cerr << "done." << std::endl;
 						}
-						
+
 						if ( ! ::libmaus2::util::GetFileSize::fileExists(fbwtname) )
 						{
 							std::cerr << "Computing BWT...";
@@ -720,7 +720,7 @@ namespace libmaus2
 							for ( uint64_t i = 0; i < n; ++i )
 							{
 								uint64_t const p = CSA->get(i);
-								
+
 								if ( p )
 									BWT->set(i,data->get(p-1));
 								else
@@ -730,7 +730,7 @@ namespace libmaus2
 								}
 							}
 							std::cerr << "done." << std::endl;
-							
+
 							std::cerr << "Converting to wavelet tree bits...";
 							libmaus2::autoarray::AutoArray<uint64_t> WTbits = ::libmaus2::wavelet::toWaveletTreeBitsParallel(BWT.get());
 							std::cerr << "done." << std::endl;
@@ -738,11 +738,11 @@ namespace libmaus2
 							std::cerr << "Constructing wavelet tree...";
 							wt_ptr_type qwt = wt_ptr_type(new wt_type(WTbits,n,data->getB()));
 							std::cerr << "done." << std::endl;
-							
+
 							std::cerr << "Setting up LF...";
 							lf = lf_ptr_type(new lf_type(qwt));
 							std::cerr << "done." << std::endl;
-							
+
 							#if 0
 							uint64_t r = p0rank;
 							for ( uint64_t i = 0; i < n; ++i )
@@ -752,7 +752,7 @@ namespace libmaus2
 							}
 							std::cerr << std::endl;
 							#endif
-							
+
 							std::cerr << "Writing LF to disk...";
 							{
 							libmaus2::aio::OutputStreamInstance ostr(fbwtname);
@@ -778,7 +778,7 @@ namespace libmaus2
 						R = libmaus2::autoarray::AutoArray<uint64_t>(dolistr);
 						assert ( dolistr );
 						dolistr.close();
-						std::cerr << "done." << std::endl;				
+						std::cerr << "done." << std::endl;
 
 						std::cerr << "Loading sampled inverse suffix array from disk...";
 						libmaus2::aio::InputStreamInstance ssaistr(fsisafilename);
@@ -794,11 +794,11 @@ namespace libmaus2
 						istr.close();
 						std::cerr << "done." << std::endl;
 					}
-					
+
 					std::cerr << "Constructing rank dictionary for proper symbol vector...";
 					dolrank = rank_ptr_type(new rank_type(R.get(),R.size()*sizeof(rank_data_type)*8));
 					std::cerr << "done." << std::endl;
-					
+
 					n = lf->getN();
 
 					if ( ! ::libmaus2::util::GetFileSize::fileExists(flcpfilename) )
@@ -806,7 +806,7 @@ namespace libmaus2
 						std::cerr << "Computing LCP...";
 						LCP = computeLCP(lf.get());
 						std::cerr << "done." << std::endl;
-					
+
 						std::cerr << "Serialising LCP...";
 						{
 						libmaus2::aio::OutputStreamInstance ostr(flcpfilename);
@@ -823,7 +823,7 @@ namespace libmaus2
 						assert ( istr );
 						assert ( lf->getN() == n );
 						istr.close();
-						std::cerr << "done." << std::endl;				
+						std::cerr << "done." << std::endl;
 					}
 
 					if ( ! ::libmaus2::util::GetFileSize::fileExists(fprevname) )
@@ -831,8 +831,8 @@ namespace libmaus2
 						std::cerr << "Computing prev...";
 						prev = psv864(*LCP,n);
 						std::cerr << "done." << std::endl;
-					
-						std::cerr << "Writing prev to disk...";	
+
+						std::cerr << "Writing prev to disk...";
 						{
 						libmaus2::aio::OutputStreamInstance ostr(fprevname);
 						prev->serialise(ostr);
@@ -841,23 +841,23 @@ namespace libmaus2
 						std::cerr << "done." << std::endl;
 					}
 					else
-					{				
+					{
 						std::cerr << "Reading prev from disk...";
 						libmaus2::aio::InputStreamInstance istr(fprevname);
 						prev = ::libmaus2::util::NegativeDifferenceArray64::unique_ptr_type(new ::libmaus2::util::NegativeDifferenceArray64(istr));
 						assert ( istr );
 						assert ( lf->getN() == n );
 						istr.close();
-						std::cerr << "done." << std::endl;				
+						std::cerr << "done." << std::endl;
 					}
-					
+
 					if ( ! ::libmaus2::util::GetFileSize::fileExists(fnextname) )
 					{
 						std::cerr << "Computing next...";
 						next = nsv864(*LCP,n);
 						std::cerr << "done." << std::endl;
-					
-						std::cerr << "Writing next to disk...";	
+
+						std::cerr << "Writing next to disk...";
 						{
 						libmaus2::aio::OutputStreamInstance ostr(fnextname);
 						next->serialise(ostr);
@@ -866,16 +866,16 @@ namespace libmaus2
 						std::cerr << "done." << std::endl;
 					}
 					else
-					{				
+					{
 						std::cerr << "Reading next from disk...";
 						libmaus2::aio::InputStreamInstance istr(fnextname);
 						next = ::libmaus2::util::PositiveDifferenceArray64::unique_ptr_type(new ::libmaus2::util::PositiveDifferenceArray64(istr));
 						assert ( istr );
 						assert ( lf->getN() == n );
 						istr.close();
-						std::cerr << "done." << std::endl;				
+						std::cerr << "done." << std::endl;
 					}
-					
+
 					typedef std::pair < uint64_t,uint64_t > upair;
 					typedef std::pair < upair, uint64_t > qpair;
 					std::vector < qpair > todo;
@@ -890,16 +890,16 @@ namespace libmaus2
 					if ( todo.size() )
 						todo.push_back( qpair( upair(todo.back().first.second,n/2-1), n-2 ) );
 					else
-						todo.push_back( qpair( upair(0,n/2-1), n-2 ) );				
+						todo.push_back( qpair( upair(0,n/2-1), n-2 ) );
 
-					::libmaus2::autoarray::AutoArray<uint64_t> udist(1024);				
-						
-					::libmaus2::parallel::OMPLock lock;	
-					
+					::libmaus2::autoarray::AutoArray<uint64_t> udist(1024);
+
+					::libmaus2::parallel::OMPLock lock;
+
 					uint64_t finished = 0;
-					
+
 					U = ::libmaus2::autoarray::AutoArray<uint64_t>(n/2,false);
-					
+
 					#if defined(_OPENMP)
 					#pragma omp parallel for
 					#endif
@@ -909,18 +909,18 @@ namespace libmaus2
 
 						qpair const & qp = todo[i];
 						upair const & up = qp.first;
-											
+
 						uint64_t tr = qp.second;
 						for ( int64_t p = up.second; p >= static_cast<int64_t>(up.first); --p )
 						{
 							Node N = parent(Node(tr));
-							uint64_t const s = nextImproper(p)-p;				
+							uint64_t const s = nextImproper(p)-p;
 							uint64_t const preudepth = N.depth+1;
 							uint64_t const udepth = (preudepth <= s) ? preudepth : std::numeric_limits<uint64_t>::max();
-							
+
 							if ( udepth < ludist.size() )
 								ludist[udepth]++;
-								
+
 							U[p] = udepth;
 
 							#if 0
@@ -932,7 +932,7 @@ namespace libmaus2
 
 							tr = (*lf)(tr);
 						}
-						
+
 						lock.lock();
 						for ( uint64_t j = 0; j < udist.size(); ++j )
 							udist[j] += ludist[j];
@@ -941,11 +941,11 @@ namespace libmaus2
 						lock.unlock();
 					}
 					// std::cerr << "numc=" << (n/2-1) << std::endl;
-					
+
 					for ( uint64_t i = 0; i < udist.size(); ++i )
 						if ( udist[i] )
 							std::cerr << i << "\t" << udist[i] << std::endl;
-							
+
 					libmaus2::aio::OutputStreamInstance ostr(fufilename);
 					U.serialize(ostr);
 					ostr.flush();
@@ -960,7 +960,7 @@ namespace libmaus2
 				}
 			}
 		};
-	
+
 		struct UniqueIndex
 		{
 			typedef uint8_t char_type;
@@ -977,12 +977,12 @@ namespace libmaus2
 			{
 				::libmaus2::aio::SynchronousFastReaderBase SFR(filenames);
 				std::string line;
-				
+
 				uint64_t numc = 0;
 				uint64_t numsep = 0;
 				bool lastwasdata = true;
 				bool first = true;
-				
+
 				while ( SFR.getLine(line) )
 					if ( line.size() )
 					{
@@ -1005,7 +1005,7 @@ namespace libmaus2
 							lastwasdata = false;
 						}
 					}
-				
+
 				numc += 1;
 
 				return std::pair<uint64_t,uint64_t>(numc,numsep);
@@ -1060,10 +1060,10 @@ namespace libmaus2
 				std::string line;
 				char_type * p = A.get();
 				char_type sep = 6;
-				
+
 				bool lastwasdata = true;
 				bool first = true;
-				
+
 				while ( SFR.getLine(line) )
 					if ( line.size() )
 					{
@@ -1085,7 +1085,7 @@ namespace libmaus2
 											*(p++) = fw('N'); break;
 									}
 								}
-							
+
 							lastwasdata = true;
 							first = false;
 						}
@@ -1094,7 +1094,7 @@ namespace libmaus2
 							lastwasdata = false;
 						}
 					}
-					
+
 				*(p++) = 0;
 
 				assert ( p == A.end() );
@@ -1117,7 +1117,7 @@ namespace libmaus2
 			{
 				unsigned int const k = 8;
 				unsigned int const w = 32;
-				
+
 				uint64_t const n = A.size();
 				if ( ! n )
 					return ::libmaus2::autoarray::AutoArray<char_type>();
@@ -1126,7 +1126,7 @@ namespace libmaus2
 				::libmaus2::wavelet::DynamicWaveletTree<k,w> B(albits);
 				::libmaus2::cumfreq::DynamicCumulativeFrequencies scf(sort_type::ALPHABET_SIZE);
 				// ::libmaus2::cumfreq::SlowCumFreq scf(sort_type::ALPHABET_SIZE);
-				
+
 				uint64_t p = 0;
 				for ( int64_t i = n-2; i >= 0; --i )
 				{
@@ -1140,21 +1140,21 @@ namespace libmaus2
 				scf.inc(0);
 
 				std::cerr << "(dbwt " << 0 << ")" << std::endl;
-				
+
 				::libmaus2::autoarray::AutoArray<char_type> BWT(n,false);
-				
+
 				#if defined(_OPENMP)
 				#pragma omp parallel for
 				#endif
 				for ( int64_t i = 0; i < static_cast<int64_t>(n); ++i )
 					BWT[i] = B[i];
-					
+
 				#if 0
 				for ( uint64_t i = 0; i < n; ++i )
 					std::cerr << rv( B[i]  );
 				std::cerr << std::endl;
 				#endif
-				
+
 				return BWT;
 			}
 			#endif
@@ -1201,8 +1201,8 @@ namespace libmaus2
 
 				// backward search on reverse
 				spr = rlf->step(sym, spr);
-				epr = rlf->step(sym, epr);		
-			
+				epr = rlf->step(sym, epr);
+
 			}
 
 			void extendLeft(uint64_t const sym, uint64_t & spf, uint64_t & epf, uint64_t & spr, uint64_t & epr) const
@@ -1234,7 +1234,7 @@ namespace libmaus2
 					// initialize next for rank n-1
 					next[n-1] = n;
 				}
-			  
+
 				// compute next for the remaining ranks
 				for ( int64_t r = static_cast<int64_t>(n)-2; r >= 0; --r )
 				{
@@ -1244,14 +1244,14 @@ namespace libmaus2
 						t = next[t];
 					next[r] = t;
 				}
-			  
+
 				for ( int64_t r = 0; r < n; ++r )
 				{
 					next[r] = next[r]-r;
 				}
 
 				::libmaus2::util::Array832::unique_ptr_type anext(new ::libmaus2::util::Array832(next.begin(),next.end()));
-			  
+
 				// return result
 				return ::libmaus2::util::PositiveDifferenceArray32::unique_ptr_type(new ::libmaus2::util::PositiveDifferenceArray32(anext));
 			}
@@ -1272,16 +1272,16 @@ namespace libmaus2
 				for ( uint64_t r = 1; r < n; ++r )
 				{
 					uint64_t t = r - 1;
-			  
+
 					while ( (t > 0) && (LCP[t] >= LCP[r]) )
 						t = prev[t];
 
 					prev[r] = t;
 				}
-			  
+
 				for ( uint64_t r = 0; r < n; ++r )
 					prev[r] = r-prev[r];
-				
+
 				::libmaus2::util::Array832::unique_ptr_type aprev(new ::libmaus2::util::Array832(prev.begin(),prev.end()));
 
 				return ::libmaus2::util::NegativeDifferenceArray32::unique_ptr_type(new ::libmaus2::util::NegativeDifferenceArray32(aprev));
@@ -1292,12 +1292,12 @@ namespace libmaus2
 				uint32_t left;
 				uint32_t right;
 				uint32_t depth;
-				
+
 				Node() : left(0), right(0), depth(0) {}
 				Node(uint32_t r) : left(r), right(r), depth(0) {}
 				Node(uint32_t rleft, uint32_t rright, uint32_t rdepth)
 				: left(rleft), right(rright), depth(rdepth) {}
-				
+
 				std::string toString() const
 				{
 					std::ostringstream ostr;
@@ -1305,7 +1305,7 @@ namespace libmaus2
 					return ostr.str();
 				}
 			};
-			
+
 			inline uint64_t suffixLink(uint64_t const r) const
 			{
 				return ISA[(SA[r]+1)%n];
@@ -1322,7 +1322,7 @@ namespace libmaus2
 					std::cerr << "Warning, called parent on root node, returning root." << std::endl;
 					return Node(0,n-1,0);
 				}
-					
+
 				uint32_t const k = ( (I.right+1 >= n) || ((*LCP)[I.left] > (*LCP)[I.right+1]) ) ? I.left : (I.right+1);
 				// depth LCP[k]
 				return Node ((*prev)[k],(*next)[k]-1, (*LCP)[k]);
@@ -1339,7 +1339,7 @@ namespace libmaus2
 				// depth RLCP[k]
 				return Node ((*rprev)[k],(*rnext)[k]-1, (*RLCP)[k]);
 			}
-			
+
 			template<typename sa_elem_type>
 			struct OffsetStringComparator
 			{
@@ -1348,28 +1348,28 @@ namespace libmaus2
 				uint64_t const n;
 				uint64_t const offset;
 				uint64_t const complen;
-				
+
 				OffsetStringComparator(
 					sa_elem_type const * rRSA,
 					char_type const * rdata,
 					uint64_t const rn,
 					uint64_t const roffset,
 					uint64_t const rcomplen)
-				: RSA(rRSA), data(rdata), n(rn), offset(roffset), complen(rcomplen) 
+				: RSA(rRSA), data(rdata), n(rn), offset(roffset), complen(rcomplen)
 				{
 					// std::cerr << "complen " << complen << std::endl;
 				}
-				
+
 				int compare(uint64_t const r0, uint64_t const r1) const
 				{
 					uint64_t p0 = RSA[r0]+offset;
 					uint64_t p1 = RSA[r1]+offset;
-					
+
 					// std::cerr << "comparing p0=" << p0 << " and p1=" << p1 << std::endl;
-					
+
 					if ( p0 == p1 )
 						return 0;
-					
+
 					if ( std::max(p0,p1) >= n )
 					{
 						if ( p0 > p1 )
@@ -1378,14 +1378,14 @@ namespace libmaus2
 							return 1;
 					}
 					else
-					{	
+					{
 						uint64_t l = 0;
 						while ( l < complen && data[p0] == data[p1]  )
 							p0++, p1++, ++l;
-							
+
 						if ( l == complen )
 							return 0;
-							
+
 						if ( data[p0] < data[p1] )
 							return -1;
 						else
@@ -1396,7 +1396,7 @@ namespace libmaus2
 
 			template<typename comparator>
 			static inline uint64_t smallestLargerEqualBinary(
-				uint64_t const st1, 
+				uint64_t const st1,
 				uint64_t const ed1,
 				comparator const & A,
 				uint64_t const st2
@@ -1404,29 +1404,29 @@ namespace libmaus2
 			{
 				uint64_t left = st1;
 				uint64_t right = ed1;
-				
+
 				while ( right-left > 2 )
 				{
 					uint64_t const m = (right+left)/2;
-					
+
 					// searched value is right of m
 					if ( A.compare ( m, st2 ) < 0 )
 						left = m+1;
 					// v >= st2, search value is either this one or to the left
 					else
-						right = m+1;				
+						right = m+1;
 				}
 
 				for ( uint64_t i = left; i < right; ++i )
 					if ( A.compare(i,st2) >= 0 )
 						return i;
-				
+
 				return ed1;
 			}
 
 			template<typename comparator>
 			static inline uint64_t smallestLargerBinary(
-				uint64_t const st1, 
+				uint64_t const st1,
 				uint64_t const ed1,
 				comparator const & A,
 				uint64_t const st2
@@ -1434,23 +1434,23 @@ namespace libmaus2
 			{
 				uint64_t left = st1;
 				uint64_t right = ed1;
-				
+
 				while ( right-left > 2 )
 				{
 					uint64_t const m = (right+left)/2;
-					
+
 					// m <= st2
 					if ( A.compare ( m, st2 ) <= 0 )
 						left = m+1;
 					// m > st2, search value is either this one or to the left
 					else
-						right = m+1;				
+						right = m+1;
 				}
 
 				for ( uint64_t i = left; i < right; ++i )
 					if ( A.compare(i,st2) > 0 )
 						return i;
-				
+
 				return ed1;
 			}
 
@@ -1459,7 +1459,7 @@ namespace libmaus2
 				unsigned int albits = 0;
 				uint64_t talsize = sort_type::ALPHABET_SIZE;
 				unsigned int numbits = 0;
-				
+
 				while ( talsize )
 				{
 					if ( talsize & 1 )
@@ -1468,12 +1468,12 @@ namespace libmaus2
 					talsize >>= 1;
 				}
 				albits--;
-				
+
 				assert ( numbits == 1 );
-			
+
 				return albits;
 			}
-			
+
 			UniqueIndex(::libmaus2::util::ArgInfo const & arginfo)
 			{
 				::libmaus2::util::TempFileNameGenerator tmpgen("tmp",2);
@@ -1483,7 +1483,7 @@ namespace libmaus2
 				numc = NC.first;
 				numsep = NC.second;
 				std::cerr << "done, numc="<<numc<<", numsep=" << numsep << std::endl;
-				
+
 				if ( numsep+5+1 > sort_type::ALPHABET_SIZE )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -1491,23 +1491,23 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				std::cerr << "Reading data...";
 				data = readFiles(arginfo.restargs, numc);
 				n = data.size();
 				std::cerr << "done, got " << n << " symbols." << std::endl;
-				
+
 				rdata = data.clone();
 				std::reverse(rdata.begin(),rdata.end()-1);
-				
+
 				assert ( n );
 
 				std::string const fsafilename = "fbwt.sa";
 				std::string const rsafilename = "rbwt.sa";
 				std::string const fbwtname = "fbwt";
 				std::string const rbwtname = "rbwt";
-				std::string const rlcpfilename = "rbwt.lcp";		
-				std::string const flcpfilename = "fbwt.lcp";		
+				std::string const rlcpfilename = "rbwt.lcp";
+				std::string const flcpfilename = "fbwt.lcp";
 
 				#if defined(_OPENMP)
 				#pragma omp parallel sections
@@ -1537,11 +1537,11 @@ namespace libmaus2
 							// SAIS::SA_IS(data.get(), TSA.get(), n, ALPHABET_SIZE, 1);
 							sort_type::divsufsort(data.get(),TSA.get(),n);
 							// sort_util_type::sufcheck(data.get(),TSA.get(),n,1);
-							
+
 							SA = ::libmaus2::autoarray::AutoArray<uint32_t>(n,false);
 							std::copy ( TSA.begin(), TSA.end(), SA.begin() );
 							// sort_util_post_type::sufcheck(data.get(),SA.get(),n,1);
-							
+
 							libmaus2::aio::OutputStreamInstance ostr(fsafilename);
 							SA.serialize(ostr);
 							ostr.flush();
@@ -1560,7 +1560,7 @@ namespace libmaus2
 							LLCP.deserialize(istr);
 							assert ( istr );
 							istr.close();
-							
+
 							LCP = ::libmaus2::util::Array832::unique_ptr_type(new ::libmaus2::util::Array832(LLCP.begin(),LLCP.end()));
 						}
 						else
@@ -1578,7 +1578,7 @@ namespace libmaus2
 						}
 						std::cerr << "done." << std::endl;
 					}
-					
+
 					#if defined(_OPENMP)
 					#pragma omp section
 					#endif
@@ -1602,11 +1602,11 @@ namespace libmaus2
 							// SAIS::SA_IS(rdata.get(), TSA.get(), n, ALPHABET_SIZE, 1);
 							sort_type::divsufsort(rdata.get(),TSA.get(),n);
 							// sort_util_type::sufcheck(rdata.get(),TSA.get(),n,1);
-							
+
 							RSA = ::libmaus2::autoarray::AutoArray<uint32_t>(n,false);
 							std::copy ( TSA.begin(), TSA.end(), RSA.begin() );
 							// sort_util_post_type::sufcheck(rdata.get(),RSA.get(),n,1);
-							
+
 							{
 							libmaus2::aio::OutputStreamInstance ostr(rsafilename);
 							RSA.serialize(ostr);
@@ -1625,7 +1625,7 @@ namespace libmaus2
 							LRLCP.deserialize(istr);
 							assert ( istr );
 							istr.close();
-							
+
 							RLCP = ::libmaus2::util::Array832::unique_ptr_type(new ::libmaus2::util::Array832(LRLCP.begin(),LRLCP.end()));
 						}
 						else
@@ -1644,7 +1644,7 @@ namespace libmaus2
 						std::cerr << "done." << std::endl;
 					}
 				}
-				
+
 				std::cerr << "Computing forward ISA...";
 				ISA = ::libmaus2::autoarray::AutoArray<uint32_t>(n,false);
 				#if defined(_OPENMP)
@@ -1676,14 +1676,14 @@ namespace libmaus2
 					::libmaus2::autoarray::AutoArray<char_type> BWT(n,false);
 					char_type * ppp = BWT.begin();
 					#endif
-					
+
 					std::cerr << "Creating forward BWT...";
-					
+
 					uint64_t p0rank = 0;
 					for ( uint64_t r = 0; r < n; ++r )
 					{
 						int64_t p = SA[r];
-						
+
 						if ( p == 0 )
 						{
 							#if defined(WTEXTERNAL)
@@ -1696,7 +1696,7 @@ namespace libmaus2
 						else
 						{
 							#if defined(WTEXTERNAL)
-							ewg.putSymbol( data[p-1] );				
+							ewg.putSymbol( data[p-1] );
 							#else
 							*(ppp++) = data[p-1];
 							#endif
@@ -1704,7 +1704,7 @@ namespace libmaus2
 					}
 					this->p0rank = p0rank;
 					std::cerr << "done." << std::endl;
-					
+
 					#if defined(WTEXTERNAL)
 					std::cerr << "Creating final stream...";
 					ewg.createFinalStream(fbwtname);
@@ -1725,7 +1725,7 @@ namespace libmaus2
 					for ( uint64_t r = 0; r < n; ++r )
 						if ( SA[r] == 0 )
 							p0rank = r;
-					this->p0rank = p0rank;		
+					this->p0rank = p0rank;
 				}
 
 				if ( ! ::libmaus2::util::GetFileSize::fileExists(rbwtname) )
@@ -1736,13 +1736,13 @@ namespace libmaus2
 					::libmaus2::autoarray::AutoArray<char_type> BWT(n,false);
 					char_type * ppp = BWT.begin();
 					#endif
-					
+
 					std::cerr << "Creating reverse BWT...";
 					uint64_t p0rank = 0;
 					for ( uint64_t r = 0; r < n; ++r )
 					{
 						int64_t p = RSA[r];
-						
+
 						if ( p == 0 )
 						{
 							#if defined(WTEXTERNAL)
@@ -1763,7 +1763,7 @@ namespace libmaus2
 					}
 					this->rp0rank = p0rank;
 					std::cerr << "done." << std::endl;
-					
+
 					#if defined(WTEXTERNAL)
 					std::cerr << "Creating final stream...";
 					ewg.createFinalStream(rbwtname);
@@ -1784,7 +1784,7 @@ namespace libmaus2
 					for ( uint64_t r = 0; r < n; ++r )
 						if ( RSA[r] == 0 )
 							p0rank = r;
-					this->rp0rank = p0rank;		
+					this->rp0rank = p0rank;
 				}
 
 				std::cerr << "Loading BWT...";
@@ -1792,11 +1792,11 @@ namespace libmaus2
 				qwt = UNIQUE_PTR_MOVE(wt_ptr_type(new wt_type(bwtin)));
 				bwtin.close();
 				std::cerr << "done." << std::endl;
-				
+
 				std::cerr << "Setting up LF...";
 				lf = UNIQUE_PTR_MOVE(lf_ptr_type(new lf_type(qwt)));
 				std::cerr << "done." << std::endl;
-				
+
 				std::cerr << "Loading reverse BWT...";
 				::libmaus2::aio::InputStreamInstance rbwtin("rbwt");
 				rqwt = UNIQUE_PTR_MOVE(wt_ptr_type(new wt_type(rbwtin)));
@@ -1808,7 +1808,7 @@ namespace libmaus2
 				std::cerr << "done." << std::endl;
 
 				std::cerr << "Computing prev/next...";
-				
+
 				std::string const prevname = "prev";
 				std::string const nextname = "next";
 				std::string const rprevname = "rprev";
@@ -1836,7 +1836,7 @@ namespace libmaus2
 							prev = ::libmaus2::util::NegativeDifferenceArray32::unique_ptr_type(new ::libmaus2::util::NegativeDifferenceArray32(istr));
 							assert ( istr );
 							istr.close();
-				 
+
 						}
 					}
 					#if defined(_OPENMP)
@@ -1877,7 +1877,7 @@ namespace libmaus2
 							rprev = ::libmaus2::util::NegativeDifferenceArray32::unique_ptr_type(new ::libmaus2::util::NegativeDifferenceArray32(istr));
 							assert ( istr );
 							istr.close();
-				 
+
 						}
 					}
 					#if defined(_OPENMP)
@@ -1904,7 +1904,7 @@ namespace libmaus2
 
 				std::cerr << "done." << std::endl;
 			}
-			
+
 			struct TraversalContext
 			{
 				UniqueIndex const * index;
@@ -1913,37 +1913,37 @@ namespace libmaus2
 				uint64_t spr;
 				uint64_t epr;
 				uint64_t l;
-				
+
 				TraversalContext(UniqueIndex const * rindex)
 				: index(rindex)
 				{
 					reset();
 				}
-				
+
 				void reset()
 				{
 					spf = 0; epf = index->n;
 					spr = 0; epr = index->n;
 					l = 0;
 				}
-				
+
 				void contextSuffixLink()
 				{
 					spf = index->suffixLink(spf);
 					epf = index->suffixLink(epf-1)+1;
 					l -= 1;
-				
+
 					/* call parent until we have reduced the string depth to at most l */
 					/* so we include all ranks with matching prefixes */
 					Node par = index->parent(Node(spf,epf-1,0));
 					while ( par.depth > l )
 						par = index->parent(par);
 					/* compute how far below the desired depth we are now */
-					uint64_t const lcpred = l-par.depth;	
-						
+					uint64_t const lcpred = l-par.depth;
+
 					/* set new l value */
 					l = par.depth;
-					
+
 					/* copy back values from node structure */
 					spf = par.left;
 					epf = par.right+1;
@@ -1958,10 +1958,10 @@ namespace libmaus2
 
 					/* use parent operations until string depth of interval has fallen to at most l */
 					Node rpar = index->rparent(Node(spr,epr-1,0));
-					
+
 					while ( rpar.depth > l )
 						rpar = index->rparent(rpar);
-					
+
 					/* copy back interval from node structure */
 					spr = rpar.left;
 					epr = rpar.right+1;
@@ -1981,29 +1981,29 @@ namespace libmaus2
 						epr = smallestLargerBinary(spr,epr,OSC,index->RISA[revoff]);
 					}
 				}
-				
+
 				void extendRight(uint64_t const c)
 				{
 					index->extendRight( c , spf, epf, spr, epr );
 					l++;
 				}
 			};
-			
+
 			static uint64_t const maxl = 1000;
 
 			void process(std::string const outfilename) const
 			{
 				::libmaus2::util::TempFileNameGenerator tmpgen("uni_out_tmp",4);
-				
+
 				uint64_t const pblocksize = 64*1024;
 				// uint64_t const pblocksize = 8ull * 1024ull * 1024ull * 1024ull; // 64*1024;
 				uint64_t const numblocks = (n + pblocksize-1)/pblocksize;
 				::libmaus2::parallel::OMPLock lock;
-				
+
 				std::vector < std::string > unifilenames;
 				for ( uint64_t pp = 0; pp < numblocks; ++pp )
 					unifilenames . push_back (tmpgen.getFileName() );
-				
+
 				#if 1
 				#if defined(_OPENMP)
 				#pragma omp parallel for schedule(dynamic,1)
@@ -2011,14 +2011,14 @@ namespace libmaus2
 				#endif
 				for ( int64_t pp = 0 ; pp < static_cast<int64_t>(numblocks); ++pp )
 				{
-					std::string const unioutname = unifilenames[pp];			
+					std::string const unioutname = unifilenames[pp];
 					::libmaus2::aio::SynchronousGenericOutput<uint32_t> uniout(unioutname,64*1024);
 
 					uint64_t p = std::min(pp*pblocksize,n);
 					uint64_t const pn = std::min(p+pblocksize,n);
-				
+
 					TraversalContext TI(this);
-					
+
 					while ( p < pn )
 					{
 						if ( (p & (8*1024-1)) == 0 )
@@ -2030,17 +2030,17 @@ namespace libmaus2
 
 						while ( TI.epf-TI.spf > 1 )
 							TI.extendRight(data[p+TI.l]);
-						
+
 						assert ( SA[TI.spf] == p );
 
 						if ( TI.l <= maxl )
 						{
 							uint64_t rspf = 0, repf = n;
 							uint64_t rl = 0;
-							
-							while ( 
-								(p+rl) < n 
-								&& 
+
+							while (
+								(p+rl) < n
+								&&
 								(repf > rspf)
 								#if defined(PALIN)
 								&&
@@ -2057,28 +2057,28 @@ namespace libmaus2
 								if ( repf-rspf == 1 && rspf == TI.spf )
 									break;
 								#endif
-							
+
 								char_type const forw = data[p+rl];
 								char_type const reve = rc(forw);
 								rspf = lf->step(reve,rspf);
 								repf = lf->step(reve,repf);
-								
+
 								rl++;
 							}
-							
+
 							#if defined(PALIN)
 							if ( repf-rspf == 1 && rspf == TI.spf )
 							{
 								lock.lock();
 								std::cerr << "found palindrome" << std::endl;
-								
+
 								for ( uint64_t i = 0; i < rl; ++i )
 									std::cerr << rv(data[ p + i ]);
 								std::cerr << std::endl;
 								lock.unlock();
 							}
 							#endif
-							
+
 							if ( (rl > maxl) || (p+rl==n) )
 							{
 								uniout.put( std::numeric_limits<uint32_t>::max() );
@@ -2089,9 +2089,9 @@ namespace libmaus2
 								assert ( TI.l <= maxl );
 								uniout.put( std::max(TI.l,rl) );
 							}
-											
+
 							TI.contextSuffixLink();
-							
+
 							p += 1;
 						}
 						else
@@ -2102,7 +2102,7 @@ namespace libmaus2
 							#if 1 // defined(UNIQUE_DEBUG)
 							std::cerr << "Skipping " << ldif << " characters as LCP is too high" << std::endl;
 							#endif
-							
+
 							for ( uint64_t z = 0; z < ldif && p < pn; ++z )
 							{
 								uniout.put(std::numeric_limits<uint32_t>::max());
@@ -2112,11 +2112,11 @@ namespace libmaus2
 							TI.reset();
 						}
 					}
-					
+
 					uniout.flush();
 				}
 
-				{		
+				{
 					::libmaus2::aio::SynchronousGenericOutput<uint32_t> uniout(outfilename,64*1024);
 					for ( uint64_t pp = 0; pp < numblocks; ++pp )
 					{
@@ -2125,49 +2125,49 @@ namespace libmaus2
 						{
 						::libmaus2::aio::SynchronousGenericInput<uint32_t> uniin(filename,64*1024);
 						uint32_t v;
-						
+
 						while ( uniin.getNext(v) )
 							uniout.put(v);
 						}
-							
+
 						libmaus2::aio::FileRemoval::removeFile ( filename );
 					}
 					uniout.flush();
-				}		
+				}
 			}
-			
+
 			std::ostream & printSuffix(std::ostream & out, uint64_t const r) const
 			{
 				uint64_t p = SA[r];
-				
+
 				out << r << "\t" << SA[r] << "\t" << (*LCP)[r] << "\t" << (*prev)[r] << "\t" << (*next)[r] << "\t";
-				
+
 				Node I(r);
 				Node P = parent(I);
-				
+
 				out << P.toString() << "\t";
-						
+
 				for ( uint64_t i = p; i < n; ++i )
 					out << rv(data[i]);
-				out << std::endl;	
-				
+				out << std::endl;
+
 				return out;
 			}
 			std::ostream & printReverseSuffix(std::ostream & out, uint64_t const r) const
 			{
 				uint64_t p = RSA[r];
-				
+
 				out << r << "\t" << RSA[r] << "\t" << (*RLCP)[r] << "\t" << (*rprev)[r] << "\t" << (*rnext)[r] << "\t";
 
 				Node I(r);
 				Node P = rparent(I);
-				
+
 				out << P.toString() << "\t";
 
 				for ( uint64_t i = p; i < n; ++i )
 					out << rv(rdata[i]);
-				out << std::endl;	
-				
+				out << std::endl;
+
 				return out;
 			}
 		};

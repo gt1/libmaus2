@@ -25,14 +25,14 @@
 namespace libmaus2
 {
 	namespace lcs
-	{		
+	{
 		struct EditDistanceTraceContainer : public AlignmentTraceContainer, public AlignmentPrint
-		{	
+		{
 			EditDistanceTraceContainer(uint64_t const tracelen = 0) : AlignmentTraceContainer(tracelen) {}
 
 			template<typename iterator>
 			std::ostream & printAlignment(
-				std::ostream & out, 
+				std::ostream & out,
 				iterator ita,
 				iterator itb
 			) const
@@ -48,7 +48,7 @@ namespace libmaus2
 				AlignmentPrint::printAlignmentLines(out,a,b,rlinewidth,ta,te);
 				return out;
 			}
-			
+
 			void resize(uint64_t const tracelen)
 			{
 				AlignmentTraceContainer::resize(tracelen);
@@ -57,7 +57,7 @@ namespace libmaus2
 			{
 				return AlignmentTraceContainer::capacity();
 			}
-			
+
 			AlignmentTraceContainer const & getTrace()
 			{
 				return static_cast<AlignmentTraceContainer const &>(*this);
@@ -65,8 +65,8 @@ namespace libmaus2
 
 			template<typename iterator_a, typename iterator_b>
 			std::ostream & printAlignmentLines(
-				std::ostream & out, 
-				iterator_a a, 
+				std::ostream & out,
+				iterator_a a,
 				size_t const an,
 				iterator_b b,
 				size_t const bn,
@@ -79,7 +79,7 @@ namespace libmaus2
 
 			template<typename iterator_a, typename iterator_b, typename map_function_t>
 			std::ostream & printAlignmentLines(
-				std::ostream & out, 
+				std::ostream & out,
 				iterator_a a,
 				size_t const an,
 				iterator_b b,

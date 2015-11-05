@@ -50,28 +50,28 @@ namespace libmaus2
 				Phi[SA[0]] = n;
 			for ( size_t i = 1; i < n; ++i )
 				Phi[SA[i]] = SA[i-1];
-			  
+
 			unsigned int l = 0;
-			  
+
 			::libmaus2::autoarray::AutoArray<elem_type> APLCP(n,false); elem_type * PLCP = APLCP.get();
 			key_type const * const tn = t+n;
 			for ( size_t i = 0; i < n; ++i )
 			{
 				unsigned int const j = Phi[i];
-			    
+
 				key_type const * ti = t+i+l;
 				key_type const * tj = t+j+l;
-			    
+
 				if ( j < i ) while ( (ti != tn) && (*ti == *tj) ) ++l, ++ti, ++tj;
 				else         while ( (tj != tn) && (*ti == *tj) ) ++l, ++ti, ++tj;
-			    
+
 				PLCP[i] = l;
 				if ( l >= 1 )
 					l -= 1;
 				else
 					l = 0;
 			}
-			  
+
 			return APLCP;
 		}
 
@@ -80,17 +80,17 @@ namespace libmaus2
 		 **/
 		template<typename key_type, typename elem_type>
 		::libmaus2::autoarray::AutoArray<elem_type> computeLcp(
-			key_type const * t, 
-			size_t const n, 
+			key_type const * t,
+			size_t const n,
 			elem_type const * const SA
 		)
 		{
 			::libmaus2::autoarray::AutoArray<elem_type> APLCP = plcp(t,n,SA); elem_type const * const PLCP = APLCP.get();
 			::libmaus2::autoarray::AutoArray<elem_type> ALCP(n,false); elem_type * LCP = ALCP.get();
-			  
+
 			for ( size_t i = 0; i < n; ++i )
 				LCP[i] = PLCP[SA[i]];
-			  
+
 			return ALCP;
 		}
 
@@ -103,18 +103,18 @@ namespace libmaus2
 			::libmaus2::autoarray::AutoArray<sa_elem_type> isa(n);
 
 			for ( uint64_t i = 0; i < n; ++i ) isa[sa[i]] = i;
-		
+
 			lcp_elem_type l = 0;
-		
+
 			for ( uint64_t j = 0; j < n; ++j )
 			{
 				if ( l > 0 ) l = l-1;
 				sa_elem_type const i = isa[j];
-			
+
 				if ( i != 0 )
 				{
 					sa_elem_type jp = sa[i-1];
-					
+
 					if ( static_cast<sa_elem_type>(j) < jp )
 						while ( (jp+l<static_cast<sa_elem_type>(n)) && (y[j+l]==y[jp+l]) )
 							l++;
@@ -127,7 +127,7 @@ namespace libmaus2
 					l = 0;
 				}
 				lcp[i] = l;
-			}        
+			}
 		}
 	}
 }

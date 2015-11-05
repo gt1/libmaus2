@@ -34,59 +34,59 @@ namespace libmaus2
 				typedef AlignmentWriter this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				// output file name
 				std::string const fn;
 				// index file name
 				std::string const ifn;
-			
+
 				// data output
 				libmaus2::aio::OutputStreamInstance::unique_ptr_type PDOSI;
 				std::ostream & DOSI;
-				
+
 				// index output
 				libmaus2::aio::InputOutputStream::unique_ptr_type PIOSI;
 
 				// index generator
 				typedef libmaus2::index::ExternalMemoryIndexGenerator<OverlapMeta,base_level_log,inner_level_log> indexer_type;
 				indexer_type::unique_ptr_type PEMIG;
-				
+
 				int64_t const tspace;
 				bool const small;
-				
+
 				uint64_t const novlexptd;
 				uint64_t novl;
 				uint64_t dpos;
-				
+
 				static libmaus2::aio::InputOutputStream::unique_ptr_type openIndexStream(std::string const & ifn, bool const createindex)
 				{
 					libmaus2::aio::InputOutputStream::unique_ptr_type Pptr;
-					
+
 					if ( createindex )
 					{
 						libmaus2::aio::InputOutputStream::unique_ptr_type Tptr(libmaus2::aio::InputOutputStreamFactoryContainer::constructUnique(ifn,std::ios::in|std::ios::out|std::ios::trunc|std::ios::binary));
 						Pptr = UNIQUE_PTR_MOVE(Tptr);
 					}
-					
+
 					return UNIQUE_PTR_MOVE(Pptr);
 				}
-				
+
 				static indexer_type::unique_ptr_type createIndexer(std::iostream * IOSI)
 				{
 					indexer_type::unique_ptr_type Pptr;
-					
+
 					if ( IOSI )
 					{
 						indexer_type::unique_ptr_type Tptr(new indexer_type(*IOSI));
 						Pptr = UNIQUE_PTR_MOVE(Tptr);
-					}				
-					
+					}
+
 					return UNIQUE_PTR_MOVE(Pptr);
 				}
-				
+
 				AlignmentWriter(std::string const & rfn, int64_t const rtspace, bool const createindex = true, uint64_t const rnovlexptd = 0)
-				: fn(rfn), 
-				  ifn(libmaus2::dazzler::align::OverlapIndexer::getIndexName(fn)), 
+				: fn(rfn),
+				  ifn(libmaus2::dazzler::align::OverlapIndexer::getIndexName(fn)),
 				  PDOSI(new libmaus2::aio::OutputStreamInstance(fn)),
 				  DOSI(*PDOSI),
 				  PIOSI(openIndexStream(ifn,createindex)),
@@ -99,11 +99,11 @@ namespace libmaus2
 				{
 					if ( PEMIG )
 						PEMIG->setup();
-					dpos += libmaus2::dazzler::align::AlignmentFile::serialiseHeader(DOSI,novlexptd,tspace);					
+					dpos += libmaus2::dazzler::align::AlignmentFile::serialiseHeader(DOSI,novlexptd,tspace);
 				}
 
 				AlignmentWriter(std::ostream & rDOSI, int64_t const rtspace, uint64_t const rnovlexptd = 0)
-				: fn(), 
+				: fn(),
 				  ifn(),
 				  PDOSI(),
 				  DOSI(rDOSI),
@@ -121,7 +121,7 @@ namespace libmaus2
 				}
 
 				AlignmentWriter(std::ostream & rDOSI, std::iostream & indexstream, int64_t const rtspace, uint64_t const rnovlexptd = 0)
-				: fn(), 
+				: fn(),
 				  ifn(),
 				  PDOSI(),
 				  DOSI(rDOSI),
@@ -137,7 +137,7 @@ namespace libmaus2
 						PEMIG->setup();
 					dpos += libmaus2::dazzler::align::AlignmentFile::serialiseHeader(DOSI,novlexptd,tspace);
 				}
-				
+
 				~AlignmentWriter()
 				{
 					if ( novl != novlexptd )
@@ -150,14 +150,14 @@ namespace libmaus2
 					DOSI.flush();
 					// reset alignment file handle
 					PDOSI.reset();
-				
+
 					// finalise index if we are producing any
 					if ( PEMIG )
 					{
 						PEMIG->flush();
 						PEMIG.reset();
 					}
-					
+
 					// flush and close index stream
 					if ( PIOSI )
 					{
@@ -165,7 +165,7 @@ namespace libmaus2
 						PIOSI.reset();
 					}
 				}
-				
+
 				void put(libmaus2::dazzler::align::Overlap const & OVL)
 				{
 					if ( (((novl++) & indexer_type::base_index_mask) == 0) && PEMIG )

@@ -29,27 +29,27 @@ namespace libmaus2
 		struct GapArrayByteOverflowKeyAccessor
 		{
 			std::istream & in;
-			
+
 			GapArrayByteOverflowKeyAccessor(std::istream & rin)
 			: in(rin)
 			{
 			}
-			
+
 			uint64_t operator[](uint64_t const i) const
 			{
 				return get(i);
 			}
-			
+
 			uint64_t get(uint64_t const i) const
 			{
 				in.clear();
 				in.seekg(i * 2 * sizeof(uint64_t));
-				
+
 				uint64_t p[1];
-				
+
 				in.read(reinterpret_cast<char *>(&p[0]),1*sizeof(uint64_t));
-				
-				return p[0];		
+
+				return p[0];
 			}
 		};
 	}

@@ -29,7 +29,7 @@
 namespace libmaus2
 {
 	namespace gamma
-	{		
+	{
 		struct GammaGapDecoder
 		{
 			typedef GammaGapDecoder this_type;
@@ -37,7 +37,7 @@ namespace libmaus2
 
 			::libmaus2::huffman::IndexDecoderDataArray::unique_ptr_type const Pidda;
 			::libmaus2::huffman::IndexDecoderDataArray const & idda;
-			
+
 			::libmaus2::aio::InputStreamInstance::unique_ptr_type istr;
 			::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type SGI;
 			::libmaus2::gamma::GammaDecoder< ::libmaus2::aio::SynchronousGenericInput<uint64_t> >::unique_ptr_type GD;
@@ -62,9 +62,9 @@ namespace libmaus2
 
 					/* seek to block */
 					uint64_t const pos = idda.data[fileptr].getPos(blockptr);
-					
+
 					istr->seekg ( pos , std::ios::beg );
-					
+
 					if ( static_cast<int64_t>(istr->tellg()) != static_cast<int64_t>(pos) )
 					{
 						::libmaus2::exception::LibMausException ex;
@@ -72,7 +72,7 @@ namespace libmaus2
 						ex.finish();
 						throw ex;
 					}
-					
+
 					::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(
                                                         new ::libmaus2::aio::SynchronousGenericInput<uint64_t>(
                                                                 *istr,64*1024,
@@ -81,7 +81,7 @@ namespace libmaus2
                                                         )
                                                 );
 					SGI = UNIQUE_PTR_MOVE(tSGI);
-					
+
 					::libmaus2::gamma::GammaDecoder< ::libmaus2::aio::SynchronousGenericInput<uint64_t> >::unique_ptr_type tGD(
                                                         new ::libmaus2::gamma::GammaDecoder< ::libmaus2::aio::SynchronousGenericInput<uint64_t> >(*SGI)
                                                 );
@@ -89,7 +89,7 @@ namespace libmaus2
 					GD = UNIQUE_PTR_MOVE(tGD);
 				}
 			}
-			
+
 			// total number of keys (length of gap array)
 			uint64_t getN() const
 			{
@@ -132,7 +132,7 @@ namespace libmaus2
 
 				/* increment block pointer */
 				blockptr++;
-				
+
 				return true;
 			}
 
@@ -142,27 +142,27 @@ namespace libmaus2
 				if ( pc == pe )
 					decodeBlock();
 				assert ( pc != pe );
-				return *(pc++);	
+				return *(pc++);
 			}
-			
+
 			/* alias for decode() */
 			uint64_t get()
 			{
 				return decode();
 			}
-			
+
 			/* peek at next symbol without advancing decode pointer */
 			uint64_t peek()
 			{
 				if ( pc == pe )
 				{
-					decodeBlock();				
+					decodeBlock();
 					assert ( pc != pe );
 				}
-				
-				return *pc;				
+
+				return *pc;
 			}
-			
+
 			/* set current symbol to v */
 			void adjust(uint64_t const v)
 			{
@@ -185,49 +185,49 @@ namespace libmaus2
 						fileptr = FBO.fileptr;
 						blockptr = FBO.blockptr;
 						offset = FBO.offset;
-					
+
 						/* open file and seek to block */
 						openNewFile();
 						/* decode block in question */
 						bool const blockok = decodeBlock();
 						assert ( blockok );
 						assert ( static_cast<int64_t>(offset) < (pe-pc) );
-						
+
 						/* symbol offset of block (sum over elements of previous blocks) */
 						uint64_t symoffset = idda.data[FBO.fileptr].getValueCnt(FBO.blockptr);
 						/* decode symbols up to offset in block */
 						for ( uint64_t i = 0; i < offset; ++i )
 							symoffset += decode();
-						
+
 						/* store prefix sum if pointer is given */
 						if ( psymoffset )
 							*psymoffset = symoffset;
 					}
 				}
 			}
-			
+
 			void initKV(uint64_t kvtarget, ::libmaus2::huffman::KvInitResult & result)
 			{
 				result = ::libmaus2::huffman::KvInitResult();
-			
+
 				// if stream is not empty
-				if ( 
+				if (
 					(
-						(idda.kvec.size()!=0) 
-						&& 
+						(idda.kvec.size()!=0)
+						&&
 						(idda.kvec[idda.kvec.size()-1] != 0)
-					) 
+					)
 				)
 				{
 					// if kv target is beyond end of file
-					if ( 
-						kvtarget >= 
+					if (
+						kvtarget >=
 						idda.kvec[idda.kvec.size()-1] + idda.vvec[idda.vvec.size()-1]
 					)
 					{
 						fileptr = idda.data.size();
 						blockptr = 0;
-						
+
 						result.koffset = idda.kvec[idda.kvec.size()-1];
 						result.voffset = idda.vvec[idda.vvec.size()-1];
 						result.kvoffset = result.koffset + result.voffset;
@@ -239,21 +239,21 @@ namespace libmaus2
 						::libmaus2::huffman::FileBlockOffset const FBO = idda.findKVBlock(kvtarget);
 						fileptr = FBO.fileptr;
 						blockptr = FBO.blockptr;
-					
+
 						/* open file and seek to block */
 						openNewFile();
 						/* decode block in question */
 						bool const blockok = decodeBlock();
 						assert ( blockok );
-						
+
 						/* key/symbol offset of block (sum over elements of previous blocks) */
 						uint64_t kvoffset = idda.kvec[FBO.fileptr] + idda.vvec[FBO.fileptr] + idda.data[FBO.fileptr].getKeyValueCnt(FBO.blockptr);
 						uint64_t voffset  = idda.vvec[FBO.fileptr] +                          idda.data[FBO.fileptr].getValueCnt(FBO.blockptr);
 						uint64_t koffset  = idda.kvec[FBO.fileptr] +                          idda.data[FBO.fileptr].getKeyCnt(FBO.blockptr);
-						
+
 						assert ( kvtarget >= kvoffset );
 						kvtarget -= kvoffset;
-						
+
 						// while we can skip the next key and its value
 						while ( kvtarget >= peek() + 1 )
 						{
@@ -263,7 +263,7 @@ namespace libmaus2
 							voffset += gi;
 							koffset += 1;
 						}
-						
+
 						// if we can process the last value
 						if ( koffset + 1 == getN() && kvtarget >= peek() )
 						{
@@ -282,7 +282,7 @@ namespace libmaus2
 
 							*pc -= kvtarget;
 						}
-						
+
 						// key offset
 						result.koffset  = koffset;
 						// value offset of key offset
@@ -294,17 +294,17 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			GammaGapDecoder(
 				::libmaus2::huffman::IndexDecoderDataArray const & ridda,
 				uint64_t kvtarget,
-				::libmaus2::huffman::KvInitResult & result 
+				::libmaus2::huffman::KvInitResult & result
 			)
 			:
 			  Pidda(),
 			  idda(ridda),
 			  /* buffer */
-			  decodebuf(), pa(0), pc(0), pe(0), 
+			  decodebuf(), pa(0), pc(0), pe(0),
 			  /* file and segment pointers */
 			  fileptr(0), blockptr(0)
 			{
@@ -314,13 +314,13 @@ namespace libmaus2
 			GammaGapDecoder(
 				std::vector<std::string> const & rfilenames,
 				uint64_t kvtarget,
-				::libmaus2::huffman::KvInitResult & result 
+				::libmaus2::huffman::KvInitResult & result
 			)
 			:
 			  Pidda(::libmaus2::huffman::IndexDecoderDataArray::construct(rfilenames)),
 			  idda(*Pidda),
 			  /* buffer */
-			  decodebuf(), pa(0), pc(0), pe(0), 
+			  decodebuf(), pa(0), pc(0), pe(0),
 			  /* file and segment pointers */
 			  fileptr(0), blockptr(0)
 			{
@@ -328,15 +328,15 @@ namespace libmaus2
 			}
 
 			GammaGapDecoder(
-				std::vector<std::string> const & rfilenames, 
-				uint64_t offset = 0, 
+				std::vector<std::string> const & rfilenames,
+				uint64_t offset = 0,
 				uint64_t * psymoffset = 0
 			)
 			:
 			  Pidda(::libmaus2::huffman::IndexDecoderDataArray::construct(rfilenames)),
 			  idda(*Pidda),
 			  /* buffer */
-			  decodebuf(), pa(0), pc(0), pe(0), 
+			  decodebuf(), pa(0), pc(0), pe(0),
 			  /* file and segment pointers */
 			  fileptr(0), blockptr(0)
 			{
@@ -345,27 +345,27 @@ namespace libmaus2
 
 			GammaGapDecoder(
 				::libmaus2::huffman::IndexDecoderDataArray const & ridda,
-				uint64_t offset = 0, 
+				uint64_t offset = 0,
 				uint64_t * psymoffset = 0
 			)
 			:
 			  Pidda(),
 			  idda(ridda),
 			  /* buffer */
-			  decodebuf(), pa(0), pc(0), pe(0), 
+			  decodebuf(), pa(0), pc(0), pe(0),
 			  /* file and segment pointers */
 			  fileptr(0), blockptr(0)
 			{
 				init(offset,psymoffset);
 			}
-			
+
 			// get length of file in symbols
 			static uint64_t getLength(std::string const & filename)
 			{
 				::libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(filename,64);
 				return SGI.get();
 			}
-			
+
 			// get length of vector of files in symbols
 			static uint64_t getLength(std::vector<std::string> const & filenames)
 			{
@@ -379,37 +379,37 @@ namespace libmaus2
 			{
 				GammaGapDecoder * owner;
 				uint64_t v;
-				
+
 				iterator()
 				: owner(0), v(0)
 				{
-				
+
 				}
 				iterator(GammaGapDecoder * rowner)
 				: owner(rowner), v(owner->decode())
 				{
-				
+
 				}
-				
+
 				uint64_t operator*() const
 				{
 					return v;
 				}
-				
+
 				iterator operator++(int)
 				{
 					iterator copy = *this;
 					v = owner->decode();
 					return copy;
 				}
-				
+
 				iterator operator++()
 				{
 					v = owner->decode();
 					return *this;
 				}
 			};
-			
+
 			iterator begin()
 			{
 				return iterator(this);

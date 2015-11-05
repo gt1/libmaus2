@@ -105,7 +105,7 @@ int main(int argc, char * argv[])
 	std::cerr << SlS("aabaa xxaxx") << std::endl;
 	std::cerr << SlS("aabaa/1 xx/1aa") << std::endl;
 	std::cerr << SlS("aabaa/1/2 xy/2bb") << std::endl;
-	
+
 	std::string const fn = "../fq/frags_000000.fq";
 	std::vector < ::libmaus2::fastx::FastInterval > VV = ::libmaus2::fastx::FastQReader::computeCommonNameAlignedFrags(std::vector<std::string>(1,fn),16,2,SlS);
 	::libmaus2::fastx::FastQReader FQO(fn);
@@ -114,21 +114,21 @@ int main(int argc, char * argv[])
 	while ( FQO.getNextPatternUnlocked(opattern) )
 	{
 		ocnt++;
-	}		
-	
+	}
+
 	for ( uint64_t i = 0; i < VV.size(); ++i )
 	{
 		std::cerr << VV[i] << std::endl;
 		::libmaus2::fastx::FastQReader FQI(fn,VV[i]);
 		::libmaus2::fastx::FastQReader::pattern_type ipattern;
-		
+
 		while ( FQI.getNextPatternUnlocked(ipattern) )
 		{
 			icnt++;
 			std::cout << ipattern;
-		}		
+		}
 	}
-	
+
 	std::cerr << "icnt=" << icnt << "ocnt=" << ocnt << std::endl;
 
 	if ( argc < 2 )

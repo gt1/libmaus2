@@ -41,7 +41,7 @@ namespace libmaus2
 			static std::string deserialiseString(std::istream & in);
 			static void serialiseStringVector ( std::ostream & out, std::vector < std::string > const & V );
 			static std::vector < std::string > deserialiseStringVector ( std::istream & in );
-			static std::vector < std::string > deserialiseStringVector ( std::string const & in );			
+			static std::vector < std::string > deserialiseStringVector ( std::string const & in );
 			static void serialiseStringVectorVector ( std::ostream & out, std::vector < std::vector < std::string > > const & V );
 			static void serialiseStringVectorDeque ( std::ostream & out, std::deque < std::vector < std::string > > const & V );
 			static std::vector < std::vector < std::string > > deserialiseStringVectorVector ( std::istream & in );

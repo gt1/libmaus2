@@ -91,15 +91,15 @@ int libmaus2_network_receiveFd_C(int const socket)
 			/* size_t i; */
 			int fd;
 			unsigned char const * data = CMSG_DATA(chdr);
-			
+
 			#if 0
 			for ( i = 0; i < sizeof(int); ++i )
 				fd |= ((int)data[i]) << (8*i);
 			#endif
 			fd = *((int *)(data));
-				
+
 			// fprintf(stderr,"Got fd %d\n", fd);
-			
+
 			return fd;
 		}
 

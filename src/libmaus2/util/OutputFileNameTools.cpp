@@ -22,10 +22,10 @@
 std::string libmaus2::util::OutputFileNameTools::lcp(std::string const & a, std::string const & b)
 {
 	uint64_t i = 0;
-	
+
 	while ( i < a.size() && i < b.size() && a[i] == b[i] )
 		i++;
-		
+
 	return a.substr(0,i);
 }
 
@@ -63,7 +63,7 @@ std::string libmaus2::util::OutputFileNameTools::endClip(std::string a, char con
 	{
 		a = clipOff(a,*V);
 	}
-	
+
 	return a;
 }
 

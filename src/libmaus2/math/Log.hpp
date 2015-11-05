@@ -25,19 +25,19 @@ namespace libmaus2
 {
 	namespace math
 	{
-	
+
 		template<uint64_t num, uint64_t b>
 		struct LogFloor
 		{
 			static int const log = 1 + LogFloor<num/b,b>::log;
 		};
-		
+
 		template<uint64_t b>
 		struct LogFloor<0,b>
 		{
 			static int const log = -1;
 		};
-		
+
 		template<uint64_t num, uint64_t b>
 		struct LogCeil
 		{

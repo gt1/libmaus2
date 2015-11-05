@@ -38,7 +38,7 @@ namespace libmaus2
 			z_stream strm;
 			uint32_t crc;
 			uint32_t isize;
-			
+
 			uint64_t compressedwritten;
 			bool terminated;
 
@@ -48,7 +48,7 @@ namespace libmaus2
 				strm.zalloc = Z_NULL;
 				strm.zfree = Z_NULL;
 				strm.opaque = Z_NULL;
-				int ret = deflateInit2(&strm, level, Z_DEFLATED, -15 /* window size */, 
+				int ret = deflateInit2(&strm, level, Z_DEFLATED, -15 /* window size */,
 					8 /* mem level, gzip default */, Z_DEFAULT_STRATEGY);
 				if ( ret != Z_OK )
 				{
@@ -69,7 +69,7 @@ namespace libmaus2
 					strm.avail_in = n;
 					strm.next_in  = reinterpret_cast<Bytef *>(pbase());
 
-					crc = crc32(crc, strm.next_in, strm.avail_in);        
+					crc = crc32(crc, strm.next_in, strm.avail_in);
 					isize += strm.avail_in;
 
 					do
@@ -87,17 +87,17 @@ namespace libmaus2
 						uint64_t const have = outbuffer.size() - strm.avail_out;
 						out.write(reinterpret_cast<char const *>(outbuffer.begin()),have);
 						compressedwritten += have;
-					} 
+					}
 					while (strm.avail_out == 0);
 
-					assert ( strm.avail_in == 0);					
+					assert ( strm.avail_in == 0);
 				}
 				else if ( n )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "GzipOutputStreamBuffer: data was written on terminated stream.";
 					se.finish();
-					throw se;					
+					throw se;
 				}
 			}
 
@@ -106,7 +106,7 @@ namespace libmaus2
 				if ( ! terminated )
 				{
 					int ret;
-					
+
 					do
 					{
 						strm.avail_in = 0;
@@ -124,12 +124,12 @@ namespace libmaus2
 						uint64_t have = outbuffer.size() - strm.avail_out;
 						out.write(reinterpret_cast<char const *>(outbuffer.begin()),have);
 						compressedwritten += have;
-						
+
 						// std::cerr << "Writing " << have << " bytes in flush" << std::endl;
 					} while (strm.avail_out == 0);
-							
+
 					assert ( ret == Z_OK );
-				}			
+				}
 			}
 
 
@@ -156,14 +156,14 @@ namespace libmaus2
 						uint64_t have = outbuffer.size() - strm.avail_out;
 						out.write(reinterpret_cast<char const *>(outbuffer.begin()),have);
 						compressedwritten += have;
-						
+
 						// std::cerr << "Writing " << have << " bytes in flush" << std::endl;
 					} while (strm.avail_out == 0);
-							
+
 					assert ( ret == Z_STREAM_END );
 				}
 			}
-			
+
 			uint64_t doTerminate()
 			{
 				if ( ! terminated )
@@ -183,14 +183,14 @@ namespace libmaus2
 					out . put ( (isize >> 8)  & 0xFF );
 					out . put ( (isize >> 16) & 0xFF );
 					out . put ( (isize >> 24) & 0xFF );
-									
+
 					compressedwritten += 8;
 
 					out.flush();
 
-					terminated = true;			
+					terminated = true;
 				}
-				
+
 				return compressedwritten;
 			}
 
@@ -203,12 +203,12 @@ namespace libmaus2
 				init(level);
 				setp(inbuffer.begin(),inbuffer.end()-1);
 			}
-			
+
 			~GzipOutputStreamBuffer()
 			{
 				doTerminate();
 			}
-			
+
 			/**
 			 * terminate stream
 			 *
@@ -218,7 +218,7 @@ namespace libmaus2
 			{
 				return doTerminate();
 			}
-			
+
 			int_type overflow(int_type c = traits_type::eof())
 			{
 				if ( c != traits_type::eof() )
@@ -230,8 +230,8 @@ namespace libmaus2
 
 				return c;
 			}
-			
-			
+
+
 			int sync()
 			{
 				// flush input buffer
@@ -239,9 +239,9 @@ namespace libmaus2
 				// flush zlib state
 				doFullFlush();
 				// flush output stream
-				out.flush();	
+				out.flush();
 				return 0; // no error, -1 for error
-			}			
+			}
 		};
 	}
 }

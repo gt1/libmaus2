@@ -52,7 +52,7 @@ libmaus2::util::MemUsage::MemUsage()
 	#elif defined(__APPLE__)
 	struct task_basic_info t_info;
 	mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
-	
+
 	if (KERN_SUCCESS == task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t)&t_info, &t_info_count))
 	{
 		VmSize = t_info.virtual_size;
@@ -73,7 +73,7 @@ libmaus2::util::MemUsage::MemUsage()
 	if ( kd )
 	{
 		kvm_close(kd);
-	}                                                                                                                                                        
+	}
 	#endif
 }
 
@@ -88,7 +88,7 @@ libmaus2::util::MemUsage::MemUsage(MemUsage const & o)
   VmExe(o.VmExe),
   VmLib(o.VmLib),
   VmPTE(o.VmPTE)
-{	
+{
 }
 
 libmaus2::util::MemUsage & libmaus2::util::MemUsage::operator=(libmaus2::util::MemUsage const & o)
@@ -133,14 +133,14 @@ uint64_t libmaus2::util::MemUsage::getMemParam(std::map<std::string,std::string>
 		std::string const & V = M.find(key)->second;
 		return parseMemPair(V);
 	}
-	
+
 	return 0;
 }
 
 uint64_t libmaus2::util::MemUsage::parseMemPair(std::string const & V)
 {
 	std::pair<std::string,std::string> P;
-	
+
 	if ( tokenise(V,P) )
 	{
 		if ( P.second == "kB" )
@@ -152,7 +152,7 @@ uint64_t libmaus2::util::MemUsage::parseMemPair(std::string const & V)
 				return v * 1024;
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -170,15 +170,15 @@ bool libmaus2::util::MemUsage::tokenise(std::string line, std::pair<std::string,
 	if ( containsspace )
 	{
 		std::string key = line.substr(0,spacepos);
-		
+
 		if ( key.size() && key[key.size()-1] == ':' )
 			key = key.substr(0,key.size()-1);
-		
+
 		uint64_t nextnonspace = spacepos;
-		
+
 		while ( nextnonspace < line.size() && isspace(line[nextnonspace]) )
 			nextnonspace++;
-			
+
 		if ( nextnonspace < line.size() )
 		{
 			std::string const value = line.substr(nextnonspace);
@@ -186,23 +186,23 @@ bool libmaus2::util::MemUsage::tokenise(std::string line, std::pair<std::string,
 			return true;
 		}
 	}
-	
-	return false;	
+
+	return false;
 }
 
 std::map<std::string,std::string> libmaus2::util::MemUsage::getProcSelfStatusMap()
 {
 	std::map<std::string,std::string> M;
-	
+
 	std::ifstream istr("/proc/self/status");
 	if ( ! istr.is_open() )
 		return M;
-	
+
 	while ( istr )
 	{
 		std::string line;
 		std::getline(istr,line);
-		
+
 		if ( istr && line.size() )
 		{
 			std::pair<std::string,std::string> P;
@@ -213,7 +213,7 @@ std::map<std::string,std::string> libmaus2::util::MemUsage::getProcSelfStatusMap
 			}
 		}
 	}
-	
+
 	return M;
 }
 

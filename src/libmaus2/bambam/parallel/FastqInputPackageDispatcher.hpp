@@ -28,16 +28,16 @@ namespace libmaus2
 	namespace bambam
 	{
 		namespace parallel
-		{	
+		{
 			struct FastqInputPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef FastqInputPackageDispatcher this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				FastqInputPackageReturnInterface & packageReturnInterface;
 				FastqInputPackageAddPendingInterface & addPendingInterface;
-							
+
 				FastqInputPackageDispatcher(
 					FastqInputPackageReturnInterface & rpackageReturnInterface,
 					FastqInputPackageAddPendingInterface & raddPendingInterface
@@ -45,9 +45,9 @@ namespace libmaus2
 				: packageReturnInterface(rpackageReturnInterface), addPendingInterface(raddPendingInterface)
 				{
 				}
-			
+
 				void dispatch(
-					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadWorkPackage * P,
 					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
@@ -58,7 +58,7 @@ namespace libmaus2
 
 					typedef FastQInputDescBase::input_block_type input_block_type;
 					typedef FastQInputDescBase::free_list_type free_list_type;
-					
+
 					libmaus2::parallel::PosixSpinLock & inlock = data.inlock;
 					free_list_type & blockFreeList = data.blockFreeList;
 					uint64_t const streamid = data.getStreamId();
@@ -67,15 +67,15 @@ namespace libmaus2
 					std::istream & in = data.in;
 
 					std::vector<input_block_type::shared_ptr_type> fullBlocks;
-					
+
 					if ( inlock.trylock() )
 					{
 						libmaus2::parallel::ScopePosixSpinLock slock(inlock,true /* pre locked */);
-						
+
 						input_block_type::shared_ptr_type sblock;
-			
-						while ( 
-							(!data.getEOF()) && (sblock=blockFreeList.getIf()) 
+
+						while (
+							(!data.getEOF()) && (sblock=blockFreeList.getIf())
 						)
 						{
 							// reset buffer
@@ -86,18 +86,18 @@ namespace libmaus2
 							sblock->meta.blockid = data.getBlockId();
 							// insert stalled data
 							sblock->insert(stallArray.begin(),stallArray.begin()+stallArraySize);
-			
+
 							// extend if there is no space
 							if ( sblock->pe == sblock->A.end() )
 								sblock->extend();
-							
+
 							// there should be free space now
 							assert ( sblock->pe != sblock->A.end() );
-			
+
 							// fill buffer
 							libmaus2::bambam::parallel::GenericInputBlockFillResult P = sblock->fill(
 								in, false /* finite */,0 /* dataleft */);
-			
+
 							if ( in.bad() )
 							{
 								libmaus2::exception::LibMausException lme;
@@ -105,11 +105,11 @@ namespace libmaus2
 								lme.finish();
 								throw lme;
 							}
-			
+
 							data.setEOF(P.eof);
 							sblock->meta.eof = P.eof;
-							
-							// parse bgzf block headers to determine how many full blocks we have				
+
+							// parse bgzf block headers to determine how many full blocks we have
 							libmaus2::bambam::parallel::GenericInputBlockSubBlockInfo & meta = sblock->meta;
 							uint64_t f = 0;
 
@@ -119,44 +119,44 @@ namespace libmaus2
 							while ( pe != pc )
 							{
 								uint8_t const c = *(--pe);
-								
+
 								if ( c == '\n' )
 								{
 									foundnewline = true;
 									break;
 								}
 							}
-							
+
 							if ( foundnewline )
 							{
 								pe += 1;
-								
+
 								uint8_t * ls[4] = {0,0,0,0};
-								
+
 								while ( pe != pc )
 								{
 									assert ( pe[-1] == '\n' );
-									
+
 									pe -= 1;
 									while ( pe != pc )
 									{
 										uint8_t const c = *(--pe);
-										
+
 										if ( c == '\n' )
 										{
 											pe += 1;
 											break;
 										}
 									}
-									
+
 									ls[3] = ls[2];
 									ls[2] = ls[1];
 									ls[1] = ls[0];
 									ls[0] = pe;
-									
+
 									if ( ls[3] && ls[0][0] == '@' && ls[2][0] == '+' )
 										break;
-								}							
+								}
 
 								if ( ls[3] && ls[0][0] == '@' && ls[2][0] == '+' )
 								{
@@ -169,9 +169,9 @@ namespace libmaus2
 									uint64_t const bs = le - pc;
 									meta.addBlock(std::pair<uint8_t *,uint8_t *>(sblock->pc,sblock->pc+bs));
 									f += 1;
-									
+
 									sblock->pc += bs;
-									
+
 									if ( sblock->pc == sblock->pe && data.getEOF() )
 										sblock->meta.eof = true;
 								}
@@ -183,10 +183,10 @@ namespace libmaus2
 								meta.addBlock(std::pair<uint8_t *,uint8_t *>(sblock->pc,sblock->pe));
 								f += 1;
 							}
-											
+
 							// extract rest of data for next block
 							stallArraySize = sblock->extractRest(stallArray);
-			
+
 							if ( f )
 							{
 								if ( fullBlocks.size() >= 1 )
@@ -217,11 +217,11 @@ namespace libmaus2
 									throw lme;
 								}
 							}
-						}			
+						}
 					}
-			
+
 					packageReturnInterface.fastqInputPackageReturn(BP);
-			
+
 					for ( uint64_t i = 0; i < fullBlocks.size(); ++i )
 						addPendingInterface.fastqInputPackageAddPending(fullBlocks[i]);
 				}

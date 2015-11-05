@@ -45,18 +45,18 @@ void libmaus2::util::SaturatingCounter::shrink()
 	/* handle rest, byte order does no longer matter */
 	for ( uint64_t i = 32; i < n; ++i )
 		::libmaus2::bitio::putBit(B.get(), i, (get(i) == 1) );
-	
+
 	/* shorten array */
 	B.resize( (n + 63)/64 );
 	/* set up rank dictionary */
 	rank_ptr_type trank(new rank_type(B.get(),B.size()*64));
 	rank = UNIQUE_PTR_MOVE(trank);
 }
-		
+
 std::ostream & libmaus2::util::operator<<(std::ostream & out, libmaus2::util::SaturatingCounter const & S)
 {
 	out << "SaturatingCounter(";
-	
+
 	for ( uint64_t i = 0; i < S.size(); ++i )
 		out << static_cast<unsigned int>(S.get(i)) << ((i+1<S.size())?";":"");
 	out << ")";

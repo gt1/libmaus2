@@ -28,7 +28,7 @@ namespace libmaus2
 	namespace bambam
 	{
 		namespace parallel
-		{			
+		{
 			struct BgzfLinearMemCompressWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef BgzfLinearMemCompressWorkPackage this_type;
@@ -41,13 +41,13 @@ namespace libmaus2
 				BgzfLinearMemCompressWorkPackage() : obj(), outbuf() {}
 
 				BgzfLinearMemCompressWorkPackage(
-					uint64_t const rpriority, 
+					uint64_t const rpriority,
 					SmallLinearBlockCompressionPendingObject robj,
 					libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type routbuf,
 					uint64_t const rlinearMemCompressDispatcherId
 				) : libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rlinearMemCompressDispatcherId), obj(robj), outbuf(routbuf)
 				{
-				
+
 				}
 
 				char const * getPackageName() const

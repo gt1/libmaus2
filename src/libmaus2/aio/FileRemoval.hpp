@@ -32,7 +32,7 @@ namespace libmaus2
 			{
 				return name.size() >= prefix.size() && name.substr(0,prefix.size()) == prefix;
 			}
-			
+
 			static void removeFile(std::string const & name)
 			{
 				if ( hasPrefix(name,"file://") )

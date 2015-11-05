@@ -31,39 +31,39 @@ namespace libmaus2
 		struct SimpleCompressedConcatInputStreamFragment
 		{
 			typedef _stream_type stream_type;
-		
+
 			std::pair<uint64_t,uint64_t> low;
 			std::pair<uint64_t,uint64_t> high;
 			stream_type * stream;
-			
+
 			SimpleCompressedConcatInputStreamFragment()
 			: low(0,0), high(0,0), stream(0)
 			{
-			
+
 			}
-			
+
 			SimpleCompressedConcatInputStreamFragment(
 				std::pair<uint64_t,uint64_t> const rlow,
 				std::pair<uint64_t,uint64_t> const rhigh,
 				stream_type * rstream
 			) : low(rlow), high(rhigh), stream(rstream)
 			{
-			
+
 			}
-			
+
 			SimpleCompressedConcatInputStreamFragment(
 				libmaus2::lz::SimpleCompressedStreamInterval const & rmeta,
-				stream_type * rstream				
+				stream_type * rstream
 			) : low(rmeta.start), high(rmeta.end), stream(rstream)
 			{
-			
+
 			}
-			
+
 			bool empty() const
 			{
 				return low == high;
 			}
-			
+
 			static std::vector<SimpleCompressedConcatInputStreamFragment> filter(
 				std::vector<SimpleCompressedConcatInputStreamFragment> const & fragments
 			)

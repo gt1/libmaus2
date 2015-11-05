@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus2/bambam/CircularHashCollatingBamDecoder.hpp>	
+#include <libmaus2/bambam/CircularHashCollatingBamDecoder.hpp>
 #include <libmaus2/bambam/BamWriter.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
 #include <libmaus2/util/ArgInfo.hpp>
@@ -32,21 +32,21 @@ int main(int argc, char * argv[])
 		/* remove temporary file at program exit */
 		std::string const tmpfilename = "tmpfile";
 		libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfilename);
-		
+
 		if ( arginfo.getPairCount("I") )
 		{
 			typedef libmaus2::bambam::BamMergeCoordinateCircularHashCollatingBamDecoder collator_type;
 			typedef collator_type::alignment_ptr_type alignment_ptr_type;
 
-			/* set up collator object */	
+			/* set up collator object */
 			collator_type C(arginfo.getPairValues("I"),tmpfilename,0,true,20,32*1024*1024);
 			libmaus2::bambam::BamHeader const & bamheader = C.getHeader();
 			// collator_type C(cin,8,tmpfilename);
 			pair<alignment_ptr_type,alignment_ptr_type> P;
-			
+
 			libmaus2::bambam::BamWriter writer(std::cout,bamheader,0);
 
-			/* read alignments */	
+			/* read alignments */
 			while ( C.tryPair(P) )
 			{
 				if ( P.first )
@@ -61,7 +61,7 @@ int main(int argc, char * argv[])
 			// typedef BamParallelCircularHashCollatingBamDecoder collator_type;
 			typedef collator_type::alignment_ptr_type alignment_ptr_type;
 
-			/* set up collator object */	
+			/* set up collator object */
 			collator_type C(cin,tmpfilename,0,true,20,32*1024*1024);
 			libmaus2::bambam::BamHeader const & bamheader = C.getHeader();
 			// collator_type C(cin,8,tmpfilename);
@@ -69,7 +69,7 @@ int main(int argc, char * argv[])
 
 			libmaus2::bambam::BamWriter writer(std::cout,bamheader,0);
 
-			/* read alignments */	
+			/* read alignments */
 			while ( C.tryPair(P) )
 			{
 				if ( P.first )
@@ -78,7 +78,7 @@ int main(int argc, char * argv[])
 					P.second->serialise(writer.getStream());
 			}
 		}
-		
+
 		return EXIT_SUCCESS;
 	}
 	catch(std::exception const & ex)

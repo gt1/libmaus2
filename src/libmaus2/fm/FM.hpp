@@ -59,12 +59,12 @@ namespace libmaus2
                         {
                                 isa.reset(0);
                         }
-                        
+
                         void freeLCP()
                         {
                                 lcp.reset(0);
                         }
-                        
+
                         void freeRev()
                         {
                                 lfrev.reset(0);
@@ -73,7 +73,7 @@ namespace libmaus2
                         bitio::CompactArray::unique_ptr_type toTextCompact() const
                         {
                                 bitio::CompactArray::unique_ptr_type text ( new bitio::CompactArray(lf->getN(),lf->getB()) );
-                                
+
                                 uint64_t const minoffset = text->minparoffset();
 
                 #if defined(_OPENMP)
@@ -81,13 +81,13 @@ namespace libmaus2
                 #else
                                 uint64_t const blocksize = lf->getN();
                 #endif
-                                
+
                                 std::cerr << "extracting text";
-                          
+
                                 ::libmaus2::parallel::OMPLock cerrlock;
                                 uint64_t blocksfinished = 0;
                                 int64_t const numblocks = static_cast<int64_t>((lf->getN() + blocksize-1)/blocksize);
-                                
+
                 #if defined(_OPENMP)
                 #pragma omp parallel for
                 #endif
@@ -96,18 +96,18 @@ namespace libmaus2
                                         uint64_t const low = block * blocksize;
                                         uint64_t const high = std::min( lf->getN(), low + blocksize );
                                         uint64_t const width = high-low;
-                                        
+
                                         if ( width )
                                         {
                                                 uint64_t r = getISA( (high) % getN());
-                                                
+
                                                 for ( uint64_t i = 0; i < width; ++i )
                                                 {
                                                         text -> set ( high-i-1, (*lf)[r] );
                                                         r = (*lf)(r);
-                                                }					
+                                                }
                                         }
-                                
+
                                         cerrlock.lock();
                                         blocksfinished++;
                                         double const finished = static_cast<double>(blocksfinished) / numblocks;
@@ -116,7 +116,7 @@ namespace libmaus2
                                         // std::cerr << "block " << block << " low " << low << " high " << high << " width " << width << std::endl;
                                 }
                                 std::cerr << std::endl;
-                                
+
                                 return UNIQUE_PTR_MOVE(text);
                         }
 
@@ -135,7 +135,7 @@ namespace libmaus2
                                 s += R.serialize(out);
                                 return s;
                         }
-                        
+
                         uint64_t deserialize(std::istream & in)
                         {
                                 uint64_t s = 0;
@@ -143,7 +143,7 @@ namespace libmaus2
                                 std::cerr << "FM reading haveReverse...";
                                 s += ::libmaus2::serialize::Serialize<unsigned int>::deserialize(in,&haveReverse);
                                 std::cerr << haveReverse << std::endl;
-                                
+
                                 std::cerr << "FM reading haveLCP...";
                                 s += ::libmaus2::serialize::Serialize<unsigned int>::deserialize(in,&haveLCP);
                                 std::cerr << haveLCP << std::endl;
@@ -151,7 +151,7 @@ namespace libmaus2
                                 std::cerr << "FM reading LF..." << std::endl;
                                 lf = lf_ptr_type(new lf_type(in,s));
                                 std::cerr << "FM reading LF completed" << std::endl;
-                                
+
                                 std::cerr << "FM reading SA..." << std::endl;
                                 sa = UNIQUE_PTR_MOVE(typename sampled_sa_type::unique_ptr_type(new sampled_sa_type(lf.get(),in,s)));
                                 std::cerr << "FM reading SA completed" << std::endl;
@@ -172,22 +172,22 @@ namespace libmaus2
                                         lfrev = lf_ptr_type(new lf_type(in,s));
                                         std::cerr << "FM reading rev LF completed" << std::endl;
                                 }
-                                
+
                                 std::cerr << "FM reading R...";
                                 s += R.deserialize(in);
                                 std::cerr << "done." << std::endl;
-                        
+
                                 if ( R.getN() )
                                 {
                                         M = MfromR(R);
                                         MActive = MActivefromR(R);
                                 }
-                                        
+
                                 std::cerr << "FM: " << s << " bytes = " << s*8 << " bits = " << (s+(1024*1024-1))/(1024*1024) << " mb" << std::endl;
 
                                 return s;
                         }
-                        
+
                         FM(std::istream & in)
                         {
                                 deserialize(in);
@@ -197,37 +197,37 @@ namespace libmaus2
                         {
                                 s += deserialize(in);
                         }
-                        
+
                         static autoarray::AutoArray<int> MfromR(autoarray::AutoArray<uint64_t> const & R)
                         {
                                 autoarray::AutoArray<int> M(256);
-                                
+
                                 for ( uint64_t i = 0; i < 256; ++i )
                                         M[i] = -1;
-                                
+
                                 for ( uint64_t i = 0; i < R.getN(); ++i )
                                         if ( R[i] < 256 )
                                                 M[R[i]] = i;
-                                
+
                                 return M;
                         }
 
                         static autoarray::AutoArray<bool> MActivefromR(autoarray::AutoArray<uint64_t> const & R)
                         {
                                 autoarray::AutoArray<bool> MActive(256);
-                                
+
                                 for ( uint64_t i = 0; i < 256; ++i )
                                         MActive[i] = false;
-                                
+
                                 for ( uint64_t i = 0; i < R.getN(); ++i )
                                         if ( R[i] < 256 )
                                                 MActive[R[i]] = true;
-                                
+
                                 return MActive;
                         }
-                        
+
                         FM(lf_ptr_type & rlf, uint64_t sasamplingrate, uint64_t isasamplingrate)
-                        : haveReverse(false), haveLCP(false), lf(rlf), 
+                        : haveReverse(false), haveLCP(false), lf(rlf),
                           sa( new sampled_sa_type(lf.get(), sasamplingrate) ),
                           isa( new sampled_isa_type(lf.get(), isasamplingrate) ),
                           // lcp ( new lcp_type(*lf,*sa,*isa) ),
@@ -235,34 +235,34 @@ namespace libmaus2
                           lfrev(), R(), M(), MActive()
                         {}
 
-                        FM( 
-				lf_ptr_type & rlf, 
+                        FM(
+				lf_ptr_type & rlf,
 				typename sampled_sa_type::unique_ptr_type & rsa,
 				typename sampled_isa_type::unique_ptr_type & risa
 				)
-                        : haveReverse(false), haveLCP(false), lf(rlf), 
+                        : haveReverse(false), haveLCP(false), lf(rlf),
                           sa( UNIQUE_PTR_MOVE ( rsa ) ),
                           isa( UNIQUE_PTR_MOVE ( risa ) ),
                           lcp(),
                           lfrev(), R(), M(), MActive()
                         {}
 
-                        FM( 
-				lf_ptr_type & rlf, 
+                        FM(
+				lf_ptr_type & rlf,
 				typename sampled_sa_type::unique_ptr_type & rsa,
 				typename sampled_isa_type::unique_ptr_type & risa,
 				lf_ptr_type & rlfrev
 				)
-                        : haveReverse(true), haveLCP(false), lf(rlf), 
+                        : haveReverse(true), haveLCP(false), lf(rlf),
                           sa( UNIQUE_PTR_MOVE ( rsa ) ),
                           isa( UNIQUE_PTR_MOVE ( risa ) ),
                           lcp(),
                           lfrev(rlfrev), R(), M(), MActive()
                         {}
 
-                        FM( 
+                        FM(
                                 autoarray::AutoArray<uint64_t> & rR,
-                                bitio::CompactArray::unique_ptr_type ABWT, 
+                                bitio::CompactArray::unique_ptr_type ABWT,
                                 uint64_t sasamplingrate,
                                 uint64_t isasamplingrate,
                                 bitio::CompactArray::unique_ptr_type ABWTrev
@@ -276,9 +276,9 @@ namespace libmaus2
                           MActive(MActivefromR(R))
                         {}
 
-                        FM( 
+                        FM(
                                 autoarray::AutoArray<uint64_t> & rR,
-                                bitio::CompactArray::unique_ptr_type ABWT, 
+                                bitio::CompactArray::unique_ptr_type ABWT,
                                 uint64_t sasamplingrate,
                                 uint64_t isasamplingrate,
                                 bool usetext = false
@@ -300,7 +300,7 @@ namespace libmaus2
                                         assert ( lf->phi(r) == getISA((getSA(r) + 1) % getN()) );
                                 std::cerr << "done." << std::endl;
                                 #endif
-                                
+
                                 #if 0
                                 std::cerr << "Comparing with non-succinct LCP...";
                                 std::string text(getN(),' ');
@@ -317,9 +317,9 @@ namespace libmaus2
                                 #endif
                         }
 
-                        FM( 
+                        FM(
                                 autoarray::AutoArray<uint64_t> & rR,
-                                bitio::CompactArray::unique_ptr_type ABWT, 
+                                bitio::CompactArray::unique_ptr_type ABWT,
                                 uint64_t sasamplingrate,
                                 uint64_t isasamplingrate,
                                 ::libmaus2::util::shared_ptr < huffman::HuffmanTreeNode >::type ahnode,
@@ -342,7 +342,7 @@ namespace libmaus2
                                         assert ( lf->phi(r) == getISA((getSA(r) + 1) % getN()) );
                                 std::cerr << "done." << std::endl;
                                 #endif
-                                
+
                                 #if 0
                                 std::cerr << "Comparing with non-succinct LCP...";
                                 std::string text(getN(),' ');
@@ -359,18 +359,18 @@ namespace libmaus2
                                 #endif
                         }
 
-                        uint64_t getN() const { return lf->getN(); }	
-                        uint64_t getB() const { return lf->getB(); }	
+                        uint64_t getN() const { return lf->getN(); }
+                        uint64_t getB() const { return lf->getB(); }
                         uint64_t getSA(uint64_t const r) const { return (*sa)[r]; }
                         uint64_t getISA(uint64_t const r) const { return (*isa)[r]; }
                         uint64_t getLCP(uint64_t const r) const { return (*lcp)[r]; }
-                        
+
                         int64_t operator[](uint64_t pos) const
                         {
                                 return (*lf)[getISA( (pos+1 ) % getN())];
                                 // return (*(lf->W))[getISA( (pos+1 ) % getN())];
                         }
-                        
+
                         template<typename iterator>
                         bool mapAlphabet(iterator a, iterator b)
                         {
@@ -380,10 +380,10 @@ namespace libmaus2
 
                                 for ( iterator i = a; i != b; ++i )
                                         *i = M[*i];
-                                
+
                                 return true;
                         }
-                        
+
                         void checkLCP()
                         {
                 #if defined(_OPENMP)
@@ -397,32 +397,32 @@ namespace libmaus2
                                         assert (i < j );
                                         FM const & fm = *this;
                                         lcp_type const & LCP = *lcp;
-                                        
+
                                         uint64_t l = 0;
-                                        while ( 
-                                                (i != getN()) 
-                                                && 
+                                        while (
+                                                (i != getN())
+                                                &&
                                                 (fm[i] == fm[j])
                                         )
                                                 ++i, ++j, ++l;
-                                        
+
                                         if ( l != LCP[r] )
                                         {
                                                 std::cerr << l << " != " << LCP[r] << std::endl;
                                         }
-                                        
+
                                         assert ( l == LCP[r] );
-                                        
+
                                         if ( (r& ((1ull<<16)-1) ) == 0 )
                                                 std::cerr << r << "/" << getN() << std::endl;
                                 }
                         }
-                        
+
                         template<typename iter>
                         void extract(uint64_t pos, uint64_t len, iter * A) const
                         {
                                 uint64_t r = getISA( (pos+len) % getN());
-                                
+
                                 for ( int64_t i = (len-1); i >= 0; --i, r = (*lf)(r) )
                                         A[i] = (*(lf->W))[r];
                         }
@@ -431,21 +431,21 @@ namespace libmaus2
                         void extractIterator(uint64_t pos, uint64_t len, iter A) const
                         {
                                 uint64_t r = getISA( (pos+len) % getN());
-                                
+
                                 for ( int64_t i = (len-1); i >= 0; --i, r = (*lf)(r) )
                                         A[i] = (*(lf->W))[r];
                         }
 
-                        template<typename iterator>	
+                        template<typename iterator>
                         inline void search(iterator query, uint64_t const m, uint64_t & sp, uint64_t & ep) const
                         {
                                 lf->search(query,m,sp,ep);
                         }
-                        
+
                         void extendRight(uint64_t const sym, uint64_t & spf, uint64_t & epf, uint64_t & spr, uint64_t & epr) const
                         {
                                 assert ( haveReverse );
-                        
+
                                 // forward search using reverse
                                 uint64_t smaller, larger;
                                 lfrev->W->smallerLarger( sym, spr, epr, smaller, larger );
@@ -455,8 +455,8 @@ namespace libmaus2
 
                                 // backward search on reverse
                                 spr = lfrev->step(sym, spr);
-                                epr = lfrev->step(sym, epr);		
-                        
+                                epr = lfrev->step(sym, epr);
+
                         }
 
                         void extendLeft(uint64_t const sym, uint64_t & spf, uint64_t & epf, uint64_t & spr, uint64_t & epr) const
@@ -475,31 +475,31 @@ namespace libmaus2
 
                         template<typename iterator>
                         void searchPatternSuffix(
-                                iterator const & q, 
-                                uint64_t const m, 
-                                uint64_t & mright, 
+                                iterator const & q,
+                                uint64_t const m,
+                                uint64_t & mright,
                                 uint64_t & back_left,
                                 uint64_t & back_right) const
                         {
                                 mright = 0, back_left = 0, back_right = getN();
-                                
+
                                 for ( ; mright < m; ++mright )
                                 {
                                         uint64_t const t_back_left = lf->step(q[m-mright-1], back_left);
                                         uint64_t const t_back_right = lf->step(q[m-mright-1], back_right);
-                                        
+
                                         if ( t_back_left == t_back_right )
                                                 break;
 
                                         back_left = t_back_left, back_right = t_back_right;
-                                }                
+                                }
                         }
 
                         template<typename iterator>
                         void searchPatternPrefix(
-                                iterator const & q, 
-                                uint64_t const m, 
-                                uint64_t & mleft, 
+                                iterator const & q,
+                                uint64_t const m,
+                                uint64_t & mleft,
                                 uint64_t & front_left,
                                 uint64_t & front_right) const
                         {
@@ -509,9 +509,9 @@ namespace libmaus2
                                 for ( ; mleft < m; ++mleft )
                                 {
                                         uint64_t t_front_left = front_left, t_front_right = front_right;
-                                        
+
                                         extendRight(q[mleft], t_front_left, t_front_right, back_left, back_right);
-                                        
+
                                         if ( t_front_left == t_front_right )
                                                 break;
 

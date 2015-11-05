@@ -20,14 +20,14 @@
 #include <libmaus2/lcs/OverlapComputation.hpp>
 
 /* minimum overlap */
-unsigned long const ::libmaus2::lcs::OverlapComputation::defaultmintracelength = 
+unsigned long const ::libmaus2::lcs::OverlapComputation::defaultmintracelength =
 	::libmaus2::lcs::OverlapComputation::getDefaultMinTraceLength();
 /* max allowed indels in overlap */
-double const ::libmaus2::lcs::OverlapComputation::defaultmaxindelfrac = 
+double const ::libmaus2::lcs::OverlapComputation::defaultmaxindelfrac =
 	::libmaus2::lcs::OverlapComputation::getDefaultMaxIndelFrac();
 /* max allowed substitutions in overlap */
-double const ::libmaus2::lcs::OverlapComputation::defaultmaxsubstfrac = 
+double const ::libmaus2::lcs::OverlapComputation::defaultmaxsubstfrac =
 	::libmaus2::lcs::OverlapComputation::getDefaultMaxSubstFrac();
 /* minimum overlap */
-int64_t const ::libmaus2::lcs::OverlapComputation::defaultminscore = 
+int64_t const ::libmaus2::lcs::OverlapComputation::defaultminscore =
 	::libmaus2::lcs::OverlapComputation::getDefaultMinScore();

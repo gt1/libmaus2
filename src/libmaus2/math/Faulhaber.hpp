@@ -36,17 +36,17 @@ namespace libmaus2
 				std::vector< Rational<> > P(p+2,Rational<>(1,p+1));
 				// no constant
 				P[0] = Rational<>(0,1);
-				
+
 				for ( unsigned int j = 0; j <= p; ++j )
 				{
 					Rational<> coeff = pre;
 					coeff *= Rational<>(libmaus2::math::Binom::binomialCoefficientInteger(j,p+1));
 					coeff *= libmaus2::math::BernoulliNumber::B(j);
 					P[p+1-j] *= coeff;
-					
+
 					pre *= m;
 				}
-				
+
 				return P;
 			}
 		};

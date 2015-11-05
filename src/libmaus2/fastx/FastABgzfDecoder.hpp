@@ -31,7 +31,7 @@ namespace libmaus2
 			typedef FastABgzfDecoder this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			FastABgzfDecoder(
 				std::string const & filename,
 				::libmaus2::fastx::FastABgzfIndexEntry const & indexentry,
@@ -39,7 +39,7 @@ namespace libmaus2
 			)
 			: ::libmaus2::fastx::FastABgzfDecoderBuffer(filename,indexentry,blocksize), ::std::istream(this)
 			{
-				
+
 			}
 			FastABgzfDecoder(
 				std::istream & stream,
@@ -48,7 +48,7 @@ namespace libmaus2
 			)
 			: ::libmaus2::fastx::FastABgzfDecoderBuffer(stream,indexentry,blocksize), ::std::istream(this)
 			{
-				
+
 			}
 		};
 

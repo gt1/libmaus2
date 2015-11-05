@@ -31,13 +31,13 @@ namespace libmaus2
 			uint64_t mismatches;
 			uint64_t insertions;
 			uint64_t deletions;
-			
+
 			AlignmentStatistics()
 			: matches(0), mismatches(0), insertions(0), deletions(0)
 			{
-			
+
 			}
-			
+
 			AlignmentStatistics(
 				uint64_t const rmatches,
 				uint64_t const rmismatches,
@@ -46,22 +46,22 @@ namespace libmaus2
 			)
 			: matches(rmatches), mismatches(rmismatches), insertions(rinsertions), deletions(rdeletions)
 			{
-			
+
 			}
-			
+
 			double getErrorRate() const
 			{
 				return
 					static_cast<double>(mismatches + insertions + deletions) /
 					static_cast<double>(matches + mismatches + insertions + deletions);
 			}
-			
+
 			uint64_t getEditDistance() const
 			{
 				return mismatches + insertions + deletions;
 			}
 		};
-		
+
 		std::ostream & operator<<(std::ostream & out, AlignmentStatistics const & A);
 	}
 }

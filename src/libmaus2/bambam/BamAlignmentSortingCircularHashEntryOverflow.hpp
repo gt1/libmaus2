@@ -30,7 +30,7 @@
 namespace libmaus2
 {
 	namespace bambam
-	{		
+	{
 		/**
 		 * overflow class for collating BAM input
 		 **/
@@ -42,7 +42,7 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			private:
 			//! temp/overflow file name
 			std::string const fn;
@@ -51,7 +51,7 @@ namespace libmaus2
 			libmaus2::aio::OutputStream & COS;
 			//! output buffer
 			libmaus2::autoarray::AutoArray<uint64_t> B;
-			
+
 			//! end of output buffer
 			uint64_t * const Pe;
 			//! back insert pointer
@@ -63,15 +63,15 @@ namespace libmaus2
 
 			//! name comparator on buffer
 			libmaus2::bambam::BamAlignmentNameComparator BANC;
-			
+
 			//! index for blocks in temp file
 			std::vector < std::pair<uint64_t,uint64_t> > index;
-			
+
 			//! number of entries extracted from the flush buffer
 			uint64_t flushbufptr;
 			//! number of elements in the flush buffer
 			uint64_t flushbufcnt;
-			
+
 			//! expunge callback
 			BamAlignmentExpungeCallback * expungecallback;
 
@@ -110,9 +110,9 @@ namespace libmaus2
 			  flushbufcnt(0),
 			  expungecallback(0)
 			{
-			
+
 			}
-			
+
 			/**
 			 * construct reader for reading back merged and sorted entries on disk
 			 **/
@@ -126,20 +126,20 @@ namespace libmaus2
 				libmaus2::bambam::SnappyAlignmentMergeInput::unique_ptr_type ptr(libmaus2::bambam::SnappyAlignmentMergeInput::construct(index,fn));
 				return UNIQUE_PTR_MOVE(ptr);
 			}
-			
+
 			/**
 			 * flush the alignment buffer; this writes out unpaired entries out to disk
 			 * and may leave some entries in the flush buffer, which can be extracted using
 			 * the getFlushBufEntry method
-			 **/			
+			 **/
 			void flush()
-			{	
+			{
 				uint64_t const nump = Pe-P;
-				
+
 				std::sort(P,Pe,BANC);
 
 				std::streampos const prepos = COS.tellp();
-				
+
 				if ( prepos < 0 )
 				{
 					libmaus2::exception::LibMausException lme;
@@ -147,19 +147,19 @@ namespace libmaus2
 					lme.finish();
 					throw lme;
 				}
-					
+
 				::libmaus2::lz::SnappyOutputStream<libmaus2::aio::OutputStream> snapOut(COS,64*1024);
 
 				uint64_t occnt = 0;
 				uint64_t outp = 0;
 				uint64_t inp = 0;
-				
+
 				if ( expungecallback )
 				{
 					while ( inp != nump )
 					{
-						if ( 
-							inp+1 < nump && 
+						if (
+							inp+1 < nump &&
 							BANC.compareIntNameOnly(P[inp],P[inp+1]) == 0 &&
 							(libmaus2::bambam::BamAlignmentDecoderBase::isRead1(libmaus2::bambam::BamAlignmentDecoderBase::getFlags(Da+P[inp  ]+sizeof(uint32_t)))
 							!=
@@ -174,11 +174,11 @@ namespace libmaus2
 							uint32_t len = 0;
 							for ( unsigned int j = 0; j < sizeof(uint32_t); ++j )
 								len |= static_cast<uint32_t>(Da[P[inp]+j]) << (8*j);
-					
+
 							snapOut.write ( reinterpret_cast<char const *>(Da + P[inp]), len + sizeof(uint32_t) );
-							
+
 							expungecallback->expunged(Da + P[inp] + sizeof(uint32_t), len);
-							
+
 							outp++;
 							inp++;
 						}
@@ -188,8 +188,8 @@ namespace libmaus2
 				{
 					while ( inp != nump )
 					{
-						if ( 
-							inp+1 < nump && 
+						if (
+							inp+1 < nump &&
 							BANC.compareIntNameOnly(P[inp],P[inp+1]) == 0 &&
 							(libmaus2::bambam::BamAlignmentDecoderBase::isRead1(libmaus2::bambam::BamAlignmentDecoderBase::getFlags(Da+P[inp  ]+sizeof(uint32_t)))
 							!=
@@ -204,9 +204,9 @@ namespace libmaus2
 							uint32_t len = 0;
 							for ( unsigned int j = 0; j < sizeof(uint32_t); ++j )
 								len |= static_cast<uint32_t>(Da[P[inp]+j]) << (8*j);
-					
+
 							snapOut.write ( reinterpret_cast<char const *>(Da + P[inp]), len + sizeof(uint32_t) );
-							
+
 							outp++;
 							inp++;
 						}
@@ -228,7 +228,7 @@ namespace libmaus2
 			 * @param ptr reference for storing alignment block pointer
 			 * @param length reference for storing length of alignment block
 			 * @return true iff a block was obtained, false if buffer was empty
-			 **/	
+			 **/
 			bool getFlushBufEntry(uint8_t const * & ptr, uint64_t & length)
 			{
 				if ( flushbufptr == flushbufcnt )
@@ -237,15 +237,15 @@ namespace libmaus2
 					D = Da;
 					return false;
 				}
-					
+
 				uint64_t const fbid = flushbufptr++;
-				
+
 				ptr = Da+P[fbid]+sizeof(uint32_t);
 				length = getLength(fbid);
-				
+
 				return true;
 			}
-			
+
 			/**
 			 * check whether the buffer needs to be flushed before putting an n byte data block
 			 *
@@ -258,7 +258,7 @@ namespace libmaus2
 				uint64_t const restspace = reinterpret_cast<uint8_t const *>(P)-D;
 				bool const needflush = (restspace < n + (first ? (sizeof(uint32_t) + sizeof(uint64_t)):0));
 
-				// throw exception if buffer is empty but space is still too small for input data		
+				// throw exception if buffer is empty but space is still too small for input data
 				if ( needflush && (D == Da) )
 				{
 					libmaus2::exception::LibMausException se;
@@ -266,7 +266,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				return needflush;
 			}
 
@@ -287,17 +287,17 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-			
+
 				if ( first )
 				{
 					// write pointer to entry
 					*(--P) = D-Da;
-			
-					// write length of entry	
+
+					// write length of entry
 					for ( unsigned int i = 0; i < sizeof(uint32_t); ++i )
 						*(D++) = (tlen >> (i*8)) & 0xFF;
 				}
-				
+
 				// copy data
 				std::copy(p,p+n,D);
 				D += n;

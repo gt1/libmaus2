@@ -30,20 +30,20 @@ namespace libmaus2
 		{
 			libmaus2::bambam::BamHeader const & header;
 			libmaus2::bitio::BitVector::unique_ptr_type pBV;
-			
+
 			BamAlignmentReadGroupFilter(
 				libmaus2::bambam::BamHeader const & rheader,
 				std::vector<std::string> const & rgnames
 			) : header(rheader)
 			{
 				std::set<std::string> const rgset(rgnames.begin(),rgnames.end());
-				
+
 				// set up and erase vector
 				libmaus2::bitio::BitVector::unique_ptr_type tBV(new libmaus2::bitio::BitVector(header.getNumReadGroups()));
 				pBV = UNIQUE_PTR_MOVE(tBV);
 				for ( uint64_t i = 0; i < header.getNumReadGroups(); ++i )
 					pBV->set(i,0);
-				
+
 				for ( uint64_t i = 0; i < header.getNumReadGroups(); ++i )
 					if ( rgset.find( header.getReadGroupIdentifierAsString(i) ) != rgset.end() )
 						pBV->set(i,1);

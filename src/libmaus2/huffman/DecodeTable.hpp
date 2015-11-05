@@ -41,9 +41,9 @@ namespace libmaus2
 		{
 			typedef DecodeTable this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			enum Visit { First, Second, Third };
-			
+
 			unsigned int const lookupbits;
 			uint64_t const entriespernode;
 			::libmaus2::autoarray::AutoArray < DecodeTableEntry > entries;
@@ -53,23 +53,23 @@ namespace libmaus2
 			{
 				for ( unsigned int i = 0; i < innernodes; ++i )
 				{
-					
+
 					::std::cerr << "\\begin{tabular}{|l|l|l|l|}" << ::std::endl;
-					
+
 					::std::cerr << "\\hline" << ::std::endl;
 					::std::cerr << "\\multicolumn{4}{|c|}{Table " << i << "}\\\\" << ::std::endl;
 
 					::std::cerr << "\\hline" << ::std::endl;
 					::std::cerr << "C&N&\\#&D\\\\" << ::std::endl;
 					::std::cerr << "\\hline" << ::std::endl;
-					
+
 					for ( unsigned int j = 0; j < entriespernode; ++j )
 					{
 						::std::cerr << "\\hline" << ::std::endl;
 						// MSB first
 						for ( unsigned int k = 0; k < lookupbits; ++k )
 							::std::cerr << ((j >> (lookupbits-k-1))&1);
-						
+
 						::std::cerr << "&" << (*this)(i,j).nexttable << "&" <<
 							(*this)(i,j).symbols.size() << "&";
 						for ( unsigned int k = 0; k < (*this)(i,j).symbols.size(); ++k )
@@ -85,11 +85,11 @@ namespace libmaus2
 				}
 			}
 
-			
+
 			void print() const
 			{
 				::std::cerr << "\\begin{tabular}{|l|";
-				
+
 
 				for ( unsigned int i = 0; i < innernodes; ++i )
 					::std::cerr << "l|l|l|";
@@ -113,7 +113,7 @@ namespace libmaus2
 				for ( unsigned int j = 0; j < entriespernode; ++j )
 				{
 					::std::cerr << "\\hline" << ::std::endl;
-				
+
 					for ( unsigned int k = 0; k < lookupbits; ++k )
 						::std::cerr << ((j >> (lookupbits-k-1))&1);
 
@@ -127,16 +127,16 @@ namespace libmaus2
 							::std::cerr << static_cast<char>(((*this)(i,j).symbols[k]));
 							if ( k+1 < (*this)(i,j).symbols.size() )
 								::std::cerr << "";
-						}				
+						}
 					}
-					
+
 					::std::cerr << "\\\\" << ::std::endl;
 				}
-				
+
 				::std::cerr << "\\hline" << ::std::endl;
 				::std::cerr << "\\end{tabular}" << ::std::endl;
 			}
-			
+
 			DecodeTableEntry const & operator()(unsigned int const tableid, uint64_t const mask) const
 			{
 				return entries [ tableid * entriespernode + mask ];
@@ -148,30 +148,30 @@ namespace libmaus2
 				::std::stack < ::std::pair < HuffmanTreeNode const *, Visit > > S;
 
 				S.push( ::std::pair < HuffmanTreeNode const *, Visit > (root,First) );
-				
+
 				::std::map < HuffmanTreeInnerNode const *, unsigned int > nodeToId;
 				::std::vector < HuffmanTreeInnerNode const * > idToNode;
 
 				while ( ! S.empty() )
 				{
-					HuffmanTreeNode const * node = S.top().first; 
+					HuffmanTreeNode const * node = S.top().first;
 					Visit const firstvisit = S.top().second;
 					S.pop();
-					
+
 					if ( node->isLeaf() )
 					{
 						// HuffmanTreeLeaf const * lnode = dynamic_cast<HuffmanTreeLeaf const *>(node);
 					}
-					else 
+					else
 					{
 						HuffmanTreeInnerNode const * inode = dynamic_cast<HuffmanTreeInnerNode const *>(node);
-						
+
 						if ( firstvisit == First )
 						{
 							unsigned int const id = idToNode.size();
 							nodeToId[inode] = id;
 							idToNode.push_back(inode);
-							
+
 							S.push( ::std::pair < HuffmanTreeNode const *, Visit > (node,Second) );
 							S.push( ::std::pair < HuffmanTreeNode const *, Visit > (inode->left,First) );
 						}
@@ -185,27 +185,27 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				innernodes = idToNode.size();
 				entries = ::libmaus2::autoarray::AutoArray < DecodeTableEntry >( entriespernode * idToNode.size() );
-				
+
 				// ::std::cerr << "Number of entries is " << entriespernode * idToNode.size() << ::std::endl;
-				
+
 				for ( unsigned int id = 0; id < idToNode.size(); ++id )
 				{
 					HuffmanTreeInnerNode const * inode = idToNode[id];
 					uint64_t const offset = id * entriespernode;
-					
+
 					for ( uint64_t m = 0; m != entriespernode; ++m )
 					{
 						DecodeTableEntry & entry = entries [ offset + m ];
 						HuffmanTreeNode const * cur = inode;
-						
+
 						for ( unsigned int b = 0; b != lookupbits; ++b )
 						{
-							
+
 							HuffmanTreeInnerNode const * icur = dynamic_cast<HuffmanTreeInnerNode const *>(cur);
-							
+
 							if ( m & (1ull << (lookupbits-b-1) ) )
 							{
 								cur = icur->right;
@@ -214,14 +214,14 @@ namespace libmaus2
 							{
 								cur = icur->left;
 							}
-							
+
 							if ( cur->isLeaf() )
 							{
 								entry.symbols.push_back ( dynamic_cast<HuffmanTreeLeaf const *>(cur)->symbol );
-								cur = root;	
+								cur = root;
 							}
 						}
-						
+
 						entry.nexttable = nodeToId.find( dynamic_cast<HuffmanTreeInnerNode const *>(cur))->second;
 					}
 				}

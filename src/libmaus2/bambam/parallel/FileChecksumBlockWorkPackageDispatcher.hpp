@@ -20,8 +20,8 @@
 #define LIBMAUS2_BAMBAM_PARALLEL_FILECHECKSUMBLOCKWORKPACKAGEDISPATCHER_HPP
 
 #include <libmaus2/bambam/parallel/FileChecksumBlockWorkPackageReturnInterface.hpp>
-#include <libmaus2/bambam/parallel/FileChecksumBlockFinishedInterface.hpp>			
-#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>			
+#include <libmaus2/bambam/parallel/FileChecksumBlockFinishedInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 
 namespace libmaus2
 {
@@ -37,27 +37,27 @@ namespace libmaus2
 
 				FileChecksumBlockWorkPackageReturnInterface & packageReturnInterface;
 				FileChecksumBlockFinishedInterface & packageFinishedInterface;
-	
+
 				FileChecksumBlockWorkPackageDispatcher(
 					FileChecksumBlockWorkPackageReturnInterface & rpackageReturnInterface,
 					FileChecksumBlockFinishedInterface & rpackageFinishedInterface
 				) : packageReturnInterface(rpackageReturnInterface), packageFinishedInterface(rpackageFinishedInterface)
 				{
-				
+
 				}
 				void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					FileChecksumBlockWorkPackage * BP = dynamic_cast< FileChecksumBlockWorkPackage * >(P);
-					
+
 					libmaus2::bambam::parallel::GenericInputControlCompressionPending & GICCP = BP->GICCP;
 					libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type & outblock = GICCP.outblock;
 					libmaus2::lz::BgzfDeflateZStreamBaseFlushInfo const & flushinfo = GICCP.flushinfo;
-					
+
 					if ( flushinfo.blocks == 1 )
 						BP->checksum->vupdate(outblock->outbuf.begin(),flushinfo.block_a_c);
 					else if ( flushinfo.blocks == 2 )
 						BP->checksum->vupdate(outblock->outbuf.begin(),flushinfo.block_a_c + flushinfo.block_b_c);
-					
+
 					packageFinishedInterface.fileChecksumBlockFinished(BP->GICCP);
 					packageReturnInterface.fileChecksumBlockWorkPackageReturn(BP);
 				}

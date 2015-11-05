@@ -29,21 +29,21 @@ namespace libmaus2
 		struct BgzfDeflateBlockIdInfo
 		{
 			libmaus2::autoarray::AutoArray<libmaus2::lz::BgzfDeflateBase::unique_ptr_type> const & deflateB;
-					
+
 			BgzfDeflateBlockIdInfo(libmaus2::autoarray::AutoArray<libmaus2::lz::BgzfDeflateBase::unique_ptr_type> const & rdeflateB) : deflateB(rdeflateB)
 			{
-			
+
 			}
 
 			uint64_t operator()(uint64_t const i) const
 			{
 				return deflateB[i]->blockid;
-			}		
+			}
 
 			BgzfThreadQueueElement const & operator()(BgzfThreadQueueElement const & i) const
 			{
 				return i;
-			}		
+			}
 		};
 	}
 }

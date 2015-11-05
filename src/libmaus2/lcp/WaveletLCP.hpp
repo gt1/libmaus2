@@ -60,7 +60,7 @@ namespace libmaus2
 
 				void operator()(uint64_t const sym, uint64_t const sp, uint64_t const ep)
 				{
-					std::cerr << "sym=" << sym << " sp=" << sp << " ep=" << ep << " B=" << std::endl;   
+					std::cerr << "sym=" << sym << " sp=" << sp << " ep=" << ep << " B=" << std::endl;
 				}
 			};
 
@@ -88,15 +88,15 @@ namespace libmaus2
 				}
 
 				::libmaus2::autoarray::AutoArray<uint64_t> symfreq( LF->getSymbolThres() );
-				
+
 				std::cerr << "[V] symbol threshold is " << symfreq.size() << std::endl;
-				
-				// symbol frequencies			
+
+				// symbol frequencies
 				for ( uint64_t i = 0; i < symfreq.getN(); ++i )
 					symfreq[i] = n?LF->W->rank(i,n-1):0;
 
 				std::fill ( WLCP.get(), WLCP.get()+WLCP.getN(),unset);
-							
+
 				::libmaus2::suffixsort::CompactQueue Q0(n);
 				::libmaus2::suffixsort::CompactQueue Q1(n);
 				::libmaus2::suffixsort::CompactQueue * PQ0 = &Q0;
@@ -117,19 +117,19 @@ namespace libmaus2
 					s += symfreq[cc++];
 					acc += symfreq[0];
 				}
-							
+
 				// other symbols
 				for ( ; cc < symfreq.getN(); ++cc )
 				{
 					WLCP[acc] = 0;
 					s++;
-					
+
 					if ( symfreq[cc] )
 					{
 						Q0.enque(acc,acc+symfreq[cc]);
 						acc += symfreq[cc];
 					}
-				}                
+				}
 				WLCP[n] = 0;
 
 				::libmaus2::timing::RealTimeClock lcprtc; lcprtc.start();
@@ -146,7 +146,7 @@ namespace libmaus2
 					#else
 					uint64_t const numthreads = 1;
 					#endif
-					
+
 					uint64_t const numcontexts = numthreads;
 					::libmaus2::autoarray::AutoArray < ::libmaus2::suffixsort::CompactQueue::DequeContext::unique_ptr_type > deqcontexts = PQ0->getContextList(numcontexts);
 
@@ -168,29 +168,29 @@ namespace libmaus2
 							s += locals;
 							#endif
 						}
-					  
+
 						assert ( deqcontext->fill == 0 );
 					}
 					std::swap(PQ0,PQ1);
-					
+
 					cur_l ++;
 				}
 				std::cerr << "done, time " << lcprtc.getElapsedSeconds() << std::endl;
-				
+
 				if ( PQ0->fill )
 				{
 					// cur_l should now be the largest value for the small type
 					assert ( cur_l == unset );
-					
+
 					// extract compact queues into non compact ones
 					std::deque< std::pair<uint64_t,uint64_t> > Q0, Q1;
 					::libmaus2::suffixsort::CompactQueue::DequeContext::unique_ptr_type dcontext = PQ0->getGlobalDequeContext();
 					while ( dcontext->fill )
 						Q0.push_back( PQ0->deque(dcontext.get()) );
 
-					// prepare result for storing "large" values					
+					// prepare result for storing "large" values
 					res->setupLargeValueVector(n, unset);
-						
+
 					uint64_t prefill = 0;
 
 					while ( Q0.size() )
@@ -213,15 +213,15 @@ namespace libmaus2
 							s += locals;
 							#endif
 						}
-					
-						assert ( ! Q0.size() );	  
+
+						assert ( ! Q0.size() );
 						Q0.swap(Q1);
-						
+
 						cur_l ++;
 					}
 
 				}
-							     
+
 				return UNIQUE_PTR_MOVE(res);
 			}
 		};

@@ -28,7 +28,7 @@ namespace libmaus2
 			static unsigned int getBgzfMaxBlockSize() { return 64*1024; }
 			static unsigned int getBgzfHeaderSize() { return 18; }
 			static unsigned int getBgzfFooterSize() { return 8; }
-			static unsigned int getBgzfMaxPayLoad() { return getBgzfMaxBlockSize() - (getBgzfHeaderSize()+getBgzfFooterSize()); }		
+			static unsigned int getBgzfMaxPayLoad() { return getBgzfMaxBlockSize() - (getBgzfHeaderSize()+getBgzfFooterSize()); }
 		};
 	}
 }

@@ -34,7 +34,7 @@ namespace libmaus2
 				{
 					deserialise(in);
 				}
-				
+
 				uint64_t serialise(std::ostream & out) const
 				{
 					uint64_t s = sizeof(uint64_t);
@@ -58,7 +58,7 @@ namespace libmaus2
 					return s;
 				}
 			};
-			
+
 			std::ostream & operator<<(std::ostream & out, TandemVector const & TV);
 		}
 	}

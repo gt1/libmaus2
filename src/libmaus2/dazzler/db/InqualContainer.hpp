@@ -19,7 +19,7 @@
 #define LIBMAUS2_DAZZLER_DB_INQUALCONTAINER_HPP
 
 #include <libmaus2/dazzler/db/PartTrackContainer.hpp>
-		
+
 namespace libmaus2
 {
 	namespace dazzler
@@ -32,12 +32,12 @@ namespace libmaus2
 				: PartTrackContainer(rDB,"inqual",blockid)
 				{
 				}
-				
+
 				bool haveQualityForBlock(uint64_t const blockid) const
 				{
 					return haveBlock(blockid);
 				}
-				
+
 				libmaus2::dazzler::db::Track const & getQualityForBlock(uint64_t const blockid) const
 				{
 					if ( haveQualityForBlock(blockid) )
@@ -47,10 +47,10 @@ namespace libmaus2
 						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "InqualContainer::getQualityForBlock: inqual track not present for block " << blockid << std::endl;
 						lme.finish();
-						throw lme;		
+						throw lme;
 					}
 				}
-				
+
 				bool haveQualityForRead(uint64_t const readid) const
 				{
 					uint64_t const blockid = DB.getBlockForIdTrimmed(readid);
@@ -58,15 +58,15 @@ namespace libmaus2
 					assert ( blockid <= DB.numblocks );
 					return haveQualityForBlock(blockid);
 				}
-				
+
 				std::pair<unsigned char const *, unsigned char const *> getQualityForRead(uint64_t const id) const
 				{
 					if ( haveQualityForRead(id) )
 					{
 						uint64_t const blockid = DB.getBlockForIdTrimmed(id);
 						libmaus2::dazzler::db::Track const & inqual = getQualityForBlock(blockid);
-						std::pair<uint64_t,uint64_t> const blockintv = DB.getTrimmedBlockInterval(blockid);	
-						
+						std::pair<uint64_t,uint64_t> const blockintv = DB.getTrimmedBlockInterval(blockid);
+
 						libmaus2::dazzler::db::TrackAnnoInterface const & anno = inqual.getAnno();
 						uint64_t const anno_low  = anno[id  -blockintv.first];
 						uint64_t const anno_high = anno[id+1-blockintv.first];
@@ -77,9 +77,9 @@ namespace libmaus2
 
 						unsigned char const * Du = inqual.Adata->begin() + anno_low;
 						uint64_t const Dn = anno_high - anno_low;
-					
+
 						return std::pair<unsigned char const *, unsigned char const *>(Du,Du+Dn);
-					
+
 					}
 					else
 					{
@@ -90,13 +90,13 @@ namespace libmaus2
 						throw lme;
 					}
 				}
-				
+
 				unsigned char getQualityForBase(uint64_t const id, uint64_t const base, int64_t const tspace) const
 				{
 					std::pair<unsigned char const *, unsigned char const *> const P = getQualityForRead(id);
 					return P.first[base/tspace];
 				}
-				
+
 				double getErrorForBase(uint64_t const id, uint64_t const base, int64_t const tspace) const
 				{
 					return phredToError(getQualityForBase(id,base,tspace));
@@ -115,12 +115,12 @@ namespace libmaus2
 						D [ i ] = phredToError(P.first[i]);
 					return D;
 				}
-				
+
 				std::vector< std::pair<uint64_t,uint64_t> > getGoodIntervals(uint64_t const id) const
 				{
 					std::vector<double> const D = getErrorVector(id);
 					std::vector< std::pair<uint64_t,uint64_t> > IV;
-					
+
 					uint64_t low = 0;
 					while ( low < D.size() )
 					{
@@ -129,18 +129,18 @@ namespace libmaus2
 						uint64_t high = low;
 						while ( high < D.size() && D[high] != 1 )
 							++high;
-							
+
 						if ( high-low )
 						{
 							assert ( D[low] < 1 );
 							IV.push_back(std::pair<uint64_t,uint64_t>(low,high));
 						}
-							
+
 						low = high;
 					}
-					
+
 					return IV;
-				}				
+				}
 			};
 		}
 	}

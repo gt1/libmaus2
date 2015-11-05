@@ -35,12 +35,12 @@ namespace libmaus2
 		{
 			//! digit table
 			char A[256];
-			
+
 			/**
 			 * constructor
 			 */
 			SamPrintableTable();
-			
+
 			/**
 			 * check whether i is a digit
 			 *

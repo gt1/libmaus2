@@ -32,12 +32,12 @@ namespace libmaus2
 		{
 			//! current count
 			uint64_t c;
-				
+
 			/**
 			 * constructor; initializes count to zero
 			 **/
 			CountPutObject() : c(0) {}
-				
+
 			/**
 			 * put element (increase count by one)
 			 **/
@@ -48,7 +48,7 @@ namespace libmaus2
 			 * @param l number of elements to be counted
 			 **/
 			void write(char const *, uint64_t const l) { c += l; }
-			
+
 			/**
 			 * @return true
 			 **/
@@ -56,7 +56,7 @@ namespace libmaus2
 			{
 				return true;
 			}
-		};	
+		};
 	}
 }
 #endif

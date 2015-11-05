@@ -30,30 +30,30 @@ namespace libmaus2
 		{
 			libmaus2::lz::BgzfInflateBase inflatebase;
 			libmaus2::lz::BgzfDeflateBase deflatebase;
-			
+
 			std::istream & in;
 			std::ostream & out;
-			
+
 			std::pair<uint64_t,uint64_t> P;
 
 			std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback *> blockoutputcallbacks;
-			
+
 			BgzfRecode(std::istream & rin, std::ostream & rout, int const level = Z_DEFAULT_COMPRESSION)
 			: inflatebase(), deflatebase(level,true,BgzfConstants::getBgzfMaxBlockSize()), in(rin), out(rout)
 			{
-			
+
 			}
-			
+
 			std::pair<uint64_t,bool> getBlockPlusEOF()
 			{
 				P = inflatebase.readBlock(in);
-				
+
 				if ( (! P.second) && (in.get() == std::istream::traits_type::eof()) )
 					return std::pair<uint64_t,bool>(P.second,true);
-				
+
 				inflatebase.decompressBlock(reinterpret_cast<char *>(deflatebase.pa),P);
 				deflatebase.pc = deflatebase.pa + P.second;
-				
+
 				return std::pair<uint64_t,bool>(P.second,false);
 			}
 
@@ -81,9 +81,9 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "failed to write compressed data to bgzf stream." << std::endl;
 					se.finish();
-					throw se;				
+					throw se;
 				}
-				
+
 				for ( uint64_t i = 0; i < blockoutputcallbacks.size(); ++i )
 					(*(blockoutputcallbacks[i]))(inp,incnt,outp,outcnt);
 			}
@@ -95,7 +95,7 @@ namespace libmaus2
 			)
 			{
 				assert ( BDZSBFI.blocks == 1 || BDZSBFI.blocks == 2 );
-				
+
 				if ( BDZSBFI.blocks == 1 )
 				{
 					/* write data to stream, one block */
@@ -109,7 +109,7 @@ namespace libmaus2
 					streamWrite(inp + BDZSBFI.block_a_u, BDZSBFI.block_b_u, outp + BDZSBFI.block_a_c, BDZSBFI.block_b_c);
 				}
 			}
-			
+
 			void putBlock()
 			{
 				BgzfDeflateZStreamBaseFlushInfo const BDZSBFI = deflatebase.flush(true);
@@ -118,10 +118,10 @@ namespace libmaus2
 				uint64_t const writesize = BDZSBFI.getCompressedSize();
 				out.write(reinterpret_cast<char const *>(deflatebase.outbuf.begin()), writesize);
 				#endif
-				
+
 				streamWrite(deflatebase.inbuf.begin(),deflatebase.outbuf.begin(),BDZSBFI);
 			}
-			
+
 			void addEOFBlock()
 			{
 				deflatebase.deflatereinit();
@@ -132,7 +132,7 @@ namespace libmaus2
 				uint64_t const writesize = BDZSBFI.getCompressedSize();
 				out.write(reinterpret_cast<char const *>(deflatebase.outbuf.begin()), writesize);
 				#endif
-				
+
 				streamWrite(deflatebase.inbuf.begin(),deflatebase.outbuf.begin(),BDZSBFI);
 			}
 		};

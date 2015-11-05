@@ -39,7 +39,7 @@ namespace libmaus2
 				uint32_t * m1 = m0+m;
 				uint32_t maxlcp = 0;
 				uint32_t maxpos = 0;
-				
+
 				uint32_t * tm1 = m1;
 				for ( uint32_t j = 0; j < m; ++ j )
 					if ( a[0] == b[j] )
@@ -47,11 +47,11 @@ namespace libmaus2
 					else
 						*(tm1++) = 0;
 				std::swap(m0,m1);
-				
+
 				for ( uint32_t i = 1; i < n; i++ )
 				{
 					uint32_t * tm1 = m1;
-					
+
 					if ( a[i] == b[0] )
 					{
 						*(tm1++) = 1;
@@ -62,12 +62,12 @@ namespace libmaus2
 					{
 						*(tm1++) = 0;
 					}
-				
+
 					for ( uint32_t j = 1; j < m; ++j, ++tm1 )
 						if ( a[i] == b[j] )
 						{
 							uint32_t const v = *tm1 = m0[j-1] + 1;
-								
+
 							if ( v > maxlcp )
 								maxlcp = v, maxpos = i;
 						}
@@ -78,7 +78,7 @@ namespace libmaus2
 
 					std::swap(m0,m1);
 				}
-				
+
 				return std::pair<uint64_t,uint64_t>(maxlcp,maxpos-maxlcp+1);
 			}
 		};

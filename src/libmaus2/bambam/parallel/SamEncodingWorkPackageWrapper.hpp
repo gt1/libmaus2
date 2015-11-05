@@ -27,28 +27,28 @@ namespace libmaus2
 	namespace bambam
 	{
 		namespace parallel
-		{			
+		{
 			struct SamEncodingWorkPackageWrapper : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef SamEncodingWorkPackageWrapper this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				SamEncodingWorkPackage * package;
-			
+
 				SamEncodingWorkPackageWrapper() : libmaus2::parallel::SimpleThreadWorkPackage() {}
 				SamEncodingWorkPackageWrapper(uint64_t const rpriority, uint64_t const rdispatcherid, SamEncodingWorkPackage * rpackage)
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), package(rpackage)
 				{
-				
+
 				}
 				virtual ~SamEncodingWorkPackageWrapper() {}
-				
+
 				virtual char const * getPackageName() const
 				{
 					return "SamEncodingWorkPackageWrapper";
 				}
-				
+
 				void dispatch()
 				{
 					package->dispatch();

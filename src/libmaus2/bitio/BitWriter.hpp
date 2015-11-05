@@ -44,7 +44,7 @@ namespace libmaus2
 			typedef _data_type data_type;
 			typedef _data_iterator data_iterator;
 			static _data_type const basemask = _basemask;
-			
+
 			// ptr
 			typedef BitWriterTemplate<data_type,data_iterator,basemask> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
@@ -53,7 +53,7 @@ namespace libmaus2
 			data_iterator U;
 			data_type mask;
 			data_type cur;
-			
+
 			public:
 			/**
 			 * copy constructor
@@ -63,14 +63,14 @@ namespace libmaus2
 			 * initialize writer with pointer to array
 			 **/
 			BitWriterTemplate(data_iterator rU) : U(rU), mask(basemask), cur(0) {}
-			
+
 			void writeUnary(uint64_t k)
 			{
 				for ( uint64_t i = 0; i < k; ++i )
 					writeBit(0);
 				writeBit(1);
 			}
-			
+
 			/**
 			 *
 			 **/
@@ -81,17 +81,17 @@ namespace libmaus2
 				unsigned int log_1 = ::libmaus2::math::numbits(n);
 				// number of bits to store log_1
 				unsigned int log_2 = ::libmaus2::math::numbits(log_1);
-				
+
 				// write log_2 in unary form
 				writeUnary(log_2);
-				
+
 				// write log_1 using log_2 bits
 				write(log_1,log_2);
-				
+
 				// write n using log_1 bits
 				write(n,log_1);
 			}
-			
+
 			/**
 			 * write a b bit number n
 			 * @param n number to be written
@@ -104,7 +104,7 @@ namespace libmaus2
 				{
 					// N m = ::libmaus2::math::lowbits(b-1);
 					N m = (1ull << (b-1));
-						
+
 					// write number, msb to lsb
 					for ( unsigned int i = 0; i < b; ++i, m >>= 1 )
 					{
@@ -124,13 +124,13 @@ namespace libmaus2
 			 **/
 			void writeBit(bool const bit)
 			{
-				if ( bit ) 
+				if ( bit )
 				{
 					cur |= mask;
 				}
-				
+
 				mask >>= 1;
-				
+
 				if ( ! mask )
 				{
 					*(U++) = cur;

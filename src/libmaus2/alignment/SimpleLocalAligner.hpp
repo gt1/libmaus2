@@ -40,12 +40,12 @@ namespace libmaus2
 			typedef _lf_type lf_type;
 			typedef libmaus2::fm::BidirectionalDnaIndexTemplate<lf_type> index_type;
 
-			// default length for the kmer cache			
+			// default length for the kmer cache
 			static unsigned int getDefaultCacheLen()
 			{
 				return 12;
 			}
-			
+
 			// prefix for file names
 			std::string const prefix;
 			// suffix for hwt file
@@ -55,7 +55,7 @@ namespace libmaus2
 			// kmer length
 			uint64_t const kmerlen;
 
-			// the fm index			
+			// the fm index
 			index_type index;
 			// sampled suffix array
 			typename index_type::sa_type const & SA;
@@ -69,12 +69,12 @@ namespace libmaus2
 			libmaus2::fm::KmerCache const & cache;
 			// sequence start offsets in decoded text
 			std::vector<uint64_t> const seqstarts;
-			
+
 			// kmer mask
 			libmaus2::uint128_t const mask;
 			// indeterminate symbols mask
 			libmaus2::uint128_t const indetmask;
-			
+
 			// maximum error rate in mapped part
 			double const errrate;
 			// minimum required fraction of hit compared with already achieved score
@@ -84,7 +84,7 @@ namespace libmaus2
 			libmaus2::fastx::FastAIndex::unique_ptr_type const Pfaindex;
 
 			uint64_t const maxkmerfreqthres;
-			
+
 			static libmaus2::uint128_t getMask(unsigned int const kmerlen)
 			{
 				libmaus2::uint128_t mask = 0;
@@ -135,20 +135,20 @@ namespace libmaus2
 				while ( low != KV.size() )
 				{
 					uint64_t high = low;
-					
+
 					while ( high != KV.size() && (KV[low].pos + (high-low) == KV[high].pos) )
 						++high;
-								
+
 					FMI.push_back(libmaus2::fm::FactorMatchInfo(KV[low].pos,KV[low].offset,k+(high-low)));
-					
+
 					low = high;
 				}
 			}
-			
+
 			public:
 			SimpleLocalAligner(
-				std::string const & rprefix, 
-				std::string const & rsuffix, 
+				std::string const & rprefix,
+				std::string const & rsuffix,
 				unsigned int const rkmerlen,
 				double const rerrrate,
 				double const rhitfrac,
@@ -166,7 +166,7 @@ namespace libmaus2
 			  Pfaindex(libmaus2::fastx::FastAIndex::load(fafaifile)),
 			  maxkmerfreqthres(rmaxkmerfreqthres)
 			{
-			
+
 			}
 
 			void align(
@@ -181,11 +181,11 @@ namespace libmaus2
 				BLIs.resize(0);
 
 				uint64_t const m = query.size();
-				
+
 				// increase array size if necessary
 				if ( m > mapped.size() )
 					mapped = libmaus2::autoarray::AutoArray<char>(m,false);
-					
+
 				// map query
 				for ( uint64_t i = 0; i < m; ++i )
 					mapped[i] = libmaus2::fastx::mapChar(query[i])+1;
@@ -228,24 +228,24 @@ namespace libmaus2
 						uint64_t high = low;
 						while ( high != kmers.size() && kmers[high].kmer == kmers[low].kmer )
 							++high;
-						
+
 						if ( high-low > 1 || ((kmers[low].shiftkmer & indetmask) != 0) )
 						{
 							for ( uint64_t i = low; i < high; ++i )
 								repet.push_back(kmers[i].pos);
 						}
-					
+
 						low = high;
 					}
 					std::sort(repet.begin(),repet.end());
 					for ( uint64_t i = 0; i < repet.size(); ++i )
 						Brepet[repet[i]] = true;
 				}
-				
+
 				std::vector < libmaus2::alignment::KmerInfo > info;
 				// maximum allowed kmer frequency
 				uint64_t maxkmerfreq = 16;
-				
+
 				// look up non repetetive kmers
 				while ( !info.size() )
 				{
@@ -253,7 +253,7 @@ namespace libmaus2
 					uint64_t minocckmerfreq = std::numeric_limits<uint64_t>::max();
 					// number of kmers found
 					uint64_t kmersfound = 0;
-					
+
 					libmaus2::util::unordered_map<uint64_t,uint64_t>::type M;
 
 					// look for non repetetive kmers, front to back
@@ -265,8 +265,8 @@ namespace libmaus2
 							#else
 							libmaus2::fm::BidirectionalIndexInterval bint = index.biSearchBackward(mapped.begin()+z,kmerlen);
 							#endif
-							
-							
+
+
 							// number of kmers found
 							if ( bint.siz )
 							{
@@ -284,7 +284,7 @@ namespace libmaus2
 									info.push_back(libmaus2::alignment::KmerInfo(bint.spf+i,0,z));
 								}
 						}
-					
+
 					// look up positions for ranks
 					uint64_t lookup_fast = 0, lookup_slow = 0;
 					for ( uint64_t i = 0; i < info.size(); ++i )
@@ -292,8 +292,8 @@ namespace libmaus2
 						// see if we have an entry for the previous position
 						libmaus2::util::unordered_map<uint64_t,uint64_t>::type::const_iterator ita =
 							M.find ( LF ( info[i].rank ) );
-						
-						// if we have no rank for the previous position, then look up the position in the suffix array	
+
+						// if we have no rank for the previous position, then look up the position in the suffix array
 						if ( ita == M.end() )
 						{
 							info[i].pos = SA[info[i].rank];
@@ -304,9 +304,9 @@ namespace libmaus2
 							info[i].pos = (info[ita->second].pos+1);
 							lookup_fast++;
 					}
-					
+
 					// std::cerr << "fast " << lookup_fast << " slow " << lookup_slow << std::endl;
-					
+
 					// no kmers kept?
 					if ( ! info.size() )
 					{
@@ -318,11 +318,11 @@ namespace libmaus2
 							{
 								std::cerr << "minocckmerfreq=" << minocckmerfreq << " maxkmerfreq=" << maxkmerfreq << std::endl;
 							}
-							
+
 							assert ( minocckmerfreq > maxkmerfreq );
 
 							// std::cerr << "[E] all of " << kmersfound << " kmers too frequent in " << query << " minocc=" << minocckmerfreq << " thres=" << maxkmerfreq << std::endl;
-								
+
 							if ( minocckmerfreq <= maxkmerfreqthres )
 							{
 								maxkmerfreq = minocckmerfreq;
@@ -336,11 +336,11 @@ namespace libmaus2
 						else
 						{
 							// std::cerr << "[E] no kmers found in " << query << std::endl;
-							break;			
+							break;
 						}
-					}				
+					}
 				}
-				
+
 				// sort kmers by offset on query
 				std::sort(info.begin(),info.end());
 
@@ -348,13 +348,13 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < info.size(); ++i )
 					std::cerr << info[i] << std::endl;
 				#endif
-			
+
 				std::vector < libmaus2::fm::FactorMatchInfo > FMI;
 				mergeKmers(info,FMI,kmerlen);
 
 				// sort by position
 				std::sort(FMI.begin(),FMI.end(),libmaus2::alignment::FactorMatchInfoPosComparator());
-				
+
 				// compute intervals on FMI with strictly growing offset values
 				// and (indel) error bounded by errrate
 				std::vector < std::pair<uint64_t,uint64_t> > FMIintervals;
@@ -362,19 +362,19 @@ namespace libmaus2
 				while ( low != FMI.size() )
 				{
 					uint64_t high = low+1;
-					while ( 
-						high < FMI.size() && 
+					while (
+						high < FMI.size() &&
 						FMI[high].offset > FMI[low].offset &&
 						(FMI[high].pos + FMI[high].len - FMI[low].pos) <= m * (1.0 + errrate)
 						// erate ( ( FMI[high].pos + FMI[high].len - FMI[low].pos ) , ( FMI[high].offset + FMI[high].len - FMI[low].offset ) ) <= errrate
 					)
 						++high;
-					
+
 					FMIintervals.push_back(std::pair<uint64_t,uint64_t>(low,high));
-					
+
 					low = high;
 				}
-				
+
 				// sort by length (stretch of match along reference)
 				std::sort(FMIintervals.begin(), FMIintervals.end(), libmaus2::alignment::FMIIntervalComparator(FMI));
 
@@ -384,7 +384,7 @@ namespace libmaus2
 
 				std::pair<int64_t,int64_t> bestcoord(-1,-1);
 				uint64_t maxkk = 0;
-				
+
 				for ( uint64_t z = 0; z < FMIintervals.size(); ++z )
 				{
 					#if 0
@@ -394,16 +394,16 @@ namespace libmaus2
 						std::cerr << FMI[i] << std::endl;
 					}
 					#endif
-					
+
 					uint64_t kk = 0;
 					for ( uint64_t i = FMIintervals[z].first; i < FMIintervals[z].second; ++i )
 						kk += FMI[i].len;
-						
+
 					maxkk = std::max(maxkk,kk);
-					
+
 					if ( kk <= (minexactfrac * m) )
 						continue;
-									
+
 					// offset,len
 					uint64_t const readstartoffset = FMI[FMIintervals[z].first].offset;
 					uint64_t const readendoffset   = FMI[FMIintervals[z].second-1].offset + FMI[FMIintervals[z].second-1].len;
@@ -411,20 +411,20 @@ namespace libmaus2
 					// reference positions of frame matches
 					uint64_t const r_refstartpos = FMI[FMIintervals[z].first].pos;
 					uint64_t const r_refendpos = FMI[FMIintervals[z].second-1].pos + FMI[FMIintervals[z].second-1].len;
-					
+
 					// minimum number of indels necessary
-					uint64_t const mindel = 
+					uint64_t const mindel =
 						std::max(r_refendpos-r_refstartpos,readendoffset-readstartoffset)
 						-
 						std::min(r_refendpos-r_refstartpos,readendoffset-readstartoffset)
 						;
-					
+
 					// maximum available score
-					int64_t const mscore = 
+					int64_t const mscore =
 						static_cast<int64_t>(std::min(r_refendpos-r_refstartpos,readendoffset-readstartoffset))
 						-
 						static_cast<int64_t>(mindel);
-					
+
 					if ( maxscore >= 0 && (mscore <= hitfrac * maxscore) )
 					{
 						#if 0
@@ -432,7 +432,7 @@ namespace libmaus2
 						#endif
 						continue;
 					}
-					
+
 					// maximum extension of read by error rate
 					uint64_t const extend = static_cast<uint64_t> ( std::ceil ( m * errrate ) );
 					uint64_t const readleftextend = readstartoffset + extend;
@@ -448,7 +448,7 @@ namespace libmaus2
 					std::cerr << query << std::endl;
 					#endif
 
-					uint64_t const maxerr = 
+					uint64_t const maxerr =
 						std::max(
 							(std::max(refpatch.size(),query.size())-std::min(refpatch.size(),query.size()))
 							,
@@ -456,7 +456,7 @@ namespace libmaus2
 						);
 
 					#if 0
-					std::cerr << sid 
+					std::cerr << sid
 						<< " [" << readstartoffset << "," << readendoffset << ")"
 						<< " [" << refstartpos     << "," << refendpos << ")"
 						<< " maxerr=" << maxerr
@@ -470,19 +470,19 @@ namespace libmaus2
 						query.begin(),query.size(),
 						maxerr
 					);
-					
+
 					uint64_t const numops = LEDR.numins + LEDR.numdel + LEDR.nummat + LEDR.nummis;
 					uint64_t const numerr = LEDR.numins + LEDR.numdel + LEDR.nummis;
-					
+
 					double const rate = static_cast<double>(numerr)/static_cast<double>(numops);
-				
+
 					if ( numerr <= maxerr && rate <= errrate )
 					{
 						#if 0
 						if ( ! laligned )
 							std::cerr << std::string(80,'-') << std::endl;
 						#endif
-					
+
 						// reference sequence id
 						uint64_t seq    = findSequence(seqstarts,refstartpos + LEDR.a_clip_left);
 						// position on sequence
@@ -491,7 +491,7 @@ namespace libmaus2
 						uint64_t const reflen = LEDR.nummat + LEDR.nummis + LEDR.numdel;
 						// is mapping on reverse complement of ref sequence?
 						bool const rc = seq & 1;
-						
+
 						uint64_t const scfront = rc ? LEDR.b_clip_right : LEDR.b_clip_left;
 						uint64_t const scback = rc ? LEDR.b_clip_left : LEDR.b_clip_right;
 
@@ -499,7 +499,7 @@ namespace libmaus2
 						std::cerr << "raw coord " << seq << "," << seqpos << std::endl;
 						std::cerr << "control " << (seqstarts[seq] + seqpos) << " " << (refstartpos + LEDR.a_clip_left) << std::endl;
 						#endif
-						
+
 						// transform coordinates to forward if mapping is on rc
 						if ( rc )
 						{
@@ -512,19 +512,19 @@ namespace libmaus2
 							// remove reverse complement marker from seq id
 							seq = (seq >> 1) << 1;
 						}
-						
+
 						#if 0
 						std::cerr << "coord " << seq << "," << seqpos << std::endl;
 
 						std::string testseq = index.getTextUnmapped(
 							ISA[seqstarts[seq] + seqpos],reflen);
-						
+
 						if ( rc )
 							testseq = libmaus2::fastx::reverseComplementUnmapped(testseq);
-						
+
 						std::cerr << testseq << std::endl;
 						#endif
-						
+
 						#if 0
 						std::cerr << LEDR << std::endl;
 						std::cerr << "rate=" << rate << std::endl;
@@ -534,7 +534,7 @@ namespace libmaus2
 						libmaus2::lcs::LocalAlignmentTraceContainer const & LATC = LED.getTrace();
 						libmaus2::lcs::LocalAlignmentTraceContainer::step_type const * ta = LED.ta;
 						libmaus2::lcs::LocalAlignmentTraceContainer::step_type const * te = LED.te;
-						
+
 						std::vector<libmaus2::lcs::LocalAlignmentTraceContainer::step_type> trace(ta,te);
 						if ( rc )
 							std::reverse(trace.begin(),trace.end());
@@ -560,11 +560,11 @@ namespace libmaus2
 									cigopvec.push_back(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDEL);
 									break;
 								default:
-									break;							
+									break;
 							}
 						for ( uint64_t i = 0; i < scback; ++i )
 							cigopvec.push_back(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP);
-				
+
 						std::vector<libmaus2::bambam::cigar_operation> cigops;
 						uint64_t ciglow = 0;
 						while ( ciglow != cigopvec.size() )
@@ -572,24 +572,24 @@ namespace libmaus2
 							uint64_t cighigh = ciglow;
 							while ( cighigh != cigopvec.size() && cigopvec[cighigh] == cigopvec[ciglow] )
 								++cighigh;
-								
+
 							cigops.push_back(libmaus2::bambam::cigar_operation(cigopvec[ciglow],cighigh-ciglow));
-								
+
 							ciglow = cighigh;
 						}
 
 						int64_t const score = static_cast<int64_t>(LATC.getTraceScore());
-							
-						#if 0			
+
+						#if 0
 						std::cerr << "[V] " << Pfaindex->sequences.at(seq/2).name << ":" << seqpos << " score " << score << std::endl;
 						#endif
-										
+
 						if ( score > maxscore )
 							bestcoord = std::pair<int64_t,int64_t>(seq,seqpos);
 
 						maxscore = std::max ( maxscore, score );
 						scores.push_back(score);
-						
+
 						std::string bamseq = rc ? libmaus2::fastx::reverseComplementUnmapped(query) : query;
 						std::string bamqual = queryquality;
 						if ( rc )
@@ -603,7 +603,7 @@ namespace libmaus2
 						));
 					}
 				}
-				
+
 				std::sort(BLIs.begin(),BLIs.end());
 			}
 
@@ -616,32 +616,32 @@ namespace libmaus2
 						q = i;
 						break;
 					}
-					
+
 				return s.substr(0,q);
 			}
-			
+
 			::libmaus2::bambam::BamHeader::unique_ptr_type getBamHeader(libmaus2::util::ArgInfo const & arginfo, std::string const packageversion) const
 			{
 				::libmaus2::bambam::BamHeader::unique_ptr_type Pbamheader(new ::libmaus2::bambam::BamHeader);
 				::libmaus2::bambam::BamHeader & bamheader = *Pbamheader;
 				std::ostringstream headerostr;
 				headerostr << "@HD\tVN:1.4\tSO:unknown\n";
-				headerostr 
-					<< "@PG"<< "\t" 
-					<< "ID:" << "tipi" << "\t" 
+				headerostr
+					<< "@PG"<< "\t"
+					<< "ID:" << "tipi" << "\t"
 					<< "PN:" << "tipi" << "\t"
 					<< "CL:" << arginfo.commandline << "\t"
 					<< "VN:" << std::string(packageversion)
 					<< std::endl;
-					
+
 				for ( uint64_t i = 0; i < Pfaindex->sequences.size(); ++i )
 				{
 					headerostr << "@SQ\tSN:" << shortName(Pfaindex->sequences[i].name) << "\tLN:" << Pfaindex->sequences[i].length << "\n";
 					bamheader.addChromosome(shortName(Pfaindex->sequences[i].name),Pfaindex->sequences[i].length);
 				}
 
-				bamheader.text = headerostr.str();		
-			
+				bamheader.text = headerostr.str();
+
 				return UNIQUE_PTR_MOVE(Pbamheader);
 			}
 		};

@@ -36,14 +36,14 @@ namespace libmaus2
 			double pfrac;
 			uint16_t maxstart;
 			uint16_t maxend;
-			
+
 			AdapterOffsetStrand() : adpid(0), adpoff(0), adpstr(0), score(std::numeric_limits<int16_t>::min()), frac(0), pfrac(0) {}
 			AdapterOffsetStrand(
 				uint16_t const radpid,
 				int16_t const radpoff,
 				uint16_t const radpstr
 			) : adpid(radpid), adpoff(radpoff), adpstr(radpstr), score(std::numeric_limits<int16_t>::min()), frac(0), pfrac(0) {}
-			
+
 			bool operator<(AdapterOffsetStrand const & o) const
 			{
 				if ( adpid != o.adpid )
@@ -53,7 +53,7 @@ namespace libmaus2
 				else
 					return adpstr < o.adpstr;
 			}
-			
+
 			bool operator==(AdapterOffsetStrand const & o) const
 			{
 				return
@@ -72,12 +72,12 @@ namespace libmaus2
 				return (adpoff >= 0) ? adpoff : 0;
 			}
 		};
-		
+
 		struct AdapterOffsetStrandMatchStartComparator
 		{
 			bool operator()(AdapterOffsetStrand const & A, AdapterOffsetStrand const & B) const
 			{
-				return A.getMatchStart() < B.getMatchStart();	
+				return A.getMatchStart() < B.getMatchStart();
 			}
 		};
 	}

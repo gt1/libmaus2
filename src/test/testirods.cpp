@@ -24,15 +24,15 @@ int main(int argc, char * argv[])
 	try
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
-	
+
 		libmaus2::irods::IRodsInputStreamFactory::registerHandler();
-		
+
 		libmaus2::autoarray::AutoArray<char> B(1024*1024,false);
 		for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
 		{
 			libmaus2::aio::InputStream::unique_ptr_type Pin(libmaus2::aio::InputStreamFactoryContainer::constructUnique(arginfo.restargs[i]));
 			std::istream & in = *Pin;
-			
+
 			#if 0
 			in.seekg(0,std::ios::end);
 			uint64_t const len = in.tellg();
@@ -40,25 +40,25 @@ int main(int argc, char * argv[])
 			#else
 			uint64_t const len = 0;
 			#endif
-			
+
 			uint64_t t = 0;
 			while ( in )
 			{
 				in.read(B.begin(),B.size());
 				t += in.gcount();
 				std::cout.write(B.begin(),in.gcount());
-				
+
 				if ( len != 0 )
 					std::cerr << "\r" << std::string(80,' ') << "\r" << (static_cast<double>(t) / len) << std::flush;
 				else
 					std::cerr << "\r" << std::string(80,' ') << "\r" << t << std::flush;
 			}
-			
+
 			if ( len != 0 )
 				std::cerr << "\r" << std::string(80,' ') << "\r" << (static_cast<double>(t) / len) << std::endl;
 			else
 				std::cerr << "\r" << std::string(80,' ') << "\r" << t << std::endl;
-		}		
+		}
 	}
 	catch(std::exception const & ex)
 	{

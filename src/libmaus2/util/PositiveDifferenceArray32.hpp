@@ -31,12 +31,12 @@ namespace libmaus2
 			::libmaus2::util::Array832::unique_ptr_type A;
 			typedef PositiveDifferenceArray32 this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			void serialise(std::ostream & out) const;
 
 			PositiveDifferenceArray32(::std::istream & in);
 			PositiveDifferenceArray32(::libmaus2::util::Array832::unique_ptr_type & rA);
-			
+
 			uint32_t operator[](uint64_t const i) const
 			{
 				return i+(*A)[i];

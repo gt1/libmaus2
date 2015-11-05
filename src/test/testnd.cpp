@@ -27,7 +27,7 @@ int main(int argc, char * argv[])
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
 
 		for ( uint64_t i = 0; i < 10; ++i )
-		{	
+		{
 			// std::string a = "ACGTACGT";
 			// std::string b = "ACGTTTACGZ";
 			std::string a =  "GCAGNGTGGAAAGCACCGCAAATCACATTTACGAAAAAGCTCTGTTAACCCCGATTTAGGTGGCGACATTCCCCTTGACATAATAAAGTCTGTACCAAGAG";
@@ -37,11 +37,11 @@ int main(int argc, char * argv[])
 			//std::string const b = "krause";
 			//std::string const a = "A";
 			//std::string const b = "T";
-			
+
 
 			//std::string const a = "ATGGAAATTAAATTTTTTGGCCATATTTTGCAAATTTTGATGACCCCTTACAAAACATGCGAAAATTTACCTAAAAA";
 			//std::string const b = "ATGGAAATTAAATTTTTTGGCCATATTTTGCAAATTTTGATGACCCCTTACAAAAAATGCGAAAATTGACCTAAAAA";
-			
+
 			#if 0
 			libmaus2::random::Random::setup();
 			for ( uint64_t i = 0; i < 50; ++i )
@@ -53,11 +53,11 @@ int main(int argc, char * argv[])
 
 			// maximum number of errors
 			// unsigned int d = 30;
-			
+
 			libmaus2::lcs::NDextend nd; // DNA nd;
 			// bool const ok = nd.process(a.begin(),a.size(),b.begin(),b.size(),d,40,30);
 			bool const ok = nd.process(a.begin(),a.size(),b.begin(),b.size());
-			
+
 			if ( ok )
 			{
 				#if 0

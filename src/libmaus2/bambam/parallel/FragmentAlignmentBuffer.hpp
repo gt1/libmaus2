@@ -21,31 +21,31 @@
 
 #include <libmaus2/bambam/DecoderBase.hpp>
 #include <libmaus2/bambam/parallel/FragmentAlignmentBufferFragment.hpp>
-	
+
 namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
-		{		
+		{
 			struct FragmentAlignmentBuffer
 			{
 				typedef FragmentAlignmentBuffer this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				uint64_t id;
 				uint64_t subid;
-				
+
 				libmaus2::autoarray::AutoArray<FragmentAlignmentBufferFragment::unique_ptr_type> A;
 				libmaus2::autoarray::AutoArray<uint64_t ,libmaus2::autoarray::alloc_type_c> O;
 				libmaus2::autoarray::AutoArray<uint8_t *,libmaus2::autoarray::alloc_type_c> P;
 				uint64_t const pointermult;
 
 				std::vector<size_t> OSVO;
-				
+
 				bool final;
-				
+
 				size_t byteSize()
 				{
 					uint64_t s =
@@ -55,14 +55,14 @@ namespace libmaus2
 						O.byteSize() +
 						P.byteSize() +
 						OSVO.size() * sizeof(size_t);
-						
+
 					for ( size_t i = 0; i < A.size(); ++i )
 						if ( A[i] )
 							s += A[i]->byteSize();
 
 					return s;
 				}
-				
+
 				static size_t multSize()
 				{
 					return
@@ -74,7 +74,7 @@ namespace libmaus2
 							sizeof(uint8_t *)
 						);
 				}
-				
+
 				std::pair<uint8_t **, uint8_t **> getPointerArray()
 				{
 					uint64_t const numalgn = OSVO.at(size())-OSVO.at(0);
@@ -97,7 +97,7 @@ namespace libmaus2
 					}
 					return ok;
 				}
-				
+
 				struct FragmentAlignmentBufferCopyRequest
 				{
 					uint64_t * LO;
@@ -106,13 +106,13 @@ namespace libmaus2
 					uint8_t ** A;
 					FragmentAlignmentBuffer * T;
 					uint64_t t;
-					
+
 					FragmentAlignmentBufferCopyRequest()
 					: LO(0), frag(0), n(0), A(0), T(0), t(0)
 					{
-					
+
 					}
-					
+
 					FragmentAlignmentBufferCopyRequest(
 						uint64_t * rLO,
 						FragmentAlignmentBufferFragment * rfrag,
@@ -122,25 +122,25 @@ namespace libmaus2
 						uint64_t const rt
 					) : LO(rLO), frag(rfrag), n(rn), A(rA), T(rT), t(rt)
 					{
-					
+
 					}
-					
+
 					void dispatch()
 					{
 						for ( uint64_t i = 0; i < n; ++i )
-						{							
+						{
 							uint32_t const l = libmaus2::bambam::DecoderBase::getLEInteger(
 								reinterpret_cast<uint8_t const *>(A[i]),
 								sizeof(uint32_t));
 							uint8_t const * D = A[i] + sizeof(uint32_t);
-							
+
 							*(LO++) = frag->getOffset();
 							frag->pushAlignmentBlock(D,l);
 						}
 						T->rewritePointers(t);
 					}
 				};
-				
+
 				void compareBuffers(FragmentAlignmentBuffer & T)
 				{
 					std::pair<uint8_t **, uint8_t **> P = getPointerArray();
@@ -151,9 +151,9 @@ namespace libmaus2
 						std::pair<uint8_t *, uint32_t> OUT = T.at(i);
 						assert ( IN.second == OUT.second );
 						assert ( memcmp(IN.first,OUT.first,IN.second) == 0 );
-					}				
+					}
 				}
-				
+
 				std::vector<FragmentAlignmentBufferCopyRequest> setupCopy(FragmentAlignmentBuffer & T)
 				{
 					std::pair<uint8_t **, uint8_t **> P = getPointerArray();
@@ -188,9 +188,9 @@ namespace libmaus2
 						V.push_back(req);
 					}
 
-					return V;				
+					return V;
 				}
-				
+
 				// copy from this buffer to T
 				void copyBuffer(FragmentAlignmentBuffer & T)
 				{
@@ -205,7 +205,7 @@ namespace libmaus2
 					uint64_t const numalgn = OSVO.at(size())-OSVO.at(0);
 					return std::pair<uint8_t **, uint8_t **>(P.begin()+numalgn,P.begin()+(2*numalgn));
 				}
-				
+
 				FragmentAlignmentBuffer(size_t const numbuffers, uint64_t const rpointermult)
 				: id(0), subid(0), A(numbuffers), pointermult(rpointermult), OSVO(A.size()+1), final(false)
 				{
@@ -215,17 +215,17 @@ namespace libmaus2
 						A[i] = UNIQUE_PTR_MOVE(tptr);
 					}
 				}
-				
+
 				size_t size() const
 				{
 					return A.size();
 				}
-				
+
 				FragmentAlignmentBufferFragment * operator[](size_t const i)
 				{
 					return A[i].get();
 				}
-				
+
 				void checkPointerSpace(size_t const n)
 				{
 					if ( n > O.size() )
@@ -233,12 +233,12 @@ namespace libmaus2
 					if ( n * pointermult > P.size() )
 						P.resize(n*pointermult);
 				}
-				
+
 				std::vector<size_t> & getOffsetStartVector()
 				{
 					return OSVO;
 				}
-				
+
 				uint64_t getOffsetStartIndex(uint64_t const index) const
 				{
 					return OSVO.at(index);
@@ -248,20 +248,20 @@ namespace libmaus2
 				{
 					return OSVO.at(index+1)-OSVO.at(index);
 				}
-				
+
 				uint64_t * getOffsetStart(uint64_t const index)
 				{
 					return (O.end() - OSVO.at(size())) + OSVO.at(index);
 				}
-				
+
 				void rewritePointers(uint64_t const index)
 				{
 					uint64_t const * OO = getOffsetStart(0);
-					
+
 					for ( uint64_t i = OSVO.at(index); i < OSVO.at(index+1); ++i )
 						P[i] = A[index]->A.begin() + OO[i];
 				}
-				
+
 				std::pair<uint8_t *, uint32_t> at(uint64_t const i)
 				{
 					uint8_t * p = P[i];
@@ -272,7 +272,7 @@ namespace libmaus2
 						(static_cast<uint32_t>(p[3]) << 24) ;
 					return std::pair<uint8_t *, uint32_t>(p+4,l);
 				}
-								
+
 				std::pair<uint8_t *, uint32_t> at(uint64_t const i, uint64_t const j)
 				{
 					uint64_t const off = getOffsetStart(i)[j];
@@ -285,13 +285,13 @@ namespace libmaus2
 						(static_cast<uint32_t>(p[3]) << 24) ;
 					return std::pair<uint8_t *, uint32_t>(p+4,l);
 				}
-				
+
 				void rewritePointers()
 				{
 					for ( uint64_t i = 0; i < size(); ++i )
 						rewritePointers(i);
 				}
-								
+
 				void reset()
 				{
 					for ( size_t i = 0; i < size(); ++i )
@@ -317,7 +317,7 @@ namespace libmaus2
 					for ( size_t i = 0; i < size(); ++i )
 						A[i]->getLinearOutputFragments(V);
 				}
-				
+
 				uint64_t getFill() const
 				{
 					uint64_t c = 0;
@@ -325,7 +325,7 @@ namespace libmaus2
 						c += A[i]->f;
 					return c;
 				}
-				
+
 				std::vector<size_t> getFillVector() const
 				{
 					std::vector<size_t> L;

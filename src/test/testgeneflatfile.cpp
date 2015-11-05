@@ -27,9 +27,9 @@ int main(int argc, char const * argv[])
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		std::string const fn = arginfo.getUnparsedRestArg(0);
-		
+
 		libmaus2::bambam::GeneFlatFile::unique_ptr_type GFF(libmaus2::bambam::GeneFlatFile::construct(fn));
-		
+
 		std::cout << *GFF;
 	}
 	catch(std::exception const & ex)

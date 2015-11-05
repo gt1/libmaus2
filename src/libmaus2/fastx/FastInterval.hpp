@@ -39,7 +39,7 @@ namespace libmaus2
 			uint64_t numsyms;
 			uint64_t minlen;
 			uint64_t maxlen;
-			
+
 			uint64_t byteSize() const
 			{
 				return sizeof(FastInterval);
@@ -61,7 +61,7 @@ namespace libmaus2
 					minlen == o.minlen &&
 					maxlen == o.maxlen;
 			}
-			
+
 			static void append(
 				std::vector<FastInterval> & V0,
 				std::vector<FastInterval> const & V1
@@ -69,7 +69,7 @@ namespace libmaus2
 			{
 				uint64_t const add = V0.size() ? V0.back().high : 0;
 				uint64_t const fadd = V0.size() ? V0.back().fileoffsethigh : 0;
-				
+
 				for ( uint64_t i = 0; i < V1.size(); ++i )
 				{
 					FastInterval FI = V1[i];
@@ -80,7 +80,7 @@ namespace libmaus2
 					V0.push_back(FI);
 				}
 			}
-			
+
 			template<typename iterator>
 			static FastInterval merge(iterator a, iterator e)
 			{
@@ -95,7 +95,7 @@ namespace libmaus2
 						minlen = std::min(minlen,i->minlen);
 						maxlen = std::max(maxlen,i->maxlen);
 					}
-					return FastInterval ( 
+					return FastInterval (
 						a->low,
 						(e-1)->high,
 						a->fileoffset,
@@ -116,7 +116,7 @@ namespace libmaus2
 			{
 				if ( e != a )
 				{
-					return FastInterval ( 
+					return FastInterval (
 						a->low,
 						(e-1)->high,
 						a->fileoffset,
@@ -129,18 +129,18 @@ namespace libmaus2
 					return FastInterval(0,0,0,0,0,0,0);
 				}
 			}
-			
+
 			static std::vector < FastInterval > combine(std::vector < FastInterval > const & index, uint64_t const c)
 			{
 				std::vector < FastInterval > newindex;
-				
+
 				for ( uint64_t i = 0; i < index.size(); i += c )
 				{
 					uint64_t const low = i;
 					uint64_t const high = std::min(i+c,static_cast<uint64_t>(index.size()));
 					newindex.push_back ( merge ( index.begin()+low, index.begin()+high) );
 				}
-				
+
 				return newindex;
 			}
 
@@ -161,7 +161,7 @@ namespace libmaus2
 				uint64_t const rnumsyms,
 				uint64_t const rminlen,
 				uint64_t const rmaxlen)
-			: low(rlow), high(rhigh), fileoffset(rfileoffset), fileoffsethigh(rfileoffsethigh), numsyms(rnumsyms), 
+			: low(rlow), high(rhigh), fileoffset(rfileoffset), fileoffsethigh(rfileoffsethigh), numsyms(rnumsyms),
 			  minlen(rminlen), maxlen(rmaxlen) {}
 
 			static std::string serialise(FastInterval const & F)
@@ -170,7 +170,7 @@ namespace libmaus2
 				serialise(ostr,F);
 				return ostr.str();
 			}
-			
+
 			std::string serialise() const
 			{
 				return serialise(*this);
@@ -197,13 +197,13 @@ namespace libmaus2
 				uint64_t const maxlen = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				return FastInterval(low,high,fileoffset,fileoffsethigh,numsyms,minlen,maxlen);
 			}
-			
+
 			static FastInterval deserialise(std::string const & s)
 			{
 				std::istringstream istr(s);
 				return deserialise(istr);
 			}
-			
+
 			static void serialiseVector(std::ostream & out, std::vector < FastInterval > const & V)
 			{
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,V.size());
@@ -242,8 +242,8 @@ namespace libmaus2
 
 		inline std::ostream & operator<<(std::ostream & out, FastInterval const & I)
 		{
-			out << "FastInterval([" << I.low << "," << I.high << "),fileoffset=" << I.fileoffset << ",fileoffsethigh=" 
-				<< I.fileoffsethigh << ",numsyms=" << I.numsyms 
+			out << "FastInterval([" << I.low << "," << I.high << "),fileoffset=" << I.fileoffset << ",fileoffsethigh="
+				<< I.fileoffsethigh << ",numsyms=" << I.numsyms
 				<< ",minlen=" << I.minlen
 				<< ",maxlen=" << I.maxlen
 				<< ")";

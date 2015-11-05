@@ -33,34 +33,34 @@ namespace libmaus2
 			typedef ImpCompactHuffmanWaveletLFTemplate<wt_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			typedef typename wt_type::unique_ptr_type wt_ptr_type;
-		
+
 			wt_ptr_type const W;
 			uint64_t const n;
 			uint64_t const n0;
 			::libmaus2::autoarray::AutoArray<uint64_t> D;
-			
+
 			uint64_t byteSize() const
 			{
-				return 
+				return
 					W->byteSize()+
 					2*sizeof(uint64_t)+
 					D.byteSize();
 			}
-			
+
 			uint64_t getN() const
 			{
 				return n;
 			}
-			
+
 			::libmaus2::autoarray::AutoArray<int64_t> getSymbols() const
 			{
 				::libmaus2::autoarray::AutoArray<int64_t> symbols = W->symbolArray();
 				std::sort(symbols.begin(),symbols.end());
 				return symbols;
 			}
-			
+
 			uint64_t getSymbolThres() const
 			{
 				::libmaus2::autoarray::AutoArray<int64_t> const syms = getSymbols();
@@ -85,12 +85,12 @@ namespace libmaus2
 				std::cerr << "minsym: " << minsym << std::endl;
 				std::cerr << "maxsym: " << maxsym << std::endl;
 				#endif
-				
+
 				if ( ! symbols.size() )
 					minsym = maxsym = 0;
-				
+
 				assert ( minsym >= 0 );
-				
+
 				::libmaus2::autoarray::AutoArray<uint64_t> D(maxsym+1);
 				for ( uint64_t i = 0; i < symbols.size(); ++i )
 				{
@@ -100,31 +100,31 @@ namespace libmaus2
 					std::cerr << "D[" << sym << "]=" << D[sym] << std::endl;
 					#endif
 				}
-				D.prefixSums();	
+				D.prefixSums();
 
-				return D;		
+				return D;
 			}
-			
+
 			void recomputeD(int64_t const rmaxsym = std::numeric_limits<int64_t>::min())
 			{
 				D = computeD(rmaxsym);
 			}
-			
+
 			static unique_ptr_type loadSequential(std::string const & filename)
 			{
 				libmaus2::aio::InputStream::unique_ptr_type Pistr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename));
 				libmaus2::aio::InputStream & istr = *Pistr;
-				
+
 				unique_ptr_type ptr ( new this_type ( istr ) );
-				
+
 				if ( ! istr )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "ImpHuffmanWaveletLFTemplate::load() failed to read file " << filename << std::endl;
 					se.finish();
-					throw se;					
+					throw se;
 				}
-				
+
 				return UNIQUE_PTR_MOVE(ptr);
 			}
 
@@ -143,13 +143,13 @@ namespace libmaus2
 			: W(wt_type::load(filename)), n(W->n), n0((n && W->haveSymbol(0)) ? W->rank(0,n-1) : 0), D(computeD())
 			{
 			}
-			
+
 			ImpCompactHuffmanWaveletLFTemplate(wt_ptr_type & ptr)
 			: W(UNIQUE_PTR_MOVE(ptr)), n(W->n), n0((n && W->haveSymbol(0)) ? W->rank(0,n-1) : 0), D(computeD())
 			{
-			
+
 			}
-			
+
 			uint64_t operator()(uint64_t const r) const
 			{
 				std::pair< int64_t,uint64_t> const is = W->inverseSelect(r);
@@ -169,20 +169,20 @@ namespace libmaus2
 
 			public:
 			uint64_t step(uint64_t const k, uint64_t const sp) const { return D[k] + W->rankm(k,sp); }
-			std::pair<uint64_t,uint64_t> step(uint64_t const k, uint64_t const sp, uint64_t const ep) const 
+			std::pair<uint64_t,uint64_t> step(uint64_t const k, uint64_t const sp, uint64_t const ep) const
 			{
 				return W->rankm(k,sp,ep,D.get());
 			}
-			std::pair<uint64_t,uint64_t> step(uint64_t const k, std::pair<uint64_t,uint64_t> const & P) const 
+			std::pair<uint64_t,uint64_t> step(uint64_t const k, std::pair<uint64_t,uint64_t> const & P) const
 			{
 				return W->rankm(k,P.first,P.second,D.get());
 			}
 
-			template<typename iterator>	
+			template<typename iterator>
 			inline void search(iterator query, uint64_t const m, uint64_t & sp, uint64_t & ep) const
 			{
 				sp = 0, ep = n;
-						
+
 				for ( uint64_t i = 0; i < m && sp != ep; ++i )
 				{
 					int64_t const sym = query[m-i-1];
@@ -191,11 +191,11 @@ namespace libmaus2
 					ep = P.second;
 				}
 			}
-			template<typename iterator>	
+			template<typename iterator>
 			inline void search(iterator query, uint64_t const m, std::pair<uint64_t,uint64_t> & P) const
 			{
 				P = std::pair<uint64_t,uint64_t>(0,n);
-						
+
 				for ( uint64_t i = 0; i < m && P.first != P.second; ++i )
 				{
 					int64_t const sym = query[m-i-1];
@@ -211,7 +211,7 @@ namespace libmaus2
 						return syms-i-1;
 				return 0;
 			}
-			
+
 			uint64_t phi(uint64_t r) const
 			{
 				uint64_t const sym = sortedSymbol(r);
@@ -219,7 +219,7 @@ namespace libmaus2
 				return W->select(sym,r);
 			}
 		};
-		
+
 		typedef ImpCompactHuffmanWaveletLFTemplate< ::libmaus2::wavelet::ImpCompactHuffmanWaveletTree > ImpCompactHuffmanWaveletLF;
 		typedef ImpCompactHuffmanWaveletLFTemplate< ::libmaus2::wavelet::ImpCompactRLHuffmanWaveletTree > ImpCompactRLHuffmanWaveletLF;
 	}

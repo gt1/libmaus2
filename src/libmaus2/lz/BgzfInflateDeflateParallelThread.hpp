@@ -41,13 +41,13 @@ namespace libmaus2
 			static void readBlock(BgzfInflateParallelContext & inflatecontext)
 			{
 				uint64_t objectid = 0;
-				
+
 				{
 					libmaus2::parallel::ScopePosixMutex S(inflatecontext.inflateqlock);
 					objectid = inflatecontext.inflatefreelist.front();
 					inflatecontext.inflatefreelist.pop_front();
 				}
-				
+
 				{
 					libmaus2::parallel::ScopePosixMutex I(inflatecontext.inflateinlock);
 					inflatecontext.inflateB[objectid]->blockid = inflatecontext.inflateinid++;
@@ -82,7 +82,7 @@ namespace libmaus2
 							inflatecontext.inflateB[objectid]->ex->finish();
 						}
 					}
-					
+
 					libmaus2::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
 					inflatecontext.inflatereadlist.push_back(objectid);
 					inflatecontext.inflategloblist.enque(
@@ -95,13 +95,13 @@ namespace libmaus2
 				}
 			}
 		};
-		
+
 		struct BgzfDispatchDecompressBlock
 		{
 			static void decompressBlock(BgzfInflateParallelContext & inflatecontext)
 			{
 				uint64_t objectid = 0;
-				
+
 				{
 					libmaus2::parallel::ScopePosixMutex S(inflatecontext.inflateqlock);
 					objectid = inflatecontext.inflatereadlist.front();
@@ -117,16 +117,16 @@ namespace libmaus2
 							inflatecontext.inflateB[objectid]->blockid
 						)
 					);
-				}			
-			}		
+				}
+			}
 		};
-		
+
 		struct BgzfDispatchCompressBlock
 		{
 			static void compressBlock(BgzfDeflateParallelContext & deflatecontext)
 			{
 				uint64_t objectid = 0;
-				
+
 				{
 					libmaus2::parallel::ScopePosixMutex S(deflatecontext.deflateqlock);
 					objectid = deflatecontext.deflatecompqueue.front();
@@ -141,16 +141,16 @@ namespace libmaus2
 						deflatecontext.deflateB[objectid]->flushinfo = BDZSBFI;
 					}
 					catch(libmaus2::exception::LibMausException const & ex)
-					{								
+					{
 						libmaus2::parallel::ScopePosixMutex S(deflatecontext.deflateexlock);
-			
+
 						if ( deflatecontext.deflateB[objectid]->blockid * 2 + 0 < deflatecontext.deflateexceptionid )
 						{
 							deflatecontext.deflateexceptionid = deflatecontext.deflateB[objectid]->blockid * 2 + 0;
 							libmaus2::exception::LibMausException::unique_ptr_type tex(ex.uclone());
 							deflatecontext.deflatepse = UNIQUE_PTR_MOVE(tex);
 						}
-						
+
 						deflatecontext.deflateB[objectid]->compsize = 0;
 						deflatecontext.deflateB[objectid]->flushinfo = BgzfDeflateZStreamBaseFlushInfo();
 					}
@@ -161,15 +161,15 @@ namespace libmaus2
 						if ( deflatecontext.deflateB[objectid]->blockid * 2 + 0 < deflatecontext.deflateexceptionid )
 						{
 							deflatecontext.deflateexceptionid = deflatecontext.deflateB[objectid]->blockid * 2 + 0;
-						
+
 							libmaus2::exception::LibMausException se;
 							se.getStream() << ex.what() << std::endl;
 							se.finish();
-							
+
 							libmaus2::exception::LibMausException::unique_ptr_type ptr(se.uclone());
 							deflatecontext.deflatepse = UNIQUE_PTR_MOVE(ptr);
 						}
-						
+
 						deflatecontext.deflateB[objectid]->compsize = 0;
 						deflatecontext.deflateB[objectid]->flushinfo = BgzfDeflateZStreamBaseFlushInfo();
 					}
@@ -183,16 +183,16 @@ namespace libmaus2
 						),
 						&(deflatecontext.deflategloblist)
 					);
-				}			
-			}	
+				}
+			}
 		};
-		
+
 		struct BgzfDispatchWriteBlock
 		{
 			static void writeBlock(BgzfDeflateParallelContext & deflatecontext)
 			{
 				uint64_t objectid = 0;
-				
+
 				{
 					libmaus2::parallel::ScopePosixMutex S(deflatecontext.deflateqlock);
 					BgzfThreadQueueElement const btqe = deflatecontext.deflatewritequeue.deque();
@@ -215,9 +215,9 @@ namespace libmaus2
 							deflatecontext.deflateB[objectid]->outbuf.begin(),
 							deflatecontext.deflateB[objectid]->flushinfo
 						);
-						
+
 						deflatecontext.deflateoutbytes += deflatecontext.deflateB[objectid]->compsize;
-						
+
 						#if 0 // this check is done in streamWrite
 						if ( ! deflatecontext.deflateout )
 						{
@@ -229,14 +229,14 @@ namespace libmaus2
 						#endif
 					}
 					catch(libmaus2::exception::LibMausException const & ex)
-					{								
+					{
 						libmaus2::parallel::ScopePosixMutex S(deflatecontext.deflateexlock);
 
 						if ( deflatecontext.deflateB[objectid]->blockid * 2 + 1 < deflatecontext.deflateexceptionid )
 						{
 							deflatecontext.deflateexceptionid = deflatecontext.deflateB[objectid]->blockid * 2 + 1;
 							libmaus2::exception::LibMausException::unique_ptr_type ptr(ex.uclone());
-							deflatecontext.deflatepse = UNIQUE_PTR_MOVE(ptr);									
+							deflatecontext.deflatepse = UNIQUE_PTR_MOVE(ptr);
 						}
 					}
 					catch(std::exception const & ex)
@@ -246,7 +246,7 @@ namespace libmaus2
 						if ( deflatecontext.deflateB[objectid]->blockid * 2 + 1 < deflatecontext.deflateexceptionid )
 						{
 							deflatecontext.deflateexceptionid = deflatecontext.deflateB[objectid]->blockid * 2 + 1;
-						
+
 							libmaus2::exception::LibMausException se;
 							se.getStream() << ex.what() << std::endl;
 							se.finish();
@@ -256,7 +256,7 @@ namespace libmaus2
 						}
 					}
 
-					deflatecontext.deflatenextwriteid += 1;								
+					deflatecontext.deflatenextwriteid += 1;
 					deflatecontext.deflatewritequeue.setReadyFor(
 						BgzfThreadQueueElement(
 							libmaus2::lz::BgzfThreadOpBase::libmaus2_lz_bgzf_op_write_block,
@@ -269,10 +269,10 @@ namespace libmaus2
 				}
 			}
 		};
-	
-		struct BgzfInflateDeflateParallelThread 
-			: 
-				public libmaus2::parallel::PosixThread, 
+
+		struct BgzfInflateDeflateParallelThread
+			:
+				public libmaus2::parallel::PosixThread,
 				public libmaus2::lz::BgzfDispatchReadBlock,
 				public libmaus2::lz::BgzfDispatchDecompressBlock,
 				public libmaus2::lz::BgzfDispatchCompressBlock,
@@ -280,8 +280,8 @@ namespace libmaus2
 		{
 			typedef BgzfInflateDeflateParallelThread this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
-			private:			
+
+			private:
 			BgzfInflateParallelContext & inflatecontext;
 			BgzfDeflateParallelContext & deflatecontext;
 
@@ -291,7 +291,7 @@ namespace libmaus2
 				while ( true )
 				{
 					BgzfThreadQueueElement globbtqe;
-					
+
 					/* get any id from global list */
 					try
 					{
@@ -302,7 +302,7 @@ namespace libmaus2
 						/* queue is terminated, break loop */
 						break;
 					}
-					
+
 					/* check which operation we are to perform */
 					switch ( globbtqe.op )
 					{
@@ -330,10 +330,10 @@ namespace libmaus2
 						{
 							break;
 						}
-					}						
+					}
 				}
-				
-				return 0;		
+
+				return 0;
 			}
 
 			public:

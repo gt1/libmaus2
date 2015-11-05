@@ -65,12 +65,12 @@ typedef struct _libmaus2_bambam_ScramDecoder
 	void * decoder;
 	/** scram object */
 	void * vseq;
-	
+
 	/** SAM/BAM text header */
 	char * header;
 	/** length of SAM/BAM header */
 	uint64_t headerlen;
-	
+
 	/** alignment block */
 	uint8_t const * buffer;
 	/** length of alignment block in bytes */
@@ -95,10 +95,10 @@ typedef struct _libmaus2_bambam_ScramEncoder
 	char * referencefilename;
 	/** header object */
 	libmaus2_bambam_ScramHeader * header;
-	
+
 	/** scram encoder */
 	void * encoder;
-	
+
 	/** output buffer */
 	char * buffer;
 	/** size of buffer in bytes */
@@ -114,21 +114,21 @@ typedef libmaus2_bambam_ScramDecoder *(* libmaus2_bambam_ScramDecoder_New_Cram_I
 	char const * rreferencefilename
 );
 typedef libmaus2_bambam_ScramDecoder *(* libmaus2_bambam_ScramDecoder_New_Range_Type)(
-	char const * rfilename, 
-	char const * rmode, 
-	char const * rreferencefilename, 
-	char const * ref, int64_t 
-	const start, 
+	char const * rfilename,
+	char const * rmode,
+	char const * rreferencefilename,
+	char const * ref, int64_t
+	const start,
 	int64_t const end
 );
 typedef libmaus2_bambam_ScramDecoder *(* libmaus2_bambam_ScramDecoder_New_Cram_Input_Callback_Range_Type)(
-	char const * rfilename, 
+	char const * rfilename,
 	scram_cram_io_allocate_read_input_t   callback_allocate_function,
 	scram_cram_io_deallocate_read_input_t callback_deallocate_function,
 	size_t const bufsize,
-	char const * rreferencefilename, 
-	char const * ref, int64_t 
-	const start, 
+	char const * rreferencefilename,
+	char const * ref, int64_t
+	const start,
 	int64_t const end
 );
 typedef libmaus2_bambam_ScramDecoder *(* libmaus2_bambam_ScramDecoder_Delete_Type)(libmaus2_bambam_ScramDecoder * object);
@@ -199,7 +199,7 @@ libmaus2_bambam_ScramDecoder * libmaus2_bambam_ScramDecoder_New_Cram_Input_Callb
 	scram_cram_io_deallocate_read_input_t callback_deallocate_function,
 	size_t const bufsize,
 	char const * rreferencefilename,
-	char const * ref, 
+	char const * ref,
 	int64_t const start,
 	int64_t const end
 );
@@ -243,8 +243,8 @@ libmaus2_bambam_ScramHeader * libmaus2_bambam_ScramHeader_Delete(libmaus2_bambam
  **/
 libmaus2_bambam_ScramEncoder * libmaus2_bambam_ScramEncoder_New(
 	char const * headertext,
-	char const * rfilename, 
-	char const * rmode, 
+	char const * rfilename,
+	char const * rmode,
 	char const * rreferencefilename,
 	int const rverbose
 );

@@ -27,15 +27,15 @@ namespace libmaus2
 		struct InputStreamPointerWrapper
 		{
 			libmaus2::aio::InputStream::unique_ptr_type ptr;
-			
+
 			InputStreamPointerWrapper(libmaus2::aio::InputStream::unique_ptr_type rptr)
 			: ptr(UNIQUE_PTR_MOVE(rptr)) {}
-			
+
 			std::istream & getStreamReference()
 			{
 				return *ptr;
 			}
-			
+
 			void reset(libmaus2::aio::InputStream::unique_ptr_type tptr)
 			{
 				ptr = UNIQUE_PTR_MOVE(tptr);

@@ -32,15 +32,15 @@ namespace libmaus2
 			typedef CheckOverlapResultInputPushBack this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			CheckOverlapResultInput CORI;
 			std::stack < CheckOverlapResult::shared_ptr_type > S;
-		
+
 			CheckOverlapResultInputPushBack(std::string const & filename) : CORI(filename), S()
 			{
-			
+
 			}
-			
+
 			CheckOverlapResult::shared_ptr_type get()
 			{
 				if ( S.size() )
@@ -54,32 +54,32 @@ namespace libmaus2
 					return CORI.get();
 				}
 			}
-			
+
 			void putback(CheckOverlapResult::shared_ptr_type C)
 			{
 				S.push(C);
 			}
-			
+
 			bool fillSourceVector(std::vector < CheckOverlapResult::shared_ptr_type > & V)
 			{
 				V.clear();
-				
+
 				CheckOverlapResult::shared_ptr_type C = get();
-				
+
 				if ( C )
 				{
 					V.push_back(C);
-					
+
 					while ( (C = get()) && (C->ia == V.front()->ia) )
 						V.push_back(C);
-					
+
 					if ( C )
 					{
 						putback(C);
 						assert ( C->ia != V.front()->ia );
 					}
 				}
-				
+
 				return V.size() != 0;
 			}
 		};

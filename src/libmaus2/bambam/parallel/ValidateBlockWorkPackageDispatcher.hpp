@@ -34,30 +34,30 @@ namespace libmaus2
 			{
 				ValidatePackageReturnInterface   & packageReturnInterface;
 				ValidateBlockAddPendingInterface & addValidatedPendingInterface;
-	
+
 				ValidateBlockWorkPackageDispatcher(
 					ValidatePackageReturnInterface   & rpackageReturnInterface,
 					ValidateBlockAddPendingInterface & raddValidatedPendingInterface
-	
+
 				) : packageReturnInterface(rpackageReturnInterface), addValidatedPendingInterface(raddValidatedPendingInterface)
 				{
 				}
-			
+
 				virtual void dispatch(
-					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadWorkPackage * P,
 					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
 				)
 				{
 					ValidateBlockWorkPackage * BP = dynamic_cast<ValidateBlockWorkPackage *>(P);
 					assert ( BP );
-	
+
 					bool const ok = BP->parseBlock->checkValidPacked();
-									
+
 					addValidatedPendingInterface.putValidatedBlockAddPending(BP->parseBlock,ok);
-									
-					// return the work package				
-					packageReturnInterface.putReturnValidatePackage(BP);				
-				}		
+
+					// return the work package
+					packageReturnInterface.putReturnValidatePackage(BP);
+				}
 			};
 		}
 	}

@@ -45,23 +45,23 @@ namespace libmaus2
 			static unsigned numbits(unsigned int i)
 			{
 				unsigned int numbits = 0;
-				
+
 				while ( i )
 				{
 					numbits++;
 					i >>= 1;
 				}
-				
+
 				return numbits;
 			}
-			
+
 			public:
 			/**
 			 * bits_n[i] = number of bits for encoding of number with
 			 * i significant bits
 			 **/
 			autoarray::AutoArray<uint8_t> bits_n;
-					
+
 			/**
 			 * constructor
 			 **/
@@ -70,7 +70,7 @@ namespace libmaus2
 			{
 				for ( unsigned int i = 0; i < n+1; ++i )
 					max_n[i] = 0;
-					
+
 				for ( unsigned int i = 0; i < (1u<<n); ++i )
 				{
 					unsigned int const b = popcnt(i);
@@ -78,11 +78,11 @@ namespace libmaus2
 					cache_n[ i ] =  CC64.encode(static_cast<type>(i),b);
 					max_n[b] = std::max(max_n[b], cache_n[i]);
 				}
-				
+
 				for ( unsigned int i = 0; i < n+1; ++i )
 					bits_n[i] = numbits(max_n[i]);
 			}
-			
+
 			/**
 			 * encode number in enumerative code
 			 * @param num

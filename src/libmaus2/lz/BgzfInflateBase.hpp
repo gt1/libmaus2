@@ -64,11 +64,11 @@ namespace libmaus2
 					se.finish(false);
 					throw se;
 				}
-				
+
 				#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN) && defined(LIBMAUS2_HAVE_i386)
 				uint32_t const uncompdatasize = *(reinterpret_cast<uint32_t const *>(block.begin()+payloadsize+4));
 				#else
-				uint32_t const uncompdatasize = 
+				uint32_t const uncompdatasize =
 					(static_cast<uint32_t>(block[payloadsize+4]) << 0)
 					|
 					(static_cast<uint32_t>(block[payloadsize+5]) << 8)
@@ -77,16 +77,16 @@ namespace libmaus2
 					|
 					(static_cast<uint32_t>(block[payloadsize+7]) << 24);
 				#endif
-					
+
 				if ( uncompdatasize > getBgzfMaxBlockSize() )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfInflateBase::readData(): uncompressed size is too large";
 					se.finish(false);
-					throw se;									
-				
+					throw se;
+
 				}
-			
+
 				return uncompdatasize;
 			}
 
@@ -105,7 +105,7 @@ namespace libmaus2
 				/* read block data and footer */
 				uint64_t const uncompdatasize = readData(stream,payloadsize);
 
-				/* check consistency */				
+				/* check consistency */
 				if ( (! payloadsize) && (uncompdatasize>0) )
 				{
 					libmaus2::exception::LibMausException se;
@@ -113,10 +113,10 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				return std::pair<uint64_t,uint64_t>(payloadsize,uncompdatasize);
 			}
-			
+
 			/**
 			 * decompress block in buffer to array decomp
 			 *

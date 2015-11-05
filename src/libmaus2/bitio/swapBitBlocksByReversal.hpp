@@ -33,7 +33,7 @@ namespace libmaus2
 			uint64_t o0 = offset;
 			uint64_t o1 = offset+len-1;
 			uint64_t o2 = o0 + len/2;
-			
+
 			for ( ; o0 != o2; o0++, o1-- )
 			{
 				bool const b0 = getBit(A,o0);
@@ -42,7 +42,7 @@ namespace libmaus2
 				putBit(A,o1,b0);
 			}
 		}
-		
+
 		template<typename iterator>
 		inline void swapBitBlocksByReversal(iterator A, uint64_t const offset, uint64_t const l0, uint64_t const l1)
 		{

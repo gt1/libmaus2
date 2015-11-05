@@ -41,7 +41,7 @@ namespace libmaus2
 			struct SynchronousReorderSetPairComp
 			{
 				SynchronousReorderSetPairComp() {}
-				
+
 				bool operator()(pair_type const & A, pair_type const & B)
 				{
 					if ( A.first != B.first )
@@ -55,13 +55,13 @@ namespace libmaus2
                         std::set < pair_type > Q;
                         PosixMutex lock;
                         PosixConditionSemaphore semaphore;
-                        
+
                         SynchronousReorderSet(uint64_t const rnext = 0)
                         : next(rnext)
                         {
-                        
+
                         }
-                        
+
                         unsigned int getFillState()
                         {
                                 lock.lock();
@@ -69,20 +69,20 @@ namespace libmaus2
                                 lock.unlock();
                                 return fill;
                         }
-                        
+
                         void enque(uint64_t const idx, value_type const q)
                         {
                         	uint64_t postcnt = 0;
-                        	
+
                                 lock.lock();
                                 Q.insert(pair_type(idx,q));
-                                
+
                                 for ( iterator_type I = Q.begin(); I != Q.end(); ++I )
                                 	if ( I->first == next )
                                 		next++, postcnt++;
 
                                 lock.unlock();
-                                
+
                                 for ( uint64_t i = 0; i < postcnt; ++i )
 	                                semaphore.post();
                         }

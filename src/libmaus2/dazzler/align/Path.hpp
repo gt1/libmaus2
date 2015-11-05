@@ -32,14 +32,14 @@ namespace libmaus2
 			{
 				typedef std::pair<uint16_t,uint16_t> tracepoint;
 
-				std::vector<tracepoint> path;				
-				int32_t tlen;   
+				std::vector<tracepoint> path;
+				int32_t tlen;
 				int32_t diffs;
 				int32_t abpos;
 				int32_t bbpos;
 				int32_t aepos;
 				int32_t bepos;
-				
+
 				double getErrorRateA() const
 				{
 					return static_cast<double>(diffs) / (aepos-abpos);
@@ -55,10 +55,10 @@ namespace libmaus2
 					return
 						comparePathMeta(O) && path == O.path;
 				}
-				
+
 				bool comparePathMeta(Path const & O) const
 				{
-					return 
+					return
 						tlen == O.tlen &&
 						diffs == O.diffs &&
 						abpos == O.abpos &&
@@ -66,10 +66,10 @@ namespace libmaus2
 						aepos == O.aepos &&
 						bepos == O.bepos;
 				}
-				
+
 				bool comparePathMetaLower(Path const & O) const
 				{
-					return 
+					return
 						tlen == O.tlen &&
 						diffs <= O.diffs &&
 						abpos == O.abpos &&
@@ -77,7 +77,7 @@ namespace libmaus2
 						aepos == O.aepos &&
 						bepos == O.bepos;
 				}
-				
+
 				uint64_t deserialise(std::istream & in)
 				{
 					uint64_t offset = 0;
@@ -89,7 +89,7 @@ namespace libmaus2
 					bepos = getLittleEndianInteger4(in,offset);
 					return offset;
 				}
-				
+
 				uint64_t serialise(std::ostream & out) const
 				{
 					uint64_t offset = 0;
@@ -101,7 +101,7 @@ namespace libmaus2
 					putLittleEndianInteger4(out,bepos,offset);
 					return offset;
 				}
-				
+
 				uint64_t serialiseWithPath(std::ostream & out, bool const small) const
 				{
 					uint64_t s = 0;
@@ -109,7 +109,7 @@ namespace libmaus2
 					s += serialisePath(out,small);
 					return s;
 				}
-				
+
 				uint64_t serialisePath(std::ostream & out, bool const small) const
 				{
 					uint64_t s = 0;
@@ -141,21 +141,21 @@ namespace libmaus2
 					else
 					{
 						uint64_t offset = 0;
-						
+
 						for ( uint64_t i = 0; i < path.size(); ++i )
 						{
 							putLittleEndianInteger2(out,path[i].first,offset);
 							putLittleEndianInteger2(out,path[i].second,offset);
 						}
-						
+
 						return offset;
 					}
 				}
-				
+
 				Path()
 				{
-				
-				} 
+
+				}
 				Path(std::istream & in)
 				{
 					deserialise(in);
@@ -164,7 +164,7 @@ namespace libmaus2
 				{
 					s += deserialise(in);
 				}
-				
+
 				uint64_t getNumErrors() const
 				{
 					uint64_t s = 0;
@@ -173,7 +173,7 @@ namespace libmaus2
 					return s;
 				}
 			};
-			
+
 			std::ostream & operator<<(std::ostream & out, Path const & P);
 		}
 	}

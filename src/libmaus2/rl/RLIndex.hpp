@@ -37,22 +37,22 @@ namespace libmaus2
 		{
 			::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t>, ::libmaus2::autoarray::alloc_type_c > A;
 			std::pair<uint64_t,uint64_t> * P;
-			
+
 			PairPushBuffer()
 			: A(), P(A.begin())
 			{
 			}
-			
+
 			std::pair<uint64_t,uint64_t> * begin() { return A.begin(); }
 			std::pair<uint64_t,uint64_t> * end()   { return P; }
 			std::pair<uint64_t,uint64_t> const * begin() const { return A.begin(); }
 			std::pair<uint64_t,uint64_t> const * end()   const { return P; }
-			
+
 			void reset()
 			{
 				P = A.begin();
 			}
-			
+
 			void push(int64_t const a, uint64_t const b)
 			{
 				if ( P == A.end() )
@@ -62,11 +62,11 @@ namespace libmaus2
 					P = A.begin() + d;
 					assert ( P != A.end() );
 				}
-				
+
 				*(P++) = std::pair<uint64_t,uint64_t>(a,b);
 			}
 		};
-		
+
 		struct RLSimpleIndexDataBase
 		{
 			uint64_t const n;
@@ -78,7 +78,7 @@ namespace libmaus2
 			uint64_t const numlogicalblocks;
 			uint64_t const dictbytes;
 			::libmaus2::autoarray::AutoArray<uint8_t> const RL;
-			
+
 			::libmaus2::autoarray::AutoArray<uint64_t> updateBP(::libmaus2::autoarray::AutoArray<uint64_t> BP)
 			{
 				if ( BP.size() )
@@ -87,10 +87,10 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < BP.size(); ++i )
 						BP[i] -= base;
 				}
-				
+
 				return BP;
 			}
-			
+
 			RLSimpleIndexDataBase(std::istream & in)
 			:
 				n ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
@@ -123,13 +123,13 @@ namespace libmaus2
 				rsize += sizeof(bytespern);
 				rsize += sizeof(dictbytes);
 			}
-			
+
 			uint64_t logicalBlockOffset(uint64_t const i) const
 			{
 				return BP[i];
 			}
 		};
-		
+
 		struct RLIndexDataBase
 		{
 			uint64_t const n;
@@ -153,7 +153,7 @@ namespace libmaus2
 			::libmaus2::select::ImpCacheLineSelectSupport const ISS;
 			uint64_t const numlogicalblocks;
 			// ::libmaus2::autoarray::AutoArray<uint64_t> const D;
-			
+
 			static uint64_t getSymsPerBlock(std::istream & in)
 			{
 				::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
@@ -161,22 +161,22 @@ namespace libmaus2
 				::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				return ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 			}
-			
+
 			static uint64_t getSymsPerBlock(std::string const & filename)
 			{
 				libmaus2::aio::InputStreamInstance istr(filename);
 				return getSymsPerBlock(istr);
 			}
-			
+
 			uint64_t logicalBlockOffset(uint64_t const blockid) const
 			{
 				uint64_t const onepos = ISS.select1(blockid);
 				uint64_t const zrank = ICLR.rank0(onepos);
 				return zrank * cachelinebytes;
 			}
-						
+
 			RLIndexDataBase(std::istream & in)
-			: 
+			:
 				n ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
 				bitspern ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
 				bytespern ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
@@ -198,11 +198,11 @@ namespace libmaus2
 				ISS(ICLR,ilog),
 				numlogicalblocks( (n + symsperblock -1 ) / symsperblock )
 			{
-			
+
 			}
 
 			RLIndexDataBase(std::istream & in, uint64_t & rsize)
-			: 
+			:
 				n ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
 				bitspern ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
 				bytespern ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
@@ -234,7 +234,7 @@ namespace libmaus2
 				rsize += sizeof(byterunthres);
 				rsize += sizeof(symsperblock);
 			}
-			
+
 			void checkSelect() const
 			{
 				std::cerr << "checking next1na...";
@@ -248,7 +248,7 @@ namespace libmaus2
 					assert ( i2 == ISS.select1(r+1) );
 				}
 				std::cerr << "done." << std::endl;
-				
+
 				std::cerr << "comparing to slower...";
 				#if defined(_OPENMP)
 				#pragma omp parallel for
@@ -268,7 +268,7 @@ namespace libmaus2
 		struct RLIndexTemplate : public _base_type
 		{
 			typedef _base_type base_type;
-		
+
 			typedef RLIndexTemplate<base_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
@@ -295,7 +295,7 @@ namespace libmaus2
 			{
 				return symbolArray();
 			}
-			
+
 			uint64_t getN() const
 			{
 				return base_type::n;
@@ -313,7 +313,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				return UNIQUE_PTR_MOVE(ptr);
 			}
 
@@ -342,7 +342,7 @@ namespace libmaus2
 
 				return cnt;
 			}
-			
+
 			/*
 			 * access
 			 */
@@ -356,10 +356,10 @@ namespace libmaus2
 				uint64_t rl;
 				while ( r >= (rl=((*p)&0x1F)) )
 					r -= rl, ++p;
-				
+
 				return (*p) >> 5;
 			}
-			
+
 			uint64_t loadValueLE(uint8_t const * p) const
 			{
 				switch ( base_type::bytespern )
@@ -375,13 +375,13 @@ namespace libmaus2
 
 			template<typename iterator_D>
 			std::pair<uint64_t,uint64_t> rankm(
-				uint64_t const qsym, 
+				uint64_t const qsym,
 				uint64_t l,
 				uint64_t r,
 				iterator_D const & D) const
 			{
-				uint64_t const ll = rankm(qsym,l); 
-				uint64_t const rr = rankm(qsym,r); 
+				uint64_t const ll = rankm(qsym,l);
+				uint64_t const rr = rankm(qsym,r);
 				return std::pair<uint64_t,uint64_t>(D[qsym]+ll,D[qsym]+rr);
 			}
 
@@ -404,7 +404,7 @@ namespace libmaus2
 				p += base_type::bytespern * qsym;
 				C[qsym] = loadValueLE(p);
 				p += base_type::bytespern * (base_type::numsyms-qsym);
-						
+
 				uint64_t rl;
 				while ( r >= (rl=((*p)&0x1F)) )
 				{
@@ -413,13 +413,13 @@ namespace libmaus2
 					r -= rl;
 					++p;
 				}
-				
+
 				// assert ( r < rl );
 				int64_t const sym = (*p) >> 5;
 				// uint64_t const rank = C[sym] + (r+1);
 				// uint64_t const rankm = C[sym] + r;
 				C[sym] += r;
-				
+
 				return C[qsym];
 			}
 
@@ -436,7 +436,7 @@ namespace libmaus2
 
 				::libmaus2::util::LoadMultipleValuesCall::loadMultipleValues(p,C,base_type::numsyms,base_type::bytespern);
 				p += base_type::dictbytes;
-						
+
 				uint64_t rl;
 				while ( r >= (rl=((*p)&0x1F)) )
 				{
@@ -445,24 +445,24 @@ namespace libmaus2
 					r -= rl;
 					++p;
 				}
-				
+
 				assert ( p < base_type::RL.end() );
-				
+
 				int64_t const sym = (*p) >> 5;
-				C[sym] += r;		
+				C[sym] += r;
 			}
-			
+
 			struct UPairFirst
 			{
 				typedef std::pair<uint64_t,uint64_t> upair;
 				upair * const P;
-				
+
 				private:
 				void operator=(UPairFirst const &) {}
 
 				public:
 				UPairFirst(upair * const rP) : P(rP) {}
-				
+
 				uint64_t & operator[](uint64_t const i) { return P[i].first; }
 				uint64_t const & operator[](uint64_t const i) const { return P[i].first; }
 			};
@@ -477,11 +477,11 @@ namespace libmaus2
 
 				public:
 				UPairSecond(upair * const rP) : P(rP) {}
-				
+
 				uint64_t & operator[](uint64_t const i) { return P[i].second; }
 				uint64_t const & operator[](uint64_t const i) const { return P[i].second; }
 			};
-			
+
 			void rankm(uint64_t const l, uint64_t const r, std::pair<uint64_t,uint64_t> * const C) const
 			{
 				UPairFirst up1(C); rankmTemplate(l,up1);
@@ -503,7 +503,7 @@ namespace libmaus2
 						C[i].first = C[i].second = 0;
 				}
 			}
-			
+
 			template<typename iterator_D, typename iterator_P>
 			uint64_t multiStepSortedNoEmpty(uint64_t const l, uint64_t const r, iterator_D D, iterator_P P) const
 			{
@@ -522,20 +522,20 @@ namespace libmaus2
 
 				UPairFirst  up1(C); rankmTemplate(l,up1);
 				UPairSecond up2(C); rankmTemplate(r,up2);
-				
+
 				iterator_P PP = P;
 				for ( uint64_t i = 0; i < base_type::numsyms; ++i )
 					if ( includeEmpty || C[i].second-C[i].first )
 						*(PP++) = std::pair< int64_t,std::pair<uint64_t,uint64_t> > (i,std::pair<uint64_t,uint64_t>(D[i] + C[i].first,D[i] + C[i].second));
 
-				return PP-P;				
+				return PP-P;
 			}
 
 			template<typename iterator_D, typename callback_type>
 			void multiRankCallBack(
-				uint64_t const l, 
-				uint64_t const r, 
-				iterator_D D, 
+				uint64_t const l,
+				uint64_t const r,
+				iterator_D D,
 				callback_type & cb) const
 			{
 				multiRankCallBackTemplate<iterator_D,callback_type,false>(l,r,D,cb);
@@ -553,7 +553,7 @@ namespace libmaus2
 
 				UPairFirst  up1(C); rankmTemplate(l,up1);
 				UPairSecond up2(C); rankmTemplate(r,up2);
-				
+
 				for ( uint64_t i = 0; i < base_type::numsyms; ++i )
 					if ( includeEmpty || C[i].second-C[i].first )
 						cb(i,D[i] + C[i].first,D[i] + C[i].second);
@@ -561,8 +561,8 @@ namespace libmaus2
 
 			template<typename lcp_iterator, typename queue_type, typename iterator_D>
 			inline uint64_t multiRankLCPSet(
-				uint64_t const l, 
-				uint64_t const r, 
+				uint64_t const l,
+				uint64_t const r,
 				iterator_D D,
 				lcp_iterator WLCP,
 				typename std::iterator_traits<lcp_iterator>::value_type const unset,
@@ -579,7 +579,7 @@ namespace libmaus2
 
 				UPairFirst  up1(C); rankmTemplate(l,up1);
 				UPairSecond up2(C); rankmTemplate(r,up2);
-				
+
 				uint64_t s = 0;
 				for ( uint64_t i = 0; i < base_type::numsyms; ++i )
 					if ( C[i].second-C[i].first )
@@ -600,8 +600,8 @@ namespace libmaus2
 
 			template<typename lcp_iterator, typename queue_type, typename iterator_D>
 			inline uint64_t multiRankLCPSetLarge(
-				uint64_t const l, 
-				uint64_t const r, 
+				uint64_t const l,
+				uint64_t const r,
 				iterator_D D,
 				lcp_iterator & WLCP,
 				uint64_t const cur_l,
@@ -617,7 +617,7 @@ namespace libmaus2
 
 				UPairFirst  up1(C); rankmTemplate(l,up1);
 				UPairSecond up2(C); rankmTemplate(r,up2);
-				
+
 				uint64_t s = 0;
 				for ( uint64_t i = 0; i < base_type::numsyms; ++i )
 					if ( C[i].second-C[i].first )
@@ -630,13 +630,13 @@ namespace libmaus2
        		                                        WLCP.set(ep, cur_l);
                		                                PQ1->push_back( std::pair<uint64_t,uint64_t>(sp,ep) );
                		                                s++;
-						}				
+						}
 					}
 
 				return s;
-			
+
 			}
-			
+
 			std::map<int64_t,uint64_t> enumerateSymbolsInRange(uint64_t const l, uint64_t const r) const
 			{
 				typedef std::pair<uint64_t,uint64_t> upair;
@@ -645,9 +645,9 @@ namespace libmaus2
 #else
 				upair * C = reinterpret_cast<upair *>(alloca( base_type::numsyms * sizeof(upair) ));
 #endif
-				
+
 				rankm(l,r,C);
-				
+
 				std::map<int64_t,uint64_t> M;
 				for ( uint64_t i = 0; i < base_type::numsyms; ++i )
 					if ( C[i].second-C[i].first )
@@ -655,7 +655,7 @@ namespace libmaus2
 
 				return M;
 			}
-			
+
 			uint64_t rank(uint64_t const qsym, uint64_t r) const
 			{
 				//std::cerr << "r=" << r << std::endl;
@@ -675,7 +675,7 @@ namespace libmaus2
 				p += base_type::bytespern * qsym;
 				C[qsym] = loadValueLE(p);
 				p += base_type::bytespern * (base_type::numsyms-qsym);
-						
+
 				uint64_t rl;
 				while ( r >= (rl=((*p)&0x1F)) )
 				{
@@ -684,12 +684,12 @@ namespace libmaus2
 					r -= rl;
 					++p;
 				}
-				
+
 				int64_t const sym = (*p) >> 5;
 				// uint64_t const rank = C[sym] + (r+1);
 				// uint64_t const rankm = C[sym] + r;
 				C[sym] += (r+1);
-				
+
 				return C[qsym];
 			}
 
@@ -720,11 +720,11 @@ namespace libmaus2
 					r -= rl;
 					++p;
 				}
-				
+
 				int64_t const sym = (*p) >> 5;
 				// uint64_t const rank = C[sym] + (r+1);
 				uint64_t const rankm = C[sym] + r;
-				
+
 				return std::pair<int64_t,uint64_t>(sym,rankm);
 			}
 
@@ -733,7 +733,7 @@ namespace libmaus2
 			{
 				if ( l >=e )
 					return;
-			
+
 				// find block for l
 				uint64_t const logicalBlockLow  = l/base_type::symsperblock;
 				// find block for e-1
@@ -765,15 +765,15 @@ namespace libmaus2
 						blockdecsyms += rl;
 						++p;
 					}
-					
+
 					int64_t const sym = (*p) >> 5;
 					assert ( skip < rl );
 					rl -= skip;
 					C[sym] += skip;
 					blockdecsyms += skip;
-				
+
 					assert ( rl );
-					
+
 					if ( ! sym )
 					{
 						while ( rl && (l != e) )
@@ -789,7 +789,7 @@ namespace libmaus2
 						blockdecsyms += rl;
 						l += rl;
 					}
-					
+
 					while ( (l < e) && (blockdecsyms != base_type::symsperblock) )
 					{
 						++p;
@@ -844,28 +844,28 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			/**
 			 * select block containing rank for symbol
 			 **/
 			uint64_t selectBlock(uint64_t const sym, uint64_t const rank) const
 			{
-				uint64_t left = 0; 
+				uint64_t left = 0;
 				uint64_t right = base_type::numlogicalblocks;
-				
+
 				while ( right-left > 1 )
 				{
 					uint64_t const mid = (left+right)>>1;
 					uint64_t const midlow = getBlockSymLow(mid,sym);
-					
+
 					if ( rank < midlow )
 						right = mid;
 					else
 						left = mid;
 				}
-				
+
 				assert ( right-left == 1 );
-				
+
 				return left;
 			}
 
@@ -876,18 +876,18 @@ namespace libmaus2
 			{
 				uint64_t const selblock = selectBlock(sym,ii);
 				uint64_t const off = base_type::logicalBlockOffset(selblock);
-				uint8_t const * p = base_type::RL.begin()+off+sym*base_type::bytespern;		
+				uint8_t const * p = base_type::RL.begin()+off+sym*base_type::bytespern;
 				uint64_t const cnt = loadValueLE(p);
 				p += base_type::bytespern*(base_type::numsyms-sym);
-				
+
 				uint64_t pos = selblock * base_type::symsperblock;
 				assert ( ii >= cnt );
 				ii -= cnt;
-				
+
 				// now perform linear scan until we reached the correct position
 				while ( ((*p) >> 5 ) != sym )
 					pos += (*(p++)) & 0x1FULL;
-				
+
 				while ( true )
 				{
 					uint64_t const srl = ((*(p++)) & 0x1FULL);
@@ -901,7 +901,7 @@ namespace libmaus2
 						pos += srl;
 						ii -= srl;
 					}
-					
+
 					while ( ((*p) >> 5 ) != sym )
 						pos += (*(p++)) & 0x1FULL;
 				}

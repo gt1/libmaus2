@@ -26,11 +26,11 @@
 namespace libmaus2
 {
 	namespace parallel
-	{		
+	{
 		struct SimpleThreadPoolInterface : public SimpleThreadPoolInterfaceEnqueTermInterface
 		{
 			virtual ~SimpleThreadPoolInterface() {}
-			
+
 			virtual void notifyThreadStart() = 0;
 			virtual void registerDispatcher(uint64_t const id, SimpleThreadWorkPackageDispatcher * D) = 0;
 			virtual void panic(std::exception const &) = 0;
@@ -39,13 +39,13 @@ namespace libmaus2
 
 			virtual SimpleThreadWorkPackage * getPackage() = 0;
 			virtual SimpleThreadWorkPackageDispatcher * getDispatcher(libmaus2::parallel::SimpleThreadWorkPackage * P) = 0;
-			
+
 			#if defined(__linux__)
 			virtual void setTaskId(uint64_t const threadid, uint64_t const taskid) = 0;
 			#endif
-			
+
 			virtual uint64_t getThreadId() = 0;
-			
+
 			virtual void printLog(std::ostream & out = std::cerr) = 0;
 		};
 	}

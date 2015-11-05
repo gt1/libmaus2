@@ -47,7 +47,7 @@ namespace libmaus2
 				data_type * pa;
 				data_type * pc;
 				data_type * pe;
-				
+
 				SubBlock() : pa(0), pc(0), pe(0) {}
 				SubBlock(data_type * const rpa, data_type * const rpc, data_type * const rpe) : pa(rpa), pc(rpc), pe(rpe) {}
 			};
@@ -55,9 +55,9 @@ namespace libmaus2
 			struct HeapOrderAdapter
 			{
 				order_type * order;
-					
+
 				HeapOrderAdapter(order_type * rorder = 0) : order(rorder) {}
-					
+
 				bool operator()(std::pair<uint64_t, data_type> const & A, std::pair<uint64_t, data_type> const & B)
 				{
 					if ( A.second != B.second )
@@ -66,31 +66,31 @@ namespace libmaus2
 						return A.first > B.first;
 				}
 			};
-				
+
 			libmaus2::aio::InputStream::unique_ptr_type PCIS;
-			
+
 			order_ptr_type Porder;
 			order_type & order;
 			HeapOrderAdapter HOA;
 			std::priority_queue< std::pair<uint64_t,data_type>, std::vector< std::pair<uint64_t,data_type> >, HeapOrderAdapter > Q;
-			
+
 			std::vector<uint64_t> blocksizes;
 			uint64_t const backblocksize;
 			libmaus2::autoarray::AutoArray<uint64_t> blockoffsets;
-			
+
 			libmaus2::autoarray::AutoArray<data_type> blocks;
 			libmaus2::autoarray::AutoArray<SubBlock> subblocks;
-			
+
 			bool fillBlock(uint64_t const b)
 			{
 				uint64_t const toread = std::min(blocksizes[b],backblocksize);
-						
+
 				if ( toread )
 				{
 					PCIS->clear();
 					PCIS->seekg(blockoffsets[b] * sizeof(data_type));
 					PCIS->read(reinterpret_cast<char *>(subblocks[b].pa),toread * sizeof(data_type));
-					
+
 					if ( PCIS->gcount() != static_cast<ssize_t>(toread * sizeof(data_type)) )
 					{
 						libmaus2::exception::LibMausException lme;
@@ -98,17 +98,17 @@ namespace libmaus2
 						lme.finish();
 						throw lme;
 					}
-					
+
 					blockoffsets[b] += toread;
 					blocksizes[b] -= toread;
-				
+
 					subblocks[b].pc = subblocks[b].pa;
 					subblocks[b].pe = subblocks[b].pa + toread;
 				}
-				
+
 				return toread;
 			}
-			
+
 			bool getNext(uint64_t const b, data_type & v)
 			{
 				if ( subblocks[b].pc != subblocks[b].pe )
@@ -119,34 +119,34 @@ namespace libmaus2
 				else
 				{
 					bool const ok = fillBlock(b);
-					
+
 					if ( ! ok )
 						return false;
 					else
 					{
 						assert ( subblocks[b].pc != subblocks[b].pe );
 						v = *(subblocks[b].pc++);
-						return true;		
+						return true;
 					}
 				}
 			}
-			
+
 			public:
 			MergingReadBack(std::string const & filename, std::vector<uint64_t> const & rblocksizes, uint64_t const rbackblocksize = 1024)
-			: 
-				PCIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename)), 
-				Porder(new order_type), 
-				order(*Porder), 
-				HOA(&order), 
-				blocksizes(rblocksizes), 
-				backblocksize(rbackblocksize), 
-				blockoffsets(blocksizes.size(),false), 
-				blocks(backblocksize*blocksizes.size(),false), 
+			:
+				PCIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename)),
+				Porder(new order_type),
+				order(*Porder),
+				HOA(&order),
+				blocksizes(rblocksizes),
+				backblocksize(rbackblocksize),
+				blockoffsets(blocksizes.size(),false),
+				blocks(backblocksize*blocksizes.size(),false),
 				subblocks(blocksizes.size())
 			{
 				std::copy(blocksizes.begin(),blocksizes.end(),blockoffsets.begin());
 				blockoffsets.prefixSums();
-				
+
 				for ( uint64_t i = 0; i < blocksizes.size(); ++i )
 				{
 					subblocks[i] = SubBlock(
@@ -154,14 +154,14 @@ namespace libmaus2
 						blocks.begin() + i * backblocksize,
 						blocks.begin() + i * backblocksize
 					);
-					
+
 					data_type v;
 					bool const ok = getNext(i,v);
 					if ( ok )
 						Q.push(std::pair<uint64_t,data_type>(i,v));
 				}
 			}
-			
+
 			bool getNext(data_type & v)
 			{
 				if ( Q.size() )
@@ -169,13 +169,13 @@ namespace libmaus2
 					v = Q.top().second;
 					uint64_t const b = Q.top().first;
 					Q.pop();
-								
+
 					data_type vn;
-					
+
 					bool const ok = getNext(b,vn);
 					if ( ok )
 						Q.push(std::pair<uint64_t,data_type>(b,vn));
-						
+
 					return true;
 				}
 				else

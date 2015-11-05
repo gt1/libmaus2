@@ -51,7 +51,7 @@ namespace libmaus2
 				{
 					return static_cast<int64_t>(coord)-signshift;
 				}
-				
+
 				static int32_t signDecode(uint32_t const coord)
 				{
 					return static_cast<int64_t>(coord)+signshift;
@@ -67,14 +67,14 @@ namespace libmaus2
 				key_type key;
 
 				enum pair_orientation_type { pair_orientation_FF=0, pair_orientation_FR=1, pair_orientation_RF=2, pair_orientation_RR=3 };
-				
+
 				PairHashKeyType() : key() {}
-				
+
 				PairHashKeyType(uint64_t const rkey[key_type::words])
 				{
 					std::copy(&rkey[0],&rkey[key_type::words],&key.A[0]);
 				}
-				
+
 				PairHashKeyType(
 					libmaus2::bambam::BamAlignment const & algn,
 					libmaus2::bambam::BamHeader const & header,
@@ -92,9 +92,9 @@ namespace libmaus2
 					int64_t       thiscoord = algn.getCoordinate();
 					int64_t const otherref = algn.getNextRefID();
 					int64_t       othercoord = algn.getNextCoordinate(Aop);
-					
+
 					pair_orientation_type orientation;
-					
+
 					// compute orientation of end pair
 
 					// this alignment is on the left
@@ -153,7 +153,7 @@ namespace libmaus2
 							}
 						}
 					}
-					
+
 					// rewrite coordinates for FF and RR pairs
 					if ( orientation == pair_orientation_FF || orientation == pair_orientation_RR )
 					{
@@ -183,27 +183,27 @@ namespace libmaus2
 						}
 					}
 
-					// orientation as number		
+					// orientation as number
 					uint64_t uorientation = static_cast<uint64_t>(orientation);
 
-					key.A[0] = 
+					key.A[0] =
 						(static_cast<uint64_t>(signEncode(thisref)) << 32)
 						|
 						(static_cast<uint64_t>(signEncode(thiscoord)) << 0)
 						;
-					key.A[1] = 
+					key.A[1] =
 						(static_cast<uint64_t>(signEncode(otherref)) << 32)
 						|
 						(static_cast<uint64_t>(signEncode(othercoord)) << 0)
 						;
-					key.A[2] = 
+					key.A[2] =
 						(static_cast<uint64_t>(signEncode(algn.getLibraryId(header))) << 32)
 						|
 						(leftflag) | (uorientation << 1)
 						;
 					key.A[3] = tagid; // tag
 				}
-				
+
 				bool operator==(this_type const & o) const
 				{
 					return key == o.key;
@@ -218,7 +218,7 @@ namespace libmaus2
 				{
 					return signDecode(key.A[0] & 0xFFFFFFFFUL);
 				}
-				
+
 				int32_t getMateRefId() const
 				{
 					return signDecode(key.A[1] >> 32);
@@ -279,8 +279,8 @@ namespace libmaus2
 				key_type key;
 
 				enum fragment_orientation_type { fragment_orientation_F=0, fragment_orientation_R = 1 };
-				
-				FragmentHashKeyType() : key() {}	
+
+				FragmentHashKeyType() : key() {}
 
 				FragmentHashKeyType(
 					libmaus2::bambam::BamAlignment const & algn,
@@ -295,13 +295,13 @@ namespace libmaus2
 						int64_t const thiscoord = algn.getAuxAsNumberNC<int32_t>("mc");
 						fragment_orientation_type fragor = algn.isMateReverse() ? fragment_orientation_R : fragment_orientation_F;
 						uint64_t const ufragor = static_cast<uint64_t>(fragor);
-						key.A[0] = 
+						key.A[0] =
 							(static_cast<uint64_t>(signEncode(thisref)) << 32)
 							|
 							(static_cast<uint64_t>(signEncode(thiscoord)) << 0)
 							;
 						key.A[1] = (static_cast<uint64_t>(signEncode(algn.getLibraryId(header))) << 32) | ufragor;
-						key.A[2] = tagid; // tag		
+						key.A[2] = tagid; // tag
 					}
 					else
 					{
@@ -309,7 +309,7 @@ namespace libmaus2
 						int64_t const thiscoord = algn.getCoordinate();
 						fragment_orientation_type fragor = algn.isReverse() ? fragment_orientation_R : fragment_orientation_F;
 						uint64_t const ufragor = static_cast<uint64_t>(fragor);
-						key.A[0] = 
+						key.A[0] =
 							(static_cast<uint64_t>(signEncode(thisref)) << 32)
 							|
 							(static_cast<uint64_t>(signEncode(thiscoord)) << 0)
@@ -374,8 +374,8 @@ namespace libmaus2
 			struct OutputQueueOrder
 			{
 				bool operator()(
-					std::pair<uint64_t,libmaus2::bambam::BamAlignment *> const & A, 
-					std::pair<uint64_t,libmaus2::bambam::BamAlignment *> const & B 
+					std::pair<uint64_t,libmaus2::bambam::BamAlignment *> const & A,
+					std::pair<uint64_t,libmaus2::bambam::BamAlignment *> const & B
 				)
 				{
 					return A.first > B.first;
@@ -391,8 +391,8 @@ namespace libmaus2
 
 				writer_type & wr;
 
-				libmaus2::util::GrowingFreeList<libmaus2::bambam::BamAlignment> & BAFL;	
-				
+				libmaus2::util::GrowingFreeList<libmaus2::bambam::BamAlignment> & BAFL;
+
 				OutputQueueOrder const order;
 
 				std::priority_queue<
@@ -400,7 +400,7 @@ namespace libmaus2
 					std::vector< std::pair<uint64_t,libmaus2::bambam::BamAlignment *> >,
 					OutputQueueOrder
 				> OQ;
-					
+
 				int64_t nextout;
 
 				uint64_t const entriespertmpfile;
@@ -409,22 +409,22 @@ namespace libmaus2
 
 				libmaus2::autoarray::AutoArray<libmaus2::bambam::BamAlignment *> OL;
 				uint64_t olsizefill;
-				
+
 				std::string const tmpfileprefix;
-				
+
 				std::map<uint64_t,uint64_t> tmpFileFill;
-				
+
 				libmaus2::lru::SparseLRUFileBunch reorderfiles;
 
 				OutputQueue(
 					writer_type & rwr,
-					libmaus2::util::GrowingFreeList<libmaus2::bambam::BamAlignment> & rBAFL,	
+					libmaus2::util::GrowingFreeList<libmaus2::bambam::BamAlignment> & rBAFL,
 					std::string const & rtmpfileprefix,
 					std::vector<std::string> const & filtertagvec,
 					uint64_t const rentriespertmpfile = 16*1024
-				) 
-				: wr(rwr), BAFL(rBAFL), order(), OQ(), nextout(0), 
-				  entriespertmpfile(rentriespertmpfile), 
+				)
+				: wr(rwr), BAFL(rBAFL), order(), OQ(), nextout(0),
+				  entriespertmpfile(rentriespertmpfile),
 				  OL(entriespertmpfile,false), olsizefill(0), tmpfileprefix(rtmpfileprefix),
 				  reorderfiles(tmpfileprefix,16)
 				{
@@ -432,7 +432,7 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < filtertagvec.size(); ++i )
 						tagfilter.set(filtertagvec[i]);
 				}
-				
+
 				// flush output list
 				void flushOutputList()
 				{
@@ -443,20 +443,20 @@ namespace libmaus2
 						wr.writeAlignment(*palgn);
 						BAFL.put(palgn);
 					}
-					
+
 					olsizefill = 0;
 				}
-				
+
 				struct BamAlignmentRankComparator
 				{
 					bool operator()(
-						std::pair<uint64_t,libmaus2::bambam::BamAlignment *> const & A, 
+						std::pair<uint64_t,libmaus2::bambam::BamAlignment *> const & A,
 						std::pair<uint64_t,libmaus2::bambam::BamAlignment *> const & B)
 					{
 						return A.first < B.first;
 					}
 				};
-				
+
 				void flushTempFile(uint64_t const tmpfileindex)
 				{
 					libmaus2::aio::InputOutputStream & CIOS = reorderfiles[tmpfileindex];
@@ -464,17 +464,17 @@ namespace libmaus2
 					CIOS.clear();
 					CIOS.seekg(0,std::ios::beg);
 					CIOS.clear();
-					
+
 					uint64_t const n = tmpFileFill.find(tmpfileindex)->second;
 					libmaus2::autoarray::AutoArray< std::pair<uint64_t,libmaus2::bambam::BamAlignment *> > algns(n);
-					
+
 					for ( uint64_t i = 0; i < n; ++i )
 					{
 						algns[i].second = BAFL.get();
 						libmaus2::bambam::BamAlignmentDecoder::readAlignmentGz(CIOS,*(algns[i].second),0,false);
 						algns[i].first = algns[i].second->getRank();
 					}
-					
+
 					std::sort(
 						algns.begin(),
 						algns.begin()+n,
@@ -487,20 +487,20 @@ namespace libmaus2
 						wr.writeAlignment(*(algns[i].second));
 						BAFL.put(algns[i].second);
 					}
-					
+
 					nextout += n;
-					
+
 					reorderfiles.remove(tmpfileindex);
 					tmpFileFill.erase(tmpFileFill.find(tmpfileindex));
-					
+
 					// std::cerr << "[V] flushed block " << tmpfileindex << std::endl;
 				}
-				
+
 				void addTmpFileEntry(libmaus2::bambam::BamAlignment * algn)
 				{
 					addTmpFileEntry(algn, algn->getRank() / entriespertmpfile);
 				}
-				
+
 				void addTmpFileEntry(
 					libmaus2::bambam::BamAlignment * algn, uint64_t const tmpfileindex
 				)
@@ -508,16 +508,16 @@ namespace libmaus2
 					// make sure file does not exist before we start adding entries
 					if ( tmpFileFill.find(tmpfileindex) == tmpFileFill.end() )
 						reorderfiles.remove(tmpfileindex);
-				
+
 					libmaus2::aio::InputOutputStream & CIOS = reorderfiles[tmpfileindex];
 					algn->serialise(CIOS);
 					BAFL.put(algn);
 					tmpFileFill[tmpfileindex]++;
-					
+
 					// std::cerr << "[V] added to " << tmpfileindex << std::endl;
-					
-					while ( 
-						tmpFileFill.size() 
+
+					while (
+						tmpFileFill.size()
 						&&
 						static_cast<uint64_t>(tmpFileFill.begin()->second) == static_cast<uint64_t>(entriespertmpfile)
 						&&
@@ -525,21 +525,21 @@ namespace libmaus2
 					)
 					{
 						flushTempFile(tmpFileFill.begin()->first);
-					}	
+					}
 				}
-				
+
 				void outputListToTmpFiles()
 				{
 					for ( uint64_t i = 0; i < olsizefill; ++i )
 						addTmpFileEntry(OL[i]);
 					nextout -= olsizefill;
-					olsizefill = 0;	
+					olsizefill = 0;
 				}
-				
+
 				// flush reorder heap to output list
 				void flushInMemQueueInternal()
 				{
-					while ( 
+					while (
 						OQ.size() && OQ.top().first == static_cast<uint64_t>(nextout)
 					)
 					{
@@ -548,10 +548,10 @@ namespace libmaus2
 						OL[olsizefill++] = palgn;
 						if ( olsizefill == OL.size() )
 							flushOutputList();
-						
+
 						nextout += 1;
 						OQ.pop();
-					}	
+					}
 				}
 
 				// add alignment
@@ -559,10 +559,10 @@ namespace libmaus2
 				{
 					// tmp file it is assigned to
 					uint64_t tmpfileindex;
-					
+
 					if ( tmpFileFill.size() && tmpFileFill.find(tmpfileindex=(algn->getRank() / entriespertmpfile)) != tmpFileFill.end() )
 					{
-						addTmpFileEntry(algn,tmpfileindex);			
+						addTmpFileEntry(algn,tmpfileindex);
 					}
 					else
 					{
@@ -570,11 +570,11 @@ namespace libmaus2
 						assert ( rank >= 0 );
 						OQ.push(std::pair<uint64_t,libmaus2::bambam::BamAlignment *>(rank,algn));
 						flushInMemQueueInternal();
-									
+
 						if ( OQ.size() >= 32*1024 )
 						{
 							outputListToTmpFiles();
-							
+
 							while ( OQ.size() )
 							{
 								addTmpFileEntry(OQ.top().second);
@@ -583,11 +583,11 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				void flush()
 				{
 					flushInMemQueueInternal();
-					
+
 					if ( OQ.size() )
 					{
 						libmaus2::exception::LibMausException lme;
@@ -595,9 +595,9 @@ namespace libmaus2
 						lme.finish();
 						throw lme;
 					}
-					
+
 					assert ( OQ.size() == 0 );
-									
+
 					outputListToTmpFiles();
 
 					std::vector<uint64_t> PQ;
@@ -615,21 +615,21 @@ namespace libmaus2
 
 				PairHashKeyType const unusedValue;
 				PairHashKeyType const deletedValue;
-				
+
 				static PairHashKeyType computeUnusedValue()
 				{
 					key_type U;
 					key_type Ulow(std::numeric_limits<uint64_t>::max());
-					
+
 					for ( unsigned int i = 0; i < key_type::words; ++i )
 					{
 						U <<= 64;
 						U |= Ulow;
 					}
-					
+
 					PairHashKeyType PHKT;
 					PHKT.key = U;
-					
+
 					return PHKT;
 				}
 
@@ -641,7 +641,7 @@ namespace libmaus2
 					U.key.setBit(key_type::words*64-1, 0);
 					return U;
 				}
-							
+
 				PairHashKeyType const & unused() const
 				{
 					return unusedValue;
@@ -656,13 +656,13 @@ namespace libmaus2
 				{
 					return (v.key & deletedValue.key) == deletedValue.key;
 				}
-				
+
 				bool isInUse(PairHashKeyType const & v) const
 				{
 					return !isFree(v);
 				}
-				
-				PairHashKeySimpleHashConstantsType() 
+
+				PairHashKeySimpleHashConstantsType()
 				: unusedValue(computeUnusedValue()), deletedValue(computeDeletedValue()) {}
 				virtual ~PairHashKeySimpleHashConstantsType() {}
 			};
@@ -670,7 +670,7 @@ namespace libmaus2
 			struct PairHashKeySimpleHashComputeType
 			{
 				typedef PairHashKeyType key_type;
-				
+
 				inline static uint64_t hash(key_type const v)
 				{
 					return libmaus2::hashing::EvaHash::hash642(&v.key.A[0],v.key.words);
@@ -693,21 +693,21 @@ namespace libmaus2
 
 				FragmentHashKeyType const unusedValue;
 				FragmentHashKeyType const deletedValue;
-				
+
 				static FragmentHashKeyType computeUnusedValue()
 				{
 					key_type U;
 					key_type Ulow(std::numeric_limits<uint64_t>::max());
-					
+
 					for ( unsigned int i = 0; i < key_type::words; ++i )
 					{
 						U <<= 64;
 						U |= Ulow;
 					}
-					
+
 					FragmentHashKeyType PHKT;
 					PHKT.key = U;
-					
+
 					return PHKT;
 				}
 
@@ -719,7 +719,7 @@ namespace libmaus2
 					U.key.setBit(key_type::words*64-1, 0);
 					return U;
 				}
-							
+
 				FragmentHashKeyType const & unused() const
 				{
 					return unusedValue;
@@ -734,13 +734,13 @@ namespace libmaus2
 				{
 					return (v.key & deletedValue.key) == deletedValue.key;
 				}
-				
+
 				bool isInUse(FragmentHashKeyType const & v) const
 				{
 					return !isFree(v);
 				}
-				
-				FragmentHashKeySimpleHashConstantsType() 
+
+				FragmentHashKeySimpleHashConstantsType()
 				: unusedValue(computeUnusedValue()), deletedValue(computeDeletedValue()) {}
 				virtual ~FragmentHashKeySimpleHashConstantsType() {}
 			};
@@ -769,23 +769,23 @@ namespace libmaus2
 			{
 				OpticalInfoListNode * next;
 
-				uint16_t readgroup;	
+				uint16_t readgroup;
 				uint16_t tile;
 				uint32_t x;
 				uint32_t y;
-				
+
 				OpticalInfoListNode()
 				: next(0), readgroup(0), tile(0), x(0), y(0)
 				{
-				
+
 				}
-				
+
 				OpticalInfoListNode(OpticalInfoListNode * rnext, uint16_t rreadgroup, uint16_t rtile, uint32_t rx, uint32_t ry)
 				: next(rnext), readgroup(rreadgroup), tile(rtile), x(rx), y(ry)
 				{
-				
+
 				}
-				
+
 				bool operator<(OpticalInfoListNode const & o) const
 				{
 					if ( readgroup != o.readgroup )
@@ -804,7 +804,7 @@ namespace libmaus2
 				bool operator()(OpticalInfoListNode const * A, OpticalInfoListNode const * B) const
 				{
 					return A->operator<(*B);
-				}	
+				}
 			};
 
 			struct OpticalExternalInfoElement
@@ -814,13 +814,13 @@ namespace libmaus2
 				uint16_t tile;
 				uint32_t x;
 				uint32_t y;
-				
+
 				OpticalExternalInfoElement()
 				: readgroup(0), tile(0), x(0), y(0)
 				{
 					std::fill(&key[0],&key[PairHashKeyType::key_type::words],0);
 				}
-				
+
 				OpticalExternalInfoElement(PairHashKeyType const & HK, uint16_t const rreadgroup, uint16_t const rtile, uint32_t const rx, uint32_t const ry)
 				: readgroup(rreadgroup), tile(rtile), x(rx), y(ry)
 				{
@@ -834,13 +834,13 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < PairHashKeyType::key_type::words; ++i )
 						key[i] = HK.key.A[i];
 				}
-				
+
 				bool operator<(OpticalExternalInfoElement const & o) const
 				{
 					for ( uint64_t i = 0; i < PairHashKeyType::key_type::words; ++i )
 						if ( key[i] != o.key[i] )
 							return key[i] < o.key[i];
-					
+
 					if ( readgroup != o.readgroup )
 						return readgroup < o.readgroup;
 					else if ( tile != o.tile )
@@ -850,13 +850,13 @@ namespace libmaus2
 					else
 						return y < o.y;
 				}
-				
+
 				bool operator==(OpticalExternalInfoElement const & o) const
 				{
 					for ( uint64_t i = 0; i < PairHashKeyType::key_type::words; ++i )
 						if ( key[i] != o.key[i] )
 							return false;
-					
+
 					if ( readgroup != o.readgroup )
 						return false;
 					else if ( tile != o.tile )
@@ -866,7 +866,7 @@ namespace libmaus2
 					else
 						return y == o.y;
 				}
-				
+
 				bool operator!=(OpticalExternalInfoElement const & o) const
 				{
 					return ! operator==(o);
@@ -877,10 +877,10 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < PairHashKeyType::key_type::words; ++i )
 						if ( key[i] != o.key[i] )
 							return false;
-					
+
 					if ( readgroup != o.readgroup )
 						return false;
-					else 
+					else
 						return tile == o.tile;
 				}
 			};
@@ -889,9 +889,9 @@ namespace libmaus2
 			{
 				OpticalInfoListNode * optlist;
 				bool expunged;
-				
+
 				OpticalInfoList() : optlist(0), expunged(false) {}
-				
+
 				static void markYLevel(
 					OpticalInfoListNode ** const b,
 					OpticalInfoListNode ** l,
@@ -910,10 +910,10 @@ namespace libmaus2
 							<= optminpixeldif
 						)
 						{
-							B[c-b] = true;			
+							B[c-b] = true;
 						}
 				}
-				
+
 				static void markXLevel(
 					OpticalInfoListNode ** const b,
 					OpticalInfoListNode ** l,
@@ -925,10 +925,10 @@ namespace libmaus2
 					for ( ; l != t; ++l )
 					{
 						OpticalInfoListNode ** h = l+1;
-						
+
 						while ( (h != t) && ((*h)->x-(*l)->x <= optminpixeldif) )
 							++h;
-							
+
 						markYLevel(b,l,h,B,optminpixeldif);
 					}
 				}
@@ -944,12 +944,12 @@ namespace libmaus2
 					while ( l != t )
 					{
 						OpticalInfoListNode ** h = l+1;
-						
+
 						while ( h != t && (*h)->tile == (*l)->tile )
 							++h;
-						
+
 						markXLevel(b,l,h,B,optminpixeldif);
-							
+
 						l = h;
 					}
 				}
@@ -962,23 +962,23 @@ namespace libmaus2
 				)
 				{
 					OpticalInfoListNode ** const b = l;
-				
+
 					while ( l != t )
 					{
 						OpticalInfoListNode ** h = l+1;
-						
+
 						while ( h != t && (*h)->readgroup == (*l)->readgroup )
 							++h;
 
 						markTileLevel(b,l,h,B,optminpixeldif);
-							
+
 						l = h;
-					}	
+					}
 				}
-				
+
 				uint64_t countOpticalDuplicates(
-					libmaus2::autoarray::AutoArray<OpticalInfoListNode *> & A, 
-					libmaus2::autoarray::AutoArray<bool> & B, 
+					libmaus2::autoarray::AutoArray<OpticalInfoListNode *> & A,
+					libmaus2::autoarray::AutoArray<bool> & B,
 					unsigned int const optminpixeldif = 100
 				)
 				{
@@ -997,16 +997,16 @@ namespace libmaus2
 						n = 0;
 						for ( OpticalInfoListNode * cur = optlist; cur; cur = cur->next )
 							A[n++] = cur;
-							
+
 						std::sort ( A.begin(), A.begin()+n, OpticalInfoListNodeComparator() );
 						std::fill ( B.begin(), B.begin()+n, false);
-						
+
 						markReadGroupLevel(A.begin(),A.begin()+n,B.begin(),optminpixeldif);
-						
+
 						for ( uint64_t i = 0; i < n; ++i )
 							opt += B[i];
 					}
-						
+
 					return opt;
 				}
 
@@ -1026,7 +1026,7 @@ namespace libmaus2
 						{
 							int64_t const rg = algn.getReadGroupId(header);
 							OpticalInfoListNode const newnode(optlist,rg+1,tile,x,y);
-							
+
 							if ( expunged || OILNFL.empty() )
 							{
 								if ( optlist )
@@ -1038,7 +1038,7 @@ namespace libmaus2
 									}
 									deleteOpticalInfo(OILNFL);
 								}
-								
+
 								expunged = true;
 
 								OpticalExternalInfoElement E(HK,newnode);
@@ -1050,7 +1050,7 @@ namespace libmaus2
 								*node = newnode;
 								optlist = node;
 							}
-						} 
+						}
 					}
 				}
 
@@ -1058,7 +1058,7 @@ namespace libmaus2
 				{
 					OpticalInfoListNode * node = optlist;
 					uint64_t n = 0;
-					
+
 					while ( node )
 					{
 						OpticalInfoListNode * next = node->next;
@@ -1066,22 +1066,22 @@ namespace libmaus2
 						node = next;
 						++n;
 					}
-					
+
 					optlist = 0;
-							
-					return n;			
+
+					return n;
 				}
 			};
 
 			static std::ostream & printOpt(std::ostream & out, PairHashKeyType const & HK, uint64_t const opt)
 			{
-				bool const isleft = 
+				bool const isleft =
 					(HK.getRefId()  < HK.getMateRefId()) ||
 					(HK.getRefId() == HK.getMateRefId() && HK.getCoord() < HK.getMateCoord())
 				;
-				
+
 				if ( isleft )
-					out << "\nopt " 
+					out << "\nopt "
 						<< HK.getLibrary()+1 << " "
 						<< HK.getRefId()+1 << " "
 						<< HK.getCoord()+1 << " "
@@ -1090,7 +1090,7 @@ namespace libmaus2
 						<< opt
 						<< std::endl;
 				else
-					out << "\nopt " 
+					out << "\nopt "
 						<< HK.getLibrary()+1 << " "
 						<< HK.getMateRefId()+1 << " "
 						<< HK.getMateCoord()+1 << " "
@@ -1104,12 +1104,12 @@ namespace libmaus2
 		};
 
 		std::ostream & operator<<(
-			std::ostream & out, 
+			std::ostream & out,
 			BamStreamingMarkDuplicatesSupport::PairHashKeyType::pair_orientation_type const & ori
 		);
 		std::ostream & operator<<(std::ostream & ostr, BamStreamingMarkDuplicatesSupport::PairHashKeyType const & H);
 		std::ostream & operator<<(
-			std::ostream & out, 
+			std::ostream & out,
 			BamStreamingMarkDuplicatesSupport::FragmentHashKeyType::fragment_orientation_type const & ori
 		);
 		std::ostream & operator<<(std::ostream & ostr, BamStreamingMarkDuplicatesSupport::FragmentHashKeyType const & H);

@@ -37,7 +37,7 @@ namespace libmaus2
 			unsigned int const expo;
 			//! terminator buffer
 			::libmaus2::autoarray::AutoArray<uint8_t> termbuf;
-		
+
 			public:
 			/**
 			 * construct
@@ -48,15 +48,15 @@ namespace libmaus2
 			 * @param rexpo terminator exponent (number of symbols per terminator sequence)
 			 **/
 			TerminatedOutputBuffer84Bit(
-				std::string const & filename, 
-				uint64_t const bufsize, 
-				uint64_t const rbase, 
+				std::string const & filename,
+				uint64_t const bufsize,
+				uint64_t const rbase,
 				unsigned int const rexpo
 			) : OutputBuffer84Bit(filename,bufsize), base(rbase), expo(rexpo), termbuf(expo)
 			{
-				
+
 			}
-		
+
 			/**
 			 * put shift symbol c
 			 *
@@ -66,7 +66,7 @@ namespace libmaus2
 			{
 				put( c + base + 1 );
 			}
-		
+
 			/**
 			  * put terminator num
 			  *

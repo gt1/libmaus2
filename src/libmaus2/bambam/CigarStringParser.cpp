@@ -25,26 +25,26 @@
 std::vector< libmaus2::bambam::cigar_operation > libmaus2::bambam::CigarStringParser::parseCigarString(std::string cigar)
 {
 	std::vector<cigar_operation> ops;
-	
+
 	while ( cigar.size() )
 	{
 		assert ( isdigit(cigar[0]) );
-		
+
 		uint64_t numlen = 0;
 		while ( numlen < cigar.size() && isdigit(cigar[numlen]) )
 			numlen++;
-			
+
 		std::string const nums = cigar.substr(0,numlen);
 		std::istringstream istr(nums);
 		uint64_t num = 0;
 		istr >> num;
-		
+
 		cigar = cigar.substr(numlen);
-		
+
 		uint32_t op = 0;
-	
+
 		assert ( cigar.size() );
-				
+
 		switch ( cigar[0] )
 		{
 			case 'M':
@@ -78,12 +78,12 @@ std::vector< libmaus2::bambam::cigar_operation > libmaus2::bambam::CigarStringPa
 				op = 9;
 				break;
 		}
-		
+
 		cigar = cigar.substr(1);
-		
+
 		ops.push_back(cigar_operation(op,num));
 	}
-	
+
 	return ops;
 }
 

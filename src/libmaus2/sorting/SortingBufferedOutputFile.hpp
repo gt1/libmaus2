@@ -35,28 +35,28 @@ namespace libmaus2
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::sorting::MergingReadBack<data_type,order_type> merger_type;
 			typedef typename libmaus2::sorting::MergingReadBack<data_type,order_type>::unique_ptr_type merger_ptr_type;
-			
+
 			std::string const filename;
 			libmaus2::aio::OutputStreamInstance COS;
 			libmaus2::aio::SortingBufferedOutput<data_type,order_type> SBO;
-			
+
 			SortingBufferedOutputFile(std::string const & rfilename, uint64_t const bufsize = 1024ull)
 			: filename(rfilename), COS(filename), SBO(COS,bufsize)
 			{
 			}
-			
+
 			void put(data_type v)
 			{
 				SBO.put(v);
 			}
-			
+
 			merger_ptr_type getMerger(uint64_t const backblocksize = 1024ull)
 			{
 				SBO.flush();
 				typename libmaus2::sorting::MergingReadBack<data_type,order_type>::unique_ptr_type ptr(
 					new libmaus2::sorting::MergingReadBack<data_type,order_type>(filename,SBO.getBlockSizes(),backblocksize)
 				);
-				
+
 				return UNIQUE_PTR_MOVE(ptr);
 			}
 		};

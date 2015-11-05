@@ -30,7 +30,7 @@
 #include <libmaus2/dazzler/align/AlignmentWriter.hpp>
 #include <libmaus2/dazzler/align/OverlapMetaIteratorGet.hpp>
 #include <queue>
-		
+
 namespace libmaus2
 {
 	namespace dazzler
@@ -46,37 +46,37 @@ namespace libmaus2
 				uint64_t f;
 				std::streampos p;
 				std::vector< std::pair<uint64_t,uint64_t> > blocks;
-				
+
 				SortingOverlapOutputBuffer(std::string const & rfilename, bool const rsmall, uint64_t const rn)
 				: filename(rfilename), small(rsmall), Pout(new libmaus2::aio::OutputStreamInstance(filename)), B(rn), f(0), p(0)
 				{
-				
+
 				}
-				
+
 				void flush()
 				{
 					std::streampos const pos = Pout->tellp();
 					assert ( pos >= 0 );
 					assert ( pos == p );
-					
+
 					if ( f )
 					{
 						std::sort(B.begin(),B.begin()+f);
-						
+
 						for ( uint64_t i = 1; i < f; ++i )
 						{
 							bool const ok = !(B[i] < B[i-1]);
 							assert ( ok );
 						}
-					
+
 						for ( uint64_t i = 0; i < f; ++i )
 							p += B[i].serialiseWithPath(*Pout, small);
-							
+
 						blocks.push_back(std::pair<uint64_t,uint64_t>(pos,f));
 						f = 0;
 					}
 				}
-				
+
 				void put(libmaus2::dazzler::align::Overlap const & OVL)
 				{
 					assert ( f < B.size() );
@@ -84,7 +84,7 @@ namespace libmaus2
 					if ( f == B.size() )
 						flush();
 				}
-				
+
 				SortingOverlapOutputBufferMerger::unique_ptr_type getMerger()
 				{
 					flush();
@@ -92,18 +92,18 @@ namespace libmaus2
 					SortingOverlapOutputBufferMerger::unique_ptr_type tptr(new SortingOverlapOutputBufferMerger(filename,small,blocks));
 					return UNIQUE_PTR_MOVE(tptr);
 				}
-				
+
 				void mergeToFile(std::ostream & out, std::iostream & indexstream, int64_t const tspace)
 				{
 					SortingOverlapOutputBufferMerger::unique_ptr_type merger(getMerger());
-					
-					libmaus2::dazzler::align::AlignmentWriter writer(out,indexstream,tspace);					
+
+					libmaus2::dazzler::align::AlignmentWriter writer(out,indexstream,tspace);
 					libmaus2::dazzler::align::Overlap NOVL;
 					uint64_t novl = 0;
-					
+
 					libmaus2::dazzler::align::Overlap OVLprev;
 					bool haveprev = false;
-					
+
 					while ( merger->getNext(NOVL) )
 					{
 						if ( haveprev )
@@ -111,10 +111,10 @@ namespace libmaus2
 							bool const ok = !(NOVL < OVLprev);
 							assert ( ok );
 						}
-					
+
 						writer.put(NOVL);
 						novl += 1;
-						
+
 						haveprev = true;
 						OVLprev = NOVL;
 					}
@@ -127,27 +127,27 @@ namespace libmaus2
 					libmaus2::aio::InputOutputStream::unique_ptr_type Pindexstream(libmaus2::aio::InputOutputStreamFactoryContainer::constructUnique(indexfilename,std::ios::in|std::ios::out|std::ios::trunc|std::ios::binary));
 					mergeToFile(OSI,*Pindexstream,tspace);
 				}
-				
+
 				static void sortFile(std::string const & infilename, std::string const & outfilename, uint64_t const n = 64*1024, std::string tmpfilename = std::string())
 				{
 					if ( ! tmpfilename.size() )
 						tmpfilename = outfilename + ".S";
-					
+
 					libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfilename);
 					libmaus2::aio::InputStreamInstance::unique_ptr_type PISI(new libmaus2::aio::InputStreamInstance(infilename));
 					libmaus2::dazzler::align::AlignmentFile algnfile(*PISI);
 					libmaus2::dazzler::align::Overlap OVL;
 
 					SortingOverlapOutputBuffer SOOB(tmpfilename,algnfile.small,n);
-										
+
 					while ( algnfile.getNextOverlap(*PISI,OVL) )
 						SOOB.put(OVL);
 
 					SOOB.mergeToFile(outfilename,algnfile.tspace);
-					
+
 					libmaus2::aio::FileRemoval::removeFile(tmpfilename);
 				}
-				
+
 				static std::vector<std::string> mergeFiles(std::vector<std::string> const & infilenames, std::string const & outfilenameprefix, uint64_t const numthreads, bool const regtmp = false)
 				{
 					OverlapMetaIteratorGet G(infilenames);
@@ -487,9 +487,9 @@ namespace libmaus2
 				static void removeFileAndIndex(std::string const infilename)
 				{
 					libmaus2::aio::FileRemoval::removeFile(infilename);
-					libmaus2::aio::FileRemoval::removeFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(infilename));					
+					libmaus2::aio::FileRemoval::removeFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(infilename));
 				}
-				
+
 				static void removeFileAndIndex(std::vector<std::string> const & infilenames)
 				{
 					for ( uint64_t i = 0; i < infilenames.size(); ++i )
@@ -530,11 +530,11 @@ namespace libmaus2
 						AISI[i] = UNIQUE_PTR_MOVE(tptr);
 						libmaus2::dazzler::align::AlignmentFile::unique_ptr_type aptr(new libmaus2::dazzler::align::AlignmentFile(*(AISI[i])));
 						AF[i] = UNIQUE_PTR_MOVE(aptr);
-					
+
 						if ( AF[i]->getNextOverlap(*(AISI[i]),OVL) )
 							Q.push(std::pair<uint64_t,libmaus2::dazzler::align::Overlap>(i,OVL));
 					}
-					
+
 					int64_t tspace = -1;
 					uint64_t novl = 0;
 					for ( uint64_t i = 0; i < AF.size(); ++i )
@@ -543,31 +543,31 @@ namespace libmaus2
 							tspace = AF[i]->tspace;
 						else
 							assert ( tspace == AF[i]->tspace );
-							
+
 						novl += AF[i]->novl;
 					}
-					
-					libmaus2::dazzler::align::AlignmentWriter AW(outfilename,(tspace < 0) ? 0 : tspace,true /* create index */,novl);	
-					
+
+					libmaus2::dazzler::align::AlignmentWriter AW(outfilename,(tspace < 0) ? 0 : tspace,true /* create index */,novl);
+
 					bool haveprev = false;
 					libmaus2::dazzler::align::Overlap OVLprev;
-					
+
 					while ( Q.size() )
 					{
 						std::pair<uint64_t,libmaus2::dazzler::align::Overlap> const P = Q.top();
 						Q.pop();
-						
+
 						if ( haveprev )
 						{
 							bool const ok = !(P.second < OVLprev);
 							assert ( ok );
 						}
-					
-						AW.put(P.second);	
+
+						AW.put(P.second);
 
 						if ( AF[P.first]->getNextOverlap(*(AISI[P.first]),OVL) )
 							Q.push(std::pair<uint64_t,libmaus2::dazzler::align::Overlap>(P.first,OVL));
-							
+
 						haveprev = true;
 						OVLprev = P.second;
 					}

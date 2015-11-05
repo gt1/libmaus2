@@ -29,13 +29,13 @@ namespace libmaus2
 		struct FMIIntervalComparator
 		{
 			std::vector < libmaus2::fm::FactorMatchInfo > const & FMI;
-			
+
 			FMIIntervalComparator(std::vector < libmaus2::fm::FactorMatchInfo > const & rFMI)
 			: FMI(rFMI)
 			{
-			
+
 			}
-			
+
 			uint64_t getLengthSum(std::pair<uint64_t,uint64_t> const & A) const
 			{
 				uint64_t len = 0;
@@ -43,7 +43,7 @@ namespace libmaus2
 					len += FMI[i].len;
 				return len;
 			}
-			
+
 			bool operator()(std::pair<uint64_t,uint64_t> const & A, std::pair<uint64_t,uint64_t> const & B) const
 			{
 				return getLengthSum(A) > getLengthSum(B);

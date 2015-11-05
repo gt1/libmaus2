@@ -31,7 +31,7 @@ namespace libmaus2
 			struct TandemVectorPartContainer : public libmaus2::dazzler::db::PartTrackContainer
 			{
 				TandemVectorPartContainer(libmaus2::dazzler::db::DatabaseFile const & DB, int64_t const blockid = -1)
-				: PartTrackContainer(DB,"tandem",blockid) 
+				: PartTrackContainer(DB,"tandem",blockid)
 				{
 				}
 
@@ -41,7 +41,7 @@ namespace libmaus2
 					uint64_t const blockid = DB.getBlockForIdTrimmed(readid);
 					assert ( blockid >= 1 );
 					assert ( blockid <= DB.numblocks );
-					
+
 					if ( libmaus2::dazzler::db::PartTrackContainer::haveBlock(blockid) )
 					{
 						libmaus2::dazzler::db::Track const & track = libmaus2::dazzler::db::PartTrackContainer::getTrack(blockid);

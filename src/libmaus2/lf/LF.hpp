@@ -50,19 +50,19 @@ namespace libmaus2
 		struct LF : LFBase< ::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, uint64_t > >
 		{
 			typedef LFBase< ::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, uint64_t > > base_type;
-			
+
 			typedef base_type::wt_type wt_type;
 			typedef base_type::wt_ptr_type wt_ptr_type;
 			typedef LF this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			LF( std::istream & istr ) : base_type ( istr ) {}
 			LF( std::istream & istr, uint64_t & s ) : base_type(istr,s) {}
 			LF( wt_ptr_type & rW ) : base_type(rW) {}
 			LF( bitio::CompactArray::unique_ptr_type & ABWT ) : base_type(ABWT) {}
 			LF( bitio::CompactArray::unique_ptr_type & ABWT, ::libmaus2::util::shared_ptr < huffman::HuffmanTreeNode >::type ahnode )
-			: base_type(ABWT,ahnode) {}			
+			: base_type(ABWT,ahnode) {}
 		};
 	}
 }

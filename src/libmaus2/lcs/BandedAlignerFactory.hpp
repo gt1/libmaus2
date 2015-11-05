@@ -34,11 +34,11 @@ namespace libmaus2
 				libmaus2_lcs_BandedAlignerFactory_y256_8,
 				libmaus2_lcs_BandedAlignerFactory_y256_16
 			};
-			
+
 			static libmaus2::lcs::BandedAligner::unique_ptr_type construct(aligner_type const type);
 			static std::set<aligner_type> getSupportedAligners();
 		};
-		
+
 		std::ostream & operator<<(std::ostream & out, BandedAlignerFactory::aligner_type const & A);
 	}
 }

@@ -33,13 +33,13 @@ namespace libmaus2
 		struct PosixFileDescriptor
 		{
 			int fd;
-			
+
 			PosixFileDescriptor();
 			PosixFileDescriptor(int rfd);
-			
+
 			~PosixFileDescriptor();
 
-			ssize_t read(void * buf, size_t cnt);			
+			ssize_t read(void * buf, size_t cnt);
 			ssize_t write(void const * buf, size_t cnt);
 		};
 	}

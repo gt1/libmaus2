@@ -64,7 +64,7 @@ namespace libmaus2
 				uint64_t pack;
 				// number of packets
 				uint64_t numpacks;
-				
+
 				iterator in;
 				iterator out;
 
@@ -74,7 +74,7 @@ namespace libmaus2
 				  num_threads(o.num_threads), copyback(o.copyback), n(o.n),
 				  pack(o.pack), numpacks(o.numpacks), in(o.in), out(o.out)
 				{
-				
+
 				}
 				ParallelStableSortContextBase(
 					iterator raa,
@@ -85,26 +85,26 @@ namespace libmaus2
 					uint64_t rnum_threads,
 					bool rcopyback
 				)
-				: 
+				:
 					// input
-					aa(raa), ae(rae), 
+					aa(raa), ae(rae),
 					// temp
-					ba(rba), be(rbe), 
+					ba(rba), be(rbe),
 					// comparator
-					order(&rorder), 
+					order(&rorder),
 					// number of threads
-					num_threads(rnum_threads), 
+					num_threads(rnum_threads),
 					// copy back requested?
 					copyback(rcopyback),
 					// number of input elements
-					n(ae-aa), 
+					n(ae-aa),
 					// packet size
-					pack((n + num_threads - 1)/num_threads), 
+					pack((n + num_threads - 1)/num_threads),
 					// number of packets
 					numpacks( pack ? ((n+pack-1)/pack) : 0),
 					in(aa), out(ba)
 				{
-					
+
 				}
 			};
 
@@ -116,7 +116,7 @@ namespace libmaus2
 				virtual ~SortRequest() {}
 				virtual void dispatch() = 0;
 			};
-			
+
 			/**
 			 * merge request
 			 **/
@@ -129,7 +129,7 @@ namespace libmaus2
 				iterator bb;
 				iterator oa;
 				order_type const * order;
-				
+
 				MergeRequest() : aa(), ab(), ba(), bb(), oa(), order(0) {}
 				MergeRequest(
 					iterator raa,
@@ -139,7 +139,7 @@ namespace libmaus2
 					iterator roa,
 					order_type const * rorder
 				) : aa(raa), ab(rab), ba(rba), bb(rbb), oa(roa), order(rorder) {}
-				
+
 				void dispatch()
 				{
 					if ( ba != bb )
@@ -148,7 +148,7 @@ namespace libmaus2
 						std::copy(aa,ab,oa);
 				}
 			};
-		
+
 			/**
 			 * create multi threaded plan for merging
 			 **/
@@ -164,7 +164,7 @@ namespace libmaus2
 				std::vector<MergeRequest<iterator,order_type> > & requests
 			)
 			{
-				std::vector< std::pair<uint64_t,uint64_t> > const S = 
+				std::vector< std::pair<uint64_t,uint64_t> > const S =
 					mergeSplitVector(aa,ae,ba,be,order,num_threads);
 
 				for ( int64_t i = 0; i < static_cast<int64_t>(num_threads); ++i )
@@ -198,7 +198,7 @@ namespace libmaus2
 				#endif
 			)
 			{
-				std::vector< std::pair<uint64_t,uint64_t> > const S = 
+				std::vector< std::pair<uint64_t,uint64_t> > const S =
 					mergeSplitVector(aa,ae,ba,be,order,num_threads);
 
 				#if defined(_OPENMP)
@@ -215,7 +215,7 @@ namespace libmaus2
 						order);
 				}
 			}
-			
+
 			/**
 			 * one level of merging
 			 **/
@@ -225,17 +225,17 @@ namespace libmaus2
 				ParallelStableSortContextBase<iterator,order_type> context;
 				std::vector<MergeRequest<iterator,order_type> > mergeRequests;
 				libmaus2::parallel::LockedCounter requestsFinished;
-				
+
 				MergeLevel<iterator,order_type> * next;
-				
+
 				MergeLevel() : requestsFinished(0), next(0) {}
 				MergeLevel(
 					ParallelStableSortContextBase<iterator,order_type> const & rcontext
 				) : context(rcontext), requestsFinished(0), next(0)
 				{
-				
+
 				}
-			
+
 				/**
 				 * create plan for merging
 				 **/
@@ -243,12 +243,12 @@ namespace libmaus2
 				{
 					uint64_t const mergesize = context.pack<<1;
 					uint64_t const mergesteps = (context.n + mergesize-1)/mergesize;
-					
+
 					for ( uint64_t t = 0; t < mergesteps; ++t )
 					{
 						uint64_t const low =  std::min(t*mergesize  ,context.n);
 						uint64_t const high = std::min(low+mergesize,context.n);
-						
+
 						// merge
 						if ( high-low > context.pack )
 						{
@@ -264,7 +264,7 @@ namespace libmaus2
 								*(context.order),
 								context.num_threads,
 								mergeRequests
-							);						
+							);
 						}
 						else
 						{
@@ -280,7 +280,7 @@ namespace libmaus2
 					}
 
 				}
-				
+
 				/**
 				 * execute plan for merging (parallel through openmp)
 				 **/
@@ -291,7 +291,7 @@ namespace libmaus2
 					#pragma omp parallel for num_threads(num_threads)
 					#endif
 					for ( int64_t t = 0; t < static_cast<int64_t>(mergeRequests.size()); ++t )
-						mergeRequests[t].dispatch();				
+						mergeRequests[t].dispatch();
 				}
 			};
 
@@ -304,15 +304,15 @@ namespace libmaus2
 				typedef MergeLevel<iterator,order_type> level_type;
 				std::vector<level_type> levels;
 				libmaus2::parallel::SynchronousCounter<uint64_t> levelsFinished;
-				
+
 				void setNextLevelPointers()
 				{
 					for ( uint64_t i = 1; i < levels.size(); ++i )
-						levels[i-1].next = &(levels[i]);				
+						levels[i-1].next = &(levels[i]);
 				}
-				
+
 				MergeLevels() {}
-				MergeLevels(ParallelStableSortContextBase<iterator,order_type> & context) 
+				MergeLevels(ParallelStableSortContextBase<iterator,order_type> & context)
 				{
 					while ( context.pack < context.n )
 					{
@@ -320,16 +320,16 @@ namespace libmaus2
 						std::swap(context.in,context.out);
 						context.pack <<= 1;
 					}
-				
+
 					setNextLevelPointers();
 				}
-				
+
 				void dispatch()
 				{
 					for ( level_type * cur = levels.size() ? &levels[0] : 0; cur; cur = cur->next )
 					{
 						cur->dispatch();
-						cur->subdispatch();					
+						cur->subdispatch();
 					}
 				}
 			};
@@ -340,26 +340,26 @@ namespace libmaus2
 				iterator low;
 				iterator high;
 				order_type const * order;
-				
+
 				BaseSortRequest() : low(), high(), order(0) {}
 				BaseSortRequest(iterator rlow, iterator rhigh, order_type const & rorder)
 				: low(rlow), high(rhigh), order(&rorder) {}
-				
+
 				void dispatch()
 				{
-					std::stable_sort(low, high, *order);				
+					std::stable_sort(low, high, *order);
 				}
 			};
-						
+
 			template<typename iterator, typename order_type>
 			struct BaseSortRequestSet
 			{
 				typedef BaseSortRequest<iterator,order_type> request_type;
-				
+
 				ParallelStableSortContextBase<iterator,order_type> * context;
 				std::vector<request_type> baseSortRequests;
 				libmaus2::parallel::LockedCounter requestsFinished;
-				
+
 				BaseSortRequestSet() : requestsFinished(0) {}
 				BaseSortRequestSet(ParallelStableSortContextBase<iterator,order_type> & rcontext)
 				: context(&rcontext), baseSortRequests(context->numpacks), requestsFinished(0)
@@ -371,7 +371,7 @@ namespace libmaus2
 						baseSortRequests[t] = request_type(
 							context->aa + low, context->aa + high, *context->order
 						);
-					}	
+					}
 				}
 
 				void dispatch()
@@ -408,12 +408,12 @@ namespace libmaus2
 				iterator copyBackFrom;
 				iterator copyBackTo;
 				uint64_t copyBackN;
-				
+
 				ParallelSortControlState() : state(sort_state_base_sort), level(0), needCopyBack(false), copyBackFrom(iterator()), copyBackTo(iterator()), copyBackN(0)
 				{
-				
+
 				}
-				
+
 				ParallelSortControlState(
 					BaseSortRequestSet<iterator,order_type> * rbasesortreqs,
 					level_type * rlevel,
@@ -421,11 +421,11 @@ namespace libmaus2
 					iterator rcopyBackFrom,
 					iterator rcopyBackTo,
 					uint64_t rcopyBackN
-				) : state(sort_state_base_sort), basesortreqs(rbasesortreqs), level(rlevel), needCopyBack(rneedCopyBack), copyBackFrom(rcopyBackFrom), copyBackTo(rcopyBackTo), copyBackN(rcopyBackN) 
+				) : state(sort_state_base_sort), basesortreqs(rbasesortreqs), level(rlevel), needCopyBack(rneedCopyBack), copyBackFrom(rcopyBackFrom), copyBackTo(rcopyBackTo), copyBackN(rcopyBackN)
 				{
-				
+
 				}
-				
+
 				bool serialStep()
 				{
 					switch ( state )
@@ -433,12 +433,12 @@ namespace libmaus2
 						case sort_state_base_sort:
 							for ( uint64_t i = 0; i < basesortreqs->baseSortRequests.size(); ++i )
 								basesortreqs->baseSortRequests[i].dispatch();
-							
+
 							if ( level )
 								state = sort_state_plan_merge;
 							else
-								state = sort_state_copy_back;	
-							
+								state = sort_state_copy_back;
+
 							break;
 						case sort_state_plan_merge:
 							level->dispatch();
@@ -448,31 +448,31 @@ namespace libmaus2
 						case sort_state_execute_merge:
 							for ( uint64_t i = 0; i < level->mergeRequests.size(); ++i )
 								level->mergeRequests[i].dispatch();
-							
+
 							level = level->next;
-							
+
 							if ( level )
 								state = sort_state_plan_merge;
 							else
 								state = sort_state_copy_back;
-							
+
 							break;
 						case sort_state_copy_back:
-						
+
 							if ( needCopyBack )
-								std::copy(copyBackFrom,copyBackFrom+copyBackN,copyBackTo);			
-						
+								std::copy(copyBackFrom,copyBackFrom+copyBackN,copyBackTo);
+
 							state = sort_state_done;
-						
+
 							break;
 						case sort_state_done:
 							break;
 					}
-					
+
 					return state == sort_state_done;
 				}
 			};
-						
+
 			template<typename _iterator, typename _order_type>
 			struct ParallelSortControl
 			{
@@ -481,13 +481,13 @@ namespace libmaus2
 				typedef ParallelSortControl<iterator,order_type> this_type;
 				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				ParallelStableSortContextBase<iterator,order_type> context;
 				BaseSortRequestSet<iterator,order_type> baseSortRequests;
 				MergeLevels<iterator,order_type> mergeLevels;
 				bool const needCopyBack;
 
-				ParallelSortControl(		
+				ParallelSortControl(
 					iterator const raa,
 					iterator const rae,
 					iterator const rba,
@@ -521,7 +521,7 @@ namespace libmaus2
 						context.n
 					);
 				}
-				
+
 				void dispatch()
 				{
 					baseSortRequests.dispatch();
@@ -553,7 +553,7 @@ namespace libmaus2
 				bool const rcopyback = true
 			)
 			{
-				ParallelSortControl<iterator,order_type> 
+				ParallelSortControl<iterator,order_type>
 					control(raa,rae,rba,rbe,rorder,rnum_threads,rcopyback);
 				control.dispatch();
 				return control.context.in;

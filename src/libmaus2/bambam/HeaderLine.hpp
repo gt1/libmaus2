@@ -42,25 +42,25 @@ namespace libmaus2
 			std::string type;
 			//! attribute map
 			std::map<std::string,std::string> M;
-			
+
 			/**
 			 * constructor for invalid/empty line
 			 **/
 			HeaderLine()
 			{
-			
+
 			}
-			
+
 			void printAttributesInOrder(std::ostream & ostr, char const ** args)
 			{
 				std::set<std::string> primary;
-				
+
 				for ( ; *args; ++args )
 				{
 					if ( M.find(*args) != M.end() )
 					{
 						std::map<std::string,std::string>::const_iterator ita = M.find(*args);
-						ostr << '\t' << ita->first << ":" << ita->second;				
+						ostr << '\t' << ita->first << ":" << ita->second;
 					}
 					primary.insert(*args);
 				}
@@ -69,15 +69,15 @@ namespace libmaus2
 					ita != M.end(); ++ita )
 					if ( primary.find(ita->first) == primary.end() )
 					{
-						ostr << '\t' << ita->first << ":" << ita->second;				
+						ostr << '\t' << ita->first << ":" << ita->second;
 					}
 			}
-			
+
 			void constructLine()
 			{
 				std::ostringstream ostr;
 				ostr << '@' << type;
-				
+
 				if ( type == "HD" )
 				{
 					char const * args[] = { "VN", "SO", 0 };
@@ -86,17 +86,17 @@ namespace libmaus2
 				else if ( type == "SQ" )
 				{
 					char const * args[] = { "SN", "LN", "AS", "M5", "SP", "UR", 0 };
-					printAttributesInOrder(ostr,&args[0]);		
+					printAttributesInOrder(ostr,&args[0]);
 				}
 				else if ( type == "RG" )
 				{
 					char const * args[] = { "ID", "CN", "DS", "DT", "FO", "KS", "LB", "PG", "PI", "PL", "PU", "SM", 0 };
-					printAttributesInOrder(ostr,&args[0]);		
+					printAttributesInOrder(ostr,&args[0]);
 				}
 				else if ( type == "PG" )
 				{
 					char const * args[] = { "ID", "PN", "CL", "PP", "DS", "VN", 0 };
-					printAttributesInOrder(ostr,&args[0]);		
+					printAttributesInOrder(ostr,&args[0]);
 				}
 				else
 				{
@@ -106,7 +106,7 @@ namespace libmaus2
 				}
 				line = ostr.str();
 			}
-			
+
 			/**
 			 * check line for key
 			 *
@@ -117,7 +117,7 @@ namespace libmaus2
 			{
 				return M.find(key) != M.end();
 			}
-			
+
 			/**
 			 * get value for key, throws exception if key is not present
 			 *
@@ -131,12 +131,12 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "bambam::HeaderLine::getValue called for non existant key: " << key << " for line of type " << type << std::endl;
 					se.finish();
-					throw se;				
+					throw se;
 				}
-			
+
 				return M.find(key)->second;
 			}
-			
+
 			/**
 			 * @return true iff line is a PG line
 			 **/
@@ -144,10 +144,10 @@ namespace libmaus2
 			{
 				return type == "PG";
 			}
-			
+
 			/**
 			 * remove all SQ type lines
-			 * 
+			 *
 			 * @param headertext input header text
 			 * @return text without SQ lines
 			 **/
@@ -160,7 +160,7 @@ namespace libmaus2
 						ostr << lines[i].line << '\n';
 				return ostr.str();
 			}
-			
+
 			/**
 			 * extract vector of lines from header text
 			 *
@@ -170,21 +170,21 @@ namespace libmaus2
 			static std::vector<HeaderLine> extractLines(std::string const & headertext)
 			{
 				std::istringstream istr(headertext);
-				
+
 				std::vector<HeaderLine> lines;
-				
+
 				while ( istr )
 				{
 					std::string line;
 					std::getline(istr,line);
-					
+
 					if ( istr && line.size() )
 					{
 						HeaderLine const hl(line);
 						lines.push_back(hl);
 					}
 				}
-				
+
 				return lines;
 			}
 
@@ -198,14 +198,14 @@ namespace libmaus2
 			static std::vector<HeaderLine> extractLinesByType(std::string const & headertext, std::set<std::string> const & filter)
 			{
 				std::istringstream istr(headertext);
-				
+
 				std::vector<HeaderLine> lines;
-				
+
 				while ( istr )
 				{
 					std::string line;
 					std::getline(istr,line);
-					
+
 					if ( istr && line.size() )
 					{
 						HeaderLine const hl(line);
@@ -213,10 +213,10 @@ namespace libmaus2
 							lines.push_back(hl);
 					}
 				}
-				
+
 				return lines;
 			}
-			
+
 			/**
 			 * extract vector of lines from header text; only lines of type are kept
 			 *
@@ -230,7 +230,7 @@ namespace libmaus2
 				S.insert(type);
 				return extractLinesByType(header,S);
 			}
-			
+
 			/**
 			 * extract PG lines from header text
 			 *
@@ -240,7 +240,7 @@ namespace libmaus2
 			static std::vector<HeaderLine> extractProgramLines(std::string const & header)
 			{
 				std::vector<HeaderLine> const lines = extractLinesByType(header,"PG");
-				
+
 				std::vector<std::string> idvec;
 				for ( uint64_t i = 0; i < lines.size(); ++i )
 				{
@@ -251,44 +251,44 @@ namespace libmaus2
 						se.finish();
 						throw se;
 					}
-					
+
 					idvec.push_back(lines[i].getValue("ID"));
 				}
-				
+
 				std::sort(idvec.begin(),idvec.end());
-				
+
 				for ( uint64_t i = 1; i < idvec.size(); ++i )
 					if ( idvec[i] == idvec[i-1] )
 					{
 						libmaus2::exception::LibMausException se;
 						se.getStream() << "PG ID " << idvec[i] << " is not unique." << std::endl;
 						se.finish();
-						throw se;					
+						throw se;
 					}
 
 				for ( uint64_t i = 0; i < lines.size(); ++i )
-					if ( 
+					if (
 						lines[i].hasKey("PP")
 					)
 					{
 						std::string const PP = lines[i].getValue("PP");
-						std::pair < 
+						std::pair <
 							std::vector<std::string>::const_iterator,
 							std::vector<std::string>::const_iterator >
 							const interval = ::std::equal_range(idvec.begin(),idvec.end(),PP);
-						
+
 						if ( interval.first == interval.second )
 						{
 							libmaus2::exception::LibMausException se;
 							se.getStream() << "PG line " << lines[i].line << " references unknown PG ID via PP key." << std::endl;
 							se.finish();
-							throw se;					
+							throw se;
 						}
 					}
-				
+
 				return lines;
 			}
-			
+
 			/**
 			 * construct object from text line
 			 *
@@ -297,11 +297,11 @@ namespace libmaus2
 			HeaderLine(std::string const & rline) : line(rline)
 			{
 				std::deque<std::string> tokens = ::libmaus2::util::stringFunctions::tokenize(line,std::string("\t"));
-				
+
 				if ( tokens.size() )
 				{
 					std::string const first = tokens[0];
-					
+
 					if ( (! first.size()) || first[0] != '@' || first.size() != 3 )
 					{
 						::libmaus2::exception::LibMausException se;
@@ -309,9 +309,9 @@ namespace libmaus2
 						se.finish();
 						throw se;
 					}
-					
+
 					type = first.substr(1);
-					
+
 					for ( uint64_t i = 1; i < tokens.size(); ++i )
 					{
 						std::string const token = tokens[i];

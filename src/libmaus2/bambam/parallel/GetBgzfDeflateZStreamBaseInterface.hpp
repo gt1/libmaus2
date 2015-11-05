@@ -29,7 +29,7 @@ namespace libmaus2
 		{
 			struct GetBgzfDeflateZStreamBaseInterface
 			{
-				virtual ~GetBgzfDeflateZStreamBaseInterface() {}	
+				virtual ~GetBgzfDeflateZStreamBaseInterface() {}
 				virtual libmaus2::lz::BgzfDeflateZStreamBase::shared_ptr_type getBgzfDeflateZStreamBase() = 0;
 			};
 		}

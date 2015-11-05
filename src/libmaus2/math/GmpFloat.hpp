@@ -39,12 +39,12 @@ namespace libmaus2
 		{
 			private:
 			void * v;
-			
+
 			friend GmpFloat operator+(GmpFloat const & A, GmpFloat const & B);
 			friend GmpFloat operator-(GmpFloat const & A, GmpFloat const & B);
 			friend GmpFloat operator*(GmpFloat const & A, GmpFloat const & B);
 			friend GmpFloat operator/(GmpFloat const & A, GmpFloat const & B);
-			
+
 			public:
 			GmpFloat(double rv = 0, unsigned int prec = 64);
 			GmpFloat(GmpFloat const & o);
@@ -66,7 +66,7 @@ namespace libmaus2
 			operator uint64_t() const;
 			operator int64_t() const;
 		};
-		
+
 		GmpFloat operator+(GmpFloat const & A, GmpFloat const & B);
 		GmpFloat operator-(GmpFloat const & A, GmpFloat const & B);
 		GmpFloat operator*(GmpFloat const & A, GmpFloat const & B);

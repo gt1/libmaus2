@@ -38,7 +38,7 @@ namespace libmaus2
 			uint64_t r0;
 			uint64_t r1;
 			int64_t nbest;
-			
+
 			MergeStepBinSearchResult() : l0(0), l1(0), r0(0), r1(0), nbest(std::numeric_limits<int64_t>::max()) {}
 			MergeStepBinSearchResult(
 				uint64_t const rl0,
@@ -47,7 +47,7 @@ namespace libmaus2
 				uint64_t const rr1,
 				int64_t const rnbest
 			) : l0(rl0), l1(rl1), r0(rr0), r1(rr1), nbest(rnbest) {}
-			
+
 			MergeStepBinSearchResult sideswap() const
 			{
 				return MergeStepBinSearchResult(r0,r1,l0,l1,nbest);
@@ -55,16 +55,16 @@ namespace libmaus2
 
 			template<typename iterator, typename order_type>
 			static MergeStepBinSearchResult mergestepbinsearch(
-				iterator const aa, 
-				iterator const ae, 
-				iterator const ba, 
-				iterator const be, 
+				iterator const aa,
+				iterator const ae,
+				iterator const ba,
+				iterator const be,
 				order_type order,
 				uint64_t const xc = 1, // split counter
 				uint64_t const xd = 2  // split denominator
 			)
 			{
-				typedef typename ::std::iterator_traits<iterator>::value_type value_type;		
+				typedef typename ::std::iterator_traits<iterator>::value_type value_type;
 
 				// size of left block
 				uint64_t const s = ae-aa;
@@ -76,7 +76,7 @@ namespace libmaus2
 				// pointers on left block
 				uint64_t l = 0;
 				uint64_t r = s;
-				
+
 				while ( r-l > 2 )
 				{
 					uint64_t const m = (l+r) >> 1;
@@ -85,12 +85,12 @@ namespace libmaus2
 					iterator bm = std::lower_bound(ba,be,v,order);
 
 					int64_t n = static_cast<int64_t>((bm-ba) + m) - x;
-					
+
 					// if we do not have enough elements to reach the split
 					// but we could add more equal elements from the rhs block
-					if ( 
-						n < 0 && 
-						(bm != be) && 
+					if (
+						n < 0 &&
+						(bm != be) &&
 						// v == *bm
 						(!(order(*bm,v))) && (!(order(v,*bm)))
 					)
@@ -100,25 +100,25 @@ namespace libmaus2
 						// add
 						n += std::min(-n,static_cast<int64_t>(eqr.second-eqr.first));
 					}
-								
+
 					if ( n < 0 )
 						l = m+1; // l excluded
 					else // n >= 0
 						r = m+1; // r included
 				}
-				
+
 				uint64_t lbest = l;
 				int64_t nbest = std::numeric_limits<int64_t>::max();
 				iterator bmbest = ba;
-				
+
 				for ( uint64_t m = (l ? (l-1):l); m < r; ++m )
 				{
 					value_type const v = aa[m];
-				
+
 					iterator bm = std::lower_bound(ba,be,v,order);
 
 					int64_t n = static_cast<int64_t>((bm-ba) + m) - x;
-					
+
 					if ( n < 0 && bm != be && (!(order(*bm,v))) && (!(order(v,*bm))) )
 					{
 						std::pair<iterator,iterator> const eqr = ::std::equal_range(ba,be,v,order);
@@ -126,7 +126,7 @@ namespace libmaus2
 						n += add;
 						bm += add;
 					}
-					
+
 					if ( iabs(n) < iabs(nbest) )
 					{
 						lbest = m;
@@ -137,12 +137,12 @@ namespace libmaus2
 
 				uint64_t l0 = lbest;
 				uint64_t l1 = s-l0;
-					
+
 				uint64_t r0 = bmbest-ba;
 				uint64_t r1 = t-r0;
-				
+
 				// make sure equal elements are on the left
-				if ( 
+				if (
 					l1 && r0 &&
 					(!order(aa[l0],ba[r0-1])) &&
 					(!order(ba[r0-1],aa[l0]))
@@ -150,30 +150,30 @@ namespace libmaus2
 				{
 					std::pair<iterator,iterator> const eqrl = ::std::equal_range(aa,ae,aa[l0],order);
 					std::pair<iterator,iterator> const eqrr = ::std::equal_range(ba,be,aa[l0],order);
-					
+
 					int64_t const lp = eqrl.second - (aa + l0);
 					assert ( lp > 0 );
-					assert ( 
+					assert (
 						(!order(aa[l0+lp-1],aa[l0]))
 						&&
 						(!order(aa[l0],aa[l0+lp-1]))
 					);
 					int64_t const rm = (ba + r0) - eqrr.first;
 					assert ( rm > 0 );
-					assert ( 
+					assert (
 						(!order(ba[r0-rm],aa[l0]))
 						&&
 						(!order(aa[l0],ba[r0-rm]))
 					);
-					
+
 					uint64_t const sh = std::min(lp,rm);
-												
+
 					l0 += sh;
 					l1 -= sh;
 					r0 -= sh;
 					r1 += sh;
 				}
-				
+
 				assert ( (!l1) || (!r0) || order(aa[l0],ba[r0-1]) || order(ba[r0-1],aa[l0]) );
 
 				return MergeStepBinSearchResult(l0,l1,r0,r1,nbest);
@@ -189,10 +189,10 @@ namespace libmaus2
 
 			template<typename iterator, typename order_type>
 			static MergeStepBinSearchResult mergestepbinsearchOpt(
-				iterator const aa, 
-				iterator const ae, 
-				iterator const ba, 
-				iterator const be, 
+				iterator const aa,
+				iterator const ae,
+				iterator const ba,
+				iterator const be,
 				order_type order,
 				uint64_t const xc = 1, // split counter
 				uint64_t const xd = 2  // split denominator
@@ -203,7 +203,7 @@ namespace libmaus2
 				MergeStepBinSearchResult const msbsr = (iabs(msbsr_l.nbest) <= iabs(msbsr_r.nbest)) ? msbsr_l : msbsr_r;
 				return msbsr;
 			}
-			
+
 			template<typename iterator, typename order_type>
 			static std::vector< std::pair<uint64_t,uint64_t> > mergeSplitVector(
 				iterator aa,
@@ -215,31 +215,31 @@ namespace libmaus2
 			)
 			{
 				std::vector< std::pair<uint64_t,uint64_t> > V;
-			
+
 				while ( p > 1 )
 				{
 					MergeStepBinSearchResult const binres = mergestepbinsearch(
 						aa,ae,ba,be,order,1,p
 					);
-					
+
 					V.push_back(std::pair<uint64_t,uint64_t>(binres.l0,binres.r0));
-					
+
 					aa += binres.l0;
 					ba += binres.r0;
 					p  -= 1;
-					
+
 					assert ( ae-aa == static_cast<ptrdiff_t>(binres.l1) );
 					assert ( be-ba == static_cast<ptrdiff_t>(binres.r1) );
 				}
-				
+
 				if ( p )
 				{
 					V.push_back(std::pair<uint64_t,uint64_t>(ae-aa,be-ba));
 					p -= 1;
 				}
-				
+
 				assert ( ! p );
-				
+
 				std::vector< std::pair<uint64_t,uint64_t> > VA;
 				uint64_t sa = 0;
 				uint64_t sb = 0;
@@ -250,7 +250,7 @@ namespace libmaus2
 					sb += V[i].second;
 				}
 				VA.push_back(std::pair<uint64_t,uint64_t>(sa,sb));
-				
+
 				return VA;
 			}
 		};

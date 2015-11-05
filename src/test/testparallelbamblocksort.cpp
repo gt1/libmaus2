@@ -36,7 +36,7 @@
 
 #include <libmaus2/digest/DigestFactoryContainer.hpp>
 
-template<typename order_type, 
+template<typename order_type,
          typename heap_element_type,
          bool create_dup_mark_info>
 int parallelbamblocksort(libmaus2::util::ArgInfo const & arginfo,
@@ -47,11 +47,11 @@ int parallelbamblocksort(libmaus2::util::ArgInfo const & arginfo,
 )
 {
 	// typedef libmaus2::bambam::parallel::FragmentAlignmentBufferPosComparator order_type;
-	
+
 	uint64_t const numlogcpus = arginfo.getValue<int>("threads",libmaus2::parallel::NumCpus::getNumLogicalProcessors());
-	
+
 	#if 0
-	if ( 
+	if (
 		libmaus2::util::GetFileSize::fileExists("fragmergeinfo.ser")
 		&&
 		libmaus2::util::GetFileSize::fileExists("pairmergeinfo.ser")
@@ -60,7 +60,7 @@ int parallelbamblocksort(libmaus2::util::ArgInfo const & arginfo,
 		libmaus2::parallel::PosixSpinLock lock;
 
 		std::vector< ::libmaus2::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > FMI = libmaus2::bambam::parallel::BlockSortControl<order_type>::loadMergeInfo("fragmergeinfo.ser");
-		
+
 		// libmaus2::bambam::parallel::BlockSortControl<order_type>::verifyReadEndsFragments(FMI,lock);
 
 		std::vector < std::vector< std::pair<uint64_t,uint64_t> > > FSMI =
@@ -79,9 +79,9 @@ int parallelbamblocksort(libmaus2::util::ArgInfo const & arginfo,
 
 	libmaus2::timing::RealTimeClock progrtc; progrtc.start();
 	// typedef libmaus2::bambam::parallel::FragmentAlignmentBufferNameComparator order_type;
-	
+
 	libmaus2::timing::RealTimeClock rtc;
-	
+
 	rtc.start();
 	libmaus2::aio::PosixFdInputStream in(STDIN_FILENO,256*1024);
 	std::string const tmpfilebase = arginfo.getUnparsedValue("tmpfile",arginfo.getDefaultTmpFileName());
@@ -91,23 +91,23 @@ int parallelbamblocksort(libmaus2::util::ArgInfo const & arginfo,
 
 	std::string const sinputformat = arginfo.getUnparsedValue("inputformat","bam");
 	libmaus2::bambam::parallel::BlockSortControlBase::block_sort_control_input_enum inform = libmaus2::bambam::parallel::BlockSortControlBase::block_sort_control_input_bam;
-	
+
 	if ( sinputformat == "bam" )
 	{
 		inform = libmaus2::bambam::parallel::BlockSortControlBase::block_sort_control_input_bam;
 	}
 	else if ( sinputformat == "sam" )
 	{
-		inform = libmaus2::bambam::parallel::BlockSortControlBase::block_sort_control_input_sam;			
+		inform = libmaus2::bambam::parallel::BlockSortControlBase::block_sort_control_input_sam;
 	}
 	else
 	{
 		libmaus2::exception::LibMausException lme;
 		lme.getStream() << "Unknown input format " << sinputformat << std::endl;
 		lme.finish();
-		throw lme;				
+		throw lme;
 	}
-				
+
 	libmaus2::parallel::SimpleThreadPool STP(numlogcpus);
 	typename libmaus2::bambam::parallel::BlockSortControl<order_type,create_dup_mark_info>::unique_ptr_type VC(
 		new libmaus2::bambam::parallel::BlockSortControl<order_type,create_dup_mark_info>(
@@ -124,7 +124,7 @@ int parallelbamblocksort(libmaus2::util::ArgInfo const & arginfo,
 	libmaus2::autoarray::autoArrayPrintTraces(std::cerr);
 	#endif
 	VC->freeBuffers();
-	
+
 	if ( create_dup_mark_info )
 	{
 		VC->flushReadEndsLists();
@@ -138,7 +138,7 @@ int parallelbamblocksort(libmaus2::util::ArgInfo const & arginfo,
 
 	std::vector<libmaus2::bambam::parallel::GenericInputControlStreamInfo> const BI = VC->getBlockInfo();
 	libmaus2::bitio::BitVector::unique_ptr_type Pdupvec;
-	
+
 	if ( create_dup_mark_info )
 	{
 		libmaus2::bitio::BitVector::unique_ptr_type Tdupvec(VC->releaseDupBitVector());
@@ -149,7 +149,7 @@ int parallelbamblocksort(libmaus2::util::ArgInfo const & arginfo,
 	uphead->changeSortOrder(sortorder /* "coordinate" */);
 
 	libmaus2::bambam::parallel::BlockMergeControlTypeBase::block_merge_output_format_t oformat = libmaus2::bambam::parallel::BlockMergeControlTypeBase::output_format_bam;
-	
+
 	if ( arginfo.getUnparsedValue("outputformat","bam") == "sam" )
 		oformat = libmaus2::bambam::parallel::BlockMergeControlTypeBase::output_format_sam;
 	else if ( arginfo.getUnparsedValue("outputformat","bam") == "cram" )
@@ -161,19 +161,19 @@ int parallelbamblocksort(libmaus2::util::ArgInfo const & arginfo,
 		try
 		{
 			uphead->checkSequenceChecksums(reference);
-			
+
 			if ( ! uphead->checkSequenceChecksumsCached(false /* throw */) )
 			{
 				char const * refcache = getenv("REF_CACHE");
-				
+
 				if ( (! refcache) || (!*refcache) )
 				{
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "Sequence cache is missing sequences but REF_CACHE is not set" << std::endl;
 					lme.finish();
-					throw lme;	
+					throw lme;
 				}
-				
+
 				// try to fill cache
 				uphead->getSequenceURSet(true);
 			}
@@ -193,16 +193,16 @@ int parallelbamblocksort(libmaus2::util::ArgInfo const & arginfo,
 			throw;
 		}
 	}
-		
+
 	std::ostringstream hostr;
 	uphead->serialise(hostr);
 	std::string const hostrstr = hostr.str();
 	libmaus2::autoarray::AutoArray<char> sheader(hostrstr.size(),false);
-	std::copy(hostrstr.begin(),hostrstr.end(),sheader.begin());		
+	std::copy(hostrstr.begin(),hostrstr.end(),sheader.begin());
 	VC.reset();
-				
+
 	std::cerr << "[V] blocks generated in time " << rtc.formatTime(rtc.getElapsedSeconds()) << std::endl;
-	
+
 	rtc.start();
 	uint64_t const inputblocksize = 1024*1024;
 	uint64_t const inputblocksperfile = 8;
@@ -220,8 +220,8 @@ int parallelbamblocksort(libmaus2::util::ArgInfo const & arginfo,
 		// typedef libmaus2::bambam::parallel::GenericInputControlMergeHeapEntryCoordinate heap_element_type;
 		libmaus2::bambam::parallel::BlockMergeControl<heap_element_type> BMC(
 			STP,std::cout,sheader,BI,Pdupvec.get(),level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */,hash,tmpfilebase,Pdigest.get(),oformat,bamindex,computerefidintervals);
-		BMC.addPending();			
-		BMC.waitWritingFinished();		
+		BMC.addPending();
+		BMC.waitWritingFinished();
 
 		std::cerr << "[D]\t" << filehash << "\t" << BMC.getFileDigest() << std::endl;
 
@@ -252,10 +252,10 @@ int main(int argc, char * argv[])
 		#if defined(LIBMAUS2_HAVE_SMMINTRIN_H) && defined(HAVE_SSE4)
 		libmaus2::digest::DigestFactoryContainer::addFactories(libmaus2::digest::DigestFactory_CRC32C_SSE42());
 		#endif
-		
+
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		int r;
-		
+
 		if ( arginfo.getUnparsedValue("SO","coordinate") == "queryname" )
 		{
 			r = parallelbamblocksort<
@@ -264,7 +264,7 @@ int main(int argc, char * argv[])
 				false /* create dup mark info */>(arginfo,false /* fix mates */,false /* dup mark support */,
 				"queryname",
 				false /* bam index */
-			);		
+			);
 		}
 		else
 		{
@@ -277,7 +277,7 @@ int main(int argc, char * argv[])
 			);
 		}
 
-		
+
 		return r;
 	}
 	catch(std::exception const & ex)

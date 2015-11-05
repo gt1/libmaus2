@@ -31,11 +31,11 @@ namespace libmaus2
 			uint64_t spf;
 			uint64_t spr;
 			uint64_t siz;
-			
+
 			BidirectionalIndexInterval() : spf(0), spr(0), siz(0) {}
 			BidirectionalIndexInterval(uint64_t const rspf, uint64_t const rspr, uint64_t const rsiz)
 			: spf(rspf), spr(rspr), siz(rsiz) {}
-			
+
 			BidirectionalIndexInterval swap() const
 			{
 				return BidirectionalIndexInterval(spr,spf,siz);
@@ -44,10 +44,10 @@ namespace libmaus2
 			{
 				std::swap(spf,spr);
 			}
-			
+
 			bool operator==(BidirectionalIndexInterval const & o) const
 			{
-				return 
+				return
 					(siz == o.siz)
 					&&
 					(
@@ -60,7 +60,7 @@ namespace libmaus2
 			{
 				return ! (*this==o);
 			}
-			
+
 			bool operator<(BidirectionalIndexInterval const & o) const
 			{
 				return spf < o.spf;

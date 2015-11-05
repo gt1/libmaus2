@@ -26,14 +26,14 @@
 namespace libmaus2
 {
 	namespace bambam
-	{						
+	{
 		struct StrCmpNumRecode
 		{
 			static size_t recode(char const * ca, libmaus2::autoarray::AutoArray<uint64_t> & A)
 			{
 				unsigned char const * a = reinterpret_cast<unsigned char const *>(ca);
 				size_t j = 0;
-								
+
 				while ( *a )
 				{
 					uint64_t v;
@@ -54,7 +54,7 @@ namespace libmaus2
 						{
 							if ( StrCmpNum::digit_table[*a] )
 								v |= (static_cast<uint64_t>('0') << (i<<3));
-							else						
+							else
 								v |= (static_cast<uint64_t>(*a) << (i<<3));
 						}
 					}
@@ -96,20 +96,20 @@ namespace libmaus2
 								v |= (static_cast<uint64_t>(*a) << (i<<3));
 						}
 					}
-					
+
 					if ( !(j < A.size()) )
 						A.resize(A.size()+1);
 
 					assert ( j < A.size() );
 					A[j++] = v;
 				}
-				
+
 				if ( !(j < A.size()) )
 					A.resize(A.size()+1);
 
 				assert ( j < A.size() );
 				A[j++] = 0;
-				
+
 				return j;
 			}
 		};

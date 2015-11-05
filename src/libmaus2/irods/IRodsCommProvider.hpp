@@ -39,7 +39,7 @@ namespace libmaus2
 			typedef IRodsCommProvider this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			virtual ~IRodsCommProvider() {}
 			#if defined(LIBMAUS2_HAVE_IRODS)
 			virtual rcComm_t * getComm() = 0;

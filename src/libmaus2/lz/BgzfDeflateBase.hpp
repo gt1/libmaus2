@@ -25,28 +25,28 @@ namespace libmaus2
 {
 	namespace lz
 	{
-		struct BgzfDeflateBase : 
+		struct BgzfDeflateBase :
 			public BgzfDeflateZStreamBase,
-			public BgzfDeflateOutputBufferBase, 
+			public BgzfDeflateOutputBufferBase,
 			public BgzfDeflateInputBufferBase
 		{
 			typedef BgzfDeflateBase this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
-			/* flush mode: 
+			/* flush mode:
 			   - true: completely empty buffer when it runs full, write more than
 			            one block per flush if needed
 			   - false: empty as much as possible from the buffer when it runs full
 			            but never write more than one bgzf block at once
 			 */
 			bool flushmode;
-			
+
 			uint64_t objectid;
 			uint64_t blockid;
 			uint64_t compsize;
 			uint64_t uncompsize;
 			BgzfDeflateZStreamBaseFlushInfo flushinfo;
-			
+
 			BgzfDeflateBase(int const level = Z_DEFAULT_COMPRESSION, bool const rflushmode = false, int64_t const rbufsize = -1)
 			:
 			  BgzfDeflateZStreamBase(level),

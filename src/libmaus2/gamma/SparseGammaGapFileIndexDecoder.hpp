@@ -50,7 +50,7 @@ namespace libmaus2
 
 			mutable libmaus2::parallel::OMPLock lock;
 			mutable std::map<uint64_t,value_type> cache;
-			
+
 			void init()
 			{
 				in.clear();
@@ -72,16 +72,16 @@ namespace libmaus2
 			public:
 			SparseGammaGapFileIndexDecoder(std::istream & rin)
 			: in(rin)
-			{	
+			{
 				init();
 			}
-			
+
 			SparseGammaGapFileIndexDecoder(std::string const & filename)
 			: CIS(new libmaus2::aio::InputStreamInstance(filename)), in(*CIS)
 			{
 				init();
-			}	
-			
+			}
+
 			value_type get(uint64_t const i) const
 			{
 				if ( i >= numentries )
@@ -91,35 +91,35 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-			
+
 				libmaus2::parallel::ScopeLock slock(lock);
 
 				// check cache
 				if ( cache.find(i) != cache.end() )
 					return cache.find(i)->second;
-				
+
 				in.clear();
 				in.seekg(-2*sizeof(uint64_t)-2*numentries*sizeof(uint64_t) + i*(2*sizeof(uint64_t)), std::ios::end);
 				uint64_t const ikey = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				uint64_t const ibitoff = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				value_type const v(ikey,ibitoff);
-				
+
 				// extend cache
 				cache[i] = v;
-				
+
 				return v;
 			}
-			
+
 			value_type operator[](uint64_t const i) const
 			{
 				return get(i);
 			}
-			
+
 			bool isEmpty() const
 			{
 				return numentries == 0;
 			}
-			
+
 			uint64_t getMinKey() const
 			{
 				if ( isEmpty() )
@@ -129,30 +129,30 @@ namespace libmaus2
 					ex.finish();
 					throw ex;
 				}
-				
+
 				return get(0).ikey;
 			}
-			
+
 			uint64_t getMaxKey() const
 			{
 				return maxkey;
 			}
-			
+
 			uint64_t getBlockIndex(uint64_t const ikey) const
 			{
 				// std::cerr << "getBlockIndex(" << ikey << ")" << std::endl;
-			
+
 				if ( ! numentries )
 					return numentries;
 				else if ( ikey < getMinKey() )
 					return 0;
 				else if ( ikey > getMaxKey() )
 					return numentries-1;
-							
+
 				const_iterator ita = std::lower_bound(begin(),end(),value_type(ikey));
-				
+
 				uint64_t const index = ita - begin();
-				
+
 				if ( (ita != end()) && (*ita).ikey == ikey )
 				{
 					return index;
@@ -163,15 +163,15 @@ namespace libmaus2
 					return index-1;
 				}
 			}
-			
+
 			uint64_t size() const
 			{
 				return numentries;
 			}
-	
+
 			friend std::ostream & operator<<(std::ostream & out, SparseGammaGapFileIndexDecoder const & o);
 		};
-		
+
 		inline std::ostream & operator<<(std::ostream & out, SparseGammaGapFileIndexDecoder const & O)
 		{
 			for ( SparseGammaGapFileIndexDecoder::const_iterator ita = O.begin(); ita != O.end(); ++ita )

@@ -33,32 +33,32 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			std::vector< std::istream * > Vin;
 			std::vector< std::istream * >::iterator Vinnext;
 			libmaus2::lz::SnappyInputStream::unique_ptr_type pSIS;
-			
+
 			bool setupNextStream()
 			{
 				if ( Vinnext != Vin.end() )
 				{
 					libmaus2::lz::SnappyInputStream::unique_ptr_type tSIS(new libmaus2::lz::SnappyInputStream(**(Vinnext++)));
 					pSIS = UNIQUE_PTR_MOVE(tSIS);
-					return true;					
+					return true;
 				}
 				else
 				{
 					return false;
 				}
 			}
-			
-			ReadEndsStreamDecoderBase(std::istream & rin) 
+
+			ReadEndsStreamDecoderBase(std::istream & rin)
 			: Vin(1,&rin), Vinnext(Vin.begin())
 			{
 				setupNextStream();
 			}
 
-			ReadEndsStreamDecoderBase(std::vector<std::istream *> const & rVin) 
+			ReadEndsStreamDecoderBase(std::vector<std::istream *> const & rVin)
 			: Vin(rVin), Vinnext(Vin.begin())
 			{
 				setupNextStream();
@@ -72,13 +72,13 @@ namespace libmaus2
 					{
 						bool const ok = setupNextStream();
 						if ( !ok )
-							return false;				
+							return false;
 					}
 					else
 					{
 						RE.reset();
 						RE.get(*pSIS);
-						return true;		
+						return true;
 					}
 				}
 			}

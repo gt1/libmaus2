@@ -29,18 +29,18 @@ namespace libmaus2
 		struct BgzfParallelRecodeDeflateBase : public ::libmaus2::lz::BgzfConstants
 		{
 			libmaus2::autoarray::AutoArray<uint8_t> B;
-			
+
 			uint8_t * const pa;
 			uint8_t * pc;
 			uint8_t * const pe;
-			
+
 			BgzfParallelRecodeDeflateBase()
-			: B(getBgzfMaxBlockSize(),false), 
-			  pa(B.begin()), 
-			  pc(B.begin()), 
+			: B(getBgzfMaxBlockSize(),false),
+			  pa(B.begin()),
+			  pc(B.begin()),
 			  pe(B.end())
 			{
-			
+
 			}
 		};
 	}

@@ -31,24 +31,24 @@ namespace libmaus2
 		struct ExternalMemoryIndexDecoderFindLargestSmallerResult
 		{
 			typedef _data_type data_type;
-		
+
 			std::pair<uint64_t,uint64_t> P;
 			uint64_t blockid;
 			data_type D;
-			
+
 			ExternalMemoryIndexDecoderFindLargestSmallerResult() : P(), blockid(0), D() {}
 			ExternalMemoryIndexDecoderFindLargestSmallerResult(
 				std::pair<uint64_t,uint64_t> const rP, uint64_t const rblockid,
 				data_type const & rD
 			)
 			: P(rP), blockid(rblockid), D(rD) {}
-			
+
 			bool operator==(ExternalMemoryIndexDecoderFindLargestSmallerResult const & O) const
 			{
 				return P == O.P && blockid == O.blockid;
 			}
 		};
-		
+
 		template<typename data_type>
 		std::ostream & operator<<(std::ostream & out, ExternalMemoryIndexDecoderFindLargestSmallerResult<data_type> const & O)
 		{

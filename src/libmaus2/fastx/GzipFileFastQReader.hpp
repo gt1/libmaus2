@@ -35,22 +35,22 @@ namespace libmaus2
 			GzipFileFastQReader(std::string const & filename)
 			: libmaus2::aio::InputStreamInstanceAtOffsetWrapper(filename), GzipStreamFastQReader(libmaus2::aio::InputStreamInstanceAtOffsetWrapper::object)
 			{
-			
+
 			}
 			GzipFileFastQReader(std::string const & filename, int const qualityOffset)
 			: libmaus2::aio::InputStreamInstanceAtOffsetWrapper(filename), GzipStreamFastQReader(libmaus2::aio::InputStreamInstanceAtOffsetWrapper::object,qualityOffset)
 			{
-			
+
 			}
 			GzipFileFastQReader(std::string const & filename, libmaus2::fastx::FastInterval const & FI)
 			: libmaus2::aio::InputStreamInstanceAtOffsetWrapper(filename,FI.fileoffset), GzipStreamFastQReader(libmaus2::aio::InputStreamInstanceAtOffsetWrapper::object,FI)
 			{
-			
+
 			}
 			GzipFileFastQReader(std::string const & filename, int const qualityOffset, libmaus2::fastx::FastInterval const & FI)
 			: libmaus2::aio::InputStreamInstanceAtOffsetWrapper(filename,FI.fileoffset), GzipStreamFastQReader(libmaus2::aio::InputStreamInstanceAtOffsetWrapper::object,qualityOffset,FI)
 			{
-			
+
 			}
 		};
 	}

@@ -34,40 +34,40 @@ namespace libmaus2
 			typedef PlainOrGzipStreamBufferWrapper this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			private:
 			libmaus2::aio::PosixFdInputStream::unique_ptr_type PFIS;
 
 			libmaus2::lz::GzipStream::unique_ptr_type PGZ;
 			::libmaus2::lz::StreamWrapperBuffer< ::libmaus2::lz::GzipStream >::unique_ptr_type PSWB;
-			
+
 			std::streambuf * strbuf;
-			
+
 			void init(std::istream & istr, uint64_t const bufsize, uint64_t const pushbacksize)
 			{
 				if ( libmaus2::lz::GzipHeaderConstantsBase::checkGzipMagic(istr) )
 				{
 					libmaus2::lz::GzipStream::unique_ptr_type TGZ(new libmaus2::lz::GzipStream(istr));
 					PGZ = UNIQUE_PTR_MOVE(TGZ);
-					
+
 					::libmaus2::lz::StreamWrapperBuffer< ::libmaus2::lz::GzipStream >::unique_ptr_type TSWB(
 						new ::libmaus2::lz::StreamWrapperBuffer< ::libmaus2::lz::GzipStream >(*PGZ,bufsize,pushbacksize)
 					);
 					PSWB = UNIQUE_PTR_MOVE(TSWB);
-					
+
 					strbuf = PSWB.get();
 				}
 				else
 				{
 					strbuf = istr.rdbuf();
-				}			
+				}
 			}
-			
+
 			public:
 			PlainOrGzipStreamBufferWrapper(int const rfd, uint64_t const bufsize = 64*1024, uint64_t const pushbacksize = 64*1024)
 			{
 				libmaus2::aio::PosixFdInputStream::unique_ptr_type TPFIS(new libmaus2::aio::PosixFdInputStream(rfd,bufsize,pushbacksize));
-				PFIS = UNIQUE_PTR_MOVE(TPFIS);	
+				PFIS = UNIQUE_PTR_MOVE(TPFIS);
 				init(*PFIS,bufsize,pushbacksize);
 			}
 			PlainOrGzipStreamBufferWrapper(std::istream & istr, uint64_t const bufsize = 64*1024, uint64_t const pushbacksize = 64*1024)
@@ -77,7 +77,7 @@ namespace libmaus2
 			std::streambuf * getStreamBuffer()
 			{
 				return strbuf;
-			}	
+			}
 		};
 	}
 }

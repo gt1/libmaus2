@@ -32,17 +32,17 @@ namespace libmaus2
 		{
 			std::string sid;
 			uint64_t len;
-			
+
 			FastAInfo()
 			{
 
 			}
 			FastAInfo(
-				std::string const & rsid, 
+				std::string const & rsid,
 				uint64_t const rlen
-			) : sid(rsid), len(rlen) 
+			) : sid(rsid), len(rlen)
 			{
-			
+
 			}
 			FastAInfo(std::istream & in)
 			{
@@ -56,19 +56,19 @@ namespace libmaus2
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "FastAInfo(std::istream &): unexpected EOF/IO failure" << std::endl;
 					lme.finish();
-					throw lme;		
+					throw lme;
 				}
 				sid = std::string(B.begin(),B.end());
-				
+
 				uint64_t bytes = sizeof(uint64_t) + sidlen + sidlenlen;
-				
+
 				while ( bytes % sizeof(uint64_t) )
 				{
 					in.get();
 					++bytes;
 				}
 			}
-			
+
 			private:
 			template<typename stream_type>
 			void serialiseInternal(stream_type & out) const
@@ -79,19 +79,19 @@ namespace libmaus2
 			}
 
 			public:
-			template<typename stream_type>	
+			template<typename stream_type>
 			uint64_t serialise(stream_type & out) const
 			{
 				libmaus2::util::CountPutObject CPO;
 				serialiseInternal(CPO);
 				serialiseInternal(out);
-				
+
 				while ( CPO.c % sizeof(uint64_t) )
 				{
 					out.put(0);
 					CPO.put(0);
 				}
-				
+
 				return CPO.c;
 			}
 		};

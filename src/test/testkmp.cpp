@@ -29,22 +29,22 @@ void testLazyFailureFunctionRandom(std::string const & pattern)
 {
 	::libmaus2::autoarray::AutoArray<int64_t> BP = ::libmaus2::util::KMP::BEST_PREFIX(pattern.begin(),pattern.size());
 	::libmaus2::random::Random::setup();
-	
+
 	for ( uint64_t i = 0; i < 16*1024*1024; ++i )
 	{
 		std::istringstream pistr(pattern);
 		::libmaus2::util::KMP::BestPrefix<std::istream> DBP(pistr,pattern.size());
-		
+
 		std::vector<uint64_t> probes;
 		for ( uint64_t j = 0; j < 2*pattern.size(); ++j )
 			probes.push_back( ::libmaus2::random::Random::rand64() % (BP.size()) );
-	
+
 		#if 0
 		for ( uint64_t i = 0; i < probes.size(); ++i )
 			std::cerr <<  BP[probes[i]] << ";";
 		std::cerr << std::endl;
 		#endif
-		
+
 		for ( uint64_t i = 0; i <= pattern.size(); ++i )
 		{
 			assert ( DBP[probes[i]] == BP[probes[i]] );
@@ -62,18 +62,18 @@ void testSimpleDynamic()
 {
 	std::string const needle = "needlene";
 	std::string const haystack = "find the need in the haystack";
-	
+
 	std::pair<uint64_t, uint64_t> P = ::libmaus2::util::KMP::PREFIX_SEARCH(
 		needle.begin(),needle.size(),
 		haystack.begin(),haystack.size());
-		
+
 	std::cerr << "result: " <<
 		haystack.substr(P.first,P.second) << std::endl;
 
 	std::istringstream needlestr(needle);
 	::libmaus2::util::KMP::BestPrefix<std::istream> BP(needlestr,needle.size());
 	::libmaus2::util::KMP::BestPrefix<std::istream>::BestPrefixXAdapter xadapter = BP.getXAdapter();
-	
+
 	for ( uint64_t i = 0; i < needle.size(); ++i )
 		std::cerr << xadapter[i];
 	std::cerr << std::endl;
@@ -81,13 +81,13 @@ void testSimpleDynamic()
 	std::string const thestack = "somewhere in needleneedlene";
 	std::istringstream thestackstr(thestack);
 
-	std::pair<uint64_t, uint64_t> Q = 
+	std::pair<uint64_t, uint64_t> Q =
 		::libmaus2::util::KMP::PREFIX_SEARCH_INTERNAL_RESTRICTED(xadapter,needle.size(),BP,thestackstr,thestack.size(),
 			thestack.size()-needle.size());
-			
+
 	std::cerr << "Q result: " <<
 		thestack.substr(Q.first,Q.second) << " position " << Q.first << " of " << thestack.size() << " patlen " << needle.size()  << std::endl;
-		
+
 	std::cerr << thestack << std::endl;
 	std::cerr << "pre " << thestack.substr(0,Q.first) << std::endl;
 	std::cerr << "suf " << thestack.substr(Q.first+Q.second) << std::endl;
@@ -106,22 +106,22 @@ void findSplitCommon(
 	// uint64_t const p = n/2;
 	uint64_t const n = high-low;
 	uint64_t const m = high-middle;
-	
+
 	std::ifstream istrn(filename.c_str(),std::ios::binary);
 	istrn.seekg(low);
 	std::ifstream istrm(filename.c_str(),std::ios::binary);
 	istrm.seekg(middle);
-	
+
 	// dynamically growing best prefix table
 	::libmaus2::util::KMP::BestPrefix<std::istream> BP(istrm,m);
 	// adapter for accessing pattern in BP
 	::libmaus2::util::KMP::BestPrefix<std::istream>::BestPrefixXAdapter xadapter = BP.getXAdapter();
 	// call KMP adaption
 	std::pair<uint64_t, uint64_t> Q = ::libmaus2::util::KMP::PREFIX_SEARCH_INTERNAL_RESTRICTED(xadapter,m,BP,istrn,n,n-m);
-	
-	uint64_t const showlen = std::min(Q.second,static_cast<uint64_t>(20));	
-	std::cerr << "low=" << low << " Q.second=" << Q.second << " Q.first=" << Q.first << " middle=" << middle << " m=" << m << " pref=" << 
-		std::string(BP.x.begin(),BP.x.begin()+showlen) 
+
+	uint64_t const showlen = std::min(Q.second,static_cast<uint64_t>(20));
+	std::cerr << "low=" << low << " Q.second=" << Q.second << " Q.first=" << Q.first << " middle=" << middle << " m=" << m << " pref=" <<
+		std::string(BP.x.begin(),BP.x.begin()+showlen)
 		<< std::endl;
 }
 
@@ -147,16 +147,16 @@ int main(int argc, char * argv[])
 	{
 		testBorderArray();
 		testSuccinctBorderArray();
-			
+
 		::libmaus2::util::ArgInfo const arginfo(argc,argv);
 		std::string const fn = arginfo.getRestArg<std::string>(0);
-		
+
 		// std::string const fn = "1";
 		uint64_t const n = ::libmaus2::util::GetFileSize::getFileSize(fn);
 		uint64_t const tpacks = 128;
 		uint64_t const packsize = (n+tpacks-1)/tpacks;
 		uint64_t const packs = (n + packsize-1)/packsize;
-		
+
 		#if 0 && defined(_OPENMP)
 		#pragma omp parallel for
 		#endif
@@ -172,42 +172,42 @@ int main(int argc, char * argv[])
 		std::cerr << ex.what() << std::endl;
 		return EXIT_FAILURE;
 	}
-	
+
 	#if 0
 	std::string const fn = "X";
 	uint64_t const n = ::libmaus2::util::GetFileSize::getFileSize(fn);
-	
+
 	uint64_t const p = n/2;
 	uint64_t const m = n-p;
-	
+
 	std::ifstream istrn(fn.c_str(),std::ios::binary);
 	std::ifstream istrm(fn.c_str(),std::ios::binary);
 	istrm.seekg(p);
 	::libmaus2::util::KMP::BestPrefix<std::istream> BP(istrm,m);
 	::libmaus2::util::KMP::BestPrefix<std::istream>::BestPrefixXAdapter xadapter = BP.getXAdapter();
 
-	std::pair<uint64_t, uint64_t> Q = 
+	std::pair<uint64_t, uint64_t> Q =
 		::libmaus2::util::KMP::PREFIX_SEARCH_INTERNAL_RESTRICTED(
 			xadapter,m,BP,
 			istrn,n,
 			n-m
 		);
-	
-	uint64_t const printmax = 30;	
+
+	uint64_t const printmax = 30;
 	if ( Q.second <= printmax )
-		std::cerr 
-			<< "pos " << Q.first << " len " << Q.second << " p=" << p << " m=" << m 
+		std::cerr
+			<< "pos " << Q.first << " len " << Q.second << " p=" << p << " m=" << m
 			<< " common prefix " << std::string(BP.x.begin(),BP.x.begin()+Q.second)
 			<< std::endl;
 	else
-		std::cerr 
-			<< "pos " << Q.first << " len " << Q.second << " p=" << p << " m=" << m 
+		std::cerr
+			<< "pos " << Q.first << " len " << Q.second << " p=" << p << " m=" << m
 			<< " common length " << Q.second
 			<< std::endl;
-	
+
 	istrn.clear(); istrn.seekg(Q.first);
 	istrm.clear(); istrm.seekg(p);
-	
+
 	for ( uint64_t i = 0; i < Q.second /* std::min(Q.second, static_cast<uint64_t>(20)) */; ++i )
 	{
 		int const cn = istrn.get();
@@ -219,9 +219,9 @@ int main(int argc, char * argv[])
 	// std::cerr << std::endl;
 	int const cn = istrn.get();
 	int const cm = istrm.get();
-	
+
 	assert ( (cn < 0 && cm < 0) || (cn != cm) );
-	
+
 	if ( Q.second+1 <= m )
 	{
 		istrm.clear(); istrm.seekg(p);
@@ -230,12 +230,12 @@ int main(int argc, char * argv[])
 		std::string s(cs.begin(),cs.begin()+cs.size());
 		if ( Q.second <= printmax )
 		std::cerr << "extending common prefix by next character in pattern: " << s << std::endl;
-		
+
 		istrn.clear(); istrn.seekg(0);
 		::libmaus2::autoarray::AutoArray<char> cc(n);
 		istrn.read(cc.begin(),n);
 		std::string t(cc.begin(),cc.begin()+cc.size());
-		
+
 		size_t pos = 0;
 		while ( pos != std::string::npos )
 		{

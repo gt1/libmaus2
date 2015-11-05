@@ -35,14 +35,14 @@ namespace libmaus2
                 {
                         unsigned int patlen;
                         size_t patid;
-                        
+
                         char const * mapped;
                         char const * transposed;
 
                         PatternBase() : patlen(0), patid(0), mapped(0), transposed(0) {}
-                        
+
                         virtual ~PatternBase() {}
-                        
+
                         private:
                         PatternBase(PatternBase const &);
                         PatternBase & operator=(PatternBase const &);
@@ -52,7 +52,7 @@ namespace libmaus2
                         {
                                 return 30;
                         }
-                        
+
                         bool isDontCareFree() const
                         {
                                 for ( unsigned int i = 0; i < patlen; ++i )
@@ -60,12 +60,12 @@ namespace libmaus2
                                                 return false;
                                 return true;
                         }
-                        
+
                         unsigned int getPatternLength() const
                         {
                                 return patlen;
                         }
-                        
+
                         size_t getPatID() const
                         {
                                 return patid;
@@ -90,8 +90,8 @@ namespace libmaus2
                         unsigned int getQuality(unsigned int const i) const
                         {
                                 return quality[i];
-                        }	
-                        
+                        }
+
                         private:
                         PatternQualityBase(PatternQualityBase const &);
                         PatternQualityBase & operator=(PatternQualityBase const &);
@@ -102,29 +102,29 @@ namespace libmaus2
                         typedef Pattern this_type;
                         typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
                         typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-                
+
                         public:
                         std::string sid;
 
-                        // private:	
+                        // private:
                         std::string spattern;
                         char const * pattern;
-                        
-                        public:	
+
+                        public:
                         std::string smapped;
                         std::string stransposed;
-                        
+
                         Pattern & operator=(Pattern const & o)
                         {
                         	if ( this != &o )
                         	{
-                        		sid = o.sid;              
+                        		sid = o.sid;
                         		patlen = o.patlen;
                         		patid = o.patid;
                         		smapped = o.smapped;
                         		stransposed = o.stransposed;
                         		spattern = o.spattern;
-                        	
+
                         		if ( !o.spattern.size() )
                         		{
                         			//std::cerr << "spattern empty, copying pointer." << '\n';
@@ -142,7 +142,7 @@ namespace libmaus2
                         	}
                         	return *this;
                         }
-                        
+
                         std::string getNamePrefix() const
                         {
                         	uint64_t j = sid.size();
@@ -152,20 +152,20 @@ namespace libmaus2
                         			(sid[i+1] == '1' || sid[i+1] == '2')
 					)
 					j = i;
-					
+
 				if ( j == sid.size() )
 					return sid;
 				else
 					return sid.substr(0,j);
                         }
-                        
+
                         Pattern() : PatternBase(), sid(), spattern(), pattern(0), smapped(), stransposed() {}
                         Pattern(Pattern const & o) : PatternBase(), sid(), spattern(), pattern(0), smapped(), stransposed()
                         {
                         	//std::cerr << "copy construct." << '\n';
                         	*this = o;
                         }
-                        
+
                         void copyPattern(char * p) const
                         {
                                 ::std::copy(
@@ -179,7 +179,7 @@ namespace libmaus2
                                 std::reverse(spattern.begin(),spattern.end());
                                 pattern = spattern.c_str();
                         }
-                        
+
                         void computeMapped()
                         {
                                 smapped.resize(patlen);
@@ -193,16 +193,16 @@ namespace libmaus2
                                 {
                                         switch ( *(tpattern++) )
                                         {
-                                                case 'A': *(smapped_a++) = ::libmaus2::fastx::mapChar('A'); 
-                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('A')); 
+                                                case 'A': *(smapped_a++) = ::libmaus2::fastx::mapChar('A');
+                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('A'));
                                                           break;
-                                                case 'C': *(smapped_a++) = ::libmaus2::fastx::mapChar('C'); 
-                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('C')); 
+                                                case 'C': *(smapped_a++) = ::libmaus2::fastx::mapChar('C');
+                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('C'));
                                                           break;
-                                                case 'G': *(smapped_a++) = ::libmaus2::fastx::mapChar('G'); 
-                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('G')); 
+                                                case 'G': *(smapped_a++) = ::libmaus2::fastx::mapChar('G');
+                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('G'));
                                                           break;
-                                                case 'T': *(smapped_a++) = ::libmaus2::fastx::mapChar('T'); 
+                                                case 'T': *(smapped_a++) = ::libmaus2::fastx::mapChar('T');
                                                           *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('T'));
                                                           break;
                                                 default:  *(smapped_a++) = ::libmaus2::fastx::mapChar('N');
@@ -210,7 +210,7 @@ namespace libmaus2
                                                           break;
                                         }
                                 }
-                                
+
                                 mapped = smapped.c_str();
                                 transposed = stransposed.c_str();
                         }
@@ -218,17 +218,17 @@ namespace libmaus2
                         {
                                 return sid;
                         }
-                        
+
                         void unmapSource()
                         {
                                 for ( uint64_t i = 0; i < spattern.size(); ++i )
                                         spattern[i] = ::libmaus2::fastx::remapChar(spattern[i]);
                         }
-                        
+
                         std::ostream & printMultiLine(std::ostream & out, unsigned int const cols) const
                         {
                         	std::string const id = getStringId();
-                        
+
                         	out.put('>');
                         	out.write(id.c_str(),id.size());
                         	out.put('\n');
@@ -236,7 +236,7 @@ namespace libmaus2
 				{
 					char const * ita = pattern;
 					uint64_t rem = patlen;
-					
+
 					while ( rem )
 					{
 						uint64_t const toprint = std::min(static_cast<uint64_t>(cols),rem);
@@ -251,16 +251,16 @@ namespace libmaus2
                         std::ostream & printMultiLine(std::ostream & out, unsigned int const cols, uint64_t & offset) const
                         {
                         	std::string const id = getStringId();
-                        	
+
 				out << '>' << id << '\n';
-				
+
 				offset += 2 + id.size();
-				
+
 				if ( pattern )
 				{
 					char const * ita = pattern;
 					uint64_t rem = patlen;
-					
+
 					while ( rem )
 					{
 						uint64_t const toprint = std::min(static_cast<uint64_t>(cols),rem);
@@ -268,7 +268,7 @@ namespace libmaus2
 						out.put('\n');
 						rem -= toprint;
 						ita += toprint;
-						
+
 						offset += toprint + 1;
 					}
 				}
@@ -299,7 +299,7 @@ namespace libmaus2
 			uint64_t numsyms;
 			uint64_t minlen;
 			uint64_t maxlen;
-			
+
 			PatternCount() : numpat(0), numsyms(0), minlen(0), maxlen(0) {}
 			PatternCount(
 				uint64_t const rnumpat,
@@ -309,7 +309,7 @@ namespace libmaus2
 				)
 			: numpat(rnumpat), numsyms(rnumsyms), minlen(rminlen), maxlen(rmaxlen)
 			{
-			
+
 			}
 		};
 	}

@@ -41,7 +41,7 @@
 #if defined(_WIN32)
 #include <direct.h>
 #endif
-	
+
 namespace libmaus2
 {
 	namespace util
@@ -66,7 +66,7 @@ namespace libmaus2
 			std::multimap < std::string, std::string > argmultimap;
 			//! rest of arguments behind key=value pairs
 			std::vector < std::string > restargs;
-			
+
 			void removeKey(std::string const & key)
 			{
 				if ( argmap.find(key) != argmap.end() )
@@ -74,19 +74,19 @@ namespace libmaus2
 				while ( argmultimap.find(key) != argmultimap.end() )
 					argmultimap.erase(argmultimap.find(key));
 			}
-			
+
 			void insertKey(std::string const & key, std::string const & value)
 			{
 				argmap[key] = value;
 				argmultimap.insert(std::pair<std::string,std::string>(key,value));
 			}
-			
+
 			void replaceKey(std::string const & key, std::string const & value)
 			{
 				removeKey(key);
 				insertKey(key,value);
 			}
-			
+
 			bool operator==(ArgInfo const & o) const
 			{
 				return
@@ -96,12 +96,12 @@ namespace libmaus2
 					argmultimap == o.argmultimap &&
 					restargs == o.restargs;
 			}
-			
+
 			bool operator!=(ArgInfo const & o) const
 			{
 				return !(*this == o);
 			}
-			
+
 			/**
 			 * serialise object
 			 *
@@ -127,10 +127,10 @@ namespace libmaus2
 					libmaus2::util::StringSerialisation::serialiseString(out,ita->first);
 					libmaus2::util::StringSerialisation::serialiseString(out,ita->second);
 				}
-				
+
 				libmaus2::util::StringSerialisation::serialiseStringVector(out,restargs);
 			}
-			
+
 			/**
 			 * deserialise object from input stream
 			 *
@@ -140,7 +140,7 @@ namespace libmaus2
 			{
 				commandline = libmaus2::util::StringSerialisation::deserialiseString(in);
 				progname = libmaus2::util::StringSerialisation::deserialiseString(in);
-				
+
 				uint64_t const mapsize = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				for ( uint64_t i = 0; i < mapsize; ++i )
 				{
@@ -158,7 +158,7 @@ namespace libmaus2
 
 				restargs = libmaus2::util::StringSerialisation::deserialiseStringVector(in);
 			}
-			
+
 			/**
 			 * @return true iff argument -h was given first
 			 **/
@@ -205,7 +205,7 @@ namespace libmaus2
 			 * initialise object from list of arguments
 			 **/
 			void init(std::vector<std::string> const args);
-			
+
 			/**
 			 * transform argument array to string vector
 			 *
@@ -221,7 +221,7 @@ namespace libmaus2
 					V.push_back(argv[i]);
 				return V;
 			}
-			
+
 			/**
 			 * reconstruct command line from argument array
 			 *
@@ -261,10 +261,10 @@ namespace libmaus2
 			 * @param args string vector
 			 **/
 			ArgInfo(std::vector<std::string> const & args);
-			
+
 			//! key map type
 			typedef std::map<std::string,std::string> keymap_type;
-			
+
 			/**
 			 * constructor from pre parsed argument information
 			 *
@@ -276,8 +276,8 @@ namespace libmaus2
 				std::string const & rprogname,
 				keymap_type const & keymap = keymap_type(),
 				std::vector<std::string> const & rrestargs = std::vector<std::string>() );
-			
-			
+
+
 			/**
 			 * get unparsed (string) value for key
 			 *
@@ -294,7 +294,7 @@ namespace libmaus2
 				else
 				{
 					return argmap.find(key)->second;
-				}	
+				}
 			}
 
 			/**
@@ -316,7 +316,7 @@ namespace libmaus2
 					return parseArg<type>(argmap.find(key)->second);
 				}
 			}
-			
+
 
 			/**
 			 * get value for key; if there is no key=value pair, use defaultVal instead;
@@ -339,7 +339,7 @@ namespace libmaus2
 					return parseValueUnsignedNumeric<type>(key,argmap.find(key)->second);
 				}
 			}
-			
+
 			/**
 			 * get value for restarg; the value is parsed as an unsigned number with a unit like
 			 * k=1024, K=1000, m=1024*1024, M=1000*1000, etc.
@@ -354,12 +354,12 @@ namespace libmaus2
 				ostr << "argument " << id;
 				return parseValueUnsignedNumeric<type>(ostr.str(),getUnparsedRestArg(id));
 			}
-			
+
 			uint64_t getNumRestArgs() const
 			{
 				return restargs.size();
 			}
-			
+
 			/**
 			 * check whether a key=value pair is present for key
 			 *
@@ -410,7 +410,7 @@ namespace libmaus2
 					throw se;
 				}
 			}
-			
+
 			/**
 			 * get i'th post key=value argument as string
 			 *
@@ -418,7 +418,7 @@ namespace libmaus2
 			 * @return i'th post key=value argument as string
 			 **/
 			std::string stringRestArg(uint64_t const i) const;
-			
+
 			/**
 			 * get number of key=value pairs for key
 			 *
@@ -431,17 +431,17 @@ namespace libmaus2
 					std::multimap < std::string, std::string >::const_iterator,
 					std::multimap < std::string, std::string >::const_iterator
 				> P = argmultimap.equal_range(key);
-				
+
 				uint64_t cnt = 0;
 				while ( P.first != P.second )
 				{
 					++cnt;
 					++P.first;
 				}
-				
+
 				return cnt;
 			}
-			
+
 			/**
 			 * get values for key=value pairs
 			 *
@@ -454,17 +454,17 @@ namespace libmaus2
 					std::multimap < std::string, std::string >::const_iterator,
 					std::multimap < std::string, std::string >::const_iterator
 				> P = argmultimap.equal_range(key);
-				
+
 				std::vector<std::string> V;
-				
+
 				while ( P.first != P.second )
 				{
 					V.push_back(P.first->second);
 					P.first++;
 				}
-				
+
 				return V;
-			
+
 			}
 
 			/**
@@ -476,7 +476,7 @@ namespace libmaus2
 			static std::string numToUnitNum(uint64_t n)
 			{
 				std::ostringstream ostr;
-				
+
 				if ( ! n )
 				{
 					ostr << n;
@@ -484,39 +484,39 @@ namespace libmaus2
 				if ( n % 1024 == 0 )
 				{
 					char u[] = {'k','m','g','t','p','e',0};
-					
+
 					unsigned int i = 0;
 					while ( u[i] && (n % 1024 == 0) )
 					{
 						++i;
 						n /= 1024;
 					}
-					
+
 					ostr << n << u[i-1];
 				}
 				else if ( n % 1000 == 0 )
 				{
 					char u[] = {'K','M','G','T','P','E',0};
-					
+
 					unsigned int i = 0;
 					while ( u[i] && (n % 1000 == 0) )
 					{
 						++i;
 						n /= 1000;
 					}
-					
+
 					ostr << n << u[i-1];
-				
+
 				}
 				else
 				{
 					ostr << n;
 				}
-				
+
 				return ostr.str();
 			}
 		};
-		
+
 		/**
 		 * format ArgInfo object for output
 		 *

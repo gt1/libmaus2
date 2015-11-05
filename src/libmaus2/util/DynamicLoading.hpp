@@ -44,12 +44,12 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			//! name of modules
 			std::string const modname;
 			//! system dl handle
 			void * lib;
-			
+
 			/**
 			 * constructor by module name; throws an exception if module is not available/cannot be loaded
 			 *
@@ -61,7 +61,7 @@ namespace libmaus2
 			 **/
 			~DynamicLibrary();
 		};
-		
+
 		/**
 		 * class encapsulating a function in a dynamically loaded library
 		 **/
@@ -76,15 +76,15 @@ namespace libmaus2
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			//! pointer to library
 			DynamicLibrary::unique_ptr_type plib;
 			//! reference to library
 			DynamicLibrary & lib;
-			
+
 			//! function pointer
 			func_type func;
-			
+
 			/**
 			 * load function named funcname; throws an exception if function cannot be found
 			 *
@@ -93,7 +93,7 @@ namespace libmaus2
 			void init(std::string const & funcname)
 			{
 				void * vfunc = dlsym(lib.lib,funcname.c_str());
-				
+
 				if ( ! vfunc )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -101,10 +101,10 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
-				func = reinterpret_cast<func_type>(vfunc);				
+
+				func = reinterpret_cast<func_type>(vfunc);
 			}
-			
+
 			/**
 			 * constructor by library object and function name
 			 *
@@ -132,11 +132,11 @@ namespace libmaus2
 			 **/
 			~DynamicLibraryFunction()
 			{
-				
+
 			}
 		};
 		#endif
-	
+
 		/**
 		 * class for calling a function taking and int and a string including string length as parameters
 		 **/
@@ -157,6 +157,6 @@ namespace libmaus2
 			static int callFunction(std::string const & modname, std::string const & funcname, int const arg, std::string const & argstr);
 			#endif
 		};
-	}	
+	}
 }
 #endif

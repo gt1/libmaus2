@@ -38,7 +38,7 @@ namespace libmaus2
 		{
 			typedef BgzfDeflateParallel this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			private:
 			libmaus2::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator>
 				deflategloblist;
@@ -66,7 +66,7 @@ namespace libmaus2
 						deflatecontext.deflatefreelist.enque(deflatecontext.deflatecurobject);
 					}
 				}
-					
+
 				// wait until all threads are idle
 				while ( deflatecontext.deflatefreelist.getFillState() < deflatecontext.deflateB.size() )
 				{
@@ -74,7 +74,7 @@ namespace libmaus2
 					// struct timespec waittime = { 0, 10000000 };
 					struct timespec waittime = { 1,0 };
 					nanosleep(&waittime,0);
-				}			
+				}
 			}
 
 			public:
@@ -97,7 +97,7 @@ namespace libmaus2
 			{
 				deflatecontext.blockoutputcallbacks.push_back(cb);
 			}
-			
+
 			void flushInternal()
 			{
 				{
@@ -106,7 +106,7 @@ namespace libmaus2
 					if ( deflatecontext.deflateexceptionid != std::numeric_limits<uint64_t>::max() )
 					{
 						deflatecontext.deflateexlock.unlock();
-						
+
 						drain();
 
 						libmaus2::parallel::ScopePosixMutex Q(deflatecontext.deflateexlock);
@@ -117,7 +117,7 @@ namespace libmaus2
 						deflatecontext.deflateexlock.unlock();
 					}
 				}
-			
+
 				{
 					libmaus2::parallel::ScopePosixMutex Q(deflatecontext.deflateqlock);
 					deflatecontext.deflatecompqueue.push_back(deflatecontext.deflatecurobject);
@@ -130,11 +130,11 @@ namespace libmaus2
 						0 /* block id */
 					)
 				);
-				
+
 				deflatecontext.deflatecurobject = deflatecontext.deflatefreelist.deque();
 				deflatecontext.deflateB[deflatecontext.deflatecurobject]->blockid = deflatecontext.deflateoutid++;
 			}
-			
+
 			void write(char const * c, uint64_t n)
 			{
 				while ( n )
@@ -196,7 +196,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				uint64_t bcnt = 0;
 
 				// enque data for compression
@@ -223,7 +223,7 @@ namespace libmaus2
 					flushInternal();
 					bcnt += 1;
 				}
-				
+
 				return bcnt;
 			}
 
@@ -236,7 +236,7 @@ namespace libmaus2
 				if ( deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc == deflatecontext.deflateB[deflatecontext.deflatecurobject]->pe )
 					flushInternal();
 			}
-						
+
 			void flush()
 			{
 				if ( ! deflatecontext.deflateoutflushed )
@@ -251,7 +251,7 @@ namespace libmaus2
 						if ( deflatecontext.deflateexceptionid != std::numeric_limits<uint64_t>::max() )
 						{
 							deflatecontext.deflateexlock.unlock();
-								
+
 							libmaus2::parallel::ScopePosixMutex Q(deflatecontext.deflateexlock);
 							throw (*(deflatecontext.deflatepse));
 						}
@@ -268,9 +268,9 @@ namespace libmaus2
 					// uint64_t const eofflushsize = BDZSBFI.getCompressedSize();
 					// deflatecontext.deflateout.write(reinterpret_cast<char const *>(eofBase.outbuf.begin()),eofflushsize);
 					deflatecontext.streamWrite(eofBase.inbuf.begin(),eofBase.outbuf.begin(),BDZSBFI);
-					
+
 					// std::cerr << "Writing " << eofflushsize << " bytes for flush" << std::endl;
-					
+
 					deflatecontext.deflateoutflushed = true;
 				}
 			}

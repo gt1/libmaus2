@@ -61,7 +61,7 @@ namespace libmaus2
 				p = G.p;
 				return len;
 			}
-			
+
 			/**
 			 * get length of number in utf8 representation
 			 *
@@ -74,7 +74,7 @@ namespace libmaus2
 				::libmaus2::util::UTF8::encodeUTF8(n,P);
 				return P.c;
 			}
-			
+
 			/**
 			 * get length of compact entry in bytes
 			 *

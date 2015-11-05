@@ -36,13 +36,13 @@ namespace libmaus2
 			uint64_t fill;
 			//! buffer for rewriting aux areas
 			libmaus2::autoarray::AutoArray<uint8_t> U;
-			
+
 			//! constructor for empty sorting buffer
 			BamAuxSortingBuffer() : B(), U()
 			{
-			
+
 			}
-			
+
 			/**
 			 * add an element to the buffer
 			 *
@@ -57,10 +57,10 @@ namespace libmaus2
 					std::copy(B.begin(),B.end(),N.begin());
 					B = N;
 				}
-				
+
 				B[fill++] = E;
 			}
-			
+
 			/**
 			 * empty buffer
 			 **/
@@ -68,7 +68,7 @@ namespace libmaus2
 			{
 				fill = 0;
 			}
-			
+
 			/**
 			 * sort entry buffer
 			 **/

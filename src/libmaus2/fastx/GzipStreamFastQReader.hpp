@@ -32,7 +32,7 @@ namespace libmaus2
                 {
                 	typedef GzipStreamFastQReader this_type;
                 	typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-                
+
                 	GzipStreamFastQReader(std::istream & in)
                 	: libmaus2::lz::BufferedGzipStreamWrapper(in), StreamFastQReaderWrapper(BufferedGzipStreamWrapper::object)
                 	{}
@@ -49,7 +49,7 @@ namespace libmaus2
                 	GzipStreamFastQReader(std::istream & in, int const qualityOffset, libmaus2::fastx::FastInterval const & FI)
                 	: libmaus2::lz::BufferedGzipStreamWrapper(in), StreamFastQReaderWrapper(libmaus2::lz::BufferedGzipStreamWrapper::object,qualityOffset,FI)
                 	{
-                		disableByteCountChecking();                	
+                		disableByteCountChecking();
                 	}
                 };
 	}

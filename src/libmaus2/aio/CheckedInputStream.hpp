@@ -44,28 +44,28 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			private:
 			std::string const filename;
 			char * buffer;
-			
+
 			void cleanup()
 			{
 				if ( buffer )
 				{
 					delete [] buffer;
 					buffer = 0;
-					rdbuf()->pubsetbuf(0,0); 
-				}			
+					rdbuf()->pubsetbuf(0,0);
+				}
 			}
-			
+
 			CheckedInputStream & operator=(CheckedInputStream &);
 			CheckedInputStream(CheckedInputStream const &);
-			
+
 			public:
 			/**
 			 * constructor
-			 * 
+			 *
 			 * @param rfilename file name
 			 * @param mode file open mode (as for std::ifstream)
 			 **/
@@ -85,9 +85,9 @@ namespace libmaus2
 			 **/
 			~CheckedInputStream()
 			{
-				cleanup();				
+				cleanup();
 			}
-			
+
 			/**
 			 * set size of underlying streambuf object
 			 **/
@@ -97,7 +97,7 @@ namespace libmaus2
 				buffer = new char[newbufsize];
 				rdbuf()->pubsetbuf(buffer,newbufsize);
 			}
-			
+
 			/**
 			 * read n bytes from stream to c. throws an exception if n!=0 and no bytes were read
 			 *
@@ -108,20 +108,20 @@ namespace libmaus2
 			CheckedInputStream & read(char * c, ::std::streamsize const n)
 			{
 				std::ifstream::read(c,n);
-				
+
 				if ( (n != 0) && (! gcount()) )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to read from file " << filename << std::endl;
 					se.finish();
-					throw se;				
+					throw se;
 				}
-				
+
 				return *this;
 			}
 
 			/**
-			 * read n bytes from stream to c in blocks of size b. 
+			 * read n bytes from stream to c in blocks of size b.
 			 * throws an exception if n!=0 and no bytes were read
 			 *
 			 * @param c output buffer space
@@ -138,10 +138,10 @@ namespace libmaus2
 					c += toread;
 					n -= toread;
 				}
-				
+
 				return *this;
 			}
-			
+
 			/**
 			 * seek stream to absolute position pos. throws an exception if not successfull
 			 *
@@ -151,15 +151,15 @@ namespace libmaus2
 			CheckedInputStream & seekg(::std::streampos pos)
 			{
 				std::ifstream::seekg(pos);
-				
+
 				if ( ! *this )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to seek to position " << pos << " in file " << filename << std::endl;
 					se.finish();
-					throw se;								
+					throw se;
 				}
-				
+
 				return *this;
 			}
 
@@ -173,18 +173,18 @@ namespace libmaus2
 			CheckedInputStream & seekg(::std::streamoff off, ::std::ios_base::seekdir dir)
 			{
 				std::ifstream::seekg(off,dir);
-				
+
 				if ( ! *this )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to seek to offset " << off << " in file " << filename << std::endl;
 					se.finish();
-					throw se;								
+					throw se;
 				}
-				
+
 				return *this;
 			}
-			
+
 			/**
 			 * get a single symbol from file filename at position offset
 			 *
@@ -204,7 +204,7 @@ namespace libmaus2
 			 *
 			 * @param filename name of file
 			 * @return size of file filename in bytes
-			 **/			
+			 **/
 			static uint64_t getFileSize(std::string const & filename)
 			{
 				this_type CIS(filename);

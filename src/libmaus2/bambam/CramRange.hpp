@@ -32,47 +32,47 @@ namespace libmaus2
 			std::string rangeref;
 			int64_t rangestart;
 			int64_t rangeend;
-			
+
 			static CramRange intersect(CramRange const & A, CramRange const & B)
 			{
 				// empty range if not the same sequence
 				if ( A.rangeref != B.rangeref )
 					return CramRange(std::string(),0,-1);
-				
+
 				// make sure A starts before B
 				if ( A.rangestart > B.rangestart )
 					return intersect(B,A);
 				assert ( A.rangestart <= B.rangestart );
-				
+
 				// no intersection if A ends before B starts
 				if ( A.rangeend < B.rangestart )
 					return CramRange(std::string(),0,-1);
-				
+
 				return CramRange(A.rangeref,B.rangestart,std::min(A.rangeend,B.rangeend));
 			}
-			
+
 			CramRange intersect(CramRange const & O) const
 			{
 				return intersect(*this,O);
 			}
-			
+
 			bool empty() const
 			{
 				return rangestart > rangeend;
 			}
-			
+
 			CramRange()
 			: rangeref(), rangestart(-1), rangeend(-1)
 			{
-			
+
 			}
-			
+
 			CramRange(std::string const & rrangeref, int64_t const rrangestart, int64_t const rrangeend)
 			: rangeref(rrangeref), rangestart(rrangestart), rangeend(rrangeend)
 			{
-			
+
 			}
-			
+
 			CramRange(std::string const & range)
 			: rangeref(), rangestart(-1), rangeend(-1)
 			{
@@ -114,7 +114,7 @@ namespace libmaus2
 					{
 						std::string const sstart = rangerest.substr(0,minpos);
 						std::string const send = rangerest.substr(minpos+1);
-						
+
 						rangestart = 0;
 						for ( uint64_t i = 0; i < sstart.size(); ++i )
 							if ( ! isdigit(static_cast<uint8_t>(sstart[i])) )
@@ -122,7 +122,7 @@ namespace libmaus2
 								libmaus2::exception::LibMausException ex;
 								ex.getStream() << "CramRange(): cannot parse CRAM input range " << range << " (start point is not a number)" << std::endl;
 								ex.finish();
-								throw ex;		
+								throw ex;
 							}
 							else
 							{
@@ -136,7 +136,7 @@ namespace libmaus2
 								libmaus2::exception::LibMausException ex;
 								ex.getStream() << "CramRange(): cannot parse CRAM input range " << range << " (end point is not a number)" << std::endl;
 								ex.finish();
-								throw ex;		
+								throw ex;
 							}
 							else
 							{

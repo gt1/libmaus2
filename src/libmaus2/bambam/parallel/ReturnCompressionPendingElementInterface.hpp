@@ -20,11 +20,11 @@
 #define LIBMAUS2_BAMBAM_PARALLEL_RETURNCOMPRESSIONPENDINGELEMENTINTERFACE_HPP
 
 #include <libmaus2/bambam/parallel/CompressionPendingElement.hpp>
-		
+
 namespace libmaus2
 {
 	namespace bambam
-	{		
+	{
 		namespace parallel
 		{
 			struct ReturnCompressionPendingElementInterface

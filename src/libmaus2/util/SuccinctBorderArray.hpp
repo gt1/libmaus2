@@ -28,38 +28,38 @@ namespace libmaus2
 		struct SuccinctBorderArray
 		{
 			typedef SuccinctBorderArray this_type;
-		
+
 			private:
 			struct SuccinctBorderArrayAccessor
 			{
 				libmaus2::rank::ERank222BAppendDynamic & B;
-				
+
 				SuccinctBorderArrayAccessor(libmaus2::rank::ERank222BAppendDynamic & rB) : B(rB)
 				{
 				}
-				
+
 				uint64_t operator[](uint64_t const i) const
 				{
 					return i-B.rank0(B.select1(i));
 				}
-				
+
 				void init()
 				{
 					B.appendBit(1);
 				}
-				
+
 				void push(uint64_t const z)
 				{
 					for ( uint64_t k = 0; k < z; ++k )
 						B.appendBit(0);
-					B.appendBit(1);		
+					B.appendBit(1);
 				}
 			};
 
 			libmaus2::rank::ERank222BAppendDynamic B;
 			SuccinctBorderArrayAccessor S;
 			uint64_t const n;
-			
+
 			/**
 			 * construct border array (see CHL: Algorithms on strings)
 			 **/
@@ -68,7 +68,7 @@ namespace libmaus2
 			{
 				int64_t i = 0;
 				S.init();
-				
+
 				for ( uint64_t j = 1; j < n; ++j )
 				{
 					while ( i >= 0 && s[j] != s[i] )
@@ -76,13 +76,13 @@ namespace libmaus2
 							i = -1;
 						else
 							i = S[i-1];
-					
+
 					++i;
-					
+
 					S.push(static_cast<uint64_t>(-((i-static_cast<int64_t>(S[j-1]))-1)));
-				}	
+				}
 			}
-			
+
 			public:
 			template<typename iterator>
 			SuccinctBorderArray(iterator s, uint64_t const rn) : B(), S(B), n(rn)
@@ -99,7 +99,7 @@ namespace libmaus2
 			{
 				init(s.begin());
 			}
-			
+
 			std::vector<uint64_t> getFrontSquares() const
 			{
 				std::vector<uint64_t> V;
@@ -108,12 +108,12 @@ namespace libmaus2
 						V.push_back(S[j]);
 				return V;
 			}
-			
+
 			uint64_t operator[](uint64_t const i) const
 			{
 				return S[i];
 			}
-			
+
 			uint64_t size() const
 			{
 				return n;
@@ -125,24 +125,24 @@ namespace libmaus2
 			bool checkString(std::string const & s) const
 			{
 				bool ok = ( s.size() == size() );
-				
+
 				for ( uint64_t i = 0; ok && i < size(); ++i )
 					ok = ok && ( s.substr(0,S[i]) == s.substr(i+1-S[i],S[i]) );
-					
+
 				return ok;
 			}
-			
+
 			std::vector<uint64_t> getPeriods() const
 			{
 				int64_t i = static_cast<int64_t>(size())-1;
 				std::vector<uint64_t> P;
-				
+
 				while ( i > 0 && S[i] )
 				{
 					P.push_back(size() - S[i]);
 					i = S[i]-1;
 				}
-				
+
 				return P;
 			}
 
@@ -150,43 +150,43 @@ namespace libmaus2
 			{
 				int64_t i = static_cast<int64_t>(size())-1;
 				std::vector<uint64_t> P;
-				
+
 				while ( i > 0 && S[i] )
 				{
 					if ( size() % (size() - S[i]) == 0 )
 						P.push_back(size() - S[i]);
 					i = S[i]-1;
 				}
-				
+
 				return P;
 			}
-			
+
 			int64_t getSmallestIntegerRoot() const
 			{
 				std::vector<uint64_t> const V = getIntegerRoots();
-				
+
 				if ( V.size() )
 					return static_cast<int64_t>(V[0]);
 				else
 					return -1;
 			}
-			
+
 			static int64_t getSmallestIntegerRoot(std::string const & s)
 			{
 				this_type const obj(s);
 				return obj.getSmallestIntegerRoot();
 			}
-			
+
 			static std::string getSmallestIntegerRootAsString(std::string const & s)
 			{
 				int64_t const l = getSmallestIntegerRoot(s);
-				
+
 				if ( l < 0 )
 					return std::string();
 				else
 					return s.substr(0,l);
 			}
-			
+
 			/**
 			 * call checkString function for given string
 			 **/
@@ -202,11 +202,11 @@ namespace libmaus2
 			static bool checkFibonacci(uint64_t const n)
 			{
 				bool ok = true;
-				
+
 				std::map<uint64_t,std::string> M;
 				M[0] = "b";
 				M[1] = "a";
-					
+
 				for ( uint64_t i = 0; i <= n; ++i )
 				{
 					if ( i > 1 )
@@ -214,7 +214,7 @@ namespace libmaus2
 
 					ok = ok && check(M[i]);
 				}
-		
+
 				return ok;
 			}
 		};

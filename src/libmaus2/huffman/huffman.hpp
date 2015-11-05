@@ -38,11 +38,11 @@ namespace libmaus2
 		{
 			assert ( ! bitio::getBit(struc, istruc) );
 			istruc++;
-			
+
 			HuffmanTreeNode * N = 0;
 			HuffmanTreeNode * left = 0;
 			HuffmanTreeNode * right = 0;
-			
+
 			try
 			{
 				// leaf (closing bracket)
@@ -66,11 +66,11 @@ namespace libmaus2
 				delete right;
 				delete N;
 				throw;
-			}	
-			
+			}
+
 			assert ( bitio::getBit(struc, istruc) );
 			istruc++;
-			
+
 			return N;
 		}
 
@@ -83,39 +83,39 @@ namespace libmaus2
 
 			if ( tokens.size() != 2 || (tokens[0] != "HuffmanTreeNode") )
 				throw ::std::runtime_error("Malformed input in ::libmaus2::huffman::HuffmanTreeNode::simpleDeserialise()");
-			
+
 			uint64_t const numnodes = atol( tokens[1].c_str() );
 			::std::vector < ::libmaus2::huffman::HuffmanTreeNode * > nodes(numnodes);
 
 			try
 			{
 				::libmaus2::util::shared_ptr < ::libmaus2::huffman::HuffmanTreeNode >::type sroot;
-				
+
 				for ( uint64_t i = 0; i < numnodes; ++i )
 				{
 					::std::getline(in,line);
-					
+
 					if ( ! in )
 						throw ::std::runtime_error("Stream invalid before read complete in ::libmaus2::huffman::HuffmanTreeNode::simpleDeserialise()");
-					
-					tokens = ::libmaus2::util::stringFunctions::tokenize< ::std::string>(line,"\t");	
+
+					tokens = ::libmaus2::util::stringFunctions::tokenize< ::std::string>(line,"\t");
 
 					if ( tokens.size() < 2 )
 						throw ::std::runtime_error("Invalid input in ::libmaus2::huffman::HuffmanTreeNode::simpleDeserialise()");
-					
+
 					if ( tokens[1] == "inner" )
 					{
 						if ( tokens.size() != 4 )
 							throw ::std::runtime_error("Invalid input in ::libmaus2::huffman::HuffmanTreeNode::simpleDeserialise()");
 
 						uint64_t const nodeid = atol( tokens[0].c_str() );
-						
+
 						if ( nodeid >= numnodes )
 							throw ::std::runtime_error("Invalid node id in ::libmaus2::huffman::HuffmanTreeNode::simpleDeserialise()");
-					
+
 						if ( nodes[nodeid] )
 							throw ::std::runtime_error("Repeated node in ::libmaus2::huffman::HuffmanTreeNode::simpleDeserialise()");
-						
+
 						uint64_t const left = atol(tokens[2].c_str());
 						uint64_t const right = atol(tokens[3].c_str());
 
@@ -123,9 +123,9 @@ namespace libmaus2
 							throw ::std::runtime_error("Invalid node id in ::libmaus2::huffman::HuffmanTreeNode::simpleDeserialise()");
 						if ( right >= numnodes || (!nodes[right]) )
 							throw ::std::runtime_error("Invalid node id in ::libmaus2::huffman::HuffmanTreeNode::simpleDeserialise()");
-							
+
 						nodes [ nodeid ] = new  ::libmaus2::huffman::HuffmanTreeInnerNode(0,0,nodes[left]->getFrequency() + nodes[right]->getFrequency() );
-						
+
 						if ( left )
 							dynamic_cast < ::libmaus2::huffman::HuffmanTreeInnerNode * > (nodes [ nodeid ])->left = nodes[left]; nodes[left] = 0;
 						if ( right )
@@ -137,31 +137,31 @@ namespace libmaus2
 							throw ::std::runtime_error("Invalid input in ::libmaus2::huffman::HuffmanTreeNode::simpleDeserialise()");
 
 						uint64_t const nodeid = atol( tokens[0].c_str() );
-						
+
 						if ( nodeid >= numnodes )
 							throw ::std::runtime_error("Invalid node id in ::libmaus2::huffman::HuffmanTreeNode::simpleDeserialise()");
 
 						int const symbol = atoi(tokens[2].c_str());
 						uint64_t const frequency = atol(tokens[3].c_str());
-						
+
 						nodes[nodeid] = new  ::libmaus2::huffman::HuffmanTreeLeaf(symbol,frequency);
 					}
 					else
 					{
 						throw ::std::runtime_error("Invalid node type in ::libmaus2::huffman::HuffmanTreeNode::simpleDeserialise()");
-					}                                                                                                                
+					}
 				}
-				
+
 				if ( ! nodes[0] )
 					throw ::std::runtime_error("No root node produced in ::libmaus2::huffman::HuffmanTreeNode::simpleDeserialise()");
-					
+
 				for ( uint64_t i = 1; i < numnodes; ++i )
 					if ( nodes[i] )
 						throw ::std::runtime_error("Unlinked node produced in ::libmaus2::huffman::HuffmanTreeNode::simpleDeserialise()");
 
 				sroot = ::libmaus2::util::shared_ptr< ::libmaus2::huffman::HuffmanTreeNode>::type(nodes[0]);
 				nodes[0] = 0;
-			
+
 				return sroot;
 			}
 			catch(...)

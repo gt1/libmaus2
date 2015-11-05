@@ -25,13 +25,13 @@ int main(/* int argc, char * argv[] */)
 		::libmaus2::network::LogReceiver::unique_ptr_type LR(new ::libmaus2::network::LogReceiver("logpre",4444,1024));
 
 		::libmaus2::network::StringRecDispatchCallback srdc;
-		
+
 		::libmaus2::network::LogReceiverTestProcess::unique_ptr_type TP0 (LR->constructLogReceiverTestProcess(0 /* id */,&srdc));
 		::libmaus2::network::LogReceiverTestProcess::unique_ptr_type TP1 (LR->constructLogReceiverTestProcess(1 /* id */,&srdc));
 		::libmaus2::network::LogReceiverTestProcess::unique_ptr_type TP2 (LR->constructLogReceiverTestProcess(2 /* id */,&srdc));
-		
+
 		std::map<uint64_t, ::libmaus2::network::SocketBase::shared_ptr_type > controlsocks;
-		
+
 		sleep(2);
 
 		while ( LR->controlDescriptorPending() )
@@ -39,7 +39,7 @@ int main(/* int argc, char * argv[] */)
 			::libmaus2::network::LogReceiver::ControlDescriptor P = LR->getControlDescriptor();
 			controlsocks [ P.id ] = P.controlsock;
 			std::cerr << "Got control socket for " << P.id << std::endl;
-			
+
 			switch ( P.id )
 			{
 				case 0: controlsocks.find(P.id)->second->writeString("Coke"); break;
@@ -47,9 +47,9 @@ int main(/* int argc, char * argv[] */)
 				case 2: controlsocks.find(P.id)->second->writeString("Juice"); break;
 			}
 		}
-		
+
 		LR.reset();
-			
+
 		return 0;
 	}
 }

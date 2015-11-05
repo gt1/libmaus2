@@ -44,20 +44,20 @@
 namespace libmaus2
 {
 	namespace util
-	{	
+	{
 		struct TempFileNameGenerator
 		{
 			typedef TempFileNameGenerator this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			::libmaus2::parallel::OMPLock lock;
-			
+
 			TempFileNameGeneratorState state;
 			TempFileNameGeneratorState const startstate;
-			
+
 			TempFileNameGenerator(std::string const rprefix, unsigned int const rdepth);
 			~TempFileNameGenerator();
-			
+
 			std::string getFileName();
 			void cleanupDirs();
 		};

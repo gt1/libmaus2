@@ -32,7 +32,7 @@ namespace libmaus2
 			static uint64_t lcs(std::string const & a, std::string const & b)
 			{
 				uint64_t maxlcp = 0;
-				
+
 				for ( uint64_t i = 0; i < a.size(); ++i )
 					for ( uint64_t j = i+1; j <= a.size(); ++j )
 					{
@@ -41,7 +41,7 @@ namespace libmaus2
 						if ( b.find(q) != std::string::npos )
 							maxlcp = std::max(maxlcp,static_cast<uint64_t>(q.size()));
 					}
-				
+
 				return maxlcp;
 			}
 		};

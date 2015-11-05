@@ -25,27 +25,27 @@
 namespace libmaus2
 {
 	namespace parallel
-	{		
+	{
 		struct ThreadPoolThread : libmaus2::parallel::PosixThread
 		{
 			typedef ThreadPoolThread this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			ThreadPoolInterface & tpi;
-			
+
 			ThreadPoolThread(ThreadPoolInterface & rtpi) : tpi(rtpi)
 			{
 			}
 			virtual ~ThreadPoolThread() {}
-		
+
 			void * run()
 			{
 				try
 				{
 					// notify pool this thread is now running
 					tpi.notifyThreadStart();
-				
+
 					while ( true )
 					{
 						libmaus2::parallel::ThreadWorkPackage * P = tpi.getPackage();
@@ -56,11 +56,11 @@ namespace libmaus2
 				}
 				catch(std::exception const & ex)
 				{
-					// std::cerr << ex.what() << std::endl;	
+					// std::cerr << ex.what() << std::endl;
 				}
-								
+
 				return 0;
-			}		
+			}
 		};
 	}
 }

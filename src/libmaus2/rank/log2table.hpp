@@ -57,10 +57,10 @@ namespace libmaus2
 				return 0;
 
 			uint64_t const rawent = entropy_estimate_raw(num,total);
-			/* divide, rounding up */	
+			/* divide, rounding up */
 			uint64_t const entr = (rawent + ((1u<<16)-1)) >> 16;
 			/* return */
-			return entr;	
+			return entr;
 		}
 
 		inline uint64_t entropy_estimate_down(uint64_t const num, uint64_t const total)
@@ -69,10 +69,10 @@ namespace libmaus2
 				return 0;
 
 			uint64_t const rawent = entropy_estimate_raw(num,total);
-			/* divide, rounding up */	
+			/* divide, rounding up */
 			uint64_t const entr = rawent >> 16;
 			/* return */
-			return entr;	
+			return entr;
 		}
 	}
 }

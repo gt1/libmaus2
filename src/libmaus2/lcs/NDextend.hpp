@@ -34,7 +34,7 @@
 #include <libmaus2/lcs/EditDistanceTraceContainer.hpp>
 #include <libmaus2/util/SimpleHashMap.hpp>
 #include <libmaus2/rank/popcnt.hpp>
-	
+
 namespace libmaus2
 {
 	namespace lcs
@@ -44,7 +44,7 @@ namespace libmaus2
 		{
 			typedef _valid_symbol_type valid_symbol_type;
 			typedef NDextendTemplate<valid_symbol_type> this_type;
-		
+
 			static uint64_t const evecmask = 0x7FFFFFFFFFFFFFFFull;
 
 			private:
@@ -52,17 +52,17 @@ namespace libmaus2
 			{
 				uint32_t pa;
 				uint32_t pb;
-				
+
 				uint32_t mat;
 				uint32_t mis;
 				uint32_t ins;
 				uint32_t del;
-				
+
 				uint64_t evec;
-				
+
 				QueueElement() {}
 				QueueElement(
-					uint32_t const rpa, 
+					uint32_t const rpa,
 					uint32_t const rpb,
 					uint32_t const rmat,
 					uint32_t const rmis,
@@ -72,12 +72,12 @@ namespace libmaus2
 				)
 				: pa(rpa), pb(rpb), mat(rmat), mis(rmis), ins(rins), del(rdel), evec(revec)
 				{
-				
+
 				}
-				
+
 				int64_t getScore() const
 				{
-					return	
+					return
 						static_cast<int64_t>(mat) -
 						static_cast<int64_t>(mis) -
 						static_cast<int64_t>(ins) -
@@ -89,7 +89,7 @@ namespace libmaus2
 			static inline uint64_t diagid_f(uint64_t x, uint64_t y)
 			{
 				int64_t const dif = static_cast<int64_t>(x)-static_cast<int64_t>(y);
-				
+
 				if ( dif < 0 )
 				{
 					return ((-dif)<<1);
@@ -101,7 +101,7 @@ namespace libmaus2
 				else
 				{
 					return 0;
-				}	
+				}
 			}
 
 			// offset on diagonal
@@ -115,15 +115,15 @@ namespace libmaus2
 				uint64_t const diagid = diagid_f(x,y);
 				uint64_t const diagoffset = diagoffset_f(x,y);
 				uint64_t diagptr = diagid * diaglen + diagoffset;
-				
+
 				return diagptr;
 			}
-			
+
 			static inline std::pair<uint64_t,uint64_t> rdiagptr_f(uint64_t ptr, uint64_t const diaglen)
 			{
 				uint64_t diagoffset = ptr % diaglen;
 				uint64_t diagid = ptr / diaglen;
-				
+
 				if ( diagid == 0 )
 				{
 					return std::pair<uint64_t,uint64_t>(diagoffset,diagoffset);
@@ -140,7 +140,7 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			#if 0
 			static void inline enumDiag()
 			{
@@ -179,22 +179,22 @@ namespace libmaus2
 			}
 
 			static inline void diagaccess_set_f(
-				libmaus2::util::SimpleHashMap<uint64_t,uint64_t> & H, 
-				uint64_t const ptr, 
+				libmaus2::util::SimpleHashMap<uint64_t,uint64_t> & H,
+				uint64_t const ptr,
 				edit_op const e
 			)
 			{
 				uint64_t offset;
 				uint64_t const shift = (ptr & 31) << 1;
-								
+
 				if ( H.offset(ptr>>5,offset) )
 					H.updateOffset(offset,H.atOffset(offset) | (static_cast<uint64_t>(e) << shift));
 				else
 					H.insertNonSyncExtend(ptr>>5,static_cast<uint64_t>(e) << shift,0.8,2 /* log add */);
 			}
-			
+
 			libmaus2::util::SimpleHashMap<uint64_t,uint64_t> editops;
-			
+
 			public:
 			NDextendTemplate() : editops(2)
 			{
@@ -251,18 +251,18 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			template<typename iterator_a, typename iterator_b>
 			inline QueueElement slide(
-				QueueElement const & P, 
-				iterator_a a, size_t const na, 
-				iterator_b b, size_t const nb, 
+				QueueElement const & P,
+				iterator_a a, size_t const na,
+				iterator_b b, size_t const nb,
 				uint64_t const diaglen,
 				uint64_t & maxantidiag,
 				bool const self_check
 			)
-			{					
-				// start point on a	
+			{
+				// start point on a
 				uint64_t pa = P.pa;
 				// start point on b
 				uint64_t pb = P.pb;
@@ -308,7 +308,7 @@ namespace libmaus2
 				{
 					for ( size_t pb = 0; pb <= nb; ++pb )
 					{
-						switch ( 
+						switch (
 							diagaccess_get_f(editops,diagptr_f(pa,pb,diaglen))
 						)
 						{
@@ -318,7 +318,7 @@ namespace libmaus2
 							case step_del:  out.put('d'); break;
 						}
 					}
-					
+
 					out << "\n";
 				}
 			}
@@ -338,15 +338,15 @@ namespace libmaus2
 				if ( check_self && (a==b) )
 				{
 					EditDistanceTraceContainer::te = EditDistanceTraceContainer::ta = EditDistanceTraceContainer::trace.end();
-					return false;		
+					return false;
 				}
 
 
 				editops.clearFast();
-				
+
 				// diag len
 				uint64_t const diaglen = std::min(na,nb)+1;
-				// todo queue	
+				// todo queue
 				std::deque<QueueElement> Q, nextQ;
 				// maximum antidiagonal
 				uint64_t maxantidiag = 0;
@@ -364,27 +364,27 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < Q.size(); ++i )
 					{
 						QueueElement const & P = Q[i];
-					
-						// start point on a	
+
+						// start point on a
 						uint64_t pa = P.pa;
 						// start point on b
 						uint64_t pb = P.pb;
-						
-						if ( 
+
+						if (
 							check_self &&
 							( a + pa == b + pb )
 						)
 						{
 							EditDistanceTraceContainer::te = EditDistanceTraceContainer::ta = EditDistanceTraceContainer::trace.end();
-							return false;		
+							return false;
 						}
 
 						// anti diagonal id
 						uint64_t const antidiag = pa + pb;
 						assert ( antidiag <= maxantidiag );
 
-						if ( 
-							maxantidiag - antidiag <= maxantidiagdiff 
+						if (
+							maxantidiag - antidiag <= maxantidiagdiff
 							&&
 							(libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(P.evec) <= maxevecpopcnt)
 						)
@@ -465,7 +465,7 @@ namespace libmaus2
 					}
 
 					maxantidiag = nextmaxantidiag;
-					
+
 					if ( aligned )
 						break;
 					else if ( nextQ.size() == 0 )
@@ -473,19 +473,19 @@ namespace libmaus2
 					else
 						Q.swap(nextQ);
 				}
-				
+
 				// did we reach the bottom right corner?
 				if ( aligned )
 				{
 					EditDistanceTraceContainer::reset();
 					if ( EditDistanceTraceContainer::capacity() < na+nb )
 						EditDistanceTraceContainer::resize(na+nb);
-					
+
 					EditDistanceTraceContainer::te = EditDistanceTraceContainer::ta = EditDistanceTraceContainer::trace.end();
-										
+
 					uint64_t pa = na;
 					uint64_t pb = nb;
-					
+
 					while ( pa != 0 || pb != 0 )
 					{
 						switch ( diagaccess_get_f(editops,diagptr_f(pa,pb,diaglen)) )
@@ -510,7 +510,7 @@ namespace libmaus2
 								break;
 						}
 					}
-					
+
 					return true;
 				}
 				else if ( Q.size() )
@@ -518,21 +518,21 @@ namespace libmaus2
 					// find Q entry with maximum score
 					int64_t maxscore = std::numeric_limits<int64_t>::min();
 					uint64_t maxscoreindex = 0;
-					
+
 					for ( uint64_t i = 0; i < Q.size(); ++i )
 					{
 						int64_t const score = Q[i].getScore();
-												
+
 						if ( score > maxscore )
 						{
 							maxscore = score;
 							maxscoreindex = i;
 						}
-							
+
 					}
-					
+
 					QueueElement const & P = Q[maxscoreindex];
-				
+
 					uint64_t pa = P.pa;
 					uint64_t pb = P.pb;
 
@@ -541,7 +541,7 @@ namespace libmaus2
 						EditDistanceTraceContainer::resize(pa+pb);
 
 					EditDistanceTraceContainer::te = EditDistanceTraceContainer::ta = EditDistanceTraceContainer::trace.end();
-					
+
 					while ( pa != 0 || pb != 0 )
 					{
 						switch ( diagaccess_get_f(editops,diagptr_f(pa,pb,diaglen)) )
@@ -566,10 +566,10 @@ namespace libmaus2
 								break;
 						}
 					}
-					
+
 					suffixPositive();
 
-					return false;				
+					return false;
 				}
 				else
 				{
@@ -587,13 +587,13 @@ namespace libmaus2
 					false
 					);
 			}
-			
+
 			AlignmentTraceContainer const & getTraceContainer() const
 			{
 				return *this;
 			}
 		};
-		
+
 		typedef NDextendTemplate<NDextendAllPass> NDextend;
 		typedef NDextendTemplate<NDextendACGTPass> NDextendDNA;
 		typedef NDextendTemplate<NDextend1234Pass> NDextendDNAMapped1;

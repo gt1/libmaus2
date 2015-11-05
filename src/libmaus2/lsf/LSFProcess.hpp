@@ -40,21 +40,21 @@ namespace libmaus2
 			static ::libmaus2::parallel::OMPLock lsflock;
 			static void init(std::string const & sappname);
 			static std::string getClusterName();
-			
+
 			static uint64_t Mscale;
 		};
-	
+
 		struct LSFProcess : public LSFStateBase
 		{
 		        typedef LSFProcess this_type;
 		        typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		        typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 		        int64_t const id;
-		        
+
 		        static void initLSF();
 		        static bool distributeUnique() { return true; }
-                        
+
                         static int64_t submitJob(
         		        std::string const & scommand,
         		        std::string const & sjobname,
@@ -95,14 +95,14 @@ namespace libmaus2
 			bool finishedOk() const;
 			void wait(int sleepinterval) const;
 			void kill(int const sig = SIGTERM) const;
-        		
+
 			bool getHost(::std::vector<std::string> & hostnames) const;
 			std::string getSingleHost() const;
 
 			state getState() const;
 			int64_t getIntState() const;
 			static std::map<int64_t,int64_t> getIntStates();
-			
+
 			int64_t getIntState(std::map<int64_t,int64_t> const & M) const
 			{
 				if ( M.find(id) != M.end() )

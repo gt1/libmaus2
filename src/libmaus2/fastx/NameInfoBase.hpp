@@ -28,7 +28,7 @@ namespace libmaus2
 	{
 		struct NameInfoBase
 		{
-			enum fastq_name_scheme_type { 
+			enum fastq_name_scheme_type {
 				fastq_name_scheme_generic,
 				fastq_name_scheme_casava18_single,
 				fastq_name_scheme_casava18_paired_end,
@@ -50,7 +50,7 @@ namespace libmaus2
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "unknown read name scheme " << schemename << std::endl;
 					lme.finish();
-					throw lme;	
+					throw lme;
 				}
 			}
 		};

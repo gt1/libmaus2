@@ -32,7 +32,7 @@ namespace libmaus2
 			private:
 			uint64_t const n;
 			libmaus2::autoarray::AutoArray<value_type> S;
-			
+
 			/**
 			 * construct border array (see CHL: Algorithms on strings)
 			 **/
@@ -43,7 +43,7 @@ namespace libmaus2
 				{
 					int64_t i = 0;
 					S[0] = 0;
-					
+
 					for ( uint64_t j = 1; j < n; ++j )
 					{
 						while ( i >= 0 && s[j] != s[i] )
@@ -51,14 +51,14 @@ namespace libmaus2
 								i = -1;
 							else
 								i = S[i-1];
-						
+
 						++i;
-						
+
 						S[j] = i;
 					}
 				}
 			}
-			
+
 			public:
 			template<typename iterator>
 			BorderArray(iterator s, uint64_t const rn) : n(rn), S(n)
@@ -74,12 +74,12 @@ namespace libmaus2
 						V.push_back(S[j]);
 				return V;
 			}
-			
+
 			uint64_t operator[](uint64_t const i) const
 			{
 				return S[i];
 			}
-			
+
 			uint64_t size() const
 			{
 				return n;
@@ -91,13 +91,13 @@ namespace libmaus2
 			bool checkString(std::string const & s) const
 			{
 				bool ok = ( s.size() == size() );
-				
+
 				for ( uint64_t i = 0; ok && i < size(); ++i )
 					ok = ok && ( s.substr(0,S[i]) == s.substr(i+1-S[i],S[i]) );
-					
+
 				return ok;
 			}
-			
+
 			/**
 			 * call checkString function for given string
 			 **/
@@ -113,11 +113,11 @@ namespace libmaus2
 			static bool checkFibonacci(uint64_t const n)
 			{
 				bool ok = true;
-				
+
 				std::map<uint64_t,std::string> M;
 				M[0] = "b";
 				M[1] = "a";
-					
+
 				for ( uint64_t i = 0; i <= n; ++i )
 				{
 					if ( i > 1 )
@@ -125,7 +125,7 @@ namespace libmaus2
 
 					ok = ok && check(M[i]);
 				}
-		
+
 				return ok;
 			}
 		};

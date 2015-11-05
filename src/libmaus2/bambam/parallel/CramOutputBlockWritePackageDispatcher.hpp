@@ -35,10 +35,10 @@ namespace libmaus2
 				typedef CramOutputBlockWritePackageDispatcher this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				CramOutputBlockWritePackageReturnInterface & packageReturnInterface;
 				CramOutputBlockWritePackageFinishedInterface & finishedInterface;
-						
+
 				CramOutputBlockWritePackageDispatcher(
 					CramOutputBlockWritePackageReturnInterface & rpackageReturnInterface,
 					CramOutputBlockWritePackageFinishedInterface & rfinishedInterface
@@ -52,7 +52,7 @@ namespace libmaus2
 					size_t const n = block->fill;
 					char const * data = n ? block->A->begin() : NULL;
 					std::ostream * out = BP->out;
-					
+
 					out->write(data,n);
 					if ( ! out )
 					{

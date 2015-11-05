@@ -33,13 +33,13 @@ namespace libmaus2
 			typedef _base_type base_type;
 			typedef SignedCompactArrayTemplate<base_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			typedef int64_t value_type;
 
 			typedef typename ::libmaus2::util::AssignmentProxy<this_type,value_type> proxy_type;
 			typedef typename ::libmaus2::util::AssignmentProxyIterator<this_type,value_type> iterator;
 			typedef typename ::libmaus2::util::ConstIterator<this_type,value_type> const_iterator;
-			
+
 			const_iterator begin() const
 			{
 				return const_iterator(this,0);
@@ -79,19 +79,19 @@ namespace libmaus2
 				return t;
 			}
 
-			template<typename iterator>			
-			SignedCompactArrayTemplate(iterator a, iterator e, uint64_t const rb) 
+			template<typename iterator>
+			SignedCompactArrayTemplate(iterator a, iterator e, uint64_t const rb)
 			: base_type(a,e,rb), nshift((1ll << (base_type::b-1)))
 			{
 				uint64_t i = 0;
 				for ( ; a != e; ++a, ++i )
 					set(i,*a);
 			}
-			SignedCompactArrayTemplate(uint64_t const rn, uint64_t const rb) 
+			SignedCompactArrayTemplate(uint64_t const rn, uint64_t const rb)
 			: base_type(rn,rb), nshift((1ll << (base_type::b-1)))
 			{
 			}
-			SignedCompactArrayTemplate(uint64_t const rn, uint64_t const rb, uint64_t * const rD) 
+			SignedCompactArrayTemplate(uint64_t const rn, uint64_t const rb, uint64_t * const rD)
 			: base_type(rn,rb,rD), nshift((1ll << (base_type::b-1)))
 			{
 			}
@@ -108,13 +108,13 @@ namespace libmaus2
 			{
 				return static_cast<int64_t>(base_type::getBits(i*base_type::b)) - nshift;
 			}
-			void set(uint64_t i, int64_t v) 
+			void set(uint64_t i, int64_t v)
 			{
-				base_type::putBits(i*base_type::b, static_cast<uint64_t>(v + nshift)); 
+				base_type::putBits(i*base_type::b, static_cast<uint64_t>(v + nshift));
 			}
 
 			int64_t postfixIncrement(uint64_t i) { int64_t const v = get(i); set(i,v+1); return v; }
-			
+
 			unique_ptr_type clone() const
 			{
 				unique_ptr_type O( new this_type(base_type::n,base_type::b) );

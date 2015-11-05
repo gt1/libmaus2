@@ -38,9 +38,9 @@ namespace libmaus2
 			 **/
 			ReadEndsHeapPairComparator()
 			{
-			
+
 			}
-			
+
 			/**
 			 * compare two heap elements
 			 *

@@ -33,26 +33,26 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			private:			
+			private:
 			libmaus2::parallel::ScopePosixMutex mutex;
 			std::istream & istr;
-			
+
 			ReadEndsBlockDecoderBaseCollectionInfoLockedStream(libmaus2::parallel::PosixMutex & rmutex, std::istream & ristr) : mutex(rmutex), istr(ristr)
 			{}
-			
+
 			public:
 			static unique_ptr_type construct(libmaus2::parallel::PosixMutex & rmutex, std::istream & ristr)
 			{
 				unique_ptr_type tptr(new this_type(rmutex,ristr));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
-			
+
 			std::istream & getStream()
 			{
 				return istr;
 			}
 		};
-		
+
 		struct ReadEndsBlockDecoderBaseCollectionInfoDataStreamProvider
 		{
 			virtual ~ReadEndsBlockDecoderBaseCollectionInfoDataStreamProvider() {}
@@ -64,55 +64,55 @@ namespace libmaus2
 			virtual ~ReadEndsBlockDecoderBaseCollectionInfoIndexStreamProvider() {}
 			virtual ReadEndsBlockDecoderBaseCollectionInfoLockedStream::unique_ptr_type getIndexStream() = 0;
 		};
-	
-		struct ReadEndsBlockDecoderBaseCollectionInfo 
-		: 
+
+		struct ReadEndsBlockDecoderBaseCollectionInfo
+		:
 			public ReadEndsBlockDecoderBaseCollectionInfoBase,
 			public ReadEndsBlockDecoderBaseCollectionInfoDataStreamProvider,
 			public ReadEndsBlockDecoderBaseCollectionInfoIndexStreamProvider
 		{
 			typedef ReadEndsBlockDecoderBaseCollectionInfo this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;			
-			
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
 			typedef libmaus2::aio::InputStream input_stream_type;
-			
-			// private:		
+
+			// private:
 			input_stream_type::shared_ptr_type datastr;
 			input_stream_type::shared_ptr_type indexstr;
-			
+
 			libmaus2::parallel::PosixMutex datamutex;
 			libmaus2::parallel::PosixMutex indexmutex;
-			
+
 			public:
 			ReadEndsBlockDecoderBaseCollectionInfo() : ReadEndsBlockDecoderBaseCollectionInfoBase(), datastr(), indexstr()
 			{}
-			
+
 			ReadEndsBlockDecoderBaseCollectionInfo(
 				std::string const & rdatafilename,
 				std::string const & rindexfilename,
 				std::vector < uint64_t > const & rblockelcnt,
 				std::vector < uint64_t > const & rindexoffset
-			) : 
+			) :
 			    ReadEndsBlockDecoderBaseCollectionInfoBase(rdatafilename,rindexfilename,rblockelcnt,rindexoffset),
 			    datastr (libmaus2::aio::InputStreamFactoryContainer::constructShared(ReadEndsBlockDecoderBaseCollectionInfoBase::datafilename)),
 			    indexstr(libmaus2::aio::InputStreamFactoryContainer::constructShared(ReadEndsBlockDecoderBaseCollectionInfoBase::indexfilename))
 			{}
-			
+
 			ReadEndsBlockDecoderBaseCollectionInfo(ReadEndsBlockDecoderBaseCollectionInfoBase const & O)
-			: 
-			    ReadEndsBlockDecoderBaseCollectionInfoBase(O), 
+			:
+			    ReadEndsBlockDecoderBaseCollectionInfoBase(O),
 			    datastr (libmaus2::aio::InputStreamFactoryContainer::constructShared(ReadEndsBlockDecoderBaseCollectionInfoBase::datafilename)),
 			    indexstr(libmaus2::aio::InputStreamFactoryContainer::constructShared(ReadEndsBlockDecoderBaseCollectionInfoBase::indexfilename))
 			{
 			}
-			
+
 			ReadEndsBlockDecoderBaseCollectionInfoLockedStream::unique_ptr_type getDataStream()
 			{
 				ReadEndsBlockDecoderBaseCollectionInfoLockedStream::unique_ptr_type tptr(
 					ReadEndsBlockDecoderBaseCollectionInfoLockedStream::construct(datamutex,*datastr)
 				);
-				
+
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 
@@ -123,7 +123,7 @@ namespace libmaus2
 				);
 
 				return UNIQUE_PTR_MOVE(tptr);
-			}			
+			}
 		};
 	}
 }

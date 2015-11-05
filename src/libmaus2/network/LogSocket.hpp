@@ -55,14 +55,14 @@ namespace libmaus2
 			}
 
 			LogSocket(std::string const rfilenameprefix)
-			: 
+			:
 			nextlogport(4445),
 			sid(constructSid()),
 			id(0),
 			filenameprefix(rfilenameprefix)
 			{
 			}
-                        
+
 			server_socket_ptr_type getLogSocket()
 			{
 				server_socket_ptr_type lp(
@@ -72,18 +72,18 @@ namespace libmaus2
 						::libmaus2::network::GetHostName::getHostName().c_str(),4096
 					)
 				);
-                                
+
 				nextlogport += 1;
 
 				return UNIQUE_PTR_MOVE(lp);
 			}
-                        
+
 			void logprocess(::libmaus2::network::SocketBase::unique_ptr_type socket)
 			{
 				uint64_t const clientid = id++;
-                               
+
 				pid_t pid = fork();
-                               
+
 				if ( pid == static_cast<pid_t>(-1) )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -98,24 +98,24 @@ namespace libmaus2
 						std::ostringstream ostr;
 						ostr << filenameprefix << "_" << std::setfill('0') << std::setw(6) << clientid;
 						std::string fnprefix = ostr.str();
-					       
+
 						libmaus2::aio::OutputStreamInstance out((fnprefix+".out"));
 						libmaus2::aio::OutputStreamInstance err((fnprefix+".err"));
-				       
+
 						bool running = true;
-					       
+
 						while ( running )
 						{
 							try
 							{
 								pollfd pfd = { socket->getFD(), POLLIN, 0 };
 								int const ready = poll(&pfd,1,-1);
-								      
+
 								if ( (ready>0) && (pfd.revents & POLLIN) )
 								{
 									uint64_t stag;
 									::libmaus2::autoarray::AutoArray<char> B = socket->readMessage<char>(stag);
-													      
+
 									if ( stag == STDOUT_FILENO )
 									{
 										out.write(B.get(),B.size());
@@ -140,10 +140,10 @@ namespace libmaus2
 								running = false;
 							}
 						}
-					       
+
 						out.flush();
 						err.flush();
-					       
+
 						std::cerr << "log process for id " << clientid << " exiting." << std::endl;
 					}
 					catch(std::exception const & ex)
@@ -154,7 +154,7 @@ namespace libmaus2
 					{
 						std::cerr << "Caught unknown exception in LogSocket" << std::endl;
 					}
-                               
+
 					_exit(0);
 				}
 				else
@@ -180,7 +180,7 @@ namespace libmaus2
                         {
                                 bool accepted = false;
                                 bool exceptionpass = false;
-                                
+
                                 // accept log socket
                                 while ( !accepted )
                                 {
@@ -191,7 +191,7 @@ namespace libmaus2
                                         	FD_ZERO(&readfds);
                                         	FD_SET(fd,&readfds);
                                         	int ready = -1;
-                                        	
+
                                         	// std::cerr << "(select...";
                                         	if (  timeout )
                                         	{
@@ -201,10 +201,10 @@ namespace libmaus2
 						}
 						else
 						{
-                                        		ready = ::select(fd+1, &readfds, 0, 0, 0);							
+                                        		ready = ::select(fd+1, &readfds, 0, 0, 0);
 						}
 						// std::cerr << "ready=" << ready << ")";
-						
+
 						if ( ! ready )
 						{
 							::libmaus2::exception::LibMausException se;
@@ -212,10 +212,10 @@ namespace libmaus2
 							se.finish();
 							throw se;
 						}
-                                        
+
 						// std::cerr << "(accept...";
                                                 ::libmaus2::network::SocketBase::unique_ptr_type socket;
-                                                
+
                                                 try
                                                 {
 	                                                socket = UNIQUE_PTR_MOVE(logsock->accept());
@@ -225,18 +225,18 @@ namespace libmaus2
 							std::cerr << "Failure in LogSocket::accept():\n" << ex.what() << std::endl;
 							throw;
 						}
-                                                
+
                                                 // std::cerr << ")";
-                                                
+
                                                 // std::cerr << "(nodelay...";
                                                 socket->setNoDelay();
                                                 // std::cerr << ")";
-                                                
+
                                                 // std::cerr << "(read sid...";
                                                 uint64_t stag;
                                                 std::string const remsid = socket->readString(stag);
                                                 // std::cerr << ")";
-                                                
+
                                                 // std::cerr << "(writing commandline...";
                                                 socket->writeString(0,cmdline);
                                                 // std::cerr << ")";
@@ -265,11 +265,11 @@ namespace libmaus2
 						}
                                         }
                                 }
-                                
+
                                 accepted = false;
-                                
+
                                 ::libmaus2::network::SocketBase::unique_ptr_type socket;
-                                
+
                                 // accept control socket
                                 while ( !accepted )
                                 {
@@ -281,7 +281,7 @@ namespace libmaus2
 
                                                 if ( remsid == sid )
                                                 {
-                                                        accepted = true;                                       
+                                                        accepted = true;
                                                 }
                                                 else
                                                 {
@@ -293,12 +293,12 @@ namespace libmaus2
                                                 std::cerr << "Failure in accepting control socket:\n" << ex.what() << std::endl;
                                         }
                                 }
-                                
+
                                 // std::cerr << "(about to leave acceptReference)";
-                                
+
                                 return UNIQUE_PTR_MOVE(socket);
                         }
-                        
+
                         void reap()
                         {
                                 for ( uint64_t i = 0; i < logpids.size(); ++i )
@@ -309,7 +309,7 @@ namespace libmaus2
                                                         logpids[i] = static_cast<pid_t>(-1);
                                         }
                         }
-                        
+
                         bool allLogPidsInactive()
                         {
                         	bool inactive = true;
@@ -318,17 +318,17 @@ namespace libmaus2
                         			inactive = false;
 				return inactive;
                         }
-                        
+
                         void join()
                         {
                         	if ( allLogPidsInactive() )
                         		return;
-                        		
+
 				reap();
 
                         	if ( allLogPidsInactive() )
                         		return;
-				
+
 				uint64_t const sleeptime = 5;
 				std::cerr << "Some log processes still active, waiting " << sleeptime << " seconds and then sending SIGTERM." << std::endl;
 
@@ -339,7 +339,7 @@ namespace libmaus2
 
 				std::cerr << "Signal SIGTERM sent, waiting for " << sleeptime << " seconds." << std::endl;
 				sleep(sleeptime);
-				
+
 				reap();
 				if ( allLogPidsInactive() )
 					return;
@@ -353,14 +353,14 @@ namespace libmaus2
 
 				std::cerr << "Signal SIGKILL sent, waiting for " << sleeptime << " seconds." << std::endl;
 				sleep(sleeptime);
-                        
+
 				reap();
 				if ( allLogPidsInactive() )
 					return;
-					
+
 				std::cerr << "Some log processes seem to be ignoring signals, giving up." << std::endl;
                         }
-                        
+
                         ~LogSocket()
                         {
                                 join();

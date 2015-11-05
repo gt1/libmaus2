@@ -32,7 +32,7 @@ namespace libmaus2
 			{
 				return a > b;
 			}
-			
+
 			bool operator()(
 				std::pair<uint64_t,GraphEdge> const & a,
 				std::pair<uint64_t,GraphEdge> const & b

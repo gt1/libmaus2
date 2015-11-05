@@ -1883,7 +1883,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testalignerspeed \
 	testfastasingleline \
 	testdazzleralignmentrewrite \
-	testxz
+	testxz \
+	testdazzlerindex
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2370,3 +2371,7 @@ testdazzleralignmentrewrite_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testxz_SOURCES  = test/testxz.cpp
 testxz_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testxz_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testdazzlerindex_SOURCES  = test/testdazzlerindex.cpp
+testdazzlerindex_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testdazzlerindex_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@

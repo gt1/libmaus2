@@ -32,20 +32,20 @@ namespace libmaus2
 			private:
 			uint64_t const inputblocksize;
 			uint64_t const outputblocksize;
-			
+
 			libmaus2::autoarray::AutoArray<char> outputblock;
-			
+
 			std::ostream & out;
-			
+
 			uint64_t outputbyteswritten;
 			uint64_t payloadbyteswritten;
 
 			std::ostream * indexstream;
-			
+
 			public:
 			Lz4Compress(std::ostream & rout, uint64_t const inputblocksize, std::ostream * rindexstream = 0);
 			~Lz4Compress();
-			
+
 			void setIndexStream(std::ostream * rindexstream = 0)  { indexstream = rindexstream; }
 			void writeUncompressed(char const * input, int const inputsize);
 			void write(char const * input, int const inputsize);

@@ -42,20 +42,20 @@ namespace libmaus2
 			typedef index_type difference_type;
 			typedef typename ::std::iterator< ::std::random_access_iterator_tag, data_type>::reference reference;
 			typedef typename ::std::iterator< ::std::random_access_iterator_tag, data_type>::pointer pointer;
-						
+
 			owner_type const * owner;
 			index_type i;
-			
+
 			UnsignedIntegerIndexIterator() : owner(0), i(0) {}
 			UnsignedIntegerIndexIterator(owner_type const * rowner, int64_t const ri = 0) : owner(rowner), i(ri) {}
 			UnsignedIntegerIndexIterator(owner_type const * rowner, index_type const & ri) : owner(rowner), i(ri) {}
 			UnsignedIntegerIndexIterator(UnsignedIntegerIndexIterator const & o) : owner(o.owner), i(o.i) {}
-			
+
 			data_type operator*() const
 			{
 				return owner->get(i);
 			}
-			
+
 			data_type operator[](int64_t j) const
 			{
 				return owner->get(i+j);
@@ -94,7 +94,7 @@ namespace libmaus2
 				i -= j;
 				return *this;
 			}
-			
+
 			bool operator<(this_type const & I) const
 			{
 				return i < I.i;

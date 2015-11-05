@@ -36,29 +36,29 @@ namespace libmaus2
 		struct SparseGammaGapBlockEncoder
 		{
 			typedef SparseGammaGapBlockEncoder this_type;
-			
+
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			typedef libmaus2::aio::SynchronousGenericOutput<uint64_t> stream_type;
-			
+
 			// w output stream
 			libmaus2::aio::OutputStreamInstance::unique_ptr_type SGOCOS;
 			// rw index stream
 			//libmaus2::aio::CheckedInputOutputStream::unique_ptr_type indexUP;
 			libmaus2::aio::InputOutputStream::unique_ptr_type indexUP;
-			
+
 			std::ostream & SGOout;
 			std::iostream & indexout;
-			
+
 			libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO;
-			
+
 			int64_t prevkey;
 			libmaus2::gamma::GammaEncoder<stream_type> genc;
-			
+
 			uint64_t const blocksize;
 			uint64_t blockleft;
-			
+
 			uint64_t indexentries;
 
 			SparseGammaGapBlockEncoder(
@@ -68,35 +68,35 @@ namespace libmaus2
 				uint64_t const rblocksize = 64*1024
 			)
 			:
-			  SGOout(out), 
+			  SGOout(out),
 			  indexout(rindexout),
 			  SGO(SGOout,8*1024),
-			  prevkey(rprevkey), 
-			  genc(SGO), 
-			  blocksize(rblocksize), 
+			  prevkey(rprevkey),
+			  genc(SGO),
+			  blocksize(rblocksize),
 			  blockleft(0),
 			  indexentries(0)
 			{
 			}
-			
+
 			SparseGammaGapBlockEncoder(
 				std::string const & filename,
 				std::string const & indexfilename,
 				uint64_t const rblocksize = 64*1024
 			)
-			: SGOCOS(new libmaus2::aio::OutputStreamInstance(filename)), 
+			: SGOCOS(new libmaus2::aio::OutputStreamInstance(filename)),
 			  indexUP(libmaus2::aio::InputOutputStreamFactoryContainer::constructUnique(indexfilename,std::ios::in|std::ios::out|std::ios::trunc|std::ios::binary)),
-			  SGOout(*SGOCOS), 
+			  SGOout(*SGOCOS),
 			  indexout(*indexUP),
 			  SGO(SGOout,8*1024),
-			  prevkey(-1), 
-			  genc(SGO), 
-			  blocksize(rblocksize), 
+			  prevkey(-1),
+			  genc(SGO),
+			  blocksize(rblocksize),
 			  blockleft(0),
-			  indexentries(0)			  
+			  indexentries(0)
 			{
 			}
-			
+
 			void encode(uint64_t const key, uint64_t const val)
 			{
 				// start of next block
@@ -104,16 +104,16 @@ namespace libmaus2
 				{
 					uint64_t const ikey = key;
 					uint64_t const ibitoff = genc.getOffset();
-					
+
 					libmaus2::util::NumberSerialisation::serialiseNumber(indexout,ikey);
 					libmaus2::util::NumberSerialisation::serialiseNumber(indexout,ibitoff);
 					indexentries++;
-					
+
 					// std::cerr << "ikey=" << ikey << " ibitoff=" << ibitoff << std::endl;
 
 					blockleft = blocksize;
 				}
-			
+
 				int64_t const dif = (static_cast<int64_t>(key)-prevkey)-1;
 				genc.encode(dif);
 				prevkey = key;
@@ -121,7 +121,7 @@ namespace libmaus2
 				genc.encode(val);
 				--blockleft;
 			}
-			
+
 			void term()
 			{
 				genc.encode(0);
@@ -129,71 +129,71 @@ namespace libmaus2
 				genc.flush();
 				SGO.flush();
 				SGOout.flush();
-				
+
 				indexout.clear();
 				indexout.seekg(0,std::ios::beg);
-				
+
 				// uint64_t const indexpos = SGO.getWrittenBytes();
 				indexout.clear();
 				indexout.seekg(0,std::ios::beg);
 				libmaus2::util::GetFileSize::copy(indexout,SGOout,2*sizeof(uint64_t)*indexentries);
 				libmaus2::util::NumberSerialisation::serialiseNumber(SGOout,indexentries ? prevkey : 0); // highest key in file
 				libmaus2::util::NumberSerialisation::serialiseNumber(SGOout,indexentries);
-				
+
 				SGOout.flush();
 			}
-			
+
 			template<typename it>
 			static void encodeArray(it const ita, it const ite, std::ostream & out, std::iostream & indexout)
 			{
 				std::sort(ita,ite);
-				
+
 				this_type enc(out,indexout);
-				
+
 				it itl = ita;
-				
+
 				while ( itl != ite )
 				{
 					it ith = itl;
-					
+
 					while ( ith != ite && *ith == *itl )
 						++ith;
-					
+
 					enc.encode(*itl,ith-itl);
-					
+
 					itl = ith;
 				}
-				
+
 				enc.term();
 				out.flush();
 			}
-			
+
 			template<typename it>
 			static std::vector<std::string> encodeArray(it const gita, it const gite, std::string const & fnprefix, uint64_t const tparts, uint64_t const blocksize = 64*1024)
 			{
 				std::sort(gita,gite);
-				
+
 				uint64_t const partsize = (gite-gita+tparts-1)/(tparts);
-				
+
 				std::vector<uint64_t> partstarts;
 				it gitc = gita;
 				while ( gitc != gite )
 				{
 					while ( gitc != gita && gitc != gite && (*(gitc-1)) == *gitc )
 						++gitc;
-						
+
 					assert ( gitc == gita || gitc == gite || ((*(gitc-1)) != (*gitc)) );
-					
+
 					if ( gitc != gite )
 						partstarts.push_back(gitc-gita);
-						
+
 					gitc += std::min(partsize,static_cast<uint64_t>(gite-gitc));
 				}
-				
+
 				uint64_t const parts = partstarts.size();
 				std::vector<std::string> partfn(parts);
 				partstarts.push_back(gite-gita);
-				
+
 				for ( uint64_t p = 0; p < parts; ++p )
 				{
 					std::ostringstream fnostr;
@@ -201,8 +201,8 @@ namespace libmaus2
 					std::string const fn = fnostr.str();
 					partfn[p] = fn;
 					std::string const indexfn = fn+".idx";
-					libmaus2::util::TempFileRemovalContainer::addTempFile(indexfn);				
-					
+					libmaus2::util::TempFileRemovalContainer::addTempFile(indexfn);
+
 					libmaus2::aio::OutputStreamInstance COS(fn);
 					libmaus2::aio::InputOutputStream::unique_ptr_type Pindexstr(
 						libmaus2::aio::InputOutputStreamFactoryContainer::constructUnique(
@@ -219,26 +219,26 @@ namespace libmaus2
 
 					it itl = gita + partstarts[p];
 					it ite = gita + partstarts[p+1];
-				
+
 					while ( itl != ite )
 					{
 						it ith = itl;
-						
+
 						while ( ith != ite && *ith == *itl )
 							++ith;
-						
+
 						enc.encode(*itl,ith-itl);
-						
+
 						itl = ith;
 					}
-					
+
 					enc.term();
 					COS.flush();
-					
+
 					Pindexstr.reset();
 					libmaus2::aio::FileRemoval::removeFile(indexfn);
 				}
-				
+
 				return partfn;
 			}
 
@@ -248,16 +248,16 @@ namespace libmaus2
 				libmaus2::aio::OutputStreamInstance COS(fn);
 				std::string const indexfn = fn+".idx";
 				libmaus2::util::TempFileRemovalContainer::addTempFile(indexfn);
-				
+
 				libmaus2::aio::InputOutputStream::unique_ptr_type PindexCOS(libmaus2::aio::InputOutputStreamFactoryContainer::constructUnique(indexfn,
 					std::ios::in|std::ios::out|std::ios::trunc|std::ios::binary));
 				// libmaus2::aio::CheckedInputOutputStream indexCOS(indexfn);
 				encodeArray(ita,ite,COS,*PindexCOS);
 				PindexCOS.reset();
-				
+
 				libmaus2::aio::FileRemoval::removeFile(indexfn);
 			}
-		};	
+		};
 	}
 }
 #endif

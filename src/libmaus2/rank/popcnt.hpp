@@ -43,9 +43,9 @@ namespace libmaus2
 			{
 				v = v - ((v >> 1) & 0x55555555);                    // reuse input as temporary
 				v = (v & 0x33333333) + ((v >> 2) & 0x33333333);     // temp
-				return ( ( (v + (v >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24; // count 
+				return ( ( (v + (v >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24; // count
 			}
-			
+
 		};
 		template<unsigned int longsize>
 		struct PopCnt8Base
@@ -81,7 +81,7 @@ namespace libmaus2
 		struct PopCnt4Base<4>
 		{
 			virtual ~PopCnt4Base() {}
-			
+
 			static unsigned int popcnt4(uint32_t v)
 			{
 				return sse4popcnt(v);
@@ -91,7 +91,7 @@ namespace libmaus2
 		struct PopCnt8Base<8>
 		{
 			virtual ~PopCnt8Base() {}
-			
+
 			static unsigned int popcnt8(uint64_t v)
 			{
 				return sse4popcnt(v);
@@ -155,7 +155,7 @@ namespace libmaus2
 		struct PopCnt4Base<4>
 		{
 			virtual ~PopCnt4Base() {}
-			
+
 			static unsigned int popcnt4(uint32_t v)
 			{
 				return ssse3popcnt(v);
@@ -165,7 +165,7 @@ namespace libmaus2
 		struct PopCnt8Base<8>
 		{
 			virtual ~PopCnt8Base() {}
-			
+
 			static unsigned int popcnt8(uint64_t v)
 			{
 				return ssse3popcnt(v);
@@ -176,7 +176,7 @@ namespace libmaus2
 		struct PopCnt4Base<2>
 		{
 			virtual ~PopCnt4Base() {}
-			
+
 			/**
 			 * Population count (number of 1 bits)
 			 * using the gnu compilers builtin function for unsigned long types
@@ -186,13 +186,13 @@ namespace libmaus2
 			static unsigned int popcnt4(uint32_t const u)
 			{
 				return __builtin_popcountl(u);
-			}	
+			}
 		};
 		template<>
 		struct PopCnt4Base<4>
 		{
 			virtual ~PopCnt4Base() {}
-			
+
 			/**
 			 * Population count (number of 1 bits)
 			 * using the gnu compilers builtin function for unsigned long types
@@ -202,14 +202,14 @@ namespace libmaus2
 			static unsigned int popcnt4(uint32_t const u)
 			{
 				return __builtin_popcount(u);
-			}	
+			}
 		};
 
 		template<>
 		struct PopCnt8Base<4>
 		{
 			virtual ~PopCnt8Base() {}
-			
+
 			/**
 			 * Population count (number of 1 bits)
 			 * using the gnu compilers builtin function for unsigned long types
@@ -218,14 +218,14 @@ namespace libmaus2
 			 **/
 			static unsigned int popcnt8(uint64_t const u)
 			{
-				return (__builtin_popcountl(u>>32)) + (__builtin_popcountl(u&0x00000000FFFFFFFFULL));			
-			}	
+				return (__builtin_popcountl(u>>32)) + (__builtin_popcountl(u&0x00000000FFFFFFFFULL));
+			}
 		};
 		template<>
 		struct PopCnt8Base<8>
 		{
 			virtual ~PopCnt8Base() {}
-			
+
 			/**
 			 * Population count (number of 1 bits)
 			 * using the gnu compilers builtin function for unsigned long types
@@ -235,7 +235,7 @@ namespace libmaus2
 			static unsigned int popcnt8(uint64_t const u)
 			{
 				return __builtin_popcountl(u);
-			}	
+			}
 		};
 		#endif
 
@@ -243,19 +243,19 @@ namespace libmaus2
 		struct PopCnt4 : public PopCnt4Base<intsize>
 		{
 			typedef uint32_t input_type;
-			
+
 			virtual ~PopCnt4() {}
-			
+
 			static unsigned int dataBits()
 			{
 				return 8*sizeof(input_type);
 			}
-			
+
 			static input_type msb()
 			{
 				return static_cast<input_type>(1) << (dataBits()-1);
 			}
-		
+
 			static unsigned int popcnt4(input_type v)
 			{
 				return PopCnt4Base<intsize>::popcnt4(v);
@@ -264,32 +264,32 @@ namespace libmaus2
 			{
 				return popcnt4( v >> (8*sizeof(input_type)-bits) );
 			}
-			
+
 			static std::string printP(input_type v, unsigned int numbits = dataBits() )
 			{
 				input_type const mask = msb();
 				std::string s(numbits,' ');
-				
+
 				for ( unsigned int i = 0; i < numbits; ++i )
 				{
 					if ( v&mask )
 						s[i] = ')';
 					else
 						s[i] = '(';
-					
+
 					v &= ~mask;
 					v <<= 1;
 				}
-				
+
 				return s;
-			}			
+			}
 		};
 
 		template<unsigned int longsize>
 		struct PopCnt8 : public PopCnt8Base<longsize>
 		{
 			virtual ~PopCnt8() {}
-			
+
 			static unsigned int popcnt8(uint64_t v)
 			{
 				return PopCnt8Base<longsize>::popcnt8(v);
@@ -297,7 +297,7 @@ namespace libmaus2
 			static unsigned int popcnt8(uint64_t v, unsigned int bits)
 			{
 				return popcnt8( v >> (8*sizeof(uint64_t)-bits) );
-			}		
+			}
 		};
 
 		static inline unsigned int bitcountpair(uint32_t const n)

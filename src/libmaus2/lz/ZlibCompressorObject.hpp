@@ -32,19 +32,19 @@ namespace libmaus2
 			typedef ZlibCompressorObject this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			int const level;
 			z_stream strm;
-			
+
 			uint64_t inputBound;
 			uint64_t outputBound;
-						
+
 			ZlibCompressorObject(int const rlevel = Z_DEFAULT_COMPRESSION) : level(rlevel), inputBound(0), outputBound(0)
 			{
-				BgzfDeflateHeaderFunctions::deflateinitz(&strm,level);		
+				BgzfDeflateHeaderFunctions::deflateinitz(&strm,level);
 				outputBound = deflateBound(&strm,inputBound);
 			}
-			~ZlibCompressorObject() 
+			~ZlibCompressorObject()
 			{
 				BgzfDeflateHeaderFunctions::deflatedestroyz(&strm);
 			}
@@ -52,7 +52,7 @@ namespace libmaus2
 			virtual size_t compress(char const * input, size_t inputLength, libmaus2::autoarray::AutoArray<char> & output)
 			{
 				deflateReset(&strm);
-		
+
 				if ( inputLength > inputBound )
 				{
 					inputBound = inputLength;
@@ -61,7 +61,7 @@ namespace libmaus2
 
 				if ( outputBound > output.size() )
 					output = libmaus2::autoarray::AutoArray<char>(outputBound,false);
-										
+
 				// maximum number of output bytes
 				strm.avail_out = output.size();
 				// next compressed output byte
@@ -70,9 +70,9 @@ namespace libmaus2
 				strm.avail_in  = inputLength;
 				// data to be compressed
 				strm.next_in   = const_cast<Bytef *>(reinterpret_cast<Bytef const *>(input));
-				
+
 				int const retcode = deflate(&strm,Z_FINISH);
-				
+
 				// std::cerr << "avail_out=" << strm.avail_out << std::endl;
 				// std::cerr << "avail_in=" << strm.avail_in << std::endl;
 
@@ -84,7 +84,7 @@ namespace libmaus2
 					se.finish(false /* do not translate stack trace */);
 					throw se;
 				}
-				
+
 				uint64_t const compsize = output.size() - strm.avail_out;
 
 				return compsize;

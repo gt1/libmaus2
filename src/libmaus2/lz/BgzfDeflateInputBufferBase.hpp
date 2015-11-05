@@ -29,16 +29,16 @@ namespace libmaus2
 		struct BgzfDeflateInputBufferBase : public BgzfConstants
 		{
 			::libmaus2::autoarray::AutoArray<uint8_t> inbuf;
-			
+
 			uint8_t * const pa;
 			uint8_t * pc;
 			uint8_t * const pe;
-		
+
 			BgzfDeflateInputBufferBase(uint64_t const bufsize = getBgzfMaxBlockSize()) : inbuf(bufsize,false), pa(inbuf.begin()), pc(pa), pe(inbuf.end())
 			{
 				assert ( bufsize <= getBgzfMaxBlockSize() );
 			}
-			
+
 			uint64_t getInputBufferSize() const
 			{
 				return inbuf.size();

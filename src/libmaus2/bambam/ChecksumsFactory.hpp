@@ -32,7 +32,7 @@ namespace libmaus2
 			static std::string getSupportedHashVariantsList();
 			static libmaus2::bambam::ChecksumsInterface::unique_ptr_type construct(std::string const & hash, libmaus2::bambam::BamHeader const & header);
 			static libmaus2::bambam::ChecksumsInterface::unique_ptr_type construct(std::string const & hash, libmaus2::bambam::BamHeaderLowMem const & header);
-			
+
 			template<typename header_type>
 			static libmaus2::bambam::ChecksumsInterface::shared_ptr_type constructShared(std::string const & hash, header_type const & header)
 			{

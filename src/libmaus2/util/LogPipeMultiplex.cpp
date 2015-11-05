@@ -44,7 +44,7 @@ libmaus2::util::LogPipeMultiplex::LogPipeMultiplex(
 	sock->writeString(0,sid);
 	uint64_t stag;
 	cmdline = sock->readString(stag);
-		
+
 	if ( pipe(&stdoutpipe[0]) != 0 )
 	{
 		::libmaus2::exception::LibMausException se;
@@ -64,38 +64,38 @@ libmaus2::util::LogPipeMultiplex::LogPipeMultiplex(
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "close() failed: " << strerror(errno) << std::endl;
 		se.finish();
-		throw se;		
+		throw se;
 	}
 	if ( close(STDERR_FILENO) != 0 )
 	{
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "close() failed: " << strerror(errno) << std::endl;
 		se.finish();
-		throw se;		
+		throw se;
 	}
 	if ( dup2(stdoutpipe[1],STDOUT_FILENO) == -1 )
 	{
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "dup2() failed: " << strerror(errno) << std::endl;
 		se.finish();
-		throw se;				
+		throw se;
 	}
 	if ( dup2(stderrpipe[1],STDERR_FILENO) == -1 )
 	{
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "dup2() failed: " << strerror(errno) << std::endl;
 		se.finish();
-		throw se;				
+		throw se;
 	}
 
 	pid = fork();
-	
+
 	if ( pid < 0 )
 	{
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "fork() failed: " << strerror(errno) << std::endl;
 		se.finish();
-		throw se;		
+		throw se;
 	}
 	else if ( pid == 0 )
 	{
@@ -105,9 +105,9 @@ libmaus2::util::LogPipeMultiplex::LogPipeMultiplex(
 		// close copies
 		close(STDOUT_FILENO);
 		close(STDERR_FILENO);
-		
+
 		bool running = true;
-		
+
 		try
 		{
 			while ( running )
@@ -116,7 +116,7 @@ libmaus2::util::LogPipeMultiplex::LogPipeMultiplex(
 				fd_set fds;
 				int maxfd = -1;
 				FD_ZERO(&fds);
-				
+
 				if ( stdoutpipe[0] != -1 )
 				{
 					FD_SET(stdoutpipe[0],&fds);
@@ -127,13 +127,13 @@ libmaus2::util::LogPipeMultiplex::LogPipeMultiplex(
 					FD_SET(stderrpipe[0],&fds);
 					maxfd = std::max(maxfd,stderrpipe[0]);
 				}
-				
+
 				running = (maxfd != -1);
-				
+
 				if ( running )
 				{
 					int r = select(maxfd+1,&fds,0,0,0);
-					
+
 					try
 					{
 						if ( r > 0 )
@@ -147,7 +147,7 @@ libmaus2::util::LogPipeMultiplex::LogPipeMultiplex(
 									std::ostringstream errstream;
 									errstream << "Failed to read from stdout pipe: " << strerror(errno) << std::endl;
 									std::string errstring = errstream.str();
-									
+
 									sock->writeMessage<char>(STDERR_FILENO,errstring.c_str(),errstring.size());
 									uint64_t stag, n;
 									sock->readMessage<uint64_t>(stag,0,n);
@@ -170,7 +170,7 @@ libmaus2::util::LogPipeMultiplex::LogPipeMultiplex(
 									std::ostringstream errstream;
 									errstream << "Failed to read from stderr pipe: " << strerror(errno) << std::endl;
 									std::string errstring = errstream.str();
-									
+
 									sock->writeMessage<char>(STDERR_FILENO,errstring.c_str(),errstring.size());
 									uint64_t stag, n;
 									sock->readMessage<uint64_t>(stag,0,n);
@@ -183,7 +183,7 @@ libmaus2::util::LogPipeMultiplex::LogPipeMultiplex(
 									uint64_t stag, n;
 									sock->readMessage<uint64_t>(stag,0,n);
 								}
-							}	
+							}
 						}
 					}
 					catch(std::exception const & ex)
@@ -196,7 +196,7 @@ libmaus2::util::LogPipeMultiplex::LogPipeMultiplex(
 		{
 			std::cerr << "Caught exception in LogPipeMultiplex" << std::endl;
 		}
-		
+
 		_exit(0);
 	}
 	else

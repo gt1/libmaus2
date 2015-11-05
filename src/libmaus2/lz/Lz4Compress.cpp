@@ -40,7 +40,7 @@ void libmaus2::lz::Lz4Compress::writeUncompressed(char const * input, int const 
 		se.finish();
 		throw se;
 	}
-	
+
 	outputbyteswritten += inputsize;
 }
 
@@ -53,9 +53,9 @@ void libmaus2::lz::Lz4Compress::write(char const * input, int const inputsize)
 			libmaus2::exception::LibMausException se;
 			se.getStream() << "libmaus2::lz::Lz4Compress::write(): block index out of sync"  << std::endl;
 			se.finish();
-			throw se;		
+			throw se;
 		}
-	
+
 		libmaus2::util::NumberSerialisation::serialiseNumber(*indexstream,outputbyteswritten);
 
 		if ( ! (*indexstream) )
@@ -74,8 +74,8 @@ void libmaus2::lz::Lz4Compress::write(char const * input, int const inputsize)
 	libmaus2::util::UTF8::encodeUTF8(inputsize,ostr);
 
 	writeUncompressed(ostr.str().c_str(),ostr.str().size());
-	writeUncompressed(outputblock.begin(),compressedSize);	
-	
+	writeUncompressed(outputblock.begin(),compressedSize);
+
 	payloadbyteswritten += inputsize;
 }
 
@@ -108,13 +108,13 @@ void libmaus2::lz::Lz4Compress::flush()
 uint64_t libmaus2::lz::Lz4Compress::align(uint64_t const mod)
 {
 	char zbuf[] = { 0,0,0,0, 0,0,0,0 };
-	
+
 	while ( outputbyteswritten % mod )
 	{
 		uint64_t const towrite = std::min ( static_cast<uint64_t>(sizeof(zbuf)/sizeof(zbuf[0])), mod - (outputbyteswritten % mod));
 		writeUncompressed(&zbuf[0],towrite);
 	}
-	
+
 	return outputbyteswritten;
 }
 

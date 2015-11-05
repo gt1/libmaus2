@@ -30,22 +30,22 @@ namespace libmaus2
 			typedef CheckOverlapResultInput this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			libmaus2::aio::InputStreamInstance ifstr;
 			std::istream & istr;
-		
+
 			CheckOverlapResultInput(std::string const & filename)
 			: ifstr(filename), istr(ifstr)
 			{
-			
+
 			}
-			
+
 			CheckOverlapResultInput(std::istream & ristr)
 			: ifstr(), istr(ristr)
 			{
-			
+
 			}
-			
+
 			CheckOverlapResult::shared_ptr_type get()
 			{
 				return CheckOverlapResult::load(istr);

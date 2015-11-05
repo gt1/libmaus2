@@ -36,12 +36,12 @@ int testImpCompactArray()
 		libmaus2::util::ImpCompactNumberArrayGenerator::constructFromArray(V.begin(),V.size())
 	);
 	libmaus2::util::ImpCompactNumberArray & I = *P;
-	
+
 	std::ostringstream ostr;
 	I.serialise(ostr);
 	std::istringstream istr(ostr.str());
 	libmaus2::util::ImpCompactNumberArray::unique_ptr_type P2(libmaus2::util::ImpCompactNumberArray::load(istr));
-	
+
 	for ( libmaus2::util::ImpCompactNumberArray::const_iterator ita = P2->begin(); ita != P2->end(); ++ita )
 	{
 		assert ( (*ita) == V[ita-P2->begin()] );
@@ -60,14 +60,14 @@ int testRMMTree()
 		for ( uint64_t i = 0; i < n; ++i )
 			V.push_back(libmaus2::random::Random::rand64() % 128);
 		libmaus2::rmq::RMMTree< std::vector<uint64_t>, 5, true /* debug */> RMM(V,V.size());
-	
+
 		#if defined(_OPENMP)
 		#pragma omp parallel for
 		#endif
 		for ( int64_t i = 0; i < static_cast<int64_t>(V.size()); ++i )
 			for ( uint64_t j = i; j < V.size(); ++j )
 				RMM.rmq(i,j);
-				
+
 		#if defined(_OPENMP)
 		#pragma omp parallel for
 		#endif
@@ -76,10 +76,10 @@ int testRMMTree()
 			RMM.nsv(i);
 			RMM.psv(i);
 		}
-			
+
 		std::cerr << ".";
 	}
-	
+
 	return 0;
 }
 

@@ -64,13 +64,13 @@ namespace libmaus2
 				> readpendingsubqueue;
 				libmaus2::parallel::PosixSpinLock readpendingsubqueuelock;
 				uint64_t volatile readpendingsubqueuenextid;
-				
+
 				libmaus2::parallel::LockedFreeList<
 					libmaus2::bambam::parallel::DecompressedBlock,
 					libmaus2::bambam::parallel::DecompressedBlockAllocator,
 					libmaus2::bambam::parallel::DecompressedBlockTypeInfo
 				> decompfreelist;
-				
+
 				std::priority_queue<
 					libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type,
 					std::vector<libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type>,
@@ -78,7 +78,7 @@ namespace libmaus2
 				> parsereorderqueue;
 				libmaus2::parallel::PosixSpinLock parsereorderqueuelock;
 				uint64_t volatile parsereorderqueuenext;
-				
+
 				FastQInputDesc(std::istream & rin, uint64_t const numblocks, uint64_t const blocksize, uint64_t const rstreamid)
 				: in(rin), blockFreeList(numblocks,libmaus2::bambam::parallel::GenericInputBlockAllocator<meta_type>(blocksize)),
 				  streamid(rstreamid), stallArray(), stallArraySize(0), blockid(0), eof(false), blocksproduced(0), blockspassed(0),
@@ -89,7 +89,7 @@ namespace libmaus2
 				  parsereorderqueuelock(),
 				  parsereorderqueuenext(0)
 				{}
-				
+
 				uint64_t getStreamId() const
 				{
 					return streamid;
@@ -99,36 +99,36 @@ namespace libmaus2
 				{
 					return blockid;
 				}
-				
+
 				void incrementBlockId()
 				{
 					blockid += 1;
 				}
-				
+
 				bool getEOF() const
 				{
 					return eof;
 				}
-				
+
 				void setEOF(bool const reof)
 				{
 					eof = reof;
 				}
-				
+
 				uint64_t getBlocksProduced()
 				{
 					libmaus2::parallel::ScopePosixSpinLock slock(blocksproducedlock);
 					return blocksproduced;
 				}
-				
+
 				void incrementBlocksProduced()
 				{
 					libmaus2::parallel::ScopePosixSpinLock slock(blocksproducedlock);
-					blocksproduced += 1;					
+					blocksproduced += 1;
 				}
-				
+
 				uint64_t getBlocksPassed()
-				{					
+				{
 					libmaus2::parallel::ScopePosixSpinLock slock(blockspassedlock);
 					return blockspassed;
 				}
@@ -136,7 +136,7 @@ namespace libmaus2
 				void incrementBlocksPassed()
 				{
 					libmaus2::parallel::ScopePosixSpinLock slock(blockspassedlock);
-					blockspassed += 1;					
+					blockspassed += 1;
 				}
 			};
 		}

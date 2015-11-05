@@ -23,7 +23,7 @@
 #include <libmaus2/util/I386CacheLineSize.hpp>
 #endif
 
-libmaus2::digest::CRC32C_sse42::CRC32C_sse42() : ctx(0) 
+libmaus2::digest::CRC32C_sse42::CRC32C_sse42() : ctx(0)
 {
 	#if ! ( defined(LIBMAUS2_USE_ASSEMBLY) &&  defined(LIBMAUS2_HAVE_x86_64) && defined(LIBMAUS2_HAVE_i386) && defined(LIBMAUS2_HAVE_SMMINTRIN_H) )
 	libmaus2::exception::LibMausException lme;
@@ -43,10 +43,10 @@ libmaus2::digest::CRC32C_sse42::CRC32C_sse42() : ctx(0)
 	#endif
 }
 libmaus2::digest::CRC32C_sse42::~CRC32C_sse42() {}
-	
+
 void libmaus2::digest::CRC32C_sse42::init() { ctx = 0; }
 
-void libmaus2::digest::CRC32C_sse42::digest(uint8_t * digest) 
+void libmaus2::digest::CRC32C_sse42::digest(uint8_t * digest)
 {
 	digest[0] = (ctx >> 24) & 0xFF;
 	digest[1] = (ctx >> 16) & 0xFF;
@@ -67,13 +67,13 @@ void libmaus2::digest::CRC32C_sse42::vinit() { init(); }
 #include <smmintrin.h>
 #endif
 
-void libmaus2::digest::CRC32C_sse42::update(uint8_t const * t, size_t l) 
+void libmaus2::digest::CRC32C_sse42::update(uint8_t const * t, size_t l)
 {
 	#if defined(LIBMAUS2_HAVE_SMMINTRIN_H) && defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_x86_64) && defined(LIBMAUS2_HAVE_i386)
 	ctx = ~ctx;
-		
+
 	size_t const offset = reinterpret_cast<size_t>(t);
-		
+
 	// check for 3 LSB
 	if ( offset & 7 )
 	{
@@ -89,43 +89,43 @@ void libmaus2::digest::CRC32C_sse42::update(uint8_t const * t, size_t l)
 		{
 			ctx = _mm_crc32_u16(ctx, *reinterpret_cast<uint16_t const *>(t));
 			t += 2;
-			l -= 2;			
-		}	
+			l -= 2;
+		}
 		// check for 3rd LSB
 		if ( (offset & 4) && l >= 4 )
 		{
 			ctx = _mm_crc32_u32(ctx, *reinterpret_cast<uint32_t const *>(t));
 			t += 4;
-			l -= 4;			
+			l -= 4;
 		}
 	}
-	
+
 	uint64_t const * t64 = reinterpret_cast<uint64_t const *>(t);
 	uint64_t const * const t64e = t64 + (l>>3);
-	
+
 	while ( t64 != t64e )
 		ctx = _mm_crc32_u64(ctx, *(t64++));
-		
+
 	l &= 7;
 	t = reinterpret_cast<uint8_t const *>(t64);
-	
+
 	if ( l >= 4 )
 	{
 		ctx = _mm_crc32_u32(ctx, *reinterpret_cast<uint32_t const *>(t));
 		t += 4;
-		l -= 4;	
+		l -= 4;
 	}
 	if ( l >= 2 )
 	{
 		ctx = _mm_crc32_u16(ctx, *reinterpret_cast<uint16_t const *>(t));
 		t += 2;
-		l -= 2;	
+		l -= 2;
 	}
 	if ( l )
 	{
 		ctx = _mm_crc32_u8(ctx, *t);
 	}
-	
+
 	ctx = ~ctx;
 	#endif
 }

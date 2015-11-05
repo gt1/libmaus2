@@ -42,13 +42,13 @@ namespace libmaus2
 	{
 		struct StackTrace
 		{
-			std::vector < std::string > trace;   
+			std::vector < std::string > trace;
 
 			static void simpleStackTrace(std::ostream & ostr = std::cerr);
 
 			StackTrace();
 			virtual ~StackTrace();
-			
+
 			static std::string getExecPath();
 			static std::pair < std::string, std::string > components(std::string line, char const start, char const end);
 			std::string toString(bool const translate) const;

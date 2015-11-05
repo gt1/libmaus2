@@ -48,15 +48,15 @@ static std::string loadFirstPattern(std::string const & filename)
 struct BitVectorResultPrintCallback : public ::libmaus2::lcs::BitVectorResultCallbackInterface
 {
 	std::ostream & out;
-	
+
 	BitVectorResultPrintCallback(std::ostream & rout) : out(rout)
 	{
 	}
-	
+
 	void operator()(size_t const p, uint64_t const distance)
 	{
 		out << "BitVector::match: end position " << p << " distance " << distance << std::endl;
-	}				
+	}
 };
 
 #include <libmaus2/lcs/AlignerFactory.hpp>
@@ -155,7 +155,7 @@ int main(int argc, char * argv[])
 		std::string const a = "";
 
 		NP.np(a.begin(),a.end(),b.begin(),b.end());
-		
+
 		libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cout,a.begin(),a.size(),b.begin(),b.size(),80,NP.ta,NP.te);
 	}
 	{
@@ -174,34 +174,34 @@ int main(int argc, char * argv[])
 		libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cout,a.begin(),a.size(),b.begin(),b.size(),80,ED.ta,ED.te);
 		}
 		#endif
-		
+
 		libmaus2::lcs::NP np;
-		
+
 		std::cerr << np.np(a.begin(),a.end(),b.begin(),b.end()) << std::endl;
 		libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cout,a.begin(),a.size(),b.begin(),b.size(),80,np.ta,np.te);
-		
+
 		#if 0
 		std::string::const_iterator aa = a.begin();
 		std::string::const_iterator ae = a.end();
 		std::string::const_iterator ba = b.begin();
 		std::string::const_iterator be = b.end();
 		#endif
-		
+
 		char const * aa = a.c_str();
 		char const * ae = aa + a.size();
 		char const * ba = b.c_str();
 		char const * be = ba + b.size();
-	
+
 		libmaus2::timing::RealTimeClock rtc; rtc.start();
-		int d = 0;	
+		int d = 0;
 		uint64_t n = 5*1024*1024;
 		for ( size_t i = 0; i < n; ++i )
 			d += np.np(aa,ae,ba,be);
-			
+
 		double const ela = rtc.getElapsedSeconds();
-		
+
 		std::cerr << "d=" << d << " " <<  n/ela << std::endl;
-		
+
 		libmaus2::lcs::EditDistance<> ED;
 		ED.process(a.begin(),a.size(),b.begin(),b.size(),0,0,1,1,1);
 		std::cerr << ED.getAlignmentStatistics() << std::endl;
@@ -211,14 +211,14 @@ int main(int argc, char * argv[])
 	{
 		libmaus2::math::Rational<> R1(1);
 		libmaus2::math::Rational<> R2(2);
-		
+
 		std::cerr << "R1=" << R1 << std::endl;
 		std::cerr << "R2=" << R2 << std::endl;
 		std::cerr << "R1+R2=" << R1+R2 << std::endl;
 		std::cerr << "R1-R2=" << R1-R2 << std::endl;
 		std::cerr << "R1*R2=" << R1*R2 << std::endl;
 		std::cerr << "R1/R2=" << R1/R2 << std::endl;
-		
+
 		R1 *= R2;
 		std::cerr << "R1 after R1*=R2 = " << R1 << std::endl;
 		R1 /= R2;
@@ -228,7 +228,7 @@ int main(int argc, char * argv[])
 
 		libmaus2::math::Rational<> R3(2,3);
 		libmaus2::math::Rational<> R4(5,4);
-		
+
 		std::cerr << static_cast<double>(R3) << std::endl;
 		std::cerr << static_cast<double>(R4) << std::endl;
 		std::cerr << static_cast<double>(R3)+static_cast<double>(R4) << " " << static_cast<double>(R3+R4) << std::endl;
@@ -239,13 +239,13 @@ int main(int argc, char * argv[])
 		std::cerr << static_cast<double>(R4)*static_cast<double>(R3) << " " << static_cast<double>(R4*R3) << std::endl;
 		std::cerr << static_cast<double>(R3)/static_cast<double>(R4) << " " << static_cast<double>(R3/R4) << std::endl;
 		std::cerr << static_cast<double>(R4)/static_cast<double>(R3) << " " << static_cast<double>(R4/R3) << std::endl;
-		
-		
+
+
 		for ( uint64_t i = 0; i <= 24; ++i )
 		{
 			std::cerr << "B(" << i << ")=" << libmaus2::math::BernoulliNumber::B(i) << std::endl;
 		}
-		
+
 		for ( uint64_t i = 0; i < 20; ++i )
 		{
 			std::vector < libmaus2::math::Rational<> > const P = libmaus2::math::Faulhaber::polynomial(i);
@@ -253,7 +253,7 @@ int main(int argc, char * argv[])
 				std::cerr << P[j] << ";";
 			std::cerr << std::endl;
 		}
-		
+
 		/*
 		 * T(d,0) = 1
 		 * T(d,i>0) = T(d-1,i) + 2 * \sum_{j=1}{i-1} T(d-1,j) + 2
@@ -277,7 +277,7 @@ int main(int argc, char * argv[])
 			size_t const qn = query.size();
 			libmaus2::timing::RealTimeClock rtc;
 			std::map < libmaus2::lcs::AlignerFactory::aligner_type, double > R;
-			
+
 			for ( std::set<libmaus2::lcs::AlignerFactory::aligner_type>::const_iterator ita = sup.begin(); ita != sup.end(); ++ita )
 			{
 				libmaus2::lcs::AlignerFactory::aligner_type const type = *ita;
@@ -286,11 +286,11 @@ int main(int argc, char * argv[])
 					libmaus2::lcs::AlignerFactory::construct(type)
 				);
 				Tptr->align(t,tn,q,qn);
-	
+
 				libmaus2::lcs::AlignmentTraceContainer const & trace = Tptr->getTraceContainer();
 				libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cout,text.begin(),text.size(),query.begin(),query.size(),80,trace.ta,trace.te);
 				std::cerr << trace.getAlignmentStatistics() << std::endl;
-				
+
 				uint64_t const b = 1024;
 				uint64_t n = 0;
 				timerexpired = false;
@@ -300,7 +300,7 @@ int main(int argc, char * argv[])
 				while ( ! timerexpired )
 				{
 					for ( uint64_t i = 0; i < b; ++i )
-						Tptr->align(t,tn,q,qn);			
+						Tptr->align(t,tn,q,qn);
 					n += b;
 				}
 				double const sec = rtc.getElapsedSeconds();
@@ -309,7 +309,7 @@ int main(int argc, char * argv[])
 				R[type] = rate;
 				std::cerr << rate << " alns/s" << std::endl;
 			}
-						
+
 			for ( std::map < libmaus2::lcs::AlignerFactory::aligner_type, double >::const_iterator ita = R.begin();
 				ita != R.end(); ++ita )
 			{
@@ -327,7 +327,7 @@ int main(int argc, char * argv[])
 			size_t const qn = query.size();
 			libmaus2::timing::RealTimeClock rtc;
 			std::map < libmaus2::lcs::BandedAlignerFactory::aligner_type, double > R;
-			
+
 			for ( std::set<libmaus2::lcs::BandedAlignerFactory::aligner_type>::const_iterator ita = sup.begin(); ita != sup.end(); ++ita )
 			{
 				libmaus2::lcs::BandedAlignerFactory::aligner_type const type = *ita;
@@ -336,11 +336,11 @@ int main(int argc, char * argv[])
 					libmaus2::lcs::BandedAlignerFactory::construct(type)
 				);
 				Tptr->align(t,tn,q,qn,8);
-	
+
 				libmaus2::lcs::AlignmentTraceContainer const & trace = Tptr->getTraceContainer();
 				libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cout,text.begin(),text.size(),query.begin(),query.size(),80,trace.ta,trace.te);
 				std::cerr << trace.getAlignmentStatistics() << std::endl;
-				
+
 				uint64_t const b = 1024;
 				uint64_t n = 0;
 				timerexpired = false;
@@ -359,20 +359,20 @@ int main(int argc, char * argv[])
 				R[type] = rate;
 				std::cerr << rate << " alns/s" << std::endl;
 			}
-			
+
 			for ( std::map < libmaus2::lcs::BandedAlignerFactory::aligner_type, double >::const_iterator ita = R.begin();
 				ita != R.end(); ++ita )
 			{
 				std::cerr << ita->first << "\t" << ita->second << std::endl;
 			}
 		}
-	
+
 		{
 			std::string const text = "remachine";
 			std::string const query = "match";
-			
+
 			BitVectorResultPrintCallback CB(std::cerr);
-			
+
 			libmaus2::lcs::BitVector<uint64_t>::bitvector(
 				text.begin(),text.size(),
 				query.begin(),query.size(),
@@ -380,7 +380,7 @@ int main(int argc, char * argv[])
 				3
 			);
 		}
-	
+
 		{
 			int A[] = { 1,2,2,3,0,1,2,3 };
 			int const n = sizeof(A)/sizeof(A[0]);
@@ -414,7 +414,7 @@ int main(int argc, char * argv[])
 			SPR,
 			80
 		);
-		
+
 		std::cerr << SPR << std::endl;
 
 	}

@@ -31,20 +31,20 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-              
+
 /* According to POSIX.1-2001 */
 #include <sys/select.h>
 /* According to earlier standards */
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-                                          
+
 int libmaus2::util::PosixExecute::getTempFile(std::string const stemplate, std::string & filename)
 {
 	::libmaus2::autoarray::AutoArray<char> Atemplate(stemplate.size()+1);
 	std::copy ( stemplate.begin(), stemplate.end(), Atemplate.get() );
 	int const fd = mkstemp ( Atemplate.get() );
-	
+
 	if ( fd < 0 )
 	{
 		::libmaus2::exception::LibMausException se;
@@ -52,9 +52,9 @@ int libmaus2::util::PosixExecute::getTempFile(std::string const stemplate, std::
 		se.finish();
 		throw se;
 	}
-	
+
 	filename = Atemplate.get();
-	
+
 	return fd;
 }
 
@@ -98,22 +98,22 @@ void libmaus2::util::PosixExecute::executeOld(::libmaus2::util::ArgInfo const & 
 	int const stderrfd = getTempFile(arginfo,stderrfilename);
 
 	pid_t const pid = fork();
-	
+
 	if ( pid == -1 )
 	{
 		int const error = errno;
-	
+
 		close(stdoutfd);
 		close(stderrfd);
 		libmaus2::aio::FileRemoval::removeFile ( stdoutfilename );
 		libmaus2::aio::FileRemoval::removeFile ( stderrfilename );
-		
+
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "Failed to fork(): " << strerror(error);
 		se.finish();
 		throw se;
 	}
-	
+
 	/* child */
 	if ( pid == 0 )
 	{
@@ -130,11 +130,11 @@ void libmaus2::util::PosixExecute::executeOld(::libmaus2::util::ArgInfo const & 
 	{
 		close(stdoutfd);
 		close(stderrfd);
-		
+
 		int status = 0;
 		pid_t const wpid = waitpid(pid, &status, 0);
 		assert ( wpid == pid );
-		
+
 		out = loadFile(stdoutfilename);
 		err = loadFile(stderrfilename);
 	}
@@ -159,10 +159,10 @@ template<typename _type>
 struct LocalAutoArray
 {
 	typedef _type type;
-	
+
 	size_t const n;
 	type * const A;
-	
+
 	LocalAutoArray(size_t const rn)
 	: n(rn), A(new type[n])
 	{
@@ -171,7 +171,7 @@ struct LocalAutoArray
 	{
 		delete [] A;
 	}
-	
+
 	type * get()
 	{
 		return A;
@@ -191,12 +191,12 @@ struct LocalAutoArray
 	{
 		return get();
 	}
-	
+
 	size_t size() const
 	{
 		return n;
 	}
-	
+
 	type * end()
 	{
 		return begin()+size();
@@ -206,12 +206,12 @@ struct LocalAutoArray
 	{
 		return begin()+size();
 	}
-	
+
 	type & operator[](size_t const i)
 	{
 		return A[i];
 	}
-	
+
 	type const & operator[](size_t const i) const
 	{
 		return A[i];
@@ -228,12 +228,12 @@ struct Pipe
 	typedef libmaus2::util::unique_ptr<this_type>::type shared_ptr_type;
 
 	int fd[2];
-	
+
 	Pipe(bool const donotthrow)
 	{
 		fd[0] = -1;
 		fd[1] = -1;
-		
+
 		if ( pipe(&fd[0]) != 0 )
 		{
 			if ( donotthrow )
@@ -256,13 +256,13 @@ struct Pipe
 		closeReadEnd();
 		closeWriteEnd();
 	}
-	
+
 	static int open(unique_ptr_type & P, bool const donotthrow)
 	{
 		try
 		{
 			unique_ptr_type T(new Pipe(donotthrow));
-		
+
 			if ( T->fd[0] < 0 )
 				return -1;
 			else
@@ -279,7 +279,7 @@ struct Pipe
 				throw;
 		}
 	}
-	
+
 	void closeReadEnd()
 	{
 		if ( fd[0] >= 0 )
@@ -304,7 +304,7 @@ static int doClose(int fd)
 	while ( true )
 	{
 		int const r = ::close(fd);
-		
+
 		if ( r < 0 )
 		{
 			switch ( errno )
@@ -367,14 +367,14 @@ std::vector<std::string> parseCommand(std::string const & command)
 {
 	uint64_t i = 0;
 	std::vector<std::string> V;
-	
+
 	while ( i < command.size() )
 	{
 		while ( i < command.size() && isspace(command[i]) )
 			++i;
-		
+
 		uint64_t j = i;
-		
+
 		std::ostringstream ostr;
 		while ( j < command.size() && !isspace(command[j]) )
 		{
@@ -395,7 +395,7 @@ std::vector<std::string> parseCommand(std::string const & command)
 						int const r = parseEscapeCode(command,j);
 						if ( r >= 0 )
 							ostr.put(r);
-						j += 2;			
+						j += 2;
 					}
 					else
 					{
@@ -416,14 +416,14 @@ std::vector<std::string> parseCommand(std::string const & command)
 				ostr.put(command[j++]);
 			}
 		}
-		
+
 		std::string const s = ostr.str();
 		if ( s.size() )
 			V.push_back(s);
-		
+
 		i = j;
 	}
-	
+
 	return V;
 }
 
@@ -458,35 +458,35 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	size_t argmemsize = 0;
 	char * argmemt = NULL;
 	char ** argptrs = NULL;
-	
+
 	for ( uint64_t i = 0; i < V.size(); ++i )
 	{
-		// std::cerr << "command[" << i << "]=" << V[i] << std::endl;	
+		// std::cerr << "command[" << i << "]=" << V[i] << std::endl;
 		argmemsize += V[i].size()+1;
 	}
-	
+
 	argmem = (char *)malloc(argmemsize);
-	
+
 	if ( ! argmem )
 	{
 		returncode = EXIT_FAILURE;
 		error = ENOMEM;
 		goto cleanup;
 	}
-	
+
 	memset(argmem,0,argmemsize);
-	
+
 	argptrs = (char **)malloc((V.size()+1) * sizeof(char *));
-	
+
 	if ( ! argptrs )
 	{
 		returncode = EXIT_FAILURE;
 		error = ENOMEM;
 		goto cleanup;
 	}
-	
+
 	memset(argptrs,0,(V.size()+1) * sizeof(char *));
-	
+
 	argmemt = argmem;
 	for ( uint64_t i = 0; i < V.size(); ++i )
 	{
@@ -494,7 +494,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 		argptrs[i] = argmemt;
 		argmemt += V[i].size()+1;
 	}
-	
+
 	#if 0
 	std::cerr << "calling " << argptrs[0] << std::endl;
 	for ( uint64_t i = 1; i < V.size(); ++i )
@@ -512,7 +512,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		stderrfnvalid = true;
 	}
-		
+
 	if ( (stdoutfd = mkstemp(&stdoutfn[0])) < 0 )
 	{
 		returncode = EXIT_FAILURE;
@@ -523,35 +523,35 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		stdoutfnvalid = true;
 	}
-	
+
 	if ( (nullfd = open("/dev/null",O_RDONLY)) < 0 )
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
-		goto cleanup;	
+		goto cleanup;
 	}
-	
+
 	if ( (stdindup = dup(STDIN_FILENO)) < 0 )
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
-		goto cleanup;		
+		goto cleanup;
 	}
-	
+
 	if ( (stdoutdup = dup(STDOUT_FILENO)) < 0 )
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
-		goto cleanup;		
+		goto cleanup;
 	}
 
 	if ( (stderrdup = dup(STDERR_FILENO)) < 0 )
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
-		goto cleanup;		
+		goto cleanup;
 	}
-	
+
 	if ( doClose(STDIN_FILENO) < 0 )
 	{
 		returncode = EXIT_FAILURE;
@@ -562,7 +562,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		copybackin = true;
 	}
-	
+
 	if ( doClose(STDOUT_FILENO) < 0 )
 	{
 		returncode = EXIT_FAILURE;
@@ -573,7 +573,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		copybackout = true;
 	}
-	
+
 	if ( doClose(STDERR_FILENO) < 0 )
 	{
 		returncode = EXIT_FAILURE;
@@ -589,7 +589,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
-		goto cleanup;		
+		goto cleanup;
 	}
 	if ( dup2(stdoutfd,STDOUT_FILENO) < 0 )
 	{
@@ -606,7 +606,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 
 	#if 0
 	r = system(command.c_str());
-	
+
 	if ( r == -1 )
 	{
 		returncode = EXIT_FAILURE;
@@ -617,16 +617,16 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = WEXITSTATUS(r);
 	}
-	#else	
+	#else
 	child = vfork();
-	
+
 	if ( child < 0 )
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
-		goto cleanup;	
+		goto cleanup;
 	}
-	
+
 	if ( child == 0 )
 	{
 		try
@@ -635,9 +635,9 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 			int const r = system(command.c_str());
 			_exit(WEXITSTATUS(r));
 			#endif
-			
+
 			execvp(argptrs[0], argptrs);
-			
+
 			_exit(EXIT_FAILURE);
 		}
 		catch(...)
@@ -649,22 +649,22 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	while ( true )
 	{
 		int status = 0;
-		
+
 		pid_t const r = waitpid(child, &status, 0);
-		
+
 		if ( r < 0 )
 		{
 			int const lerror = errno;
-			
+
 			if ( lerror == EAGAIN || lerror == EINTR )
 			{
-			
+
 			}
 			else
 			{
 				returncode = EXIT_FAILURE;
 				error = errno;
-				goto cleanup;			
+				goto cleanup;
 			}
 		}
 		if ( r == child )
@@ -677,12 +677,12 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 			{
 				returncode = EXIT_FAILURE;
 			}
-			
+
 			break;
 		}
 	}
 	#endif
-	
+
 	if ( lseek(stderrfd,0,SEEK_SET) != 0 )
 	{
 		returncode = EXIT_FAILURE;
@@ -696,56 +696,56 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 		error = errno;
 		goto cleanup;
 	}
-	
+
 	if ( fstat(stderrfd,&staterr) < 0 )
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
-		goto cleanup;	
+		goto cleanup;
 	}
 	if ( fstat(stdoutfd,&statout) < 0 )
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
-		goto cleanup;	
+		goto cleanup;
 	}
-	
+
 	if ( (tempmemerr = (char *)malloc(staterr.st_size)) == NULL )
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
-		goto cleanup;		
+		goto cleanup;
 	}
 	if ( (tempmemout = (char *)malloc(statout.st_size)) == NULL )
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
-		goto cleanup;		
+		goto cleanup;
 	}
-	
+
 	while ( static_cast<ssize_t>(errread) < static_cast<ssize_t>(staterr.st_size) )
 	{
 		size_t toread = staterr.st_size - errread;
 		ssize_t const r = ::read(stderrfd,tempmemerr+errread,toread);
-		
+
 		if ( r < 0 )
 		{
 			if ( errno == EAGAIN || errno == EINTR )
 			{
-			
+
 			}
 			else
 			{
 				returncode = EXIT_FAILURE;
 				error = errno;
-				goto cleanup;			
+				goto cleanup;
 			}
 		}
 		else if ( r == 0 )
 		{
 			returncode = EXIT_FAILURE;
 			error = errno;
-			goto cleanup;	
+			goto cleanup;
 		}
 		else
 		{
@@ -756,37 +756,37 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		size_t toread = statout.st_size - outread;
 		ssize_t const r = ::read(stdoutfd,tempmemout+outread,toread);
-		
+
 		if ( r < 0 )
 		{
 			if ( errno == EAGAIN || errno == EINTR )
 			{
-			
+
 			}
 			else
 			{
 				returncode = EXIT_FAILURE;
 				error = errno;
-				goto cleanup;			
+				goto cleanup;
 			}
 		}
 		else if ( r == 0 )
 		{
 			returncode = EXIT_FAILURE;
 			error = errno;
-			goto cleanup;	
+			goto cleanup;
 		}
 		else
 		{
 			outread += r;
 		}
 	}
-	
+
 	try
 	{
 		out = std::string(statout.st_size,' ');
 		err = std::string(staterr.st_size,' ');
-		
+
 		for ( ssize_t i = 0; i < statout.st_size; ++i )
 			out[i] = tempmemout[i];
 		for ( ssize_t i = 0; i < staterr.st_size; ++i )
@@ -796,11 +796,11 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = ENOMEM;
-		goto cleanup;			
+		goto cleanup;
 	}
-			
+
 	cleanup:
-	
+
 	if ( copybackin )
 	{
 		if ( dup2(stdindup,STDIN_FILENO) < 0 )
@@ -821,7 +821,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 				returncode = EXIT_FAILURE;
 				error = errno;
 			}
-		}	
+		}
 	}
 	if ( copybackerr )
 	{
@@ -849,7 +849,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 		doClose(stderrdup);
 		stderrdup = -1;
 	}
-		
+
 	if ( stderrfd >= 0 )
 	{
 		doClose(stderrfd);
@@ -870,7 +870,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 		libmaus2::aio::FileRemoval::removeFile(&stderrfn[0]);
 	if ( stdoutfnvalid )
 		libmaus2::aio::FileRemoval::removeFile(&stdoutfn[0]);
-		
+
 	if ( tempmemerr )
 	{
 		free(tempmemerr);
@@ -886,16 +886,16 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		::free(argmem);
 		argmem = NULL;
-	}	
-	
+	}
+
 	if ( argptrs )
 	{
 		::free(argptrs);
 		argptrs = NULL;
 	}
-			
+
 	if ( returncode != EXIT_SUCCESS )
-	{	
+	{
 		if ( donotthrow )
 		{
 			try
@@ -920,7 +920,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 			throw lme;
 		}
 	}
-				
+
 	return returncode;
 }
 
@@ -938,12 +938,12 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 
 		// fork off process
 		pid_t const pid = fork();
-		
+
 		// fork failure?
 		if ( pid == -1 )
 		{
 			int const error = errno;
-		
+
 			if ( donotthrow )
 			{
 				std::cerr << "Failed to fork(): " << strerror(error) << std::endl;
@@ -957,7 +957,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 				throw se;
 			}
 		}
-		
+
 		/* child */
 		if ( pid == 0 )
 		{
@@ -969,14 +969,14 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 
 				// open dev null
 				int nullfd = open("/dev/null",O_RDONLY);
-				
+
 				if ( nullfd < 0 )
 					return EXIT_FAILURE;
-				
+
 				dup2(nullfd,STDIN_FILENO);
 				dup2(Pstdoutpipe->fd[1],STDOUT_FILENO);
 				dup2(Pstderrpipe->fd[1],STDERR_FILENO);
-				
+
 				Pstdoutpipe->closeWriteEnd();
 				Pstderrpipe->closeWriteEnd();
 				::close(nullfd);
@@ -984,14 +984,14 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 
 				// call system
 				int const ret = system ( command.c_str() );
-			
+
 				#if 0
 				std::ostringstream ostr;
 				ostr << "After return code " << ret << std::endl;
 				std::string ostrstr = ostr.str();
 				write ( STDERR_FILENO, ostrstr.c_str(), ostrstr.size() );
 				#endif
-				
+
 				_exit(WEXITSTATUS(ret));
 			}
 			catch(std::exception const & ex)
@@ -1002,9 +1002,9 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 				}
 				catch(...)
 				{
-					
+
 				}
-				
+
 				_exit(EXIT_FAILURE);
 			}
 			catch(...)
@@ -1015,9 +1015,9 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 				}
 				catch(...)
 				{
-					
+
 				}
-				
+
 				_exit(EXIT_FAILURE);
 			}
 		}
@@ -1025,18 +1025,18 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 		{
 			Pstdoutpipe->closeWriteEnd();
 			Pstderrpipe->closeWriteEnd();
-			
+
 			setNonBlockFlag ( Pstdoutpipe->fd[0], true );
 			setNonBlockFlag ( Pstderrpipe->fd[0], true );
-			
+
 			bool done = false;
 			int status;
-			
+
 			LocalAutoArray<char> LB(8*8192);
-			
+
 			std::vector<char> outv;
 			std::vector<char> errv;
-			
+
 			while ( ! done )
 			{
 				fd_set fileset;
@@ -1044,14 +1044,14 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 				FD_SET(Pstdoutpipe->fd[0],&fileset);
 				FD_SET(Pstderrpipe->fd[0],&fileset);
 				int nfds = std::max(Pstdoutpipe->fd[0],Pstderrpipe->fd[0])+1;
-				
+
 				struct timeval timeout = { 0,0 };
 				int selret = select(nfds, &fileset, 0, 0, &timeout);
 
 				if ( selret > 0 )
 				{
 					// std::cerr << "Select returned " << selret << std::endl;
-					
+
 					if ( FD_ISSET(Pstdoutpipe->fd[0],&fileset) )
 					{
 						ssize_t red = read ( Pstdoutpipe->fd[0], LB.begin(), LB.size() );
@@ -1069,10 +1069,10 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 								errv.push_back(LB[i]);
 					}
 				}
-				
+
 				status = 0;
 				pid_t const wpid = waitpid(pid, &status, WNOHANG);
-				
+
 				if ( wpid == pid )
 				{
 					done = true;
@@ -1093,7 +1093,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 
 			setNonBlockFlag ( Pstdoutpipe->fd[0], false );
 			setNonBlockFlag ( Pstderrpipe->fd[0], false );
-			
+
 			ssize_t red = -1;
 
 			// read rest from pipes
@@ -1113,7 +1113,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 			// copy data
 			out = std::string(outv.begin(),outv.end());
 			err = std::string(errv.begin(),errv.end());
-			
+
 			if ( ! WIFEXITED(status) )
 			{
 				if ( donotthrow )

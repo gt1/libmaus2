@@ -35,18 +35,18 @@ namespace libmaus2
                 {
                         typedef _value_type value_type;
                         typedef TerminatableSynchronousQueue<value_type> this_type;
-                                                
+
                         pthread_mutex_t mutex;
                         pthread_cond_t cond;
                         size_t volatile numwait;
                         std::deque<value_type> Q;
                         bool volatile terminated;
-                        
+
                         struct MutexLock
                         {
                                 pthread_mutex_t * mutex;
                                 bool locked;
-                                
+
                                 void obtain()
                                 {
                                         if ( ! locked )
@@ -63,12 +63,12 @@ namespace libmaus2
                                                 locked = true;
                                         }
                                 }
-                                
+
                                 MutexLock(pthread_mutex_t & rmutex) : mutex(&rmutex), locked(false)
                                 {
                                         obtain();
                                 }
-                                
+
                                 void release()
                                 {
                                         if ( locked )
@@ -84,9 +84,9 @@ namespace libmaus2
                                                 }
 
                                                 locked = false;
-                                        }                                
+                                        }
                                 }
-                                
+
                                 ~MutexLock()
                                 {
                                         release();
@@ -102,7 +102,7 @@ namespace libmaus2
 					lme.getStream() << "PosixConditionSemaphore::initCond(): failed pthread_cond_init " << strerror(error) << std::endl;
 					lme.finish();
 					throw lme;
-				}			
+				}
 			}
 
 			void initMutex()
@@ -117,7 +117,7 @@ namespace libmaus2
 				}
 			}
 
-                                                
+
                         TerminatableSynchronousQueue()
                         : numwait(0), Q(), terminated(false)
                         {
@@ -132,7 +132,7 @@ namespace libmaus2
 					throw;
 				}
                         }
-                        
+
                         ~TerminatableSynchronousQueue()
                         {
 				pthread_mutex_destroy(&mutex);
@@ -149,15 +149,15 @@ namespace libmaus2
                         size_t getFillState()
                         {
                                 uint64_t f;
-                                
+
                                 {
                                         MutexLock M(mutex);
                                         f = Q.size();
                                 }
-                                
+
                                 return f;
                         }
-                        
+
                         bool isTerminated()
                         {
                                 bool lterminated;
@@ -167,7 +167,7 @@ namespace libmaus2
                                 }
                                 return lterminated;
                         }
-                        
+
                         void terminate()
                         {
                                 size_t numnoti = 0;
@@ -179,11 +179,11 @@ namespace libmaus2
                                 for ( size_t i = 0; i < numnoti; ++i )
                                         pthread_cond_signal(&cond);
                         }
-                        
+
                         value_type deque()
                         {
                                 MutexLock M(mutex);
-                                
+
                                 while ( (! terminated) && (!Q.size()) )
                                 {
                                         numwait++;
@@ -198,7 +198,7 @@ namespace libmaus2
                                         }
                                         numwait--;
                                 }
-                                
+
                                 if ( Q.size() )
                                 {
                                         value_type v = Q.front();
@@ -207,7 +207,7 @@ namespace libmaus2
                                 }
                                 else
                                 {
-                                        throw std::runtime_error("Queue is terminated");                                
+                                        throw std::runtime_error("Queue is terminated");
                                 }
                         }
                 };

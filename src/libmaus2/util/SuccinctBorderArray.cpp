@@ -4,6 +4,6 @@ std::ostream & operator<<(std::ostream & out, libmaus2::util::SuccinctBorderArra
 {
 	for ( uint64_t i = 0; i < S.size(); ++i )
 		out << i << "\t" << S[i] << std::endl;
-	
+
 	return out;
 }

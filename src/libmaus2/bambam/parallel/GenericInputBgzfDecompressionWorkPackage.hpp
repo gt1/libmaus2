@@ -33,16 +33,16 @@ namespace libmaus2
 				typedef GenericInputBgzfDecompressionWorkPackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				GenericInputControlSubBlockPending data;
-			
+
 				GenericInputBgzfDecompressionWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), data() {}
 				GenericInputBgzfDecompressionWorkPackage(uint64_t const rpriority, uint64_t const rdispatcherid, GenericInputControlSubBlockPending rdata)
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), data(rdata)
 				{
-				
+
 				}
-			
+
 				char const * getPackageName() const
 				{
 					return "GenericInputBgzfDecompressionWorkPackage";

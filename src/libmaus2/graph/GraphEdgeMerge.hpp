@@ -32,15 +32,15 @@ namespace libmaus2
 		{
 			typedef libmaus2::aio::SynchronousGenericInput<GraphEdge> input_type;
 			typedef input_type::unique_ptr_type input_ptr_type;
-			
+
 			std::vector < uint64_t > blocksizes;
 			libmaus2::autoarray::AutoArray<input_ptr_type> inputstreams;
-			std::priority_queue < 
+			std::priority_queue <
 				std::pair<uint64_t,GraphEdge>,
 				std::vector< std::pair<uint64_t,GraphEdge> >,
 				GraphEdgeHeapComparator
 			> Q;
-			
+
 			GraphEdgeMerge(
 				std::vector < uint64_t > const & BS,
 				std::string const & edgefilename
@@ -48,16 +48,16 @@ namespace libmaus2
 			{
 				inputstreams = libmaus2::autoarray::AutoArray<input_ptr_type>(blocksizes.size());
 				uint64_t acc = 0;
-				
+
 				for ( uint64_t i = 0; i < blocksizes.size(); ++i )
 				{
 					inputstreams[i] = UNIQUE_PTR_MOVE(
 						input_ptr_type(new input_type(edgefilename,64*1024,acc,blocksizes[i]))
 					);
 
-					acc += blocksizes[i];		
+					acc += blocksizes[i];
 				}
-				
+
 				for ( uint64_t i = 0; i < blocksizes.size(); ++i )
 				{
 					GraphEdge ge;
@@ -65,25 +65,25 @@ namespace libmaus2
 						Q.push(std::pair<uint64_t,GraphEdge>(i,ge));
 				}
 			}
-			
+
 			bool getNext(GraphEdge & edge)
 			{
 				if ( Q.empty() )
 					return false;
-				
-				edge = Q.top().second;	
+
+				edge = Q.top().second;
 				uint64_t const i = Q.top().first;
 				Q.pop();
-				
+
 				// std::cerr << "i=" << i << std::endl;
-				
+
 				GraphEdge ge;
 				if ( inputstreams[i]->getNext(ge) )
 					Q.push(std::pair<uint64_t,GraphEdge>(i,ge));
-					
-				return true;                                                                        
+
+				return true;
 			}
-			
+
 			bool peek(GraphEdge & edge)
 			{
 				if ( Q.empty() )
@@ -94,7 +94,7 @@ namespace libmaus2
 					return true;
 				}
 			}
-			
+
 			bool nextIs(uint64_t const s) const
 			{
 				if ( Q.empty() )

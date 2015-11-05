@@ -111,7 +111,7 @@ namespace libmaus2
 				{
 				}
 			}
-			
+
 			/**
 			 * register block for writing
 			 *
@@ -130,7 +130,7 @@ namespace libmaus2
 					aio_suspend (waitlist,1,0);
 					low++;
 				}
-				
+
 				uint64_t const len = se-sa;
 
 				buffers[high % numbuffers] = ::libmaus2::autoarray::AutoArray<char>(len);
@@ -141,13 +141,13 @@ namespace libmaus2
 				contexts[high%numbuffers].aio_nbytes = len;
 				contexts[high%numbuffers].aio_offset = 0;
 				contexts[high%numbuffers].aio_sigevent.sigev_notify = SIGEV_NONE;
-				aio_write( & contexts[high%numbuffers] );		
+				aio_write( & contexts[high%numbuffers] );
 
-				high++;		
-				
+				high++;
+
 				lock.unlock();
 			}
-			
+
 			/**
 			 * wait until all write requests have finished
 			 **/
@@ -160,7 +160,7 @@ namespace libmaus2
 					ssize_t ret = aio_return ( &contexts[low%numbuffers] );
 					assert ( ret == static_cast<ssize_t>(contexts[low%numbuffers].aio_nbytes) ) ;
 					// std::cerr << "WRITTEN: " << ret << " requested " << contexts[low%numbuffers].aio_nbytes << std::endl;
-					
+
 					low++;
 				}
 
@@ -184,7 +184,7 @@ namespace libmaus2
 			private:
 			libmaus2::aio::OutputStreamInstance ostr;
 			::libmaus2::parallel::OMPLock lock;
-			
+
 			public:
 			/**
 			 * constructor
@@ -194,21 +194,21 @@ namespace libmaus2
 			AsynchronousWriter ( std::string const & filename, uint64_t = 16 )
 			: ostr ( filename )
 			{
-			
+
 			}
-			
+
 			/**
 			 * destructor
 			 **/
 			~AsynchronousWriter()
 			{
 			}
-			
+
 			/**
 			 * write block
 			 *
 			 * @param sa block start pointer/iterator (inclusive)
-			 * @param se block end pointer/iterator (exclusive)			 
+			 * @param se block end pointer/iterator (exclusive)
 			 **/
 			template<typename iterator>
 			void write(iterator sa, iterator se)
@@ -219,7 +219,7 @@ namespace libmaus2
 				ostr.write(buf.get(),se-sa);
 				lock.unlock();
 			}
-			
+
 			/**
 			 * flush output file
 			 **/

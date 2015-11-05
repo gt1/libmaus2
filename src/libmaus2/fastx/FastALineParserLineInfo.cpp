@@ -39,6 +39,6 @@ std::ostream & libmaus2::fastx::operator<<(std::ostream & out, ::libmaus2::fastx
 			) << ")";
 			break;
 	}
-	
+
 	return out;
 }

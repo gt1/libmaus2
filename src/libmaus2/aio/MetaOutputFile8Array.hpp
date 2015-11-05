@@ -82,7 +82,7 @@ namespace libmaus2
 				TodoTriple() : mask(0) {}
 				/**
 				 * constructor by parameters
-				 * 
+				 *
 				 * @param rfilename file name
 				 * @param rmask id mask
 				 * @param rids contained id set
@@ -101,7 +101,7 @@ namespace libmaus2
 			MetaOutputFile8Array(
 				std::vector< std::pair<uint64_t,uint64_t> > const & rHI, std::string const rfileprefix
 			)
-			: HI(rHI), fileprefix(rfileprefix), buffers(HI.size()), concfilename ( fileprefix + ".conc" ), 
+			: HI(rHI), fileprefix(rfileprefix), buffers(HI.size()), concfilename ( fileprefix + ".conc" ),
 			  W(concfilename,16), IT(HI,0,HI.size())
 			{
 				for ( uint64_t i = 0; i < HI.size(); ++i )
@@ -179,7 +179,7 @@ namespace libmaus2
 
 			/**
 			 * flush output streams and split final output according to hash values/intervals
-			 * 
+			 *
 			 * @param cerrlock lock for debug/verbosity output
 			 * @param threadnum thread id for debug/verbosity output
 			 **/
@@ -195,7 +195,7 @@ namespace libmaus2
 							buffers[i].reset();
 						}
 					W.flush();
-			
+
 					unsigned int const maskwidth = 2;
 					uint64_t const primelen = 1ull << maskwidth;
 					uint64_t const primemask = (1ull<<maskwidth)-1;
@@ -203,17 +203,17 @@ namespace libmaus2
 					std::deque < TodoTriple > todo;
 					todo.push_back ( TodoTriple(concfilename,0,countIds(concfilename)) );
 					uint64_t tmpid = 0;
-			
+
 					while ( todo.size() )
 					{
 						std::string const infilename = todo.front().filename;
 						uint64_t const maskshift = todo.front().mask;
 						std::set<uint64_t> ids = todo.front().ids;
 						todo.pop_front();
-			
+
 						cerrlock.lock();
 						std::cerr << "File " << infilename << " has " << ids.size() << " ids." << std::endl;
-						cerrlock.unlock();	
+						cerrlock.unlock();
 
 						if ( ids.size() == 0 )
 						{
@@ -249,27 +249,27 @@ namespace libmaus2
 								assert ( subid < primelen );
 								vids [ subid ] .insert ( *ita );
 							}
-			
+
 							uint64_t newidword;
-			
+
 							while ( G.getNext(newidword) )
 							{
 								uint64_t const subid = (newidword>>maskshift) & primemask;
-				
+
 								bool numok;
 								uint64_t num;
 								numok = G.getNext(num);
 								assert ( numok );
-			
+
 								split_buffer_type * w = AW[subid].get();
 								::std::set<uint64_t> & tids = vids[subid];
-			
+
 								if ( tids.size() > 1 )
 								{
 									w->put(newidword);
-									w->put(num);	
+									w->put(num);
 								}
-								
+
 								for ( uint64_t j = 0; j < num; ++j )
 								{
 									bool dataok;
@@ -281,12 +281,12 @@ namespace libmaus2
 
 								cerrlock.lock();
 								std::cerr << "{" << threadnum << "}: handled block of size " <<
-									num << " for id " << newidword << " for output " << out[subid] 
-									<< " done " << 
+									num << " for id " << newidword << " for output " << out[subid]
+									<< " done " <<
 									(static_cast<double>(G.totalwordsread) / ( G.totalwords ))<< std::endl;
 								cerrlock.unlock();
 							}
-			
+
 							for ( uint64_t i = 0; i < AW.getN(); ++i )
 							{
 								AW[i]->flush();
@@ -296,7 +296,7 @@ namespace libmaus2
 							for ( uint64_t i = 0; i < primelen; ++i )
 								todo.push_back (
 									TodoTriple ( out[i], maskshift + maskwidth , vids[i] )
-								);	
+								);
 
 							libmaus2::aio::FileRemoval::removeFile ( infilename );
 						}
@@ -310,7 +310,7 @@ namespace libmaus2
 						ostr.flush();
 					}
 			}
-			
+
 			/**
 			 * get buffer for hash value hashval
 			 *

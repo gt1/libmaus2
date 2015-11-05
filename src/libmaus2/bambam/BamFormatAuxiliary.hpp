@@ -33,7 +33,7 @@ namespace libmaus2
 			//! for recoding sequence data
 			::libmaus2::autoarray::AutoArray<char> seq;
 			//! for recoding quality data
-			::libmaus2::autoarray::AutoArray<char> qual;		
+			::libmaus2::autoarray::AutoArray<char> qual;
 		};
 	}
 }

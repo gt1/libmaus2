@@ -47,13 +47,13 @@ namespace libmaus2
 			static int64_t getOptimalIOBlockSize(int const fd, std::string const & fn)
 			{
 				int64_t const fsopt = libmaus2::aio::PosixFdInput::getOptimalIOBlockSize(fd,fn);
-				
+
 				if ( fsopt <= 0 )
 					return getDefaultBlockSize();
 				else
 					return fsopt;
 			}
-			
+
 			int fd;
 			bool closefd;
 			int64_t const optblocksize;
@@ -66,7 +66,7 @@ namespace libmaus2
 				while ( ::lseek(fd,p,SEEK_SET) == static_cast<off_t>(-1) )
 				{
 					int const error = errno;
-					
+
 					switch ( error )
 					{
 						case EINTR:
@@ -79,7 +79,7 @@ namespace libmaus2
 							se.finish();
 							throw se;
 						}
-					}					
+					}
 				}
 			}
 
@@ -88,7 +88,7 @@ namespace libmaus2
 				while ( close(fd) < 0 )
 				{
 					int const error = errno;
-					
+
 					switch ( error )
 					{
 						case EINTR:
@@ -101,18 +101,18 @@ namespace libmaus2
 							se.finish();
 							throw se;
 						}
-					}					
+					}
 				}
 			}
 
 			int doOpen(std::string const & filename)
 			{
 				int fd = -1;
-				
+
 				while ( (fd = open(filename.c_str(),O_WRONLY | O_CREAT | O_TRUNC,0644)) < 0 )
 				{
 					int const error = errno;
-					
+
 					switch ( error )
 					{
 						case EINTR:
@@ -125,9 +125,9 @@ namespace libmaus2
 							se.finish();
 							throw se;
 						}
-					}					
+					}
 				}
-				
+
 				return fd;
 			}
 
@@ -136,7 +136,7 @@ namespace libmaus2
 				while ( fsync(fd) < 0 )
 				{
 					int const error = errno;
-					
+
 					switch ( error )
 					{
 						case EINTR:
@@ -153,10 +153,10 @@ namespace libmaus2
 							se.finish();
 							throw se;
 						}
-					}					
+					}
 				}
 			}
-			
+
 			void doSync()
 			{
 				uint64_t n = pptr()-pbase();
@@ -168,11 +168,11 @@ namespace libmaus2
 				{
 					size_t const towrite = std::min(n,static_cast<uint64_t>(optblocksize));
 					ssize_t const w = ::write(fd,p,towrite);
-					
+
 					if ( w < 0 )
 					{
 						int const error = errno;
-						
+
 						switch ( error )
 						{
 							case EINTR:
@@ -194,17 +194,17 @@ namespace libmaus2
 						writepos += w;
 					}
 				}
-				
+
 				assert ( ! n );
 			}
-			
+
 
 			public:
 			PosixFdOutputStreamBuffer(int const rfd, int64_t const rbuffersize)
-			: fd(rfd), 
-			  closefd(false), 
+			: fd(rfd),
+			  closefd(false),
 			  optblocksize(getOptimalIOBlockSize(fd,std::string())),
-			  buffersize((rbuffersize <= 0) ? optblocksize : rbuffersize), 
+			  buffersize((rbuffersize <= 0) ? optblocksize : rbuffersize),
 			  buffer(buffersize,false),
 			  writepos(0)
 			{
@@ -212,11 +212,11 @@ namespace libmaus2
 			}
 
 			PosixFdOutputStreamBuffer(std::string const & fn, int64_t const rbuffersize)
-			: 
-			  fd(doOpen(fn)), 
+			:
+			  fd(doOpen(fn)),
 			  closefd(true),
 			  optblocksize(getOptimalIOBlockSize(fd,fn)),
-			  buffersize((rbuffersize <= 0) ? optblocksize : rbuffersize), 
+			  buffersize((rbuffersize <= 0) ? optblocksize : rbuffersize),
 			  buffer(buffersize,false),
 			  writepos(0)
 			{
@@ -229,7 +229,7 @@ namespace libmaus2
 				if ( closefd )
 					doClose();
 			}
-			
+
 			int_type overflow(int_type c = traits_type::eof())
 			{
 				if ( c != traits_type::eof() )
@@ -241,13 +241,13 @@ namespace libmaus2
 
 				return c;
 			}
-			
+
 			int sync()
 			{
 				doSync();
 				doFlush();
 				return 0; // no error, -1 for error
-			}			
+			}
 
                         /**
                          * seek to absolute position

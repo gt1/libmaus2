@@ -33,9 +33,9 @@ int main(int argc, char * argv[])
 		std::istringstream istrpre(ostr.str());
 		libmaus2::fastx::FastaBPDecoder fabd(istrpre);
 		fabd.checkBlockPointers(istrpre);
-		fabd.printSequences(istrpre,std::cout);		
+		fabd.printSequences(istrpre,std::cout);
 		uint64_t const totalseqlength = fabd.getTotalSequenceLength(istrpre);
-		
+
 		uint64_t const runs = 10;
 		std::vector<double> dectimes;
 		for ( uint64_t i = 0; i < runs; ++i )
@@ -51,9 +51,9 @@ int main(int argc, char * argv[])
 			var += (dectimes[i]-avg)*(dectimes[i]-avg);
 		var /= dectimes.size();
 		double const stddev = ::std::sqrt(var);
-		
+
 		std::cerr << "[V] decoding speed " << avg << " += " << stddev << " bases/s" << std::endl;
-		
+
 		for ( uint64_t i = 0; i < fabd.getNumSeq(); ++i )
 			fabd.decodeSequence(istrpre,i);
 	}

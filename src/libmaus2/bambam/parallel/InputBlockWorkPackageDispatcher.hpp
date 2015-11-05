@@ -40,7 +40,7 @@ namespace libmaus2
 				RequeReadInterface & requeInterface;
 				// ZZZ add request for requeing here
 				uint64_t const batchsize;
-				
+
 				InputBlockWorkPackageDispatcher(
 					InputBlockWorkPackageReturnInterface & rreturnInterface,
 					InputBlockAddPendingInterface & raddPending,
@@ -48,36 +48,36 @@ namespace libmaus2
 					uint64_t const rbatchsize = 16
 				) : returnInterface(rreturnInterface), addPending(raddPending), requeInterface(rrequeInterface), batchsize(rbatchsize)
 				{
-				
+
 				}
-			
+
 				virtual void dispatch(
-					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadWorkPackage * P,
 					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
 					// get type cast work package pointer
 					InputBlockWorkPackage * BP = dynamic_cast<InputBlockWorkPackage *>(P);
 					assert ( BP );
-					
+
 					// vector of blocks to pass on for decompression
 					std::deque<ControlInputInfo::input_block_type::shared_ptr_type> blockPassVector;
-					
+
 					// try to get lock
 					if ( BP->inputinfo->readLock.trylock() )
 					{
 						// free lock at end of scope
 						libmaus2::parallel::ScopePosixSpinLock llock(BP->inputinfo->readLock,true /* pre locked */);
-	
+
 						// do not run if eof is already set
 						bool running = !BP->inputinfo->getEOF();
-						
+
 						while ( running )
 						{
 							// try to get a free buffer
-							ControlInputInfo::input_block_type::shared_ptr_type block = 
+							ControlInputInfo::input_block_type::shared_ptr_type block =
 								BP->inputinfo->inputBlockFreeList.getIf();
-							
+
 							// if we have a buffer then read the next bgzf block
 							if ( block )
 							{
@@ -87,20 +87,20 @@ namespace libmaus2
 								block->streamid = BP->inputinfo->streamid;
 								// set next block id
 								block->blockid = BP->inputinfo->blockid++;
-								
+
 								if ( block->final )
 								{
 									running = false;
 									BP->inputinfo->setEOF(true);
 								}
-	
+
 								blockPassVector.push_back(block);
 							}
 							else
 							{
 								running = false;
 							}
-							
+
 							// enque decompress requests, but make sure we do not send all
 							// before leaving the while loop
 							if ( blockPassVector.size() == (batchsize<<1) )
@@ -120,10 +120,10 @@ namespace libmaus2
 						// keep this inside the lock to preserve order of blocks while queuing
 						addPending.putInputBlockAddPending(blockPassVector.begin(),blockPassVector.end());
 					}
-	
+
 					// return the work package
 					returnInterface.putInputBlockWorkPackage(BP);
-				}		
+				}
 			};
 		}
 	}

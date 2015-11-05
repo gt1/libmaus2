@@ -33,17 +33,17 @@ namespace libmaus2
 				uint64_t fnumreads;
 				std::string fastaprolog;
 				std::string fastafn;
-				
+
 				FastaInfo()
 				: fnumreads(0)
 				{
-				
+
 				}
 
 				FastaInfo(uint64_t const rfnumreads, std::string const & rfastaprolog, std::string const & rfastafn)
 				: fnumreads(rfnumreads), fastaprolog(rfastaprolog), fastafn(rfastafn)
 				{
-				
+
 				}
 			};
 

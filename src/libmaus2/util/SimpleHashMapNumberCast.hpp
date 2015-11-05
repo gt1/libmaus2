@@ -27,7 +27,7 @@ namespace libmaus2
 		struct SimpleHashMapNumberCast
 		{
 			typedef _key_type key_type;
-		
+
 			static uint64_t cast(key_type const & key)
 			{
 				return static_cast<uint64_t>(key);

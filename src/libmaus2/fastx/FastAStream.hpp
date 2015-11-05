@@ -30,11 +30,11 @@ namespace libmaus2
 			typedef FastAStream this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			FastAStream(::libmaus2::fastx::FastALineParser & parser, uint64_t const buffersize, uint64_t const pushbackspace)
 			: FastAStreamWrapper(parser,buffersize,pushbackspace), ::std::istream(this)
 			{
-				
+
 			}
 			uint64_t tellg() const
 			{

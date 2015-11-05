@@ -33,9 +33,9 @@ namespace libmaus2
 
 			libmaus2::autoarray::AutoArray<value_type> A;
 			uint64_t f;
-			
+
 			PushBuffer() : A(), f(0) {}
-			
+
 			value_type const & operator[](uint64_t const i) const
 			{
 				return A[i];
@@ -47,7 +47,7 @@ namespace libmaus2
 					throw std::out_of_range("index out of range in PushBuffer<>::at()");
 				return A[i];
 			}
-			
+
 			void push(value_type const & o)
 			{
 				if ( f == A.size() )
@@ -57,10 +57,10 @@ namespace libmaus2
 					std::copy(A.begin(),A.end(),B.begin());
 					A = B;
 				}
-				
+
 				A[f++] = o;
 			}
-			
+
 			value_type & get()
 			{
 				if ( f == A.size() )
@@ -70,15 +70,15 @@ namespace libmaus2
 					std::copy(A.begin(),A.end(),B.begin());
 					A = B;
 				}
-			
+
 				return A[f++];
 			}
-			
+
 			void reset()
 			{
 				f = 0;
 			}
-			
+
 			value_type const * begin() const
 			{
 				return A.begin();

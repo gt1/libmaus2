@@ -44,7 +44,7 @@ namespace libmaus2
 			private:
 			//! output pointer
 			value_type * out;
-			
+
 			public:
 			/**
 			 * constructor
@@ -54,9 +54,9 @@ namespace libmaus2
 			MemOutBuffer(value_type * const rout)
 			: out(rout)
 			{
-			
+
 			}
-			
+
 			/**
 			 * put element
 			 *
@@ -66,13 +66,13 @@ namespace libmaus2
 			{
 				*(out++) = v;
 			}
-			
+
 			/**
 			 * flush buffer (do nothing)
 			 **/
 			void flush()
 			{
-			
+
 			}
 		};
 	}

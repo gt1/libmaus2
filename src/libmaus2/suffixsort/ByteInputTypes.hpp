@@ -38,7 +38,7 @@ namespace libmaus2
 			typedef ::libmaus2::suffixsort::CircularSuffixComparator circular_suffix_comparator;
 			typedef ::libmaus2::util::OctetString string_type;
 			typedef ::libmaus2::aio::CircularWrapper octet_circular_wrapper;
-			
+
 			static bwt_merge_sort_input_type getType()
 			{
 				return bwt_merge_input_type_byte;
@@ -47,7 +47,7 @@ namespace libmaus2
 			{
 				return false;
 			}
-			
+
 			static uint64_t getSourceLengthBits(
 				std::string const & /* fn */,
 				uint64_t const low,
@@ -65,7 +65,7 @@ namespace libmaus2
 			{
 				return (high-low);
 			}
-			
+
 			static uint64_t getSourceTextIndexBits(
 				std::string const & /* fn */,
 				uint64_t const /* low */,

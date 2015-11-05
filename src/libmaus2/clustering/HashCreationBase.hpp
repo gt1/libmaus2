@@ -34,40 +34,40 @@ namespace libmaus2
 			static ::libmaus2::autoarray::AutoArray<uint8_t> createSymMap()
 			{
 				::libmaus2::autoarray::AutoArray<uint8_t> S(256);
-		
+
 				S['a'] = S['A'] = ::libmaus2::fastx::mapChar('A');
 				S['c'] = S['C'] = ::libmaus2::fastx::mapChar('C');
 				S['g'] = S['G'] = ::libmaus2::fastx::mapChar('G');
 				S['t'] = S['T'] = ::libmaus2::fastx::mapChar('T');
-		
+
 				return S;
 			}
-		
+
 			static ::libmaus2::autoarray::AutoArray<uint8_t> createRevSymMap()
 			{
 				::libmaus2::autoarray::AutoArray<uint8_t> S(256);
-		
+
 				S['a'] = S['A'] = ::libmaus2::fastx::mapChar('T');
 				S['c'] = S['C'] = ::libmaus2::fastx::mapChar('G');
 				S['g'] = S['G'] = ::libmaus2::fastx::mapChar('C');
 				S['t'] = S['T'] = ::libmaus2::fastx::mapChar('A');
-		
+
 				return S;
 			}
-		
+
 			static ::libmaus2::autoarray::AutoArray<unsigned int> createErrorMap()
 			{
 				::libmaus2::autoarray::AutoArray<unsigned int> S(256);
 				std::fill ( S.get(), S.get()+256, 1 );
-		
+
 				S['a'] = S['A'] = 0;
 				S['c'] = S['C'] = 0;
 				S['g'] = S['G'] = 0;
 				S['t'] = S['T'] = 0;
-		
+
 				return S;
 			}
-		
+
 			template<typename buffer_type>
 			static std::string decodeBuffer(buffer_type const & reve)
 			{
@@ -81,10 +81,10 @@ namespace libmaus2
 						case '2': rstring[i] = 'G'; break;
 						case '3': rstring[i] = 'T'; break;
 					}
-				}	
-				return rstring;	
+				}
+				return rstring;
 			}
-		
+
 			template<typename buffer_type>
 			static std::string decodeReverseBuffer(buffer_type const & reve)
 			{
@@ -105,7 +105,7 @@ namespace libmaus2
 				#else
 				uint64_t const threadnum = 0;
 				#endif
-				
+
 				return threadnum;
 			}
 
@@ -114,14 +114,14 @@ namespace libmaus2
 			{
 				uint64_t * const ptr;
 				uint64_t const wordsperobject;
-				
+
 				AnnotatedArray(uint64_t * const rptr, uint64_t rwordsperobject)
 				: ptr(rptr), wordsperobject(rwordsperobject)
 				{}
 			};
 			#endif
 
-			#if 0		
+			#if 0
 			struct ArrayProjector
 			{
 				template<typename type>
@@ -129,17 +129,17 @@ namespace libmaus2
 				{
 					uint64_t offi = A.wordsperobject*i;
 					uint64_t offj = A.wordsperobject*j;
-		
+
 					for ( unsigned int z = 0; z < A.wordsperobject; ++z )
 						std::swap(A.ptr[offi++],A.ptr[offj++]);
 				}
-		
+
 				template<typename type>
 				static bool comp(type & A, unsigned int i, unsigned int j)
 				{
 					uint64_t offi = A.wordsperobject*i;
 					uint64_t offj = A.wordsperobject*j;
-		
+
 					for ( unsigned int z = 0; z < A.wordsperobject; ++z, ++offi, ++offj )
 					{
 						if ( A.ptr[offi] < A.ptr[offj] )
@@ -147,17 +147,17 @@ namespace libmaus2
 						else if ( A.ptr[offi] > A.ptr[offj] )
 							return false;
 					}
-			
+
 					return false;
 				}
 			};
 			#endif
-		
+
 			template<unsigned int len>
 			struct ShortArray
 			{
 				uint64_t A[len];
-		
+
 				bool operator< ( ShortArray<len> const & o ) const
 				{
 					for ( unsigned int i = 0; i < len; ++i )
@@ -167,11 +167,11 @@ namespace libmaus2
 						else if ( A[i] > o.A[i] )
 							return false;
 					}
-		
+
 					return false;
 				}
 			};
-		
+
 			static void sortShortArray(uint64_t * const ptr, uint64_t const n, unsigned int const wordsperobject)
 			{
 				switch ( wordsperobject )
@@ -208,22 +208,22 @@ namespace libmaus2
 					default:
 					{
 						::libmaus2::exception::LibMausException se;
-						se.getStream() << "Cannot handle " << wordsperobject 
+						se.getStream() << "Cannot handle " << wordsperobject
 							<< " words per object in sortShortArray.";
 						se.finish();
 						throw se;
 					}
 				}
 			}
-			
+
 			template < typename array_type >
 			struct ShiftComparator
 			{
 				unsigned int const shift;
-				
+
 				ShiftComparator(unsigned int const rshift)
 				: shift(rshift) {}
-				
+
 				inline bool operator()(array_type const & a, array_type const & b) const
 				{
 					return (a.A[0]>>shift) < (b.A[0]>>shift);
@@ -231,13 +231,13 @@ namespace libmaus2
 			};
 
 			static void sortShortStable(
-				uint64_t * const ptr, 
-				uint64_t const n, 
+				uint64_t * const ptr,
+				uint64_t const n,
 				unsigned int const wordsperobject,
 				unsigned int const hashshift
 			)
 			{
-				
+
 				switch ( wordsperobject )
 				{
 					case 0:
@@ -280,14 +280,14 @@ namespace libmaus2
 					default:
 					{
 						::libmaus2::exception::LibMausException se;
-						se.getStream() << "Cannot handle " << wordsperobject 
+						se.getStream() << "Cannot handle " << wordsperobject
 							<< " words per object in sortShortStable.";
 						se.finish();
 						throw se;
 					}
 				}
 			}
-		
+
 			static unsigned int getMaxThreads()
 			{
 				#if defined(_OPENMP)
@@ -297,7 +297,7 @@ namespace libmaus2
 				#endif
 				return numthreads;
 			}
-		};	
+		};
 	}
 }
 #endif

@@ -24,7 +24,7 @@
 #include <libmaus2/dazzler/align/TraceBlock.hpp>
 #include <libmaus2/dazzler/align/TracePoint.hpp>
 #include <libmaus2/fastx/acgtnMap.hpp>
-		
+
 namespace libmaus2
 {
 	namespace dazzler
@@ -37,7 +37,7 @@ namespace libmaus2
 				uint32_t flags;
 				int32_t aread;
 				int32_t bread;
-				
+
 				bool operator<(Overlap const & O) const
 				{
 					if ( aread != O.aread )
@@ -59,29 +59,29 @@ namespace libmaus2
 					else
 						return false;
 				}
-				
+
 				// 40
-				
+
 				uint64_t deserialise(std::istream & in)
 				{
 					uint64_t s = 0;
-					
+
 					s += path.deserialise(in);
-					
+
 					uint64_t offset = 0;
 					flags = getUnsignedLittleEndianInteger4(in,offset);
 					aread = getLittleEndianInteger4(in,offset);
 					bread = getLittleEndianInteger4(in,offset);
 
 					getLittleEndianInteger4(in,offset); // padding
-					
+
 					s += offset;
-					
+
 					// std::cerr << "flags=" << flags << " aread=" << aread << " bread=" << bread << std::endl;
-					
+
 					return s;
 				}
-				
+
 				uint64_t serialise(std::ostream & out)
 				{
 					uint64_t s = 0;
@@ -94,7 +94,7 @@ namespace libmaus2
 					s += offset;
 					return s;
 				}
-				
+
 				uint64_t serialiseWithPath(std::ostream & out, bool const small) const
 				{
 					uint64_t s = 0;
@@ -106,18 +106,18 @@ namespace libmaus2
 					putLittleEndianInteger4(out,0,offset); // padding
 					s += offset;
 					s += path.serialisePath(out,small);
-					return s;	
+					return s;
 				}
-				
+
 				bool operator==(Overlap const & O) const
 				{
 					return
 						compareMeta(O) && path == O.path;
 				}
-				
+
 				bool compareMeta(Overlap const & O) const
 				{
-					return 
+					return
 						path.comparePathMeta(O.path) &&
 						flags == O.flags &&
 						aread == O.aread &&
@@ -126,18 +126,18 @@ namespace libmaus2
 
 				bool compareMetaLower(Overlap const & O) const
 				{
-					return 
+					return
 						path.comparePathMetaLower(O.path) &&
 						flags == O.flags &&
 						aread == O.aread &&
 						bread == O.bread;
 				}
-				
+
 				Overlap()
 				{
-				
+
 				}
-				
+
 				Overlap(std::istream & in)
 				{
 					deserialise(in);
@@ -147,17 +147,17 @@ namespace libmaus2
 				{
 					s += deserialise(in);
 				}
-				
+
 				bool isInverse() const
 				{
 					return (flags & 1) != 0;
 				}
-				
+
 				uint64_t getNumErrors() const
 				{
 					return path.getNumErrors();
 				}
-				
+
 				static Overlap computeOverlap(
 					int64_t const flags,
 					int64_t const aread,
@@ -188,7 +188,7 @@ namespace libmaus2
 				)
 				{
 					Path path;
-					
+
 					path.abpos = abpos;
 					path.bbpos = bbpos;
 					path.aepos = aepos;
@@ -197,7 +197,7 @@ namespace libmaus2
 
 					// current point on A
 					int64_t a_i = ( path.abpos / tspace ) * tspace;
-					
+
 					libmaus2::lcs::AlignmentTraceContainer::step_type const * tc = ATC.ta;
 
 					while ( a_i < aepos )
@@ -205,7 +205,7 @@ namespace libmaus2
 						int64_t a_c = std::max(abpos,a_i);
 						// block end point on A
 						int64_t const a_i_1 = std::min ( static_cast<int64_t>(a_i + tspace), static_cast<int64_t>(path.aepos) );
-						
+
 						int64_t bforw = 0;
 						int64_t err = 0;
 						while ( a_c < a_i_1 )
@@ -234,13 +234,13 @@ namespace libmaus2
 									break;
 							}
 						}
-						
+
 						path.diffs += err;
 						path.path.push_back(Path::tracepoint(err,bforw));
-						
+
 						a_i = a_i_1;
 					}
-					
+
 					path.tlen = path.path.size() << 1;
 
 					return path;
@@ -249,7 +249,7 @@ namespace libmaus2
 				static Path computePath(std::vector<TraceBlock> const & V)
 				{
 					Path path;
-					
+
 					if ( ! V.size() )
 					{
 						path.abpos = 0;
@@ -267,7 +267,7 @@ namespace libmaus2
 						path.bepos = V.back().B.second;
 						path.diffs = 0;
 						path.tlen = 2*V.size();
-						
+
 						for ( uint64_t i = 0; i < V.size(); ++i )
 						{
 							path.path.push_back(Path::tracepoint(V[i].err,V[i].B.second-V[i].B.first));
@@ -291,7 +291,7 @@ namespace libmaus2
 					int32_t a_i = ( path.abpos / tspace ) * tspace;
 					// current point on B
 					int32_t b_i = ( path.bbpos );
-					
+
 					// reset trace container
 					ATC.reset();
 
@@ -353,7 +353,7 @@ namespace libmaus2
 						ATC.push(aligner.getTraceContainer());
 					}
 				}
-				
+
 				/**
 				 * compute alignment trace
 				 *
@@ -380,7 +380,7 @@ namespace libmaus2
 				 * @param tspace trace point spacing
 				 **/
 				void fillErrorHistogram(
-					int64_t const tspace, 
+					int64_t const tspace,
 					std::map< uint64_t, std::map<uint64_t,uint64_t> > & H,
 					int64_t const rlen
 				) const
@@ -389,7 +389,7 @@ namespace libmaus2
 					int32_t a_i = ( path.abpos / tspace ) * tspace;
 					// current point on B
 					int32_t b_i = ( path.bbpos );
-										
+
 					for ( size_t i = 0; i < path.path.size(); ++i )
 					{
 						// block start on A
@@ -399,9 +399,9 @@ namespace libmaus2
 						// block end point on B
 						int32_t const b_i_1 = b_i + path.path[i].second;
 
-						if ( 
+						if (
 							(
-								(a_i_1 - a_i_0) == tspace 
+								(a_i_1 - a_i_0) == tspace
 								&&
 								(a_i_0 % tspace == 0)
 								&&
@@ -419,10 +419,10 @@ namespace libmaus2
 							if ( a_i_1 == rlen )
 								std::cerr << "end block" << std::endl;
 							#endif
-								
+
 							H [ a_i / tspace ][path.path[i].first]++;
 						}
-						
+
 						// update start points
 						b_i = b_i_1;
 						a_i = a_i_1;
@@ -440,10 +440,10 @@ namespace libmaus2
 					int32_t a_i = ( path.abpos / tspace ) * tspace;
 					// current point on B
 					int32_t b_i = ( path.bbpos );
-					
+
 					uint64_t errors = 0;
 					uint64_t length = 0;
-										
+
 					for ( size_t i = 0; i < path.path.size(); ++i )
 					{
 						// block end point on A
@@ -451,8 +451,8 @@ namespace libmaus2
 						// block end point on B
 						int32_t const b_i_1 = b_i + path.path[i].second;
 
-						if ( 
-							(a_i_1 - a_i) == tspace 
+						if (
+							(a_i_1 - a_i) == tspace
 							&&
 							(a_i % tspace == 0)
 							&&
@@ -462,19 +462,19 @@ namespace libmaus2
 							errors += path.path[i].first;
 							length += tspace;
 						}
-						
+
 						// update start points
 						b_i = b_i_1;
 						a_i = a_i_1;
 					}
-					
+
 					return std::pair<uint64_t,uint64_t>(length,errors);
 				}
 
 				Overlap getSwapped(
 					int64_t const tspace,
 					uint8_t const * aptr,
-					int64_t const alen, 
+					int64_t const alen,
 					uint8_t const * bptr,
 					int64_t const blen,
 					libmaus2::autoarray::AutoArray<uint8_t> & Binv,
@@ -507,7 +507,7 @@ namespace libmaus2
 						std::reverse(Binv.begin(),Binv.begin()+blen);
 						for ( int64_t i = 0; i < blen; ++i )
 							Binv[i] = libmaus2::fastx::invertUnmapped(Binv[i]);
-							
+
 						computeTrace(path,aptr,Binv.begin(),tspace,ATC,aligner);
 						ATC.swapRoles();
 						std::reverse(ATC.ta,ATC.te);
@@ -563,9 +563,9 @@ namespace libmaus2
 					int32_t a_i = ( path.abpos / tspace ) * tspace;
 					// current point on B
 					int32_t b_i = ( path.bbpos );
-					
+
 					std::vector < TraceBlock > V;
-															
+
 					for ( size_t i = 0; i < path.path.size(); ++i )
 					{
 						// block start point on A
@@ -582,12 +582,12 @@ namespace libmaus2
 								path.path[i].first
 							)
 						);
-						
+
 						// update start points
 						b_i = b_i_1;
 						a_i = a_i_1;
 					}
-					
+
 					return V;
 				}
 
@@ -671,34 +671,34 @@ namespace libmaus2
 					std::vector<TraceBlock> const TB = getTraceBlocks(tspace);
 					std::vector<uint64_t> B;
 					for ( uint64_t i = 0; i < TB.size(); ++i )
-						if ( 
-							TB[i].A.second - TB[i].A.first == tspace 
+						if (
+							TB[i].A.second - TB[i].A.first == tspace
 						)
 						{
 							assert ( TB[i].A.first % tspace == 0 );
-							
+
 							B.push_back(TB[i].A.first / tspace);
 						}
 					return B;
 				}
-								
+
 				static bool haveOverlappingTraceBlock(std::vector<TraceBlock> const & VA, std::vector<TraceBlock> const & VB)
 				{
 					uint64_t b_low = 0;
-					
+
 					for ( uint64_t i = 0; i < VA.size(); ++i )
 					{
 						while ( (b_low < VB.size()) && (VB[b_low].A.second <= VA[i].A.first) )
 							++b_low;
-							
+
 						assert ( (b_low == VB.size()) || (VB[b_low].A.second > VA[i].A.first) );
 
 						uint64_t b_high = b_low;
 						while ( b_high < VB.size() && (VB[b_high].A.first < VA[i].A.second) )
 							++b_high;
-							
+
 						assert ( (b_high == VB.size()) || (VB[b_high].A.first >= VA[i].A.second) );
-							
+
 						if ( b_high-b_low )
 						{
 							for ( uint64_t j = b_low; j < b_high; ++j )
@@ -707,11 +707,11 @@ namespace libmaus2
 								if ( VA[i].overlapsB(VB[j]) )
 									return true;
 							}
-						}						
+						}
 					}
-					
+
 					return false;
-				
+
 				}
 
 				static bool haveOverlappingTraceBlock(Overlap const & A, Overlap const & B, int64_t const tspace)
@@ -725,7 +725,7 @@ namespace libmaus2
 				 * @param tspace trace point spacing
 				 **/
 				void fillSpanHistogram(
-					int64_t const tspace, 
+					int64_t const tspace,
 					std::map< uint64_t, uint64_t > & H,
 					uint64_t const ethres,
 					uint64_t const cthres,
@@ -742,7 +742,7 @@ namespace libmaus2
 					int32_t a_i = lowblockid * tspace;
 					// current point on B
 					int32_t b_i = ( path.bbpos );
-															
+
 					for ( size_t i = 0; i < path.path.size(); ++i )
 					{
 						// start point on A
@@ -752,9 +752,9 @@ namespace libmaus2
 						// block end point on B
 						int32_t const b_i_1 = b_i + path.path[i].second;
 
-						if ( 
+						if (
 							(
-								(a_i_1 - a_i_0) == tspace 
+								(a_i_1 - a_i_0) == tspace
 								&&
 								(a_i_0 % tspace == 0)
 								&&
@@ -773,12 +773,12 @@ namespace libmaus2
 							M . at ( i ) = path.path[i].first;
 							// assert ( a_i / tspace == i );
 						}
-						
+
 						// update start points
 						b_i = b_i_1;
 						a_i = a_i_1;
 					}
-					
+
 					// number of valid blocks on the right
 					uint64_t numleft = 0;
 					uint64_t numright = 0;
@@ -790,11 +790,11 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < M.size(); ++i )
 					{
 						bool const below = M[i] != std::numeric_limits<uint64_t>::max();
-						
+
 						if ( below )
 							numright -= 1;
-						
-						if ( 
+
+						if (
 							(numleft >= cthres && numright >= cthres)
 						)
 							H [ lowblockid + i ] += 1;
@@ -802,7 +802,7 @@ namespace libmaus2
 						if ( below )
 							numleft += 1;
 					}
-					
+
 					// mark first cthres blocks as spanned if all first cthres blocks are ok
 					if ( (path.abpos == 0) && M.size() >= 2*cthres )
 					{

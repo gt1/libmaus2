@@ -46,18 +46,18 @@ namespace libmaus2
 		/**
 		 * BAM file header class
 		 **/
-		struct BamHeader : 
-			public ::libmaus2::bambam::EncoderBase, 
+		struct BamHeader :
+			public ::libmaus2::bambam::EncoderBase,
 			public ::libmaus2::bambam::DecoderBase
 		{
 			public:
 			typedef BamHeader this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
-			//! header text	
+
+			//! header text
 			std::string text;
-			
+
 			private:
 			//! chromosome (reference sequence meta data) vector
 			std::vector< ::libmaus2::bambam::Chromosome > chromosomes;
@@ -71,20 +71,20 @@ namespace libmaus2
 			std::vector<std::string> libs;
 			//! number of libaries
 			uint64_t numlibs;
-			
+
 			public:
 			bool checkSequenceChecksumsCached(bool const dothrow)
 			{
 				libmaus2::fastx::RefPathLookup RPL;
-			
+
 				for ( size_t z = 0; z < chromosomes.size(); ++z )
 				{
 					::libmaus2::bambam::Chromosome & chr = chromosomes[z];
 					std::vector< std::pair<std::string,std::string> > KV = chr.getSortedKeyValuePairs();
-					
+
 					std::string m5;
 					bool havem5 = false;
-					
+
 					for ( size_t i = 0; i < KV.size(); ++i )
 						if ( KV[i].first == "M5" )
 						{
@@ -97,9 +97,9 @@ namespace libmaus2
 						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "libmaus2::bambam::BamHeader: no M5 field for sequence " << chr.getNameCString() << std::endl;
 						lme.finish();
-						throw lme;					
+						throw lme;
 					}
-					
+
 					if ( ! RPL.sequenceCached(m5) )
 					{
 						if ( dothrow )
@@ -107,7 +107,7 @@ namespace libmaus2
 							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "libmaus2::bambam::BamHeader: no cached sequence found for " << chr.getNameCString() << std::endl;
 							lme.finish();
-							throw lme;					
+							throw lme;
 						}
 						else
 						{
@@ -115,23 +115,23 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				return true;
 			}
 
 			std::vector<std::string> getSequenceURSet(bool fillRefCache) const
 			{
 				std::set<std::string> S;
-			
+
 				for ( size_t z = 0; z < chromosomes.size(); ++z )
 				{
 					std::vector< std::pair<std::string,std::string> > KV = chromosomes[z].getSortedKeyValuePairs();
-					
+
 					for ( size_t i = 0; i < KV.size(); ++i )
 						if ( KV[i].first == "UR" )
 							S.insert(KV[i].second);
 				}
-				
+
 				if ( fillRefCache )
 				{
 					for ( std::set < std::string >::const_iterator ita = S.begin(); ita != S.end(); ++ita )
@@ -146,15 +146,15 @@ namespace libmaus2
 							Pdecomp = UNIQUE_PTR_MOVE(Tdecomp);
 							pin = Pdecomp.get();
 						}
-						
+
 						libmaus2::fastx::FastAStreamSet FASS(*pin);
 						FASS.computeMD5(true /* write */,false /* verify cache */);
-					}				
+					}
 				}
-				
+
 				return std::vector<std::string>(S.begin(),S.end());
 			}
-			
+
 			/**
 			 * check the SQ lines for missing M5 fields and insert the fields if possible by scanning
 			 * a reference FastA file. The reference FastA file is decompressed on the fly if its file name
@@ -175,22 +175,22 @@ namespace libmaus2
 						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "libmaus2::bambam::BamHeader: failed to get current directory." << std::endl;
 						lme.finish();
-						throw lme;					
+						throw lme;
 					}
 					reference = std::string(cwdspace.begin()) + "/" + reference;
 				}
-			
+
 				bool haveallm5 = true;
 				std::set < std::string > nom5ur;
-				
+
 				for ( size_t z = 0; z < chromosomes.size(); ++z )
 				{
 					::libmaus2::bambam::Chromosome & chr = chromosomes[z];
 					std::vector< std::pair<std::string,std::string> > KV = chr.getSortedKeyValuePairs();
-					
+
 					std::string m5, ur;
 					bool havem5 = false, haveur = false;
-					
+
 					for ( size_t i = 0; i < KV.size(); ++i )
 						if ( KV[i].first == "M5" )
 						{
@@ -202,16 +202,16 @@ namespace libmaus2
 							haveur = true;
 							ur = KV[i].second;
 						}
-						
+
 					haveallm5 = haveallm5 && havem5;
-					
+
 					if ( ! havem5 && ! haveur )
 					{
 						if ( reference.size() )
 						{
 							ur = "file://" + reference;
 							haveur = true;
-							
+
 							if ( chr.getRestKVString().size() )
 								chr.setRestKVString( chr.getRestKVString() + "\tUR:" + ur );
 							else
@@ -225,15 +225,15 @@ namespace libmaus2
 							throw lme;
 						}
 					}
-					
+
 					if ( ! havem5 )
 					{
 						nom5ur.insert(ur);
 					}
 				}
-				
+
 				std::map < std::string, std::map<std::string,std::string> > M;
-				
+
 				for ( std::set < std::string >::const_iterator ita = nom5ur.begin(); ita != nom5ur.end(); ++ita )
 				{
 					libmaus2::aio::InputStream::unique_ptr_type Pin(libmaus2::aio::InputStreamFactoryContainer::constructUnique(*ita));
@@ -246,7 +246,7 @@ namespace libmaus2
 						Pdecomp = UNIQUE_PTR_MOVE(Tdecomp);
 						pin = Pdecomp.get();
 					}
-					
+
 					libmaus2::fastx::FastAStreamSet FASS(*pin);
 					// id -> digest
 					std::map<std::string,std::string> submap = FASS.computeMD5(true /* write */,false /* verify cache */);
@@ -257,10 +257,10 @@ namespace libmaus2
 				{
 					::libmaus2::bambam::Chromosome & chr = chromosomes[z];
 					std::vector< std::pair<std::string,std::string> > KV = chr.getSortedKeyValuePairs();
-					
+
 					std::string m5, ur;
 					bool havem5 = false, haveur = false;
-					
+
 					for ( size_t i = 0; i < KV.size(); ++i )
 						if ( KV[i].first == "M5" )
 						{
@@ -272,38 +272,38 @@ namespace libmaus2
 							haveur = true;
 							ur = KV[i].second;
 						}
-					
+
 					if ( ! havem5 )
 					{
 						assert ( haveur );
-						
+
 						if ( M.find(ur) == M.end() )
 						{
 							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "libmaus2::bambam::BamHeader: failed to get data for URL " << ur << std::endl;
 							lme.finish();
-							throw lme;			
+							throw lme;
 						}
-						
+
 						std::map<std::string,std::string> const & submap = M.find(ur)->second;
-						
+
 						if ( submap.find(chr.getNameString()) == submap.end() )
 						{
 							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "libmaus2::bambam::BamHeader: sequence " << chr.getNameString() << " not found in file " << ur << std::endl;
 							lme.finish();
-							throw lme;							
+							throw lme;
 						}
-						
+
 						std::string const sdigest = submap.find(chr.getNameString())->second;
-						
+
 						chr.setRestKVString(chr.getRestKVString() + "\tM5:" + sdigest);
 					}
 				}
 
 				std::istringstream istr(text);
 				std::ostringstream ostr;
-				
+
 				while ( istr )
 				{
 					std::string line;
@@ -314,13 +314,13 @@ namespace libmaus2
 							ostr << line << std::endl;
 					}
 				}
-				
+
 				for ( size_t i = 0; i < chromosomes.size(); ++i )
 					ostr << chromosomes[i].createLine() << std::endl;
-				
+
 				text = ostr.str();
 			}
-			
+
 			/**
 			 * clone this object and return clone in a unique pointer
 			 *
@@ -360,7 +360,7 @@ namespace libmaus2
 				O->numlibs = this->numlibs;
 				return O;
 			}
-			
+
 			/**
 			 * get name for reference id
 			 *
@@ -376,7 +376,7 @@ namespace libmaus2
 					return chromosomes[refid].getNameCString();
 				}
 			}
-			
+
 			/**
 			 * get reference id length
 			 **/
@@ -387,7 +387,7 @@ namespace libmaus2
 				else
 					return chromosomes[refid].getLength();
 			}
-			
+
 			/**
 			 * get number of reference sequences
 			 **/
@@ -395,7 +395,7 @@ namespace libmaus2
 			{
 				return chromosomes.size();
 			}
-			
+
 			/**
 			 * get vector of read groups
 			 *
@@ -429,7 +429,7 @@ namespace libmaus2
 					libmaus2::exception::LibMausException se;
 					se.getStream() << "BamHeader::getReadGroupIdentifierAsString(): invalid numeric id " << i << std::endl;
 					se.finish();
-					throw se;					
+					throw se;
 				}
 				return RG[i].ID;
 			}
@@ -443,7 +443,7 @@ namespace libmaus2
 			{
 				return RG.size();
 			}
-			
+
 			/**
 			 * get read group numerical id for read group name
 			 *
@@ -455,7 +455,7 @@ namespace libmaus2
 				if ( ID )
 				{
 					unsigned int const idlen = strlen(ID);
-					
+
 					if ( RGCSH )
 					{
 						return (*RGCSH)[ ReadGroup::hash(ID,ID+idlen) ];
@@ -468,7 +468,7 @@ namespace libmaus2
 				else
 					return -1;
 			}
-			
+
 			/**
 			 * get read group object for read group name
 			 *
@@ -478,13 +478,13 @@ namespace libmaus2
 			::libmaus2::bambam::ReadGroup const * getReadGroup(char const * ID) const
 			{
 				int64_t const id = ID ? getReadGroupId(ID) : -1;
-				
+
 				if ( id < 0 )
 					return 0;
 				else
 					return &(RG[id]);
 			}
-			
+
 			/**
 			 * get library name for library id
 			 *
@@ -496,9 +496,9 @@ namespace libmaus2
 				if ( libid >= static_cast<int64_t>(numlibs) )
 					return "Unknown Library";
 				else
-					return libs[libid];			
+					return libs[libid];
 			}
-			
+
 			/**
 			 * get library name for read group id
 			 *
@@ -509,7 +509,7 @@ namespace libmaus2
 			{
 				return getLibraryName(getLibraryId(ID));
 			}
-			
+
 			/**
 			 * get library id for read group id
 			 *
@@ -530,7 +530,7 @@ namespace libmaus2
 			 *
 			 * @param rgid numerical read group id
 			 * @return library id
-			 **/ 
+			 **/
 			int64_t getLibraryId(int64_t const rgid) const
 			{
 				if ( rgid < 0 )
@@ -552,7 +552,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < RG.size(); ++i )
 					dict.push_back(RG[i].ID);
 				trienofailure.insertContainer(dict);
-				::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure 
+				::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure
 					(trienofailure.toLinearHashTrie<uint32_t>());
 				::libmaus2::trie::LinearHashTrie<char,uint32_t>::shared_ptr_type LHTsnofailure(
 					LHTnofailure.release()
@@ -568,7 +568,7 @@ namespace libmaus2
 			 **/
 			static bool startsWith(std::string const & s, std::string const & prefix)
 			{
-				return 
+				return
 					s.size() >= prefix.size()
 					&&
 					s.substr(0,prefix.size()) == prefix;
@@ -584,14 +584,14 @@ namespace libmaus2
 			{
 				std::vector<ReadGroup> RG;
 				std::istringstream istr(header);
-				
+
 				while ( istr )
 				{
 					std::string line;
 					::std::getline(istr,line);
 					if ( istr && line.size() )
 					{
-						if ( 
+						if (
 							(startsWith(line,"@RG"))
 						)
 						{
@@ -604,7 +604,7 @@ namespace libmaus2
 								}
 								else if ( tokens[i].size() < 3 || tokens[i][2] != ':' )
 								{
-									continue;	
+									continue;
 								}
 								else
 								{
@@ -612,15 +612,15 @@ namespace libmaus2
 									std::string const val = tokens[i].substr(3);
 									RGI.M[tag] = val;
 								}
-							
+
 							if ( RGI.ID.size() )
 								RG.push_back(RGI);
-							
-							// std::cerr << RGI << std::endl;	
+
+							// std::cerr << RGI << std::endl;
 						}
 					}
 				}
-				
+
 				return RG;
 			}
 
@@ -634,14 +634,14 @@ namespace libmaus2
 			{
 				std::istringstream istr(header);
 				std::ostringstream ostr;
-				
+
 				while ( istr )
 				{
 					std::string line;
 					::std::getline(istr,line);
 					if ( istr && line.size() )
 					{
-						if ( 
+						if (
 							!(startsWith(line,"@HD"))
 							&&
 							!(startsWith(line,"@SQ"))
@@ -649,7 +649,7 @@ namespace libmaus2
 							ostr << line << std::endl;
 					}
 				}
-				
+
 				return ostr.str();
 			}
 
@@ -663,7 +663,7 @@ namespace libmaus2
 			{
 				std::istringstream istr(header);
 				std::ostringstream ostr;
-				
+
 				while ( istr )
 				{
 					std::string line;
@@ -671,10 +671,10 @@ namespace libmaus2
 					if ( istr && line.size() && (!startsWith(line,"@CO\tTY:checksum")) )
 						ostr << line << std::endl;
 				}
-				
+
 				return ostr.str();
 			}
-			
+
 			/**
 			 * get version from header; if no HD line is present or it contains no version number, then
 			 * return defaultVersion
@@ -687,14 +687,14 @@ namespace libmaus2
 			{
 				std::istringstream istr(header);
 				std::string version = defaultVersion;
-				
+
 				while ( istr )
 				{
 					std::string line;
 					::std::getline(istr,line);
 					if ( istr && line.size() )
 					{
-						if ( 
+						if (
 							(startsWith(line,"@HD"))
 						)
 						{
@@ -705,7 +705,7 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				return version;
 			}
 
@@ -731,14 +731,14 @@ namespace libmaus2
 			{
 				std::istringstream istr(header);
 				std::string sortorder = defaultSortOrder;
-				
+
 				while ( istr )
 				{
 					std::string line;
 					::std::getline(istr,line);
 					if ( istr && line.size() )
 					{
-						if ( 
+						if (
 							(startsWith(line,"@HD"))
 						)
 						{
@@ -749,10 +749,10 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				return sortorder;
 			}
-			
+
 			/**
 			 * @param defaultSortorder default order to be returned if no order is recorded in the text
 			 * @return BAM sort order
@@ -783,19 +783,19 @@ namespace libmaus2
 						hdline = &(hlv[i]);
 					else if ( hlv[i].type == "SQ" )
 						sqmap[ hlv[i].getValue("SN") ] = &(hlv[i]);
-				
+
 				std::ostringstream ostr;
-			
+
 				if ( hdline )
 				{
 					if ( rsortorder.size() )
 					{
 						std::deque<std::string> tokens = ::libmaus2::util::stringFunctions::tokenize(hdline->line,std::string("\t"));
-						
+
 						for ( uint64_t i = 1; i < tokens.size(); ++i )
 							if ( tokens[i].size() >= 3 && tokens[i].substr(0,3) == "SO:" )
 								tokens[i] = "SO:" + rsortorder;
-								
+
 						std::ostringstream hdlinestr;
 						for ( uint64_t i = 0; i < tokens.size(); ++i )
 						{
@@ -803,9 +803,9 @@ namespace libmaus2
 							if ( i+1 < tokens.size() )
 								hdlinestr << "\t";
 						}
-						
+
 						//hdline->line = hdlinestr.str();
-						
+
 						ostr << hdlinestr.str() << std::endl;
 					}
 					else
@@ -814,27 +814,27 @@ namespace libmaus2
 					}
 				}
 				else
-					ostr << "@HD"	
+					ostr << "@HD"
 						<< "\tVN:" << getVersionStatic(header)
 						<< "\tSO:" << (rsortorder.size() ? rsortorder : getSortOrderStatic(header))
 						<< "\n";
-					
+
 				for ( uint64_t i = 0; i < chromosomes.size(); ++i )
 				{
 					std::pair<char const *,char const *> chrP = chromosomes[i].getName();
 					std::string const chrname(chrP.first,chrP.second);
-				
+
 					if ( sqmap.find(chrname) != sqmap.end() )
 						ostr << sqmap.find(chrname)->second->line << std::endl;
 					else
 						ostr << "@SQ\tSN:" << chrname << "\tLN:" << chromosomes[i].getLength() << "\n";
 				}
-					
+
 				ostr << filterHeader(header);
-				
+
 				return ostr.str();
 			}
-			
+
 			/**
 			 * encode binary reference sequence information
 			 *
@@ -845,12 +845,12 @@ namespace libmaus2
 			static void encodeChromosomeVector(stream_type & ostr, std::vector< ::libmaus2::bambam::Chromosome > const & V)
 			{
 				::libmaus2::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,V.size());
-				
+
 				for ( uint64_t i = 0; i < V.size(); ++i )
 				{
 					::libmaus2::bambam::Chromosome const & chr = V[i];
 					std::pair<char const *, char const *> P = chr.getName();
-					
+
 					::libmaus2::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,(P.second-P.first)+1);
 					ostr.write(P.first,P.second-P.first);
 					ostr.put(0);
@@ -871,7 +871,7 @@ namespace libmaus2
 				encodeChromosomeVector(ostr,V);
 				return ostr.str();
 			}
-			
+
 			/**
 			 * serialise header to BAM
 			 *
@@ -891,7 +891,7 @@ namespace libmaus2
 				// plain text
 				ostr.write(text.c_str(),text.size());
 				// ostr.put(0);
-				
+
 				encodeChromosomeVector(ostr,chromosomes);
 			}
 
@@ -899,25 +899,25 @@ namespace libmaus2
 			{
 				libmaus2::lz::BgzfInflateStream bgzfin(in);
 				BamHeaderParserState state;
-				
+
 				while ( ! state.parseHeader(bgzfin,1).first )
 				{
-				
+
 				}
 			}
-			
+
 			BamHeader(BamHeaderParserState & state)
 			{
 				init(state);
 			}
-			
+
 			void init(BamHeaderParserState & state)
 			{
 				text = std::string(state.text.begin(),state.text.begin()+state.l_text);
 				chromosomes.swap(state.chromosomes);
 				initSetup();
 			}
-			
+
 			struct HeaderLineSQNameComparator
 			{
 				bool operator()(HeaderLine const & A, HeaderLine const & B)
@@ -925,7 +925,7 @@ namespace libmaus2
 					return A.getValue("SN") < B.getValue("SN");
 				}
 			};
-			
+
 			void initSetup()
 			{
 				text = rewriteHeader(text,chromosomes);
@@ -933,7 +933,7 @@ namespace libmaus2
 				RG = getReadGroups(text);
 				RGTrie = computeRgTrie(RG);
 				RGCSH = libmaus2::hashing::ConstantStringHash::constructShared(RG.begin(),RG.end());
-				
+
 				if ( !RGCSH )
 				{
 					std::set<std::string> RGids;
@@ -947,13 +947,13 @@ namespace libmaus2
 						throw se;
 					}
 				}
-				
+
 				// extract all library names
 				std::set < std::string > slibs;
 				for ( uint64_t i = 0; i < RG.size(); ++i )
 					if ( RG[i].M.find("LB") != RG[i].M.end() )
 						slibs.insert(RG[i].M.find("LB")->second);
-				
+
 				// assign library ids to read groups (if present)
 				libs = std::vector<std::string>(slibs.begin(),slibs.end());
 				numlibs = libs.size();
@@ -962,19 +962,19 @@ namespace libmaus2
 						RG[i].LBid = std::lower_bound(libs.begin(),libs.end(),RG[i].M.find("LB")->second) - libs.begin();
 					else
 						RG[i].LBid = numlibs;
-						
+
 				std::vector<HeaderLine> headerlines = libmaus2::bambam::HeaderLine::extractLinesByType(text,"SQ");
 				std::sort(headerlines.begin(),headerlines.end(),HeaderLineSQNameComparator());
-				
+
 				// fill information from text into refseq info
 				for ( uint64_t i = 0; i < chromosomes.size(); ++i )
 				{
 					typedef std::vector<HeaderLine>::const_iterator it;
 					HeaderLine ref;
-					
+
 					ref.type = "SQ";
 					ref.M["SN"] = chromosomes[i].getNameString();
-					
+
 					// look for chromosome/refseq in parsed text
 					std::pair<it,it> const p = std::equal_range(
 						headerlines.begin(),headerlines.end(),
@@ -989,7 +989,7 @@ namespace libmaus2
 						HeaderLine const & line = *(p.first);
 						// build string from rest of arguments
 						std::ostringstream restkvostr;
-						// 
+						//
 						uint64_t restkvostrcont = 0;
 
 						// iterate over key:value pairs
@@ -997,7 +997,7 @@ namespace libmaus2
 							ita != line.M.end(); ++ita )
 						{
 							std::pair<std::string,std::string> const pp = *ita;
-							
+
 							// sequence name should fit (or the equal_range call above is broken)
 							if ( pp.first == "SN" )
 							{
@@ -1021,13 +1021,13 @@ namespace libmaus2
 							{
 								if ( restkvostrcont++ )
 									restkvostr.put('\t');
-									
+
 								restkvostr << pp.first << ":" << pp.second;
-									
+
 								// chromosomes[i].addKeyValuePair(pp.first,pp.second);
 							}
 						}
-						
+
 						if ( restkvostrcont )
 							chromosomes[i].setRestKVString(restkvostr.str());
 					}
@@ -1043,11 +1043,11 @@ namespace libmaus2
 			void init(stream_type & in)
 			{
 				uint8_t fmagic[4];
-				
+
 				for ( unsigned int i = 0; i < sizeof(fmagic)/sizeof(fmagic[0]); ++i )
 					fmagic[i] = getByte(in);
 
-				if ( 
+				if (
 					fmagic[0] != 'B' ||
 					fmagic[1] != 'A' ||
 					fmagic[2] != 'M' ||
@@ -1056,22 +1056,22 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Wrong magic in BamHeader::init()" << std::endl;
 					se.finish();
-					throw se;					
+					throw se;
 				}
-				
+
 				uint64_t const l_text = getLEInteger(in,4);
 				text.resize(l_text);
-				
+
 				for ( uint64_t i = 0; i < text.size(); ++i )
 					text[i] = getByte(in);
-					
+
 				uint64_t textlen = 0;
 				while ( textlen < text.size() && text[textlen] )
 					textlen++;
 				text.resize(textlen);
-				
+
 				uint64_t const n_ref = getLEInteger(in,4);
-						
+
 				for ( uint64_t i = 0; i < n_ref; ++i )
 				{
 					uint64_t l_name = getLEInteger(in,4);
@@ -1081,13 +1081,13 @@ namespace libmaus2
 					for ( uint64_t j = 0 ; j < name.size(); ++j )
 						name[j] = getByte(in);
 					int c = getByte(in); assert ( c == 0 );
-					uint64_t l_ref = getLEInteger(in,4);	
+					uint64_t l_ref = getLEInteger(in,4);
 					chromosomes.push_back( ::libmaus2::bambam::Chromosome(name,l_ref) );
 				}
 
 				initSetup();
 			}
-			
+
 			/**
 			 * change sort order to newsortorder; if newsortorder is the empty string then
 			 * just rewrite header keeping the previous sort order description
@@ -1098,7 +1098,7 @@ namespace libmaus2
 			{
 				text = rewriteHeader(text,chromosomes,newsortorder);
 			}
-			
+
 			/**
 			 * produce header text
 			 **/
@@ -1106,7 +1106,7 @@ namespace libmaus2
 			{
 				changeSortOrder();
 			}
-			
+
 			/**
 			 * get size of BAM header given the name of the BAM file
 			 *
@@ -1120,15 +1120,15 @@ namespace libmaus2
 				BamHeader header(GS);
 				return GS.tellg();
 			}
-			
+
 			/**
 			 * constructor for empty header
 			 **/
 			BamHeader()
 			{
-			
+
 			}
-			
+
 			/**
 			 * constructor from compressed stream in
 			 *
@@ -1176,22 +1176,22 @@ namespace libmaus2
 			{
 				init(in);
 			}
-			
+
 			void replaceReadGroupNames(std::map<std::string,std::string> const & M)
 			{
 				std::istringstream istr(text);
 				std::ostringstream ostr;
-				
+
 				while ( istr )
 				{
 					std::string line;
 					std::getline(istr,line);
-					
+
 					if ( line.size() >= 3 && line[0] == '@' && line[1] == 'R' && line[2] == 'G' )
 					{
 						HeaderLine HL(line);
 						assert ( HL.type == "RG" );
-						
+
 						if ( HL.hasKey("ID") )
 						{
 							std::string const oldID = HL.getValue("ID");
@@ -1204,14 +1204,14 @@ namespace libmaus2
 							}
 						}
 					}
-					
+
 					if ( line.size() )
 						ostr << line << '\n';
 				}
-				
+
 				*this = BamHeader(ostr.str());
 			}
-			
+
 			/**
 			 * constructor from header text
 			 *
@@ -1220,15 +1220,15 @@ namespace libmaus2
 			BamHeader(std::string const & text)
 			{
 				std::ostringstream ostr;
-				
+
 				ostr.put('B');
 				ostr.put('A');
 				ostr.put('M');
 				ostr.put('\1');
-				
+
 				EncoderBase::putLE<std::ostringstream,uint32_t>(ostr,text.size());
 				ostr << text;
-				
+
 				std::vector<HeaderLine> hlv = HeaderLine::extractLines(text);
 				uint32_t nref = 0;
 				for ( uint64_t i = 0; i < hlv.size(); ++i )
@@ -1236,7 +1236,7 @@ namespace libmaus2
 						nref++;
 
 				EncoderBase::putLE<std::ostringstream,uint32_t>(ostr,nref);
-				
+
 				for ( uint64_t i = 0; i < hlv.size(); ++i )
 					if ( hlv[i].type == "SQ" )
 					{
@@ -1256,7 +1256,7 @@ namespace libmaus2
 				std::istringstream istr(ostr.str());
 				init(istr);
 			}
-			
+
 			/**
 			 * add a reference sequence to the header
 			 *
@@ -1270,7 +1270,7 @@ namespace libmaus2
 				chromosomes.push_back(Chromosome(name,len));
 				return id;
 			}
-			
+
 			/**
 			 * get id for reference name
 			 *
@@ -1286,7 +1286,7 @@ namespace libmaus2
 					char const * qe = P.second;
 					char const * ca = name.c_str();
 					char const * ce = ca + name.size();
-					
+
 					// same length
 					if ( qe-qa == ce-ca )
 					{
@@ -1294,15 +1294,15 @@ namespace libmaus2
 						for ( ; qa != qe ; ++qa, ++ca )
 							if ( *qa != *ca )
 								break;
-								
+
 						if ( qa == qe )
 						{
 							assert ( name == chromosomes[i].getNameString() );
 							return i;
 						}
-					}					
+					}
 				}
-						
+
 				libmaus2::exception::LibMausException se;
 				se.getStream() << "Reference name " << name << " does not exist in file." << std::endl;
 				se.finish();

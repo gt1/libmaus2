@@ -30,13 +30,13 @@ namespace libmaus2
 			typedef GapArrayByteDecoderBuffer this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			GapArrayByteDecoder & decoder;
 			libmaus2::autoarray::AutoArray<uint64_t> B;
 			uint64_t * pa;
 			uint64_t * pc;
 			uint64_t * pe;
-			
+
 			GapArrayByteDecoderBuffer(
 				GapArrayByteDecoder & rdecoder,
 				uint64_t const bufsize
@@ -44,28 +44,28 @@ namespace libmaus2
 			{
 				assert ( bufsize );
 			}
-			
+
 			bool getNext(uint64_t & v)
 			{
 				if ( pc == pe )
 				{
 					if ( decoder.offset == decoder.gsize )
 						return false;
-						
+
 					uint64_t const tocopy = std::min(static_cast<ptrdiff_t>(decoder.gsize - decoder.offset), static_cast<ptrdiff_t>(B.size()));
-					
+
 					decoder.decode(pa, tocopy);
-					
+
 					pc = pa;
 					pe = pa + tocopy;
-					
+
 					assert ( pc != pe );
 				}
-				
+
 				v = *(pc++);
 				return true;
 			}
-			
+
 			uint64_t get()
 			{
 				uint64_t v = 0;
@@ -77,37 +77,37 @@ namespace libmaus2
 			{
 				GapArrayByteDecoderBuffer * owner;
 				uint64_t v;
-				
+
 				iterator()
 				: owner(0), v(0)
 				{
-				
+
 				}
 				iterator(GapArrayByteDecoderBuffer * rowner)
 				: owner(rowner), v(owner->get())
 				{
-				
+
 				}
-				
+
 				uint64_t operator*() const
 				{
 					return v;
 				}
-				
+
 				iterator operator++(int)
 				{
 					iterator copy = *this;
 					v = owner->get();
 					return copy;
 				}
-				
+
 				iterator operator++()
 				{
 					v = owner->get();
 					return *this;
 				}
 			};
-			
+
 			iterator begin()
 			{
 				return iterator(this);

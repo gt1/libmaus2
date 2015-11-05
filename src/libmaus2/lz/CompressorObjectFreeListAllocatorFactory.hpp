@@ -38,11 +38,11 @@ namespace libmaus2
 					s.size() >= prefix.size() &&
 					s.substr(0,prefix.size()) == prefix;
 			}
-		
+
 			static libmaus2::lz::CompressorObjectFreeListAllocator::unique_ptr_type construct(std::string const & desc)
 			{
 				static char const * zlibprefix = "zlib:";
-			
+
 				if ( desc == "snappy" )
 				{
 					libmaus2::lz::SnappyCompressorObjectFreeListAllocator::unique_ptr_type tptr(
@@ -56,7 +56,7 @@ namespace libmaus2
 					std::istringstream istr(slevel);
 					int64_t ilevel;
 					istr >> ilevel;
-					
+
 					if ( ! istr )
 					{
 						libmaus2::exception::LibMausException lme;
@@ -64,7 +64,7 @@ namespace libmaus2
 						lme.finish();
 						throw lme;
 					}
-					
+
 					switch ( ilevel )
 					{
 						case Z_DEFAULT_COMPRESSION:

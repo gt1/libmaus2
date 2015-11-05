@@ -31,6 +31,6 @@ uint64_t libmaus2::util::Utf8BlockIndexDecoder::operator[](uint64_t const i)
 {
 	CIS.clear();
 	CIS.seekg((4+i)*sizeof(uint64_t));
-	
+
 	return ::libmaus2::util::NumberSerialisation::deserialiseNumber(CIS);
 }

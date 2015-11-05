@@ -29,7 +29,7 @@ namespace libmaus2
 			typedef BandedAligner this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			virtual ~BandedAligner() {}
 			virtual void align(
 				uint8_t const * a,

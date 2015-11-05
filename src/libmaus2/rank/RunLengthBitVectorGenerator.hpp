@@ -32,20 +32,20 @@ namespace libmaus2
 {
 	namespace rank
 	{
-		struct RunLengthBitVectorGenerator 
-			: 
+		struct RunLengthBitVectorGenerator
+			:
 				public RunLengthBitVectorGeneratorGammaBase,
 				public RunLengthBitVectorGeneratorBase
 		{
 			typedef RunLengthBitVectorGenerator this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			// current bit symbol for putbit method
 			bool single_cursym;
 			// current run length in putbit
 			uint64_t single_runlength;
-						
+
 			/*
 			 * file format:
 			 * - blocksize
@@ -56,12 +56,12 @@ namespace libmaus2
 			 * - number of blocks
 			 * - block index
 			 */
-			 
+
 			static uint64_t getNumPreDataWords()
 			{
 				return 4;
 			}
-			
+
 			RunLengthBitVectorGenerator(
 				std::ostream & rostr,
 				std::iostream & rindexstr,
@@ -71,8 +71,8 @@ namespace libmaus2
 			)
 			:
 			  RunLengthBitVectorGeneratorGammaBase(rostr),
-			  RunLengthBitVectorGeneratorBase(0,rblocksize,RunLengthBitVectorGeneratorGammaBase::GE,rindexstr), 
-			  single_cursym(true), 
+			  RunLengthBitVectorGeneratorBase(0,rblocksize,RunLengthBitVectorGeneratorGammaBase::GE,rindexstr),
+			  single_cursym(true),
 			  single_runlength(0)
 			{
 				if ( putheader )
@@ -83,13 +83,13 @@ namespace libmaus2
 					SGO.put(rn);
 
 					// space for index position
-					SGO.put(0);		
+					SGO.put(0);
 					// space for auto array header
 					SGO.put(0);
 				}
 			}
-			
-			
+
+
 			void runFlush(uint64_t const rlpad)
 			{
 				if ( single_runlength + rlpad )
@@ -99,26 +99,26 @@ namespace libmaus2
 					single_cursym = ! single_cursym;
 				}
 			}
-			
+
 			uint64_t flush()
 			{
 				// bit padding at end for rankm calls
 				static uint64_t const rlpad = 1;
-			
+
 				runFlush(rlpad);
-				
+
 				RunLengthBitVectorGeneratorGammaBase::GE.flush();
 				RunLengthBitVectorGeneratorGammaBase::SGO.flush();
 				uint64_t const indexpos = SGO.getWrittenBytes();
-				
+
 				// seek to start of index file
 				indexstr.seekg(indexstr.tellp());
 				indexstr.seekg(-static_cast<int64_t>(sizeof(uint64_t) * blocks),std::ios::cur);
 				assert ( static_cast<int64_t>(indexstr.tellg()) == static_cast<int64_t>(0) );
-				
+
 				// write number of blocks
 				libmaus2::serialize::Serialize<uint64_t>::serialize(ostr,blocks);
-				
+
 				// index pointers
 				for ( uint64_t i = 0; i < blocks; ++i )
 				{
@@ -128,7 +128,7 @@ namespace libmaus2
 					v -= (getNumPreDataWords()*8*sizeof(uint64_t));
 					libmaus2::serialize::Serialize<uint64_t>::serialize(ostr,v);
 				}
-				
+
 				// seek to start of file
 				ostr.seekp(
 					- static_cast<int64_t>(
@@ -153,7 +153,7 @@ namespace libmaus2
 				libmaus2::serialize::Serialize<uint64_t>::serialize(ostr,indexpos/sizeof(uint64_t)-4);
 				// flush output stream
 				ostr.flush();
-				
+
 				// seek back to end of file
 				ostr.seekp(-static_cast<int64_t>(4*sizeof(uint64_t)),std::ios::cur);
 				assert ( static_cast<int64_t>(ostr.tellp()) == static_cast<int64_t>(0) );
@@ -167,7 +167,7 @@ namespace libmaus2
 					std::ios::cur
 				);
 				ostr.clear();
-				
+
 				// return size of stream
 				return
 					// length of index
@@ -175,7 +175,7 @@ namespace libmaus2
 					// length of data
 					indexpos;
 			}
-						
+
 			void putbit(bool const bit)
 			{
 				// run continued
@@ -184,11 +184,11 @@ namespace libmaus2
 					++single_runlength;
 				}
 				// end of run
-				else 
+				else
 				{
 					if ( single_runlength )
 						putrun(single_cursym,single_runlength);
-				
+
 					// start of next run
 					single_cursym = bit;
 					single_runlength = 1;

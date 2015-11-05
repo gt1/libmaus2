@@ -30,7 +30,7 @@ namespace libmaus2
 			static int64_t getPageSize()
 			{
 				long const v = sysconf(_SC_PAGESIZE);
-				
+
 				if ( v < 0 )
 				{
 					int const error = errno;
@@ -39,14 +39,14 @@ namespace libmaus2
 					lme.finish();
 					throw lme;
 				}
-				
+
 				return static_cast<int64_t>(v);
 			}
 
 			static int64_t getNumPhysPages()
 			{
 				long const v = sysconf(_SC_PHYS_PAGES);
-				
+
 				if ( v < 0 )
 				{
 					int const error = errno;
@@ -55,14 +55,14 @@ namespace libmaus2
 					lme.finish();
 					throw lme;
 				}
-				
+
 				return static_cast<int64_t>(v);
 			}
 
 			static int64_t getNumAvPhysPages()
 			{
 				long const v = sysconf(_SC_AVPHYS_PAGES);
-				
+
 				if ( v < 0 )
 				{
 					int const error = errno;
@@ -71,15 +71,15 @@ namespace libmaus2
 					lme.finish();
 					throw lme;
 				}
-				
+
 				return static_cast<int64_t>(v);
 			}
-			
+
 			static int64_t getPhysicalMemory()
 			{
 				return getNumPhysPages() * getPageSize();
 			}
-			
+
 			static int64_t getAvailablePhysicalMemory()
 			{
 				return getNumAvPhysPages() * getPageSize();
@@ -88,4 +88,3 @@ namespace libmaus2
 	}
 }
 #endif
-                                

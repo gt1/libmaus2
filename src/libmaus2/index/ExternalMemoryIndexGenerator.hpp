@@ -46,18 +46,18 @@ namespace libmaus2
 
 			static uint64_t const inner_index_step = 1ull << inner_level_log;
 			static uint64_t const inner_index_mask = (inner_index_step-1);
-		
+
 			libmaus2::aio::InputOutputStream::unique_ptr_type Pstream;
 			std::iostream & stream;
 			uint64_t ic;
 			bool flushed;
-			
+
 			typedef ExternalMemoryIndexRecord<data_type> record_type;
 			libmaus2::autoarray::AutoArray<record_type> writeCache;
 			record_type * const wa;
 			record_type * wc;
 			record_type * const we;
-			
+
 			size_t byteSize() const
 			{
 				return
@@ -69,55 +69,55 @@ namespace libmaus2
 					sizeof(wc) +
 					sizeof(we);
 			}
-			
+
 			ExternalMemoryIndexGenerator(std::string const & filename)
-			: Pstream(libmaus2::aio::InputOutputStreamFactoryContainer::constructUnique(filename,std::ios::in|std::ios::out|std::ios::trunc|std::ios::binary)), stream(*Pstream), 
+			: Pstream(libmaus2::aio::InputOutputStreamFactoryContainer::constructUnique(filename,std::ios::in|std::ios::out|std::ios::trunc|std::ios::binary)), stream(*Pstream),
 			  ic(0), flushed(false), writeCache(1024),
 			  wa(writeCache.begin()), wc(wa), we(writeCache.end())
 			{
-			
+
 			}
 
 			ExternalMemoryIndexGenerator(std::iostream & rstream)
 			: Pstream(), stream(rstream), ic(0), flushed(false), writeCache(1024),
 			  wa(writeCache.begin()), wc(wa), we(writeCache.end())
 			{
-			
+
 			}
-			
+
 			uint64_t setup()
 			{
 				uint64_t const curpos = stream.tellp();
-				
+
 				flushed = false;
 				ic = 0;
-				
+
 				// make room for pointer
 				libmaus2::util::NumberSerialisation::serialiseNumber(stream,0);
-				
+
 				return curpos;
 			}
-			
+
 			uint64_t flush()
 			{
 				if ( ! flushed )
 				{
 					uint64_t const object_size = data_type::getSerialisedObjectSize();
 					uint64_t const record_size = 2*sizeof(uint64_t)+object_size;
-					
+
 					std::vector<uint64_t> levelstarts;
 					std::vector<uint64_t> levelends;
 					std::vector<uint64_t> levelcnts;
-					
+
 					unsigned int level = 0;
 					uint64_t incnt = ic;
-					
+
 					// end of level 0
 					uint64_t const el0pos = stream.tellp();
-					
+
 					// get position of level 0 records in file
 					uint64_t l0pos = el0pos - (ic * record_size);
-					
+
 					// store position and number
 					levelstarts.push_back(l0pos);
 					levelends.push_back(el0pos);
@@ -132,67 +132,67 @@ namespace libmaus2
 						uint64_t const outcnt = (incnt + inner_index_step-1)/inner_index_step;
 						uint64_t gpos = levelstarts[level];
 						uint64_t ppos = gpos + incnt * record_size;
-						
+
 						// expected position of get pointer after handling level
 						uint64_t const egpos = ppos;
 						// expected position of put pointer after handling level
 						uint64_t const eppos = ppos + outcnt * record_size;
-						
+
 						levelstarts.push_back(ppos);
 						levelends.push_back(eppos);
 						levelcnts.push_back(outcnt);
-						
+
 						stream.seekg(gpos,std::ios::beg);
 
 						data_type D;
 						for ( uint64_t j = 0; j < incnt; ++j )
 						{
 							uint64_t pfirst = libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
-							uint64_t psecond = libmaus2::util::NumberSerialisation::deserialiseNumber(stream);							
+							uint64_t psecond = libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
 							D.deserialise(stream);
 
 							gpos += 2*sizeof(uint64_t) + object_size;
-							
+
 							if ( (j & inner_index_mask) == 0 )
 							{
 								*(wc++) = record_type(std::pair<uint64_t,uint64_t>(pfirst,psecond),D);
-								
+
 								if ( wc == we )
 								{
 									stream.seekp(ppos,std::ios::beg);
-									
+
 									for ( record_type * ww = wa; ww < wc; ++ww )
 									{
 										ppos += libmaus2::util::NumberSerialisation::serialiseNumber(stream,ww->P.first);
 										ppos += libmaus2::util::NumberSerialisation::serialiseNumber(stream,ww->P.second);
-										ppos += ww->D.serialise(stream);			
+										ppos += ww->D.serialise(stream);
 									}
-									
+
 									stream.seekg(gpos,std::ios::beg);
 									wc = wa;
-								}							
+								}
 							}
 						}
-						
+
 						if ( wc != wa )
 						{
 							stream.seekp(ppos,std::ios::beg);
-							
+
 							for ( record_type * ww = wa; ww < wc; ++ww )
 							{
 								ppos += libmaus2::util::NumberSerialisation::serialiseNumber(stream,ww->P.first);
 								ppos += libmaus2::util::NumberSerialisation::serialiseNumber(stream,ww->P.second);
-								ppos += ww->D.serialise(stream);			
+								ppos += ww->D.serialise(stream);
 							}
-							
+
 							stream.seekg(gpos,std::ios::beg);
 							wc = wa;
 						}
-						
+
 						bool const pok = static_cast<off_t>(stream.tellg()) == static_cast<off_t>(egpos);
 						assert ( pok );
 						assert ( ppos == eppos );
-						
+
 						incnt = outcnt;
 						level += 1;
 					}
@@ -204,7 +204,7 @@ namespace libmaus2
 
 					// set put pointer to set position
 					stream.seekp(ppos);
-					
+
 					// store meta information
 					for ( uint64_t i = 0; i < levelcnts.size(); ++i )
 					{
@@ -217,8 +217,8 @@ namespace libmaus2
 
 					// number of levels
 					ppos += libmaus2::util::NumberSerialisation::serialiseNumber(stream,levelcnts.size());
-				
-					// end of index pointer	
+
+					// end of index pointer
 					uint64_t const backppos = stream.tellp();
 					// go to beginning of level 0 records minus 8
 					stream.seekp(l0pos-8,std::ios::beg);
@@ -226,11 +226,11 @@ namespace libmaus2
 					libmaus2::util::NumberSerialisation::serialiseNumber(stream,backppos);
 					// go back to end of index
 					stream.seekp(backppos);
-					
+
 					stream.flush();
-					
+
 					flushed = true;
-					
+
 					return backppos;
 				}
 				else
@@ -241,16 +241,15 @@ namespace libmaus2
 					throw lme;
 				}
 			}
-			
+
 			void put(data_type const & E, std::pair<uint64_t,uint64_t> const & P)
 			{
 				libmaus2::util::NumberSerialisation::serialiseNumber(stream,P.first);
 				libmaus2::util::NumberSerialisation::serialiseNumber(stream,P.second);
-				E.serialise(stream);				
+				E.serialise(stream);
 				ic += 1;
 			}
 		};
 	}
 }
 #endif
-

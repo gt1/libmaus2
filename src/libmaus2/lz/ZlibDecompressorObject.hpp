@@ -30,13 +30,13 @@ namespace libmaus2
 		{
 			typedef ZlibDecompressorObject this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			::libmaus2::lz::BgzfInflateZStreamBase inflatebase;
-			
+
 			ZlibDecompressorObject()
 			: inflatebase()
 			{
-				
+
 			}
 			virtual ~ZlibDecompressorObject() {}
 			virtual bool rawuncompress(char const * compressed, size_t compressed_length, char * uncompressed, size_t uncompressed_length)

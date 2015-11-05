@@ -41,7 +41,7 @@ namespace libmaus2
                         typedef SynchronousOutputBuffer8 this_type;
                         //! unique pointer type
                         typedef ::libmaus2::util::unique_ptr < this_type > :: type unique_ptr_type;
-                
+
                         private:
                         //! output file name
 			std::string const filename;
@@ -60,12 +60,12 @@ namespace libmaus2
                         void writeBuffer()
                         {
 				std::ofstream ostr(filename.c_str(), std::ios::binary | std::ios::app);
-                                ostr.write ( 
+                                ostr.write (
                                         reinterpret_cast<char const *>(pa),
                                         reinterpret_cast<char const *>(pc)-reinterpret_cast<char const *>(pa)
 				);
 				ostr.flush();
-				
+
 				if ( ! ostr )
 				{
 				        ::libmaus2::exception::LibMausException se;
@@ -123,7 +123,7 @@ namespace libmaus2
                                 if ( pc == pe )
                                         writeBuffer();
                         }
-                        
+
                         /**
                          * @return file name
                          **/
@@ -135,4 +135,3 @@ namespace libmaus2
 	}
 }
 #endif
-

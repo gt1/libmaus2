@@ -26,11 +26,11 @@
 #include <fcntl.h>
 #include <cerrno>
 #include <cstring>
-                     
+
 libmaus2::util::PosixInputFile::PosixInputFile(std::string const & filename)
 {
 	PosixFileDescriptor::fd = open(filename.c_str(),O_RDONLY);
-	
+
 	if ( PosixFileDescriptor::fd < 0 )
 	{
 		::libmaus2::exception::LibMausException se;

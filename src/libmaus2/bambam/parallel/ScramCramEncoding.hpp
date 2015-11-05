@@ -34,19 +34,19 @@ namespace libmaus2
 				typedef ScramCramEncoding this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				#if defined(LIBMAUS2_HAVE_DL_FUNCS)
-				libmaus2::util::DynamicLibrary scramlib;	
+				libmaus2::util::DynamicLibrary scramlib;
 				typedef void * (*alloc_func_t)(void *, char const *, size_t const, cram_data_write_function_t);
 				libmaus2::util::DynamicLibraryFunction<alloc_func_t>::unique_ptr_type Palloc_func;
 				typedef void (*dealloc_func_t)(void *);
-				libmaus2::util::DynamicLibraryFunction<dealloc_func_t>::unique_ptr_type Pdealloc_func;				
+				libmaus2::util::DynamicLibraryFunction<dealloc_func_t>::unique_ptr_type Pdealloc_func;
 				typedef int (*enque_func_t)(void *,void *,size_t const,char const **,size_t const *,size_t const *,size_t const,int const,cram_enque_compression_work_package_function_t,cram_data_write_function_t, cram_compression_work_package_finished_t);
 				libmaus2::util::DynamicLibraryFunction<enque_func_t>::unique_ptr_type Penque_func;
 				typedef int (*dispatch_func_t)(void *);
 				libmaus2::util::DynamicLibraryFunction<dispatch_func_t>::unique_ptr_type Pdispatch_func;
 				#endif
-				
+
 				ScramCramEncoding()
 				#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 				: scramlib("libmaus2_scram_mod.so"), Palloc_func()
@@ -58,14 +58,14 @@ namespace libmaus2
 					lme.finish();
 					throw lme;
 					#endif
-					
+
 					#if ! defined(LIBMAUS2_HAVE_IO_NEW_CRAM_INTERFACE)
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "ScramCramEncoding: no support for new CRAM encoding interface" << std::endl;
 					lme.finish();
-					throw lme;					
+					throw lme;
 					#endif
-					
+
 					#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 					libmaus2::util::DynamicLibraryFunction<alloc_func_t>::unique_ptr_type Talloc_func(
 						new libmaus2::util::DynamicLibraryFunction<alloc_func_t>(scramlib,"scram_cram_allocate_encoder")
@@ -90,22 +90,22 @@ namespace libmaus2
 				{
 					#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 					return Palloc_func->func(userdata,header,headerlength,writefunc);
-					#else					
+					#else
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "ScramCramEncoding::cram_allocate_encoder: no support for new CRAM encoding interface" << std::endl;
 					lme.finish();
-					throw lme;					
+					throw lme;
 					#endif
 				}
 				void cram_deallocate_encoder(void * context)
 				{
 					#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 					Pdealloc_func->func(context);
-					#else					
+					#else
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "ScramCramEncoding::cram_deallocate_encoder: no support for new CRAM encoding interface" << std::endl;
 					lme.finish();
-					throw lme;					
+					throw lme;
 					#endif
 				}
 
@@ -122,26 +122,26 @@ namespace libmaus2
 					cram_data_write_function_t writefunction,
 					cram_compression_work_package_finished_t workfinishedfunction
 				)
-				{				
+				{
 					#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 					return Penque_func->func(userdata,context,inblockid,block,blocksize,blockelements,numblocks,final,workenqueuefunction,writefunction,workfinishedfunction);
-					#else					
+					#else
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "ScramCramEncoding::cram_enque_compression_block: no support for new CRAM encoding interface" << std::endl;
 					lme.finish();
-					throw lme;					
+					throw lme;
 					#endif
 				}
-				
+
 				int cram_process_work_package(void *workpackage)
-				{					
+				{
 					#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 					return Pdispatch_func->func(workpackage);
-					#else					
+					#else
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "ScramCramEncoding::cram_process_work_package: no support for new CRAM encoding interface" << std::endl;
 					lme.finish();
-					throw lme;					
+					throw lme;
 					#endif
 				}
 			};

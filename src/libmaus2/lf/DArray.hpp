@@ -33,9 +33,9 @@ namespace libmaus2
 			typedef DArray this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			::libmaus2::autoarray::AutoArray<uint64_t> D;
-			
+
 			template<typename stream_type>
 			static ::libmaus2::autoarray::AutoArray<uint64_t> loadArray(stream_type & CIS)
 			{
@@ -48,19 +48,19 @@ namespace libmaus2
 
 			static ::libmaus2::autoarray::AutoArray<uint64_t> loadArray(std::string const & filename)
 			{
-				::libmaus2::aio::InputStreamInstance CIS(filename);	
+				::libmaus2::aio::InputStreamInstance CIS(filename);
 				return loadArray(CIS);
 			}
-			
+
 			DArray() : D()
 			{
-				
+
 			}
 			template<typename stream_type>
 			DArray(stream_type & stream)
 			: D(loadArray(stream))
 			{
-				
+
 			}
 			DArray(std::map<int64_t,uint64_t> const & M, uint64_t const bwtterm)
 			: D(bwtterm+1)
@@ -75,9 +75,9 @@ namespace libmaus2
 			}
 			template<typename stream_type>
 			void serialise(stream_type & stream) const
-			{	
+			{
 				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,D.size());
-				
+
 				for ( uint64_t i = 0; i < D.size(); ++i )
 					::libmaus2::util::NumberSerialisation::serialiseNumber(stream,D[i]);
 			}
@@ -86,7 +86,7 @@ namespace libmaus2
 				::libmaus2::aio::OutputStreamInstance COS(filename);
 				serialise(COS);
 			}
-			
+
 			void merge(DArray const & o)
 			{
 				if ( o.D.size() != D.size() )
@@ -96,7 +96,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				for ( uint64_t i = 0; i < D.size(); ++i )
 					D[i] += o.D[i];
 			}

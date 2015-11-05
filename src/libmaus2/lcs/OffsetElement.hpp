@@ -31,10 +31,10 @@ namespace libmaus2
 		{
 			uint32_t querypos;
 			int32_t offset;
-			
+
 			OffsetElement() : querypos(0), offset(0) {}
 			OffsetElement(uint16_t const rquerypos, int16_t const roffset) : querypos(rquerypos), offset(roffset) {}
-			
+
 			bool operator<(OffsetElement const & o) const
 			{
 				if ( offset != o.offset )

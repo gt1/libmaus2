@@ -49,19 +49,19 @@ namespace libmaus2
 
 			typedef MarkerFastWriteBitWriterTemplate<data_type,data_iterator,basemask,fullmask> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			private:
 			data_iterator U;
 			data_type mask;
 			data_type cur;
 			unsigned int bitsleft;
-			
+
 			public:
 			/**
 			 * initialize writer with pointer to array
 			 **/
 			MarkerFastWriteBitWriterTemplate(data_iterator rU) : U(rU), mask(basemask), cur(0), bitsleft(8 * sizeof(data_type)) {}
-			
+
 			void reset(data_iterator rU)
 			{
 				U = rU;
@@ -69,14 +69,14 @@ namespace libmaus2
 				cur = 0;
 				bitsleft = 8 * sizeof(data_type);
 			}
-			
+
 			void writeUnary(uint64_t k)
 			{
 				for ( uint64_t i = 0; i < k; ++i )
 					writeBit(0);
 				writeBit(1);
 			}
-			
+
 			/**
 			 *
 			 **/
@@ -87,26 +87,26 @@ namespace libmaus2
 				unsigned int log_1 = ::libmaus2::math::numbits(n);
 				// number of bits to store log_1
 				unsigned int log_2 = ::libmaus2::math::numbits(log_1);
-				
+
 				// std::cerr << "Writing " << n << " log_1=" << log_1 << " log_2=" << log_2 << std::endl;
-								
+
 				// write log_2 in unary form
 				writeUnary(log_2);
-				
+
 				// write log_1 using log_2 bits
 				write(log_1,log_2);
-				
+
 				// write n using log_1 bits
 				write(n,log_1);
 			}
-			
+
 			void reset()
 			{
 				mask = basemask;
 				cur = 0;
 				bitsleft = 8*sizeof(data_type);
 			}
-			
+
 			void writeCurrent()
 			{
 				// if this is a word with all bits set apart
@@ -115,19 +115,19 @@ namespace libmaus2
 				{
 					#if 0
 					std::cerr << "writing " << std::hex << static_cast<int>(cur) << std::dec
-						<< " fullmask=" << std::hex << static_cast<int>(fullmask) << std::dec 
-						<< " push=" << std::hex << static_cast<int>(cur>>1) << std::dec 
-						<< " lowbit=" << std::hex << static_cast<int>(cur&1) << std::dec 
+						<< " fullmask=" << std::hex << static_cast<int>(fullmask) << std::dec
+						<< " push=" << std::hex << static_cast<int>(cur>>1) << std::dec
+						<< " lowbit=" << std::hex << static_cast<int>(cur&1) << std::dec
 						<< std::endl;
 					#endif
-				
+
 					// save low bit
 					data_type const lowbit = (cur & static_cast<data_type>(1));
 					// shift by one to avoid word with all bits set
 					*(U++) = cur & (fullmask-1);
-					// reset for next byte	
+					// reset for next byte
 					reset();
-					// insert saved low bit	
+					// insert saved low bit
 					cur |= (lowbit << (8*sizeof(data_type)-1));
 					// one bit written
 					mask >>= 1;
@@ -143,7 +143,7 @@ namespace libmaus2
 					reset();
 				}
 			}
-			
+
 			static std::string curToBitString(uint64_t const cur)
 			{
 				std::ostringstream ostr;
@@ -154,12 +154,12 @@ namespace libmaus2
 				}
 				return ostr.str();
 			}
-			
+
 			std::string curToBitString()
 			{
 				return curToBitString(cur);
 			}
-			
+
 			/**
 			 * write a b bit number n
 			 * @param n number to be written
@@ -179,24 +179,24 @@ namespace libmaus2
 					cur |= static_cast<data_type>(n >> (b-bitsleft));
 					b -= bitsleft;
 					writeCurrent();
-					write<N>(n & ::libmaus2::math::lowbits(b) , b);					
+					write<N>(n & ::libmaus2::math::lowbits(b) , b);
 				}
 			}
-			
+
 			/**
 			 * write one bit to stream
 			 * @param bit
 			 **/
 			void writeBit(bool const bit)
 			{
-				if ( bit ) 
+				if ( bit )
 				{
 					cur |= mask;
 				}
-				
+
 				mask >>= 1;
 				bitsleft -= 1;
-				
+
 				if ( ! mask )
 					writeCurrent();
 			}

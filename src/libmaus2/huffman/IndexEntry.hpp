@@ -31,25 +31,25 @@ namespace libmaus2
 			uint64_t pos;
 			uint64_t kcnt;
 			uint64_t vcnt;
-			
+
 			IndexEntry() {}
 			IndexEntry(uint64_t const rpos, uint64_t const rkcnt, uint64_t const rvcnt)
 			: pos(rpos), kcnt(rkcnt), vcnt(rvcnt) {}
 		};
-		
+
 		template<typename _iterator>
 		struct IndexEntryKeyGetAdapter
 		{
 			typedef _iterator iterator;
-			
+
 			iterator it;
-			
+
 			IndexEntryKeyGetAdapter(iterator const & rit)
 			: it(rit)
 			{
-				
+
 			}
-			
+
 			uint64_t get(uint64_t const i) const
 			{
 				return it[i].kcnt;
@@ -60,21 +60,21 @@ namespace libmaus2
 		struct IndexEntryValueGetAdapter
 		{
 			typedef _iterator iterator;
-			
+
 			iterator it;
-			
+
 			IndexEntryValueGetAdapter(iterator const & rit)
 			: it(rit)
 			{
-				
+
 			}
-			
+
 			uint64_t get(uint64_t const i) const
 			{
 				return it[i].vcnt;
 			}
 		};
-		
+
 		struct IndexEntryValueAdd
 		{
 			uint64_t operator()(uint64_t const & A, IndexEntry const & B) const
@@ -82,7 +82,7 @@ namespace libmaus2
 				return A + B.vcnt;
 			}
 		};
-		
+
 		struct IndexEntryKeyAdd
 		{
 			uint64_t operator()(uint64_t const & A, IndexEntry const & B) const
@@ -90,7 +90,7 @@ namespace libmaus2
 				return A + B.kcnt;
 			}
 		};
-		
+
 		inline std::ostream & operator<<(std::ostream & out, IndexEntry const & IE)
 		{
 			out << "IndexEntry(" << IE.pos << "," << IE.kcnt << "," << IE.vcnt << ")";

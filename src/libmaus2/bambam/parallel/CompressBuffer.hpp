@@ -32,17 +32,17 @@ namespace libmaus2
 				libmaus2::autoarray::AutoArray<uint8_t> inputBuffer;
 				libmaus2::autoarray::AutoArray<char> outputBuffer;
 				size_t compsize;
-				
+
 				uint64_t blockid;
 				uint64_t subid;
 				uint64_t totalsubids;
-				
+
 				CompressBuffer(uint64_t const inputBufferSize)
 				: inputBuffer(inputBufferSize,false), compsize(0), blockid(0), subid(0), totalsubids(0)
 				{
-				
+
 				}
-				
+
 				bool operator<(CompressBuffer const & o) const
 				{
 					return subid > o.subid;

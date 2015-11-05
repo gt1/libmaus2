@@ -25,7 +25,7 @@
 namespace libmaus2
 {
 	namespace bambam
-	{		
+	{
 		struct ReadEndsStreamDecoder : public ReadEndsStreamDecoderFileBase, public ReadEndsStreamDecoderBase
 		{
 			typedef ReadEndsStreamDecoder this_type;
@@ -33,21 +33,21 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			ReadEndsStreamDecoder(std::string const & rfilename)
 			: ReadEndsStreamDecoderFileBase(rfilename), ReadEndsStreamDecoderBase(*ReadEndsStreamDecoderFileBase::in)
 			{}
-			
+
 			ReadEndsStreamDecoder(std::istream & rin)
 			: ReadEndsStreamDecoderFileBase(rin), ReadEndsStreamDecoderBase(*ReadEndsStreamDecoderFileBase::in)
 			{
-			
+
 			}
 
 			ReadEndsStreamDecoder(std::vector<std::istream *> const & rin)
 			: ReadEndsStreamDecoderFileBase(), ReadEndsStreamDecoderBase(rin)
 			{
-			
+
 			}
 		};
 	}

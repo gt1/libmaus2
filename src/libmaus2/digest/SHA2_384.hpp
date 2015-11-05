@@ -31,7 +31,7 @@ namespace libmaus2
 
 			SHA2_384();
 			~SHA2_384();
-			
+
 			void init();
 			void update(uint8_t const * t, size_t l);
 			void digest(uint8_t * digest);

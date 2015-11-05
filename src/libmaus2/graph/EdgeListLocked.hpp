@@ -27,21 +27,21 @@ namespace libmaus2
 {
 	namespace graph
 	{
-		struct EdgeListLocked 
+		struct EdgeListLocked
 		{
 			typedef EdgeListLocked this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			typedef ::libmaus2::graph::TripleEdge edge_type;
-			
+
 			EdgeList EL;
 			EdgeListLocalLockedFlush FL;
-			
+
 			EdgeListLocked(uint64_t const redgelow, uint64_t const redgehigh, uint64_t const rmaxedges)
 			: EL(redgelow,redgehigh,rmaxedges), FL(EL)
 			{
-			
-			}			
+
+			}
 		};
 	}
 }

@@ -31,13 +31,13 @@ namespace libmaus2
 			typedef ObjectBase this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			virtual ~ObjectBase()
 			{
-			
-			}		
+
+			}
 		};
-		
+
 		template<typename _wrapped_type>
 		struct Object : public ObjectBase
 		{
@@ -45,10 +45,10 @@ namespace libmaus2
 			typedef Object<wrapped_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			virtual ~Object()
 			{
-			
+
 			}
 		};
 	}

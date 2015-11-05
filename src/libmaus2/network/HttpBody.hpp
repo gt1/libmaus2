@@ -40,20 +40,20 @@ namespace libmaus2
 			bool ischunked;
 			int64_t length;
 			uint64_t chunkunread;
-			
+
 			HttpBody(std::istream & rin, bool const rischunked, int64_t const rlength)
 			: in(rin), eof(false), ischunked(rischunked), length(rlength), chunkunread(0)
 			{
-			
+
 			}
-			
+
 			ssize_t read(char * p, size_t n)
 			{
 				if ( ! n )
 					return 0;
 				if ( eof )
 					return 0;
-			
+
 				if ( ischunked )
 				{
 					// start new chunk if no data left
@@ -61,12 +61,12 @@ namespace libmaus2
 					{
 						// read length of chunk
 						char T[2] = {0,0};
-						
+
 						std::ostringstream lenostr;
 						while ( (!eof) && (T[0] != '\r' || T[1] != '\n') )
 						{
 							int const c = in.get();
-							
+
 							if ( c == std::istream::traits_type::eof() )
 							{
 								eof = true;
@@ -74,12 +74,12 @@ namespace libmaus2
 							else
 							{
 								lenostr.put(c);
-							
+
 								T[0] = T[1];
 								T[1] = c;
 							}
 						}
-							
+
 						if ( ! eof )
 						{
 							// decode length of chunk
@@ -88,7 +88,7 @@ namespace libmaus2
 							assert ( slen[slen.size()-2] == '\r' );
 							assert ( slen[slen.size()-1] == '\n' );
 							slen = slen.substr(0,slen.size()-2);
-							
+
 							uint64_t length = 0;
 							for ( uint64_t i = 0; i < slen.size(); ++i )
 							{
@@ -105,11 +105,11 @@ namespace libmaus2
 										break;
 								}
 							}
-							
+
 							chunkunread = length;
 						}
 					}
-					
+
 					uint64_t toread = std::min(
 						static_cast<uint64_t>(n),
 						static_cast<uint64_t>(chunkunread)
@@ -148,9 +148,9 @@ namespace libmaus2
 					if ( length >= 0 )
 					{
 						uint64_t toread = std::min(static_cast<uint64_t>(n),static_cast<uint64_t>(length));
-						
+
 						in.readsome(p,toread);
-						
+
 						if ( ! in.gcount() )
 						{
 							in.get();
@@ -158,7 +158,7 @@ namespace libmaus2
 
 							in.readsome(p,toread);
 						}
-						
+
 						length -= in.gcount();
 						if ( in.gcount() == 0 || length == 0 )
 							eof = true;
@@ -167,7 +167,7 @@ namespace libmaus2
 					else
 					{
 						in.readsome(p,n);
-						
+
 						if ( ! in.gcount() )
 						{
 							in.get();
@@ -175,7 +175,7 @@ namespace libmaus2
 
 							in.readsome(p,n);
 						}
-																		
+
 						if ( in.gcount() == 0 )
 							eof = true;
 						return in.gcount();

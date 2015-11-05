@@ -47,10 +47,10 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			private:
 			std::string const filename;
-			
+
 			public:
 			/**
 			 * constructor
@@ -59,7 +59,7 @@ namespace libmaus2
 			 * @param mode output mode (see std::fstream)
 			 **/
 			CheckedInputOutputStream(
-				std::string const & rfilename, 
+				std::string const & rfilename,
 				std::ios_base::openmode mode = std::ios::in | std::ios_base::out | std::ios_base::binary | std::ios::trunc
 			)
 			: std::fstream(rfilename.c_str(), mode), filename(rfilename)
@@ -79,10 +79,10 @@ namespace libmaus2
 			{
 				flush();
 			}
-			
+
 			/**
 			 * write n bytes from c to output stream. throws an exception if operation fails
-			 * 
+			 *
 			 * @param c buffer to be written
 			 * @param n size of buffer
 			 * @return *this
@@ -90,7 +90,7 @@ namespace libmaus2
 			CheckedInputOutputStream & write(char const * c, ::std::streamsize n)
 			{
 				std::fstream::write(c,n);
-				
+
 				if ( ! *this )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -98,17 +98,17 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				return *this;
 			}
-			
+
 			/**
 			 * flush streambuf object. throws an exception if stream state goes bad
 			 **/
 			CheckedInputOutputStream & flush()
 			{
 				std::fstream::flush();
-				
+
 				if ( ! *this )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -116,7 +116,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				return *this;
 			}
 
@@ -130,20 +130,20 @@ namespace libmaus2
 			CheckedInputOutputStream & read(char * c, ::std::streamsize const n)
 			{
 				std::fstream::read(c,n);
-				
+
 				if ( (n != 0) && (! gcount()) )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to read from file " << filename << std::endl;
 					se.finish();
-					throw se;				
+					throw se;
 				}
-				
+
 				return *this;
 			}
 
 			/**
-			 * read n bytes from stream to c in blocks of size b. 
+			 * read n bytes from stream to c in blocks of size b.
 			 * throws an exception if n!=0 and no bytes were read
 			 *
 			 * @param c output buffer space
@@ -160,10 +160,10 @@ namespace libmaus2
 					c += toread;
 					n -= toread;
 				}
-				
+
 				return *this;
 			}
-			
+
 			/**
 			 * seek stream to absolute position pos. throws an exception if not successfull
 			 *
@@ -173,15 +173,15 @@ namespace libmaus2
 			CheckedInputOutputStream & seekg(::std::streampos pos)
 			{
 				std::fstream::seekg(pos);
-				
+
 				if ( ! *this )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to seek to position " << pos << " in file " << filename << std::endl;
 					se.finish();
-					throw se;								
+					throw se;
 				}
-				
+
 				return *this;
 			}
 
@@ -195,17 +195,17 @@ namespace libmaus2
 			CheckedInputOutputStream & seekg(::std::streamoff off, ::std::ios_base::seekdir dir)
 			{
 				std::fstream::seekg(off,dir);
-				
+
 				if ( ! *this )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to seek to offset " << off << " in file " << filename << std::endl;
 					se.finish();
-					throw se;								
+					throw se;
 				}
-				
+
 				return *this;
-			}			
+			}
 
 			/**
 			 * seek stream to absolute position pos. throws an exception if not successfull
@@ -216,15 +216,15 @@ namespace libmaus2
 			CheckedInputOutputStream & seekp(::std::streampos pos)
 			{
 				std::fstream::seekp(pos);
-				
+
 				if ( ! *this )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to seek to position " << pos << " in file " << filename << std::endl;
 					se.finish();
-					throw se;								
+					throw se;
 				}
-				
+
 				return *this;
 			}
 
@@ -238,17 +238,17 @@ namespace libmaus2
 			CheckedInputOutputStream & seekp(::std::streamoff off, ::std::ios_base::seekdir dir)
 			{
 				std::fstream::seekp(off,dir);
-				
+
 				if ( ! *this )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to seek to offset " << off << " in file " << filename << std::endl;
 					se.finish();
-					throw se;								
+					throw se;
 				}
-				
+
 				return *this;
-			}			
+			}
 		};
 	}
 }

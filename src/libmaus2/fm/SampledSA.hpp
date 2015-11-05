@@ -36,7 +36,7 @@ namespace libmaus2
 			typedef typename ::libmaus2::util::unique_ptr < sampled_sa_type > :: type unique_ptr_type;
 
 			lf_type const * lf;
-			
+
 			uint64_t padn;
 			uint64_t sasamplingrate;
 			::libmaus2::autoarray::AutoArray<uint64_t> RSA;
@@ -56,7 +56,7 @@ namespace libmaus2
 				s += ::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&i);
 				return i;
 			}
-				
+
 			static ::libmaus2::autoarray::AutoArray<uint64_t> readArray64(std::istream & in)
 			{
 				::libmaus2::autoarray::AutoArray<uint64_t> A;
@@ -93,7 +93,7 @@ namespace libmaus2
 				s += SSA.serialize(out);
 				return s;
 			}
-			
+
 			uint64_t deserialize(std::istream & in)
 			{
 				padn = ((lf->getN() + 63)/64)*64;
@@ -106,11 +106,11 @@ namespace libmaus2
 				// std::cerr << "SA: " << s << " bytes = " << s*8 << " bits = " << (s+(1024*1024-1))/(1024*1024) << " mb" << " samplingrate = " << sasamplingrate << std::endl;
 				return s;
 			}
-			
+
 			SampledSA(lf_type const * rlf, std::istream & in) : lf(rlf) { deserialize(in); }
 			SampledSA(lf_type const * rlf, std::istream & in, uint64_t & s) : lf(rlf) { s += deserialize(in); }
 
-			SampledSA( 
+			SampledSA(
 				lf_type const * rlf,
 				uint64_t rsasamplingrate,
 				bool const verbose = false
@@ -120,7 +120,7 @@ namespace libmaus2
 			{
 				if ( verbose )
 					std::cerr << "Computing Sampled SA...";
-			
+
 				if ( verbose )
 					std::cerr << "(erasing RSA";
 				std::fill(RSA.get(), RSA.get()+padn/64, 0);
@@ -143,13 +143,13 @@ namespace libmaus2
 				{
 					if ( (i & (32*1024*1024-1)) == 0 && verbose )
 						std::cerr << "(" << i/(1024*1024) << ")";
-						
+
 					r = (*lf)(r); // LF mapping
 
 					if ( i % sasamplingrate == 0 )
 						::libmaus2::bitio::putBits ( RSA.get(), r, 1, 1);
 					else
-						::libmaus2::bitio::putBits ( RSA.get(), r, 1, 0);			
+						::libmaus2::bitio::putBits ( RSA.get(), r, 1, 0);
 				}
 				if ( verbose )
 					std::cerr << ")";
@@ -165,7 +165,7 @@ namespace libmaus2
 				{
 					if ( (i & (1024*1024-1)) == 0 && verbose )
 						std::cerr << "(" << i/(1024*1024) << ")";
-						
+
 					r = (*lf)(r); // LF mapping
 
 					if ( (i & (sasamplingrate-1)) == 0 )
@@ -186,21 +186,21 @@ namespace libmaus2
 				#endif
 
 				assert ( r == rr );
-				
+
 				if ( verbose )
 					std::cerr << "done." << std::endl;
 			}
 
 			uint64_t operator[](uint64_t r) const
-			{	
+			{
 				uint64_t o = 0;
 				uint64_t tr = r;
 
 				while ( ! ::libmaus2::bitio::getBit( RSA.get(), tr) )
 					o++, tr = (*lf)(tr); // LF mapping
-				
+
 				uint64_t i = ( SSA [ ARSA->rank1(tr) - 1 ] + o ) % lf->getN();
-				
+
 				return i;
 			}
 		};
@@ -213,19 +213,19 @@ namespace libmaus2
 			typedef typename ::libmaus2::util::unique_ptr < sampled_sa_type > :: type unique_ptr_type;
 
 			lf_type const * lf;
-			
+
 			uint64_t sasamplingrate;
 			uint64_t sasamplingmask;
 			unsigned int sasamplingshift;
 			::libmaus2::autoarray::AutoArray<uint64_t> SSA;
-			
+
 			uint64_t byteSize() const
 			{
 				return
 					sizeof(lf_type const *) +
 					2*sizeof(uint64_t) + sizeof(unsigned int) + SSA.byteSize();
 			}
-			
+
 			void setSamplingRate(uint64_t const samplingrate)
 			{
 				sasamplingrate = samplingrate;
@@ -255,7 +255,7 @@ namespace libmaus2
 				s += ::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&i);
 				return i;
 			}
-				
+
 			static ::libmaus2::autoarray::AutoArray<uint64_t> readArray64(std::istream & in)
 			{
 				::libmaus2::autoarray::AutoArray<uint64_t> A;
@@ -291,7 +291,7 @@ namespace libmaus2
 				s += SSA.serialize(out);
 				return s;
 			}
-			
+
 			uint64_t deserialize(std::istream & in)
 			{
 				uint64_t s = 0;
@@ -300,35 +300,35 @@ namespace libmaus2
 				// std::cerr << "SA: " << s << " bytes = " << s*8 << " bits = " << (s+(1024*1024-1))/(1024*1024) << " mb" << " samplingrate = " << sasamplingrate << std::endl;
 				return s;
 			}
-			
+
 			static unique_ptr_type load(lf_type const * lf, std::string const & filename)
 			{
 				libmaus2::aio::InputStreamInstance CIS(filename);
 				unique_ptr_type ptr(new this_type(lf,CIS));
 				return UNIQUE_PTR_MOVE(ptr);
 			}
-			
+
 			SimpleSampledSA(lf_type const * rlf, std::istream & in) : lf(rlf) { deserialize(in); }
 			SimpleSampledSA(lf_type const * rlf, std::istream & in, uint64_t & s) : lf(rlf) { s += deserialize(in); }
 
 			SimpleSampledSA(lf_type const * rlf,
 				uint64_t const rsasamplingrate,
 				::libmaus2::autoarray::AutoArray<uint64_t> & rSSA)
-			: lf(rlf), SSA(rSSA) 
+			: lf(rlf), SSA(rSSA)
 			{
 				setSamplingRate(rsasamplingrate);
 			}
 
 			SimpleSampledSA(lf_type const * rlf, uint64_t rsasamplingrate, bool const verbose = false)
-			: lf(rlf), 
+			: lf(rlf),
 			  sasamplingrate(rsasamplingrate),
 			  SSA ( (lf->getN() + sasamplingrate - 1)/sasamplingrate )
 			{
 				setSamplingRate(rsasamplingrate);
-			
+
 				if ( verbose )
 					std::cerr << "Computing simple Sampled SA...";
-			
+
 				// find rank of position 0 (i.e. search terminating symbol)
 				if ( verbose )
 					std::cerr << "(zeroPosRank";
@@ -344,7 +344,7 @@ namespace libmaus2
 				{
 					if ( (i & (1024*1024-1)) == 0 && verbose )
 						std::cerr << "(" << i/(1024*1024) << ")";
-						
+
 					r = (*lf)(r); // LF mapping
 
 					if ( (r & (sasamplingrate-1)) == 0 )
@@ -366,17 +366,17 @@ namespace libmaus2
 
 					if ( i != (*this)[r] )
 					{
-						std::cerr 
+						std::cerr
 							<< "r=" << r << " i=" << i << " t=" << (*this)[r] << std::endl;
 					}
-					
+
 					assert ( static_cast<uint64_t>(i) == (*this)[r] );
 				}
 				std::cerr << "done)";
 				#endif
 
 				assert ( r == rr );
-				
+
 				if ( verbose )
 					std::cerr << "done." << std::endl;
 			}
@@ -384,20 +384,20 @@ namespace libmaus2
 			uint64_t operator[](uint64_t r) const
 			{
 				// assert ( r < lf->getN() );
-			
+
 				uint64_t o = 0;
 				uint64_t tr = r;
 
 				while ( (tr & sasamplingmask) )
 					o++, tr = (*lf)(tr); // LF mapping
-				
+
 				uint64_t i = SSA [ tr >> sasamplingshift ] + o;
-				
+
 				if ( i >= lf->getN() )
 					i -= lf->getN();
-				
+
 				// std::cerr << "r=" << r << " i=" << i << std::endl;
-				
+
 				return i;
 			}
 		};

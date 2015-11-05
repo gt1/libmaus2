@@ -33,13 +33,13 @@
 namespace libmaus2
 {
 	namespace fastx
-	{			
+	{
 		struct CompactFastDecoderBase : public ::libmaus2::util::UTF8, public CompactFastTerminator
 		{
 			::libmaus2::parallel::SynchronousCounter<uint64_t> nextid;
-			
+
 			CompactFastDecoderBase() : nextid(0) {}
-			
+
 			// get length of terminator
 			static uint64_t getTermLength(uint32_t const v = getTerminator())
 			{
@@ -50,14 +50,14 @@ namespace libmaus2
 
 			template<typename in_type>
 			static inline int64_t skipPattern(
-				in_type & istr, 
-				uint64_t & patlencodelen, 
-				uint64_t & flagcodelen, 
+				in_type & istr,
+				uint64_t & patlencodelen,
+				uint64_t & flagcodelen,
 				uint64_t & datalen
 			)
 			{
 				uint32_t const patlen = decodeUTF8(istr,patlencodelen);
-							
+
 				if ( patlen == getTerminator() )
 				{
 					return -1;
@@ -66,7 +66,7 @@ namespace libmaus2
 				{
 					uint32_t const flags = decodeUTF8(istr,flagcodelen);
 					uint32_t const skip = (flags&1)?((patlen+1)/2):(patlen+3)/4;
-					
+
 					for ( uint64_t i = 0; i < skip; ++i )
 						istr.get();
 
@@ -78,12 +78,12 @@ namespace libmaus2
 
 			template<typename in_type>
 			static inline int64_t skipPattern(
-				in_type & istr, 
+				in_type & istr,
 				uint64_t & codelen)
 			{
 				// decode pattern length
 				uint32_t const patlen = decodeUTF8(istr,codelen);
-							
+
 				if ( patlen == getTerminator() )
 				{
 					return -1;
@@ -94,7 +94,7 @@ namespace libmaus2
 					uint32_t const flags = decodeUTF8(istr,codelen);
 					// compute length of encoded pattern
 					uint32_t const skip = (flags&1)?((patlen+1)/2):(patlen+3)/4;
-					
+
 					// skip pattern data
 					for ( uint64_t i = 0; i < skip; ++i )
 						istr.get();
@@ -109,7 +109,7 @@ namespace libmaus2
 			static inline int64_t skipPattern(in_type & istr)
 			{
 				uint32_t const patlen = decodeUTF8(istr);
-							
+
 				if ( patlen == getTerminator() )
 				{
 					return -1;
@@ -118,14 +118,14 @@ namespace libmaus2
 				{
 					uint32_t const flags = decodeUTF8(istr);
 					uint32_t const skip = (flags&1)?((patlen+1)/2):(patlen+3)/4;
-					
+
 					for ( uint64_t i = 0; i < skip; ++i )
 						istr.get();
 
 					return patlen;
 				}
 			}
-			
+
 
 			template<typename in_type>
 			static uint64_t decodeSimple(in_type & istr, libmaus2::autoarray::AutoArray<uint8_t> & D)
@@ -134,7 +134,7 @@ namespace libmaus2
 				{
 					// decode pattern length
 					uint32_t const patlen = decodeUTF8(istr);
-					
+
 					// check for terminator
 					if ( patlen == getTerminator() )
 					{
@@ -144,18 +144,18 @@ namespace libmaus2
 					{
 						// decode flags
 						uint32_t const flags = decodeUTF8(istr);
-						
+
 						// resize pattern
 						if ( patlen > D.size() )
 							D = libmaus2::autoarray::AutoArray<uint8_t>(patlen,false);
-						
+
 						// pattern has indeterminate bases
 						if ( flags & 1 )
 						{
-							uint64_t const full = (patlen >> 1);		
+							uint64_t const full = (patlen >> 1);
 							uint64_t const brok = patlen&1;
 							uint8_t * ita = D.begin();
-							
+
 							for ( uint64_t i = 0; i < full; ++i )
 							{
 								int v = istr.get();
@@ -170,7 +170,7 @@ namespace libmaus2
 								*(ita++) = v & 0xF; v >>= 4;
 								*(ita++) = v & 0xF; v >>= 4;
 							}
-							
+
 							if ( brok )
 							{
 								int v = istr.get();
@@ -182,18 +182,18 @@ namespace libmaus2
 									throw se;
 								}
 
-								*(ita++) = v & 0xF; v >>= 4;				
+								*(ita++) = v & 0xF; v >>= 4;
 							}
 						}
 						// pattern has determinate bases only
 						else
 						{
 							// full bytes
-							uint64_t const full = (patlen >> 2);		
+							uint64_t const full = (patlen >> 2);
 							// fractional rest
 							uint64_t const brok = patlen&3;
 							uint8_t * ita = D.begin();
-							
+
 							// decode full bytes (four symbols each)
 							for ( uint64_t i = 0; i < full; ++i )
 							{
@@ -211,7 +211,7 @@ namespace libmaus2
 								*(ita++) = v & 0x3; v >>= 2;
 								*(ita++) = v & 0x3; v >>= 2;
 							}
-							
+
 							// decode fractional
 							if ( brok == 3 )
 							{
@@ -256,7 +256,7 @@ namespace libmaus2
 								*(ita++) = v & 0x3; v >>= 2;
 							}
 						}
-								
+
 						return patlen;
 					}
 				}
@@ -277,7 +277,7 @@ namespace libmaus2
 				{
 					// decode pattern length
 					uint32_t const patlen = decodeUTF8(istr);
-					
+
 					// check for terminator
 					if ( patlen == getTerminator() )
 					{
@@ -287,7 +287,7 @@ namespace libmaus2
 					{
 						// decode flags
 						uint32_t const flags = decodeUTF8(istr);
-						
+
 						// resize pattern
 						try
 						{
@@ -298,14 +298,14 @@ namespace libmaus2
 							std::cerr << "exception while resizing pattern to length " << patlen << " in CompactFastDecoderBase::decode(): " << ex.what() << std::endl;
 							throw;
 						}
-						
+
 						// pattern has indeterminate bases
 						if ( flags & 1 )
 						{
-							uint64_t const full = (patlen >> 1);		
+							uint64_t const full = (patlen >> 1);
 							uint64_t const brok = patlen&1;
 							std::string::iterator ita = pattern.spattern.begin();
-							
+
 							for ( uint64_t i = 0; i < full; ++i )
 							{
 								int v = istr.get();
@@ -320,7 +320,7 @@ namespace libmaus2
 								*(ita++) = v & 0xF; v >>= 4;
 								*(ita++) = v & 0xF; v >>= 4;
 							}
-							
+
 							if ( brok )
 							{
 								int v = istr.get();
@@ -332,18 +332,18 @@ namespace libmaus2
 									throw se;
 								}
 
-								*(ita++) = v & 0xF; v >>= 4;				
+								*(ita++) = v & 0xF; v >>= 4;
 							}
 						}
 						// pattern has determinate bases only
 						else
 						{
 							// full bytes
-							uint64_t const full = (patlen >> 2);		
+							uint64_t const full = (patlen >> 2);
 							// fractional rest
 							uint64_t const brok = patlen&3;
 							std::string::iterator ita = pattern.spattern.begin();
-							
+
 							// decode full bytes (four symbols each)
 							for ( uint64_t i = 0; i < full; ++i )
 							{
@@ -361,7 +361,7 @@ namespace libmaus2
 								*(ita++) = v & 0x3; v >>= 2;
 								*(ita++) = v & 0x3; v >>= 2;
 							}
-							
+
 							// decode fractional
 							if ( brok == 3 )
 							{
@@ -406,12 +406,12 @@ namespace libmaus2
 								*(ita++) = v & 0x3; v >>= 2;
 							}
 						}
-								
-						pattern.patlen = patlen;	
+
+						pattern.patlen = patlen;
 						pattern.unmapSource();
-						pattern.pattern = pattern.spattern.c_str();			
+						pattern.pattern = pattern.spattern.c_str();
 						pattern.patid = nextid++;
-						
+
 						return true;
 					}
 				}

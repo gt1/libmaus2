@@ -43,7 +43,7 @@ namespace libmaus2
 			struct SynchronousReorderSetPairComp
 			{
 				SynchronousReorderSetPairComp() {}
-				
+
 				bool operator()(pair_type const & A, pair_type const & B)
 				{
 					if ( A.first != B.first )
@@ -53,12 +53,12 @@ namespace libmaus2
 				}
 			};
 
-                        
+
                         struct MutexLock
                         {
                                 pthread_mutex_t * mutex;
                                 bool locked;
-                                
+
                                 void obtain()
                                 {
                                         if ( ! locked )
@@ -75,12 +75,12 @@ namespace libmaus2
                                                 locked = true;
                                         }
                                 }
-                                
+
                                 MutexLock(pthread_mutex_t & rmutex) : mutex(&rmutex), locked(false)
                                 {
                                         obtain();
                                 }
-                                
+
                                 void release()
                                 {
                                         if ( locked )
@@ -96,9 +96,9 @@ namespace libmaus2
                                                 }
 
                                                 locked = false;
-                                        }                                
+                                        }
                                 }
-                                
+
                                 ~MutexLock()
                                 {
                                         release();
@@ -114,7 +114,7 @@ namespace libmaus2
 					lme.getStream() << "PosixConditionSemaphore::initCond(): failed pthread_cond_init " << strerror(error) << std::endl;
 					lme.finish();
 					throw lme;
-				}			
+				}
 			}
 
 			void initMutex()
@@ -141,9 +141,9 @@ namespace libmaus2
 				{
 					pthread_cond_destroy(&cond);
 					throw;
-				}                        
+				}
                         }
-                        
+
                         ~TerminatableSynchronousReorderSet()
                         {
                         	pthread_mutex_destroy(&mutex);
@@ -153,15 +153,15 @@ namespace libmaus2
                         size_t getFillState()
                         {
                                 uint64_t f;
-                                
+
                                 {
                                         MutexLock M(mutex);
                                         f = Q.size();
                                 }
-                                
+
                                 return f;
                         }
-                        
+
                         bool isTerminated()
                         {
                                 bool lterminated;
@@ -171,7 +171,7 @@ namespace libmaus2
                                 }
                                 return lterminated;
                         }
-                        
+
                         void terminate()
                         {
                                 size_t numnoti = 0;
@@ -189,9 +189,9 @@ namespace libmaus2
                         	uint64_t postcnt = 0;
 
                                 MutexLock M(mutex);
-                        	
+
                                 Q.insert(pair_type(idx,q));
-                                
+
                                 for ( iterator_type I = Q.begin(); I != Q.end() && I->first == next; ++I )
                                		next++, postcnt++;
 
@@ -200,11 +200,11 @@ namespace libmaus2
                                 for ( uint64_t i = 0; i < postcnt; ++i )
 	                                pthread_cond_signal(&cond);
                         }
-                        
+
                         value_type deque()
                         {
                                 MutexLock M(mutex);
-                                
+
                                 while ( (! terminated) && (!Q.size()) )
                                 {
                                         numwait++;
@@ -219,7 +219,7 @@ namespace libmaus2
                                         }
                                         numwait--;
                                 }
-                                
+
                                 if ( Q.size() )
                                 {
 
@@ -230,7 +230,7 @@ namespace libmaus2
                                 }
                                 else
                                 {
-                                        throw std::runtime_error("Queue is terminated");                                
+                                        throw std::runtime_error("Queue is terminated");
                                 }
                         }
                 };

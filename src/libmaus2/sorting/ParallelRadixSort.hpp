@@ -86,7 +86,7 @@ namespace libmaus2
 					u_int64_t const elpert = (n + (numthreads-1)) / numthreads;
 					u_int64_t const low = threadid * elpert;
 					u_int64_t const high = (low+elpert) < n ? (low+elpert) : n;
-					
+
 					// erase histogram
 					for ( u_int64_t i = 0; i < histsize; ++i )
 						hist0[i] = hist1[i] = hist2[i] = 0;
@@ -97,7 +97,7 @@ namespace libmaus2
 						hist1 [ mask1(A[i],K) ] ++;
 						hist2 [ mask2(A[i],K) ] ++;
 					}
-					
+
 					// accumulate
 					u_int64_t c0 = 0;
 					u_int64_t c1 = 0;
@@ -115,8 +115,8 @@ namespace libmaus2
 						c2 += t2;
 					}
 				}
-			
-		#if defined(_OPENMP)	
+
+		#if defined(_OPENMP)
 		#pragma omp parallel
 		#endif
 				{
@@ -203,11 +203,11 @@ namespace libmaus2
 							if ( k >= vlow && k < vhigh )
 								T[ ++ghist2[k]  ] = A[i];
 						}
-						else				
+						else
 								T[ ++ghist2[k]  ] = A[i];
 					}
 				}
-				
+
 				AA = T;
 
 		#if defined(_OPENMP)
@@ -253,9 +253,9 @@ namespace libmaus2
 			}
 
 			static void radixSort(
-				::libmaus2::autoarray::AutoArray<data_type> & AA, 
-				u_int64_t n, 
-				key_projector const & K, 
+				::libmaus2::autoarray::AutoArray<data_type> & AA,
+				u_int64_t n,
+				key_projector const & K,
 				int inumthreads = -1)
 			{
 				data_type * const A = AA.get();
@@ -296,7 +296,7 @@ namespace libmaus2
 					u_int64_t const elpert = (n + (numthreads-1)) / numthreads;
 					u_int64_t const low = threadid * elpert;
 					u_int64_t const high = (low+elpert) < n ? (low+elpert) : n;
-					
+
 					// erase histogram
 					for ( u_int64_t i = 0; i < histsize; ++i )
 						hist0[i] = hist1[i] = hist2[i] = hist3[i] = hist4[i] = hist5[i] = 0;
@@ -310,7 +310,7 @@ namespace libmaus2
 						hist4 [ mask4(A[i],K) ] ++;
 						hist5 [ mask5(A[i],K) ] ++;
 					}
-					
+
 					// accumulate
 					u_int64_t c0 = 0;
 					u_int64_t c1 = 0;
@@ -340,7 +340,7 @@ namespace libmaus2
 						c5 += t5;
 					}
 				}
-				
+
 		#if defined(_OPENMP)
 		#pragma omp parallel
 		#endif
@@ -434,7 +434,7 @@ namespace libmaus2
 							if ( k >= vlow && k < vhigh )
 								T[ ++ghist2[k]  ] = A[i];
 						}
-						else				
+						else
 								T[ ++ghist2[k]  ] = A[i];
 					}
 		#if defined(_OPENMP)
@@ -449,7 +449,7 @@ namespace libmaus2
 							if ( k >= vlow && k < vhigh )
 								A[ ++ghist3[k]  ] = T[i];
 						}
-						else				
+						else
 								A[ ++ghist3[k]  ] = T[i];
 					}
 		#if defined(_OPENMP)
@@ -464,7 +464,7 @@ namespace libmaus2
 							if ( k >= vlow && k < vhigh )
 								T[ ++ghist4[k]  ] = A[i];
 						}
-						else				
+						else
 								T[ ++ghist4[k]  ] = A[i];
 					}
 		#if defined(_OPENMP)
@@ -479,11 +479,11 @@ namespace libmaus2
 							if ( k >= vlow && k < vhigh )
 								A[ ++ghist5[k]  ] = T[i];
 						}
-						else				
+						else
 								A[ ++ghist5[k]  ] = T[i];
 					}
 				}
-				
+
 		#if defined(_OPENMP)
 				if ( (single_thread) || (inumthreads > 0) )
 				{

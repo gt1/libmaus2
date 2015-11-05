@@ -37,12 +37,12 @@ namespace libmaus2
 			uint64_t zoffset;
 			uint64_t numblocks;
 			std::vector<uint64_t> blocks;
-			
+
 			FastABgzfIndexEntry()
 			{
-			
+
 			}
-			
+
 			FastABgzfIndexEntry(std::istream & in)
 			{
 				name = libmaus2::util::StringSerialisation::deserialiseString(in);

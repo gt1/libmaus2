@@ -26,7 +26,7 @@ namespace libmaus2
 	namespace bambam
 	{
 		namespace parallel
-		{		
+		{
 			template<typename A, typename B> struct FragmentAlignmentBufferPointerTypeSwitch
 			{
 				typedef typename FragmentAlignmentBufferPointerTypeSwitchHelper< A,B, (sizeof(A)>sizeof(B)) >::type type;

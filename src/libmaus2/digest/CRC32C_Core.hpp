@@ -18,7 +18,7 @@
 */
 #if ! defined(LIBMAUS2_DIGEST_CRC32C_CORE_HPP)
 #define LIBMAUS2_DIGEST_CRC32C_CORE_HPP
- 
+
 #include <libmaus2/types/types.hpp>
 
 namespace libmaus2

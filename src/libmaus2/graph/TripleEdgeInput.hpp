@@ -48,17 +48,17 @@ namespace libmaus2
 				uint64_t const l = istr.tellg();
 				return l;
 			}
-			
+
 			static uint64_t getNumberOfTriples(std::string const & filename)
 			{
 				uint64_t const l = getFileLength(filename);
 				assert ( l % sizeof(TripleEdge) == 0 );
 				return l / sizeof(TripleEdge);
 			}
-			
+
 			TripleEdgeInput(std::string const & filename, uint64_t const rbufsize)
-			: 
-				bufsize(rbufsize), 
+			:
+				bufsize(rbufsize),
 				B(bufsize),
 				istr(filename),
 				curbufleft(0),
@@ -74,12 +74,12 @@ namespace libmaus2
 				if ( ! curbufleft )
 				{
 					istr.read ( reinterpret_cast<char *>(B.get()), B.getN() * sizeof(TripleEdge) );
-					
+
 					if ( istr.gcount() == 0 )
 						return false;
 
 					assert ( istr.gcount() % sizeof(TripleEdge) == 0 );
-					
+
 					curbufleft = istr.gcount() / sizeof(TripleEdge);
 					assert ( curbufleft );
 					curtrip = B.get();

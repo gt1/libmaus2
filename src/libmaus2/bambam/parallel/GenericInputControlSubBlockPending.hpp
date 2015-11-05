@@ -34,15 +34,15 @@ namespace libmaus2
 				typedef GenericInputControlSubBlockPending this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				GenericInputBase::generic_input_shared_block_ptr_type block;
 				uint64_t subblockid;
-			
+
 				libmaus2::bambam::parallel::MemInputBlock::shared_ptr_type mib;
 				libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type db;
-				
+
 				GenericInputControlSubBlockPending(
-					GenericInputBase::generic_input_shared_block_ptr_type rblock = GenericInputBase::generic_input_shared_block_ptr_type(), 
+					GenericInputBase::generic_input_shared_block_ptr_type rblock = GenericInputBase::generic_input_shared_block_ptr_type(),
 					uint64_t rsubblockid = 0)
 				: block(rblock), subblockid(rsubblockid), mib(), db() {}
 			};

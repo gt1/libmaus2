@@ -35,12 +35,12 @@ namespace libmaus2
 			typedef libmaus2::util::shared_ptr<output_stream_type>::type output_stream_ptr_type;
 			typedef std::istringstream input_stream_type;
 			typedef libmaus2::util::shared_ptr<input_stream_type>::type input_stream_ptr_type;
-			
+
 			std::map < uint64_t, output_stream_ptr_type > outstreams;
 			std::map < uint64_t, std::string > data;
 			std::map < uint64_t, input_stream_ptr_type > instreams;
 			libmaus2::parallel::OMPLock lock;
-			
+
 			std::ostream & openOutputTempFile(uint64_t id)
 			{
 				libmaus2::parallel::ScopeLock slock(lock);
@@ -69,7 +69,7 @@ namespace libmaus2
 					instreams[id] = input_stream_ptr_type(new input_stream_type(data.find(id)->second));
 				else
 					instreams[id] = input_stream_ptr_type(new input_stream_type());
-					
+
 				return *(instreams[id]);
 			}
 			void closeInputTempFile(uint64_t id)

@@ -33,12 +33,12 @@ namespace libmaus2
 		{
 			typedef _value_type value_type;
 			typedef SynchronousCounter<value_type> this_type;
-		
+
 			#if ! defined(LIBMAUS2_HAVE_SYNC_OPS)
 			mutable ::libmaus2::parallel::OMPLock lock;
 			#endif
 			volatile value_type cnt;
-			
+
 			SynchronousCounter(value_type const rcnt = value_type()) : cnt(rcnt) {}
 			SynchronousCounter(SynchronousCounter const & o) : cnt(o.cnt) {}
 			SynchronousCounter & operator=(SynchronousCounter const & o)
@@ -47,7 +47,7 @@ namespace libmaus2
 					this->cnt = o.cnt;
 				return *this;
 			}
-			
+
 			value_type operator++()
 			{
 				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
@@ -61,7 +61,7 @@ namespace libmaus2
 				return lcnt;
 				#endif
 			}
-			
+
 			value_type operator+=(value_type const v)
 			{
 				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
@@ -74,7 +74,7 @@ namespace libmaus2
 				lock.unlock();
 				return lcnt;
 				#endif
-			
+
 			}
 
 			value_type operator++(int)
@@ -89,7 +89,7 @@ namespace libmaus2
 				return lcnt;
 				#endif
 			}
-			
+
 			value_type get() const
 			{
 				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
@@ -98,18 +98,18 @@ namespace libmaus2
 				value_type lcnt;
 				lock.lock();
 				lcnt = cnt;
-				lock.unlock();		
-				
+				lock.unlock();
+
 				return lcnt;
 				#endif
 			}
-			
+
 			operator value_type() const
 			{
 				return get();
 			}
 		};
-		
+
 		template<typename value_type>
 		inline std::ostream & operator<<(std::ostream & out, SynchronousCounter<value_type> const & S)
 		{

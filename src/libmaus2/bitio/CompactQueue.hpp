@@ -49,22 +49,22 @@ namespace libmaus2
                         CompactQueue(uint64_t const rn)
                         : n(rn), Q(n,2), fill(0)
                         {
-                        
+
                         }
-                        
+
                         void print()
                         {
                                 for ( uint64_t i = 0; i < n; ++i )
                                         std::cerr << Q.get(i);
                                 std::cerr << std::endl;
                         }
-                        
+
                         void reset()
                         {
                                 Q.erase();
                                 fill = 0;
                         }
-                        
+
                         void enque(uint64_t const sp, uint64_t const ep)
                         {
                                 assert ( ep>sp);
@@ -72,7 +72,7 @@ namespace libmaus2
                                 #if 0
                                 std::cerr << "enque(" << sp << "," << ep << ")" << std::endl;
                                 #endif
-                                
+
                                 if ( ep-1 == sp )
                                 {
                                         Q.set(sp,3);
@@ -82,40 +82,40 @@ namespace libmaus2
                                         Q.set(sp,1);
                                         Q.set(ep-1,2);
                                 }
-                                
+
                                 fill += 1;
                         }
-                        
+
                         struct DequeContext
                         {
                                 typedef DequeContext this_type;
                                 typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-                                
+
                                 uint64_t decptr;
                                 uint64_t fill;
-                                
+
                                 DequeContext(uint64_t const rdecptr, uint64_t const rfill)
                                 : decptr(rdecptr), fill(rfill)
                                 {
-                                
+
                                 }
-                                
+
                                 bool done() const
                                 {
                                         return (fill == 0);
                                 }
                         };
-                        
+
                         DequeContext::unique_ptr_type getGlobalDequeContext()
                         {
                                 return DequeContext::unique_ptr_type(new DequeContext(0,fill));
                         }
-                        
+
                         ::libmaus2::autoarray::AutoArray< DequeContext::unique_ptr_type > getContextList(uint64_t numcontexts) const
                         {
                                 uint64_t const intervalsize = (n+numcontexts-1)/numcontexts;
                                 ::libmaus2::autoarray::AutoArray< DequeContext::unique_ptr_type > contexts(numcontexts);
-                                
+
                                 #if defined(_OPENMP)
                                 #pragma omp parallel for
                                 #endif
@@ -124,37 +124,37 @@ namespace libmaus2
                                         uint64_t const left = std::min(z*intervalsize,n);
                                         uint64_t const right = std::min(left+intervalsize,n);
                                         uint64_t lfill = 0;
-                                        
+
                                         for ( uint64_t i = left; i < right; ++i )
                                                 if ( Q.get(i) & 1 )
                                                         lfill += 1;
-                                        
+
 					DequeContext::unique_ptr_type tcontextsz(new DequeContext(left,lfill));
                                         contexts[z] =  UNIQUE_PTR_MOVE(tcontextsz);
                                 }
-                                
+
                                 return contexts;
                         }
-                        
+
                         std::pair<uint64_t,uint64_t> deque(DequeContext * context) const
                         {
                                 assert ( context->fill );
                                 context->fill -= 1;
-                        
+
                                 uint64_t v;
                                 while ( ! ((v=Q.get(context->decptr))&1) )
                                         context->decptr++;
-                                        
+
                                 if ( v == 3 )
                                 {
                                         uint64_t const sp = context->decptr;
                                         uint64_t const ep = context->decptr+1;
                                         context->decptr += 1;
-                                        
+
                                         #if 0
                                         std::cerr << "deque(" << sp << "," << ep << ")" << std::endl;
                                         #endif
-                                        
+
                                         return std::pair<uint64_t,uint64_t>(sp,ep);
                                 }
                                 else
@@ -162,52 +162,52 @@ namespace libmaus2
                                         assert ( v == 1 );
                                         uint64_t const sp = context->decptr;
                                         context->decptr +=1 ;
-                                        
+
                                         while ( ! (v=Q.get(context->decptr)) )
                                                 context->decptr++;
 
                                         assert ( v == 2 );
                                         context->decptr += 1;
-                                        
+
                                         uint64_t const ep = context->decptr;
-                                        
+
                                         #if 0
                                         std::cerr << "deque(" << sp << "," << ep << ")" << std::endl;
                                         #endif
-                                        
+
                                         return std::pair<uint64_t,uint64_t>(sp,ep);
                                 }
                         }
-                        
-                        
+
+
                         struct EnqueBuffer
                         {
                                 typedef EnqueBuffer this_type;
                                 typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-                        
+
                                 private:
                                 CompactQueue * const Q;
                                 ::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > B;
                                 std::pair<uint64_t,uint64_t> * const pa;
                                 std::pair<uint64_t,uint64_t> *       pc;
                                 std::pair<uint64_t,uint64_t> * const pe;
-                                
+
                                 void commit()
                                 {
                                         Q->enqueBatch(pa,pc);
                                         pc = pa;
                                 }
-                                
+
                                 public:
                                 EnqueBuffer(CompactQueue * rQ, uint64_t const bufsize = 64*1024)
                                 : Q(rQ), B(bufsize,false), pa(B.begin()), pc(pa), pe(B.end())
                                 {}
-                                
+
                                 ~EnqueBuffer()
                                 {
                                         flush();
                                 }
-                                
+
                                 void enque(std::pair<uint64_t,uint64_t> const P)
                                 {
                                         *(pc++) = P;
@@ -219,19 +219,19 @@ namespace libmaus2
                                 {
                                         enque(P);
                                 }
-                                
+
                                 void flush()
                                 {
-                                         commit();       
+                                         commit();
                                 }
                         };
-                        
+
                         EnqueBuffer::unique_ptr_type createEnqueBuffer(uint64_t const bufsize = 64*1024)
                         {
 				EnqueBuffer::unique_ptr_type ptr(new EnqueBuffer(this,bufsize));
                                 return UNIQUE_PTR_MOVE(ptr);
                         }
-                };                
+                };
         }
 }
 #endif

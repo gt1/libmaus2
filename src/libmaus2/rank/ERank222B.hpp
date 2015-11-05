@@ -47,22 +47,22 @@ namespace libmaus2
 
 			typedef ERank222B this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			private:
 			ERank222B & operator=(ERank222B const &);
 			ERank222B(ERank222B const &);
-		
-			private:			
+
+			private:
 			// super block size 2^16 bits
 			static unsigned int const sbbitwidth = 16;
 			// mini block size 2^6 = 64 bits
 			static unsigned int const mbbitwidth = 6;
-			
-			// derived numbers	
+
+			// derived numbers
 			// actual block sizes
 			static uint64_t const sbsize = 1u << sbbitwidth;
 			static uint64_t const mbsize = 1u << mbbitwidth;
-			
+
 			// miniblocks per superblock
 			static uint64_t const mps = ERANK2DIVUP(sbsize,mbsize);
 			// superblock mask
@@ -78,10 +78,10 @@ namespace libmaus2
 			uint64_t const n;
 			uint64_t const numsuper;
 			uint64_t const nummini;
-			
+
 			::libmaus2::autoarray::AutoArray<uint64_t> S; // n / 2^16 * 64 bits = n / 2^10 = n/1024 bits
 			::libmaus2::autoarray::AutoArray<unsigned short> M; // n / 2^16 * 2^16 / 64 * 16 = n/4 bits
-			
+
 			static inline uint64_t divUp(uint64_t a, uint64_t b)
 			{
 				return ERANK2DIVUP(a,b);
@@ -149,7 +149,7 @@ namespace libmaus2
 				uint64_t const ii = iii - S[s];
 				uint64_t left = (s << sbbitwidth) >>  mbbitwidth;
 				uint64_t right = ::std::min( nummini, ((s+1) << sbbitwidth) >>  mbbitwidth);
-			
+
 				while ( right-left > 1 )
 				{
 					uint64_t const d = right-left;
@@ -192,20 +192,20 @@ namespace libmaus2
 				return left;
 			}
 
-			
-			public:		
+
+			public:
 			/**
 			 * @param rUUUUUUUU bit vector
 			 * @param rn number of bits in vector (has to be a multiple of 64)
 			 **/
-			ERank222B(uint64_t const * const rUUUUUUUU, uint64_t const rn) 
+			ERank222B(uint64_t const * const rUUUUUUUU, uint64_t const rn)
 			: UUUUUUUU(rUUUUUUUU), n(rn),
 			  numsuper((n + (sbsize-1)) >> sbbitwidth), nummini((n + (mbsize-1)) >> mbbitwidth),
 			  S( divUp(n,sbsize) , false ), M( divUp(n,mbsize), false)
 			{
 				if ( n & mbmask )
 					throw ::std::runtime_error("Rank::ERank222B: n is not multiple of miniblock size 64.");
-			
+
 				// miniblock popcnt
 				uint64_t c = 0;
 				// superblock popcnt
@@ -225,27 +225,27 @@ namespace libmaus2
 					}
 
 					M[ mi ] = c - sc;
-					
+
 					assert( sc + M[mi] == c );
-				
+
 					c += popcount8(b);
 				}
 
 				// ::std::cerr << "Construction done." << ::std::endl;
 			}
-			
+
 			/**
 			 * @return estimated space in bytes
-			 **/		
+			 **/
 			uint64_t byteSize() const
 			{
-				return 
-					sizeof(uint64_t *) + 
+				return
+					sizeof(uint64_t *) +
 					3*sizeof(uint64_t) +
-					S.byteSize() + 
+					S.byteSize() +
 					M.byteSize();
 			}
-			
+
 			/**
 			 * return number of 1 bits up to (and including) index i
 			 * @param i
@@ -276,7 +276,7 @@ namespace libmaus2
 				return (i+1) - rank1(i);
 			}
 			/**
-			 * Return the position of the ii'th 1 bit. This function is implemented using a 
+			 * Return the position of the ii'th 1 bit. This function is implemented using a
 			 * binary search on the rank1 function.
 			 **/
 			uint64_t select1(uint64_t const ii) const
@@ -287,7 +287,7 @@ namespace libmaus2
 				uint64_t const m = selectMini1(s,i);
 				i -= S[s]; i -= M[m];
 				uint64_t const v = (UUUUUUUU[m]);
-				
+
 				uint64_t left = 0, right = 1u<<mbbitwidth;
 				while ( right-left )
 				{
@@ -311,11 +311,11 @@ namespace libmaus2
 					else
 						right = mid;
 				}
-				
+
 				return n;
 			}
 			/**
-			 * Return the position of the ii'th 1 bit. This function is implemented using a 
+			 * Return the position of the ii'th 1 bit. This function is implemented using a
 			 * binary search on the rank0 function.
 			 **/
 			uint64_t select0(uint64_t const ii) const
@@ -324,10 +324,10 @@ namespace libmaus2
 
 				uint64_t const s = selectSuper0(i);
 				uint64_t const m = selectMini0(s,i);
-				i -= S0(s); 
+				i -= S0(s);
 				i -= ((m-s*mps)<<mbbitwidth) - M[m];
 				uint64_t const v = ~(UUUUUUUU[m]);
-				
+
 				uint64_t left = 0, right = 1u<<mbbitwidth;
 				while ( right-left )
 				{
@@ -351,11 +351,11 @@ namespace libmaus2
 					else
 						right = mid;
 				}
-				
+
 				return n;
 			}
 			/**
-			 * Return the position of the ii'th 0 bit. This function is implemented using a 
+			 * Return the position of the ii'th 0 bit. This function is implemented using a
 			 * binary search on the rank0 function.
 			 **/
 			uint64_t select0slow(uint64_t const ii) const
@@ -365,7 +365,7 @@ namespace libmaus2
 				uint64_t const s = selectSuper0(i);
 				uint64_t const m = selectMini0(s,i);
 				uint64_t left = (m << mbbitwidth), right = ::std::min( (m+1)<<mbbitwidth, n);
-				
+
 				while ( (right-left) )
 				{
 					uint64_t const d = right-left;
@@ -385,8 +385,8 @@ namespace libmaus2
 					else
 						right = mid;
 				}
-				
-				return n;		
+
+				return n;
 			}
 		};
 	}

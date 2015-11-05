@@ -26,7 +26,7 @@
 namespace libmaus2
 {
 	namespace bambam
-	{		
+	{
 		namespace parallel
 		{
 			struct AlignmentBlockCompressPackage : public libmaus2::parallel::SimpleThreadWorkPackage
@@ -34,14 +34,14 @@ namespace libmaus2
 				typedef AlignmentBlockCompressPackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-							
+
 				CompressBuffer * compbuf;
 				CompressionPendingElement * pend;
-	
+
 				AlignmentBlockCompressPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), compbuf(0), pend(0) {}
-				
+
 				AlignmentBlockCompressPackage(
-					uint64_t const rpriority, 
+					uint64_t const rpriority,
 					CompressBuffer * rcompbuf,
 					CompressionPendingElement * rpend,
 					uint64_t const rdispatcherId
@@ -49,7 +49,7 @@ namespace libmaus2
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherId), compbuf(rcompbuf), pend(rpend)
 				{
 				}
-			
+
 				char const * getPackageName() const
 				{
 					return "AlignmentBlockCompressPackage";

@@ -46,7 +46,7 @@ namespace libmaus2
 
 			typedef ERank222 this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			private:
 			// super block size 2^16 bits
 			static unsigned int const sbbitwidth = 16;
@@ -62,7 +62,7 @@ namespace libmaus2
 			unsigned int const n;
 			unsigned int const numsuper;
 			unsigned int const nummini;
-			
+
 			::libmaus2::autoarray::AutoArray<unsigned int> S; // n / 2^16 * 32 bits = n / 2^11 = n/2048 bits
 			::libmaus2::autoarray::AutoArray<unsigned short> M; // n / 2^16 * 2^16 / 64 * 16 = n/4 bits
 
@@ -104,7 +104,7 @@ namespace libmaus2
 				unsigned int const ii = iii - S[s];
 				unsigned int left = (s << sbbitwidth) >>  mbbitwidth;
 				unsigned int right = ::std::min( nummini, ((s+1) << sbbitwidth) >>  mbbitwidth);
-			
+
 				while ( right-left > 1 )
 				{
 					unsigned int const d = right-left;
@@ -124,29 +124,29 @@ namespace libmaus2
 			public:
 			/**
 			 * @return estimated space in bytes
-			 **/		
+			 **/
 			unsigned int byteSize() const
 			{
-				return 
-					sizeof(uint64_t *) + 
+				return
+					sizeof(uint64_t *) +
 					3*sizeof(unsigned int) +
-					S.byteSize() + 
+					S.byteSize() +
 					M.byteSize();
 			}
-			
-			public:		
+
+			public:
 			/**
 			 * @param U bit vector
 			 * @param rn number of bits in vector (has to be a multiple of 64)
 			 **/
-			ERank222(uint8_t const * const U, unsigned int const rn) 
-			: UUUUUUUU(reinterpret_cast<uint64_t const *>(U)), n(rn), 
+			ERank222(uint8_t const * const U, unsigned int const rn)
+			: UUUUUUUU(reinterpret_cast<uint64_t const *>(U)), n(rn),
 			  numsuper((n + (sbsize-1)) >> sbbitwidth), nummini((n + (mbsize-1)) >> mbbitwidth),
 			  S( divUp(n,sbsize) , false ), M( divUp(n,mbsize), false)
 			{
 				if ( n & mbmask )
 					throw ::std::runtime_error("libmaus2::rank::ERank222: n is not multiple of miniblock size 64.");
-			
+
 				unsigned int c = 0;
 
 				// superblock counter
@@ -167,11 +167,11 @@ namespace libmaus2
 
 					M[ ++m ] = c - S[s];
 					assert( S[s] + M[m] == c );
-				
+
 					c += popcount8(b);
 				}
 			}
-			
+
 			/**
 			 * return number of 1 bits up to (and including) index i
 			 * @param i
@@ -192,7 +192,7 @@ namespace libmaus2
 				return (i+1) - rank1(i);
 			}
 			/**
-			 * Return the position of the ii'th 1 bit. This function is implemented using a 
+			 * Return the position of the ii'th 1 bit. This function is implemented using a
 			 * binary search on the rank1 function.
 			 **/
 			unsigned int select1(unsigned int const ii) const
@@ -203,7 +203,7 @@ namespace libmaus2
 				unsigned int const m = selectMini(s,i);
 				i -= S[s]; i -= M[m];
 				uint64_t const v = reorder8(UUUUUUUU[m]);
-				
+
 				unsigned int left = 0, right = 1u<<mbbitwidth;
 				while ( right-left )
 				{
@@ -227,11 +227,11 @@ namespace libmaus2
 					else
 						right = mid;
 				}
-				
+
 				return n;
 			}
 			/**
-			 * Return the position of the ii'th 0 bit. This function is implemented using a 
+			 * Return the position of the ii'th 0 bit. This function is implemented using a
 			 * binary search on the rank1 function.
 			 **/
 			unsigned int select0(unsigned int const ii) const
@@ -239,7 +239,7 @@ namespace libmaus2
 				unsigned int const i = ii+1;
 
 				unsigned int left = 0, right = n;
-				
+
 				while ( (right-left) )
 				{
 					unsigned int const d = right-left;
@@ -259,8 +259,8 @@ namespace libmaus2
 					else
 						right = mid;
 				}
-				
-				return n;		
+
+				return n;
 			}
 		};
 	}

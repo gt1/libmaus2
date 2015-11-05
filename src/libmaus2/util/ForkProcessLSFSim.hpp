@@ -38,7 +38,7 @@ namespace libmaus2
 			typedef ForkProcessLSFSim this_type;
 			//! unique pointer type
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			/**
 			 * init the fake LSF system
 			 *
@@ -50,7 +50,7 @@ namespace libmaus2
 			 *         (for this class this function always returns false)
 			 **/
 		        static bool distributeUnique();
-		
+
 		        /**
 		         * constructor
 		         *
@@ -98,7 +98,7 @@ namespace libmaus2
 			 **/
 			std::string getSingleHost() const;
 			/**
-			 * get list of host names the job is running on 
+			 * get list of host names the job is running on
 			 *
 			 * @param reference to host names vector
 			 * @return true if successful
@@ -110,7 +110,7 @@ namespace libmaus2
 			bool isKnown();
 			/**
 			 * @return true if job is unfinished
-			 **/ 
+			 **/
 			bool isUnfinished();
 			/**
 			 * @return state map for all processes (this map is empty for the LSFSim class)

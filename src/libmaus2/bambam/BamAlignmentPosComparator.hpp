@@ -33,14 +33,14 @@ namespace libmaus2
 		{
 			//! data block pointer
 			uint8_t const * data;
-			
+
 			/**
 			 * construct
 			 *
 			 * @param rdata data block pointer
 			 **/
 			BamAlignmentPosComparator(uint8_t const * rdata) : data(rdata) {}
-			
+
 			/**
 			 * compare alignment blocks at da and db
 			 *
@@ -52,13 +52,13 @@ namespace libmaus2
 			{
 				int32_t const refa = ::libmaus2::bambam::BamAlignmentDecoderBase::getRefID(da);
 				int32_t const refb = ::libmaus2::bambam::BamAlignmentDecoderBase::getRefID(db);
-				
+
 				if ( refa != refb )
 					return  static_cast<uint32_t>(refa) < static_cast<uint32_t>(refb);
 
 				int32_t const posa = ::libmaus2::bambam::BamAlignmentDecoderBase::getPos(da);
 				int32_t const posb = ::libmaus2::bambam::BamAlignmentDecoderBase::getPos(db);
-				
+
 				return posa < posb;
 			}
 
@@ -73,7 +73,7 @@ namespace libmaus2
 			{
 				int32_t const refa = ::libmaus2::bambam::BamAlignmentDecoderBase::getRefID(da);
 				int32_t const refb = ::libmaus2::bambam::BamAlignmentDecoderBase::getRefID(db);
-				
+
 				if ( refa != refb )
 				{
 					if ( static_cast<uint32_t>(refa) < static_cast<uint32_t>(refb) )
@@ -84,7 +84,7 @@ namespace libmaus2
 
 				int32_t const posa = ::libmaus2::bambam::BamAlignmentDecoderBase::getPos(da);
 				int32_t const posb = ::libmaus2::bambam::BamAlignmentDecoderBase::getPos(db);
-				
+
 				if ( posa < posb )
 					return -1;
 				else if ( posa > posb )
@@ -100,12 +100,12 @@ namespace libmaus2
 			 * @param a offset of first alignment
 			 * @param b offset of second alignment
 			 * @return true iff a < b concerning mapping coordinates
-			 **/			
+			 **/
 			bool operator()(uint64_t const a, uint64_t const b) const
 			{
 				return compare(data + a + sizeof(uint32_t),data + b + sizeof(uint32_t));
 			}
-			
+
 			/**
 			 * compare alignments at offsets a and b relative to the data block pointer passed to this object
 			 * at construction time

@@ -50,27 +50,27 @@ namespace libmaus2
 		{
 			typedef UDPSocket this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			int socket;
 
 			void setBroadcastFlag()
 			{
 				int broadcast = true;
-				
+
 				if ( ::setsockopt(socket,SOL_SOCKET,SO_BROADCAST,&broadcast,sizeof(broadcast)) == -1 )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "setsockopt(SO_BROADCAST) failed: " << strerror(errno) << std::endl;
 					se.finish();
 					throw se;
-				
+
 				}
 			}
 			UDPSocket(bool const broadcast = false)
 			: socket(-1)
 			{
 				socket = ::socket(AF_INET, SOCK_DGRAM, 0);
-				
+
 				if ( socket < 0 )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -78,7 +78,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				if ( broadcast )
 				{
 					try
@@ -92,7 +92,7 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			static unique_ptr_type allocateServerSocket(Interface const & interface, unsigned short const port, bool const broadcast = false)
 			{
 				return unique_ptr_type ( new this_type (interface,port,broadcast) );
@@ -121,7 +121,7 @@ namespace libmaus2
 					(static_cast<uint32_t>(addr[3]) <<  0));
 
 				socket = ::socket(AF_INET, SOCK_DGRAM, 0);
-				
+
 				if ( socket == -1 )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -129,7 +129,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				if ( bind ( socket, reinterpret_cast<sockaddr const *>(&inaddr), sizeof(inaddr) ) == -1 )
 				{
 					if ( errno == EADDRINUSE )
@@ -146,7 +146,7 @@ namespace libmaus2
 						throw se;
 					}
 				}
-				
+
 				#if 0 // requires super user privileges on linux
 				if ( ::setsockopt(socket,SOL_SOCKET,SO_BINDTODEVICE,interface.name.c_str(),
 					interface.name.size()) == -1 )
@@ -158,7 +158,7 @@ namespace libmaus2
 					throw se;
 				}
 				#endif
-				
+
 				if ( broadcast )
 				{
 					try
@@ -186,7 +186,7 @@ namespace libmaus2
 					(static_cast<uint32_t>(interface.addr[3]) <<  0));
 
 				socket = ::socket(AF_INET, SOCK_DGRAM, 0);
-				
+
 				if ( socket == -1 )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -194,7 +194,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				if ( bind ( socket, reinterpret_cast<sockaddr const *>(&inaddr), sizeof(inaddr) ) == -1 )
 				{
 					if ( errno == EADDRINUSE )
@@ -211,7 +211,7 @@ namespace libmaus2
 						throw se;
 					}
 				}
-				
+
 				#if 0 // requires super user privileges on linux
 				if ( ::setsockopt(socket,SOL_SOCKET,SO_BINDTODEVICE,interface.name.c_str(),
 					interface.name.size()) == -1 )
@@ -223,7 +223,7 @@ namespace libmaus2
 					throw se;
 				}
 				#endif
-				
+
 				if ( broadcast )
 				{
 					try
@@ -264,7 +264,7 @@ namespace libmaus2
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "ioctl() failed: " << strerror(errno) << std::endl;
 						se.finish();
-						throw se;		
+						throw se;
 					}
 					return true;
 				}
@@ -273,7 +273,7 @@ namespace libmaus2
 					return false;
 				}
 			}
-			
+
 			std::string recvfromString(size_t bufsize)
 			{
 				::libmaus2::autoarray::AutoArray<uint8_t> B = recvfrom(bufsize);
@@ -293,17 +293,17 @@ namespace libmaus2
 			{
 				sockaddr_in inaddr;
 				socklen_t inaddrlen = sizeof(inaddr);
-				
+
 				ssize_t const r = ::recvfrom(socket, buffer, bufsize, 0 /* flags */,
 					reinterpret_cast<sockaddr *>(&inaddr),
 					&inaddrlen);
-				
+
 				if ( r < 0 )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to recvfrom message of length " << bufsize << " from UDP socket: " << strerror(errno) << std::endl;
 					se.finish();
-					throw se;	
+					throw se;
 				}
 				else if ( r != static_cast<ssize_t>(bufsize) )
 				{
@@ -313,7 +313,7 @@ namespace libmaus2
 					throw se;
 				}
 			}
-			
+
 			void sendto(
 				Interface const & interface, unsigned short const port,
 				char const * msg, uint64_t const n
@@ -375,7 +375,7 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			template<typename N>
 			static uint64_t decodePackage(
 				::libmaus2::autoarray::AutoArray<uint8_t> const & B,
@@ -389,7 +389,7 @@ namespace libmaus2
 				uint64_t const totalpaybytes = n*sizeof(N);
 				uint64_t const fullpackets = totalpaybytes / paybytes;
 				uint64_t const restbytes = totalpaybytes - fullpackets * paybytes;
-			
+
 				uint8_t const * U = reinterpret_cast<uint8_t const *>(B.get());
 				uint64_t const i =
 					(static_cast<uint64_t>(U[0]) << (7*8)) |
@@ -401,12 +401,12 @@ namespace libmaus2
 					(static_cast<uint64_t>(U[6]) << (1*8)) |
 					(static_cast<uint64_t>(U[7]) << (0*8));
 				uint8_t * output = reinterpret_cast<uint8_t *>(A) + i * paybytes;
-				
+
 				if ( i < fullpackets )
 					std::copy ( B.get() + sizeof(uint64_t), B.end(), output );
 				else
 					std::copy ( B.get() + sizeof(uint64_t), B.get()+sizeof(uint64_t)+restbytes, output );
-				
+
 				return i;
 			}
 
@@ -434,7 +434,7 @@ namespace libmaus2
 				U[5] = (i >> (2*8)) & 0xFF;
 				U[6] = (i >> (1*8)) & 0xFF;
 				U[7] = (i >> (0*8)) & 0xFF;
-				
+
 				if ( i < fullpackets )
 				{
 					::std::copy(input,input+paybytes,B.begin()+sizeof(uint64_t));
@@ -446,7 +446,7 @@ namespace libmaus2
 					return sizeof(uint64_t)+restbytes;
 				}
 			}
-			
+
 			template<typename N>
 			static void sendArrayBroadcast(
 				Interface const & interface,
@@ -458,7 +458,7 @@ namespace libmaus2
 				)
 			{
 				#define BROADCASTSENDDEBUG
-				
+
 				#if defined(BROADCASTSENDDEBUG)
 				std::cerr << "Sending meta...";
 				#endif
@@ -475,7 +475,7 @@ namespace libmaus2
 				#if defined(BROADCASTSENDDEBUG)
 				std::cerr << "done." << std::endl;
 				#endif
-					
+
 				UDPSocket udpsock(true);
 				::libmaus2::autoarray::AutoArray<char> B(packsize);
 
@@ -485,7 +485,7 @@ namespace libmaus2
 
 				::libmaus2::timing::RealTimeClock rtc;
 				rtc.start();
-				
+
 				#if defined(BROADCASTSENDDEBUG)
 				std::cerr << "Broadcasting...";
 				#endif
@@ -522,12 +522,12 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < secondarysockets.size(); ++i )
 				{
 					bool running = true;
-					
+
 					while ( running )
 					{
 						uint64_t tag;
 						::libmaus2::autoarray::AutoArray<uint64_t> Q = secondarysockets[i]->readMessage<uint64_t>(tag);
-						
+
 						if ( tag == 1 )
 						{
 							running = false;
@@ -539,7 +539,7 @@ namespace libmaus2
 								uint64_t const m = fillPackage(B,A,n,Q[j]);
 								secondarysockets[i]->writeMessage<char>(0,B.get(),m);
 								resent++;
-							
+
 							}
 						}
 					}
@@ -547,7 +547,7 @@ namespace libmaus2
 				#if defined(BROADCASTSENDDEBUG)
 				std::cerr << "done." << std::endl;
 				#endif
-				
+
 				#if defined(BROADCASTSENDDEBUG)
 				std::cerr << "(resent " << resent << "/" << numpackages << ")";
 				#endif
@@ -563,7 +563,7 @@ namespace libmaus2
 				std::cerr << "done." << std::endl;
 				#endif
 			}
-			
+
 			template<typename N>
 			static ::libmaus2::autoarray::AutoArray<N> receiveArrayBroadcast(
 				::libmaus2::network::UDPSocket::unique_ptr_type & broadcastsocket,
@@ -584,10 +584,10 @@ namespace libmaus2
 				#if 0
 				std::cerr << "done." << std::endl;
 				#endif
-			
+
 				::libmaus2::autoarray::AutoArray<N> A(n,false);
 				::libmaus2::autoarray::AutoArray<uint64_t> U((numpackages+63)/64);
-			
+
 				uint64_t numrec = 0;
 				bool running = true;
 				while ( running )
@@ -598,7 +598,7 @@ namespace libmaus2
 						#if 0
 						std::cerr << "Getting packet of length " << num;
 						#endif
-						::libmaus2::autoarray::AutoArray<uint8_t> const dgram = 
+						::libmaus2::autoarray::AutoArray<uint8_t> const dgram =
 							broadcastsocket->recvfrom(num);
 						uint64_t const i = decodePackage<N>(dgram,A.get(),n,paybytes);
 						::libmaus2::bitio::putBit(U.get(),i,1);
@@ -617,7 +617,7 @@ namespace libmaus2
 				#if 0
 				std::cerr << "Left loop" << std::endl;
 				#endif
-				
+
 				#if 0
 				std::cerr << "Post broadcast barrier...";
 				#endif
@@ -625,12 +625,12 @@ namespace libmaus2
 				#if 0
 				std::cerr << "done." << std::endl;
 				#endif
-				
+
 				#if 0
 				std::cerr << "Receiving rest packets...";
 				#endif
 				::libmaus2::aio::BufferedOutputNull<uint64_t> BON(16*1024);
-				
+
 				for ( uint64_t i = 0; i < numpackages; ++i )
 					if ( ! ::libmaus2::bitio::getBit(U.get(),i) )
 					{
@@ -659,11 +659,11 @@ namespace libmaus2
 					BON.reset();
 				}
 				parentsocket->writeMessage<uint64_t>(1,0,0);
-				
+
 				#if 0
 				std::cerr << "done." << std::endl;
 				#endif
-				
+
 				#if 0
 				std::cerr << "Complete barrier...";
 				#endif
@@ -673,12 +673,12 @@ namespace libmaus2
 				#endif
 
 				std::cerr << "Received array of size " << A.size()*sizeof(N) << " bytes in time " <<
-					rtc.getElapsedSeconds() << " rate " << 
+					rtc.getElapsedSeconds() << " rate " <<
 					((A.size()*sizeof(N))/rtc.getElapsedSeconds()) / (1024.0*1024.0) << " MB/s." << std::endl;
-				
+
 				return A;
 			}
-			
+
 			static std::vector < Interface > getNetworkInterfaces()
 			{
 				UDPSocket sock;
@@ -688,7 +688,7 @@ namespace libmaus2
 				ifconf ifc;
 				ifc.ifc_len = buf.size();
 				ifc.ifc_buf = buf.get();
-				
+
 				if ( ::ioctl(sock.socket, SIOCGIFCONF, &ifc) < 0)
 				{
 					::libmaus2::exception::LibMausException se;
@@ -696,10 +696,10 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				uint64_t const numinterfaces = ifc.ifc_len / sizeof(ifreq);
 				ifreq * ifr = ifc.ifc_req;
-				
+
 				for ( uint64_t i = 0; i < numinterfaces; ++i )
 				{
 					ifreq & entry = ifr[i];
@@ -712,7 +712,7 @@ namespace libmaus2
 					vaddr[1] = (saddr>>16) & 0xFF;
 					vaddr[2] = (saddr>> 8) & 0xFF;
 					vaddr[3] = (saddr>> 0) & 0xFF;
-					
+
 					std::vector < uint8_t > baddr(4);
 					if( ::ioctl(sock.socket, SIOCGIFBRDADDR, &entry) >= 0)
 					{
@@ -721,7 +721,7 @@ namespace libmaus2
 						baddr[0] = (broadsaddr>>24) & 0xFF;
 						baddr[1] = (broadsaddr>>16) & 0xFF;
 						baddr[2] = (broadsaddr>> 8) & 0xFF;
-						baddr[3] = (broadsaddr>> 0) & 0xFF;				
+						baddr[3] = (broadsaddr>> 0) & 0xFF;
 					}
 					std::vector < uint8_t > naddr(4);
 					if ( ::ioctl(sock.socket, SIOCGIFNETMASK, &entry) >= 0 )
@@ -733,13 +733,13 @@ namespace libmaus2
 						naddr[2] = (broadsaddr>> 8) & 0xFF;
 						naddr[3] = (broadsaddr>> 0) & 0xFF;
 					}
-					
+
 					R.push_back(Interface(interfacename,vaddr,baddr,naddr));
 				}
-				
+
 				return R;
 			}
-			
+
 			static Interface getHostNameInterface()
 			{
 				std::vector< std::vector <uint8_t> > hostaddr = ::libmaus2::network::GetDottedAddress::getIP4Address();
@@ -748,7 +748,7 @@ namespace libmaus2
 					for ( uint64_t j = 0; j < hostaddr.size(); ++j )
 						if ( interfaces[i].addr == hostaddr[j] )
 							return interfaces[i];
-				
+
 				::libmaus2::exception::LibMausException se;
 				se.getStream() << "No interface for host name " << ::libmaus2::network::GetHostName::getHostName() << " found." << std::endl;
 				se.finish();
@@ -760,7 +760,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < interfaces.size(); ++i )
 					if ( interfaces[i].name == name )
 							return interfaces[i];
-				
+
 				::libmaus2::exception::LibMausException se;
 				se.getStream() << "No interface named " << name << " found." << std::endl;
 				se.finish();

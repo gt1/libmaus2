@@ -36,7 +36,7 @@ namespace libmaus2
 		{
 			typedef uint64_t data_type;
 			typedef SingleWordDNABitBuffer this_type;
-			
+
 			friend std::ostream & operator<<(std::ostream & out, SingleWordDNABitBuffer const & S);
 
 			static unsigned int getMaxBases()
@@ -54,12 +54,12 @@ namespace libmaus2
 			{
 				return (buffer >> (((width-1)>>1)<<1)) & 0x3;
 			}
-			
+
 			unsigned int getHalfBits() const
 			{
 				return (((width-(width&1))>>1) << 1);
 			}
-			
+
 			data_type getLowHalf() const
 			{
 				return buffer & ::libmaus2::math::lowbits( getHalfBits() );
@@ -74,14 +74,14 @@ namespace libmaus2
 			{
 				return (buffer >> (getHalfBits()+((width&1)<<1) )) & ::libmaus2::math::lowbits( getHalfBits() );
 			}
-			
+
 			static data_type middleToEnd(uint64_t const b, unsigned int k)
 			{
 				this_type B(k);
 				B.buffer = b;
 				return B.middleToEnd();
 			}
-			
+
 			static data_type indexToEnd(data_type v, unsigned int k, unsigned int i)
 			{
 				// position from back
@@ -97,7 +97,7 @@ namespace libmaus2
 				data_type const rv = (front | back | sym);
 				return rv;
 			}
-			
+
 			static data_type endToIndex(data_type v, unsigned int k, unsigned int i)
 			{
 				// position from back
@@ -114,7 +114,7 @@ namespace libmaus2
 				data_type const rv = (front | back | sym);
 				return rv;
 			}
-			
+
 			data_type middleToEnd() const
 			{
 				return
@@ -125,15 +125,15 @@ namespace libmaus2
 					getMiddleSym()
 					;
 			}
-			
+
 			data_type getBottomSym() const
 			{
 				return buffer & ::libmaus2::math::lowbits( 2 );
 			}
-			
+
 			data_type endToMiddle() const
 			{
-				return					
+				return
 					(getTopHalf() << (getHalfBits()+2))
 					|
 					(getBottomSym() << getHalfBits())
@@ -213,14 +213,14 @@ namespace libmaus2
 			static data_type rc(data_type v, unsigned int k)
 			{
 				data_type r = 0;
-				
+
 				for ( unsigned int i = 0; i < k; ++i )
 				{
 					r <<= 2;
 					r |= ((v&3)^3);
 					v >>= 2;
 				}
-				
+
 				return r;
 			}
 
@@ -248,7 +248,7 @@ namespace libmaus2
 				return s;
 			}
 		};
-		
+
 		std::ostream & operator<<(std::ostream & out, SingleWordDNABitBuffer const & S);
 	}
 }

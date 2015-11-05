@@ -30,9 +30,9 @@ namespace libmaus2
 		struct BamMergeQueyNameHeapComparator
 		{
 			libmaus2::bambam::BamAlignment ** algns;
-			
+
 			BamMergeQueyNameHeapComparator(libmaus2::bambam::BamAlignment ** ralgns) : algns(ralgns) {}
-		
+
 			bool operator()(uint64_t const a, uint64_t const b) const
 			{
 				return libmaus2::bambam::BamAlignmentNameComparator::compareInt(*algns[a],*algns[b]) > 0;
@@ -44,7 +44,7 @@ namespace libmaus2
 		struct BamMergeQueryNameWrapper
 		{
 			BamMergeQueryName object;
-			
+
 			BamMergeQueryNameWrapper(std::vector<std::string> const & filenames, bool const putrank = false)
 			: object(filenames,putrank) {}
 			BamMergeQueryNameWrapper(libmaus2::util::ArgInfo const & arginfo, std::vector<std::string> const & filenames, bool const putrank = false)

@@ -33,25 +33,25 @@ namespace libmaus2
 				typedef FragReadEndsMergeWorkPackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				ReadEndsMergeRequest REQ;
-		
+
 				FragReadEndsMergeWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), REQ()
 				{
-				
-				}		
+
+				}
 				FragReadEndsMergeWorkPackage(
 					ReadEndsMergeRequest const & rREQ,
-					uint64_t const rpriority, 
-					uint64_t const rdispatcherid, 
+					uint64_t const rpriority,
+					uint64_t const rdispatcherid,
 					uint64_t const rpackageid = 0
 				)
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), REQ(rREQ)
 				{
-				
+
 				}
 				~FragReadEndsMergeWorkPackage() {}
-				
+
 				char const * getPackageName() const
 				{
 					return "FragReadEndsMergeWorkPackage";

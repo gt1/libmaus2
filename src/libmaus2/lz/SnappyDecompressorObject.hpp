@@ -30,7 +30,7 @@ namespace libmaus2
 		{
 			typedef SnappyDecompressorObject this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			virtual ~SnappyDecompressorObject() {}
 			virtual bool rawuncompress(char const * compressed, size_t compressed_length, char * uncompressed, size_t /* uncompressed_length */)
 			{

@@ -37,23 +37,23 @@ namespace libmaus2
 		{
 			typedef BgzfInflateParallelThread this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-					
+
 			BgzfInflateParallelContext & inflatecontext;
-			
-			BgzfInflateParallelThread(BgzfInflateParallelContext & rinflatecontext) 
+
+			BgzfInflateParallelThread(BgzfInflateParallelContext & rinflatecontext)
 			: inflatecontext(rinflatecontext)
 			{
 			}
 			~BgzfInflateParallelThread()
 			{
 			}
-		
+
 			void * run()
 			{
 				while ( true )
 				{
 					BgzfThreadQueueElement globbtqe;
-					
+
 					/* get any id from global list */
 					try
 					{
@@ -64,11 +64,11 @@ namespace libmaus2
 						/* queue is terminated, break loop */
 						break;
 					}
-					
+
 					/* check which operation we are to perform */
 					libmaus2_lz_bgzf_op_type op = globbtqe.op;
 					uint64_t objectid = 0;
-				
+
 					switch ( op )
 					{
 						case libmaus2_lz_bgzf_op_read_block:
@@ -83,12 +83,12 @@ namespace libmaus2
 							libmaus2::parallel::ScopePosixMutex S(inflatecontext.inflateqlock);
 							objectid = inflatecontext.inflatereadlist.front();
 							inflatecontext.inflatereadlist.pop_front();
-							
+
 						}
 						default:
 							break;
-					}						
-					
+					}
+
 					/*   */
 					switch ( op )
 					{
@@ -103,7 +103,7 @@ namespace libmaus2
 							if ( (! (inflatecontext.inflateB[objectid]->failed())) && inflatecontext.copyostr )
 							{
 								// copy data
-								
+
 								// bgzf header
 								inflatecontext.copyostr->write(
 									reinterpret_cast<char const *>(inflatecontext.inflateB[objectid]->header.begin()),
@@ -128,7 +128,7 @@ namespace libmaus2
 									inflatecontext.inflateB[objectid]->ex->finish();
 								}
 							}
-							
+
 							libmaus2::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
 							inflatecontext.inflatereadlist.push_back(objectid);
 							inflatecontext.inflategloblist.enque(
@@ -158,8 +158,8 @@ namespace libmaus2
 							break;
 					}
 				}
-				
-				return 0;		
+
+				return 0;
 			}
 		};
 	}

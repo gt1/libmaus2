@@ -30,7 +30,7 @@ namespace libmaus2
 			typedef OutputStreamInstance this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			OutputStreamInstance(std::string const & fn);
 		};
 	}

@@ -41,7 +41,7 @@ namespace libmaus2
 
 			static unsigned int o(unsigned int const i) { return (i*(i+1))>>1; }
 			static unsigned int s(unsigned int const i) { return o(i+1); }
-			
+
 			inline static unsigned int fak(unsigned int i)
 			{
 				if ( i <= 1 )
@@ -49,8 +49,8 @@ namespace libmaus2
 				else
 					return i*fak(i-1);
 			}
-			
-			public:	
+
+			public:
 			/**
 			 * return binomial coefficient kk from nn
 			 * @param nn
@@ -85,7 +85,7 @@ namespace libmaus2
 			: n(rn), C( s(n) )
 			{
 				C[0] = 1;
-				
+
 				for ( unsigned int nn = 1; nn <= n; ++nn )
 				{
 					unsigned int const * S = C.get() + o(nn-1);
@@ -97,7 +97,7 @@ namespace libmaus2
 					*(T++) = 1;
 				}
 			}
-			
+
 			/**
 			 * encode B of length b bits with u significant bits in enumerative code
 			 * @param B number
@@ -110,14 +110,14 @@ namespace libmaus2
 			{
 				unsigned int x = 0;
 				unsigned int m = 1u<<(b-1);
-				
+
 				for ( unsigned int i = 0; i < b; ++i, m>>=1 )
 				{
 					if ( B & m )
 					{
 						x += (*this)(b-i-1,u);
 						--u;
-					}	
+					}
 				}
 				return x;
 			}
@@ -131,7 +131,7 @@ namespace libmaus2
 			N decode(N v, unsigned int u) const
 			{
 				N q = 0;
-				
+
 				for ( unsigned int i = 0; i < 8*sizeof(v); ++i )
 					if ( v >= (*this)(8*sizeof(v)-i-1,u) )
 					{
@@ -139,7 +139,7 @@ namespace libmaus2
 						v -= (*this)(8*sizeof(v)-i-1,u);
 						--u;
 					}
-					
+
 				return q;
 			}
 		};

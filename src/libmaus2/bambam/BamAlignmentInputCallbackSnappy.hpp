@@ -29,7 +29,7 @@ namespace libmaus2
 	namespace bambam
 	{
 		template<typename _update_base_type = libmaus2::bambam::BamAlignmentInputPositionCallbackNull>
-		struct BamAlignmentInputCallbackSnappy : 
+		struct BamAlignmentInputCallbackSnappy :
 			public ::libmaus2::bambam::CollatingBamDecoderAlignmentInputCallback,
 			public _update_base_type
 		{
@@ -45,9 +45,9 @@ namespace libmaus2
 			BamAlignmentInputCallbackSnappy(std::string const & filename, libmaus2::bambam::BamHeader const & bamheader)
 			: update_base_type(bamheader), als(0), SFOS(new ::libmaus2::lz::SnappyFileOutputStream(filename))
 			{
-				
+
 			}
-			
+
 			~BamAlignmentInputCallbackSnappy()
 			{
 				flush();
@@ -59,7 +59,7 @@ namespace libmaus2
 				update_base_type::updatePosition(A);
 				A.serialise(*SFOS);
 			}
-			
+
 			void flush()
 			{
 				SFOS->flush();

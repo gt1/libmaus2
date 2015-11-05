@@ -48,17 +48,17 @@ namespace libmaus2
 				return code;
 			}
 		};
-		
+
 		struct UTF8
 		{
 			template<typename stream_type>
 			static uint32_t decodeUTF8Unchecked(stream_type & stream)
 			{
 				uint32_t code = stream.get();
-				
+
 				static unsigned int const tcl[] = { 1,0,2,3,4,5,6 };
 				unsigned int const cl = tcl[__builtin_clz((~static_cast<unsigned int>(code)) << (8*(sizeof(unsigned int)-1)))];
-				
+
 				switch ( cl )
 				{
 					case 1:          code &= 0x7F;                                                  break;
@@ -86,10 +86,10 @@ namespace libmaus2
 				}
 
 				uint32_t code = c;
-				
+
 				static unsigned int const tcl[] = { 1,0,2,3,4,5,6 };
 				unsigned int const cl = tcl[__builtin_clz((~static_cast<unsigned int>(code)) << (8*(sizeof(unsigned int)-1)))];
-				
+
 				switch ( cl )
 				{
 					case 1:          code &= 0x7F;                                                  break;
@@ -119,7 +119,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				if ( (str0 & 0xc0) == 0x80 )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -127,7 +127,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				while ( str0 & mask )
 				{
 					len++;
@@ -157,7 +157,7 @@ namespace libmaus2
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Defect code in decodeUTF8(" << ::libmaus2::util::Demangle::demangle<in_type>() <<" &)";
 						se.finish();
-						throw se;					
+						throw se;
 					}
 
 					number |= (strn) & 0x3f;
@@ -193,13 +193,13 @@ namespace libmaus2
 						se.finish();
 						throw se;
 					}
-					
+
 					while ( str0 & mask )
 					{
 						len++;
 						mask >>= 1;
 					}
-					
+
 					// codelen += (1+len);
 
 					// get useable bits from first byte
@@ -226,7 +226,7 @@ namespace libmaus2
 							::libmaus2::exception::LibMausException se;
 							se.getStream() << "Defect code in decodeUTF8(" << ::libmaus2::util::Demangle::demangle<in_type>() <<" &)";
 							se.finish();
-							throw se;					
+							throw se;
 						}
 
 						number |= (strn) & 0x3f;
@@ -351,4 +351,3 @@ namespace libmaus2
 	}
 }
 #endif
-

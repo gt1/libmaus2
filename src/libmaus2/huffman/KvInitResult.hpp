@@ -32,7 +32,7 @@ namespace libmaus2
 			uint64_t voffset;
 			uint64_t kvoffset;
 			uint64_t kvtarget;
-			
+
 			KvInitResult();
 		};
 		std::ostream & operator<<(std::ostream & out, KvInitResult const & KIR);

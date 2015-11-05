@@ -23,18 +23,18 @@ void testSimpleCountingHash()
 {
 	::libmaus2::util::SimpleCountingHash<uint32_t,uint8_t> H(16);
 
-	uint64_t const cnt = 
+	uint64_t const cnt =
 		static_cast<uint64_t>(std::numeric_limits<uint8_t>::max()) * 2;
 
 	for ( uint64_t z = 0; z < cnt; ++z )
 	{
 		#if defined(_OPENMP)
 		#pragma omp parallel for
-		#endif	
+		#endif
 		for ( int64_t i = 0; i < (1ll<<16); ++i )
 			H.insert ( i );
 	}
-	
+
 	for ( uint64_t i = 0; i < (1ull<<16); ++i )
 		assert ( H.getCount(i) == std::numeric_limits<uint8_t>::max() );
 }

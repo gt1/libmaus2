@@ -23,7 +23,7 @@ uint64_t libmaus2::util::Terminal::getColumns()
 {
 	int fd = -1;
 	uint64_t cols = 80;
-	
+
 	try
 	{
 		fd = open("/dev/tty",O_RDWR);
@@ -35,11 +35,11 @@ uint64_t libmaus2::util::Terminal::getColumns()
 			int const stat = ioctl(fd,TIOCGWINSZ,&size);
 			close(fd);
 			fd = -1;
-			
+
 			if ( stat < 0 )
 			{
 				::libmaus2::exception::LibMausException se;
-				se.getStream() << "ioctl failed: " << strerror(errno) << std::endl;		
+				se.getStream() << "ioctl failed: " << strerror(errno) << std::endl;
 				se.finish();
 				throw se;
 			}
@@ -51,7 +51,7 @@ uint64_t libmaus2::util::Terminal::getColumns()
 		else
 		{
 			::libmaus2::exception::LibMausException se;
-			se.getStream() << "open failed: " << strerror(errno) << std::endl;		
+			se.getStream() << "open failed: " << strerror(errno) << std::endl;
 			se.finish();
 			throw se;
 		}
@@ -61,6 +61,6 @@ uint64_t libmaus2::util::Terminal::getColumns()
 		if ( fd >= 0 )
 			close(fd);
 	}
-	
+
 	return cols;
 }

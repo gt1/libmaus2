@@ -46,7 +46,7 @@ namespace libmaus2
 			 **/
 			BamAlignmentHeapComparator(comparator_type const & rcomp, ::libmaus2::bambam::BamAlignment const * rA) : comp(rcomp), A(rA)
 			{
-			
+
 			}
 
 			/**

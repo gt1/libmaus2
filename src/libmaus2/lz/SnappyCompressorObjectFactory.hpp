@@ -30,7 +30,7 @@ namespace libmaus2
 		{
 			typedef SnappyCompressorObjectFactory this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			virtual ~SnappyCompressorObjectFactory() {}
 			virtual CompressorObject::unique_ptr_type operator()()
 			{

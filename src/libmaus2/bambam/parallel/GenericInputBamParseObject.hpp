@@ -35,10 +35,10 @@ namespace libmaus2
 				typedef GenericInputBamParseObject this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				GenericInputSingleDataBamParseInfo * parseInfo;
 				libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type block;
-				
+
 				GenericInputBamParseObject() : parseInfo(0), block() {}
 				GenericInputBamParseObject(
 					GenericInputSingleDataBamParseInfo * rparseInfo,
@@ -46,7 +46,7 @@ namespace libmaus2
 				) : parseInfo(rparseInfo), block(rblock)
 				{
 				}
-				
+
 				void dispatch()
 				{
 					parseInfo->parseBlock(block);

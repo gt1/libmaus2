@@ -33,17 +33,17 @@ namespace libmaus2
 			uint64_t numdel;
 			uint64_t nummat;
 			uint64_t nummis;
-			
+
 			uint64_t a_clip_left;
 			uint64_t a_clip_right;
 			uint64_t b_clip_left;
 			uint64_t b_clip_right;
-			
-			
+
+
 			LocalEditDistanceResult()
 			: numins(0), numdel(0), nummat(0), nummis(0)
 			{}
-			
+
 			LocalEditDistanceResult(
 				uint64_t rnumins, uint64_t rnumdel, uint64_t rnummat, uint64_t rnummis,
 				uint64_t ra_clip_left,
@@ -57,7 +57,7 @@ namespace libmaus2
 			  b_clip_left(rb_clip_left),
 			  b_clip_right(rb_clip_right)
 			{}
-			
+
 			bool operator==(LocalEditDistanceResult const & o) const
 			{
 				return
@@ -66,7 +66,7 @@ namespace libmaus2
 					nummat == o.nummat &&
 					nummis == o.nummis;
 			}
-			
+
 			bool operator!=(LocalEditDistanceResult const & o) const
 			{
 				return !operator==(o);
@@ -78,7 +78,7 @@ namespace libmaus2
 					static_cast<double>(numins + numdel + nummis) / static_cast<double>(numins+numdel+nummat+nummis);
 			}
 		};
-		
+
 		std::ostream & operator<<(std::ostream & out, LocalEditDistanceResult const &);
 	}
 }

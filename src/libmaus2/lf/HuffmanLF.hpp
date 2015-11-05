@@ -44,13 +44,13 @@ namespace libmaus2
 				s += W->serialize(out);
 				return s;
 			}
-				
+
 			static ::libmaus2::autoarray::AutoArray<uint64_t> computeD(::libmaus2::wavelet::HuffmanWaveletTree const * W)
 			{
 				uint64_t const symrange = W->enctable.getSymbolRange();
-				
+
 				::libmaus2::autoarray::AutoArray<uint64_t> D( symrange + 1 );
-				
+
 				for ( uint64_t i = 0; i < symrange; ++i )
 					if ( W->enctable.codeused [ i ] )
 						D[i] = W->rank(static_cast<int>(i)+W->enctable.minsym, W->n-1);
@@ -61,7 +61,7 @@ namespace libmaus2
 
 				return D;
 			}
-			
+
 			uint64_t sortedSymbol(uint64_t r) const
 			{
 				#if 0
@@ -74,10 +74,10 @@ namespace libmaus2
 					if (  W->enctable.codeused[sym-minsym] )
 					{
 						uint64_t rank = getN() ? W->rank ( sym, getN() - 1 ) : 0;
-						
+
 						if ( low <= r && r < low+rank )
 							return sym;
-						
+
 						low += rank;
 					}
 				}
@@ -88,34 +88,34 @@ namespace libmaus2
 						if ( D[i] <= r && r < D[i+1] )
 							return i+minsym;
 				#endif
-				
+
 				throw std::runtime_error("sortedSymbol failed.");
 			}
-			
+
 			uint64_t phi(uint64_t r) const
 			{
 				#if 0
 				uint64_t const sym = W->sortedSymbol(r);
-				#else		
+				#else
 				uint64_t const sym = sortedSymbol(r);
 				#endif
-				
+
 				#if 0
-				std::cerr 
-					<< "Symbol " << sym 
-					<< " sym-minsym " << (static_cast<int>(sym)-minsym) 
+				std::cerr
+					<< "Symbol " << sym
+					<< " sym-minsym " << (static_cast<int>(sym)-minsym)
 					<< " D " << D[static_cast<int>(sym)-minsym]
 					<< std::endl;
 				#endif
-				
+
 				r -= D[static_cast<int>(sym)-minsym];
 				r = W->select(sym,r);
-				
+
 				assert ( r < getN() );
-				
+
 				return r;
 			}
-			
+
 			uint64_t getN() const
 			{
 				return W->n;
@@ -124,7 +124,7 @@ namespace libmaus2
 			{
 				return ::libmaus2::math::bitsPerNum(W->enctable.getSymbolRange()-1);
 			}
-			
+
 			uint64_t deserialize(std::istream & istr)
 			{
 				uint64_t s = 0;
@@ -144,11 +144,11 @@ namespace libmaus2
 			{
 				s += deserialize(istr);
 			}
-			
+
 			HuffmanLF ( ::libmaus2::util::shared_ptr < ::libmaus2::wavelet::HuffmanWaveletTree>::type & RHWT ) : W(RHWT)
 			{
 				minsym = W->enctable.minsym;
-				D = computeD(W.get());		
+				D = computeD(W.get());
 			}
 
 			HuffmanLF ( ::libmaus2::util::shared_ptr < bitio::CompactArray >::type ABWT )
@@ -169,7 +169,7 @@ namespace libmaus2
 					ahnode
 					) );
 				std::cerr << "Constructing Huffman shaped wavelet tree done." << std::endl;
-				
+
 				std::cerr << "Checking wavelet tree...";
 #if defined(_OPENMP)
 #pragma omp parallel for
@@ -179,21 +179,21 @@ namespace libmaus2
 						static_cast<int>(ABWT->get(i))
 						==
 						(*W)[i]
-					);	
+					);
 				std::cerr << "done." << std::endl;
-				
+
 				std::cerr << "Computing D...";
 				minsym = W->enctable.minsym;
-				D = computeD(W.get());	
+				D = computeD(W.get());
 				std::cerr << "done." << std::endl;
-				
+
 				#if 0
-				std::cerr << "Resetting ABWT...";	
+				std::cerr << "Resetting ABWT...";
 				ABWT.reset(0);
 				std::cerr << "done." << std::endl;
 				#endif
 			}
-			
+
 			uint64_t operator()(uint64_t const r) const
 			{
 				int const sym = (*W)[r];
@@ -208,15 +208,15 @@ namespace libmaus2
 			uint64_t rank(uint64_t const k, uint64_t const sp) const { return sp ? W->rank(k,sp-1) : 0; }
 			uint64_t step(uint64_t const k, uint64_t const sp) const { return D[k-minsym] + rank(k,sp); }
 
-			template<typename iterator>	
+			template<typename iterator>
 			inline void search(iterator query, uint64_t const m, uint64_t & sp, uint64_t & ep) const
 			{
 				sp = 0, ep = W->n;
-				
+
 				for ( uint64_t i = 0; i < m && sp != ep; ++i )
 				{
 					int const sym = query[m-i-1];
-					
+
 					if ( W->enctable.checkSymbol(sym) )
 					{
 						sp = step(sym,sp),
@@ -235,12 +235,12 @@ namespace libmaus2
 					throw std::runtime_error("zeroPosRank called on empty sequence.");
 
 				uint64_t const symrange = W->enctable.getSymbolRange();
-				
+
 				for ( uint64_t i = 0; i < symrange; ++i )
 					if ( W->enctable.codeused [ i ] )
 						if ( W->rank(static_cast<int>(i)+W->enctable.minsym, W->n-1) )
 							return W->select(static_cast<int>(i)+W->enctable.minsym, 0);
-				
+
 				throw std::runtime_error("Rank of position zero not found.");
 			}
 		};

@@ -36,9 +36,9 @@ namespace libmaus2
 		struct Deflate
 		{
 			static uint64_t const maxbufsize = 256*1024;
-			
+
 			typedef libmaus2::aio::OutputStreamInstance::unique_ptr_type out_file_ptr_type;
-			
+
 			z_stream strm;
 			out_file_ptr_type out_ptr;
 			std::ostream & out;
@@ -51,7 +51,7 @@ namespace libmaus2
 				strm.zalloc = Z_NULL;
 				strm.zfree = Z_NULL;
 				strm.opaque = Z_NULL;
-				int ret = deflateInit2(&strm, level, Z_DEFLATED, -15 /* window size */, 
+				int ret = deflateInit2(&strm, level, Z_DEFLATED, -15 /* window size */,
 					8 /* mem level, gzip default */, Z_DEFAULT_STRATEGY);
 				if ( ret != Z_OK )
 				{
@@ -60,8 +60,8 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				Bin = ::libmaus2::autoarray::AutoArray<Bytef>(maxbufsize,false);	
-				Bout = ::libmaus2::autoarray::AutoArray<Bytef>(maxbufsize,false);	
+				Bin = ::libmaus2::autoarray::AutoArray<Bytef>(maxbufsize,false);
+				Bout = ::libmaus2::autoarray::AutoArray<Bytef>(maxbufsize,false);
 			}
 
 			void init(int const level)
@@ -78,10 +78,10 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				Bin = ::libmaus2::autoarray::AutoArray<Bytef>(maxbufsize,false);	
-				Bout = ::libmaus2::autoarray::AutoArray<Bytef>(maxbufsize,false);	
+				Bin = ::libmaus2::autoarray::AutoArray<Bytef>(maxbufsize,false);
+				Bout = ::libmaus2::autoarray::AutoArray<Bytef>(maxbufsize,false);
 			}
-			
+
 			Deflate(
 				std::ostream & rout,
 				int level = Z_DEFAULT_COMPRESSION,
@@ -93,7 +93,7 @@ namespace libmaus2
 				else
 					initNoHeader(level);
 			}
-			
+
 			Deflate(
 				std::string const & filename,
 				int level = Z_DEFAULT_COMPRESSION,
@@ -106,7 +106,7 @@ namespace libmaus2
 				else
 					initNoHeader(level);
 			}
-			
+
 			static uint32_t compressNoHeader(
 				char const * p,
 				uint64_t const len,
@@ -119,11 +119,11 @@ namespace libmaus2
 				defl.flush();
 
 				uint32_t crc = crc32(0,0,0);
-				crc = crc32(crc, reinterpret_cast<Bytef const *>(p), len);        
-				
+				crc = crc32(crc, reinterpret_cast<Bytef const *>(p), len);
+
 				return crc;
 			}
-			
+
 			static std::pair<uint64_t,uint32_t> compressNoHeaderMaxLen(
 				char const * p, uint64_t len, std::ostream & out,
 				uint64_t const maxlen,
@@ -135,7 +135,7 @@ namespace libmaus2
 				{
 					std::ostringstream ostr;
 					uint32_t const crc = compressNoHeader(p,len,ostr,level);
-					
+
 					if ( ostr.str().size() <= maxlen )
 					{
 						out.write ( ostr.str().c_str(), ostr.str().size() );
@@ -146,7 +146,7 @@ namespace libmaus2
 						len -= std::min(len,static_cast<uint64_t>(lenred));
 					}
 				} while ( len );
-				
+
 				::libmaus2::exception::LibMausException se;
 				se.getStream() << "Unable to compress data into space " << maxlen << std::endl;
 				se.finish();
@@ -172,7 +172,7 @@ namespace libmaus2
 				//
 				return P;
 			}
-			
+
 			static uint64_t compressBlockBGZF(std::ostream & out, char * p, uint64_t const len,
 				int const level = Z_DEFAULT_COMPRESSION)
 			{
@@ -185,26 +185,26 @@ namespace libmaus2
 				// std::cerr << "Compressed block of size " << len << " remaining " << len-P.first << std::endl;
 				return len-P.first; // unstored rest
 			}
-			
+
 			static void compressStreamBGZF(std::istream & in, std::ostream & out,
 				int const level = Z_DEFAULT_COMPRESSION)
 			{
 				::libmaus2::autoarray::AutoArray<char> B(64*1024,false);
 				uint64_t used = 0;
-				
+
 				while ( in )
 				{
 					in.read(B.begin()+used,B.size()-used);
 					used += in.gcount();
 					used = compressBlockBGZF(out,B.begin(),used,level);
 				}
-				
+
 				while ( used )
 				{
 					used = compressBlockBGZF(out,B.begin(),used,level);
 				}
 			}
-			
+
 			void write(char const * p, uint64_t len)
 			{
 				while ( len )
@@ -213,7 +213,7 @@ namespace libmaus2
 					strm.avail_in = clen;
 					std::copy(p,p+clen,Bin.begin());
 					strm.next_in = Bin.begin();
-					
+
 					#if 0
 					std::cerr << "Feeding " <<
 						std::string(
@@ -221,7 +221,7 @@ namespace libmaus2
 							reinterpret_cast<char const *>(Bin.begin()+clen))
 							<< std::endl;
 					#endif
-					
+
 					do
 					{
 						strm.avail_out = Bout.size();
@@ -237,20 +237,20 @@ namespace libmaus2
 						uint64_t const have = Bout.size() - strm.avail_out;
 						out.write(reinterpret_cast<char const *>(Bout.begin()),have);
 					} while (strm.avail_out == 0);
-					
+
 					assert ( strm.avail_in == 0);
-					
+
 					len -= clen;
 					p += clen;
 				}
-				
+
 				assert ( ! len );
 			}
-			
+
 			void flush()
 			{
 				int ret;
-				
+
 				do
 				{
 					strm.avail_in = 0;
@@ -267,15 +267,15 @@ namespace libmaus2
 					}
 					uint64_t have = Bout.size() - strm.avail_out;
 					out.write(reinterpret_cast<char const *>(Bout.begin()),have);
-					
+
 					// std::cerr << "Writing " << have << " bytes in flush" << std::endl;
 				} while (strm.avail_out == 0);
-						
+
 				assert ( ret == Z_STREAM_END );
-				
+
 				deflateEnd(&strm);
 				out.flush();
-				
+
 				if ( out_ptr.get() )
 				{
 					out_ptr->flush();
@@ -283,24 +283,24 @@ namespace libmaus2
 				}
 			}
 		};
-		
+
 		struct BGZFWriter
 		{
 			typedef BGZFWriter this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			typedef libmaus2::aio::OutputStreamInstance ostream_type;
 			typedef ::libmaus2::util::unique_ptr<ostream_type>::type ostream_ptr_type;
-			
+
 			ostream_ptr_type Postr;
 			std::ostream & ostr;
 			int const level;
-			
+
 			::libmaus2::autoarray::AutoArray<char> B;
 			char * const pa;
 			char * pc;
 			char * const pe;
-			
+
 			BGZFWriter(std::ostream & rostr, int const rlevel = Z_DEFAULT_COMPRESSION)
 			: ostr(rostr), level(rlevel), B(64*1024,false), pa(B.begin()), pc(pa), pe(B.end())
 			{}
@@ -308,7 +308,7 @@ namespace libmaus2
 			: Postr(new ostream_type(filename)), ostr(*Postr), level(rlevel),
 			  B(64*1024,false), pa(B.begin()), pc(pa), pe(B.end())
 			{}
-			
+
 			void flushInternal()
 			{
 				if ( pc != pa )
@@ -318,31 +318,31 @@ namespace libmaus2
 					pc = pa + rem;
 				}
 			}
-			
+
 			void flush()
 			{
 				while ( pc != pa )
 					flushInternal();
 				ostr.flush();
 			}
-	
+
 			void write(char const * p, uint64_t len)
 			{
 				while ( len )
 				{
 					if ( pc == pe )
 						flushInternal();
-					
+
 					uint64_t const avail = pe-pc;
 					uint64_t const towrite = std::min(avail,len);
-					
+
 					std::copy(p,p+towrite,pc);
 					p += towrite;
 					pc += towrite;
 					len -= towrite;
 				}
 			}
-			
+
 			void put(int d)
 			{
 				uint8_t const c = d;
@@ -358,31 +358,31 @@ namespace libmaus2
 				flush();
 			}
 		};
-		
+
 		struct BGZFWriterWrapper
 		{
 			BGZFWriter writer;
-		
+
 			BGZFWriterWrapper(std::ostream & out, int const level = Z_DEFAULT_COMPRESSION) : writer(out,level) {}
 			BGZFWriterWrapper(std::string const & filename, int const level = Z_DEFAULT_COMPRESSION) : writer(filename,level) {}
 		};
-		
+
 		struct BGZFOutputStreamBuffer : public BGZFWriterWrapper, public ::std::streambuf
 		{
 			uint64_t const buffersize;
 			::libmaus2::autoarray::AutoArray<char> buffer;
-		
+
 			BGZFOutputStreamBuffer(std::ostream & out, uint64_t const rbuffersize, int const level = Z_DEFAULT_COMPRESSION)
-			: BGZFWriterWrapper(out,level), buffersize(rbuffersize), buffer(buffersize,false) 
+			: BGZFWriterWrapper(out,level), buffersize(rbuffersize), buffer(buffersize,false)
 			{
 				setp(buffer.begin(),buffer.end());
 			}
 			BGZFOutputStreamBuffer(std::string const & filename, uint64_t const rbuffersize, int const level = Z_DEFAULT_COMPRESSION)
-			: BGZFWriterWrapper(filename,level), buffersize(rbuffersize), buffer(buffersize,false) 
+			: BGZFWriterWrapper(filename,level), buffersize(rbuffersize), buffer(buffersize,false)
 			{
 				setp(buffer.begin(),buffer.end()-1);
 			}
-			
+
 			int_type overflow(int_type c = traits_type::eof())
 			{
 				if ( c != traits_type::eof() )
@@ -394,7 +394,7 @@ namespace libmaus2
 
 				return c;
 			}
-			
+
 			void doSync()
 			{
 				int64_t const n = pptr()-pbase();
@@ -407,19 +407,19 @@ namespace libmaus2
 				writer.flush();
 				return 0; // no error, -1 for error
 			}
-			
+
 			void addEOFBlock()
 			{
 				writer.addEOFBlock();
 			}
 		};
-		
+
 		struct BGZFOutputStream : public BGZFOutputStreamBuffer, public std::ostream
-		{	
+		{
 			typedef BGZFOutputStream this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			BGZFOutputStream(std::ostream & out, uint64_t const rbuffersize = 64*1024, int const level = Z_DEFAULT_COMPRESSION)
 			: BGZFOutputStreamBuffer(out,rbuffersize,level), std::ostream(this)
 			{
@@ -433,27 +433,27 @@ namespace libmaus2
 		{
 			typedef BlockDeflate this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			typedef libmaus2::aio::OutputStreamInstance ostream_type;
 			typedef ::libmaus2::util::unique_ptr<ostream_type>::type ostream_ptr_type;
-			
+
 			ostream_ptr_type Postr;
 			ostream_type & ostr;
-			
+
 			std::vector< std::pair<uint64_t, uint64_t> > index;
-			
+
 			::libmaus2::autoarray::AutoArray<uint8_t> B;
 			uint8_t * const pa;
 			uint8_t * pc;
 			uint8_t * const pe;
-			
+
 			int const level;
-			
+
 			BlockDeflate(std::string const & filename, uint64_t const blocksize = 128ull*1024ull, int rlevel = Z_DEFAULT_COMPRESSION)
 			: Postr(new ostream_type(filename)), ostr(*Postr),
 			  B(blocksize), pa(B.begin()), pc(pa), pe(B.end()), level(rlevel)
 			{}
-			
+
 			void write(uint8_t const * p, uint64_t n)
 			{
 				while ( n )
@@ -467,14 +467,14 @@ namespace libmaus2
 						dataFlush();
 				}
 			}
-			
+
 			void put(uint8_t const v)
 			{
 				*(pc++) = v;
 				if ( pc == pe )
 					dataFlush();
 			}
-			
+
 			void dataFlush()
 			{
 				if ( pc != pa )
@@ -487,7 +487,7 @@ namespace libmaus2
 					pc = pa;
 				}
 			}
-			
+
 			void flush()
 			{
 				dataFlush();

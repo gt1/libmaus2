@@ -34,16 +34,16 @@ namespace libmaus2
 				typedef GenericInputControlReorderWorkPackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-						
+
 				libmaus2::bambam::parallel::AlignmentBuffer::shared_ptr_type in;
 				libmaus2::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type out;
 				std::pair<uint64_t,uint64_t> I;
 				uint64_t index;
-						
+
 				GenericInputControlReorderWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), in(), out(), I(), index(0) {}
 				GenericInputControlReorderWorkPackage(
-					uint64_t const rpriority, 
-					uint64_t const rdispatcherid, 
+					uint64_t const rpriority,
+					uint64_t const rdispatcherid,
 					libmaus2::bambam::parallel::AlignmentBuffer::shared_ptr_type rin,
 					libmaus2::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type rout,
 					std::pair<uint64_t,uint64_t> const rI,
@@ -51,9 +51,9 @@ namespace libmaus2
 				)
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), in(rin), out(rout), I(rI), index(rindex)
 				{
-							
+
 				}
-						
+
 				char const * getPackageName() const
 				{
 					return "GenericInputControlReorderWorkPackage";

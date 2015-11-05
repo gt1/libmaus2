@@ -32,9 +32,9 @@ namespace libmaus2
 			typedef IRodsInputStreamFactory this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			virtual ~IRodsInputStreamFactory() {}
-			
+
 			virtual libmaus2::aio::InputStream::unique_ptr_type constructUnique(std::string const & filename)
 			{
 				libmaus2::util::shared_ptr<std::istream>::type iptr(new IRodsInputStream(filename));

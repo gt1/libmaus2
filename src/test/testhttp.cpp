@@ -23,17 +23,17 @@
 int main(int argc, char * argv[])
 {
 	try
-	{	
+	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
-				
+
 		std::string const url = arginfo.getRestArg<std::string>(0);
 		libmaus2::network::HttpHeader preheader("HEAD","",url);
 		int64_t const length = preheader.getContentLength();
-		int64_t const packetsize = 
+		int64_t const packetsize =
 			(
 				arginfo.hasArg("packetsize")
-				&& 
-				arginfo.getUnparsedValue("packetsize","").size() 
+				&&
+				arginfo.getUnparsedValue("packetsize","").size()
 				&&
 				isdigit(arginfo.getUnparsedValue("packetsize","")[0])
 			)
@@ -41,7 +41,7 @@ int main(int argc, char * argv[])
 			arginfo.getValueUnsignedNumeric<uint64_t>("packetsize",2*1024)
 			:
 			arginfo.getValue<int64_t>("packetsize",2*1024);
-		
+
 		// if length is known and server supports range then read document in blocks of size 2048
 		if ( length >= 0 && preheader.hasRanges() && packetsize > 0 )
 		{
@@ -50,12 +50,12 @@ int main(int argc, char * argv[])
 			libmaus2::autoarray::AutoArray<char> A(256,false);
 
 			std::cerr << preheader.statusline << std::endl;
-			
+
 			for ( uint64_t p = 0; p < numpackets; ++p )
 			{
 				uint64_t const low = p * packetsize;
 				uint64_t const high = std::min(low+packetsize,static_cast<uint64_t>(length));
-				
+
 				std::ostringstream addreqstr;
 				addreqstr << "Range: bytes=" << low << "-" << (high-1) << "\r\n";
 				std::string const addreq = addreqstr.str();
@@ -65,7 +65,7 @@ int main(int argc, char * argv[])
 
 				uint64_t n = 0;
 				while ( (n = body.read(A.begin(),A.size())) != 0 )
-					std::cout.write(A.begin(),n);				
+					std::cout.write(A.begin(),n);
 			}
 		}
 		// otherwise read document in one go
@@ -74,7 +74,7 @@ int main(int argc, char * argv[])
 			libmaus2::network::HttpHeader header("GET","",url);
 			std::cerr << header.statusline << std::endl;
 			libmaus2::network::HttpBody body(header.getStream(),header.isChunked(),header.getContentLength());
-		
+
 			libmaus2::autoarray::AutoArray<char> A(256,false);
 			uint64_t n = 0;
 			while ( (n = body.read(A.begin(),A.size())) != 0 )

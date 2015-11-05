@@ -32,18 +32,18 @@ namespace libmaus2
 			typedef HttpSocketInputStreamBuffer this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			HttpSocketInputStreamBuffer(
 				std::string const & url,
-				uint64_t const bufsize, 
+				uint64_t const bufsize,
 				uint64_t const pushbacksize = 0
-			) 
+			)
 			:
 				libmaus2::network::HttpHeaderWrapper("GET",std::string(),url),
 				libmaus2::network::HttpBodyWrapper(getHttpHeader().getStream(),getHttpHeader().isChunked(),getHttpHeader().getContentLength()),
 				libmaus2::network::SocketInputStreamBuffer(getHttpBody(),bufsize,pushbacksize)
 			{
-			
+
 			}
 		};
 	}

@@ -30,7 +30,7 @@ namespace libmaus2
 				enum block_sort_control_input_enum {
 					block_sort_control_input_bam = 0,
 					block_sort_control_input_sam = 1
-				};			
+				};
 			};
 		}
 	}

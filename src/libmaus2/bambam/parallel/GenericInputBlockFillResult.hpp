@@ -30,11 +30,11 @@ namespace libmaus2
 			struct GenericInputBlockFillResult
 			{
 				typedef GenericInputBlockFillResult this_type;
-				
+
 				bool empty;
 				bool eof;
 				uint64_t gcount;
-				
+
 				GenericInputBlockFillResult(bool const rempty = true, bool const reof = true, uint64_t const rgcount = 0)
 				: empty(rempty), eof(reof), gcount(rgcount)
 				{

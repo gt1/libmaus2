@@ -45,9 +45,9 @@ namespace libmaus2
 				}
 				else
 				{
-					ostr << (n / (1024.0*1024.0*1024.0)) << "g";	
+					ostr << (n / (1024.0*1024.0*1024.0)) << "g";
 				}
-				
+
 				return ostr.str();
 			}
 		};

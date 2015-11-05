@@ -35,23 +35,23 @@ namespace libmaus2
 		{
 			private:
 			static uint64_t const headersize = 1*sizeof(uint64_t);
-			
+
 			::libmaus2::aio::InputStreamInstance::unique_ptr_type Pfilestream;
 			std::istream & stream;
 			Lz4Index index;
 
 			::libmaus2::autoarray::AutoArray<char> buffer;
 			::libmaus2::autoarray::AutoArray<char> cbuffer;
-			
+
 			uint64_t symsread;
 
 			Lz4DecoderBuffer(Lz4DecoderBuffer const &);
 			Lz4DecoderBuffer & operator=(Lz4DecoderBuffer &);
-			
+
 			void init()
 			{
-				setg(buffer.end(), buffer.end(), buffer.end());	
-				
+				setg(buffer.end(), buffer.end(), buffer.end());
+
 				// seek to start of first block
 				if ( index.payloadbytes )
 				{
@@ -62,11 +62,11 @@ namespace libmaus2
 			}
 
 			static int decompressBlock(
-				char const * input, char * output, 
+				char const * input, char * output,
 				uint64_t const inputsize,
 				uint64_t const maxoutputsize
                         );
-			
+
 			public:
 			Lz4DecoderBuffer(std::string const & filename)
 			: Pfilestream(new ::libmaus2::aio::InputStreamInstance(filename)),
@@ -96,7 +96,7 @@ namespace libmaus2
 			{
 				return reinterpret_cast<uint8_t const *>(gptr());
 			}
-			
+
 			::std::streampos seekpos(::std::streampos sp, ::std::ios_base::openmode which = ::std::ios_base::in | ::std::ios_base::out)
 			{
 				if ( which & ::std::ios_base::in )
@@ -107,17 +107,17 @@ namespace libmaus2
 					int64_t const curlow = cur - static_cast<int64_t>(gptr()-eback());
 					// current end of buffer (relative)
 					int64_t const curhigh = cur + static_cast<int64_t>(egptr()-gptr());
-					
+
 					// call relative seek, if target is in range
 					if ( sp >= curlow && sp <= curhigh )
 						return seekoff(static_cast<int64_t>(sp) - cur, ::std::ios_base::cur, which);
 
 					// target is out of range, we really need to seek
 					uint64_t tsymsread = (sp / index.blocksize)*index.blocksize;
-					
+
 					// block position
 					uint64_t const blockpos = index[tsymsread/index.blocksize];
-					
+
 					symsread = tsymsread;
 					stream.clear();
 					// seek to block
@@ -127,27 +127,27 @@ namespace libmaus2
 					underflow();
 					// skip bytes in block to get to final position
 					setg(eback(),gptr() + (static_cast<int64_t>(sp)-static_cast<int64_t>(tsymsread)), egptr());
-				
+
 					return sp;
 				}
-				
+
 				return -1;
 			}
-			
+
 			::std::streampos seekoff(::std::streamoff off, ::std::ios_base::seekdir way, ::std::ios_base::openmode which = ::std::ios_base::in | ::std::ios_base::out)
 			{
 				if ( which & ::std::ios_base::in )
 				{
 					int64_t abstarget = 0;
 					int64_t const cur = symsread - (egptr()-gptr());
-					
+
 					if ( way == ::std::ios_base::cur )
 						abstarget = cur + off;
 					else if ( way == ::std::ios_base::beg )
 						abstarget = off;
 					else // if ( way == ::std::ios_base::end )
 						abstarget = static_cast<int64_t>(index.payloadbytes) + off;
-						
+
 					if ( abstarget - cur == 0 )
 					{
 						return abstarget;
@@ -167,10 +167,10 @@ namespace libmaus2
 						return seekpos(abstarget,which);
 					}
 				}
-				
+
 				return -1;
 			}
-			
+
 			int_type underflow()
 			{
 				// if there is still data, then return it
@@ -184,10 +184,10 @@ namespace libmaus2
 
 				if ( symsleft == 0 )
 					return traits_type::eof();
-				
+
 				uint64_t compressedsize = libmaus2::util::UTF8::decodeUTF8(stream);
 				uint64_t uncompressedsize = libmaus2::util::UTF8::decodeUTF8(stream);
-				
+
 				assert ( compressedsize <= cbuffer.size() );
 
 				// load packed data into memory
@@ -199,17 +199,17 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				int const decompsize = decompressBlock(cbuffer.begin(),buffer.begin(),compressedsize,buffer.size());
-				
+
 				assert ( decompsize == static_cast<int>(uncompressedsize) );
-				
+
 				setg(buffer.begin(),buffer.begin(),buffer.begin()+uncompressedsize);
 
 				symsread += uncompressedsize;
-				
+
 				return static_cast<int_type>(*uptr());
-			}			
+			}
 		};
 	}
 }

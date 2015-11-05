@@ -33,17 +33,17 @@ namespace libmaus2
 			typedef InputStreamWrapper this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			typedef std::istream stream_type;
 			typedef libmaus2::util::shared_ptr<stream_type>::type shared_stream_ptr_type;
 
 			shared_stream_ptr_type Sstream;
 			stream_type & stream;
-			
+
 			InputStreamWrapper(shared_stream_ptr_type & Tstream) : Sstream(Tstream), stream(*Sstream) {}
 			InputStreamWrapper(stream_type & rstream)            : Sstream(),        stream(rstream) {}
 			virtual ~InputStreamWrapper() {}
-			
+
 			stream_type & getStream()
 			{
 				return stream;

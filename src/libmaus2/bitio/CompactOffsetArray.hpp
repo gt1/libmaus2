@@ -30,39 +30,39 @@ namespace libmaus2
 		{
 			uint64_t n;
 			uint64_t const addoffset;
-			
+
 			uint64_t * D;
-			
-			
+
+
 			uint64_t size() const
 			{
 				return 3*sizeof(uint64_t) + 1*sizeof(uint64_t *);
 			}
-				
+
 			CompactOffsetArray(
-				uint64_t const rn, 
-				uint64_t const rb, 
+				uint64_t const rn,
+				uint64_t const rb,
 				uint64_t const raddoffset,
 				uint64_t * const rD
-			) 
-			: CompactArrayBase(rb), n(rn), addoffset(raddoffset), D(rD) 
+			)
+			: CompactArrayBase(rb), n(rn), addoffset(raddoffset), D(rD)
 			{
 			}
-			
+
 			uint64_t get(uint64_t i) const { return getBits(i*b); }
 			void set(uint64_t i, uint64_t v) { putBits(i*b, v); }
-			
+
 			uint64_t postfixIncrement(uint64_t i) { uint64_t const v = get(i); set(i,v+1); return v; }
-			
+
 			void putBits(uint64_t const roffset, uint64_t v)
 			{
 				assert ( ( v & vmask ) == v );
-				
+
 				uint64_t const offset = roffset + addoffset;
 				uint64_t * DD = D + (offset >> bshf);
 				uint64_t const bitSkip = (offset & bmsk);
 				uint64_t const bitsinfirstword = bitsInFirstWord[bitSkip];
-				
+
 				uint64_t t = *DD;
 				t &= firstKeepMask[bitSkip];
 				t |= (v >> (b - bitsinfirstword)) << firstShift[bitSkip];
@@ -92,7 +92,7 @@ namespace libmaus2
 
 				// skip bits by masking them
 				v &= getFirstMask[bitSkip];
-				
+
 				if ( b <= restBits )
 				{
 					return v >> (restBits - b);
@@ -100,9 +100,9 @@ namespace libmaus2
 				else
 				{
 					unsigned int const numbits = b - restBits;
-				
+
 					v = (v<<numbits) | (( *(++DD) ) >> (bcnt-numbits));
-				
+
 					return v;
 				}
 			}

@@ -80,6 +80,6 @@
 			out << "Unknown alignment validity value.";
 			break;
 	};
-	
+
 	return out;
 }

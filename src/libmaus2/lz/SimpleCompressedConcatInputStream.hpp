@@ -36,31 +36,31 @@ namespace libmaus2
 			typedef _stream_type stream_type;
 			typedef SimpleCompressedConcatInputStream<stream_type> this_type;
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			private:
 			std::vector< ::libmaus2::lz::SimpleCompressedConcatInputStreamFragment<stream_type> > fragments;
 			::libmaus2::lz::DecompressorObject::unique_ptr_type decompressor;
-			
+
 			libmaus2::autoarray::AutoArray<char> C;
 			libmaus2::autoarray::AutoArray<char> B;
 			char * pa;
 			char * pc;
 			char * pe;
-			
+
 			uint64_t curstream;
 			uint64_t curstreampos;
-			
+
 			uint64_t gcnt;
 
 			bool fillBuffer()
 			{
 				if ( curstream >= fragments.size() )
 					return false;
-				
+
 				// seek
 				fragments[curstream].stream->clear();
 				fragments[curstream].stream->seekg(curstreampos);
-					
+
 				if ( ! (*(fragments[curstream].stream)) )
 				{
 					libmaus2::exception::LibMausException se;
@@ -69,7 +69,7 @@ namespace libmaus2
 					throw se;
 				}
 
-				// byte count accumulator			
+				// byte count accumulator
 				libmaus2::util::CountPutObject CPO;
 				// read number of uncompressed bytes
 				uint64_t const uncomp = libmaus2::util::UTF8::decodeUTF8(*(fragments[curstream].stream));
@@ -77,16 +77,16 @@ namespace libmaus2
 				// read number of compressed bytes
 				uint64_t const comp = ::libmaus2::util::NumberSerialisation::deserialiseNumber(*(fragments[curstream].stream));
 				::libmaus2::util::NumberSerialisation::serialiseNumber(CPO,comp);
-				
+
 				// resize buffers if necessary
 				if ( comp > C.size() )
 					C = libmaus2::autoarray::AutoArray<char>(comp,false);
 				if ( uncomp > B.size() )
 					B = libmaus2::autoarray::AutoArray<char>(uncomp,false);
-					
+
 				fragments[curstream].stream->read(C.begin(),comp);
 				CPO.write(C.begin(),comp);
-				
+
 				if ( ! (*(fragments[curstream].stream)) )
 				{
 					libmaus2::exception::LibMausException se;
@@ -94,7 +94,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				bool const ok = decompressor->rawuncompress(C.begin(),comp,B.begin(),uncomp);
 
 				if ( ! ok )
@@ -104,11 +104,11 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				pa = B.begin();
 				pc = pa;
 				pe = pa + uncomp;
-				
+
 				// start of fragment?
 				if ( curstreampos == fragments[curstream].low.first )
 				{
@@ -132,10 +132,10 @@ namespace libmaus2
 					// shift stream pointer
 					curstreampos += CPO.c;
 				}
-				
+
 				return true;
 			}
-			
+
 			public:
 			SimpleCompressedConcatInputStream(
 				std::vector< SimpleCompressedConcatInputStreamFragment<stream_type> > const & rfragments,
@@ -151,11 +151,11 @@ namespace libmaus2
 					curstreampos = fragments[curstream].low.first;
 				}
 			}
-			
+
 			uint64_t read(char * p, uint64_t n)
 			{
 				uint64_t r = 0;
-				
+
 				while ( n )
 				{
 					if ( pc == pe )
@@ -167,22 +167,22 @@ namespace libmaus2
 							return r;
 						}
 					}
-						
+
 					uint64_t const avail = pe-pc;
 					uint64_t const ln = std::min(avail,n);
-					
+
 					std::copy(pc,pc+ln,p);
-					
+
 					pc += ln;
 					p += ln;
 					n -= ln;
 					r += ln;
 				}
-				
+
 				gcnt = r;
 				return r;
 			}
-			
+
 			int get()
 			{
 				while ( pc == pe )
@@ -194,11 +194,11 @@ namespace libmaus2
 						return -1;
 					}
 				}
-					
+
 				gcnt = 1;
 				return static_cast<int>(static_cast<uint8_t>(*(pc++)));
 			}
-			
+
 			uint64_t gcount() const
 			{
 				return gcnt;

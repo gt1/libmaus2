@@ -50,18 +50,18 @@ namespace libmaus2
 				uint64_t byteSkip = (offset >> bshf);
 				unsigned int const bitSkip = (offset & bmsk);
 				unsigned int const restBits = bcnt-bitSkip;
-					
+
 				uint64_t b = static_cast<uint64_t>(A[byteSkip]);
 				// skip bits by masking them
 				b &= std::numeric_limits<value_type>::max() >> (bcnt - restBits);
-				
+
 				if ( restBits == numbits )
 					return b;
 				else if ( numbits < restBits )
 					return b >> (restBits - numbits);
-					
+
 				numbits -= restBits;
-				
+
 				while ( numbits >= bcnt )
 				{
 					if ( bcnt < 8*sizeof(b) )
@@ -69,10 +69,10 @@ namespace libmaus2
 					b |= static_cast<uint64_t>( A[++byteSkip] );
 					numbits -= bcnt;
 				}
-				
+
 				if ( numbits )
 					b = (b<<numbits) | (static_cast<uint64_t>( A[++byteSkip] ) >> (bcnt-numbits));
-				
+
 				return b;
 			}
 		};
@@ -102,21 +102,21 @@ namespace libmaus2
 				unsigned int const bitSkip = (offset & bmsk);
 				// number of bits in first word we read
 				unsigned int const restBits = bcnt-bitSkip;
-					
+
 				uint64_t b = static_cast<uint64_t>(A[byteSkip]);
 				// skip bits by masking them
 				b &= std::numeric_limits<value_type>::max() >> (bcnt - restBits);
-				
+
 				if ( restBits == numbits )
 					return b;
 				else if ( numbits < restBits )
 					return b >> (restBits - numbits);
-					
+
 				numbits -= restBits;
-					
+
 				if ( numbits )
 					b = (b<<numbits) | (static_cast<uint64_t>( A[++byteSkip] ) >> (bcnt-numbits));
-				
+
 				return b;
 			}
 		};

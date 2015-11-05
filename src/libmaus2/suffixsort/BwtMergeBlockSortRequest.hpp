@@ -67,7 +67,7 @@ namespace libmaus2
 			::libmaus2::suffixsort::BwtMergeZBlockRequestVector zreqvec; // vector of positions in file where rank in this block is requested
 			bool computeTermSymbolHwt;
 			uint64_t lcpnext;
-			
+
 			static bwt_merge_sort_input_type decodeInputType(uint64_t const i)
 			{
 				switch ( i )
@@ -91,11 +91,11 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			template<typename stream_type>
 			void serialise(stream_type & stream) const
 			{
-				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,static_cast<int>(inputtype));		
+				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,static_cast<int>(inputtype));
 				::libmaus2::util::StringSerialisation::serialiseString(stream,fn);
 				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,fs);
 				::libmaus2::util::StringSerialisation::serialiseString(stream,chistfilename);
@@ -112,19 +112,19 @@ namespace libmaus2
 				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,computeTermSymbolHwt);
 				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,lcpnext);
 			}
-			
+
 			std::string serialise() const
 			{
 				std::ostringstream ostr;
 				serialise(ostr);
 				return ostr.str();
 			}
-			
+
 			BwtMergeBlockSortRequest()
 			{
 			}
 
-			template<typename stream_type>	
+			template<typename stream_type>
 			BwtMergeBlockSortRequest(stream_type & stream)
 			:
 				inputtype(decodeInputType(::libmaus2::util::NumberSerialisation::deserialiseNumber(stream))),
@@ -164,7 +164,7 @@ namespace libmaus2
 				bool const rcomputeTermSymbolHwt,
 				uint64_t const rlcpnext
 			)
-			: 
+			:
 				inputtype(rinputtype),
 				fn(rfn),
 				fs(rfs),
@@ -183,21 +183,21 @@ namespace libmaus2
 				lcpnext(rlcpnext)
 			{
 			}
-			
+
 			static BwtMergeBlockSortRequest load(std::string const & s)
 			{
 				std::istringstream istr(s);
 				return BwtMergeBlockSortRequest(istr);
 			}
 
-			
+
 			static ::libmaus2::huffman::HuffmanTree::unique_ptr_type loadCompactHuffmanTree(std::string const & huftreefilename)
 			{
 				libmaus2::aio::InputStreamInstance::unique_ptr_type CIN(new libmaus2::aio::InputStreamInstance(huftreefilename));
 				::libmaus2::huffman::HuffmanTree::unique_ptr_type tH(new ::libmaus2::huffman::HuffmanTree(*CIN));
 				// CIN->close();
 				CIN.reset();
-				
+
 				return UNIQUE_PTR_MOVE(tH);
 			}
 
@@ -205,11 +205,11 @@ namespace libmaus2
 			{
 				// deserialise symbol frequences
 				libmaus2::aio::InputStreamInstance::unique_ptr_type chistCIN(new libmaus2::aio::InputStreamInstance(huftreefilename));
-				::libmaus2::huffman::HuffmanTreeNode::shared_ptr_type shnode = 
+				::libmaus2::huffman::HuffmanTreeNode::shared_ptr_type shnode =
 					::libmaus2::huffman::HuffmanTreeNode::deserialize(*chistCIN);
 				// chistCIN->close();
 				chistCIN.reset();
-				
+
 				return shnode;
 			}
 
@@ -219,18 +219,18 @@ namespace libmaus2
 				// typedef typename input_types_type::base_input_stream base_input_stream;
 				// typedef typename base_input_stream::char_type char_type;
 				// typedef typename ::libmaus2::util::UnsignedCharVariant<char_type>::type unsigned_char_type;
-			
+
 				// glock.lock();
-			
+
 				#if defined(BWTB3M_DEBUG)
 				gcerrlock.lock();
 				std::cerr << "[SB1] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 				gcerrlock.unlock();
 				#endif
-			
+
 				std::ostringstream tmpfilenamedirstr;
-				tmpfilenamedirstr 
-					<< tmpfilenamebase << "_sortblock_" 
+				tmpfilenamedirstr
+					<< tmpfilenamebase << "_sortblock_"
 					<< std::setw(10) << std::setfill('0') << blockstart
 					<< std::setw(0) << "_"
 					<< std::setw(10) << std::setfill('0') << cblocksize
@@ -244,7 +244,7 @@ namespace libmaus2
 				gcerrlock.unlock();
 				#endif
 
-				::libmaus2::suffixsort::BwtMergeTempFileNameSet const tmpfilenames = 
+				::libmaus2::suffixsort::BwtMergeTempFileNameSet const tmpfilenames =
 					::libmaus2::suffixsort::BwtMergeTempFileNameSet::load(tmpfilenamesser);
 
 				#if defined(BWTB3M_DEBUG)
@@ -252,7 +252,7 @@ namespace libmaus2
 				std::cerr << "[SB3] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 				gcerrlock.unlock();
 				#endif
-				
+
 				// result
 				::libmaus2::suffixsort::BwtMergeBlockSortResult result;
 				// copy request values
@@ -265,10 +265,10 @@ namespace libmaus2
 				std::cerr << "[SB4] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 				gcerrlock.unlock();
 				#endif
-				
+
 				// set up huffman tree
 				unsigned int const albits = maxsym ? (8*sizeof(uint64_t) - ::libmaus2::bitio::Clz::clz(maxsym)) : 0;
-				
+
 				// symbol before block
 				int64_t const presym = input_types_type::linear_wrapper::getSymbolAtPosition(fn,blockstart ? (blockstart-1) : (fs-1));
 
@@ -277,10 +277,10 @@ namespace libmaus2
 				std::cerr << "[SB5] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 				gcerrlock.unlock();
 				#endif
-				
+
 				// start of next block
 				// uint64_t const nextblockstart = (blockstart + cblocksize) % fs;
-				
+
 				// find lcp between this block and start of next
 				uint64_t const blcp = lcpnext; // findSplitCommon<input_types_type>(fn,blockstart,cblocksize,nextblockstart,fs);
 
@@ -289,11 +289,11 @@ namespace libmaus2
 				std::cerr << "[SB6] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 				gcerrlock.unlock();
 				#endif
-				
+
 				// size of input string we need to read
 				uint64_t const readsize = (cblocksize + blcp + 1);
-				
-				// 
+
+				//
 				typedef typename input_types_type::string_type string_type;
 				typedef typename input_types_type::circular_wrapper circular_wrapper;
 				typedef typename circular_wrapper::unique_ptr_type circular_wrapper_ptr_type;
@@ -330,7 +330,7 @@ namespace libmaus2
 				std::cerr << "[SB9] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 				gcerrlock.unlock();
 				#endif
-				
+
 				// compute character histogram
 				::libmaus2::util::Histogram hist;
 				for ( uint64_t i = 0; i < cblocksize; ++i )
@@ -380,7 +380,7 @@ namespace libmaus2
 				std::cerr << "[SB13] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 				gcerrlock.unlock();
 				#endif
-				
+
 				// remove terminator symbols from suffix array
 				saidx_t * out = SA.begin();
 				for ( saidx_t * in = SA.begin(); in != SA.end(); ++in )
@@ -405,7 +405,7 @@ namespace libmaus2
 				gcerrlock.unlock();
 				#endif
 
-				// check if we find the same via binary search		
+				// check if we find the same via binary search
 				assert ( result.getBlockP0Rank() == input_types_type::circular_suffix_comparator::suffixSearch(SA.begin(), cblocksize, blockstart /* offset */, blockstart, fn, fs) );
 
 				#if defined(BWTB3M_DEBUG)
@@ -413,10 +413,10 @@ namespace libmaus2
 				std::cerr << "[SB16] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 				gcerrlock.unlock();
 				#endif
-				
+
 				// search for rank of first position in complete file
 				// result.absp0rank = ::libmaus2::suffixsort::CircularSuffixComparator::suffixSearch(SA.begin(), cblocksize, blockstart, 0, fn, fs);
-				
+
 				// store sampled inverse suffix array
 				assert ( ::libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(isasamplingrate) == 1 );
 				uint64_t const isasamplingmask = isasamplingrate-1;
@@ -427,9 +427,9 @@ namespace libmaus2
 					uint64_t const pp = SA[r];
 					// absolute position in complete text
 					uint64_t const p = pp + blockstart;
-				
+
 					// sampled position?
-					if ( 
+					if (
 						(! (p & isasamplingmask))
 						||
 						(!pp)
@@ -448,7 +448,7 @@ namespace libmaus2
 				std::cerr << "[SB17] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 				gcerrlock.unlock();
 				#endif
-				
+
 				/**
 				 * compute ranks for lf mapping blocks
 				 **/
@@ -464,14 +464,14 @@ namespace libmaus2
 
 					uint64_t const zrank = input_types_type::circular_suffix_comparator::suffixSearchTryInternal(
 						SA.begin(), T.begin(), T.end(), cblocksize,
-						blockstart, zabspos%fs, 
+						blockstart, zabspos%fs,
 						fn, fs
 					);
-					
+
 					#if 0
 					uint64_t const zrankext = input_types_type::circular_suffix_comparator::suffixSearch(
-						SA.begin(), cblocksize, 
-						blockstart, zabspos%fs, 
+						SA.begin(), cblocksize,
+						blockstart, zabspos%fs,
 						fn, fs
 					);
 					assert ( zrankext == zrank );
@@ -488,7 +488,7 @@ namespace libmaus2
 				gcerrlock.unlock();
 				#endif
 
-				// compute BWT		
+				// compute BWT
 				::libmaus2::bitio::BitVector::unique_ptr_type pGT(new ::libmaus2::bitio::BitVector(cblocksize+1));
 				::libmaus2::bitio::BitVector & GT = *pGT;
 
@@ -501,14 +501,14 @@ namespace libmaus2
 				bool gtflag = false;
 				uint64_t const outcnt = out-SA.begin();
 				uint64_t r0 = outcnt;
-				
+
 				// construct modified bwt
 				for ( saidx_t * in = SA.begin(); in != out; ++in )
 				{
 					saidx_t const saval = *in;
-				
+
 					GT [ saval ] = gtflag;
-				
+
 					if ( saval )
 					{
 						*in = T[saval-1];
@@ -528,7 +528,7 @@ namespace libmaus2
 				std::cerr << "[SB20] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 				gcerrlock.unlock();
 				#endif
-				
+
 				// deallocate text
 				PT.reset();
 
@@ -537,7 +537,7 @@ namespace libmaus2
 				std::cerr << "[SB21] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 				gcerrlock.unlock();
 				#endif
-				
+
 				GT [ cblocksize ] = gtlast;
 
 				#if defined(BWTB3M_DEBUG)
@@ -559,7 +559,7 @@ namespace libmaus2
 					GTHEF.writeBit(GT[i]);
 				GTHEF.flush();
 				#endif
-				
+
 				for ( uint64_t j = 0; j < tmpfilenames.getGT().size(); ++j )
 				{
 					uint64_t const gtpartsize = (cblocksize + tmpfilenames.getGT().size() - 1)/tmpfilenames.getGT().size();
@@ -570,14 +570,14 @@ namespace libmaus2
 						BVO.writeBit(GT[i]);
 					BVO.flush();
 				}
-				
+
 				#if 0
 				libmaus2::bitio::BitVectorOutput BVO(tmpfilenames.getGT());
 				for ( int64_t i = cblocksize; i > 0; --i )
 					BVO.writeBit(GT[i]);
 				BVO.flush();
 				#endif
-				
+
 				pGT.reset();
 
 				#if defined(BWTB3M_DEBUG)
@@ -585,14 +585,14 @@ namespace libmaus2
 				std::cerr << "[SB24] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 				gcerrlock.unlock();
 				#endif
-				
+
 				uint64_t const targetbwtfilesize = (outcnt + tmpfilenames.getBWT().size() - 1) / tmpfilenames.getBWT().size();
 
 				for ( uint64_t b = 0; b < tmpfilenames.getBWT().size(); ++b )
 				{
 					uint64_t const low  = std::min(  b * targetbwtfilesize, outcnt);
 					uint64_t const high = std::min(low + targetbwtfilesize, outcnt);
-					
+
 					rl_encoder bwtenc(tmpfilenames.getBWT()[b],albits/* alphabet bits */,high-low,rlencoderblocksize);
 
 					if ( low <= r0 && r0 < high )
@@ -617,9 +617,9 @@ namespace libmaus2
 					for ( uint64_t i = r0+1; i < outcnt; ++i )
 						bwtenc.encode(SA[i]);
 					#endif
-					
+
 					bwtenc.flush();
-					
+
 					#if defined(BWTB3M_DEBUG)
 					gcerrlock.lock();
 					std::cerr << "[D] generated " << tmpfilenames.getBWT()[b] << " with size " << high-low << std::endl;
@@ -645,9 +645,9 @@ namespace libmaus2
 						std::cerr << "[SB26] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 						gcerrlock.unlock();
 						#endif
-						
+
 						// std::cerr << "writing " << utftmp << std::endl;
-						
+
 						::libmaus2::util::CountPutObject CPO;
 						for ( uint64_t i = 0; i < outcnt; ++i )
 							::libmaus2::util::UTF8::encodeUTF8(SA[i],CPO);
@@ -685,7 +685,7 @@ namespace libmaus2
 						for ( uint64_t i = 0; i < outcnt; ++i )
 							::libmaus2::util::UTF8::encodeUTF8(SA[i],P);
 						#endif
-							
+
 						SA.release();
 
 						#if defined(BWTB3M_DEBUG)
@@ -693,21 +693,21 @@ namespace libmaus2
 						std::cerr << "[SB30] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 						gcerrlock.unlock();
 						#endif
-						
+
 						::libmaus2::autoarray::AutoArray<uint8_t> UT(ucnt,false);
 						libmaus2::aio::InputStreamInstance::unique_ptr_type utfCIS(new libmaus2::aio::InputStreamInstance(utftmp));
 						{
 							char * c  = reinterpret_cast<char *>(UT.begin());
 							uint64_t n = ucnt;
 							uint64_t const bs = 64*1024;
-							
+
 							// utfCIS->read(reinterpret_cast<char *>(UT.begin()),ucnt,64*1024);
 							while ( n )
 							{
 								uint64_t const toread = std::min(n,bs);
 								utfCIS->read(c,toread);
 								uint64_t const got = utfCIS->gcount();
-								
+
 								if ( got )
 								{
 									n -= got;
@@ -740,7 +740,7 @@ namespace libmaus2
 						std::cerr << "[SB32] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 						gcerrlock.unlock();
 						#endif
-						
+
 						std::string const tmpfileprefix = tmpfilenamedir + "_wt";
 						::libmaus2::wavelet::Utf8ToImpCompactHuffmanWaveletTree::constructWaveletTree<true>(
 							UT,tmpfilenames.getHWT(),tmpfileprefix,uhnode.get(),
@@ -752,7 +752,7 @@ namespace libmaus2
 						std::cerr << "[SB33] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 						gcerrlock.unlock();
 						#endif
-						
+
 						libmaus2::aio::FileRemoval::removeFile(utftmp.c_str());
 
 						#if defined(BWTB3M_DEBUG)
@@ -777,7 +777,7 @@ namespace libmaus2
 						std::cerr << "[SB36] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 						gcerrlock.unlock();
 						#endif
-						
+
 						// construct huffman shaped wavelet tree
 						libmaus2::util::FileTempFileContainer FTFC(tmpgen);
 
@@ -793,7 +793,7 @@ namespace libmaus2
 							IEWGH.putSymbol(SA[i]);
 						IEWGH.putSymbol(bwtterm);
 						for ( uint64_t i = r0+1; i < outcnt; ++i )
-							IEWGH.putSymbol(SA[i]);		
+							IEWGH.putSymbol(SA[i]);
 
 						#if defined(BWTB3M_DEBUG)
 						gcerrlock.lock();
@@ -829,17 +829,17 @@ namespace libmaus2
 					hwtReqCOS.flush();
 					//hwtReqCOS.close();
 				}
-				
+
 				// glock.unlock();
-				
+
 				return result;
 			}
-			
+
 			template<typename rl_encoder>
 			std::string dispatch() const
 			{
 				::libmaus2::suffixsort::BwtMergeBlockSortResult result;
-				
+
 				switch (inputtype)
 				{
 					case bwt_merge_input_type_byte:
@@ -865,13 +865,13 @@ namespace libmaus2
 						::libmaus2::exception::LibMausException ex;
 						ex.getStream() << "Number " << inputtype << " is not a valid input type designator." << std::endl;
 						ex.finish();
-						throw ex;				
+						throw ex;
 					}
 				}
 				return result.serialise();
 			}
 		};
-		
+
 		std::ostream & operator<<(std::ostream & out, BwtMergeBlockSortRequest const & o);
 	}
 }

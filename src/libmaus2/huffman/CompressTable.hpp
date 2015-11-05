@@ -47,11 +47,11 @@ namespace libmaus2
 		struct CompressTable
 		{
 			enum Visit { First, Second, Third };
-			
+
 			unsigned int const lookupbits;
 			uint64_t const entriespernode;
 			::libmaus2::autoarray::AutoArray < CompressTableEntry<words> > entries;
-			
+
 			CompressTableEntry<words> const & operator()(unsigned int const tableid, uint64_t const mask) const
 			{
 				return entries [ tableid * entriespernode + mask ];
@@ -63,32 +63,32 @@ namespace libmaus2
 				::std::stack < ::std::pair < HuffmanTreeNode const *, Visit > > S;
 
 				S.push( ::std::pair < HuffmanTreeNode const *, Visit > (root,First) );
-				
+
 				::std::map < HuffmanTreeInnerNode const *, unsigned int > nodeToId;
 				::std::vector < HuffmanTreeInnerNode const * > idToNode;
 
 				while ( ! S.empty() )
 				{
-					HuffmanTreeNode const * node = S.top().first; 
+					HuffmanTreeNode const * node = S.top().first;
 					Visit const firstvisit = S.top().second;
 					S.pop();
-					
+
 					if ( node->isLeaf() )
 					{
 						#if 0
 						HuffmanTreeLeaf const * lnode = dynamic_cast<HuffmanTreeLeaf const *>(node);
 						#endif
 					}
-					else 
+					else
 					{
 						HuffmanTreeInnerNode const * inode = dynamic_cast<HuffmanTreeInnerNode const *>(node);
-						
+
 						if ( firstvisit == First )
 						{
 							unsigned int const id = idToNode.size();
 							nodeToId[inode] = id;
 							idToNode.push_back(inode);
-							
+
 							S.push( ::std::pair < HuffmanTreeNode const *, Visit > (node,Second) );
 							S.push( ::std::pair < HuffmanTreeNode const *, Visit > (inode->left,First) );
 						}
@@ -102,16 +102,16 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				entries = ::libmaus2::autoarray::AutoArray < CompressTableEntry<words> >( entriespernode * idToNode.size() );
-				
+
 				// ::std::cerr << "Number of entries is " << entriespernode * idToNode.size() << ::std::endl;
-				
+
 				for ( unsigned int id = 0; id < idToNode.size(); ++id )
 				{
 					HuffmanTreeInnerNode const * inode = idToNode[id];
 					uint64_t const offset = id * entriespernode;
-					
+
 					for ( uint64_t m = 0; m != entriespernode; ++m )
 					{
 						CompressTableEntry<words> & entry = entries [ offset + m ];
@@ -119,11 +119,11 @@ namespace libmaus2
 						bool eraseNextBit = (cur == root);
 						unsigned int bitswritten = 0;
 						libmaus2::uint::UInt<words> compressed;
-						
+
 						for ( unsigned int b = 0; b != lookupbits; ++b )
 						{
 							HuffmanTreeInnerNode const * icur = dynamic_cast<HuffmanTreeInnerNode const *>(cur);
-							
+
 							if ( m & (1ull << (lookupbits-b-1) ) )
 							{
 								if ( ! eraseNextBit )
@@ -144,18 +144,18 @@ namespace libmaus2
 								}
 								cur = icur->left;
 							}
-							
+
 							eraseNextBit = false;
-							
+
 							if ( cur->isLeaf() )
 							{
 								entry.symbols.push_back ( dynamic_cast<HuffmanTreeLeaf const *>(cur)->symbol );
 								entry.thresholds.push_back ( bitswritten );
 								cur = root;
-								eraseNextBit = true;	
+								eraseNextBit = true;
 							}
 						}
-						
+
 						entry.compressed = compressed;
 						entry.bitswritten = bitswritten;
 						entry.nexttable = nodeToId.find( dynamic_cast<HuffmanTreeInnerNode const *>(cur))->second;

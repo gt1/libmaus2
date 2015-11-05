@@ -30,11 +30,11 @@ namespace libmaus2
 		{
 			uint64_t ikey;
 			uint64_t ibitoff;
-			
+
 			SparseGammaGapFileIndexDecoderEntry() : ikey(0), ibitoff(0) {}
-			SparseGammaGapFileIndexDecoderEntry(uint64_t const rikey, uint64_t const ribitoff = 0) 
+			SparseGammaGapFileIndexDecoderEntry(uint64_t const rikey, uint64_t const ribitoff = 0)
 			: ikey(rikey), ibitoff(ribitoff) {}
-			
+
 			bool operator<(SparseGammaGapFileIndexDecoderEntry const & o) const
 			{
 				return ikey < o.ikey;

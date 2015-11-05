@@ -20,7 +20,7 @@
 #define LIBMAUS2_DIGEST_SHA1_HPP
 
 #include <libmaus2/digest/DigestBase.hpp>
-	
+
 namespace libmaus2
 {
 	namespace digest
@@ -28,10 +28,10 @@ namespace libmaus2
 		struct SHA1 : public DigestBase<20,6 /* block size 64 shift */, true /* need padding */, 8 /* number length */, false>
 		{
 			void * ctx;
-			
+
 			SHA1();
 			~SHA1();
-			
+
 			void init();
 			void update(uint8_t const * t, size_t l);
 			void digest(uint8_t * digest);

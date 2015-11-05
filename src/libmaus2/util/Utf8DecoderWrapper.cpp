@@ -22,7 +22,7 @@
 libmaus2::util::Utf8DecoderWrapper::Utf8DecoderWrapper(std::string const & filename, uint64_t const buffersize)
 : Utf8DecoderBuffer(filename,buffersize), ::std::wistream(this)
 {
-	
+
 }
 
 wchar_t libmaus2::util::Utf8DecoderWrapper::getSymbolAtPosition(std::string const & filename, uint64_t const offset)

@@ -32,15 +32,15 @@ namespace libmaus2
 				int64_t apos;
 				int64_t bpos;
 				int64_t id;
-				
+
 				TracePoint() {}
 				TracePoint(
 					int64_t const rapos,
 					int64_t const rbpos,
-					int64_t const rid	
+					int64_t const rid
 				) : apos(rapos), bpos(rbpos),id(rid)
 				{
-				
+
 				}
 
 				bool operator<(TracePoint const & T) const

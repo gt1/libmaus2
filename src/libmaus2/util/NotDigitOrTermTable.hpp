@@ -28,12 +28,12 @@ namespace libmaus2
 		struct NotDigitOrTermTable
 		{
 			static char const table[256];
-			
+
 			bool operator[](int i) const
 			{
 				return table[i];
 			}
-			
+
 			std::ostream & print(std::ostream & out) const
 			{
 				out << "NotDigitOrTermTable::table[256] = {\n";
@@ -52,7 +52,7 @@ namespace libmaus2
 				out << "};\n";
 				return out;
 			}
-		};	
+		};
 	}
 }
 #endif

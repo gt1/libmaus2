@@ -33,38 +33,38 @@ namespace libmaus2
 			{
 				libmaus2::util::GrowingFreeList<libmaus2::bambam::BamAlignment> algnFreeList;
 				std::stack<libmaus2::bambam::BamAlignment *> putbackStack;
-				
+
 				size_t byteSize()
 				{
 					return
 						algnFreeList.byteSize() +
 						putbackStack.size() * sizeof(libmaus2::bambam::BamAlignment *);
 				}
-	
+
 				PushBackSpace()
 				: algnFreeList(), putbackStack()
 				{
-				
+
 				}
-				
+
 				void push(uint8_t const * D, uint64_t const bs)
 				{
 					libmaus2::bambam::BamAlignment * algn = algnFreeList.get();
 					algn->copyFrom(D,bs);
 					putbackStack.push(algn);
 				}
-				
+
 				bool empty() const
 				{
 					return putbackStack.empty();
 				}
-				
+
 				libmaus2::bambam::BamAlignment * top()
 				{
 					assert ( ! empty() );
 					return putbackStack.top();
 				}
-				
+
 				void pop()
 				{
 					putbackStack.pop();

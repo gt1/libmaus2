@@ -43,7 +43,7 @@ namespace libmaus2
 					else
 						touppertable[i] = i;
                         }
-                        
+
                         char operator()(char const a) const
                         {
                         	return static_cast<char>(touppertable[static_cast<uint8_t>(a)]);
@@ -53,7 +53,7 @@ namespace libmaus2
                         {
                         	return touppertable[a];
                         }
-                        
+
                         void toupper(std::string & s) const
                         {
                         	for ( std::string::size_type i = 0; i < s.size(); ++i )

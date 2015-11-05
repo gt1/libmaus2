@@ -42,11 +42,11 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			public:
 			/**
 			 * constructor
-			 * 
+			 *
 			 * @param rfilename file name
 			 * @param mode file open mode (as for std::ifstream)
 			 **/
@@ -56,7 +56,7 @@ namespace libmaus2
 				seekg(offset);
 			}
 		};
-		
+
 		/**
 		 * class wrapping a CheckedInputStreamAtOffset object
 		 **/
@@ -64,11 +64,11 @@ namespace libmaus2
 		{
 			//! wrapped object
 			CheckedInputStreamAtOffset object;
-			
+
 			public:
 			/**
 			 * constructor
-			 * 
+			 *
 			 * @param rfilename file name
 			 * @param mode file open mode (as for std::ifstream)
 			 **/

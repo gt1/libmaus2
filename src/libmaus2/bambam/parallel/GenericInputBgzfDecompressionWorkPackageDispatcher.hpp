@@ -38,19 +38,19 @@ namespace libmaus2
 				typedef GenericInputBgzfDecompressionWorkPackageDispatcher this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				GenericInputBgzfDecompressionWorkPackageReturnInterface & packageReturnInterface;
 				GenericInputBgzfDecompressionWorkPackageMemInputBlockReturnInterface & genericInputBgzfDecompressionWorkPackageMemInputBlockReturn;
 				GenericInputBgzfDecompressionWorkPackageDecompressedBlockReturnInterface & genericInputBgzfDecompressionWorkPackageDecompressedBlockReturn;
 				GenericInputBgzfDecompressionWorkSubBlockDecompressionFinishedInterface & genericInputBgzfDecompressionWorkSubBlockDecompressionFinished;
-			
+
 				libmaus2::parallel::LockedFreeList<
 					libmaus2::lz::BgzfInflateZStreamBase,
 					libmaus2::lz::BgzfInflateZStreamBaseAllocator,
 					libmaus2::lz::BgzfInflateZStreamBaseTypeInfo
 				> & deccont;
-			
-			
+
+
 				GenericInputBgzfDecompressionWorkPackageDispatcher(
 					GenericInputBgzfDecompressionWorkPackageReturnInterface & rpackageReturnInterface,
 					GenericInputBgzfDecompressionWorkPackageMemInputBlockReturnInterface & rgenericInputBgzfDecompressionWorkPackageMemInputBlockReturn,
@@ -68,19 +68,19 @@ namespace libmaus2
 				  genericInputBgzfDecompressionWorkSubBlockDecompressionFinished(rgenericInputBgzfDecompressionWorkSubBlockDecompressionFinished),
 				  deccont(rdeccont)
 				{
-				
+
 				}
-			
+
 				void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					assert ( dynamic_cast<GenericInputBgzfDecompressionWorkPackage *>(P) != 0 );
 					GenericInputBgzfDecompressionWorkPackage * BP = dynamic_cast<GenericInputBgzfDecompressionWorkPackage *>(P);
-			
+
 					GenericInputControlSubBlockPending & data = BP->data;
-					
+
 					GenericInputBase::generic_input_shared_block_ptr_type block = data.block;
 					uint64_t const subblockid = data.subblockid;
-			
+
 					// parse header data
 					data.mib->readBlock(
 						block->meta.blocks[subblockid].first,
@@ -94,7 +94,7 @@ namespace libmaus2
 					data.db->streamid = data.mib->streamid;
 					// compute crc32
 					uint32_t const crc = data.db->computeCrc();
-							
+
 					if ( crc != data.mib->crc )
 					{
 						libmaus2::exception::LibMausException lme;
@@ -102,13 +102,13 @@ namespace libmaus2
 						lme.finish();
 						throw lme;
 					}
-			
-					// return decompressed block		
-					genericInputBgzfDecompressionWorkPackageDecompressedBlockReturn.genericInputBgzfDecompressionWorkPackageDecompressedBlockReturn(block->meta.streamid,data.db);		
+
+					// return decompressed block
+					genericInputBgzfDecompressionWorkPackageDecompressedBlockReturn.genericInputBgzfDecompressionWorkPackageDecompressedBlockReturn(block->meta.streamid,data.db);
 					// return compressed block meta info
 					genericInputBgzfDecompressionWorkPackageMemInputBlockReturn.genericInputBgzfDecompressionWorkPackageMemInputBlockReturn(block->meta.streamid,data.mib);
 					// return input block
-					genericInputBgzfDecompressionWorkSubBlockDecompressionFinished.genericInputBgzfDecompressionWorkSubBlockDecompressionFinished(block,subblockid);	
+					genericInputBgzfDecompressionWorkSubBlockDecompressionFinished.genericInputBgzfDecompressionWorkSubBlockDecompressionFinished(block,subblockid);
 					// return work package
 					packageReturnInterface.genericInputBgzfDecompressionWorkPackageReturn(BP);
 				}

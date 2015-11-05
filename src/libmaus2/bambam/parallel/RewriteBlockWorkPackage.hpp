@@ -34,14 +34,14 @@ namespace libmaus2
 				typedef RewriteBlockWorkPackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				AlignmentBuffer::shared_ptr_type parseBlock;
 				AlignmentRewriteBuffer * rewriteBlock;
-	
+
 				RewriteBlockWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), parseBlock(), rewriteBlock(0) {}
-				
+
 				RewriteBlockWorkPackage(
-					uint64_t const rpriority, 
+					uint64_t const rpriority,
 					AlignmentBuffer::shared_ptr_type rparseBlock,
 					AlignmentRewriteBuffer * rrewriteBlock,
 					uint64_t const rparseDispatcherId
@@ -49,7 +49,7 @@ namespace libmaus2
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rparseDispatcherId), parseBlock(rparseBlock), rewriteBlock(rrewriteBlock)
 				{
 				}
-			
+
 				char const * getPackageName() const
 				{
 					return "RewriteBlockWorkPackage";

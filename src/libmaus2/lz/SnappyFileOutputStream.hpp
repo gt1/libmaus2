@@ -31,29 +31,29 @@ namespace libmaus2
 			typedef SnappyFileOutputStream this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			::libmaus2::aio::OutputStreamInstance ostr;
 			SnappyOutputStream< ::libmaus2::aio::OutputStreamInstance > sos;
 
 			SnappyFileOutputStream(std::string const & filename, uint64_t const bufsize = 64*1024)
 			: ostr(filename.c_str()), sos(ostr,bufsize) {}
-			
+
 			void flush()
 			{
 				sos.flush();
 				ostr.flush();
 			}
-			
+
 			void put(int const c)
 			{
 				sos.put(c);
 			}
-			
+
 			void write(char const * c, uint64_t const n)
 			{
 				sos.write(c,n);
 			}
-		};		
+		};
 	}
 }
 #endif

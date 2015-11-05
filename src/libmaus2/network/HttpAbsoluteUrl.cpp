@@ -21,7 +21,7 @@
 std::ostream & libmaus2::network::operator<<(std::ostream & out, libmaus2::network::HttpAbsoluteUrl const & url)
 {
 	std::string const protocol = url.ssl ? "https" : "http";
-	
+
 	if ( (url.port == 80 && !url.ssl) || (url.port == 443 && url.ssl) )
 		out << protocol << "://" << url.host << url.path;
 	else

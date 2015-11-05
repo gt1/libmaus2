@@ -1,7 +1,7 @@
 #if ! defined(HASH_HPP)
 #define HASH_HPP
 
-/* 
+/*
  * This file contains an adaption of some of Bob Jenkins' hash functions for C++
  * For licensing please see Bob Jenkins's remarks below.
  */
@@ -14,7 +14,7 @@ namespace libmaus2
 	{
 		struct EvaHash
 		{
-			static inline uint32_t hashsize(unsigned int n) 
+			static inline uint32_t hashsize(unsigned int n)
 			{
 				return (static_cast<uint32_t>(1))<<(n);
 			}
@@ -43,16 +43,16 @@ namespace libmaus2
 			have at least 1/4 probability of changing.
 			* If mix() is run forward, every bit of c will change between 1/3 and
 			2/3 of the time.  (Well, 22/100 and 78/100 for some 2-bit deltas.)
-			mix() was built out of 36 single-cycle latency instructions in a 
+			mix() was built out of 36 single-cycle latency instructions in a
 			structure that could supported 2x parallelism, like so:
-			a -= b; 
+			a -= b;
 			a -= c; x = (c>>13);
 			b -= c; a ^= x;
 			b -= a; x = (a<<8);
 			c -= a; b ^= x;
 			c -= b; x = (b>>13);
 			...
-			Unfortunately, superscalar Pentiums and Sparcs can't take advantage 
+			Unfortunately, superscalar Pentiums and Sparcs can't take advantage
 			of that parallelism.  They've also turned some of those single-cycle
 			latency instructions into multi-cycle latency instructions.  Still,
 			this is the fastest good hash I could find.  There were about 2^^68
@@ -99,20 +99,20 @@ namespace libmaus2
 			use a bitmask.  For example, if you need only 10 bits, do
 			h = (h & hashmask(10));
 			In which case, the hash table should have hashsize(10) elements.
-		 
+
 			If you are hashing n strings (uint8_t **)k, do it like this:
 			for (i=0, h=0; i<n; ++i) h = hash( k[i], len[i], h);
 
 			By Bob Jenkins, 1996.  bob_jenkins@burtleburtle.net.  You may use this
 			code any way you wish, private, educational, or commercial.  It's free.
-		 
+
 			See http://burlteburtle.net/bob/hash/evahash.html
 			Use for hash table lookup, or anything where one collision in 2^32 is
 			acceptable.  Do NOT use for cryptographic purposes.
 			--------------------------------------------------------------------*/
 			static inline uint32_t hash(
-				uint8_t const * k, 
-				uint32_t length, 
+				uint8_t const * k,
+				uint32_t length,
 				uint32_t initval = 0xb979379e
 			)
 			{
@@ -157,17 +157,17 @@ namespace libmaus2
 			}
 
 			/*--------------------------------------------------------------------
-			This works on all machines.  hash2() is identical to hash() on 
+			This works on all machines.  hash2() is identical to hash() on
 			little-endian machines, except that the length has to be measured
-			in uint32_ts instead of bytes.  It is much faster than hash().  It 
+			in uint32_ts instead of bytes.  It is much faster than hash().  It
 			requires
 			-- that the key be an array of uint32_t's, and
 			-- that all your machines have the same endianness, and
 			-- that the length be the number of uint32_t's in the key
 			--------------------------------------------------------------------*/
 			static inline uint32_t hash2(
-				uint32_t const * k, 
-				uint32_t length, 
+				uint32_t const * k,
+				uint32_t length,
 				uint32_t initval = 0xb979379e
 			)
 			{
@@ -177,7 +177,7 @@ namespace libmaus2
 				len = length;
 				a = b = 0x9e3779b9;  /* the golden ratio; an arbitrary value */
 				c = initval;           /* the previous hash value */
-		 
+
 				/*---------------------------------------- handle most of the key */
 				while (len >= 3)
 				{
@@ -244,7 +244,7 @@ namespace libmaus2
 				b -= c; b -= a; b ^= (a<<18);
 				c -= a; c -= b; c ^= (b>>22);
 			}
-			
+
 			/*
 			--------------------------------------------------------------------
 			hash() -- hash a variable-length key into a 64-bit value
@@ -254,20 +254,20 @@ namespace libmaus2
 			Returns a 64-bit value.  Every bit of the key affects every bit of
 			the return value.  No funnels.  Every 1-bit and 2-bit delta achieves
 			avalanche.  About 41+5len instructions.
-      
+
 			The best hash table sizes are powers of 2.  There is no need to do
 			mod a prime (mod is sooo slow!).  If you need less than 64 bits,
 			use a bitmask.  For example, if you need only 10 bits, do
 			h = (h & hashmask(10));
 			In which case, the hash table should have hashsize(10) elements.
-        
+
 			If you are hashing n strings (ub1 **)k, do it like this:
 			for (i=0, h=0; i<n; ++i) h = hash( k[i], len[i], h);
-          
+
 			By Bob Jenkins, Jan 4 1997.  bob_jenkins@burtleburtle.net.  You may
 			use this code any way you wish, private, educational, or commercial,
 			but I would appreciate if you give me credit.
-			
+
 			See http://burtleburtle.net/bob/hash/evahash.html
 			Use for hash table lookup, or anything where one collision in 2^^64
 			is acceptable.  Do NOT use for cryptographic purposes.
@@ -276,12 +276,12 @@ namespace libmaus2
 			inline static uint64_t hash64(uint8_t const * k, uint64_t length, uint64_t level = 0x9e3779b97f4a7c13LL)
 			{
 				uint64_t a,b,c,len;
-            
+
 				/* Set up the internal state */
 				len = length;
 				a = b = level;                         /* the previous hash value */
 				c = 0x9e3779b97f4a7c13LL; /* the golden ratio; an arbitrary value */
-                    
+
 				/*---------------------------------------- handle most of the key */
 				while (len >= 24)
 				{
@@ -294,7 +294,7 @@ namespace libmaus2
 					mix64(a,b,c);
 					k += 24; len -= 24;
 				}
-                               
+
 				/*------------------------------------- handle the last 23 bytes */
 				c += length;
 				switch(len)              /* all the case statements fall through */
@@ -325,16 +325,16 @@ namespace libmaus2
 					case  1: a+=(static_cast<uint64_t>(k[ 0]));
 					/* case 0: nothing left to add */
 				}
-				
+
 				mix64(a,b,c);
-				
+
 				/*-------------------------------------------- report the result */
 				return c;
 			}
-			
+
 			/*
 			--------------------------------------------------------------------
-			This works on all machines, is identical to hash() on little-endian 
+			This works on all machines, is identical to hash() on little-endian
 			machines, and it is much faster than hash(), but it requires
 			-- that the key be an array of ub8's, and
 			-- that all your machines have the same endianness, and
@@ -349,7 +349,7 @@ namespace libmaus2
 				len = length;
 				a = b = level;                         /* the previous hash value */
 				c = 0x9e3779b97f4a7c13LL; /* the golden ratio; an arbitrary value */
-               
+
 				/*---------------------------------------- handle most of the key */
 				while (len >= 3)
 				{
@@ -377,4 +377,3 @@ namespace libmaus2
 	}
 }
 #endif
-

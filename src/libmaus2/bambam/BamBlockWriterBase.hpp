@@ -33,14 +33,14 @@ namespace libmaus2
 			typedef BamBlockWriterBase this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			virtual ~BamBlockWriterBase() {}
 
 			/**
 			 * write a BAM data block
 			 **/
 			virtual void writeBamBlock(uint8_t const *, uint64_t const) = 0;
-			
+
 			/**
 			 * write alignment
 			 **/

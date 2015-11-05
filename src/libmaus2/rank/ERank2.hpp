@@ -44,7 +44,7 @@ namespace libmaus2
 
 			typedef ERank2 this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			private:
 			// super block size 2^16 bits
 			static unsigned int const sbbitwidth = 16;
@@ -58,7 +58,7 @@ namespace libmaus2
 
 			uint16_t const * const UU;
 			unsigned int const n;
-			
+
 			::libmaus2::autoarray::AutoArray<unsigned int> S; // n / 2^16 * 32 bits = n / 2^11 bits
 			::libmaus2::autoarray::AutoArray<unsigned short> M; // n / 2^16 * 2^16 / 32 * 16 = n/2 bits
 
@@ -72,18 +72,18 @@ namespace libmaus2
 			 * @param U bit vector
 			 * @param rn number of bits in vector (has to be a multiple of 16)
 			 **/
-			ERank2(uint8_t const * const U, unsigned int const rn) 
+			ERank2(uint8_t const * const U, unsigned int const rn)
 			: UU(reinterpret_cast<uint16_t const *>(U)), n(rn), S( divUp(n,sbsize) , false ), M( divUp(n,mbsize), false )
 			{
 				if ( n & mbmask )
 					throw ::std::runtime_error("::libmaus2::rank::ERank2: n is not multiple of 16.");
-					
+
 				unsigned int c = 0;
 
 				// superblock counter
 				int s = -1;
 				int m = -1;
-				
+
 				for ( unsigned int i = 0; i < n; ++i )
 				{
 					if ( (i & sbmask) == 0 )
@@ -95,13 +95,13 @@ namespace libmaus2
 						M[ ++m ] = c - S[s];
 						assert( S[s] + M[m] == c );
 					}
-					
+
 					if ( ::libmaus2::bitio::getBit1(U,i) )
 						c++;
 				}
 			}
 			/**
-			 * Return the position of the ii'th 0 bit. This function is implemented using a 
+			 * Return the position of the ii'th 0 bit. This function is implemented using a
 			 * binary search on the rank1 function.
 			 **/
 			unsigned int select0(unsigned int const ii) const
@@ -109,7 +109,7 @@ namespace libmaus2
 				unsigned int const i = ii+1;
 
 				unsigned int left = 0, right = n;
-				
+
 				while ( (right-left) )
 				{
 					unsigned int const d = right-left;
@@ -129,12 +129,12 @@ namespace libmaus2
 					else
 						right = mid;
 				}
-				
-				return n;		
+
+				return n;
 			}
 
 			/**
-			 * Return the position of the ii'th 1 bit. This function is implemented using a 
+			 * Return the position of the ii'th 1 bit. This function is implemented using a
 			 * binary search on the rank1 function.
 			 **/
 			unsigned int select1(unsigned int const ii) const
@@ -142,7 +142,7 @@ namespace libmaus2
 				unsigned int const i = ii+1;
 
 				unsigned int left = 0, right = n;
-				
+
 				while ( (right-left) )
 				{
 					unsigned int const d = right-left;
@@ -162,8 +162,8 @@ namespace libmaus2
 					else
 						right = mid;
 				}
-				
-				return n;		
+
+				return n;
 			}
 
 			/**
@@ -173,7 +173,7 @@ namespace libmaus2
 			 **/
 			unsigned int rank1(unsigned int i) const
 			{
-				unsigned int const mi = i >> mbbitwidth; 
+				unsigned int const mi = i >> mbbitwidth;
 				unsigned int const ri = i - ( mi << mbbitwidth );
 
 				if ( ri < 16 )
@@ -196,10 +196,10 @@ namespace libmaus2
 			 **/
 			unsigned int byteSize() const
 			{
-				return 
-					sizeof(uint16_t *) + 
+				return
+					sizeof(uint16_t *) +
 					sizeof(unsigned int) +
-					S.byteSize() + 
+					S.byteSize() +
 					M.byteSize();
 			}
 		};

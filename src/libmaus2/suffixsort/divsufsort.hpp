@@ -61,7 +61,7 @@ namespace libmaus2
 			typedef int32_t saint_t;
 			typedef int32_t saidx_t;
 
-			static inline saint_t tr_ilg(saidx_t n) 
+			static inline saint_t tr_ilg(saidx_t n)
 			{
 				return (n & 0xffff0000) ?
 					((n & 0xff000000) ?
@@ -106,7 +106,7 @@ namespace libmaus2
 			typedef typename DivSufSortTypes<bitcount>::saint_t saint_t;
 			typedef DivSufSortTypes<bitcount> base_type;
 
-			static inline saint_t ss_ilg(saidx_t n) 
+			static inline saint_t ss_ilg(saidx_t n)
 			{
 				if ( ss_blocksize == 0 )
 					return base_type::tr_ilg(n);
@@ -120,7 +120,7 @@ namespace libmaus2
 		};
 
 		template<
-			unsigned int bitcount, 
+			unsigned int bitcount,
 			typename symbol_const_iterator,
 			typename index_iterator,
 			typename index_const_iterator,
@@ -157,16 +157,16 @@ namespace libmaus2
 					typec c;
 					typed d;
 				};
-				
+
 				Stack4Element stack[k];
 				unsigned int ssize;
-				
+
 				FiniteStack4()
 				: ssize(0)
 				{
-				
+
 				}
-				
+
 				inline void push(
 					typea a,
 					typeb b,
@@ -181,7 +181,7 @@ namespace libmaus2
 					stack[ssize].d = d;
 					ssize += 1;
 				}
-				
+
 				inline bool pop(
 					typea & a,
 					typeb & b,
@@ -395,7 +395,7 @@ namespace libmaus2
 			  if(first < a) { *first = ~*first; }
 			  return a;
 			}
-			
+
 			inline static void indexSwap(index_iterator & i0, index_iterator & i1)
 			{
 				saidx_t const v0 = *i0;
@@ -421,10 +421,10 @@ namespace libmaus2
 			  saidx_t s, t;
 			  saint_t limit;
 			  saint_t v, x = 0;
-			  
+
 			  for(limit = base_type::ss_ilg(last - first);;) {
 
-			    if((last - first) <= SS_INSERTIONSORT_THRESHOLD) 
+			    if((last - first) <= SS_INSERTIONSORT_THRESHOLD)
 			    {
 				if ( 1 < SS_INSERTIONSORT_THRESHOLD )
 				{
@@ -877,7 +877,7 @@ namespace libmaus2
 				ss_mintrosort(T, PA, a, a + SS_BLOCKSIZE, depth);
 			    else if ( 1 < SS_BLOCKSIZE )
 				ss_insertionsort(T, PA, a, a + SS_BLOCKSIZE, depth);
-			
+
 			    curbufsize = last - (a + SS_BLOCKSIZE);
 			    curbuf = a + SS_BLOCKSIZE;
 			    if(curbufsize <= bufsize) { curbufsize = bufsize, curbuf = buf; }
@@ -885,12 +885,12 @@ namespace libmaus2
 			      ss_swapmerge(T, PA, b - k, b, b + k, curbuf, curbufsize, depth);
 			    }
 			  }
-			  
+
 			  if ( SS_INSERTIONSORT_THRESHOLD < SS_BLOCKSIZE )
 			    ss_mintrosort(T, PA, a, middle, depth);
 			  else if ( 1 < SS_BLOCKSIZE )
 			    ss_insertionsort(T, PA, a, middle, depth);
-			
+
 			  for(k = SS_BLOCKSIZE; i != 0; k <<= 1, i >>= 1) {
 			    if(i & 1) {
 			      ss_swapmerge(T, PA, a - k, a, middle, buf, bufsize, depth);
@@ -902,7 +902,7 @@ namespace libmaus2
 			      ss_mintrosort(T, PA, middle, last, depth);
 			    else if ( 1 < SS_BLOCKSIZE )
 			      ss_insertionsort(T, PA, middle, last, depth);
-			
+
 			    ss_inplacemerge(T, PA, first, middle, last, depth);
 			  }
 
@@ -928,7 +928,7 @@ namespace libmaus2
 		{
 			typedef DivSufSortTypes<bitcount> base_type;
 			typedef typename DivSufSortTypes<bitcount>::saidx_t saidx_t;
-			
+
 			template<typename typea, typename typeb, typename typec, typename typed, typename typee, unsigned int k>
 			struct FiniteStack5
 			{
@@ -940,7 +940,7 @@ namespace libmaus2
 					typed d;
 					typee e;
 				};
-				
+
 				Stack5Element const & operator[](uint64_t const i) const
 				{
 					return stack[i];
@@ -949,16 +949,16 @@ namespace libmaus2
 				{
 					return stack[i];
 				}
-				
+
 				Stack5Element stack[k];
 				unsigned int ssize;
-				
+
 				FiniteStack5()
 				: ssize(0)
 				{
-				
+
 				}
-				
+
 				inline void push(
 					typea a,
 					typeb b,
@@ -975,7 +975,7 @@ namespace libmaus2
 					stack[ssize].e = e;
 					ssize += 1;
 				}
-				
+
 				inline bool pop(
 					typea & a,
 					typeb & b,
@@ -1104,7 +1104,7 @@ namespace libmaus2
 
 			/* Returns the pivot element. */
 			static inline
-			index_iterator 
+			index_iterator
 			tr_pivot(index_const_iterator ISAd, index_iterator first, index_iterator last) {
 			  index_iterator middle;
 			  saidx_t t;
@@ -1130,7 +1130,7 @@ namespace libmaus2
 
 			/*---------------------------------------------------------------------------*/
 
-			struct trbudget_t 
+			struct trbudget_t
 			{
 			  saidx_t chance;
 			  saidx_t remain;
@@ -1543,9 +1543,9 @@ namespace libmaus2
 
 
 		template<
-			unsigned int bitcount, 
-			typename symbol_iterator, 
-			typename symbol_const_iterator, 
+			unsigned int bitcount,
+			typename symbol_iterator,
+			typename symbol_const_iterator,
 			typename index_iterator,
 			typename index_const_iterator,
 			int _ALPHABET_SIZE=256,
@@ -1554,11 +1554,11 @@ namespace libmaus2
 		{
 		        enum { ALPHABET_SIZE = _ALPHABET_SIZE };
 		        enum { ompparallel = _ompparallel };
-                
+
 			typedef typename DivSufSortTypes<bitcount>::saint_t saint_t;
 			typedef typename std::iterator_traits<symbol_const_iterator>::value_type sauchar_t;
 			typedef typename DivSufSortTypes<bitcount>::saidx_t saidx_t;
-			
+
 			static saidx_t const BUCKET_A_SIZE = ALPHABET_SIZE;
 			static saidx_t const BUCKET_B_SIZE = ALPHABET_SIZE * ALPHABET_SIZE;
 
@@ -1684,7 +1684,7 @@ namespace libmaus2
 			    SA[--BUCKET_BSTAR(bucket_B,c0, c1)] = m - 1;
 
 			    /* Sort the type B* substrings using sssort. */
-			    
+
 			#if defined(_OPENMP)
 			  if ( ompparallel )
 			  {
@@ -1694,7 +1694,7 @@ namespace libmaus2
 
                               buf = SA + m, bufsize = (n - (2 * m)) / omp_get_max_threads();
                               c0 = ALPHABET_SIZE - 2, c1 = ALPHABET_SIZE - 1, j = m;
-                              
+
                               #pragma omp parallel default(shared) private(curbuf, k, l, d0, d1)
                               {
                                 curbuf = buf + omp_get_thread_num() * bufsize;
@@ -1719,18 +1719,18 @@ namespace libmaus2
                                          curbuf, bufsize, 2, n, *(SA + k) == (m - 1));
                                 }
                               }
-                              
+
                           }
                           else
 			#endif
 			    {
                               buf = SA + m, bufsize = n - (2 * m);
-                              for(c0 = ALPHABET_SIZE - 2, j = m; 0 < j; --c0) 
+                              for(c0 = ALPHABET_SIZE - 2, j = m; 0 < j; --c0)
                               {
-                                for(c1 = ALPHABET_SIZE - 1; c0 < c1; j = i, --c1) 
+                                for(c1 = ALPHABET_SIZE - 1; c0 < c1; j = i, --c1)
                                 {
                                   i = BUCKET_BSTAR(bucket_B,c0, c1);
-                                  if(1 < (j - i)) 
+                                  if(1 < (j - i))
                                   {
                                     Sssort<bitcount,symbol_const_iterator,index_iterator,index_const_iterator>::sssort(T, PAb, SA + i, SA + j,
                                            buf, bufsize, 2, n, *(SA + i) == (m - 1));
@@ -1993,23 +1993,23 @@ namespace libmaus2
 			}
 
 			static const char *
-			divsufsort_version(void) 
+			divsufsort_version(void)
 			{
 			  return "2.0.1";
 			}
 		};
 
 		template<
-			unsigned int bitcount, 
-			typename symbol_iterator, 
+			unsigned int bitcount,
+			typename symbol_iterator,
 			typename symbol_const_iterator,
 			typename index_iterator,
 			typename index_const_iterator,
 			int ALPHABET_SIZE=256>
 		struct DivSufSortUtils
 		{
-			typedef DivSufSort<bitcount, 
-				symbol_iterator, symbol_const_iterator, 
+			typedef DivSufSort<bitcount,
+				symbol_iterator, symbol_const_iterator,
 				index_iterator, index_const_iterator,
 				ALPHABET_SIZE> sort_type;
 
@@ -2215,7 +2215,7 @@ namespace libmaus2
 			    if((t < 0) || (p != SA[t])) {
 			      if(verbose) {
 				std::ostringstream ostr;
-				ostr << "Suffix in wrong position.\n" 
+				ostr << "Suffix in wrong position.\n"
 					<< " SA[" << t << "]=" << ((0 <= t) ? SA[t] : -1) << " or\n"
 					<< " SA[" << i << "]=" << SA[i] << "\n";
 				fprintf(stderr,"%s",ostr.str().c_str());
@@ -2375,4 +2375,3 @@ namespace libmaus2
 	}
 }
 #endif
-

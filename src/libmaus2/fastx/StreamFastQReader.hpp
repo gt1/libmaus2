@@ -28,7 +28,7 @@ namespace libmaus2
 	namespace fastx
 	{
                 typedef FastQReaderTemplate< ::libmaus2::fastx::StreamFastReaderBase > StreamFastQReader;
-                
+
                 struct StreamFastQReaderWrapper : public StreamFastQReader
                 {
                 	StreamFastQReaderWrapper(std::istream & in) : StreamFastQReader(&in,getDefaultQualityOffset()) {}

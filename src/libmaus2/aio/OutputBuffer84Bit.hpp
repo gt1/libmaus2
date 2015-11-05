@@ -34,7 +34,7 @@ namespace libmaus2
 			private:
 			unsigned int cc;
 			uint64_t lv;
-		
+
 			public:
 			/**
 			 * constructor
@@ -45,9 +45,9 @@ namespace libmaus2
 			OutputBuffer84Bit(std::string const & filename, uint64_t const bufsize)
 			: OutputBuffer8(filename,bufsize), cc(0), lv(0)
 			{
-		
+
 			}
-		
+
 			/**
 			 * flush buffer
 			 **/
@@ -57,18 +57,18 @@ namespace libmaus2
 					put(0);
 				OutputBuffer8::flush();
 			}
-		
+
 			/**
 			 * put one element, flush if buffer is full after putting the new element
 			 **/
 			void put(uint8_t const c)
 			{
 				assert ( c < 16 );
-		
+
 				lv <<= 4;
 				lv |= c;
 				cc += 1;
-		
+
 				if ( cc == 16 )
 				{
 					OutputBuffer8::put(lv);
@@ -76,7 +76,7 @@ namespace libmaus2
 					cc = 0;
 				}
 			}
-			
+
 			/**
 			 * write padding
 			 **/

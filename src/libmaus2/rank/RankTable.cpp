@@ -27,25 +27,25 @@ namespace libmaus2
 	namespace rank
 	{
 		RankTable::RankTable() : table(generateTable()) {}
-		RankTable::~RankTable() { delete [] table; }	
+		RankTable::~RankTable() { delete [] table; }
 		uint8_t * RankTable::generateTable()
 		{
 			uint8_t * table = 0;
-			
+
 			try
 			{
 				table = new uint8_t [ (1<<19) ];
-				
+
 				unsigned int q = 0;
 				for ( unsigned int m = 0; m < (1u<<16); ++m )
 				{
 					uint8_t c = 0;
-					
+
 					for ( unsigned int p = 0; p < 16; ++p )
 					{
 						if ( m & (1u<<(15-p)) )
 							c += 1;
-							
+
 						c &= 0xF;
 
 						if ( !(p & 1) )
@@ -71,15 +71,15 @@ namespace libmaus2
 			}
 		}
 		SimpleRankTable::SimpleRankTable() : table(generateTable()) {}
-		SimpleRankTable::~SimpleRankTable() { delete [] table; }	
+		SimpleRankTable::~SimpleRankTable() { delete [] table; }
 		uint8_t * SimpleRankTable::generateTable()
 		{
 			uint8_t * table = 0;
-			
+
 			try
 			{
 				table = new uint8_t [ (1<<16) ];
-				
+
 				for ( uint32_t m = 0; m < (1u<<16); ++m )
 					table[m] = ::libmaus2::rank::PopCnt4<sizeof(int)>::popcnt4(m);
 

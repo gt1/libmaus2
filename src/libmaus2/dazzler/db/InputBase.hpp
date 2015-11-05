@@ -154,12 +154,12 @@ namespace libmaus2
 					}
 					return v;
 				}
-				
+
 				template<typename stream_type>
 				static float getFloat(stream_type & in, uint64_t & offset)
 				{
 					align(in, sizeof(int32_t), offset);
-					
+
 					uint32_t const u = getUnsignedLittleEndianInteger4(in, offset);
 					union numberpun
 					{

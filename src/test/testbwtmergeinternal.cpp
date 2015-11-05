@@ -22,22 +22,22 @@
 void mergeTwoTest(std::string const s)
 {
 	uint64_t const m = (s.size()+1)/2;
-	
+
 	std::string const front = s.substr(0,m);
 	std::string const back  = s.substr(m);
 
-	#if 0	
+	#if 0
 	if ( (! front.size()) || front == std::string(front.size(),front[0]) )
 		return;
 	#endif
-	
+
 	#if 0
 	if ( (! back.size()) || back == std::string(back.size(),back[0]) )
 		return;
 	#endif
-	
+
 	// std::cerr << s << std::endl;
-	
+
 	uint64_t zrank = 0;
 	int64_t const term = '#';
 	std::pair< std::string,std::vector<bool> > const frontblock = ::libmaus2::suffixsort::CircularBwt::circularBwt(s,0,m,term,&zrank);
@@ -45,12 +45,12 @@ void mergeTwoTest(std::string const s)
 	std::pair< std::string,std::vector<bool> > const backblock = ::libmaus2::suffixsort::CircularBwt::circularBwt(s,m,s.size()-m,term);
 	std::string const backstr = s.substr(m);
 	std::string const & backbwt = backblock.first;
-	
+
 	#if defined(DEBUG)
 	std::cerr << "front: " << s.substr(0,m) << std::endl;
 	std::cerr << "back:  " << s.substr(m) << std::endl;
 	#endif
-	
+
 	std::vector < std::string > frontsuffixes;
 	std::vector < std::string > backsuffixes;
 	std::string const s2 = s+s;
@@ -67,25 +67,25 @@ void mergeTwoTest(std::string const s)
 	typedef ::libmaus2::lf::LF lf_type;
 	typedef lf_type::wt_type wt_type;
 	typedef lf_type::wt_ptr_type wt_ptr_type;
-	
+
 	wt_ptr_type WT(new wt_type(frontbwt.c_str(),frontbwt.size()));
 	lf_type LF(WT);
 	::libmaus2::autoarray::AutoArray<uint64_t> GAP(frontbwt.size()+1);
-	
+
 	// recompute D array, the pseudo bwt is missing one symbol
 	for ( uint64_t i = 0; i < LF.D.size(); ++i )
 		LF.D[i] = 0;
 	for ( uint64_t i = 0; i < m; ++i )
 		LF.D[ s[i] ] ++;
 	LF.D.prefixSums();
-	
+
 	// rank we start with
 	uint64_t r = zrank;
 	#if 0
 	for ( uint64_t i = 0; i < s.size(); ++i )
 		r = LF.step(s[s.size()-i-1],r);
 	#endif
-	
+
 	uint64_t const firstblocklast = s[m-1];
 	std::vector<bool> const & gt = backblock.second;
 	for ( uint64_t ii = 0; ii < backbwt.size(); ++ii )
@@ -97,7 +97,7 @@ void mergeTwoTest(std::string const s)
 		#endif
 		uint64_t const step = LF.step(sym,r);
 		bool const gtf = gt[i+1];
-		
+
 		if ( sym == firstblocklast )
 		{
 			r = step + gtf;
@@ -106,24 +106,24 @@ void mergeTwoTest(std::string const s)
 		{
 			r = step;
 		}
-		
+
 		GAP[r]++;
-		
+
 		std::string const ins = s2.substr(s.size()-ii-1);
 		uint64_t k = 0;
 		while ( k < frontsuffixes.size() && ins > frontsuffixes[k] )
 			++k;
-	
-		#if defined(DEBUG)	
+
+		#if defined(DEBUG)
 		std::cerr << "---\n\n";
-		std::cerr << "Inserted " << s2.substr(s.size()-ii-1) << " rank " << r << " sym=" << static_cast<char>(sym) 
-			<< " step=" << step  
+		std::cerr << "Inserted " << s2.substr(s.size()-ii-1) << " rank " << r << " sym=" << static_cast<char>(sym)
+			<< " step=" << step
 			<< " gt=" << gtf
 			<< " k=" << k
 			<< std::endl;
-		
+
 		for ( uint64_t j = 0; j < frontsuffixes.size(); ++j )
-			std::cerr 
+			std::cerr
 				<< ((j==r) ? ('*') : (' '))
 				<< ((j==prer) ? ('p') : (' '))
 				<< ((j==k) ? ('e') : (' '))
@@ -133,7 +133,7 @@ void mergeTwoTest(std::string const s)
 				<< "[" << std::setw(2) << std::setfill('0') << j << std::setw(0) << "] = " << frontsuffixes[j] << std::endl;
 		#endif
 	}
-	
+
 	std::vector<uint8_t> voutbwt;
 	uint64_t inp = 0;
 	for ( uint64_t i = 0; i < GAP.size(); ++i )
@@ -141,11 +141,11 @@ void mergeTwoTest(std::string const s)
 		for ( uint64_t j = 0; j < GAP[i]; ++j, ++inp )
 		{
 			int64_t const c = backbwt[inp];
-			
+
 			if ( c == term )
 				voutbwt.push_back(s[m-1]);
 			else
-				voutbwt.push_back(c);				
+				voutbwt.push_back(c);
 		}
 		if ( i < frontbwt.size() )
 		{
@@ -154,7 +154,7 @@ void mergeTwoTest(std::string const s)
 			if ( c == term )
 				voutbwt.push_back(s[s.size()-1]);
 			else
-				voutbwt.push_back(c);						
+				voutbwt.push_back(c);
 		}
 	}
 	assert ( inp == backbwt.size() );
@@ -166,9 +166,9 @@ void mergeTwoTest(std::string const s)
 		std::cerr << "(" << voutbwt[i] << "," << fullpair.first[i] << ")";
 	std::cerr << std::endl;
 	#endif
-	
+
 	for ( uint64_t i = 0; i < voutbwt.size(); ++i )
-		assert ( voutbwt[i] == fullpair.first[i] );	
+		assert ( voutbwt[i] == fullpair.first[i] );
 }
 
 int testMergeTwo(unsigned int const k = 16)
@@ -178,9 +178,9 @@ int testMergeTwo(unsigned int const k = 16)
 	#else
 	unsigned int const numthreads = 1;
 	#endif
-		
+
 	std::vector<std::string> strs(numthreads,std::string(k /* +1 */,'#'));
-	
+
 	#if 1
 	#if defined(_OPENMP)
 	#pragma omp parallel for
@@ -192,17 +192,17 @@ int testMergeTwo(unsigned int const k = 16)
 		#else
 		uint64_t const tid = 0;
 		#endif
-	
+
 		std::string & s = strs[tid];
 		for ( unsigned int j = 0; j < k; ++j )
 			s[j] = (i & (1ull << j)) ? 'b' : 'a';
-		
+
 		// std::cerr << s << std::endl;
 		mergeTwoTest(s);
 	}
 	// mergeTwoTest("alabar_a_la_alabarda");
 	#endif
-		
+
 	// mergeTwoTest("babaaaaaaaaaaaaa");
 	return 0;
 }
@@ -214,12 +214,12 @@ uint64_t frec(
 )
 {
 	uint64_t m = 0;
-	
+
 	if ( c > 1 )
 	{
 		for ( uint64_t i = 0; i < (n/z); ++i )
 			m = std::max(
-				m, 
+				m,
 				i * c + (i*z-i) /* zero values */ + frec(n - i * z,z/2,c-1)
 			);
 	}
@@ -227,7 +227,7 @@ uint64_t frec(
 	{
 		m = n;
 	}
-	
+
 	return m;
 }
 
@@ -241,7 +241,7 @@ void f(uint64_t const n)
 		z = n2;
 		++c;
 	}
-	
+
 	std::cerr << "n=" << n << " z=" << z << " c=" << c << " frec=" << frec(n,z,c) << std::endl;
 }
 

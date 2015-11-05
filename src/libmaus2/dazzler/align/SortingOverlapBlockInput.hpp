@@ -32,7 +32,7 @@ namespace libmaus2
 			{
 				typedef SortingOverlapBlockInput this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-				
+
 				libmaus2::aio::InputStreamInstance & ISI;
 				bool const small;
 				std::pair<uint64_t,uint64_t> block;
@@ -40,38 +40,38 @@ namespace libmaus2
 				libmaus2::dazzler::align::Overlap * pa;
 				libmaus2::dazzler::align::Overlap * pc;
 				libmaus2::dazzler::align::Overlap * pe;
-				
+
 				bool haveprev;
 				libmaus2::dazzler::align::Overlap OVLprev;
-				
+
 				SortingOverlapBlockInput(libmaus2::aio::InputStreamInstance & rISI, bool const rsmall, std::pair<uint64_t,uint64_t> rblock, uint64_t rn)
 				: ISI(rISI), small(rsmall), block(rblock), B(rn), pa(B.begin()), pc(B.begin()), pe(B.begin()), haveprev(false)
 				{
-				
+
 				}
-				
+
 				void fillBuffer()
 				{
 					assert ( pc == pe );
-				
+
 					if ( block.second )
 					{
 						ISI.clear();
 						ISI.seekg(block.first);
-						
+
 						uint64_t s = 0;
-						
+
 						uint64_t const toread = std::min(block.second,B.size());
-						
+
 						for ( uint64_t i = 0; i < toread; ++i )
 							libmaus2::dazzler::align::AlignmentFile::readOverlap(ISI,B[i],s,small);
 
 						block.first += s;
 						block.second -= toread;
-						
+
 						pa = B.begin();
 						pc = B.begin();
-						pe = B.begin() + toread;						
+						pe = B.begin() + toread;
 					}
 				}
 
@@ -81,18 +81,18 @@ namespace libmaus2
 						fillBuffer();
 					if ( pc == pe )
 						return false;
-					
+
 					OVL = *(pc++);
-					
+
 					if ( haveprev )
 					{
 						bool const ok = !(OVL < OVLprev);
 						assert ( ok );
 					}
-					
+
 					haveprev = true;
 					OVLprev = OVL;
-					
+
 					return true;
 				}
 			};

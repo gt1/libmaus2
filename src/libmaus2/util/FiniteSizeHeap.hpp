@@ -36,40 +36,40 @@ namespace libmaus2
 			typedef _comparator_type comparator_type;
 			typedef FiniteSizeHeap<element_type,comparator_type> this_type;
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;	
-			
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
 			libmaus2::autoarray::AutoArray<element_type> H;
 			size_t f;
 			comparator_type comp;
-			
+
 			FiniteSizeHeap(uint64_t const size, comparator_type rcomp = comparator_type())
 			: H(size,false), f(0), comp(rcomp)
 			{
-			
+
 			}
-			
+
 			bool empty() const
 			{
 				return (!f);
 			}
-			
+
 			bool full() const
 			{
 				return f == H.size();
 			}
-			
+
 			template<typename init_type>
 			void pushset(init_type const & I)
 			{
 				size_t i = f++;
 				H[i].set(I);
-				
+
 				// while not root
 				while ( i )
 				{
 					// parent index
 					size_t p = (i-1)>>1;
-					
+
 					// order wrong?
 					if ( comp(H[i],H[p]) )
 					{
@@ -83,18 +83,18 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			void push(element_type const & entry)
 			{
 				size_t i = f++;
 				H[i] = entry;
-				
+
 				// while not root
 				while ( i )
 				{
 					// parent index
 					size_t p = (i-1)>>1;
-					
+
 					// order wrong?
 					if ( comp(H[i],H[p]) )
 					{
@@ -108,45 +108,45 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			element_type const & top()
 			{
 				return H[0];
 			}
-			
+
 			void popvoid()
 			{
 				// put last element at root
 				H[0] = H[--f];
-				
+
 				size_t i = 0;
 				size_t r;
-			
-				// while both children exist	
+
+				// while both children exist
 				while ( (r=((i<<1)+2)) < f )
 				{
 					size_t const m = comp(H[r-1],H[r]) ? r-1 : r;
-					
+
 					// order correct?
 					if ( comp(H[i],H[m]) )
 						return;
-					
+
 					std::swap(H[i],H[m]);
 					i = m;
 				}
-				
+
 				// does left child exist?
 				size_t l;
 				if ( ((l = ((i<<1)+1)) < f) && (!(comp(H[i],H[l]))) )
 					std::swap(H[i],H[l]);
 			}
-			
+
 			void pop(element_type & E)
 			{
 				E = H[0];
 				popvoid();
 			}
-			
+
 			element_type pop()
 			{
 				element_type E;

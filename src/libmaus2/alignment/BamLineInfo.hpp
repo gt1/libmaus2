@@ -28,7 +28,7 @@ namespace libmaus2
 		struct BamLineInfo
 		{
 			int32_t score;
-			
+
 			std::string name;
 			int32_t refid;
 			int32_t pos;
@@ -41,11 +41,11 @@ namespace libmaus2
 			std::string seq;
 			std::string qual;
 			unsigned int qualoff;
-			
+
 			uint64_t getFrontSoftClipping() const
 			{
 				if ( cigops.size() && cigops.front().first == libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP )
-					return cigops.front().second;	
+					return cigops.front().second;
 				else
 					return 0;
 			}
@@ -53,15 +53,15 @@ namespace libmaus2
 			uint64_t getBackSoftClipping() const
 			{
 				if ( cigops.size() && cigops.back().first == libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP )
-					return cigops.back().second;	
+					return cigops.back().second;
 				else
 					return 0;
 			}
-			
+
 			double getErrorRate() const
 			{
 				double n = 0, e = 0;
-				
+
 				for ( uint64_t i = 0; i < cigops.size(); ++i )
 				{
 					switch ( cigops[i].first )
@@ -77,14 +77,14 @@ namespace libmaus2
 							break;
 					}
 				}
-				
+
 				double const erate = e/n;
 
 				// std::cerr << "erate=" << erate << std::endl;
-				
-				return erate;		
+
+				return erate;
 			}
-				
+
 			BamLineInfo() : score(-1) {}
 			BamLineInfo(
 				int32_t rscore,
@@ -106,7 +106,7 @@ namespace libmaus2
 			  templatelength(rtemplatelength), seq(rseq), qual(rqual), qualoff(rqualoff)
 			{
 			}
-			
+
 			void encode(libmaus2::bambam::BamWriter & bamwr) const
 			{
 				bamwr.encodeAlignment<
@@ -134,7 +134,7 @@ namespace libmaus2
 				bamwr.putAuxNumber("AS",'i',score);
 				bamwr.commit();
 			}
-			
+
 			bool operator<(BamLineInfo const & O) const
 			{
 				return score > O.score;

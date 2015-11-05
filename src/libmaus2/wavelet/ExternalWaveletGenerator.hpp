@@ -47,30 +47,30 @@ namespace libmaus2
 		{
 			typedef ExternalWaveletGenerator this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			private:
-		
+
 			uint64_t const b;
 			::libmaus2::util::TempFileNameGenerator & tmpgen;
-			
-			
+
+
 			typedef ::libmaus2::bitio::BufferIterator<uint64_t> output_file_type;
 			typedef ::libmaus2::util::unique_ptr<output_file_type>::type output_file_ptr_type;
 			typedef ::libmaus2::autoarray::AutoArray<output_file_ptr_type> output_file_ptr_array_type;
 			typedef output_file_ptr_array_type::unique_ptr_type output_file_ptr_array_ptr_type;
-						
+
 			::libmaus2::autoarray::AutoArray< output_file_ptr_array_ptr_type > outputfiles;
 			std::vector < std::pair<std::string,uint64_t> > filenames;
 			uint64_t symbols;
 			::libmaus2::autoarray::AutoArray< uint64_t > freq;
-			
+
 			void flush()
 			{
 				uint64_t k = 0;
 				for ( uint64_t i = 0; i < b; ++i )
 				{
 					uint64_t const numfiles = 1ull<<i;
-				
+
 					for ( uint64_t j = 0; j < numfiles; ++j, ++k )
 					{
 						(*outputfiles[i])[j]->flush();
@@ -78,7 +78,7 @@ namespace libmaus2
 						filenames[k].second = lbits;
 						(*outputfiles[i])[j].reset();
 					}
-					
+
 					outputfiles[i].reset();
 				}
 			}
@@ -88,7 +88,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
 					libmaus2::aio::FileRemoval::removeFile ( filenames[i].first );
 			}
-			
+
 			public:
 			ExternalWaveletGenerator(uint64_t const rb, ::libmaus2::util::TempFileNameGenerator & rtmpgen)
 			: b(rb), tmpgen(rtmpgen), outputfiles(b), filenames(), symbols(0), freq(1ull<<b)
@@ -100,7 +100,7 @@ namespace libmaus2
                                                 new output_file_ptr_array_type(numfiles)
                                                 );
 					outputfiles[i] = UNIQUE_PTR_MOVE(outputfilesi);
-				
+
 					for ( uint64_t j = 0; j < numfiles; ++j )
 					{
 						std::string const fn = tmpgen.getFileName();
@@ -115,36 +115,36 @@ namespace libmaus2
 					}
 				}
 			}
-			
-			
+
+
 			uint64_t createFinalStream(std::ostream & out)
-			{			
+			{
 				flush();
-							
-				// number of symbols				
+
+				// number of symbols
 				::libmaus2::serialize::Serialize<uint64_t>::serialize(out,symbols);
 				// number of bits per symbol
 				::libmaus2::serialize::Serialize<uint64_t>::serialize(out,b);
-				
+
 				out.flush();
 				concatenateBitVectors(filenames,out);
-				
+
 				removeFiles();
-				
+
 				return symbols;
 			}
-			
+
 			uint64_t createFinalStream(std::string const & filename)
 			{
 				libmaus2::aio::OutputStreamInstance out(filename);
 				return createFinalStream(out);
 			}
-			
-			
+
+
 			void putSymbol(uint64_t const s)
 			{
 				freq[s]++;
-			
+
 				for ( uint64_t i = 0; i < b; ++i )
 				{
 					uint64_t const prefix = s>>(b-i);
@@ -157,10 +157,10 @@ namespace libmaus2
 					#endif
 					(*outputfiles[i])[prefix]->writeBit(bit);
 				}
-				
+
 				symbols += 1;
 			}
-			
+
 			::libmaus2::autoarray::AutoArray<uint64_t> getFreq() const
 			{
 				return freq.clone();
