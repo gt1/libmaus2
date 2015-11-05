@@ -1178,7 +1178,7 @@ namespace libmaus2
 						libmaus2::aio::InputStream::unique_ptr_type Pbpsfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(bpspath));
 						std::istream & bpsfile = *Pbpsfile;
 
-						A = libmaus2::autoarray::AutoArray<char>(off[high],false);
+						A = libmaus2::autoarray::AutoArray<char>(off.back(),false);
 						for ( size_t i = 0; i < high-low; ++i )
 						{
 							if (
