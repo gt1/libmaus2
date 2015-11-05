@@ -23,10 +23,10 @@ int main(int argc, char * argv[])
 	try
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
-		
+
 		std::string const lasfn = arginfo.getUnparsedRestArg(0);
 		int64_t const tspace = libmaus2::dazzler::align::AlignmentFile::getTSpace(lasfn);
-		
+
 		int64_t first_a_read = -1;
 		{
 			libmaus2::aio::InputStreamInstance ISI(lasfn);
@@ -35,12 +35,12 @@ int main(int argc, char * argv[])
 			if ( AF.getNextOverlap(ISI,OVL) )
 				first_a_read = OVL.aread;
 		}
-		
+
 		if ( first_a_read != -1 )
 		{
 			std::string const indexname = libmaus2::dazzler::align::OverlapIndexer::getDalignerIndexName(lasfn);
 			libmaus2::aio::InputStreamInstance indexISI(indexname);
-			
+
 			uint64_t off = 0;
 			uint64_t const omax = libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(indexISI,off);
 			uint64_t const ttot = libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(indexISI,off);
@@ -50,13 +50,13 @@ int main(int argc, char * argv[])
 			uint64_t z = first_a_read;
 			while ( indexISI.peek() != std::istream::traits_type::eof() )
 				imap [ z++ ] = libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(indexISI,off);
-			
+
 			libmaus2::aio::InputStreamInstance ISI(lasfn);
 			libmaus2::dazzler::align::AlignmentFile AF(ISI);
 			libmaus2::dazzler::align::Overlap OVL;
-			
+
 			bool ok = true;
-			
+
 			if ( imap.find(first_a_read) == imap.end() )
 			{
 				std::cerr << "[V] index is missing first read" << std::endl;
@@ -70,10 +70,10 @@ int main(int argc, char * argv[])
 				if ( fmap.find(OVL.aread) == fmap.end() )
 				{
 					fmap[OVL.aread] = fpos;
-					
+
 					if ( imap.find(OVL.aread) != imap.end() )
 					{
-						if ( 
+						if (
 							fpos != imap.find(OVL.aread)->second
 						)
 						{
@@ -86,8 +86,8 @@ int main(int argc, char * argv[])
 						std::cerr << "[V] " << OVL.aread << " is missing from index" << std::endl;
 						ok = false;
 					}
-					
-						
+
+
 					if ( OVL.aread % (256) == 0 )
 						std::cerr << "[V] " << OVL.aread << std::endl;
 				}
@@ -95,7 +95,7 @@ int main(int argc, char * argv[])
 			}
 
 			uint64_t const lastread = fmap.rbegin()->first;
-			
+
 			if ( imap.find(lastread+1) == imap.end() )
 			{
 				std::cerr << "[V] final index value missing" << std::endl;
@@ -106,16 +106,16 @@ int main(int argc, char * argv[])
 				std::cerr << "[V] final index value wrong" << std::endl;
 				ok = false;
 			}
-			
+
 			uint64_t const numreads = (lastread+1-first_a_read);
 			uint64_t const expctdptrs = numreads+1;
-			
+
 			if ( imap.size() != expctdptrs )
 			{
 				std::cerr << "[V] number of pointers in index is wrong" << std::endl;
 				ok = false;
 			}
-			
+
 			for ( uint64_t i = first_a_read; i <= lastread; ++i )
 				// check for empty piles
 				if ( fmap.find(i) == fmap.end() )
@@ -123,7 +123,7 @@ int main(int argc, char * argv[])
 					if ( imap.find(i) != imap.end() && imap.find(i+1) != imap.end() )
 					{
 						int64_t const dif = imap.find(i+1)->second - imap.find(i)->second;
-						
+
 						if ( dif != 0 )
 						{
 							std::cerr << "[V] wrong value pair for pile " << i << std::endl;
@@ -136,7 +136,7 @@ int main(int argc, char * argv[])
 						ok = false;
 					}
 				}
-			
+
 			std::cout << (ok ? "ok" : "failed") << std::endl;
 		}
 	}
