@@ -30,15 +30,15 @@ int64_t libmaus2::lz::IGzipDeflate::deflate(uint8_t * const in, uint64_t const i
 {
 	LZ_Stream2 stream;
 	init_stream(&stream);
-	
+
 	stream.next_in = in;
 	stream.avail_in = insize;
 	stream.next_out = out;
 	stream.avail_out = outsize;
 	stream.end_of_stream = 1;
-	
+
 	fast_lz(&stream);
-	
+
 	if ( stream.avail_out == 0 )
 		return -1;
 	else

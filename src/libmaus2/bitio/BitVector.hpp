@@ -40,49 +40,49 @@ namespace libmaus2
 		{
 			typedef _data_type data_type;
 			typedef BitVectorTemplate<data_type> this_type;
-			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;		
-			
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+
 			static unsigned int const bitsperword = 8*sizeof(data_type);
 			static unsigned int const bitsperwordshift = ::libmaus2::math::MetaLog2<bitsperword>::log;
-			
+
 			uint64_t const n;
 			::libmaus2::autoarray::AutoArray<_data_type> A;
-			
+
 			typedef ::libmaus2::util::AssignmentProxy<this_type,bool> BitVectorProxy;
 
 			uint64_t byteSize() const
 			{
 				return sizeof(uint64_t) + A.byteSize();
 			}
-			
+
 			static ::libmaus2::autoarray::AutoArray<data_type> deserialiseArray(std::istream & in)
 			{
 				::libmaus2::autoarray::AutoArray<data_type> A(in);
 				return A;
 			}
-			
+
 			std::pair<data_type *, unsigned int> getWord(uint64_t const i)
 			{
 				uint64_t const word = i / (8*sizeof(data_type));
 				uint64_t const bit = i - word*(8*sizeof(data_type));
 				return std::pair<data_type *,unsigned int>(A.get()+word,bit);
 			}
-			
+
 			void serialise(std::ostream & out) const
 			{
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,n);
 				A.serialize(out);
 			}
 
-			BitVectorTemplate(std::istream & in) 
+			BitVectorTemplate(std::istream & in)
 			: n(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)), A(in)
 			{
-			
+
 			}
 			BitVectorTemplate(uint64_t const rn, uint64_t const pad = 0) : n(rn), A( (n+bitsperword-1)/bitsperword + pad ) {}
-			
+
 			virtual ~BitVectorTemplate() {}
-			
+
 			data_type const * get() const
 			{
 				return A.get();
@@ -103,7 +103,7 @@ namespace libmaus2
 			void setSync(uint64_t const i, bool b)
 			{
 				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
-				::libmaus2::bitio::putBitSync(A.get(),i,b);				
+				::libmaus2::bitio::putBitSync(A.get(),i,b);
 				#else
 				::libmaus2::exception::LibMausException se;
 				se.getStream() << "BitVector::setSync() called, but compiled binary does not support sync ops." << std::endl;
@@ -141,34 +141,34 @@ namespace libmaus2
 			{
 				return n;
 			}
-			
+
 			uint64_t next1(uint64_t i) const
 			{
 				return next1(A.get(),i);
 			}
-			
+
 			static uint64_t next1(uint64_t const * A, uint64_t i)
 			{
 				uint64_t word = (i >> bitsperwordshift);
 				unsigned int const imask = i&(bitsperword-1);
 				uint64_t v = (A[word] << (imask));
 				uint64_t add = bitsperword-imask;
-				
+
 				while ( ! v )
 				{
 					i += add;
 					v = A[++word];
-					add = bitsperword;	
+					add = bitsperword;
 				}
-				
+
 				return i + __builtin_clzll(v << (64-bitsperword));
 			}
-			
+
 			uint64_t next1slow(uint64_t i) const
 			{
 				while ( ! get(i) )
 					i++;
-					
+
 				return i;
 			}
 			uint64_t prev1slow(uint64_t i) const
@@ -183,14 +183,14 @@ namespace libmaus2
 				unsigned int imask= i&(bitsperword-1);
 				uint64_t v = (A[word] >> ((bitsperword-1)-imask));
 				unsigned int add = imask+1;
-				
+
 				while ( ! v )
 				{
 					i -= add;
 					v = A[--word];
 					add = bitsperword;
 				}
-				
+
 				return i - __builtin_ctzll(v << (64-bitsperword));
 			}
 
@@ -203,7 +203,7 @@ namespace libmaus2
 					mask <<= 1;
 					i++;
 				}
-				
+
 				return i;
 			}
 
@@ -216,7 +216,7 @@ namespace libmaus2
 			 * @precondition bb != 0
 			 * @return index (0..63) of least significant one bit
 			 */
-			static int lsb(uint64_t bb) 
+			static int lsb(uint64_t bb)
 			{
 				static const int lsb_64_table[64] =
 				{
@@ -235,7 +235,7 @@ namespace libmaus2
 				uint32_t const folded = static_cast<uint32_t>(bb) ^ static_cast<uint32_t>(bb >> 32);
 				return lsb_64_table[folded * 0x78291ACF >> 26];
 			}
-			
+
 			static void testLSB()
 			{
 				srand(time(0));
@@ -246,10 +246,10 @@ namespace libmaus2
 				}
 				for ( uint64_t i = 1; i < 1ull << 34; ++i )
 					assert ( lsbSlow(i) == lsb(i) );
-					
+
 			}
 		};
-		
+
 		typedef BitVectorTemplate<uint64_t> BitVector8;
 		typedef BitVectorTemplate<uint16_t> BitVector2;
 		typedef BitVector8 BitVector;
@@ -259,28 +259,28 @@ namespace libmaus2
 			for ( uint64_t i = 0; i < B.size(); ++i )
 				out << static_cast<unsigned int>(B[i]);
 			return out;
-				
+
 		}
-		
+
 		struct IndexedBitVector : public BitVector
 		{
 			typedef IndexedBitVector this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			typedef ::libmaus2::rank::ERank222B rank_type;
 			typedef rank_type::unique_ptr_type rank_ptr_type;
-			
+
 			rank_ptr_type index;
-		
+
 			IndexedBitVector(uint64_t const n, uint64_t const pad = 0) : BitVector(n,pad), index() {}
 			IndexedBitVector(std::istream & in) : BitVector(in), index() {}
-			
+
 			void setupIndex()
 			{
 				rank_ptr_type tindex(new rank_type(A.get(),A.size()*64));
 				index = UNIQUE_PTR_MOVE(tindex);
 			}
-			
+
 			uint64_t rank1(uint64_t const i) const
 			{
 				return index->rank1(i);
@@ -290,12 +290,12 @@ namespace libmaus2
 			{
 				return index->rankm1(i);
 			}
-			
+
 			uint64_t rank0(uint64_t const i) const
 			{
 				return index->rank0(i);
 			}
-			
+
 			uint64_t excess(uint64_t const i) const
 			{
 				assert ( rank1(i) >= rank0(i) );
@@ -310,7 +310,7 @@ namespace libmaus2
 			{
 				return index->select1(i);
 			}
-			
+
 			uint64_t select0(uint64_t const i) const
 			{
 				return index->select0(i);
@@ -318,7 +318,7 @@ namespace libmaus2
 
 			uint64_t byteSize() const
 			{
-				return 
+				return
 					BitVector::byteSize() +
 					(index.get() ? index->byteSize() : 0);
 			}
@@ -328,30 +328,30 @@ namespace libmaus2
 		{
 			typedef IndexedBitVectorCompressed this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			typedef ::libmaus2::rank::ERank3C rank_type;
 			typedef rank_type::unique_ptr_type rank_ptr_type;
 
 			rank_ptr_type index;
-		
+
 			IndexedBitVectorCompressed(uint64_t const n, uint64_t const pad = 0) : BitVector2(n,pad), index() {}
-			
+
 			void setupIndex()
 			{
 				rank_ptr_type tindex(new rank_type(A.get(),A.size()*64));
 				index = UNIQUE_PTR_MOVE(tindex);
 			}
-			
+
 			uint64_t rank1(uint64_t const i) const
 			{
 				return index->rank1(i);
 			}
-			
+
 			uint64_t rank0(uint64_t const i) const
 			{
 				return index->rank0(i);
 			}
-			
+
 			uint64_t excess(uint64_t const i) const
 			{
 				assert ( rank1(i) >= rank0(i) );
@@ -366,7 +366,7 @@ namespace libmaus2
 			{
 				return index->select1(i);
 			}
-			
+
 			uint64_t select0(uint64_t const i) const
 			{
 				return index->select0(i);
@@ -374,12 +374,12 @@ namespace libmaus2
 
 			uint64_t byteSize() const
 			{
-				return 
+				return
 					BitVector2::byteSize() +
 					(index.get() ? index->byteSize() : 0);
 			}
 		};
-		
+
 	}
 }
 #endif

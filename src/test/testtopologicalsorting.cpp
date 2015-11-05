@@ -25,22 +25,22 @@
 void testTopologicalSorting(std::map< uint64_t,std::vector<uint64_t> > const & edges)
 {
 	std::cout << "digraph {\n";
-	
+
 	for ( std::map< uint64_t,std::vector<uint64_t> >::const_iterator ita = edges.begin(); ita != edges.end(); ++ita )
 	{
 		std::vector<uint64_t> const & V = ita->second;
 		for ( uint64_t i = 0; i < V.size(); ++i )
 			std::cout << ita->first << " -> " << V[i] << "\n";
 	}
-	
+
 	std::cout << "}\n";
 
 	std::pair<bool,std::map<uint64_t,uint64_t> > TS = libmaus2::graph::TopologicalSorting::topologicalSorting<uint64_t,libmaus2::graph::IdentityTargetProjector>(edges,0);
-	
+
 	if ( TS.first )
 	{
 		std::cerr << "Sorting:" << std::endl;
-		
+
 		for ( std::map<uint64_t,uint64_t>::const_iterator ita = TS.second.begin(); ita != TS.second.end(); ++ita )
 		{
 			std::cerr << ita->first << "\t" << ita->second << std::endl;
@@ -63,14 +63,14 @@ void testTopologicalSortingCyclic()
 	edges[2].push_back(4);
 	edges[4].push_back(2);
 	edges[3].push_back(4);
-	
+
 	edges[4].push_back(5);
 
 	edges[5].push_back(6);
 	edges[6].push_back(5);
 	edges[5].push_back(9);
 	edges[9].push_back(5);
-	
+
 	edges[6].push_back(7);
 	edges[7].push_back(8);
 	edges[8].push_back(9);
@@ -78,7 +78,7 @@ void testTopologicalSortingCyclic()
 	edges[9].push_back(10);
 	edges[10].push_back(9);
 
-	testTopologicalSorting(edges);	
+	testTopologicalSorting(edges);
 }
 
 void testTopologicalSortingAcyclic()
@@ -90,7 +90,7 @@ void testTopologicalSortingAcyclic()
 	edges[0].push_back(3);
 	edges[1].push_back(4);
 
-	testTopologicalSorting(edges);	
+	testTopologicalSorting(edges);
 }
 
 int main()

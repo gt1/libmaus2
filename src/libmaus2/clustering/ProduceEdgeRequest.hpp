@@ -36,33 +36,33 @@ namespace libmaus2
 			uint64_t const numreads;
 			std::vector < std::string > const freqfilenames;
 			std::vector < std::string > const idexfilenames;
-			
+
 			ProduceEdgesRequest(
 				uint64_t const rnumreads,
 				std::vector<std::string> const & rfreqfilenames,
 				std::vector<std::string> const & ridexfilenames)
-			: numreads(rnumreads), 
+			: numreads(rnumreads),
 			  freqfilenames(rfreqfilenames), idexfilenames(ridexfilenames)
 			{
-			
+
 			}
 
 			ProduceEdgesRequest(std::istream & in)
-			: 
+			:
 			numreads( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
 			freqfilenames ( ::libmaus2::util::StringSerialisation::deserialiseStringVector(in) ),
 			idexfilenames ( ::libmaus2::util::StringSerialisation::deserialiseStringVector(in) )
 			{
-				
+
 			}
-				
+
 			void serialise(std::ostream & out) const
 			{
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,numreads);
 				::libmaus2::util::StringSerialisation::serialiseStringVector(out,freqfilenames);
 				::libmaus2::util::StringSerialisation::serialiseStringVector(out,idexfilenames);
 			}
-			
+
 			void serialise(std::string const & filename) const
 			{
 			        libmaus2::aio::OutputStreamInstance ostr(filename);

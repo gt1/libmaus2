@@ -54,7 +54,7 @@ namespace libmaus2
 			std::vector < std::string > filenames;
 			//! interval tree mapping hash values to intervals
 			::libmaus2::util::IntervalTree::unique_ptr_type IT;
-			
+
 			/**
 			 * init using number of buffers and file prefix
 			 *
@@ -72,7 +72,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < numbuf; ++i )
 				{
 					buffers[i] = UNIQUE_PTR_MOVE(buffer_ptr_type(new buffer_type(filenames[i],1024)));
-				}			
+				}
 			}
 
 			/**
@@ -90,7 +90,7 @@ namespace libmaus2
 				{
 					uint64_t created = 0;
 					::libmaus2::parallel::OMPLock lock;
-				
+
 					#if defined(_OPENMP)
 					#pragma omp parallel for schedule(dynamic,1)
 					#endif
@@ -98,12 +98,12 @@ namespace libmaus2
 					{
 						filenames[i] = tmpgen.getFileName();
 						buffers[i] = UNIQUE_PTR_MOVE(buffer_ptr_type(new buffer_type(filenames[i],1024)));
-						
+
 						lock.lock();
 						created += 1;
 						std::cerr << "(" << created << "/" << numbuf << ")";
 						lock.unlock();
-					}	
+					}
 				}
 				else
 				{
@@ -111,7 +111,7 @@ namespace libmaus2
 					{
 						filenames[i] = tmpgen.getFileName();
 						buffers[i] = UNIQUE_PTR_MOVE(buffer_ptr_type(new buffer_type(filenames[i],1024)));
-					}			
+					}
 				}
 			}
 
@@ -130,9 +130,9 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < numbuf; ++i )
 				{
 					buffers[i] = UNIQUE_PTR_MOVE(buffer_ptr_type(new buffer_type(filenames[i],1024,truncate)));
-				}			
+				}
 			}
-			
+
 			public:
 			/**
 			 * constructor from hash intervals and file prefix
@@ -141,7 +141,7 @@ namespace libmaus2
 			 * @param fileprefix prefix for files
 			 **/
 			SynchronousOutputFile8ArrayTemplate(
-				::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & rHI, 
+				::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & rHI,
 				std::string const & fileprefix
 			)
 			: HI(&rHI), buffers(HI->size()), IT(new ::libmaus2::util::IntervalTree(*HI,0,HI->size()))
@@ -155,14 +155,14 @@ namespace libmaus2
 			 * @param tmpgen temporary file name generator object
 			 **/
 			SynchronousOutputFile8ArrayTemplate(
-				::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & rHI, 
+				::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & rHI,
 				::libmaus2::util::TempFileNameGenerator & tmpgen
 			)
 			: HI(&rHI), buffers(HI->size()), IT(new ::libmaus2::util::IntervalTree(*HI,0,HI->size()))
 			{
 				init ( HI->size(), tmpgen );
 			}
-			
+
 			/**
 			 * constructor from file name prefix and number of buffers
 			 *
@@ -196,7 +196,7 @@ namespace libmaus2
 			 * @param truncate if true, then truncate files during buffer creation
 			 **/
 			SynchronousOutputFile8ArrayTemplate(
-				::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & rHI, 
+				::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & rHI,
 				std::vector<std::string> const & filenames,
 				bool const truncate
 			)
@@ -204,7 +204,7 @@ namespace libmaus2
 			{
 				init ( filenames, truncate );
 			}
-			
+
 			/**
 			 * destructor, flush buffers
 			 **/
@@ -212,7 +212,7 @@ namespace libmaus2
 			{
 				flush();
 			}
-			
+
 			/**
 			 * remove buffer files
 			 **/
@@ -221,7 +221,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
 					libmaus2::aio::FileRemoval::removeFile ( filenames[i] );
 			}
-			
+
 			/**
 			 * flush output buffers
 			 **/
@@ -236,7 +236,7 @@ namespace libmaus2
 						//std::cerr << ")";
 					}
 			}
-			
+
 			/**
 			 * get buffer for hash value
 			 *

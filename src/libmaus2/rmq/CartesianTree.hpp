@@ -43,25 +43,25 @@ namespace libmaus2
 
 			uint64_t getSize() const
 			{
-				return 
+				return
 					(n<<1)*sizeof(uint64_t) +
 					(n   )*sizeof(uint64_t) +
 					(n   )*sizeof(key_type) +
 					2*sizeof(uint64_t);
 			}
-			
+
 			inline uint64_t       & getLeft  (uint64_t i)       { return leftright[(i<<1)|0]; }
 			inline uint64_t const & getLeft  (uint64_t i) const { return leftright[(i<<1)|0]; }
 			inline uint64_t       & getRight (uint64_t i)       { return leftright[(i<<1)|1]; }
 			inline uint64_t const & getRight (uint64_t i) const { return leftright[(i<<1)|1]; }
 			inline uint64_t       & getParent(uint64_t i)       { return parent[i]; }
 			inline uint64_t const & getParent(uint64_t i) const { return parent[i]; }
-			
+
 			inline key_type       & getKey(uint64_t i)       { return K[i]; }
 			inline key_type const & getKey(uint64_t i) const { return K[i]; }
-			
+
 			uint64_t getIndex (uint64_t i) const { return i; }
-			
+
 			void allocate()
 			{
 				leftright = ::libmaus2::autoarray::AutoArray<uint64_t>(n<<1,true); for ( uint64_t i = 0; i < (n<<1); ++i ) leftright[i] = n;
@@ -94,26 +94,26 @@ namespace libmaus2
 				if ( n )
 				{
 					allocate();
-					
+
 					root = 0;
 					getKey(root) = *(a++);
-					
+
 					uint64_t nextnode = root+1;
 					uint64_t pnode = root;
-					
+
 					while ( a != b )
 					{
 						key_type const v = *(a++);
 
-						uint64_t x = nextnode++; 
+						uint64_t x = nextnode++;
 						getKey(x) = v;
 						uint64_t y = pnode;
-						
+
 						while ( (y!=n) && (getKey(y) > v) ) // A[l_m] <= A[i+1]
 							y = getParent(y);
-					
+
 						// y is a node, x becomes a child of y
-						if ( (y!=n) ) 
+						if ( (y!=n) )
 						{
 							getParent(x) = y;
 							// ::std::cerr << "x=" << x << ", y=" << y << ::std::endl;
@@ -128,9 +128,9 @@ namespace libmaus2
 							getParent(y) = x;
 							root = x;
 						}
-						
+
 						pnode = x;
-					}			
+					}
 				}
 			}
 			template<typename const_iterator>
@@ -139,26 +139,26 @@ namespace libmaus2
 				if ( n )
 				{
 					allocate();
-					
+
 					root = 0;
 					getKey(root) = a[0];
-					
+
 					uint64_t nextnode = root+1;
 					uint64_t pnode = root;
-					
+
 					for ( uint64_t zzz = 1; zzz < n; ++zzz )
 					{
 						key_type const v = a[zzz];
 
-						uint64_t x = nextnode++; 
+						uint64_t x = nextnode++;
 						getKey(x) = v;
 						uint64_t y = pnode;
-						
+
 						while ( (y!=n) && (getKey(y) > v) ) // A[l_m] <= A[i+1]
 							y = getParent(y);
-					
+
 						// y is a node, x becomes a child of y
-						if ( (y!=n) ) 
+						if ( (y!=n) )
 						{
 							getParent(x) = y;
 							// ::std::cerr << "x=" << x << ", y=" << y << ::std::endl;
@@ -173,12 +173,12 @@ namespace libmaus2
 							getParent(y) = x;
 							root = x;
 						}
-						
+
 						pnode = x;
-					}			
+					}
 				}
 			}
-			
+
 			template<typename writer_type>
 			void bps(writer_type & bitout) const
 			{
@@ -189,13 +189,13 @@ namespace libmaus2
 			void bps(uint64_t node, writer_type & bitout) const
 			{
 				bitout.writeBit(1);
-				
+
 				if ( CartesianTree<key_type>::getLeft(node) != CartesianTree<key_type>::n )
 					bps(CartesianTree<key_type>::getLeft(node),bitout);
-								
+
 				if ( CartesianTree<key_type>::getRight(node) != CartesianTree<key_type>::n )
 					bps(CartesianTree<key_type>::getRight(node),bitout);
-				
+
 				bitout.writeBit(0);
 			}
 
@@ -208,7 +208,7 @@ namespace libmaus2
 				BWS8.flush();
 				return ostr.str();
 			}
-			
+
 			::libmaus2::bitio::IndexedBitVector::unique_ptr_type bpsVector() const
 			{
 				::libmaus2::bitio::IndexedBitVector::unique_ptr_type IB ( new ::libmaus2::bitio::IndexedBitVector(2*n) );
@@ -218,7 +218,7 @@ namespace libmaus2
 				IB->setupIndex();
 				return UNIQUE_PTR_MOVE(IB);
 			}
-			
+
 			friend ::std::ostream & operator<< <>(::std::ostream & out, CartesianTree<key_type> const & node);
 		};
 

@@ -30,7 +30,7 @@ namespace libmaus2
 			typedef CompressorObjectFactory this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			virtual ~CompressorObjectFactory() {}
 			virtual CompressorObject::unique_ptr_type operator()() = 0;
 			virtual CompressorObject::shared_ptr_type createShared()

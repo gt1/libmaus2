@@ -34,29 +34,29 @@ namespace libmaus2
 			struct MergeSortWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef _order_type order_type;
-			
+
 				BaseMergeSortWorkPackageReturnInterface<order_type> & packageReturnInterface;
-				
+
 				MergeSortWorkPackageDispatcher(
 					BaseMergeSortWorkPackageReturnInterface<order_type> & rpackageReturnInterface
-				) : packageReturnInterface(rpackageReturnInterface) 
+				) : packageReturnInterface(rpackageReturnInterface)
 				{
 				}
-			
+
 				virtual void dispatch(
-					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadWorkPackage * P,
 					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
 				)
 				{
 					AlignmentRewritePosMergeSortPackage<order_type> * BP = dynamic_cast<AlignmentRewritePosMergeSortPackage<order_type> *>(P);
 					assert ( BP );
-					
+
 					BP->request->dispatch();
 					BP->mergedInterface->mergePackageFinished();
-					
-					// return the work package				
-					packageReturnInterface.putMergeSortWorkPackage(BP);				
-				}		
+
+					// return the work package
+					packageReturnInterface.putMergeSortWorkPackage(BP);
+				}
 			};
 		}
 	}

@@ -35,15 +35,15 @@ namespace libmaus2
 			typedef SnappyOutputStream<stream_type> this_type;
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			::std::ostream & out;
 			::libmaus2::autoarray::AutoArray<char> B;
 			char * const pa;
 			char *       pc;
 			char * const pe;
-			
+
 			uint64_t compressedbyteswritten;
-			
+
 			size_t byteSize() const
 			{
 				return
@@ -53,7 +53,7 @@ namespace libmaus2
 					sizeof(pc) +
 					sizeof(pe);
 			}
-			
+
 			SnappyOutputStream(stream_type & rout, uint64_t const bufsize = 64*1024)
 			: out(rout), B(bufsize), pa(B.begin()), pc(pa), pe(B.end()), compressedbyteswritten(0)
 			{
@@ -62,34 +62,34 @@ namespace libmaus2
 			{
 				flush();
 			}
-			
+
 			std::pair<uint64_t,uint64_t> getOffset() const
 			{
 				return std::pair<uint64_t,uint64_t>(compressedbyteswritten,pc-pa);
 			}
-			
+
 			operator bool()
 			{
 				return true;
 			}
-			
+
 			void flush()
 			{
 				if ( pc != pa )
 				{
 					// compress data
 					std::string const cdata = SnappyCompress::compress(std::string(pa,pc));
-					
+
 					// store size of uncompressed buffer
 					compressedbyteswritten += ::libmaus2::util::NumberSerialisation::serialiseNumber(out,pc-pa);
 
 					// store size of compressed buffer
 					compressedbyteswritten += ::libmaus2::util::NumberSerialisation::serialiseNumber(out,cdata.size());
-					
+
 					// write compressed data
 					out.write(cdata.c_str(),cdata.size());
 					compressedbyteswritten += cdata.size();
-					
+
 					if ( ! out )
 					{
 						::libmaus2::exception::LibMausException se;
@@ -98,18 +98,18 @@ namespace libmaus2
 						throw se;
 					}
 				}
-				
+
 				pc = pa;
 			}
-			
+
 			void put(int const c)
 			{
 				*(pc++) = c;
-				
+
 				if ( pc == pe )
 					flush();
 			}
-			
+
 			void write(char const * c, uint64_t n)
 			{
 				while ( n )
@@ -121,7 +121,7 @@ namespace libmaus2
 					c += tocopy;
 					pc += tocopy;
 					n -= tocopy;
-					
+
 					if ( pc == pe )
 						flush();
 				}
@@ -130,4 +130,3 @@ namespace libmaus2
 	}
 }
 #endif
-

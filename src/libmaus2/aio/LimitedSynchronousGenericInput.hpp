@@ -39,7 +39,7 @@ namespace libmaus2
 		        typedef LimitedSynchronousGenericInput<value_type> this_type;
 		        //! unique pointer type
 		        typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 		        /**
 		         * constructor
 		         *
@@ -49,14 +49,14 @@ namespace libmaus2
 		         * @param roffset reading start offset
 		         **/
 			LimitedSynchronousGenericInput(
-				std::string const & filename, 
-				uint64_t const rbufsize, 
+				std::string const & filename,
+				uint64_t const rbufsize,
 				uint64_t const rlimit,
 				uint64_t const roffset = 0
 			)
 			: SynchronousGenericInput<input_type>(filename,rbufsize,roffset,rlimit)
 			{
-			
+
 			}
 		};
         }

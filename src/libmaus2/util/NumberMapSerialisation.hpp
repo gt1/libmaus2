@@ -32,14 +32,14 @@ namespace libmaus2
 			static void serialiseMap(stream_type & stream, std::map<key_type,value_type> const & M)
 			{
 				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,M.size());
-				
+
 				for ( typename std::map<key_type,value_type>::const_iterator ita = M.begin(); ita != M.end(); ++ita )
 				{
 					::libmaus2::util::NumberSerialisation::serialiseNumber(stream,ita->first);
 					::libmaus2::util::NumberSerialisation::serialiseNumber(stream,ita->second);
 				}
 			}
-			
+
 			template<typename key_type, typename value_type>
 			static std::string serialiseMap(std::map<key_type,value_type> const & M)
 			{
@@ -47,21 +47,21 @@ namespace libmaus2
 				serialiseMap(ostr,M);
 				return ostr.str();
 			}
-			
+
 
 			template<typename stream_type, typename key_type, typename value_type>
 			static std::map<key_type,value_type> deserialiseMap(stream_type & stream)
 			{
 				uint64_t const n = ::libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
 				std::map<key_type,value_type> M;
-				
+
 				for ( uint64_t i = 0; i < n; ++i )
 				{
 					uint64_t const k = ::libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
 					uint64_t const v = ::libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
 					M[k] = v;
 				}
-				
+
 				return M;
 			}
 

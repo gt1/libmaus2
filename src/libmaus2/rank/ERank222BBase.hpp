@@ -32,13 +32,13 @@ namespace libmaus2
 			static unsigned int const sbbitwidth = 16;
 			// mini block size 2^6 = 64 bits
 			static unsigned int const mbbitwidth = 6;
-			
+
 			// derived numbers
-			
+
 			// actual block sizes
 			static uint64_t const sbsize = 1u << sbbitwidth;
 			static uint64_t const mbsize = 1u << mbbitwidth;
-			
+
 			// superblock mask
 			static uint64_t const sbmask = (1u<<sbbitwidth)-1;
 			// miniblock mask

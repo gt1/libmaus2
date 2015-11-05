@@ -60,7 +60,7 @@ namespace libmaus2
 				uint8_t const * Db;
 				//! second alignment block size
 				uint64_t blocksizeb;
-				
+
 				//! single end (Da valid, Db invalid)
 				bool fsingle;
 				//! pair (Da valid, Db valid)
@@ -69,7 +69,7 @@ namespace libmaus2
 				bool forphan1;
 				//! orphan 2 (Da invalid, Db valid)
 				bool forphan2;
-				
+
 				/**
 				 * constructor
 				 **/
@@ -111,9 +111,9 @@ namespace libmaus2
 			static std::string stateToString(circ_hash_collator_state state)
 			{
 				std::ostringstream out;
-				
+
 				switch ( state )
-				{	
+				{
 					case state_sortbuffer_flushing_intermediate:
 						out << "state_sortbuffer_flushing_intermediate";
 						break;
@@ -142,7 +142,7 @@ namespace libmaus2
 						out << "state_failed";
 						break;
 				}
-				
+
 				return out.str();
 			}
 
@@ -166,15 +166,15 @@ namespace libmaus2
 					hentry.first
 				);
 				unsigned int const algnrnl = algn.getLReadName();
-				
+
 				// name length mismatch?
 				if ( algnrnl != hrnl )
 					return false;
-				
+
 				uint64_t rno = ::libmaus2::bambam::BamAlignmentDecoderBase::getReadNameOffset(CH.B.size(),hentry.first);
-				
+
 				bool samename;
-				
+
 				// can we compare the names without wrap around?
 				if ( rno + hrnl <= CH.B.size() )
 				{
@@ -183,20 +183,20 @@ namespace libmaus2
 				else
 				{
 					uint8_t const * algnrn = reinterpret_cast<uint8_t const *>(algn.getName());
-					samename = true;	
-					
+					samename = true;
+
 					for ( unsigned int i = 0; i < hrnl; ++i, rno = (rno+1)&(CH.bmask) )
 						if ( CH.B[rno] != algnrn[i] )
-							samename = false;	
+							samename = false;
 				}
-				
+
 				if ( ! samename )
 					return false;
 
 				// names are the same, now check whether one is marked as read1 and the other as read2
 				uint32_t const flagsa = algn.getFlags();
 				uint32_t const flagsb = libmaus2::bambam::BamAlignmentDecoderBase::getFlagsWrapped(CH.B.begin(),CH.B.size(),hentry.first);
-				
+
 				return
 					(libmaus2::bambam::BamAlignmentDecoderBase::isRead1(flagsa)
 					&&
@@ -223,7 +223,7 @@ namespace libmaus2
 
 			//! overflow structure pointer
 			overflow_ptr_type NCHEO;
-			//! hash table pointer			
+			//! hash table pointer
 			cht_ptr CH;
 			//! temporary memory
 			libmaus2::autoarray::AutoArray<uint8_t> T;
@@ -243,9 +243,9 @@ namespace libmaus2
 			bool cbputbackflag;
 			//! alignment filter
 			libmaus2::bambam::BamAlignmentFilter const * filter;
-			
+
 			public:
-			
+
 			/**
 			 * constructor from input stream
 			 *
@@ -264,11 +264,11 @@ namespace libmaus2
 				unsigned int const hlog = 18,
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
 			)
-			: Pbamdec(new libmaus2::bambam::BamDecoder(in,rputrank)), bamdec(*Pbamdec), algn(bamdec.getAlignment()), mergealgnptr(0), tmpfilename(rtmpfilename), 
+			: Pbamdec(new libmaus2::bambam::BamDecoder(in,rputrank)), bamdec(*Pbamdec), algn(bamdec.getAlignment()), mergealgnptr(0), tmpfilename(rtmpfilename),
 			  NCHEO(new overflow_type(tmpfilename,sortbufsize)), CH(new cht(*NCHEO,hlog)), state(state_reading), inputcallback(0),
 			  excludeflags(rexcludeflags), cbputbackflag(false), filter(0)
 			{
-			
+
 			}
 
 			/**
@@ -287,18 +287,18 @@ namespace libmaus2
 				unsigned int const hlog = 18,
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
 			)
-			: Pbamdec(), bamdec(rbamdec), algn(bamdec.getAlignment()), mergealgnptr(0), tmpfilename(rtmpfilename), 
+			: Pbamdec(), bamdec(rbamdec), algn(bamdec.getAlignment()), mergealgnptr(0), tmpfilename(rtmpfilename),
 			  NCHEO(new overflow_type(tmpfilename,sortbufsize)), CH(new cht(*NCHEO,hlog)), state(state_reading), inputcallback(0),
 			  excludeflags(rexcludeflags), cbputbackflag(false), filter(0)
 			{
-			
+
 			}
-			
+
 			/**
 			 * destructor
 			 **/
 			virtual ~CircularHashCollatingBamDecoder() {}
-			
+
 			/**
 			 * process input and try to find another pair
 			 *
@@ -337,9 +337,9 @@ namespace libmaus2
 					outputBuffer.Db = 0;
 					outputBuffer.blocksizeb = 0;
 				}
-			
+
 				/* run fsm until we have obtained a result or reached the end of the stream */
-				while ( 
+				while (
 					state != state_done && state != state_failed
 					&&
 					(!outputBuffer.fsingle) && (!outputBuffer.fpair) && (!outputBuffer.forphan1) && (!outputBuffer.forphan2)
@@ -347,14 +347,14 @@ namespace libmaus2
 				{
 					if ( state == state_sortbuffer_flushing_intermediate )
 					{
-						NCHEO->flush();								
+						NCHEO->flush();
 						state = state_sortbuffer_flushing_intermediate_readout;
 					}
 					if ( state == state_sortbuffer_flushing_intermediate_readout )
 					{
 						uint8_t const * ptr = 0;
 						uint64_t length = 0;
-						
+
 						// this call produces pairs in steps
 						if ( NCHEO->getFlushBufEntry(ptr,length) )
 						{
@@ -384,7 +384,7 @@ namespace libmaus2
 					{
 						uint8_t const * ptr = 0;
 						uint64_t length = 0;
-						
+
 						// as above, this produces pairs in steps
 						if ( NCHEO->getFlushBufEntry(ptr,length) )
 						{
@@ -411,7 +411,7 @@ namespace libmaus2
 						libmaus2::bambam::SnappyAlignmentMergeInput::unique_ptr_type tmergeinput(NCHEO->constructMergeInput());
 						mergeinput = UNIQUE_PTR_MOVE(tmergeinput);
 						NCHEO.reset();
-						state = state_merging;			
+						state = state_merging;
 					}
 					else if ( state == state_reading )
 					{
@@ -429,16 +429,16 @@ namespace libmaus2
 							}
 
 							bamdec.putRank();
-															
+
 							if ( algn.getFlags() & excludeflags )
 								continue;
-								
+
 							if ( filter && ! (*filter)(algn) )
 								continue;
-						
+
 							uint8_t const * data = algn.D.begin();
 							uint64_t const datalen = algn.blocksize;
-							
+
 							// output single end immediately
 							if ( ! algn.isPaired() )
 							{
@@ -455,7 +455,7 @@ namespace libmaus2
 								if ( CH->hasEntry(hv) && isPair(*CH,algn,hv) )
 								{
 									std::pair<cht::pos_type,cht::entry_size_type> const hentry = CH->getEntry(hv);
-									
+
 									if ( algn.isRead1() )
 									{
 										outputBuffer.Da = data;
@@ -472,7 +472,7 @@ namespace libmaus2
 										outputBuffer.blocksizeb = datalen;
 										outputBuffer.fpair = true;
 									}
-									
+
 									CH->eraseEntry(hv);
 								}
 								// not a pair, insert alignment into hash
@@ -500,7 +500,7 @@ namespace libmaus2
 					{
 						libmaus2::bambam::BamAlignment & malgn = mergealgn[mergealgnptr];
 						mergealgnptr = (mergealgnptr + 1) & 1;
-					
+
 						if ( mergeinput->readAlignment(malgn) )
 						{
 							if ( ! outputBuffer.Da )
@@ -512,8 +512,8 @@ namespace libmaus2
 							{
 								outputBuffer.Db = malgn.D.begin();
 								outputBuffer.blocksizeb = malgn.blocksize;
-								
-								if ( 
+
+								if (
 									libmaus2::bambam::BamAlignmentDecoderBase::getLReadName(outputBuffer.Da)
 									==
 									libmaus2::bambam::BamAlignmentDecoderBase::getLReadName(outputBuffer.Db)
@@ -528,7 +528,7 @@ namespace libmaus2
 									libmaus2::bambam::BamAlignmentDecoderBase::isRead1(
 										libmaus2::bambam::BamAlignmentDecoderBase::getFlags(outputBuffer.Da)
 									)
-									&&							
+									&&
 									libmaus2::bambam::BamAlignmentDecoderBase::isRead2(
 										libmaus2::bambam::BamAlignmentDecoderBase::getFlags(outputBuffer.Db)
 									)
@@ -548,7 +548,7 @@ namespace libmaus2
 										outputBuffer.forphan2 = true;
 								}
 							}
-						}	
+						}
 						else
 						{
 							if ( outputBuffer.Da && !(outputBuffer.Db) )
@@ -560,15 +560,15 @@ namespace libmaus2
 								)
 									outputBuffer.forphan1 = true;
 								else
-									outputBuffer.forphan2 = true;				
+									outputBuffer.forphan2 = true;
 							}
-							
-							state = state_done;				
+
+							state = state_done;
 						}
 					}
 
 				}
-				
+
 				if (
 					outputBuffer.fsingle ||
 					outputBuffer.fpair ||
@@ -589,7 +589,7 @@ namespace libmaus2
 			bool tryPair(std::pair <libmaus2::bambam::BamAlignment const *, libmaus2::bambam::BamAlignment const *> & P)
 			{
 				OutputBufferEntry const * ob = process();
-				
+
 				if ( ! ob )
 				{
 					return false;
@@ -609,7 +609,7 @@ namespace libmaus2
 					P = std::pair <libmaus2::bambam::BamAlignment const *, libmaus2::bambam::BamAlignment const * >(
 						&(outputAlgn[0]),&(outputAlgn[1])
 					);
-					
+
 					return true;
 				}
 				else if ( ob->fsingle )
@@ -622,7 +622,7 @@ namespace libmaus2
 					P = std::pair <libmaus2::bambam::BamAlignment const *, libmaus2::bambam::BamAlignment const * >(
 						&(outputAlgn[0]),static_cast<libmaus2::bambam::BamAlignment const *>(0)
 					);
-					
+
 					return true;
 				}
 				else if ( ob->forphan1 )
@@ -635,7 +635,7 @@ namespace libmaus2
 					P = std::pair <libmaus2::bambam::BamAlignment const *, libmaus2::bambam::BamAlignment const * >(
 						&(outputAlgn[0]),static_cast<libmaus2::bambam::BamAlignment const *>(0)
 					);
-					
+
 					return true;
 				}
 				else // if ( ob->forphan2 )
@@ -648,11 +648,11 @@ namespace libmaus2
 					P = std::pair <libmaus2::bambam::BamAlignment const *, libmaus2::bambam::BamAlignment const * >(
 						static_cast<libmaus2::bambam::BamAlignment const *>(0),&(outputAlgn[0])
 					);
-					
+
 					return true;
 				}
 			}
-			
+
 			/**
 			 * @return BAM header
 			 **/
@@ -757,7 +757,7 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			/**
 			 * constructor from input stream
 			 *
@@ -775,10 +775,10 @@ namespace libmaus2
 				bool const rputrank = false,
 				unsigned int const hlog = 18,
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
-			) : BamDecoderWrapper(in,rputrank), 
+			) : BamDecoderWrapper(in,rputrank),
 			    CircularHashCollatingBamDecoder(BamDecoderWrapper::bamdec,rtmpfilename,rexcludeflags,hlog,sortbufsize)
 			{
-			
+
 			}
 
 			/**
@@ -801,10 +801,10 @@ namespace libmaus2
 				bool const rputrank = false,
 				unsigned int const hlog = 18,
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
-			) : BamDecoderWrapper(in,copyout,rputrank), 
+			) : BamDecoderWrapper(in,copyout,rputrank),
 			    CircularHashCollatingBamDecoder(BamDecoderWrapper::bamdec,rtmpfilename,rexcludeflags,hlog,sortbufsize)
 			{
-			
+
 			}
 		};
 
@@ -820,7 +820,7 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			/**
 			 * constructor from input stream
 			 *
@@ -838,10 +838,10 @@ namespace libmaus2
 				bool const rputrank = false,
 				unsigned int const hlog = 18,
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
-			) : BamMergeCoordinateWrapper(filenames,rputrank), 
+			) : BamMergeCoordinateWrapper(filenames,rputrank),
 			    CircularHashCollatingBamDecoder(BamMergeCoordinateWrapper::object,rtmpfilename,rexcludeflags,hlog,sortbufsize)
 			{
-			
+
 			}
 		};
 
@@ -857,7 +857,7 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			/**
 			 * constructor from input stream
 			 *
@@ -875,10 +875,10 @@ namespace libmaus2
 				bool const rputrank = false,
 				unsigned int const hlog = 18,
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
-			) : BamMergeQueryNameWrapper(filenames,rputrank), 
+			) : BamMergeQueryNameWrapper(filenames,rputrank),
 			    CircularHashCollatingBamDecoder(BamMergeQueryNameWrapper::object,rtmpfilename,rexcludeflags,hlog,sortbufsize)
 			{
-			
+
 			}
 		};
 
@@ -894,7 +894,7 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			/**
 			 * constructor from input stream
 			 *
@@ -914,10 +914,10 @@ namespace libmaus2
 				bool const rputrank = false,
 				unsigned int const hlog = 18,
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
-			) : BamParallelDecoderWrapper(in,numthreads,rputrank), 
+			) : BamParallelDecoderWrapper(in,numthreads,rputrank),
 			    CircularHashCollatingBamDecoder(BamParallelDecoderWrapper::bamdec,rtmpfilename,rexcludeflags,hlog,sortbufsize)
 			{
-			
+
 			}
 
 			/**
@@ -942,10 +942,10 @@ namespace libmaus2
 				bool const rputrank = false,
 				unsigned int const hlog = 18,
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
-			) : BamParallelDecoderWrapper(in,copyout,numthreads,rputrank), 
+			) : BamParallelDecoderWrapper(in,copyout,numthreads,rputrank),
 			    CircularHashCollatingBamDecoder(BamParallelDecoderWrapper::bamdec,rtmpfilename,rexcludeflags,hlog,sortbufsize)
 			{
-			
+
 			}
 		};
 
@@ -962,10 +962,10 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			/**
 			 * constructor
-			 * 
+			 *
 			 * @param filename input file name (- for stdin)
 			 * @param mode file mode, "r" for sam, "rb" for BAM, "rc" for CRAM
 			 * @param reference file name of reference FastA file (for CRAM, pass empty string for SAM or BAM)
@@ -984,10 +984,10 @@ namespace libmaus2
 				bool const rputrank = false,
 				unsigned int const hlog = 18,
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
-			) : ScramDecoderWrapper(filename,mode,reference,rputrank), 
+			) : ScramDecoderWrapper(filename,mode,reference,rputrank),
 			    CircularHashCollatingBamDecoder(ScramDecoderWrapper::scramdec,rtmpfilename,rexcludeflags,hlog,sortbufsize)
 			{
-			
+
 			}
 		};
 		#endif
@@ -1004,10 +1004,10 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			/**
 			 * constructor
-			 * 
+			 *
 			 * @param filename input file name
 			 * @param ranges range selection string
 			 * @param rtmpfilename temporary file name for collation
@@ -1024,10 +1024,10 @@ namespace libmaus2
 				bool const rputrank = false,
 				unsigned int const hlog = 18,
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
-			) : BamRangeDecoderWrapper(filename,ranges,rputrank), 
+			) : BamRangeDecoderWrapper(filename,ranges,rputrank),
 			    CircularHashCollatingBamDecoder(BamRangeDecoderWrapper::decoder,rtmpfilename,rexcludeflags,hlog,sortbufsize)
 			{
-			
+
 			}
 		};
 	}

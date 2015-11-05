@@ -56,14 +56,14 @@ namespace libmaus2
 				}
 				// number of entities
 				uint64_t const n = n8/sizeof(data_type);
-				
+
 				// allocate array
 				::libmaus2::autoarray::AutoArray<data_type> A(n,false);
-				
+
 				// open file
 				libmaus2::aio::InputStreamInstance istr(filename);
 				istr.read ( reinterpret_cast<char *>(A.get()), n8 );
-								
+
 				return A;
 			}
 
@@ -77,18 +77,18 @@ namespace libmaus2
 			 **/
 			template<typename in_type, typename out_type>
 			static void copy(
-				in_type & in, 
+				in_type & in,
 				out_type & out,
 				uint64_t n,
 				uint64_t const multiplier = 1)
 			{
 				n *= multiplier;
 				::libmaus2::autoarray::AutoArray < char > buf(16*1024,false);
-				
+
 				while ( n )
 				{
 					uint64_t const tocopy = std::min(n,buf.getN());
-					
+
 					in.read(buf.get(), tocopy);
 					if ( in.gcount() != static_cast<int64_t>(tocopy) )
 					{
@@ -98,7 +98,7 @@ namespace libmaus2
 						se.finish();
 						throw se;
 					}
-					
+
 					out.write ( buf.get(), tocopy );
 					if ( ! out )
 					{
@@ -109,7 +109,7 @@ namespace libmaus2
 						throw se;
 					}
 
-					
+
 					n -= tocopy;
 				}
 			}
@@ -126,7 +126,7 @@ namespace libmaus2
 			 **/
 			template<typename in_type, typename out_type, typename map_type>
 			static void copyMap(
-				in_type & in, 
+				in_type & in,
 				out_type & out,
 				map_type const & cmap,
 				uint64_t n,
@@ -135,11 +135,11 @@ namespace libmaus2
 			{
 				n *= multiplier;
 				::libmaus2::autoarray::AutoArray < char > buf(16*1024,false);
-				
+
 				while ( n )
 				{
 					uint64_t const tocopy = std::min(n,buf.getN());
-					
+
 					in.read(buf.get(), tocopy);
 					if ( in.gcount() != static_cast<int64_t>(tocopy) )
 					{
@@ -149,10 +149,10 @@ namespace libmaus2
 						se.finish();
 						throw se;
 					}
-					
+
 					for ( uint64_t i = 0; i < tocopy; ++i )
 						buf[i] = cmap[static_cast<int>(static_cast<uint8_t>(buf[i]))];
-					
+
 					out.write ( buf.get(), tocopy );
 					if ( ! out )
 					{
@@ -163,7 +163,7 @@ namespace libmaus2
 						throw se;
 					}
 
-					
+
 					n -= tocopy;
 				}
 			}
@@ -178,25 +178,25 @@ namespace libmaus2
 			 **/
 			template<typename iterator>
 			static void copyIterator(
-				std::istream & in, 
+				std::istream & in,
 				iterator & out,
 				uint64_t n,
 				uint64_t const multiplier = 1)
 			{
 				n *= multiplier;
 				::libmaus2::autoarray::AutoArray < char > buf(16*1024,false);
-				
+
 				while ( n )
 				{
 					uint64_t const tocopy = std::min(n,buf.getN());
-					
+
 					in.read(buf.get(), tocopy);
 					assert ( in.gcount() == static_cast<int64_t>(tocopy) );
-					
+
 					std::copy(buf.get(),buf.get()+tocopy,out);
 					//out.write ( buf.get(), tocopy );
 					// assert ( out );
-					
+
 					n -= tocopy;
 				}
 			}
@@ -206,7 +206,7 @@ namespace libmaus2
 			 *
 			 * @param from input file
 			 * @param to output file
-			 **/			
+			 **/
 			static void copy(std::string const & from, std::string const & to);
 			/**
 			 * get symbol at position pos of file filename

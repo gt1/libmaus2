@@ -28,15 +28,15 @@ namespace libmaus2
 		struct ChecksumsInterfaceTypeInfo
 		{
 			typedef ChecksumsInterfaceTypeInfo this_type;
-			
+
 			typedef libmaus2::bambam::ChecksumsInterface::shared_ptr_type pointer_type;
-			
+
 			static pointer_type getNullPointer()
 			{
 				pointer_type p;
 				return p;
 			}
-			
+
 			static pointer_type deallocate(pointer_type /* p */)
 			{
 				return getNullPointer();

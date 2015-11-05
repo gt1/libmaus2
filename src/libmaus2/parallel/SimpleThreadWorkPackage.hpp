@@ -32,20 +32,20 @@ namespace libmaus2
 			typedef SimpleThreadWorkPackage this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			uint64_t priority;
 			uint64_t dispatcherid;
 			uint64_t packageid;
-	
+
 			SimpleThreadWorkPackage()
 			: priority(0), dispatcherid(0), packageid(0)
 			{
-			
-			}		
+
+			}
 			SimpleThreadWorkPackage(uint64_t const rpriority, uint64_t const rdispatcherid, uint64_t const rpackageid = 0)
 			: priority(rpriority), dispatcherid(rdispatcherid), packageid(rpackageid)
 			{
-			
+
 			}
 			void reset(uint64_t const rpriority, uint64_t const rdispatcherid, uint64_t const rpackageid = 0)
 			{
@@ -54,7 +54,7 @@ namespace libmaus2
 				packageid = rpackageid;
 			}
 			virtual ~SimpleThreadWorkPackage() {}
-			
+
 			virtual char const * getPackageName() const = 0;
 		};
 

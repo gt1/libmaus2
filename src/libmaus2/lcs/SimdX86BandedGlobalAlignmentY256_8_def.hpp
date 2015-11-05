@@ -48,7 +48,7 @@
 	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const x_select15 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const *>(&libmaus2::lcs::SimdX86GlobalAlignmentConstants256::ymm_8_banded_select_15)); \
 	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const x_shiftoverleft = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const *>(&LIBMAUS2_LCS_SIMD_BANDED_SHIFTOVERLEFT)); \
 	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const x_mask15 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const *>(&libmaus2::lcs::SimdX86GlobalAlignmentConstants256::ymm_8_banded_mask15[0])); \
-	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const x_16_to_end = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const *>(&libmaus2::lcs::SimdX86GlobalAlignmentConstants256::ymm_8_banded_16_to_end[0])); 
+	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const x_16_to_end = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const *>(&libmaus2::lcs::SimdX86GlobalAlignmentConstants256::ymm_8_banded_16_to_end[0]));
 
 #define LIBMAUS2_LCS_SIMD_BANDED_SHIFTRIGHT(val) \
 	_mm256_or_si256( \

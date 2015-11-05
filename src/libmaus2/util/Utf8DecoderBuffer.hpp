@@ -40,30 +40,30 @@ namespace libmaus2
 		{
 			protected:
 			typedef ::std::wstreambuf::char_type char_type;
-			
+
 			static uint64_t const headersize = 4*sizeof(uint64_t);
-			
+
 			::libmaus2::util::Utf8BlockIndexDecoder indexdecoder;
 			uint64_t const blocksize;
                         uint64_t const lastblocksize;
                         uint64_t const maxblockbytes;
                         uint64_t const numblocks;
-                        
+
 			::libmaus2::aio::InputStreamInstance stream;
 			uint64_t const n;
 			uint64_t const buffersize;
 
 			::libmaus2::autoarray::AutoArray<uint8_t> inbuffer;
 			::libmaus2::autoarray::AutoArray<wchar_t> buffer;
-			
+
 			uint64_t symsread;
 
 			Utf8DecoderBuffer(Utf8DecoderBuffer const &);
 			Utf8DecoderBuffer & operator=(Utf8DecoderBuffer&);
-			
+
 			public:
 			Utf8DecoderBuffer(
-				std::string const & filename, 
+				std::string const & filename,
 				::std::size_t rbuffersize
 			);
 

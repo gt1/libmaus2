@@ -30,14 +30,14 @@ struct SeqChksumsSimpleSums
 {
 	typedef _context_type context_type;
 	typedef SeqChksumsSimpleSums<context_type> this_type;
-	
+
 	private:
 	uint64_t count;
 	libmaus2::math::UnsignedInteger<context_type::digest_type::digestlength/4> b_seq;
 	libmaus2::math::UnsignedInteger<context_type::digest_type::digestlength/4> name_b_seq;
 	libmaus2::math::UnsignedInteger<context_type::digest_type::digestlength/4> b_seq_qual;
 	libmaus2::math::UnsignedInteger<context_type::digest_type::digestlength/4> b_seq_tags;
-	
+
 	public:
 	void push(context_type const & context)
 	{
@@ -56,7 +56,7 @@ struct SeqChksumsSimpleSums
 		b_seq_qual += subsetproducts.b_seq_qual;
 		b_seq_tags += subsetproducts.b_seq_tags;
 	};
-	
+
 	bool operator== (this_type const & other) const
 	{
 		return count==other.count &&
@@ -77,21 +77,21 @@ struct SeqChksumsSimpleSums
 		ostr << std::hex << name_b_seq;
 		return ostr.str();
 	}
-	
+
 	std::string get_b_seq_qual() const
 	{
 		std::ostringstream ostr;
 		ostr << std::hex << b_seq_qual;
 		return ostr.str();
 	}
-	
+
 	std::string get_b_seq_tags() const
 	{
 		std::ostringstream ostr;
 		ostr << std::hex << b_seq_tags;
 		return ostr.str();
 	}
-	
+
 	uint64_t get_count() const
 	{
 		return count;
@@ -109,7 +109,7 @@ struct PrimeProduct
 {
 	typedef _context_type context_type;
 	typedef PrimeProduct<context_type,_primeWidth> this_type;
-	
+
 	// width of the prime in bits
 	static size_t const primeWidth = _primeWidth;
 	// width of the products in bits
@@ -118,13 +118,13 @@ struct PrimeProduct
 	static libmaus2::math::UnsignedInteger<productWidth> const foldprime;
 	// prime
 	static libmaus2::math::UnsignedInteger<productWidth> const prime;
-		
+
 	private:
 	uint64_t count;
 
 	#if defined(LIBMAUS2_HAVE_GMP)
 	mpz_t gmpprime;
-	mpz_t gmpfoldprime;	
+	mpz_t gmpfoldprime;
 	mpz_t gmpb_seq;
 	mpz_t gmpname_b_seq;
 	mpz_t gmpb_seq_qual;
@@ -136,9 +136,9 @@ struct PrimeProduct
 	libmaus2::math::UnsignedInteger<productWidth> b_seq;
 	libmaus2::math::UnsignedInteger<productWidth> name_b_seq;
 	libmaus2::math::UnsignedInteger<productWidth> b_seq_qual;
-	libmaus2::math::UnsignedInteger<productWidth> b_seq_tags;	
+	libmaus2::math::UnsignedInteger<productWidth> b_seq_tags;
 	#endif
-	
+
 	template<size_t k>
 	void updateProduct(libmaus2::math::UnsignedInteger<productWidth> & product, libmaus2::math::UnsignedInteger<k> const & rcrc)
 	{
@@ -165,7 +165,7 @@ struct PrimeProduct
 		mpz_mod(gmpproduct,gmpprod,gmpprime); // product = prod % prime
 	}
 	#endif
-	
+
 	#if defined(LIBMAUS2_HAVE_GMP)
 	static libmaus2::math::UnsignedInteger<productWidth> convertNumber(mpz_t const & gmpnum)
 	{
@@ -180,17 +180,17 @@ struct PrimeProduct
 		return U;
 	}
 	#endif
-	
+
 	public:
 	PrimeProduct()
 	: count(0)
 		#if !defined(LIBMAUS2_HAVE_GMP)
-		, b_seq(1), name_b_seq(1), b_seq_qual(1), b_seq_tags(1) 
+		, b_seq(1), name_b_seq(1), b_seq_qual(1), b_seq_tags(1)
 		#endif
 	{
 		#if defined(LIBMAUS2_HAVE_GMP)
 		mpz_init(gmpprime);
-		mpz_import(gmpprime,productWidth,-1 /* least sign first */,sizeof(uint32_t),0 /* native endianess */,0 /* don't skip bits */, prime.getWords());		
+		mpz_import(gmpprime,productWidth,-1 /* least sign first */,sizeof(uint32_t),0 /* native endianess */,0 /* don't skip bits */, prime.getWords());
 		mpz_init(gmpfoldprime);
 		mpz_import(gmpfoldprime,productWidth,-1 /* least sign first */,sizeof(uint32_t),0 /* native endianess */,0 /* don't skip bits */, foldprime.getWords());
 		mpz_init_set_ui(gmpb_seq,1);
@@ -213,12 +213,12 @@ struct PrimeProduct
 		mpz_clear(gmpb_seq_tags);
 		mpz_clear(gmpfoldcrc);
 		mpz_clear(gmpprod);
-		#endif		
+		#endif
 	}
-	
+
 	void push(context_type const & context)
 	{
-		count += 1;		
+		count += 1;
 		#if defined(LIBMAUS2_HAVE_GMP)
 		updateProduct(gmpb_seq,context.flags_seq_digest);
 		updateProduct(gmpname_b_seq,context.name_flags_seq_digest);
@@ -247,19 +247,19 @@ struct PrimeProduct
 		updateProduct(b_seq_tags,subsetproducts.b_seq_tags);
 		#endif
 	};
-	
+
 	bool operator== (this_type const & other) const
 	{
-		return count==other.count 
+		return count==other.count
 			#if defined(LIBMAUS2_HAVE_GMP)
 			&& (mpz_cmp(gmpb_seq,other.gmpb_seq) == 0)
 			&& (mpz_cmp(gmpname_b_seq,other.gmpname_b_seq) == 0)
 			&& (mpz_cmp(gmpb_seq_qual,other.gmpb_seq_qual) == 0)
 			&& (mpz_cmp(gmpb_seq_tags,other.gmpb_seq_tags) == 0)
 			#else
-			&& b_seq==other.b_seq 
-			&& name_b_seq==other.name_b_seq 
-			&& b_seq_qual==other.b_seq_qual 
+			&& b_seq==other.b_seq
+			&& name_b_seq==other.name_b_seq
+			&& b_seq_qual==other.b_seq_qual
 			&& b_seq_tags==other.b_seq_tags
 			#endif
 			;
@@ -268,7 +268,7 @@ struct PrimeProduct
 	std::string get_b_seq() const
 	{
 		std::ostringstream ostr;
-		ostr << std::hex 
+		ostr << std::hex
 			#if defined(LIBMAUS2_HAVE_GMP)
 			<< libmaus2::math::UnsignedInteger<primeWidth/32>(convertNumber(gmpb_seq))
 			#else
@@ -281,7 +281,7 @@ struct PrimeProduct
 	std::string get_name_b_seq() const
 	{
 		std::ostringstream ostr;
-		ostr << std::hex 
+		ostr << std::hex
 			#if defined(LIBMAUS2_HAVE_GMP)
 			<< libmaus2::math::UnsignedInteger<primeWidth/32>(convertNumber(gmpname_b_seq))
 			#else
@@ -290,11 +290,11 @@ struct PrimeProduct
 			;
 		return ostr.str();
 	}
-	
+
 	std::string get_b_seq_qual() const
 	{
 		std::ostringstream ostr;
-		ostr << std::hex 
+		ostr << std::hex
 			#if defined(LIBMAUS2_HAVE_GMP)
 			<< libmaus2::math::UnsignedInteger<primeWidth/32>(convertNumber(gmpb_seq_qual))
 			#else
@@ -303,11 +303,11 @@ struct PrimeProduct
 			;
 		return ostr.str();
 	}
-	
+
 	std::string get_b_seq_tags() const
 	{
 		std::ostringstream ostr;
-		ostr << std::hex 
+		ostr << std::hex
 			#if defined(LIBMAUS2_HAVE_GMP)
 			<< libmaus2::math::UnsignedInteger<primeWidth/32>(convertNumber(gmpb_seq_tags))
 			#else
@@ -316,7 +316,7 @@ struct PrimeProduct
 			;
 		return ostr.str();
 	}
-	
+
 	uint64_t get_count() const
 	{
 		return count;
@@ -328,7 +328,7 @@ struct PrimeSums
 {
 	typedef _context_type context_type;
 	typedef PrimeSums<context_type,_primeWidth,truncate> this_type;
-	
+
 	// width of the prime in bits
 	static size_t const primeWidth = _primeWidth;
 	// width of the sums in bits
@@ -344,7 +344,7 @@ struct PrimeSums
 	libmaus2::math::UnsignedInteger<sumWidth> name_b_seq;
 	libmaus2::math::UnsignedInteger<sumWidth> b_seq_qual;
 	libmaus2::math::UnsignedInteger<sumWidth> b_seq_tags;
-	
+
 	// get prime width in bits
 	unsigned int getPrimeWidth() const
 	{
@@ -352,13 +352,13 @@ struct PrimeSums
 		{
 			// most significant to least significant word
 			uint32_t v = prime[sumWidth-i-1];
-			
+
 			// if word is not null
 			if ( v )
 			{
 				// get word shift
 				unsigned int s = (sumWidth-i-1)*32;
-				
+
 				if ( (v & 0xFFFF0000UL) )
 					v >>= 16, s += 16;
 				if ( (v & 0xFF00UL) )
@@ -367,28 +367,28 @@ struct PrimeSums
 					v >>= 4, s += 4;
 				if ( (v & 0xCUL) )
 					v >>= 2, s += 2;
-								
+
 				// add bit shift
 				while ( v )
 				{
 					s++;
 					v >>= 1;
 				}
-				
+
 				return s;
 			}
 		}
-		
+
 		return 0;
 	}
-	
+
 	// get prime width in hex digits
 	unsigned int getPrimeHexWidth() const
 	{
 		unsigned int const primewidth = getPrimeWidth();
 		return (primewidth + 3)/4;
 	}
-	
+
 	std::string shortenHexDigest(std::string const & s) const
 	{
 		if ( truncate )
@@ -420,10 +420,10 @@ struct PrimeSums
 
 	public:
 	PrimeSums() : count(0), modcount(0), b_seq(0), name_b_seq(0), b_seq_qual(0), b_seq_tags(0) {}
-	
+
 	void push(context_type const & context)
 	{
-		count += 1;		
+		count += 1;
 		updateSum(b_seq     ,context.flags_seq_digest);
 		updateSum(name_b_seq,context.name_flags_seq_digest);
 		updateSum(b_seq_qual,context.flags_seq_qual_digest);
@@ -436,12 +436,12 @@ struct PrimeSums
 		b_seq      = ((b_seq      % prime) + (subsetproducts.b_seq      % prime)) % prime;
 		name_b_seq = ((name_b_seq % prime) + (subsetproducts.name_b_seq % prime)) % prime;
 		b_seq_qual = ((b_seq_qual % prime) + (subsetproducts.b_seq_qual % prime)) % prime;
-		b_seq_tags = ((b_seq_tags % prime) + (subsetproducts.b_seq_tags % prime)) % prime;		
+		b_seq_tags = ((b_seq_tags % prime) + (subsetproducts.b_seq_tags % prime)) % prime;
 	};
-	
+
 	bool operator== (this_type const & other) const
 	{
-		return count==other.count 
+		return count==other.count
 			&& (b_seq%prime)==(other.b_seq%prime)
 			&& (name_b_seq%prime)==(other.name_b_seq%prime)
 			&& (b_seq_qual%prime)==(other.b_seq_qual%prime)
@@ -462,21 +462,21 @@ struct PrimeSums
 		ostr << std::hex << libmaus2::math::UnsignedInteger<primeWidth/32>(name_b_seq % prime);
 		return shortenHexDigest(ostr.str());
 	}
-	
+
 	std::string get_b_seq_qual() const
 	{
 		std::ostringstream ostr;
 		ostr << std::hex << libmaus2::math::UnsignedInteger<primeWidth/32>(b_seq_qual % prime);
 		return shortenHexDigest(ostr.str());
 	}
-	
+
 	std::string get_b_seq_tags() const
 	{
 		std::ostringstream ostr;
 		ostr << std::hex << libmaus2::math::UnsignedInteger<primeWidth/32>(b_seq_tags % prime);
 		return shortenHexDigest(ostr.str());
 	}
-	
+
 	uint64_t get_count() const
 	{
 		return count;
@@ -495,7 +495,7 @@ typedef SeqChksumsSimpleSums<libmaus2::bambam::SHA2_512_sse4_SeqChksumUpdateCont
 
 typedef PrimeProduct<libmaus2::bambam::CRC32SeqChksumUpdateContext,32> CRC32PrimeProduct32;
 template<> libmaus2::math::UnsignedInteger<CRC32PrimeProduct32::productWidth> const CRC32PrimeProduct32::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getMersenne31<CRC32PrimeProduct32::productWidth>();
-template<> libmaus2::math::UnsignedInteger<CRC32PrimeProduct32::productWidth> const CRC32PrimeProduct32::foldprime = 
+template<> libmaus2::math::UnsignedInteger<CRC32PrimeProduct32::productWidth> const CRC32PrimeProduct32::foldprime =
 	libmaus2::bambam::SeqChksumPrimeNumbers::getMersenne31<CRC32PrimeProduct32::productWidth>() + libmaus2::math::UnsignedInteger<CRC32PrimeProduct32::productWidth>(1);
 
 typedef PrimeProduct<libmaus2::bambam::CRC32SeqChksumUpdateContext,64> CRC32PrimeProduct64;
@@ -767,7 +767,7 @@ template<> libmaus2::math::UnsignedInteger<SHA2_512_sse4_PrimeSums::sumWidth> co
 * and last) bit info, and this combined with the query name, or the basecall
 * qualities, or certain BAM auxilary fields.
 **/
-struct SeqChksumsCRC32Products 
+struct SeqChksumsCRC32Products
 {
 	typedef libmaus2::bambam::CRC32SeqChksumUpdateContext context_type;
 
@@ -795,22 +795,22 @@ struct SeqChksumsCRC32Products
 	{
 		count += add;
 	}
-	
+
 	void push_b_seq(uint32_t const chksum)
 	{
 		product_munged_chksum_multiply(b_seq,chksum);
 	}
-	
+
 	void push_name_b_seq(uint32_t const chksum)
 	{
 		product_munged_chksum_multiply(name_b_seq,chksum);
 	}
-	
+
 	void push_b_seq_qual(uint32_t const chksum)
 	{
 		product_munged_chksum_multiply(b_seq_qual,chksum);
 	}
-	
+
 	void push_b_seq_tags(uint32_t const chksum)
 	{
 		product_munged_chksum_multiply(b_seq_tags,chksum);
@@ -829,7 +829,7 @@ struct SeqChksumsCRC32Products
 		push_b_seq_qual(b_seq_qual[0]);
 		push_b_seq_tags(b_seq_tags[0]);
 	}
-	
+
 	public:
 	SeqChksumsCRC32Products() : count(0), b_seq(1), name_b_seq(1), b_seq_qual(1), b_seq_tags(1)
 	{
@@ -844,22 +844,22 @@ struct SeqChksumsCRC32Products
 	{
 		return name_b_seq;
 	}
-	
+
 	uint64_t get_b_seq_qual() const
 	{
 		return b_seq_qual;
 	}
-	
+
 	uint64_t get_b_seq_tags() const
 	{
 		return b_seq_tags;
 	}
-	
+
 	uint64_t get_count() const
 	{
 		return count;
 	}
-	
+
 	void push(context_type const & context)
 	{
 		push(
@@ -900,7 +900,7 @@ struct NullChecksums
 	{
 		count += add;
 	}
-	
+
 	void push(
 		libmaus2::math::UnsignedInteger<context_type::digest_type::digestlength/4> const &,
 		libmaus2::math::UnsignedInteger<context_type::digest_type::digestlength/4> const &,
@@ -910,7 +910,7 @@ struct NullChecksums
 	{
 		push_count(1);
 	}
-	
+
 	public:
 	NullChecksums() : count(0)
 	{
@@ -925,22 +925,22 @@ struct NullChecksums
 	{
 		return 0;
 	}
-	
+
 	uint64_t get_b_seq_qual() const
 	{
 		return 0;
 	}
-	
+
 	uint64_t get_b_seq_tags() const
 	{
 		return 0;
 	}
-	
+
 	uint64_t get_count() const
 	{
 		return count;
 	}
-	
+
 	void push(context_type const & context)
 	{
 		push(
@@ -994,7 +994,7 @@ struct OrderIndependentSeqDataChecksums {
 	/**
 	* Combine primary sequence data from alignment record into checksum products
 	*
-	* Ignores Supplementary and auxilary alignment records so primary data in not 
+	* Ignores Supplementary and auxilary alignment records so primary data in not
 	* included twice.
 	*
 	* @param algn BAM alignment record
@@ -1002,8 +1002,8 @@ struct OrderIndependentSeqDataChecksums {
 	void push(uint8_t const * D, uint32_t const blocksize, typename crc_container_type::context_type & context)
 	{
 		uint32_t const aflags = libmaus2::bambam::BamAlignmentDecoderBase::getFlags(D);
-	
-		if 
+
+		if
 		( ! (
 			aflags &
 			(
@@ -1014,23 +1014,23 @@ struct OrderIndependentSeqDataChecksums {
 		{
 			static uint16_t const maskflags =
 				::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FPAIRED |
-				::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1 | 
+				::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1 |
 				::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD2;
-				
+
 			uint8_t const flags = (aflags & maskflags) & 0xFF;
-			
+
 			bool const isqcfail  = (aflags & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FQCFAIL);
 			bool const isreverse = (aflags & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREVERSE);
 			char const * readname = libmaus2::bambam::BamAlignmentDecoderBase::getReadName(D);
 			uint32_t const lreadname = libmaus2::bambam::BamAlignmentDecoderBase::getLReadName(D);
-				
+
 			context.pass = !isqcfail;
 			context.valid = true;
 			uint64_t const len = isreverse ?
 				libmaus2::bambam::BamAlignmentDecoderBase::decodeReadRC(D,A)
 				:
 				libmaus2::bambam::BamAlignmentDecoderBase::decodeRead(D,A);
-			
+
 			#if defined(BAM_SEQ_CHKSUM_DEBUG)
 			uint32_t const CRC32_INITIAL = crc32(0L, Z_NULL, 0);
 			#endif
@@ -1042,30 +1042,30 @@ struct OrderIndependentSeqDataChecksums {
 			context.ctx_name_flags_seq.update(reinterpret_cast<uint8_t const *>(&flags),1);
 			// query sequence
 			context.ctx_name_flags_seq.update(reinterpret_cast<uint8_t const *>(A.begin()),len);
-						
+
 			#if defined(BAM_SEQ_CHKSUM_DEBUG)
 			uint32_t chksum_name_flags_seq = crc32(CRC32_INITIAL,reinterpret_cast<const unsigned char *>(readname),lreadname);
 			chksum_name_flags_seq = crc32(chksum_name_flags_seq,reinterpret_cast<const unsigned char*>( &flags), 1);
 			chksum_name_flags_seq = crc32(chksum_name_flags_seq,reinterpret_cast<const unsigned char *>( A.begin()), len);
 			#endif
-						
+
 			context.ctx_flags_seq.init();
 			// flags
 			context.ctx_flags_seq.update(reinterpret_cast<uint8_t const *>(&flags),1);
 			// query sequence
 			context.ctx_flags_seq.update(reinterpret_cast<uint8_t const *>(A.begin()),len);
-			
+
 			#if defined(BAM_SEQ_CHKSUM_DEBUG)
 			uint32_t chksum_flags_seq = crc32(CRC32_INITIAL,reinterpret_cast<const unsigned char*>(&flags), 1);
 			chksum_flags_seq = crc32(chksum_flags_seq,reinterpret_cast<const unsigned char *>( A.begin()), len);
 			#endif
 
 			// add quality
-			uint64_t const lenq = isreverse ? 
+			uint64_t const lenq = isreverse ?
 				libmaus2::bambam::BamAlignmentDecoderBase::decodeQualRC(D,B)
 				:
 				libmaus2::bambam::BamAlignmentDecoderBase::decodeQual(D,B);
-			
+
 			context.ctx_flags_seq_qual.copyFrom(context.ctx_flags_seq);
 			context.ctx_flags_seq_qual.update(reinterpret_cast<uint8_t *>(B.begin()), lenq);
 
@@ -1078,17 +1078,17 @@ struct OrderIndependentSeqDataChecksums {
 			uint8_t const * aux = ::libmaus2::bambam::BamAlignmentDecoderBase::getAux(D);
 			// end of algn data block (and so of aux area)
 			uint8_t const * const auxend = D + blocksize;
-			
+
 			// start of each aux entry for auxtags
 			std::vector<uint8_t const *> paux(auxtags.size(),NULL);
 			// size of each aux entry for auxtags
 			std::vector<uint64_t> saux(auxtags.size(),0);
-			
+
 			while(aux < auxend)
 			{
 				// get length of aux field in bytes
 				uint64_t const auxlen = ::libmaus2::bambam::BamAlignmentDecoderBase::getAuxLength(aux);
-				
+
 				// skip over aux tag data we're not interested in
 				if( auxtagsfilter(aux[0],aux[1]) )
 				{
@@ -1118,14 +1118,14 @@ struct OrderIndependentSeqDataChecksums {
 			}
 			std::vector<uint8_t const *>::const_iterator it_paux = paux.begin();
 			std::vector<uint64_t>::const_iterator it_saux = saux.begin();
-			
+
 			// copy context
 			context.ctx_flags_seq_tags.copyFrom(context.ctx_flags_seq);
 
 			#if defined(BAM_SEQ_CHKSUM_DEBUG)
 			uint32_t chksum_flags_seq_tags = chksum_flags_seq;
 			#endif
-			
+
 			//loop over the chunks of data corresponding to the auxtags
 			while (it_paux != paux.end())
 			{
@@ -1140,7 +1140,7 @@ struct OrderIndependentSeqDataChecksums {
 				++it_paux;
 				++it_saux;
 			}
-	
+
 
 			context.flags_seq_qual_digest = context.ctx_flags_seq_qual.digestui();
 			context.name_flags_seq_digest = context.ctx_name_flags_seq.digestui();
@@ -1148,7 +1148,7 @@ struct OrderIndependentSeqDataChecksums {
 			context.flags_seq_tags_digest = context.ctx_flags_seq_tags.digestui();
 
 			#if defined(BAM_SEQ_CHKSUM_DEBUG)
-			assert ( context.flags_seq_qual_digest[0] == chksum_flags_seq_qual );			
+			assert ( context.flags_seq_qual_digest[0] == chksum_flags_seq_qual );
 			assert ( context.name_flags_seq_digest[0] == chksum_name_flags_seq );
 			assert ( context.flags_seq_digest[0] == chksum_flags_seq );
 			assert ( context.flags_seq_tags_digest[0] == chksum_flags_seq_tags );
@@ -1161,18 +1161,18 @@ struct OrderIndependentSeqDataChecksums {
 			context.valid = false;
 		}
 	};
-	
+
 	void push(typename crc_container_type::context_type const & context)
 	{
 		if ( context.valid )
 		{
 			all.push(context);
-			
+
 			if ( context.pass )
-				pass.push(context);	
+				pass.push(context);
 		}
 	}
-	
+
 	void push(OrderIndependentSeqDataChecksums const & subsetchksum)
 	{
 		pass.push(subsetchksum.pass);
@@ -1188,7 +1188,7 @@ struct ChecksumsArrayErase
 {
 	static void erase(N *, uint64_t const)
 	{
-	
+
 	}
 };
 
@@ -1203,18 +1203,18 @@ struct Checksums : public libmaus2::bambam::ChecksumsInterface
 	header_type const & header;
 
 	OrderIndependentSeqDataChecksums<container_type> chksums;
-	libmaus2::autoarray::AutoArray< 
+	libmaus2::autoarray::AutoArray<
 		OrderIndependentSeqDataChecksums<container_type>,
 		libmaus2::autoarray::alloc_type_cxx,
 		ChecksumsArrayErase<OrderIndependentSeqDataChecksums<container_type> > > readgroup_chksums;
 	typename OrderIndependentSeqDataChecksums<container_type>::context_type updatecontext;
-	
+
 	Checksums(std::string const & rhash, header_type const & rheader)
 	: hash(rhash), header(rheader), chksums(), readgroup_chksums(1 + header.getNumReadGroups(),false), updatecontext()
 	{
-	
+
 	}
-	
+
 	void update(libmaus2::bambam::ChecksumsInterface const & IO)
 	{
 		this_type const & O = dynamic_cast<this_type const &>(IO);
@@ -1222,20 +1222,20 @@ struct Checksums : public libmaus2::bambam::ChecksumsInterface
 		for ( uint64_t i = 0; i < readgroup_chksums.size(); ++i )
 			readgroup_chksums[i].push(O.readgroup_chksums[i]);
 	}
-	
+
 	void update(uint8_t const * D, uint32_t const blocksize)
 	{
 		chksums.push(D,blocksize,updatecontext);
-		readgroup_chksums[header.getReadGroupId(::libmaus2::bambam::BamAlignmentDecoderBase::getAuxString(D,blocksize,"RG"))+1].push(updatecontext);		
+		readgroup_chksums[header.getReadGroupId(::libmaus2::bambam::BamAlignmentDecoderBase::getAuxString(D,blocksize,"RG"))+1].push(updatecontext);
 	}
-	
+
 	void update(libmaus2::bambam::BamAlignment const & algn)
 	{
 		update(algn.D.begin(),algn.blocksize);
 	}
-	
+
 	void printVerbose(
-		std::ostream & log, 
+		std::ostream & log,
 		uint64_t const c,
 		libmaus2::bambam::BamAlignment const & algn, double const etime
 	)
@@ -1243,11 +1243,11 @@ struct Checksums : public libmaus2::bambam::ChecksumsInterface
 		log << "[V] " << c/(1024*1024) << " " << chksums.all.get_count() << " " << algn.getName() << " " << algn.isRead1()
 			<< " " << algn.isRead2() << " " << ( algn.isReverse() ? algn.getReadRC() : algn.getRead() ) << " "
 			<< ( algn.isReverse() ? algn.getQualRC() : algn.getQual() ) << " " << std::hex << (0x0 + algn.getFlags())
-			<< std::dec << " " << chksums.all.get_b_seq() << " " << chksums.all.get_b_seq_tags() << " " 
+			<< std::dec << " " << chksums.all.get_b_seq() << " " << chksums.all.get_b_seq_tags() << " "
 			<< " " << etime
 			<< std::endl;
 	}
-	
+
 	void printChecksumsForBamHeader(std::ostream & out)
 	{
 		std::ostringstream tagsstr;
@@ -1259,14 +1259,14 @@ struct Checksums : public libmaus2::bambam::ChecksumsInterface
 			tagsstr << *it_aux;
 		}
 		std::string const tags = tagsstr.str();
-		
-		out 
+
+		out
 			<< "@CO\tTY:checksum\tST:all\tPA:all\tHA:" << hash << "\tCO:" << chksums.all.get_count() << "\t"
 			<< "BS:" << std::hex << chksums.all.get_b_seq() << std::dec << "\t"
 			<< "NS:" << std::hex << chksums.all.get_name_b_seq() << std::dec << "\t"
 			<< "SQ:" << std::hex << chksums.all.get_b_seq_qual() << std::dec << "\t"
 			<< "ST:" << tags << ":" << std::hex << chksums.all.get_b_seq_tags() << std::dec << "\n";
-		out 
+		out
 			<< "@CO\tTY:checksum\tST:all\tPA:pass\tHA:" << hash << "\tCO:" << chksums.pass.get_count() << "\t"
 			<< "BS:" << std::hex << chksums.pass.get_b_seq() << std::dec << "\t"
 			<< "NS:" << std::hex << chksums.pass.get_name_b_seq() << std::dec << "\t"
@@ -1279,14 +1279,14 @@ struct Checksums : public libmaus2::bambam::ChecksumsInterface
 			for(unsigned int i=0; i<=header.getNumReadGroups(); i++)
 			{
 				chksumschk.push(readgroup_chksums[i]);
-				
-				out 
+
+				out
 					<< "@CO\tTY:checksum\tST:" << (i>0 ? header.getReadGroupIdentifierAsString(i-1) : "") << "\tPA:all\tHA:" << hash << "\tCO:" << readgroup_chksums[i].all.get_count() << "\t"
 					<< "BS:" << std::hex << readgroup_chksums[i].all.get_b_seq() << std::dec << "\t"
 					<< "NS:" << std::hex << readgroup_chksums[i].all.get_name_b_seq() << std::dec << "\t"
 					<< "SQ:" << std::hex << readgroup_chksums[i].all.get_b_seq_qual() << std::dec << "\t"
 					<< "ST:" << tags << ":" << std::hex << readgroup_chksums[i].all.get_b_seq_tags() << std::dec << "\n";
-				out 
+				out
 					<< "@CO\tTY:checksum\tST:" << (i>0 ? header.getReadGroupIdentifierAsString(i-1) : "") << "\tPA:pass\tHA:" << hash << "\tCO:" << readgroup_chksums[i].pass.get_count() << "\t"
 					<< "BS:" << std::hex << readgroup_chksums[i].pass.get_b_seq() << std::dec << "\t"
 					<< "NS:" << std::hex << readgroup_chksums[i].pass.get_name_b_seq() << std::dec << "\t"
@@ -1294,9 +1294,9 @@ struct Checksums : public libmaus2::bambam::ChecksumsInterface
 					<< "ST:" << tags << ":" << std::hex << readgroup_chksums[i].pass.get_b_seq_tags() << std::dec << "\n";
 			}
 			assert(chksumschk == chksums);
-		}	
+		}
 	}
-	
+
 	void printChecksums(std::ostream & out)
 	{
 		out << "###\tset\t" << "count" << "\t" << "\t" << "b_seq" << "\t" << "name_b_seq" << "\t" << "b_seq_qual" << "\t"
@@ -1327,7 +1327,7 @@ struct Checksums : public libmaus2::bambam::ChecksumsInterface
 					<< readgroup_chksums[i].pass.get_b_seq_qual() << "\t" << readgroup_chksums[i].pass.get_b_seq_tags() << std::dec << std::endl;
 			}
 			assert(chksumschk == chksums);
-		}	
+		}
 	}
 };
 
@@ -1435,7 +1435,7 @@ std::vector<std::string> libmaus2::bambam::ChecksumsFactory::getSupportedHashVar
 	V.push_back("sha512primesums");
 	V.push_back("sha512primesums512");
 	#endif
-	
+
 	return V;
 }
 
@@ -1443,14 +1443,14 @@ std::string libmaus2::bambam::ChecksumsFactory::getSupportedHashVariantsList()
 {
 	std::ostringstream ostr;
 	std::vector<std::string> const V = getSupportedHashVariants();
-	
+
 	if ( V.size() )
 	{
 		ostr << V[0];
 		for ( uint64_t i = 1; i < V.size(); ++i )
 			ostr << "," << V[i];
 	}
-	
+
 	return ostr.str();
 }
 
@@ -2064,8 +2064,8 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 		libmaus2::exception::LibMausException lme;
 		lme.getStream() << "unsupported hash type " << hash << std::endl;
 		lme.finish();
-		throw lme;		
-	}	
+		throw lme;
+	}
 }
 
 libmaus2::bambam::ChecksumsInterface::unique_ptr_type libmaus2::bambam::ChecksumsFactory::construct(std::string const & hash, libmaus2::bambam::BamHeader const & header)

@@ -25,7 +25,7 @@
 namespace libmaus2
 {
 	namespace bambam
-	{		
+	{
 		namespace parallel
 		{
 			/**
@@ -36,17 +36,17 @@ namespace libmaus2
 				typedef InputBlockWorkPackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				//! information required for reading
 				ControlInputInfo * inputinfo;
-	
+
 				InputBlockWorkPackage()
-				: 
-					libmaus2::parallel::SimpleThreadWorkPackage(), 
+				:
+					libmaus2::parallel::SimpleThreadWorkPackage(),
 					inputinfo(0)
 				{
 				}
-				
+
 				InputBlockWorkPackage(
 					uint64_t const rpriority, ControlInputInfo * rinputinfo,
 					uint64_t const rreadDispatcherId
@@ -54,7 +54,7 @@ namespace libmaus2
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rreadDispatcherId), inputinfo(rinputinfo)
 				{
 				}
-			
+
 				char const * getPackageName() const
 				{
 					return "InputBlockWorkPackage";

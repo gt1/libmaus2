@@ -32,40 +32,40 @@ namespace libmaus2
 			typedef FastATwoBitTable this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			libmaus2::autoarray::AutoArray<unsigned char> T;
-			
+
 			FastATwoBitTable()
 			: T(static_cast<size_t>(std::numeric_limits<unsigned char>::max())+1,false)
 			{
 				assert ( 3 < T.size() );
-			
+
 				std::fill(T.begin(),T.end(),0);
-				
+
 				T['a'] = T['A'] = 0;
 				T['c'] = T['C'] = 1;
 				T['g'] = T['G'] = 2;
 				T['t'] = T['T'] = 3;
 			}
-			
+
 			uint8_t operator[](char const a) const
 			{
 				return T[static_cast<unsigned char>(a)];
 			}
-			
+
 			uint64_t operator()(char const * s) const
 			{
 				if ( ! s )
 					return 0;
 
 				uint64_t v = 0;
-				
+
 				while ( *s )
 				{
 					v <<= 2;
 					v |= (*this)[*(s++)];
 				}
-				
+
 				return v + 1;
 			}
 		};

@@ -30,11 +30,11 @@ namespace libmaus2
 			typedef BgzfDeflateOutputCallback this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			virtual ~BgzfDeflateOutputCallback() {}
 			virtual void operator()(
-				uint8_t const * in, 
-				uint64_t const uncompressedsize, 
+				uint8_t const * in,
+				uint64_t const uncompressedsize,
 				uint8_t const * out,
 				uint64_t const compressedsize
 			) = 0;

@@ -34,18 +34,18 @@ namespace libmaus2
 			virtual int operator()(::libmaus2::util::ArgInfo const &, int const) = 0;
 			virtual ~DispatchCallback() {}
 		};
-			
+
 		struct StringRecDispatchCallback : public DispatchCallback
 		{
 			int operator()(::libmaus2::util::ArgInfo const &, int const fd)
 			{
 				::libmaus2::network::SocketBase controlsock(fd);
-				std::string remmes = controlsock.readString();					
+				std::string remmes = controlsock.readString();
 				std::cout << remmes << std::endl;
 				return 0;
-			}			
+			}
 		};
-		
+
 		struct LsfDispatchCallback : public DispatchCallback
 		{
 			int operator()(::libmaus2::util::ArgInfo const & arginfo, int const fd)
@@ -53,16 +53,16 @@ namespace libmaus2
 				uint64_t const mem = arginfo.getValue<uint64_t>("mem",2000);
 				bool const valgrind = arginfo.getValue<uint64_t>("valgrind",0);
 				std::string cmd = arginfo.getValue<std::string>("cmd","/bin/nonexistent");
-				
+
 				::libmaus2::util::MemLimit::setLimits(mem*1000*1000);
 				int const ulimitr = system("ulimit -a 1>&2");
-				
+
 				if ( ulimitr != 0 )
 				{
 					int const error = errno;
 					std::cerr << "LsfDispatchCallback::operator(): system(ulimit -a) failed: " << strerror(error) << std::endl;
 				}
-				
+
 				std::vector < std::string > args;
 				if ( valgrind )
 				{
@@ -75,27 +75,27 @@ namespace libmaus2
 				{
 					args.push_back(cmd);
 				}
-				
+
 				std::ostringstream controlostr;
                                 controlostr << "controlfd=" << fd;
                                 args.push_back(controlostr.str());
-                                
+
                                 std::ostringstream memostr;
                                 memostr << "mem=" << mem;
                                 args.push_back(memostr.str());
-				
+
 				typedef ::libmaus2::util::WriteableString string_type;
 				typedef string_type::unique_ptr_type string_ptr_type;
 				::libmaus2::autoarray::AutoArray< string_ptr_type > wargv(args.size());
 				::libmaus2::autoarray::AutoArray< char * > aargv(args.size()+1);
-					
+
 				for ( uint64_t i = 0; i < args.size(); ++i )
 				{
 					string_ptr_type twargvi(new string_type(args[i]));
 					wargv[i] = UNIQUE_PTR_MOVE(twargvi);
 					aargv[i] = wargv[i]->A.get();
 				}
-					
+
 				aargv[args.size()] = 0;
 
 				std::cerr << "about to execv() for command " << cmd << std::endl;
@@ -103,7 +103,7 @@ namespace libmaus2
 				int const r = execv(cmd.c_str(),aargv.get());
 				int const error = errno;
 				std::cerr << "execv() returned with value " << r << " error " << strerror(error) << std::endl;
-				
+
 				return error;
 			}
 		};
@@ -123,7 +123,7 @@ namespace libmaus2
 					return EXIT_FAILURE;
 				}
 			}
-		
+
 			static int dispatch(
 				::libmaus2::util::ArgInfo const & arginfo,
 				DispatchCallback * dc
@@ -144,7 +144,7 @@ namespace libmaus2
 					return EXIT_FAILURE;
 				}
 			}
-		
+
 			static int dispatch(
 				::libmaus2::util::ArgInfo const & arginfo,
 				std::string const & sid,
@@ -157,18 +157,18 @@ namespace libmaus2
 				try
 				{
 					::libmaus2::util::LogPipeMultiplexGeneric LPMG(loghostname,port,sid,id);
-					
+
 					// connect
 					::libmaus2::network::ClientSocket::unique_ptr_type controlsock(
 								new ::libmaus2::network::ClientSocket(
 									port,loghostname.c_str()
 								)
 						);
-							
+
 					// write session id
-					controlsock->writeString(0,sid);		
+					controlsock->writeString(0,sid);
 					// id
-					controlsock->writeSingle<uint64_t>(id);						
+					controlsock->writeSingle<uint64_t>(id);
 					// connection type
 					controlsock->writeString("control");
 					// send host name
@@ -178,7 +178,7 @@ namespace libmaus2
 					{
 						int const fd = controlsock->releaseFD();
 						return (*dc)(arginfo,fd);
-					}				
+					}
 					else
 					{
 						return EXIT_SUCCESS;

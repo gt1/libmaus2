@@ -5897,44 +5897,44 @@ uint32_t primes16[65536] = {
             uint64_t s = 0;
             uint64_t u = 1;
             uint64_t r = 0;
-            
+
             // invariant at start of loop: r = sqrt(s)
             while ( s < n )
             {
               s += u;
               u += 2;
-              
+
               if ( s <= n )
                 r += 1;
             }
-            
+
             return r;
           }
 
 int main()
 {
 	std::vector < uint64_t > sieve;
-	
+
 	sieve.push_back ( 2 );
 
-	// uint64_t n = 1ull << 16;	
+	// uint64_t n = 1ull << 16;
 	for ( uint64_t i = 3; sieve.size() < (1ull << 16)+1; ++i )
 	{
 		bool composed = false;
 		uint64_t j = 0;
 		uint64_t sqrt = isqrt(i)+1;
-		
+
 		while ( (!composed) && j < sieve.size() && sieve[j] <= sqrt )
 		{
 			if ( i % sieve[j] == 0 )
 				composed = true;
 			j++;
 		}
-		
+
 		if ( ! composed )
 			sieve.push_back(i);
 	}
-	
+
 	std::cout << "#include <libmaus2/math/primes16.hpp>\n";
 	std::cout << "uint32_t primes16["<< (sieve.size()-1) << "] = {\n";
 	std::ostringstream * line = new std::ostringstream;
@@ -5943,7 +5943,7 @@ int main()
 		(*line) << sieve[i];
 		if ( i+1 < sieve.size() )
 			(*line) << ",";
-		
+
 		if ( line->str().size() > 70 )
 		{
 			std::cout << line->str() << std::endl;
@@ -5951,7 +5951,7 @@ int main()
 			line = new std::ostringstream;
 		}
 	}
-	
+
 	if ( line->str().size() )
 	{
 		std::cout << line->str() << std::endl;
@@ -5959,4 +5959,3 @@ int main()
 	std::cout << "};\n";
 }
 #endif
-

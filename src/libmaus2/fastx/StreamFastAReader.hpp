@@ -28,7 +28,7 @@ namespace libmaus2
 	namespace fastx
 	{
                 typedef FastAReaderTemplate< ::libmaus2::fastx::StreamFastReaderBase > StreamFastAReader;
-                
+
                 struct StreamFastAReaderWrapper : public StreamFastAReader
                 {
                 	StreamFastAReaderWrapper(std::istream & in) : StreamFastAReader(&in) {}

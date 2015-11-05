@@ -31,7 +31,7 @@ namespace libmaus2
 			struct FragmentAlignmentBufferBaseSortWorkPackageReturnInterface
 			{
 				typedef _order_type order_type;
-				
+
 				virtual ~FragmentAlignmentBufferBaseSortWorkPackageReturnInterface() {}
 				virtual void putBaseSortWorkPackage(FragmentAlignmentBufferBaseSortPackage<order_type> * package) = 0;
 			};

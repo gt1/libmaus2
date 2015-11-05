@@ -31,7 +31,7 @@ namespace libmaus2
 			std::string name;
 			uint64_t id;
 			uint64_t ioffset;
-			
+
 			BgzfFastAIndexEntry() : id(0), ioffset(0) {}
 			BgzfFastAIndexEntry(
 				std::string const & rname,

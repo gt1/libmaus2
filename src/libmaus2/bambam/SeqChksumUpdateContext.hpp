@@ -34,7 +34,7 @@ namespace libmaus2
 			digest_type ctx_name_flags_seq;
 			uint8_t ctx_name_flags_seq_digest[digest_type::digestlength];
 			libmaus2::math::UnsignedInteger<digest_type::digestlength/4> name_flags_seq_digest;
-			
+
 			digest_type ctx_flags_seq;
 			uint8_t ctx_flags_seq_digest[digest_type::digestlength];
 			libmaus2::math::UnsignedInteger<digest_type::digestlength/4> flags_seq_digest;
@@ -42,11 +42,11 @@ namespace libmaus2
 			digest_type ctx_flags_seq_qual;
 			uint8_t ctx_flags_seq_qual_digest[digest_type::digestlength];
 			libmaus2::math::UnsignedInteger<digest_type::digestlength/4> flags_seq_qual_digest;
-			
+
 			digest_type ctx_flags_seq_tags;
 			uint8_t ctx_flags_seq_tags_digest[digest_type::digestlength];
 			libmaus2::math::UnsignedInteger<digest_type::digestlength/4> flags_seq_tags_digest;
-			
+
 			bool pass;
 			bool valid;
 		};

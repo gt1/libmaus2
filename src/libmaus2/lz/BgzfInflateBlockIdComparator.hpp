@@ -29,23 +29,23 @@ namespace libmaus2
 		struct BgzfInflateBlockIdComparator
 		{
 			libmaus2::autoarray::AutoArray<libmaus2::lz::BgzfInflateBlock::unique_ptr_type> const & inflateB;
-					
+
 			BgzfInflateBlockIdComparator(
 				libmaus2::autoarray::AutoArray<libmaus2::lz::BgzfInflateBlock::unique_ptr_type> const & rinflateB
 			) : inflateB(rinflateB)
 			{
-			
+
 			}
 
 			bool operator()(uint64_t const i, uint64_t const j) const
 			{
 				return inflateB[i]->blockid > inflateB[j]->blockid;
-			}		
+			}
 
 			bool operator()(BgzfThreadQueueElement const & i, BgzfThreadQueueElement const & j) const
 			{
 				return inflateB[i.objectid]->blockid > inflateB[j.objectid]->blockid;
-			}		
+			}
 		};
 	}
 }

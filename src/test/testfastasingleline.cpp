@@ -27,12 +27,12 @@ int main(int argc, char * argv[])
 		bool const explode = arginfo.getValue<int>("explode",false);
 		std::string const expprefix = arginfo.getUnparsedValue("explodeprefix",std::string());
 		uint64_t const minlen = arginfo.getValueUnsignedNumeric<uint64_t>("minlen",0);
-	
+
 		libmaus2::fastx::StreamFastAReaderWrapper SFAR(std::cin);
 		libmaus2::fastx::StreamFastAReaderWrapper::pattern_type pattern;
-		
+
 		uint64_t expid = 0;
-		
+
 		while ( SFAR.getNextPatternUnlocked(pattern) )
 		{
 			if ( pattern.spattern.size() >= minlen )
@@ -47,7 +47,7 @@ int main(int argc, char * argv[])
 				}
 				else
 				{
-					std::cout << pattern;		
+					std::cout << pattern;
 				}
 			}
 		}

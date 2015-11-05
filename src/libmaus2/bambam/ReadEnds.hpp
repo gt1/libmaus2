@@ -38,14 +38,14 @@ namespace libmaus2
 			BamAlignment::shared_ptr_type p;
 			//! second alignment if copied
 			BamAlignment::shared_ptr_type q;
-			
+
 			/**
 			 * constructor for empty/invalid empty
 			 **/
 			ReadEnds() : ReadEndsBase()
 			{
 			}
-			
+
 			/**
 			 * reset object to invalid/empty state
 			 **/
@@ -55,9 +55,9 @@ namespace libmaus2
 				p.reset();
 				q.reset();
 			}
-			
+
 			/**
-			 * recode object (run thorugh an encode and decode cycle; used for debugging, 
+			 * recode object (run thorugh an encode and decode cycle; used for debugging,
 			 * recoded object should be identical to original object)
 			 *
 			 * @return recoded object
@@ -81,9 +81,9 @@ namespace libmaus2
 			void get(get_type & G)
 			{
 				ReadEndsBase::get(G);
-				
+
 				uint64_t numal = G.get();
-				
+
 				if ( numal > 0 )
 					p = BamAlignment::shared_ptr_type(new BamAlignment(G));
 				if ( numal > 1 )
@@ -104,7 +104,7 @@ namespace libmaus2
 				unsigned int const haveq = ((q.get() != 0) ? 1 : 0);
 				uint64_t const numal = havep+haveq;
 				P.put(static_cast<uint8_t>(numal));
-					
+
 				if ( havep )
 					p->serialise(P);
 				if ( haveq )
@@ -120,7 +120,7 @@ namespace libmaus2
 			 **/
 			template<typename header_type>
 			ReadEnds(
-				::libmaus2::bambam::BamAlignment const & p, 
+				::libmaus2::bambam::BamAlignment const & p,
 				header_type const & header,
 				bool const copyAlignment = false,
 				uint64_t const rtagId = 0
@@ -169,8 +169,8 @@ namespace libmaus2
 			 **/
 			template<typename header_type>
 			ReadEnds(
-				::libmaus2::bambam::BamAlignment const & p, 
-				::libmaus2::bambam::BamAlignment const & q, 
+				::libmaus2::bambam::BamAlignment const & p,
+				::libmaus2::bambam::BamAlignment const & q,
 				header_type const & header,
 				bool const copyAlignment = false,
 				uint64_t const rtagId = 0
@@ -183,7 +183,7 @@ namespace libmaus2
 					 this->p = p.sclone();
 					 this->q = q.sclone();
 				}
-			}	
+			}
 
 			/**
 			 * constructor for pair type ReadEnds object
@@ -197,9 +197,9 @@ namespace libmaus2
 			 **/
 			template<typename header_type>
 			ReadEnds(
-				uint8_t const * pD, 
+				uint8_t const * pD,
 				uint64_t const pblocksize,
-				uint8_t const * qD, 
+				uint8_t const * qD,
 				uint64_t const qblocksize,
 				header_type const & header,
 				bool const copyAlignment = false,
@@ -217,14 +217,14 @@ namespace libmaus2
 					this->p = palgn;
 					this->q = qalgn;
 				}
-			}	
-		};		
+			}
+		};
 	}
 }
 
-namespace libmaus2 
+namespace libmaus2
 {
-	namespace bambam 
+	namespace bambam
 	{
 		/**
 		 * format orientation for output stream
@@ -237,9 +237,9 @@ namespace libmaus2
 	}
 }
 
-namespace libmaus2 
+namespace libmaus2
 {
-	namespace bambam 
+	namespace bambam
 	{
 		/**
 		 * format read ends object for output stream

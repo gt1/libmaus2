@@ -33,12 +33,12 @@ namespace libmaus2
 			typedef FastABgzfIndex this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			uint64_t blocksize;
 			std::vector< ::libmaus2::fastx::FastABgzfIndexEntry > entries;
 			std::vector< std::string > shortnames;
 			::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure;
-			
+
 			static unique_ptr_type load(std::string const & filename)
 			{
 				libmaus2::aio::InputStreamInstance CIS(filename);
@@ -50,18 +50,18 @@ namespace libmaus2
 			{
 				indexistr.seekg(0,std::ios::beg);
 				blocksize = libmaus2::util::NumberSerialisation::deserialiseNumber(indexistr);
-				
+
 				indexistr.seekg(-8,std::ios::end);
 				uint64_t imetaoffset = libmaus2::util::NumberSerialisation::deserialiseNumber(indexistr);
 				indexistr.seekg(imetaoffset,std::ios::beg);
 				uint64_t const numseq = libmaus2::util::NumberSerialisation::deserialiseNumber(indexistr);
-				
+
 				if ( numseq )
 				{
 					uint64_t const firstpos = libmaus2::util::NumberSerialisation::deserialiseNumber(indexistr);
-					
+
 					indexistr.seekg(firstpos,std::ios::beg);
-					
+
 					entries.resize(numseq);
 					shortnames.resize(numseq);
 
@@ -77,12 +77,12 @@ namespace libmaus2
 					LHTnofailure = UNIQUE_PTR_MOVE(tLHTnofailure);
 				}
 			}
-			
+
 			FastABgzfIndex(std::istream & in)
 			{
 				init(in);
 			}
-			
+
 			int64_t getSequenceId(std::string const & name) const
 			{
 				return LHTnofailure->searchCompleteNoFailureZ(name.begin());
@@ -92,7 +92,7 @@ namespace libmaus2
 			{
 				return LHTnofailure->searchCompleteNoFailureZ(name);
 			}
-			
+
 			::libmaus2::fastx::FastABgzfIndexEntry const & operator[](int64_t const i) const
 			{
 				if ( i < 0 )
@@ -102,10 +102,10 @@ namespace libmaus2
 					ex.finish();
 					throw ex;
 				}
-				
+
 				return entries[i];
 			}
-			
+
 			FastABgzfDecoder::unique_ptr_type getStream(std::istream & in, uint64_t const id) const
 			{
 				FastABgzfDecoder::unique_ptr_type Tptr(new FastABgzfDecoder(in,(*this)[id],blocksize));

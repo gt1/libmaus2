@@ -26,11 +26,11 @@ namespace libmaus2
 	namespace lz
 	{
 		struct GzipOutputStream : public GzipOutputStreamBuffer, public std::ostream
-		{	
+		{
 			typedef GzipOutputStream this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			GzipOutputStream(std::ostream & out, uint64_t const rbuffersize = 64*1024, int const level = Z_DEFAULT_COMPRESSION)
 			: GzipOutputStreamBuffer(out,rbuffersize,level), std::ostream(this)
 			{
@@ -40,7 +40,7 @@ namespace libmaus2
 			{
 				flush();
 			}
-			
+
 			uint64_t terminate()
 			{
 				return GzipOutputStreamBuffer::terminate();

@@ -33,21 +33,21 @@ namespace libmaus2
 			typedef BgzfInflateZStreamBase this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			z_stream inflatestrm;
-		
+
 			void zinit()
 			{
 				memset(&inflatestrm,0,sizeof(z_stream));
-						
+
 				inflatestrm.zalloc = Z_NULL;
 				inflatestrm.zfree = Z_NULL;
 				inflatestrm.opaque = Z_NULL;
 				inflatestrm.avail_in = 0;
 				inflatestrm.next_in = Z_NULL;
-						
+
 				int const ret = inflateInit2(&inflatestrm,-15);
-							
+
 				if (ret != Z_OK)
 				{
 					::libmaus2::exception::LibMausException se;
@@ -56,7 +56,7 @@ namespace libmaus2
 					throw se;
 				}
 			}
-			
+
 			BgzfInflateZStreamBase()
 			{
 				zinit();
@@ -64,9 +64,9 @@ namespace libmaus2
 
 			~BgzfInflateZStreamBase()
 			{
-				inflateEnd(&inflatestrm);				
+				inflateEnd(&inflatestrm);
 			}
-			
+
 			void zreset()
 			{
 				if ( inflateReset(&inflatestrm) != Z_OK )
@@ -74,10 +74,10 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): inflateReset failed";
 					se.finish();
-					throw se;									
-				}			
+					throw se;
+				}
 			}
-			
+
 			void zdecompress(
 				uint8_t       * const in,
 				unsigned int const inlen,
@@ -91,19 +91,19 @@ namespace libmaus2
 				inflatestrm.next_in = in;
 				inflatestrm.avail_out = outlen;
 				inflatestrm.next_out = reinterpret_cast<Bytef *>(out);
-								
+
 				int const r = inflate(&inflatestrm,Z_FINISH);
-				
+
 				bool ok = (r == Z_STREAM_END)
 				     && (inflatestrm.avail_out == 0)
 				     && (inflatestrm.avail_in == 0);
-				
+
 				if ( !ok )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): inflate failed";
 					se.finish();
-					throw se;												
+					throw se;
 				}
 			}
 		};

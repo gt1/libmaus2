@@ -36,15 +36,15 @@ namespace libmaus2
 			::libmaus2::autoarray::AutoArray < std::string > aids;
 			std::string * ids;
 			uint64_t idbase;
-			
+
 			private:
 			FastIDBlock & operator=(FastIDBlock const &);
 			FastIDBlock(FastIDBlock const &);
-			
+
 			public:
 			FastIDBlock ( )
 			: blockid(0), numid(0), blocksize(0), aids(numid,false), ids(aids.get()), idbase(0) {}
-			
+
 			void setup(uint64_t rnumid)
 			{
 				numid = rnumid;

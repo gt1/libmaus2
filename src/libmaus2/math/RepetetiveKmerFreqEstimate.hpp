@@ -71,7 +71,7 @@ namespace libmaus2
 				double const p = 1.0 - 2.0*e; // correct base probability (two reads)
 				double const pk = std::pow(p,k);
 				uint64_t const numinst = replen / period;
-			
+
 				// binary search on monotonous function
 				unsigned int low = 0, high = numinst + 1;
 				while ( high - low > 1 )

@@ -38,31 +38,31 @@ namespace libmaus2
 		{
 			typedef GeneFlatFile this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			private:
 			libmaus2::autoarray::AutoArray<char> C;
 			libmaus2::util::LineAccessor::unique_ptr_type LA;
 			uint64_t nl;
-			
+
 			GeneFlatFile() : nl(0)
 			{
-			
+
 			}
-		
+
 			static libmaus2::autoarray::AutoArray<char> loadFile(std::istream & in)
 			{
 				libmaus2::autoarray::AutoArray<char> C(1);
 				uint64_t p = 0;
-				
+
 				while ( in )
 				{
 					in.read(C.begin() + p, C.size()-p);
-					
+
 					if ( ! in.gcount() )
 						break;
 
 					p += in.gcount();
-					
+
 					if ( p == C.size() )
 					{
 						libmaus2::autoarray::AutoArray<char> Cn(2*C.size(),false);
@@ -70,10 +70,10 @@ namespace libmaus2
 						C = Cn;
 					}
 				}
-				
+
 				libmaus2::autoarray::AutoArray<char> Cn(p,false);
 				std::copy(C.begin(),C.begin()+p,Cn.begin());
-				
+
 				return Cn;
 			}
 
@@ -87,33 +87,33 @@ namespace libmaus2
 					lme.finish();
 					throw lme;
 				}
-				
+
 				std::pair<uint64_t,uint64_t> P = LA->lineInterval(i);
 				while ( P.second != P.first && isspace(C[P.second-1]) )
 					--P.second;
-					
-				entry.reset(C.begin() + P.first,C.begin() + P.second);				
+
+				entry.reset(C.begin() + P.first,C.begin() + P.second);
 			}
-			
+
 			uint64_t size() const
 			{
 				return nl;
 			}
-			
+
 			libmaus2::bambam::GeneFlatFileEntry operator[](uint64_t const i) const
 			{
 				libmaus2::bambam::GeneFlatFileEntry entry;
 				get(i,entry);
 				return entry;
 			}
-					
+
 			static unique_ptr_type construct(std::string const & fn)
 			{
 				libmaus2::autoarray::AutoArray<char> C;
-				
+
 				libmaus2::aio::InputStream::unique_ptr_type PPFIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(fn));
 				libmaus2::aio::InputStream & PFIS = *PPFIS;
-				
+
 				if ( libmaus2::lz::IsGzip::isGzip(PFIS) )
 				{
 					libmaus2::lz::BufferedGzipStream gzstr(PFIS);
@@ -123,22 +123,22 @@ namespace libmaus2
 				{
 					C = loadFile(PFIS);
 				}
-								
+
 				unique_ptr_type ptr(new this_type);
-				
+
 				ptr->C = C;
 				libmaus2::util::LineAccessor::unique_ptr_type TLA(new libmaus2::util::LineAccessor(ptr->C.begin(),ptr->C.end()));
 				ptr->LA = UNIQUE_PTR_MOVE(TLA);
-				
+
 				uint64_t nl = ptr->LA->size();
 				libmaus2::bambam::GeneFlatFileEntry entry;
-				
+
 				while ( nl )
 				{
 					std::pair<uint64_t,uint64_t> P = ptr->LA->lineInterval(nl-1);
 					while ( P.second != P.first && isspace(ptr->C[P.second-1]) )
 						--P.second;
-						
+
 					try
 					{
 						entry.reset(
@@ -154,11 +154,11 @@ namespace libmaus2
 					}
 				}
 				ptr->nl = nl;
-								
+
 				return UNIQUE_PTR_MOVE(ptr);
-			}	
+			}
 		};
-		
+
 		std::ostream & operator<<(std::ostream & out, GeneFlatFile const & GFL);
 	}
 }

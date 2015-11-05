@@ -40,18 +40,18 @@ namespace libmaus2
 			::libmaus2::huffman::EscapeCanonicalEncoder::unique_ptr_type GECE;
 			// (block position, sum in block)
 			std::vector < IndexEntry > index;
-			
+
 			GapEncoder(
 				std::string const & rfilename,
 				::libmaus2::util::Histogram & gaphist,
 				uint64_t const numentries
 			)
-			: filename(rfilename), 
-			  needescape(::libmaus2::huffman::EscapeCanonicalEncoder::needEscape(gaphist.getFreqSymVector())), 
+			: filename(rfilename),
+			  needescape(::libmaus2::huffman::EscapeCanonicalEncoder::needEscape(gaphist.getFreqSymVector())),
 			  gapHEF(filename)
 			{
 				// std::cerr << "need escape: " << needescape << std::endl;
-			
+
 				if ( needescape )
 				{
 					::libmaus2::huffman::EscapeCanonicalEncoder::unique_ptr_type tGECE(new ::libmaus2::huffman::EscapeCanonicalEncoder(gaphist.getFreqSymVector()));
@@ -65,21 +65,21 @@ namespace libmaus2
 
 				gapHEF.writeBit(needescape);
 				gapHEF.writeElias2(numentries);
-	
+
 				if ( needescape )
 					GECE->serialise(gapHEF);
 				else
 				{
 					GCE->serialise(gapHEF);
 					GCE->setupEncodeTable(1024);
-				}				
+				}
 			}
-			
+
 			void flush()
 			{
-				gapHEF.flush();		
+				gapHEF.flush();
 			}
-			
+
 			void writeIndex()
 			{
 				gapHEF.flush();
@@ -89,7 +89,7 @@ namespace libmaus2
 
 				uint64_t const maxpos = index.size() ? index[index.size()-1].pos : 0;
 				unsigned int const posbits = ::libmaus2::math::bitsPerNum(maxpos);
-				
+
 				uint64_t const kacc = std::accumulate(index.begin(),index.end(),0ull,IndexEntryKeyAdd());
 				unsigned int const kbits = ::libmaus2::math::bitsPerNum(kacc);
 
@@ -100,7 +100,7 @@ namespace libmaus2
 				gapHEF.writeElias2(index.size());
 				// write number of bits per file position
 				gapHEF.writeElias2(posbits);
-				
+
 				// write number of bits per sym acc
 				gapHEF.writeElias2(kbits);
 				// write symacc
@@ -110,10 +110,10 @@ namespace libmaus2
 				gapHEF.writeElias2(vbits);
 				// write symacc
 				gapHEF.writeElias2(vacc);
-				
+
 				// align
 				gapHEF.flushBitStream();
-				
+
 				uint64_t tkacc = 0, tvacc = 0;
 				for ( uint64_t i = 0; i < index.size(); ++i )
 				{
@@ -127,12 +127,12 @@ namespace libmaus2
 				gapHEF.write(tkacc,kbits); // sum of values inblock
 				gapHEF.write(tvacc,vbits); // sum of values inblock
 				gapHEF.flushBitStream();
-			
-				// write position of index in last 64 bits of file	
+
+				// write position of index in last 64 bits of file
 				for ( uint64_t i = 0; i < 64; ++i )
 					gapHEF.writeBit( (indexpos & (1ull<<(63-i))) != 0 );
 
-				gapHEF.flush();				
+				gapHEF.flush();
 			}
 
 			template<typename iterator, typename encoder_type>
@@ -140,18 +140,18 @@ namespace libmaus2
 			{
 				uint64_t const blocksize = 32*1024;
 				uint64_t const blocks = (n + blocksize-1)/blocksize;
-				
+
 				for ( uint64_t b = 0; b < blocks; ++b )
 				{
 					gapHEF.flushBitStream();
 					uint64_t const pos = gapHEF.getPos();
-					
+
 					uint64_t const blow = std::min(b*blocksize,n);
 					uint64_t const bhigh = std::min(blow+blocksize,n);
 					uint64_t const bsize = bhigh-blow;
 					gapHEF.writeElias2(bsize);
 					gapHEF.flushBitStream();
-					
+
 					uint64_t sum = 0;
 					for ( uint64_t i = 0; i < bsize; ++i )
 					{
@@ -159,12 +159,12 @@ namespace libmaus2
 						encoder->encode(gapHEF,v);
 						sum += v;
 					}
-					
+
 					index.push_back(IndexEntry(pos,bsize,sum));
-					
+
 					gapHEF.flushBitStream();
 				}
-				
+
 			}
 
 			template<typename iterator, typename encoder_type>
@@ -172,18 +172,18 @@ namespace libmaus2
 			{
 				uint64_t const blocksize = 32*1024;
 				uint64_t const blocks = (n + blocksize-1)/blocksize;
-				
+
 				for ( uint64_t b = 0; b < blocks; ++b )
 				{
 					gapHEF.flushBitStream();
 					uint64_t const pos = gapHEF.getPos();
-					
+
 					uint64_t const blow = std::min(b*blocksize,n);
 					uint64_t const bhigh = std::min(blow+blocksize,n);
 					uint64_t const bsize = bhigh-blow;
 					gapHEF.writeElias2(bsize);
 					gapHEF.flushBitStream();
-					
+
 					uint64_t sum = 0;
 					for ( uint64_t i = 0; i < bsize; ++i )
 					{
@@ -191,9 +191,9 @@ namespace libmaus2
 						encoder->encodeFast(gapHEF,v);
 						sum += v;
 					}
-					
+
 					index.push_back(IndexEntry(pos,bsize,sum));
-					
+
 					gapHEF.flushBitStream();
 				}
 			}
@@ -225,12 +225,12 @@ namespace libmaus2
 
 			// merge multiple gap arrays to one by adding them up per rank
 			static void merge(
-				std::vector < std::vector<std::string> > const & infilenames, 
+				std::vector < std::vector<std::string> > const & infilenames,
 				std::string const & outfilename
 			)
 			{
 				if ( ! infilenames.size() )
-				{				
+				{
 					::libmaus2::util::Histogram hist;
 					GapEncoder enc(outfilename,hist,0);
 					enc.flush();
@@ -239,7 +239,7 @@ namespace libmaus2
 				{
 					typedef GapDecoder decoder_type;
 					typedef decoder_type::unique_ptr_type decoder_ptr_type;
-					
+
 					::libmaus2::util::Histogram hist;
 					::libmaus2::autoarray::AutoArray<decoder_ptr_type> decoders(infilenames.size());
 
@@ -254,7 +254,7 @@ namespace libmaus2
 						// std::cerr << "Setting up decoder for " << infilenames[i] << std::endl;
 						for ( uint64_t j = 0; j < infilenames[i].size(); ++j )
 							assert ( ::libmaus2::util::GetFileSize::fileExists(infilenames[i][j]) );
-						
+
 						decoder_ptr_type tdecodersi(new decoder_type(infilenames[i]));
 						decoders[i] = UNIQUE_PTR_MOVE(tdecodersi);
 					}
@@ -267,9 +267,9 @@ namespace libmaus2
 							v += decoders[j]->decode();
 						hist(v);
 					}
-					
+
 					// hist.printType<uint64_t>(std::cerr);
-						
+
 					// set up encoder
 					GapEncoder enc(outfilename,hist,n);
 
@@ -279,7 +279,7 @@ namespace libmaus2
 						decoder_ptr_type tdecodersi(new decoder_type(infilenames[i]));
 						decoders[i] = UNIQUE_PTR_MOVE(tdecodersi);
 					}
-					
+
 					uint64_t const bs = 32*1024;
 					uint64_t const blocks = ( n + bs - 1 ) / bs;
 					::libmaus2::autoarray::AutoArray<uint64_t> B(bs,false);
@@ -291,29 +291,29 @@ namespace libmaus2
 						uint64_t const blen = bhigh-blow;
 
 						std::fill ( B.begin(), B.begin() + blen , 0ull );
-						
+
 						for ( uint64_t i = 0; i < blen; ++i )
 							for ( uint64_t j = 0; j < decoders.size(); ++j )
 								B[i] += decoders[j]->decode();
-								
+
 						#if 0
 						uint64_t maxval = 0;
 						for ( uint64_t i = 0; i < blen; ++i )
 							maxval = std::max(maxval,B[i]);
-						
+
 						if ( maxval > 64*1024 )
 							std::cerr << "maxval = " << maxval << std::endl;
 						#endif
-								
+
 						enc.encodeInternal(B.begin(),blen /*B.begin() + blen*/);
 					}
-	
+
 					enc.writeIndex();
 					enc.flush();
 
 					#if 1
 					bool const checkit = true;
-					
+
 					if ( checkit )
 					{
 						std::cerr << "Checking merged...";
@@ -324,7 +324,7 @@ namespace libmaus2
 							decoders[i] = UNIQUE_PTR_MOVE(tdecodersi);
 						}
 						GapDecoder wdec(std::vector<std::string>(1,outfilename));
-						
+
 						for ( uint64_t i = 0; i < n; ++i )
 						{
 							uint64_t vr = 0;

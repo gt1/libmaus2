@@ -36,13 +36,13 @@ namespace libmaus2
 				typedef GenericInputControlStreamInfo this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				std::string path;
 				bool finite;
 				uint64_t start;
 				uint64_t end;
 				bool hasheader;
-				
+
 				GenericInputControlStreamInfo() : path(), finite(true), start(0), end(0), hasheader(false) {}
 				GenericInputControlStreamInfo(
 					std::string const & rpath,
@@ -51,20 +51,20 @@ namespace libmaus2
 					uint64_t const rend,
 					bool const rhasheader
 				) : path(rpath), finite(rfinite), start(rstart), end(rend), hasheader(rhasheader) {}
-				
+
 				libmaus2::aio::InputStream::unique_ptr_type openStream() const
 				{
 					libmaus2::aio::InputStream::unique_ptr_type tptr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(path));
-					
+
 					if ( start != 0 )
 					{
 						tptr->clear();
 						tptr->seekg(start,std::ios::beg);
 					}
-					
+
 					return UNIQUE_PTR_MOVE(tptr);
 				}
-				
+
 				size_t byteSize() const
 				{
 					return
@@ -75,7 +75,7 @@ namespace libmaus2
 						sizeof(hasheader);
 				}
 			};
-			
+
 			std::ostream & operator<<(std::ostream & out, GenericInputControlStreamInfo const & G);
 		}
 	}

@@ -35,7 +35,7 @@
 bool libmaus2::util::TempFileNameGeneratorState::operator==(libmaus2::util::TempFileNameGeneratorState const & o) const
 {
 	return
-		depth == o.depth 
+		depth == o.depth
 		&&
 		nextdir == o.nextdir
 		&&
@@ -67,11 +67,11 @@ void libmaus2::util::TempFileNameGeneratorState::next()
 	if ( (++nextfile) % filemod == 0 )
 	{
 		unsigned int idx = nextdir.size()-1;
-		
+
 		while ( (++ nextdir[idx]) == dirmod )
 		{
 			nextdir[idx] = 0;
-			
+
 			if ( ! idx )
 			{
 				--nextfile;
@@ -79,7 +79,7 @@ void libmaus2::util::TempFileNameGeneratorState::next()
 				setup();
 				next();
 			}
-			
+
 			--idx;
 		}
 	}
@@ -97,17 +97,17 @@ std::string libmaus2::util::TempFileNameGeneratorState::getFileName()
 	next();
 
 	std::vector < std::string > particles;
-	
+
 	for ( uint64_t i = 0; i < nextdir.size(); ++i )
 		particles.push_back( numToString(nextdir[i],digits) );
-	
+
 	std::string dirname = prefix;
 	#if defined(_WIN32)
 	mkdir ( dirname.c_str() );
 	#else
 	mkdir ( dirname.c_str(), 0700 );
 	#endif
-	
+
 	for ( uint64_t i = 0; i < particles.size(); ++i )
 	{
 		dirname += "/";
@@ -118,11 +118,11 @@ std::string libmaus2::util::TempFileNameGeneratorState::getFileName()
 		mkdir ( dirname.c_str(), 0700 );
 		#endif
 	}
-	
+
 	std::ostringstream fnostr;
 	fnostr << dirname << "/" << "file" << numToString(nextfile,digits);
 	std::string const fn = fnostr.str();
-	
+
 	return fn;
 }
 
@@ -131,30 +131,30 @@ void libmaus2::util::TempFileNameGeneratorState::removeDirs()
 	next();
 
 	std::vector < std::string > particles;
-	
+
 	for ( uint64_t i = 0; i < nextdir.size(); ++i )
 		particles.push_back(numToString(nextdir[i],digits));
-	
+
 	std::vector < std::string > dirs;
-	
+
 	std::string dirname = prefix;
 	dirs.push_back(dirname);
-	
+
 	for ( uint64_t i = 0; i < particles.size(); ++i )
 	{
 		dirname += "/";
 		dirname += particles[i];
 		dirs.push_back(dirname);
 	}
-	
+
 	std::reverse(dirs.begin(),dirs.end());
-	for ( 
+	for (
 		::std::vector<std::string>::const_iterator ita = dirs.begin();
 		ita != dirs.end();
 		++ita )
 	{
 		// std::cerr << "Removing dir " << *ita << std::endl;
-		rmdir ( ita->c_str() );								
+		rmdir ( ita->c_str() );
 	}
 	std::reverse(dirs.begin(),dirs.end());
 }

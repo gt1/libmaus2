@@ -32,21 +32,21 @@ namespace libmaus2
 				uint64_t low;
 				uint64_t high;
 				AlignmentBuffer::shared_ptr_type buffer;
-				
+
 				ValidationFragment() : low(0), high(0), buffer() {}
 				ValidationFragment(uint64_t const rlow, uint64_t const rhigh, AlignmentBuffer::shared_ptr_type rbuffer) : low(rlow), high(rhigh), buffer(rbuffer) {}
-				
+
 				bool dispatch()
 				{
 					return buffer->checkValidPacked(low,high);
 				}
-				
+
 				void updateChecksums(libmaus2::bambam::ChecksumsInterface & chksums)
 				{
 					buffer->updateChecksumsPacked(low,high,chksums);
 				}
 			};
-			
+
 			std::ostream & operator<<(std::ostream & out, ValidationFragment const & V);
 		}
 	}

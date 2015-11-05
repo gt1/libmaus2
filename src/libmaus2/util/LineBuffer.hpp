@@ -32,18 +32,18 @@ namespace libmaus2
 			typedef LineBuffer this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			private:
 			// input stream
 			std::istream & file;
-			
+
 			// buffer
 			libmaus2::autoarray::AutoArray<char> buffer;
 			// size of buffer
 			uint64_t bufsize;
 			// set to true when end of file has been observed
 			bool eof;
-			
+
 			// start of buffer pointer
 			char * bufferptra;
 			// end of input data
@@ -52,16 +52,16 @@ namespace libmaus2
 			char * bufferptrout;
 			// end of buffer pointer
 			char * bufferptre;
-			
+
 			std::streamsize read(char * p, size_t n)
 			{
 				file.read(p,n);
 
 				if ( file.eof() )
 					eof = true;
-				
+
 				if ( file.gcount() )
-				{					
+				{
 					return file.gcount();
 				}
 				else if ( eof )
@@ -73,13 +73,13 @@ namespace libmaus2
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "libmaus2::util::LineBuffer: input error\n";
 					lme.finish();
-					throw lme;							
+					throw lme;
 				}
 			}
-			
+
 			public:
 			/**
-			 * construct line buffer from file and optional initial 
+			 * construct line buffer from file and optional initial
 			 * buffer size (buffer is automatically extended to the
 			 * maximal length of a line in the file)
 			 *
@@ -87,9 +87,9 @@ namespace libmaus2
 			 * @param initsize initial buffer size
 			 **/
 			LineBuffer(std::istream & rfile, uint64_t const initsize = 1)
-			: 
-				file(rfile), 
-				buffer(std::max(static_cast<uint64_t>(1),initsize),false), 
+			:
+				file(rfile),
+				buffer(std::max(static_cast<uint64_t>(1),initsize),false),
 				bufsize(initsize),
 				eof(false),
 				bufferptra(buffer.begin()),
@@ -99,7 +99,7 @@ namespace libmaus2
 			{
 				bufferptrin = bufferptra + read(bufferptra,bufsize);
 			}
-			
+
 			/**
 			 * return the next line. If successful the method returns true and the start and end pointers
 			 * of the line are stored through the pointer a and e respectively.
@@ -107,9 +107,9 @@ namespace libmaus2
 			 * @param a pointer to line start pointer
 			 * @param e pointer to line end pointer
 			 * @return true if a line could be extracted, false otherwise
-			 **/			
+			 **/
 			bool getline(
-				char const ** a, 
+				char const ** a,
 				char const ** e
 			)
 			{
@@ -121,7 +121,7 @@ namespace libmaus2
 					/* search for end of buffer or line end */
 					while ( lineend != bufferptrin && *(lineend) != '\n' )
 						++lineend;
-					
+
 					/* we reached the end of the data currently in memory */
 					if ( lineend == bufferptrin )
 					{
@@ -144,20 +144,20 @@ namespace libmaus2
 								{
 									uint64_t const numbytes = lineend - bufferptrout;
 									libmaus2::autoarray::AutoArray<char> tmpbuf(numbytes+1,false);
-										
+
 									memcpy(tmpbuf.begin(),bufferptrout,numbytes);
 									tmpbuf[numbytes] = '\n';
-									
+
 									buffer = tmpbuf;
 									bufsize = numbytes+1;
 									bufferptra = buffer.begin();
 									bufferptre = buffer.begin() + this->bufsize;
 									bufferptrin = bufferptre;
 									bufferptrout = bufferptre;
-									
+
 									*a = bufferptra;
 									*e = bufferptre - 1;
-									return true;	
+									return true;
 								}
 							}
 							else
@@ -169,7 +169,7 @@ namespace libmaus2
 						else
 						{
 							/* do we need to extend the buffer? */
-							if ( 
+							if (
 								(bufferptrout == bufferptra)
 								&&
 								(bufferptrin == bufferptre)
@@ -190,12 +190,12 @@ namespace libmaus2
 								/* move data to front and fill rest of buffer */
 								uint64_t const used   = bufferptrin  - bufferptrout;
 								uint64_t const unused = bufsize - used;
-								
+
 								memmove(bufferptra,bufferptrout,used);
-								
+
 								bufferptrout = bufferptra;
 								bufferptrin  = bufferptrout + used;
-								
+
 								bufferptrin += read(bufferptrin,unused);
 							}
 						}
@@ -207,12 +207,12 @@ namespace libmaus2
 						assert ( *lineend == '\n' );
 						bufferptrout = lineend+1;
 						return true;
-					}		
+					}
 				}
 
 				return false;
 			}
-			
+
 			/**
 			 * put back line starting at a. The line start pointer must have been returned by
 			 * the most recent call of getline and this getline call must have returned the value true.

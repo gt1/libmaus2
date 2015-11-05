@@ -20,7 +20,7 @@
 #define LIBMAUS2_BAMBAM_PARALLEL_CHECKSUMSINTERFACEPUTINTERFACE_HPP
 
 #include <libmaus2/bambam/ChecksumsInterface.hpp>
-			
+
 namespace libmaus2
 {
 	namespace bambam

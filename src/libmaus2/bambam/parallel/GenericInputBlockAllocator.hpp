@@ -34,11 +34,11 @@ namespace libmaus2
 				typedef GenericInputBlockAllocator<meta_info_type> this_type;
 				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				uint64_t blocksize;
-				
+
 				GenericInputBlockAllocator(uint64_t rblocksize = 0) : blocksize(rblocksize) {}
-				
+
 				typename GenericInputBlock<meta_info_type>::shared_ptr_type operator()()
 				{
 					typename GenericInputBlock<meta_info_type>::shared_ptr_type ptr(

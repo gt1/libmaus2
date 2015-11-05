@@ -57,7 +57,7 @@ namespace libmaus2
 			::libmaus2::autoarray::AutoArray<uint8_t> A8;
 			//! sequence of numbers stored in 32 bits
 			::libmaus2::autoarray::AutoArray<uint32_t> A32;
-			
+
 			/**
 			 * serialise this object to the output stream out
 			 *
@@ -78,7 +78,7 @@ namespace libmaus2
 			 * @param in input stream
 			 **/
 			Array832(std::istream & in);
-			
+
 			/**
 			 * construct array from random access sequence
 			 *
@@ -89,24 +89,24 @@ namespace libmaus2
 			Array832(iterator a, iterator e)
 			{
 				n = e-a;
-				
+
 				if ( n )
 				{
 					uint64_t const n64 = (n+63)/64;
 					B = ::libmaus2::autoarray::AutoArray<data_type>(n64);
 					writer_type W(B.get());
-				
+
 					for ( iterator i = a; i != e; ++i )
 						W.writeBit( *i < 256 );
-					
+
 					W.flush();
-				
+
 					::libmaus2::rank::ERank222B::unique_ptr_type tR(new ::libmaus2::rank::ERank222B(B.get(), n64*64));
 					R = UNIQUE_PTR_MOVE(tR);
-					
+
 					uint64_t const n8 = R->rank1(n-1);
 					uint64_t const n32 = R->rank0(n-1);
-					
+
 					A8 = ::libmaus2::autoarray::AutoArray<uint8_t>(n8,false);
 					A32 = ::libmaus2::autoarray::AutoArray<uint32_t>(n32,false);
 
@@ -116,24 +116,24 @@ namespace libmaus2
 							A8[ R->rank1(j)-1 ] = *i;
 						else
 							A32[ R->rank0(j)-1 ] = *i;
-					
-					#if 0		
+
+					#if 0
 					j = 0;
 					for ( iterator i = a; i != e; ++i, ++j )
 						assert ( (*this)[j] == *i );
 					#endif
-				
+
 					#if defined(ARRAY832DEBUG)
 					#if defined(_OPENMP)
 					#pragma omp parallel for
-					#endif	
+					#endif
 					for ( int64_t i = 0; i < static_cast<int64_t>(n); ++i )
 						assert ( (*this)[i] == a[i] );
 					#endif
 				}
-				
+
 			}
-			
+
 			/**
 			 * get i'th element
 			 *
@@ -149,7 +149,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-			
+
 				if ( ::libmaus2::bitio::getBit(B.get(),i) )
 					return A8[R->rank1(i)-1];
 				else

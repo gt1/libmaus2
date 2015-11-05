@@ -20,14 +20,14 @@
 #define LIBMAUS2_BAMBAM_PARALLEL_ALIGNMENTREWRITEBUFFERREINSERTFORFILLINGINTERFACE_HPP
 
 #include <libmaus2/bambam/parallel/AlignmentRewriteBuffer.hpp>
-		
+
 namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			
+
 			// reinsert an alignment rewrite buffer which has more space
 			struct AlignmentRewriteBufferReinsertForFillingInterface
 			{

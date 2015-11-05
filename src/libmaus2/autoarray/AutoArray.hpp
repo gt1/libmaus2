@@ -86,7 +86,7 @@ namespace libmaus2
 		#endif
 
 		enum alloc_type { alloc_type_cxx = 0, alloc_type_c = 1, alloc_type_memalign_cacheline = 2, alloc_type_memalign_pagesize = 3 };
-		
+
 		#if defined(AUTOARRAY_TRACE)
 		template<unsigned int n>
 		struct AutoArrayBackTrace
@@ -94,17 +94,17 @@ namespace libmaus2
 			void * volatile P[n];
 			unsigned int tracelength;
 			uint64_t volatile alloccnt;
-			uint64_t volatile freecnt;			
+			uint64_t volatile freecnt;
 			uint64_t volatile allocbytes;
 			uint64_t volatile freebytes;
 			std::string type;
-			
+
 			AutoArrayBackTrace() : tracelength(0), alloccnt(0), freecnt(0), allocbytes(0), freebytes(0)
 			{
 				for ( unsigned int i = 0; i < n; ++i )
 					P[i] = NULL;
 			}
-			
+
 			bool operator<(AutoArrayBackTrace<n> const & O) const
 			{
 				return allocbytes-freebytes < O.allocbytes-O.freebytes;
@@ -114,7 +114,7 @@ namespace libmaus2
 
 		/**
 		 * class for storing AutoArray memory snapshot
-		 **/		
+		 **/
 		struct AutoArrayMemUsage
 		{
 			//! current AutoArray memory usage
@@ -123,7 +123,7 @@ namespace libmaus2
 			uint64_t peakmemusage;
 			//! maximum amount of memory that can be allocated through AutoArray objects
 			uint64_t maxmem;
-			
+
 			/**
 			 * constructor copying current values of AutoArray memory usage
 			 **/
@@ -134,14 +134,14 @@ namespace libmaus2
 			 * @param o object copied
 			 **/
 			AutoArrayMemUsage(AutoArrayMemUsage const & o);
-			
+
 			/**
 			 * assignment operator
 			 * @param o object copied
 			 * @return *this
 			 **/
 			AutoArrayMemUsage & operator=(AutoArrayMemUsage const & o);
-			
+
 			/**
 			 * return true iff *this == o
 			 * @param o object to be compared
@@ -188,7 +188,7 @@ namespace libmaus2
 			 * @param align requested multiplier for address
 			 * @return pointer to allocated memory
 			 **/
-			static N * alignedAllocate(uint64_t const n, uint64_t const align);			
+			static N * alignedAllocate(uint64_t const n, uint64_t const align);
 			/**
 			 * free memory allocate through alignedAllocate
 			 * @param alignedp pointer to memory to be freed
@@ -208,7 +208,7 @@ namespace libmaus2
 			 * @param align requested multiplier for address
 			 * @return pointer to allocated memory
 			 **/
-			static N * alignedAllocate(uint64_t const n, uint64_t const align);			
+			static N * alignedAllocate(uint64_t const n, uint64_t const align);
 			/**
 			 * free memory allocate through alignedAllocate
 			 * @param alignedp pointer to memory to be freed
@@ -229,7 +229,7 @@ namespace libmaus2
 			 **/
 			static void erase(N * array, uint64_t const n);
 		};
-		
+
 		#if defined(LIBMAUS2_USE_STD_UNIQUE_PTR)
 		/**
 		 * class for erasing an array of std::unique_ptr objects
@@ -265,7 +265,7 @@ namespace libmaus2
 		extern std::vector< AutoArrayBackTrace<AUTOARRAY_TRACE> > tracevector;
 		extern libmaus2::parallel::PosixSpinLock backtracelock;
 		extern libmaus2::parallel::PosixSpinLock tracelock;
-		
+
 		extern void autoArrayPrintTraces(std::ostream & out);
 		#endif
 
@@ -286,7 +286,7 @@ namespace libmaus2
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer object for this type
 			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			//! iterator: pointer to N
 			typedef N * iterator;
 			//! const_iterator: constant pointer to N
@@ -308,7 +308,7 @@ namespace libmaus2
 				void * ltrace[AUTOARRAY_TRACE+2];
 
 				tracelength = backtrace(&ltrace[0],AUTOARRAY_TRACE+2);
-				
+
 				if ( tracelength < 2 )
 				{
 					tracelength = 0;
@@ -325,45 +325,45 @@ namespace libmaus2
 						trace[i] = NULL;
 				}
 			}
-			
+
 			uint64_t findTrace()
 			{
 				uint64_t i = 0;
-				
+
 				for ( ; i < tracevector.size() ; ++i )
 				{
 					bool eq = true;
 					AutoArrayBackTrace<AUTOARRAY_TRACE> & A = tracevector[i];
-					
+
 					for ( unsigned int j = 0; j < AUTOARRAY_TRACE; ++j )
 						if ( A.P[j] != trace[j] )
 						{
 							eq = false;
 							break;
 						}
-						
+
 					if ( eq )
 						break;
 				}
 
-				return i;			
+				return i;
 			}
 
 			void traceIn(size_t const bytes)
 			{
 				fillTrace();
-				
+
 				libmaus2::parallel::ScopePosixSpinLock slock(tracelock);
 				uint64_t const i = findTrace();
-				
+
 				if ( i == tracevector.size() )
 				{
 					AutoArrayBackTrace<AUTOARRAY_TRACE> A;
-					
+
 					for ( unsigned int j = 0; j < AUTOARRAY_TRACE; ++j )
 						A.P[j] = trace[j];
 					A.tracelength = tracelength;
-					
+
 					if ( bytes )
 						A.alloccnt = 1;
 					else
@@ -371,16 +371,16 @@ namespace libmaus2
 
 					A.allocbytes = bytes;
 					A.type = getValueTypeName();
-					
+
 					tracevector.push_back(A);
 				}
 				else
 				{
 					AutoArrayBackTrace<AUTOARRAY_TRACE> & A = tracevector[i];
-					
+
 					if ( bytes )
 						A.alloccnt += 1;
-					A.allocbytes += bytes;				
+					A.allocbytes += bytes;
 				}
 			}
 
@@ -388,18 +388,18 @@ namespace libmaus2
 			{
 				libmaus2::parallel::ScopePosixSpinLock slock(tracelock);
 				uint64_t const i = findTrace();
-				
+
 				assert ( i < tracevector.size() );
-				
+
 				AutoArrayBackTrace<AUTOARRAY_TRACE> & A = tracevector[i];
 
 				if ( bytes )
 					A.freecnt += 1;
-					
-				A.freebytes += bytes;				
+
+				A.freebytes += bytes;
 			}
 			#endif
-			
+
 			/**
 			 * increase total AutoArray allocation counter by n elements of type N
 			 * @param n number of elements allocated
@@ -409,10 +409,10 @@ namespace libmaus2
 				#if defined(AUTOARRAY_TRACE)
 				traceIn(n * sizeof(N));
 				#endif
-				
+
 				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 				uint64_t const newmemusage = __sync_add_and_fetch(&AutoArray_memusage, n * sizeof(N));
-				
+
 				if ( newmemusage > AutoArray_maxmem )
 				{
 					__sync_fetch_and_sub(&AutoArray_memusage, n * sizeof(N));
@@ -421,37 +421,37 @@ namespace libmaus2
 					se.getStream() << "bad allocation: AutoArray mem limit of " << AutoArray_maxmem << " bytes exceeded by new allocation of " << n*sizeof(N) << " bytes.";
 					se.finish();
 					throw se;
-				
+
 				}
-				
+
 				uint64_t peak;
 				while ( newmemusage > (peak=AutoArray_peakmemusage) )
 					__sync_val_compare_and_swap(&AutoArray_peakmemusage,peak,newmemusage);
 				#else
-			
+
 				#if defined(_OPENMP) || defined(LIBMAUS2_HAVE_POSIX_SPINLOCKS)
 				AutoArray_lock.lock();
 				#endif
-				
+
 				if ( AutoArray_memusage + n * sizeof(N) > AutoArray_maxmem )
 				{
 					#if defined(_OPENMP) || defined(LIBMAUS2_HAVE_POSIX_SPINLOCKS)
 					AutoArray_lock.unlock();
-					#endif	
-					
+					#endif
+
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "bad allocation: AutoArray mem limit of " << AutoArray_maxmem << " bytes exceeded by new allocation of " << n*sizeof(N) << " bytes.";
 					se.finish();
 					throw se;
 				}
-				
+
 				AutoArray_memusage += n * sizeof(N);
 				AutoArray_peakmemusage = std::max(AutoArray_peakmemusage, AutoArray_memusage);
-				
+
 				#if defined(_OPENMP) || defined(LIBMAUS2_HAVE_POSIX_SPINLOCKS)
 				AutoArray_lock.unlock();
 				#endif
-				
+
 				#endif // LIBMAUS2_HAVE_SYNC_OPS
 			}
 			/**
@@ -463,19 +463,19 @@ namespace libmaus2
 				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 
 				__sync_fetch_and_sub(&AutoArray_memusage, n * sizeof(N));
-				
+
 				#else
-				
+
 				#if defined(_OPENMP) || defined(LIBMAUS2_HAVE_POSIX_SPINLOCKS)
 				AutoArray_lock.lock();
 				#endif
-				
+
 				AutoArray_memusage -= n * sizeof(N);
-				
+
 				#if defined(_OPENMP) || defined(LIBMAUS2_HAVE_POSIX_SPINLOCKS)
 				AutoArray_lock.unlock();
 				#endif
-				
+
 				#endif
 
 				#if defined(AUTOARRAY_TRACE)
@@ -488,7 +488,7 @@ namespace libmaus2
 			 * @param n size of array
 			 **/
 			void allocateArray(uint64_t const n)
-			{	
+			{
 				try
 				{
 					switch ( atype )
@@ -551,7 +551,7 @@ namespace libmaus2
 						topfailed = true;
 					}
 					::libmaus2::exception::LibMausException se;
-					se.getStream() 
+					se.getStream()
 						<< getTypeName()
 						<< " failed to allocate " << n << " elements ("
 						<< n*sizeof(N) << " bytes)" << "\n"
@@ -562,7 +562,7 @@ namespace libmaus2
 					throw se;
 				}
 			}
-			
+
 			public:
 			/**
 			 * return pointer to start of array
@@ -596,7 +596,7 @@ namespace libmaus2
 			{
 				return get()+size();
 			}
-			
+
 			/**
 			 * return inverse array, if this is a permutation (undefined otherwise)
 			 * @return inverse array, if this is a permutation
@@ -609,10 +609,10 @@ namespace libmaus2
 				#endif
 				for ( int64_t i = 0; i < static_cast<int64_t>(n); ++i )
 					I [ array[i] ] = i;
-					
+
 				return I;
 			}
-			
+
 			/**
 			 * return name of value type
 			 * @return name of value type
@@ -621,7 +621,7 @@ namespace libmaus2
 			{
 				return ::libmaus2::util::Demangle::demangle<value_type>();
 			}
-			
+
 			/**
 			 * return name of allocation type
 			 * @return name of allocation type
@@ -650,7 +650,7 @@ namespace libmaus2
 			{
 				return std::string("AutoArray<") + getValueTypeName() + "," + getAllocTypeName() + ">";
 			}
-			
+
 			/**
 			 * compute array of prefix sums in place
 			 * @return sum over all elements of the array before prefix sum computation
@@ -659,17 +659,17 @@ namespace libmaus2
 			N prefixSums()
 			{
 				N c = N();
-				
+
 				for ( uint64_t i = 0; i < getN(); ++i )
 				{
 					N const t = (*this)[i];
 					(*this)[i] = c;
 					c += t;
 				}
-				
+
 				return c;
 			}
-			
+
 			/**
 			 * compute prefix sums in parallel
 			 * @return sum over all elements of the array before prefix sum computation
@@ -681,12 +681,12 @@ namespace libmaus2
 				#else
 				uint64_t const numthreads = 1;
 				#endif
-				
+
 				uint64_t const elperthread = (getN() + numthreads-1)/numthreads;
 				uint64_t const parts = (getN() + elperthread-1)/elperthread;
-				
+
 				libmaus2::autoarray::AutoArray<N> partial(parts+1,false);
-				
+
 				#if defined(_OPENMP)
 				#pragma omp parallel for
 				#endif
@@ -694,13 +694,13 @@ namespace libmaus2
 				{
 					uint64_t const low = t * elperthread;
 					uint64_t const high = std::min(low+elperthread,getN());
-					
+
 					N acc = N();
 					for ( uint64_t i = low; i < high; ++i )
 						acc += (*this)[i];
 					partial[t] = acc;
 				}
-				
+
 				partial.prefixSums();
 
 				#if defined(_OPENMP)
@@ -710,7 +710,7 @@ namespace libmaus2
 				{
 					uint64_t const low = t * elperthread;
 					uint64_t const high = std::min(low+elperthread,getN());
-					
+
 					N acc = partial[t];
 					for ( uint64_t i = low; i < high; ++i )
 					{
@@ -720,10 +720,10 @@ namespace libmaus2
 					}
 					partial[t] = acc;
 				}
-				
+
 				return partial[partial.size()-1];
 			}
-			
+
 			/**
 			 * write AutoArray header
 			 *
@@ -750,7 +750,7 @@ namespace libmaus2
 				s += ::libmaus2::serialize::Serialize<N>::serializeArray(out,array,n);
 				return s;
 			}
-			
+
 			/**
 			 * @return size of serialised object
 			 **/
@@ -762,7 +762,7 @@ namespace libmaus2
 				s += n * sizeof(N);
 				return s;
 			}
-			
+
 			/**
 			 * serialise object to a file
 			 * @param filename name of file object is serialised to
@@ -783,7 +783,7 @@ namespace libmaus2
 				}
 				return s;
 			}
-			
+
 			/**
 			 * serialise prefix of length tn of this array to stream out. Function writes an AutoArray header, i.e.
 			 * prefix of array can be read by using deserialize()
@@ -808,13 +808,13 @@ namespace libmaus2
 			{
 				return 1;
 			}
-			
+
 			/**
 			 * return system page size
 			 * @return system page size
 			 **/
 			#if defined(_WIN32)
-			static uint64_t getpagesize() 
+			static uint64_t getpagesize()
 			{
 				SYSTEM_INFO system_info;
 			        GetSystemInfo (&system_info);
@@ -836,7 +836,7 @@ namespace libmaus2
 				return ::getpagesize();
 			}
 			#endif
-			
+
 			/**
 			 * @return page mod (smallest nonzero number of uint64_t size words to align to a page boundary)
 			 **/
@@ -865,7 +865,7 @@ namespace libmaus2
 								topfailed = true;
 							}
 							::libmaus2::exception::LibMausException se;
-							se.getStream() 
+							se.getStream()
 								<< getTypeName()
 								<< "::resize() failed to allocate " << rn << " elements ("
 								<< rn*sizeof(N) << " bytes)" << "\n"
@@ -891,7 +891,7 @@ namespace libmaus2
 							*this = C;
 						}
 						break;
-				}				
+				}
 			}
 
 			/**
@@ -902,7 +902,7 @@ namespace libmaus2
 				std::swap(array,o.array);
 				std::swap(n,o.n);
 			}
-					
+
 			private:
 			/**
 			 * @return size of a (level 1) cache line in bytes
@@ -914,15 +914,15 @@ namespace libmaus2
 
 				if ( sclinesize )
 					return sclinesize;
-				
-				#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)				
-				return ::libmaus2::util::I386CacheLineSize::getCacheLineSize();				
+
+				#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)
+				return ::libmaus2::util::I386CacheLineSize::getCacheLineSize();
 				#else
 				return 64ull;
 				#endif
 			}
 			#elif defined(_WIN32)
-			static uint64_t getCacheLineSize() 
+			static uint64_t getCacheLineSize()
 			{
 				uint64_t cachelinesize = 0;
 				DWORD bufsize = 0;
@@ -930,15 +930,15 @@ namespace libmaus2
 				::libmaus2::autoarray::AutoArray<uint8_t> Abuffer(bufsize);
 	                        SYSTEM_LOGICAL_PROCESSOR_INFORMATION * const buffer = reinterpret_cast<SYSTEM_LOGICAL_PROCESSOR_INFORMATION *>(Abuffer.get());
 	                        GetLogicalProcessorInformation(&buffer[0], &bufsize);
-	                            
-	                        for (uint64_t i = 0; i != bufsize / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION); ++i) 
+
+	                        for (uint64_t i = 0; i != bufsize / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION); ++i)
 	                        {
 	                        	if (buffer[i].Relationship == RelationCache && buffer[i].Cache.Level == 1) {
 	                                	cachelinesize = buffer[i].Cache.LineSize;
 	                                	break;
 					}
 				}
-	                                                                            
+
 				return cachelinesize;
 			}
 			#elif defined(__APPLE__)
@@ -955,20 +955,20 @@ namespace libmaus2
 				return cachelinesize;
 			}
 			#elif defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)
-			static uint64_t getCacheLineSize() 
+			static uint64_t getCacheLineSize()
 			{
 				return ::libmaus2::util::I386CacheLineSize::getCacheLineSize();
 			}
 			#else
-			static uint64_t getCacheLineSize() 
+			static uint64_t getCacheLineSize()
 			{
 				libmaus2::exception::LibMausException se;
 				se.getStream() << "AutoArray<>::getCacheLineSize(): cache line size detection not available." << std::endl;
 				se.finish();
 				throw se;
-			}			
+			}
 			#endif
-			
+
 			public:
 			/**
 			 * release memory (set size of array to zero)
@@ -1000,11 +1000,11 @@ namespace libmaus2
 						#endif
 						break;
 				}
-				
+
 				array = 0;
 				n = 0;
 			}
-			
+
 			/**
 			 * deserialise array from stream in. Previous content of array is discarded by calling the release method
 			 * @param in input stream
@@ -1020,7 +1020,7 @@ namespace libmaus2
 				s += ::libmaus2::serialize::Serialize<N>::deserializeArray(in,array,n);
 				return s;
 			}
-			
+
 			/**
 			 * ignore an AutoArray<N> object on stream in (read over it and discard the data). Note that this reads the data from the stream,
 			 * it does not skip over the data by calling any seek type function (see skipArray for this).
@@ -1065,7 +1065,7 @@ namespace libmaus2
 				uint64_t const tocopy = n * sizeof(N);
 				uint64_t const fullbuffers = tocopy / bufferbytes;
 				AutoArray<char> buffer(bufferbytes,false);
-				
+
 				for ( uint64_t i = 0; i < fullbuffers; ++i )
 				{
 					in.read ( buffer.get(), bufferbytes );
@@ -1073,12 +1073,12 @@ namespace libmaus2
 					assert ( in.gcount() == static_cast<int64_t>(bufferbytes) );
 					out.write ( buffer.get(), bufferbytes );
 					assert ( out );
-					
+
 					s += bufferbytes;
 				}
-				
+
 				uint64_t const restbytes = tocopy % bufferbytes;
-				
+
 				if ( restbytes )
 				{
 					in.read ( buffer.get(), restbytes );
@@ -1086,10 +1086,10 @@ namespace libmaus2
 					assert ( in.gcount() == static_cast<int64_t>(restbytes) );
 					out.write ( buffer.get(), restbytes );
 					assert ( out );
-					
+
 					s += restbytes;
 				}
-				
+
 				return s;
 			}
 			/**
@@ -1102,7 +1102,7 @@ namespace libmaus2
 			static uint64_t sampleCopy(std::istream & in, std::ostream & out, uint64_t const rate)
 			{
 				assert ( rate != 0 );
-			
+
 				uint64_t s = 0;
 
 				uint64_t in_n;
@@ -1111,62 +1111,62 @@ namespace libmaus2
 
 				uint64_t const out_n = ( in_n + rate - 1 ) / rate;
 				::libmaus2::serialize::Serialize<uint64_t>::serialize(out,out_n);
-				
+
 				uint64_t const maxbufferbytes = 16*1024;
-				
-				uint64_t const bufferelements =  
-					std::max ( 
-						static_cast<uint64_t>(( 
-							maxbufferbytes / sizeof(N) 
+
+				uint64_t const bufferelements =
+					std::max (
+						static_cast<uint64_t>((
+							maxbufferbytes / sizeof(N)
 						) / rate)
 							, static_cast<uint64_t>(1ull)
 					) * rate;
 				assert ( bufferelements % rate == 0 );
 				uint64_t const bufferbytes = bufferelements * sizeof(N);
-				
+
 				uint64_t const fullbuffers = in_n / bufferelements;
 				AutoArray < N > buffer ( bufferelements , false );
-				
+
 				for ( uint64_t i = 0; i < fullbuffers; ++i )
 				{
 					in.read ( reinterpret_cast<char *>(buffer.get()), bufferbytes );
 					assert ( in );
 					assert ( in.gcount() == static_cast<int64_t>(bufferbytes) );
-					
+
 					uint64_t inptr = 0;
 					uint64_t outptr = 0;
 					for ( ; inptr != bufferelements; inptr += rate, outptr += 1 )
 						buffer [ outptr ] = buffer[ inptr ];
-						
-					out.write ( 
+
+					out.write (
 						reinterpret_cast<char const *>(buffer.get()),
 						bufferbytes / rate );
 					assert ( out );
-					
-					s +=  bufferbytes / rate;					
+
+					s +=  bufferbytes / rate;
 				}
-				
+
 				uint64_t const restelements = in_n - fullbuffers * bufferelements;
 				assert ( restelements < bufferelements );
 				uint64_t const restbytes = restelements * sizeof(N);
-				
+
 				in.read ( reinterpret_cast<char *>(buffer.get()), restbytes );
 				assert ( in );
 				assert ( in.gcount() == static_cast<int64_t>(restbytes) );
-				
+
 				uint64_t const restelementsout = ( restelements + rate - 1 ) / rate;
-				
+
 				uint64_t inptr = 0;
 				uint64_t outptr = 0;
-				
+
 				for ( ; inptr < restelements; inptr += rate, outptr += 1 )
 					buffer[ outptr ] = buffer[ inptr ];
-				
+
 				out.write (
 					reinterpret_cast<char const *>(buffer.get()),
 						restelementsout * sizeof(N) );
 				assert ( out );
-				
+
 				return s;
 			}
 
@@ -1178,7 +1178,7 @@ namespace libmaus2
 			{
 				return sizeof(N*) + sizeof(uint64_t) + n*sizeof(N);
 			}
-		
+
 
 			public:
 			/**
@@ -1191,7 +1191,7 @@ namespace libmaus2
 					O[i] = array[i];
 				return O;
 			}
-			
+
 			/**
 			 * @return estimated space in bytes
 			 **/
@@ -1213,9 +1213,9 @@ namespace libmaus2
 			{
 				return n;
 			}
-			
+
 			// #define AUTOARRAY_DEBUG
-		
+
 			/**
 			 * constructor for empty array
 			 **/
@@ -1224,8 +1224,8 @@ namespace libmaus2
 			, tracelength(0)
 			#endif
 			{
-				increaseTotalAllocation(0); 
-				
+				increaseTotalAllocation(0);
+
 				#if defined(AUTOARRAY_DEBUG)
 				std::cerr << getTypeName() << "(), " << this << std::endl;
 				#endif
@@ -1242,7 +1242,7 @@ namespace libmaus2
 				#if defined(AUTOARRAY_DEBUG)
 				std::cerr << getTypeName() << "(AutoArray &), " << this << std::endl;
 				#endif
-				
+
 				array = o.array;
 				n = o.n;
 				o.array = 0;
@@ -1258,7 +1258,7 @@ namespace libmaus2
 			/**
 			 * copy constructor
 			 **/
-			AutoArray(uint64_t rn, N const * D) : array(0), n(rn) 
+			AutoArray(uint64_t rn, N const * D) : array(0), n(rn)
 			#if defined(AUTOARRAY_TRACE)
 			, tracelength(0)
 			#endif
@@ -1267,9 +1267,9 @@ namespace libmaus2
 				std::cerr << getTypeName() << "(uint64_t, value_type const *), " << this << std::endl;
 				#endif
 
-				increaseTotalAllocation(n); 
+				increaseTotalAllocation(n);
 				allocateArray(n);
-				
+
 				for ( uint64_t i = 0; i < n; ++i )
 					array[i] = D[i];
 
@@ -1280,7 +1280,7 @@ namespace libmaus2
 			 * @param rn number of elements
 			 * @param erase if true, elements will be assigned default value of type (i.e. 0 for numbers)
 			 **/
-			AutoArray(uint64_t rn, bool erase = true) : array(0), n(rn) 
+			AutoArray(uint64_t rn, bool erase = true) : array(0), n(rn)
 			#if defined(AUTOARRAY_TRACE)
 			, tracelength(0)
 			#endif
@@ -1288,10 +1288,10 @@ namespace libmaus2
 				#if defined(AUTOARRAY_DEBUG)
 				std::cerr << getTypeName() << "(uint64_t, bool), " << this << std::endl;
 				#endif
-				
-				increaseTotalAllocation(n); 
+
+				increaseTotalAllocation(n);
 				allocateArray(n);
-			
+
 				if ( erase )
 					erase_type::erase(array,n);
 					#if 0
@@ -1335,7 +1335,7 @@ namespace libmaus2
 				#if defined(AUTOARRAY_DEBUG)
 				std::cerr << getTypeName() << "(std::istream,uint64_t &), " << this << std::endl;
 				#endif
-				
+
 				increaseTotalAllocation(n);
 				allocateArray(n);
 				s += ::libmaus2::serialize::Serialize<N>::deserializeArray(in,array,n);
@@ -1359,14 +1359,14 @@ namespace libmaus2
 			/**
 			 * destructor freeing resources.
 			 **/
-			~AutoArray() 
+			~AutoArray()
 			{
 				release();
 				#if defined(AUTOARRAY_DEBUG)
 				std::cerr << "~" << getTypeName() << "(), " << this << std::endl;
 				#endif
 			}
-			
+
 			/**
 			 * retrieve pointer
 			 * @return pointer to array
@@ -1377,7 +1377,7 @@ namespace libmaus2
 			 * @return const pointer to array
 			 **/
 			N const * get() const { return array; }
-			
+
 			/**
 			 * retrieve reference to i'th element
 			 * @param i
@@ -1408,10 +1408,10 @@ namespace libmaus2
 			 * @param i
 			 * @return reference to i'th element
 			 **/
-			N       & at(uint64_t i)       
+			N       & at(uint64_t i)
 			{
 				if ( i < size() )
-					return array[i]; 
+					return array[i];
 				else
 				{
 					libmaus2::exception::LibMausException ex;
@@ -1429,7 +1429,7 @@ namespace libmaus2
 			N const & at(uint64_t i) const
 			{
 				if ( i < size() )
-					return array[i]; 
+					return array[i];
 				else
 				{
 					libmaus2::exception::LibMausException ex;
@@ -1438,7 +1438,7 @@ namespace libmaus2
 					throw ex;
 				}
 			}
-		
+
 			/**
 			 * assignment. retrieves array from o and invalidates o
 			 * @param o
@@ -1449,11 +1449,11 @@ namespace libmaus2
 				#if defined(AUTOARRAY_DEBUG)
 				std::cerr << this << "," << getTypeName() << "::operator=(" << &o << ")" << std::endl;;
 				#endif
-				
+
 				if ( this != &o )
 				{
 					release();
-					
+
 					this->array = o.array;
 					this->n = o.n;
 					o.array = 0;
@@ -1467,7 +1467,7 @@ namespace libmaus2
 				}
 				return *this;
 			}
-			
+
 			/**
 			 * retrieve next larger value >= k in index interval [l,r)
 			 * @param l left interval bound (inclusive)
@@ -1478,18 +1478,18 @@ namespace libmaus2
 			N rnvGeneric(uint64_t const l, uint64_t const r, N const k) const
 			{
 				N v = std::numeric_limits<N>::max();
-				
+
 				for ( uint64_t i = l; i < r; ++i )
-					if ( 
+					if (
 						(*this)[i] >= k
 						&&
 						(*this)[i] < v
 					)
 						v = (*this)[i];
-				
+
 				return v;
 			}
-			
+
 			/**
 			 * @param sym element
 			 * @param i right bound (inclusive)
@@ -1511,10 +1511,10 @@ namespace libmaus2
 			uint64_t select(N sym, uint64_t i) const
 			{
 				uint64_t j = 0;
-				
+
 				while ( j < size() && (*this)[j] != sym )
 					++j;
-				
+
 				while ( j < size() )
 				{
 					assert ( (*this)[j] == sym );
@@ -1525,10 +1525,10 @@ namespace libmaus2
 					while ( j < size() && (*this)[j] != sym )
 						++j;
 				}
-				
+
 				return std::numeric_limits<uint64_t>::max();
 			}
-			
+
 			/**
 			 * read portion of file as AutoArray. Does not deserialise a header
 			 * @param filename name of file
@@ -1546,7 +1546,7 @@ namespace libmaus2
 				CIS.read ( reinterpret_cast<char *>(A.begin()), length*sizeof(N));
 				return A;
 			}
-			
+
 			/**
 			 * read a complete file as an AutoArray. Does not read an AutoArray header
 			 * @param filename name of file to be read
@@ -1557,7 +1557,7 @@ namespace libmaus2
 				::libmaus2::aio::InputStreamInstance CIS(filename);
 				CIS.seekg(0, std::ios::end);
 				uint64_t const filesize = CIS.tellg();
-				
+
 				if ( filesize % sizeof(N) )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -1565,12 +1565,12 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				uint64_t const length = filesize/sizeof(N);
 				CIS.seekg(0, std::ios::beg);
-				
+
 				AutoArray<N> A(length,false);
-				
+
 				uint64_t t = length*sizeof(N);
 				char * p = reinterpret_cast<char *>(A.begin());
 				uint64_t const bs = 64*1024;
@@ -1578,7 +1578,7 @@ namespace libmaus2
 				{
 					uint64_t const toread = std::min(t,bs);
 					CIS.read(p,toread);
-					
+
 					if ( CIS.gcount() != static_cast<int64_t>(toread) )
 					{
 						::libmaus2::exception::LibMausException se;
@@ -1586,11 +1586,11 @@ namespace libmaus2
 						se.finish();
 						throw se;
 					}
-					
+
 					t -= toread;
 					p += toread;
 				}
-				
+
 				return A;
 			}
 		};
@@ -1601,14 +1601,14 @@ namespace libmaus2
 			for ( uint64_t i = 0; i < n; ++i )
 				array[i] = N();
 		}
-		
+
 		#if defined(LIBMAUS2_USE_STD_UNIQUE_PTR)
 		template<typename N>
 		void ArrayErase< std::unique_ptr<N> >::erase(std::unique_ptr<N> * array, uint64_t const n)
 		{
 			for ( uint64_t i = 0; i < n; ++i )
 				array[i] = UNIQUE_PTR_MOVE(std::unique_ptr<N>());
-		}			
+		}
 		#endif
 		#if defined(LIBMAUS2_USE_BOOST_UNIQUE_PTR)
 		template<typename N>
@@ -1633,7 +1633,7 @@ namespace libmaus2
 		void AlignedAllocation<N,atype>::freeAligned(N * alignedp)
 		{
 			delete [] alignedp;
-		}			
+		}
 
 		template<typename N>
 		N * AlignedAllocation<N,alloc_type_memalign_cacheline>::alignedAllocate(uint64_t const n, uint64_t const align)
@@ -1652,10 +1652,10 @@ namespace libmaus2
 			assert ( reinterpret_cast<uint64_t>(alignedp) % align == 0 );
 			assert ( alloce - alignedp >= static_cast<ptrdiff_t>(n*sizeof(N)) );
 			assert ( alignedp-allocp >= static_cast<ptrdiff_t>(sizeof(uint8_t *)) );
-				
+
 			(reinterpret_cast<uint8_t **>(alignedp))[-1] = allocp;
-				
-			return reinterpret_cast<N *>(alignedp);		
+
+			return reinterpret_cast<N *>(alignedp);
 		}
 
 		template<typename N>
@@ -1685,10 +1685,10 @@ namespace libmaus2
 			assert ( reinterpret_cast<uint64_t>(alignedp) % align == 0 );
 			assert ( alloce - alignedp >= static_cast<ptrdiff_t>(n*sizeof(N)) );
 			assert ( alignedp-allocp >= static_cast<ptrdiff_t>(sizeof(uint8_t *)) );
-				
+
 			(reinterpret_cast<uint8_t **>(alignedp))[-1] = allocp;
-				
-			return reinterpret_cast<N *>(alignedp);		
+
+			return reinterpret_cast<N *>(alignedp);
 		}
 
 		template<typename N>
@@ -1706,13 +1706,13 @@ namespace libmaus2
 		{
 			if ( A.getN() != B.getN() )
 				return false;
-			
+
 			uint64_t const n = A.getN();
-			
+
 			for ( uint64_t i = 0; i < n; ++i )
 				if ( A[i] != B[i] )
 					return false;
-			
+
 			return true;
 		}
 

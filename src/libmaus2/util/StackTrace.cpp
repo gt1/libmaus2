@@ -50,15 +50,15 @@ translate
                         std::pair < std::string, std::string > B = components(A.first,'(',')');
                         std::string const & execname = B.first;
                         std::string const & addr = A.second;
-                        
+
                         std::ostringstream comlinestr;
                         comlinestr << "addr2line" << " --exe=" << execname << " " << addr;
                         std::string const comline = comlinestr.str();
-                        
+
                         std::string addrout,addrerr;
                         ::libmaus2::util::PosixExecute::execute(comline,addrout,addrerr,true /* do not throw exceptions */);
                         addrout = chomp(addrout);
-                        
+
                         /*
                         ostr << ":::" << execname << ":::\n";
                         ostr << ":::" << addr << ":::\n";
@@ -66,14 +66,14 @@ translate
                         ostr << ":::" << addrout << ":::\n";
                         ostr << trace[i] << "\n";
                         */
-                        
+
                         if ( B.second.find_last_of('+') != std::string::npos )
                         {
                         	std::string const mangled = B.second.substr(0,B.second.find_last_of('+'));
                         	std::string const offset = B.second.substr(B.second.find_last_of('+')+1);
                         	B.second = libmaus2::util::Demangle::demangleName(mangled) + "+" + offset;
                         }
-                        
+
                         ostr << B.first << "(" << B.second << ")" << "[" << A.second << ":" << addrout << "]\n";
                 }
         }
@@ -81,7 +81,7 @@ translate
         #endif
         {
                 for ( uint64_t i = 0; i < trace.size(); ++i )
-                        ostr << trace[i] << std::endl;        
+                        ostr << trace[i] << std::endl;
         }
 
         return ostr.str();
@@ -138,20 +138,20 @@ std::string libmaus2::util::StackTrace::getExecPath()
 std::pair < std::string, std::string > libmaus2::util::StackTrace::components(std::string line, char const start, char const end)
 {
 	uint64_t i = line.size();
-	
+
 	while ( i != 0 )
 		if ( line[--i] == end )
 			break;
-	
+
 	if ( line[i] != end || i == 0 )
 		return std::pair<std::string,std::string>(std::string(),std::string());
-	
+
 	uint64_t const addrend = i;
 
 	while ( i != 0 )
 		if ( line[--i] == start )
 			break;
-		
+
 	return std::pair<std::string,std::string>(
 		line.substr(0,i),
 		line.substr(i+1, addrend-(i+1) ));

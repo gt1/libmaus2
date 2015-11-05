@@ -29,7 +29,7 @@ namespace libmaus2
 		{
 			// return a rewrite work package
 			struct RewritePackageReturnInterface
-			{	
+			{
 				virtual ~RewritePackageReturnInterface() {}
 				virtual void putReturnRewritePackage(RewriteBlockWorkPackage * package) = 0;
 			};

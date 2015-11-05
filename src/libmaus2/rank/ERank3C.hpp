@@ -47,7 +47,7 @@ namespace libmaus2
 
 			typedef ERank3C this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			private:
 			static unsigned int const sbbitwidth = 16;
 			static unsigned int const lbbitwidth = 8;
@@ -58,27 +58,27 @@ namespace libmaus2
 			static uint64_t const sbmask = sbsize-1;
 			static uint64_t const lbmask = lbsize-1;
 			static uint64_t const mbmask = mbsize-1;
-		
+
 			uint64_t const n;
 			uint64_t n1;
-			
+
 			::libmaus2::autoarray::AutoArray<uint16_t> CU;
-			
+
 			uint64_t const nums;
 			// super block 1 bits
 			::libmaus2::autoarray::AutoArray<uint64_t> S;
 			// super block code bits
 			::libmaus2::autoarray::AutoArray<uint64_t> SE;
-			
+
 			uint64_t const numl;
 			// large block 1 bits
 			::libmaus2::autoarray::AutoArray<uint16_t> L;
 			// large block code bits
 			::libmaus2::autoarray::AutoArray<uint16_t> LE;
-			
+
 			uint64_t const numm;
 			::libmaus2::autoarray::AutoArray<uint8_t> M;
-			
+
 			public:
 			uint64_t byteSize() const
 			{
@@ -94,23 +94,23 @@ namespace libmaus2
 					sizeof(uint64_t) +
 					M.byteSize();
 			}
-			
+
 			private:
 			static void printBits(uint16_t num, ::std::ostream & out)
 			{
 				for ( uint64_t i = 0; i < 16; ++i )
 					out << ((num & (1u<<(16-i-1))) != 0);
 			}
-			
+
 			static uint16_t getBits(uint16_t const * const U, uint64_t const offset, unsigned int const num)
 			{
 				assert ( num <= mbsize );
-			
+
 				// modul
 				uint64_t const m = offset & mbmask;
 				// rest bits
 				uint64_t const r = mbsize-m;
-				
+
 				// enough bits in one word
 				if ( r >= num )
 				{
@@ -122,19 +122,19 @@ namespace libmaus2
 					uint16_t const high = (U [ offset >> mbbitwidth ] & ((1u<<r)-1)) << (num-r);
 					uint16_t const low = U [ (offset >> mbbitwidth) + 1 ] >> (mbsize - (num-r));
 					return (high | low);
-				} 
-			} 
-			
+				}
+			}
+
 			static uint16_t getBitsRef(uint16_t const * const U, uint64_t const offset, unsigned int const num)
 			{
 				uint64_t v = 0;
-				
+
 				for ( unsigned int i = 0; i < num; ++i )
 				{
 					v <<= 1;
 					v |= ::libmaus2::bitio::getBit2(U,offset+i);
 				}
-				
+
 				return v;
 			}
 
@@ -169,7 +169,7 @@ namespace libmaus2
 			uint64_t selectLarge(uint64_t const s, uint64_t const iii) const
 			{
 				uint64_t const ii = iii - S[s];
-				
+
 				uint64_t left = (s << sbbitwidth) >>  lbbitwidth;
 				uint64_t right = ::std::min( numl, ((s+1) << sbbitwidth) >>  lbbitwidth);
 
@@ -195,7 +195,7 @@ namespace libmaus2
 			uint64_t selectMini(uint64_t const s, uint64_t const l, uint64_t const iii) const
 			{
 				uint64_t const ii = iii - S[s] - L[l];
-				
+
 				uint64_t left = (l << lbbitwidth) >>  mbbitwidth;
 				uint64_t right = ::std::min( numm, ((l+1) << lbbitwidth) >>  mbbitwidth);
 
@@ -214,7 +214,7 @@ namespace libmaus2
 
 				return left;
 			}
-			
+
 			// mini block cumulative popcount
 			uint64_t m1(uint64_t const m) const
 			{
@@ -223,7 +223,7 @@ namespace libmaus2
 				else
 					return n1;
 			}
-			
+
 			// mini block single pop count
 			uint64_t minipopcount(uint64_t const m) const
 			{
@@ -232,31 +232,31 @@ namespace libmaus2
 			}
 			uint64_t minipos(uint64_t const m) const
 			{
-				return SE[ (m << mbbitwidth) >> sbbitwidth ] + 
-					LE[ (m << mbbitwidth) >> lbbitwidth ] + 
+				return SE[ (m << mbbitwidth) >> sbbitwidth ] +
+					LE[ (m << mbbitwidth) >> lbbitwidth ] +
 					entropy_estimate_up( M[ m ], (m << mbbitwidth) & lbmask );
 			}
 			public:
 			uint16_t uc(uint64_t const m) const
 			{
 				#if 0
-				std::cerr << "Reading block " << m << " at position " << minipos(m) << " bitcount=" << minipopcount(m) 
+				std::cerr << "Reading block " << m << " at position " << minipos(m) << " bitcount=" << minipopcount(m)
 					<< " codelen " << static_cast<int>(EC16.bits_n[minipopcount(m)])
-					<< " code "  << getBits(CU.get(), minipos(m), EC16.bits_n[minipopcount(m)]) 
+					<< " code "  << getBits(CU.get(), minipos(m), EC16.bits_n[minipopcount(m)])
 					<< std::endl;
 				#endif
-				uint64_t const b = minipopcount(m);	
+				uint64_t const b = minipopcount(m);
 				return DC16.decode( getBits ( CU.get(), minipos(m), EC16.bits_n[b] ), b);
 			}
-			
+
 			public:
 			/**
 			 * constructor
 			 * @param U bit vector
 			 * @param rn length of bit vector
-			 **/	
-			ERank3C(uint16_t const * const U, uint64_t const rn) 
-			: n(rn), 
+			 **/
+			ERank3C(uint16_t const * const U, uint64_t const rn)
+			: n(rn),
 			  n1(0),
 			  CU(),
 			  nums( ERANK2DIVUP(n,sbsize) ),
@@ -270,7 +270,7 @@ namespace libmaus2
 			{
 				uint64_t sc = 0;
 				uint64_t scc = 0;
-			
+
 				uint64_t l = 0, m = 0;
 				// superblock counter s
 				for ( uint64_t s = 0 ; s < nums; ++s )
@@ -281,7 +281,7 @@ namespace libmaus2
 					SE[s] = scc;
 					// check pointer
 					assert ( S[s] == sc );
-					
+
 					// large block 1 bits
 					uint64_t lc = 0;
 					// large block code bits
@@ -295,7 +295,7 @@ namespace libmaus2
 						LE[l] = lcc;
 						// check pointer
 						assert ( L[l] == lc );
-						
+
 						// miniblock 1 bits
 						uint64_t mc = 0;
 						// miniblock coded bits
@@ -305,21 +305,21 @@ namespace libmaus2
 						{
 							M[m] = mc; // 1 bits miniblock accu
 							assert ( M[m] == mc );
-							
+
 							uint64_t const est = entropy_estimate_up(
 								M[m] /* number of 1 bits */,
 								tm << mbbitwidth /* total number of bits */
 							);
-							
-							assert ( est >= cc );
-							cc = est;						
 
-							
+							assert ( est >= cc );
+							cc = est;
+
+
 							uint64_t const b = popcount2(U[m]); // number of 1 bits
 							uint64_t eb = EC16.bits_n[b]; // number of coded bits
 							cc += eb; // update coded bits
 							mc += b;  // update mini block 1 bit accu
-						} 
+						}
 						lc += mc;  // update large block 1 bits
 						lcc += cc; // update large block coded bits
 						assert ( cc < lbsize );
@@ -327,13 +327,13 @@ namespace libmaus2
 					scc += lcc; // update super block codec bits
 					sc += lc;   // update super block 1 bits
 				}
-				
+
 				// total number of 1 bits
 				n1 = sc;
-				
+
 				// ::std::cerr << "bits " << n << " coded bits " << scc << ::std::endl;
 
-				// coded bit vector				
+				// coded bit vector
 				CU = ::libmaus2::autoarray::AutoArray<uint16_t>((scc + 15) / 16 , false );
 				::libmaus2::bitio::BitWriter2 W(CU.get());
 
@@ -351,7 +351,7 @@ namespace libmaus2
 							uint64_t const est = entropy_estimate_up(M[m],tm << mbbitwidth);
 							assert ( minipos(m) == o + est );
 							assert ( est >= cc );
-							
+
 							while ( cc < est )
 							{
 								// write pad bits
@@ -364,8 +364,8 @@ namespace libmaus2
 							{
 								std::cerr << "Writing block " << m << "=";
 								printBits(U[m],std::cerr);
-								std::cerr << " at " << est << " M[]=" 
-									<< static_cast<uint64_t>(M[m]) 
+								std::cerr << " at " << est << " M[]="
+									<< static_cast<uint64_t>(M[m])
 									<< " bits=" << popcount2(U[m])
 									<< " codelen=" << static_cast<int>(EC16.bits_n[popcount2(U[m])])
 									<< " code=" << EC16.encode(U[m])
@@ -388,7 +388,7 @@ namespace libmaus2
 						}
 					}
 				W.flush();
-				
+
 				#if 1
 				for ( uint64_t i = 0; i < numm; ++i )
 				{
@@ -396,13 +396,13 @@ namespace libmaus2
 						std::cerr << "Failure for block " << i << " of " << numm << std::endl;
 					assert ( U[i] == uc(i) );
 				}
-					
+
 				for ( uint64_t offset = 0; offset < n; ++offset )
 					for ( uint64_t len = 0; len <= 16 && offset+len < n; ++len )
 						assert ( getBits(U,offset,len) == getBitsRef(U,offset,len) );
 				#endif
 			}
-			
+
 			/**
 			 * return number of 1 bits up to (and including) index i
 			 * @param i
@@ -412,7 +412,7 @@ namespace libmaus2
 			{
 				uint64_t const m = i>>mbbitwidth;
 				return S[i>>sbbitwidth] + L[i>>lbbitwidth] + M[m] + popcount2(uc(m),i - (m<<mbbitwidth));
-			} 
+			}
 			/**
 			 * return number of 0 bits up to (and including) index i
 			 * @param i
@@ -423,7 +423,7 @@ namespace libmaus2
 				return (i+1) - rank1(i);
 			}
 			/**
-			 * Return the position of the ii'th 0 bit. This function is implemented using a 
+			 * Return the position of the ii'th 0 bit. This function is implemented using a
 			 * binary search on the rank1 function.
 			 **/
 			uint64_t select0(uint64_t const ii) const
@@ -431,7 +431,7 @@ namespace libmaus2
 				uint64_t const i = ii+1;
 
 				uint64_t left = 0, right = n;
-				
+
 				while ( (right-left) )
 				{
 					uint64_t const d = right-left;
@@ -451,12 +451,12 @@ namespace libmaus2
 					else
 						right = mid;
 				}
-				
-				return n;		
+
+				return n;
 			}
 			#if 0
 			/**
-			 * Return the position of the ii'th 0 bit. This function is implemented using a 
+			 * Return the position of the ii'th 0 bit. This function is implemented using a
 			 * binary search on the rank0 function.
 			 **/
 			uint64_t select1(uint64_t const ii) const
@@ -464,7 +464,7 @@ namespace libmaus2
 				uint64_t const i = ii+1;
 
 				uint64_t left = 0, right = n;
-				
+
 				while ( (right-left) )
 				{
 					uint64_t const d = right-left;
@@ -484,12 +484,12 @@ namespace libmaus2
 					else
 						right = mid;
 				}
-				
-				return n;		
+
+				return n;
 			}
-			#else		
+			#else
 			/**
-			 * Return the position of the ii'th 1 bit. This function is implemented using a 
+			 * Return the position of the ii'th 1 bit. This function is implemented using a
 			 * binary search on the rank0 function.
 			 **/
 			uint64_t select1(uint64_t const ii) const
@@ -500,13 +500,13 @@ namespace libmaus2
 				uint64_t const s = selectSuper(i);
 				uint64_t const l = selectLarge(s,i);
 				uint64_t const m = selectMini(s,l,i);
-				i -= S[s]; 
+				i -= S[s];
 				i -= L[l];
 				i -= M[m];
 				// ::std::cerr << "out." << ::std::endl;
-				
+
 				uint16_t const v = uc(m);
-				
+
 				uint64_t left = 0, right = 1u<<mbbitwidth;
 				while ( right-left )
 				{
@@ -530,7 +530,7 @@ namespace libmaus2
 					else
 						right = mid;
 				}
-				
+
 				return n;
 			}
 			#endif

@@ -29,7 +29,7 @@ struct PrintCallback
 	PrintCallback(std::vector<std::string> const & rdict)
 	: dict(rdict)
 	{
-	
+
 	}
 
 	void operator()(uint64_t const offset, uint64_t id) const
@@ -47,7 +47,7 @@ int main()
 	dict.push_back("abab");
 	trie.insertContainer(dict);
 	trie.fillFailureFunction();
-	
+
 	::libmaus2::trie::LinearTrie<char> linear = trie.toLinear();
 	std::cout << linear;
 
@@ -56,9 +56,9 @@ int main()
 
 	std::string const text = "ccaabab_abaaa";
 	std::cout << "Scanning text " << text << std::endl;
-	PrintCallback PCB(dict);	
+	PrintCallback PCB(dict);
 	LHT->search(text,PCB);
-	
+
 	::libmaus2::trie::Trie<char> trienofailure;
 	// std::vector<std::string> dict2;
 	trienofailure.insertContainer(dict);

@@ -29,7 +29,7 @@ namespace libmaus2
 		{
 			typedef DecompressorObjectFactory this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			virtual ~DecompressorObjectFactory() {}
 			virtual DecompressorObject::unique_ptr_type operator()() = 0;
 			virtual std::string getDescription() const = 0;

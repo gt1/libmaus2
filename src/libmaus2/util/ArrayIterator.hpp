@@ -48,7 +48,7 @@ namespace libmaus2
 			array_type const * A;
 			//! current index
 			int64_t i;
-			
+
 			/**
 			 * constructor for invalid iterator
 			 **/
@@ -57,7 +57,7 @@ namespace libmaus2
 			 * constructor from array pointing the constructed object at the start of the array (index 0)
 			 **/
 			ArrayIterator(array_type const * rA) : A(rA), i(0) {}
-			
+
 			/**
 			 * dereference operator
 			 *
@@ -67,7 +67,7 @@ namespace libmaus2
 			{
 				return (*A)[i];
 			}
-			
+
 			/**
 			 * access operator
 			 *
@@ -144,7 +144,7 @@ namespace libmaus2
 				i -= j;
 				return *this;
 			}
-			
+
 			/**
 			 * @param I other iterator
 			 * @return true iff index of this iterator is smaller than index of other iterator

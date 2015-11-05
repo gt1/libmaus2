@@ -45,7 +45,7 @@ std::string libmaus2::network::LogReceiver::computeSessionId()
 std::vector<int> libmaus2::network::LogReceiver::getOpenFds() const
 {
 	std::vector<int> fds;
-	
+
 	if ( logsocket && logsocket->getFD() >= 0 )
 		fds.push_back(logsocket->getFD());
 	if ( SP && SP->childGet() != -1 )
@@ -58,20 +58,20 @@ std::vector<int> libmaus2::network::LogReceiver::getOpenFds() const
 		fds.push_back(SPpass->parentGet());
 	if ( pcsocket && pcsocket->getFD() >= 0 )
 		fds.push_back(pcsocket->getFD());
-		
+
 	return fds;
 }
 
 libmaus2::network::LogReceiver::LogReceiver(
 	std::string const & rlogfileprefix,
-	unsigned int rport, 
-	unsigned int const rbacklog, 
+	unsigned int rport,
+	unsigned int const rbacklog,
 	unsigned int const tries
 )
 : sid(computeSessionId()), hostname(::libmaus2::network::GetHostName::getHostName()), logfileprefix(rlogfileprefix),
-  port(rport), logsocket(::libmaus2::network::ServerSocket::allocateServerSocket(port,rbacklog,hostname,tries)), 
+  port(rport), logsocket(::libmaus2::network::ServerSocket::allocateServerSocket(port,rbacklog,hostname,tries)),
   SP(new ::libmaus2::network::SocketPair),
-  pcsocket(new ::libmaus2::network::SocketBase(SP->parentRelease())), 
+  pcsocket(new ::libmaus2::network::SocketBase(SP->parentRelease())),
   SPpass(new ::libmaus2::network::SocketPair),
   passsem(::libmaus2::parallel::NamedPosixSemaphore::getDefaultName(),true /* primary */)
 {
@@ -79,7 +79,7 @@ libmaus2::network::LogReceiver::LogReceiver(
 	SP->closeParent();
 	SPpass->closeChild();
 	logsocket.reset();
-	
+
 	passsem.post(); // set semaphore post count to 1
 }
 libmaus2::network::LogReceiver::~LogReceiver()
@@ -87,33 +87,33 @@ libmaus2::network::LogReceiver::~LogReceiver()
 	try
 	{
 		// std::cerr << "Sending QUIT." << std::endl;
-		
+
 		// send termination to log process
 		pcsocket->writeString("QUIT");
-		
+
 		// std::cerr << "Sent QUIT." << std::endl;
-		
+
 		// read ack
 		pcsocket->readSingle<uint64_t>();
-		
+
 		//std::cerr << "Term sent and acknowledged." << std::endl;
 		#if 0
 		while ( controlDescriptorPending() )
 			getControlDescriptor();
 		#endif
-	
+
 		// close down communication sockets
-		logsocket.reset();	
+		logsocket.reset();
 		pcsocket.reset();
 		SP.reset();
 		SPpass.reset();
-					
+
 		join();
 	}
 	catch(std::exception const & ex)
 	{
 		std::cerr << "Failure sending term signal to log process:\n" << ex.what() << std::endl;
-	}		
+	}
 }
 
 std::string libmaus2::network::LogReceiver::getLogFileNamePrefix(uint64_t const clientid) const
@@ -135,7 +135,7 @@ libmaus2::network::LogReceiver::ControlDescriptor libmaus2::network::LogReceiver
 	uint64_t id = 0;
 	int fd = -1;
 	std::string hostname;
-	
+
 	try
 	{
 		// receiver id
@@ -143,9 +143,9 @@ libmaus2::network::LogReceiver::ControlDescriptor libmaus2::network::LogReceiver
 		id = SB.readSingle<uint64_t>();
 		hostname = SB.readString();
 		SB.releaseFD();
-			
+
 		fd = SPpass->receiveFd();
-			
+
 		if ( fd < 0 )
 		{
 			::libmaus2::exception::LibMausException se;
@@ -153,7 +153,7 @@ libmaus2::network::LogReceiver::ControlDescriptor libmaus2::network::LogReceiver
 			se.finish();
 			throw se;
 		}
-			
+
 		SBS = ::libmaus2::network::SocketBase::shared_ptr_type(new ::libmaus2::network::SocketBase(fd));
 		fd = -1;
 	}
@@ -170,7 +170,7 @@ libmaus2::network::LogReceiver::ControlDescriptor libmaus2::network::LogReceiver
 
 	// std::cerr << "*Got hostname " << hostname << std::endl;
 
-	passsem.assureNonZero();	
+	passsem.assureNonZero();
 	return ControlDescriptor(SBS,id,hostname);
 }
 
@@ -182,8 +182,8 @@ static int multiPoll(
 )
 {
 	std::vector < int > fds;
-	
-	for ( std::map<uint64_t,::libmaus2::network::SocketBase::shared_ptr_type>::const_iterator ita = 
+
+	for ( std::map<uint64_t,::libmaus2::network::SocketBase::shared_ptr_type>::const_iterator ita =
 		logsockets.begin(); ita != logsockets.end(); ++ita )
 		if ( ita->second && ita->second->getFD() >= 0 )
 			fds.push_back(ita->second->getFD());
@@ -196,7 +196,7 @@ static int multiPoll(
 
 	return ::libmaus2::network::SocketBase::multiPoll(fds,pfd);
 }
-	
+
 int libmaus2::network::LogReceiver::run()
 {
 	srand(time(0));
@@ -218,7 +218,7 @@ int libmaus2::network::LogReceiver::run()
 	 **/
 	pcsocket.reset();      // this stores the SP parent socket
 	SPpass->closeParent(); // we are the parent for descriptor passing
-	
+
 	::libmaus2::network::SocketBase::unique_ptr_type cpsocket(new ::libmaus2::network::SocketBase(SP->childRelease()));
 	assert ( cpsocket->getFD() >= 0 );
 
@@ -227,20 +227,20 @@ int libmaus2::network::LogReceiver::run()
 	printFds();
 	#endif
 
-	
+
 	// file descriptors passed to parent by id
 	// std::deque< std::pair<uint64_t,::libmaus2::network::SocketBase::shared_ptr_type> > passfds;
 	// std::deque < ::libmaus2::network::FileDescriptorPasser::shared_ptr_type > passprocs;
 	::libmaus2::util::MoveStack < ::libmaus2::network::FileDescriptorPasser > passprocs;
-	
+
 	// log files and log file sockets
 	std::map<uint64_t,::libmaus2::aio::OutputStreamInstance::shared_ptr_type> outfiles;
 	std::map<uint64_t,::libmaus2::aio::OutputStreamInstance::shared_ptr_type> errfiles;
 	std::map<uint64_t,::libmaus2::network::SocketBase::shared_ptr_type> logsockets;
 	std::map<int,uint64_t> fdToId;
-	
+
 	bool running = true;
-	
+
 
 	while ( running || logsockets.size() )
 	{
@@ -248,7 +248,7 @@ int libmaus2::network::LogReceiver::run()
 		{
 			// std::cerr << "Checking pass procs." << std::endl;
 			assert ( passprocs.back() );
-			
+
 			if ( passprocs.back()->tryJoin() )
 			{
 				// std::cerr << "Popping pass proc." << std::endl;
@@ -259,7 +259,7 @@ int libmaus2::network::LogReceiver::run()
 				break;
 			}
 		}
-	
+
 		int pfd = -1;
 		int const ready = multiPoll(logsockets,logsocket,cpsocket,pfd);
 
@@ -290,21 +290,21 @@ int libmaus2::network::LogReceiver::run()
 				#if defined(LOGDEBUG)
 				std::cerr << "[D1] new connection pending." << std::endl;
 				#endif
-					
+
 				try
 				{
 					// accept the connection
-					::libmaus2::network::SocketBase::shared_ptr_type newcon = 
+					::libmaus2::network::SocketBase::shared_ptr_type newcon =
 						logsocket->acceptShared();
 
 					// read and session id
 					std::string const remsid = newcon->readString();
-					
+
 					#if defined(LOGDEBUG)
 					std::cerr << "[D2] Remote sid: " << remsid << std::endl;
 					#endif
-				
-					// check sid	
+
+					// check sid
 					if ( remsid != sid )
 					{
 						::libmaus2::exception::LibMausException se;
@@ -312,17 +312,17 @@ int libmaus2::network::LogReceiver::run()
 						se.finish();
 						throw se;
 					}
-					
+
 					// read remote id
 					uint64_t const remid = newcon->readSingle<uint64_t>();
 					// read type of connection
 					std::string const contype = newcon->readString();
-					
+
 					#if defined(LOGDEBUG)
 					std::cerr << "[D3] Remote id: " << remid << std::endl;
 					std::cerr << "[D4] Connection type: " << contype << std::endl;
 					#endif
-					
+
 					// log connection
 					if ( contype == "log" )
 					{
@@ -343,12 +343,12 @@ int libmaus2::network::LogReceiver::run()
 							SPpass.get(),remid,newcon.get(),remhostname,passsem.semname));
 						passprocs.push_back(fdp);
 						// newcon->releaseFD();
-					}		
+					}
 				}
 				catch(std::exception const & ex)
 				{
 					std::cerr << "[D5] logprocess caught exception while accepting new connection: " << ex.what() << std::endl;
-				}	
+				}
 			}
 			// incoming message from parent
 			else if ( cpsocket && cpsocket->getFD() == pfd )
@@ -356,24 +356,24 @@ int libmaus2::network::LogReceiver::run()
 				try
 				{
 					std::string const message = cpsocket->readString();
-											
+
 					if ( message == "QUIT" )
 					{
 						// close log socket for new connections
 						logsocket.reset();
-						// close file descriptor passing 
+						// close file descriptor passing
 						SPpass.reset();
-						
+
 						// acknowledge shutdown
 						cpsocket->writeSingle<uint64_t>();
-						
+
 						// reset cp socket, so we do not try to read from it again
 						cpsocket.reset();
-					
+
 						#if defined(LOGDEBUG)
 						std::cerr << "[D6] Received QUIT message from parent." << std::endl;
 						#endif
-						running = false;							
+						running = false;
 					}
 					else
 					{
@@ -390,15 +390,15 @@ int libmaus2::network::LogReceiver::run()
 			else
 			{
 				int64_t cid = -1;
-			
+
 				try
 				{
 					#if defined(LOGDEBUG)
 					std::cerr << "[D9] Incoming log data." << std::endl;
 					#endif
-					
+
 					std::vector<uint64_t> activeids;
-					
+
 					for (
 						std::map<uint64_t,::libmaus2::network::SocketBase::shared_ptr_type>::const_iterator ita = logsockets.begin();
 						ita != logsockets.end();
@@ -407,23 +407,23 @@ int libmaus2::network::LogReceiver::run()
 						{
 							activeids.push_back(ita->first);
 						}
-						
+
 					if ( ! activeids.size() )
 					{
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "logprocess select() returned value > 0, but no file descriptor seems ready." << std::endl;
 						se.finish();
-						throw se;						
+						throw se;
 					}
-					
+
 
 					#if defined(LOGDEBUG)
 					std::cerr << "[D10] Number of active ids: " << activeids.size() << std::endl;
 					#endif
-					
+
 					// randomly choose any active id
 					cid = activeids[::libmaus2::random::Random::rand64() % activeids.size()];
-					
+
 
 					#if defined(LOGDEBUG)
 					std::cerr << "[D11] Chosen active id: " << cid << std::endl;
@@ -433,16 +433,16 @@ int libmaus2::network::LogReceiver::run()
 					assert ( logsockets.find(cid) != logsockets.end() );
 					//
 					::libmaus2::network::SocketBase::shared_ptr_type & socket = logsockets.find(cid)->second;
-			
-					// receive log data		
+
+					// receive log data
 					uint64_t stag;
 					::libmaus2::autoarray::AutoArray<char> B = socket->readMessage<char>(stag);
-					
+
 
 					#if defined(LOGDEBUG)
 					std::cerr << "[D12] Received message, tag is " << stag << " length of message is " << B.size() << std::endl;
 					#endif
-		      
+
 					// write it to file chosen by tag
 					if ( stag == STDOUT_FILENO )
 					{
@@ -469,7 +469,7 @@ int libmaus2::network::LogReceiver::run()
 
 						if ( logsockets.find(cid) != logsockets.end() )
 							logsockets.erase(logsockets.find(cid));
-							
+
 						if ( outfiles.find(cid) != outfiles.end() )
 						{
 							try
@@ -508,13 +508,13 @@ int libmaus2::network::LogReceiver::run()
 				}
 				catch(std::exception const & ex)
 				{
-					std::cerr << "[D17] log process caught exception while reading log data: " << ex.what() << std::endl;	
-					
+					std::cerr << "[D17] log process caught exception while reading log data: " << ex.what() << std::endl;
+
 					if ( cid >= 0 )
 					{
 						if ( logsockets.find(cid) != logsockets.end() )
 							logsockets.erase(logsockets.find(cid));
-							
+
 						if ( outfiles.find(cid) != outfiles.end() )
 						{
 							try
@@ -547,10 +547,10 @@ int libmaus2::network::LogReceiver::run()
 			}
 		}
 	}
-	
+
 	#if defined(LOGDEBUG)
 	std::cerr << "[D21] log process about to terminate." << std::endl;
 	#endif
-	
+
 	return 0;
 }

@@ -19,7 +19,7 @@
 
 std::ostream & libmaus2::dazzler::db::operator<<(std::ostream & out, libmaus2::dazzler::db::Read const & R)
 {
-	return out << "Read(" 
+	return out << "Read("
 		<< "origin=" << R.origin << ","
 		<< "rlen=" << R.rlen << ","
 		<< "fpulse=" << R.fpulse << ","

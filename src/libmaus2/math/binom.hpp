@@ -57,7 +57,7 @@ namespace libmaus2
 						den[i] /= q;
 						cnt[j] /= q;
 					}
-				
+
 				for ( uint64_t i = 0; i < den.size(); ++i )
 					assert ( den[i] == 1 );
 			}
@@ -66,7 +66,7 @@ namespace libmaus2
 			{
 				std::vector < uint64_t > cnt;
 				fillBinomialVector(k,n,cnt);
-				
+
 				if ( k == 0 || k == n )
 					return 1.0;
 
@@ -80,10 +80,10 @@ namespace libmaus2
 					double const d1 = H.top(); H.pop();
 					H.push( d0*d1 );
 				}
-				
+
 				return H.top();
 			}
-			
+
 			static libmaus2::math::Rational<libmaus2::math::GmpInteger> binomialCoefficientAsRational(uint64_t k, uint64_t n)
 			{
 				std::vector < uint64_t > cnt;
@@ -109,19 +109,19 @@ namespace libmaus2
 					v *= cnt[i];
 				return v;
 			}
-			
+
 			static double slowPow(double const x, unsigned int const e)
 			{
 				double tx = x;
 				double r = 1;
-				
+
 				for ( uint64_t i = 1; i <= e; i <<=1 )
 				{
 					if ( i & e )
 						r *= tx;
 					tx = tx*tx;
 				}
-				
+
 				return r;
 			}
 
@@ -157,8 +157,8 @@ namespace libmaus2
 
 			static double binomSingle(double const p, uint64_t const k, uint64_t const n)
 			{
-				return 
-					binomialCoefficient(k,n) * 
+				return
+					binomialCoefficient(k,n) *
 					slowPow(p,k) *
 					slowPow(1-p,n-k);
 			}
@@ -175,7 +175,7 @@ namespace libmaus2
 				double const tp = 1.0;
 				double const tq = slowPow(q,n);
 				double f = 1.0 * tp * tq;
-				
+
 				for ( uint64_t i = 0; i <= k; ++i )
 				{
 					r += f;
@@ -230,7 +230,7 @@ namespace libmaus2
 					f /= (i+1);
 					f *= (n-i);
 				}
-				
+
 				return r;
 			}
 

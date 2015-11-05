@@ -31,9 +31,9 @@ namespace libmaus2
 			typedef CompressorObject this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			virtual ~CompressorObject() {}
-			
+
 			virtual size_t compress(char const * input, size_t inputLength, libmaus2::autoarray::AutoArray<char> & output) = 0;
 
 			virtual std::string getDescription() const = 0;

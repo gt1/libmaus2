@@ -34,10 +34,10 @@ int main()
 		std::string("deb.err"),
 		0,0
 	);
-	
+
 	sim.wait();
 
-	if ( sim.finishedOk() )	
+	if ( sim.finishedOk() )
 		std::cerr << "finished ok: " << sim.finishedOk() << std::endl;
 	else
 		std::cerr << "failed: " << std::endl << sim.failmessage << std::endl;

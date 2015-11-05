@@ -31,9 +31,9 @@ namespace libmaus2
 			typedef Utf8DecoderWrapper this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			typedef Utf8DecoderBuffer::char_type char_type;
-		
+
 			Utf8DecoderWrapper(std::string const & filename, uint64_t const buffersize = 64*1024);
 
 			static wchar_t getSymbolAtPosition(std::string const & filename, uint64_t const offset);

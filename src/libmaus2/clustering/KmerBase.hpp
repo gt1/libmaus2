@@ -31,7 +31,7 @@ namespace libmaus2
 			typedef KmerBase this_type;
 			typedef ::libmaus2::clustering::HashCreationBase hash_creation;
 			typedef ::libmaus2::fastx::SingleWordDNABitBuffer single_word_buffer_type;
-			
+
 			::libmaus2::autoarray::AutoArray<unsigned int> const E;
 			::libmaus2::autoarray::AutoArray<uint8_t> const S;
 			::libmaus2::autoarray::AutoArray<uint8_t> const R;
@@ -44,7 +44,7 @@ namespace libmaus2
 
 			template<typename pattern_iterator_type, typename callback_type>
 			void kmerCallback(
-				pattern_iterator_type const pattern, 
+				pattern_iterator_type const pattern,
 				unsigned int const l,
 				callback_type & callback,
 				single_word_buffer_type & forw,
@@ -59,12 +59,12 @@ namespace libmaus2
 				{
 					forw.reset();
 					reve.reset();
-				
+
 					char const * sequence = pattern;
 					char const * fsequence = sequence;
 					char const * rsequence = (sequence + k);
 
-					// number of indeterminate bases in current kmer		
+					// number of indeterminate bases in current kmer
 					unsigned int e = 0;
 					// fill in first kmer
 					for ( unsigned int i = 0; i < k; ++i )
@@ -72,11 +72,11 @@ namespace libmaus2
 						char const base = *(sequence++);
 						e += E [ base ];
 						forw.pushBackUnmasked( S [ base ]  );
-				
+
 						char const rbase = *(--rsequence);
 						reve.pushBackUnmasked( R [ rbase ] );
 					}
-				
+
 					rsequence = pattern + k;
 
 					// iterate over kmers
@@ -86,7 +86,7 @@ namespace libmaus2
 						{
 							uint64_t const fword = forw.buffer;
 							uint64_t const rword = reve.buffer;
-							
+
 							if ( fword <= rword )
 							{
 								if ( (fword>>hashshift) >= minhash && (fword>>hashshift) < maxhash )
@@ -96,23 +96,23 @@ namespace libmaus2
 							{
 								if ( (rword>>hashshift) >= minhash && (rword>>hashshift) < maxhash )
 									callback(rword);
-							}					
+							}
 						}
-				
+
 						// compute next kmer data if there are more bases
 						if ( ++z < l-k+1 )
 						{
 							e -= E[*(fsequence++)];
-				
+
 							char const base = *(sequence++);
 							forw.pushBackMasked( S[base] );
 							reve.pushFront( R[base] );
-			
+
 							e += E[base];
 						}
 					}
 				}
-				
+
 			}
 
 			template<
@@ -135,12 +135,12 @@ namespace libmaus2
 				{
 					forw.reset();
 					reve.reset();
-				
+
 					char const * sequence = pattern;
 					char const * fsequence = sequence;
 					char const * rsequence = (sequence + k);
 
-					// number of indeterminate bases in current kmer		
+					// number of indeterminate bases in current kmer
 					unsigned int e = 0;
 					// fill in first kmer
 					for ( unsigned int i = 0; i < k; ++i )
@@ -148,11 +148,11 @@ namespace libmaus2
 						char const base = *(sequence++);
 						e += E [ base ];
 						forw.pushBackUnmasked( S [ base ]  );
-				
+
 						char const rbase = *(--rsequence);
 						reve.pushBackUnmasked( R [ rbase ] );
 					}
-				
+
 					rsequence = pattern + k;
 
 					// iterate over kmers
@@ -162,7 +162,7 @@ namespace libmaus2
 						{
 							uint64_t const fword = forw.buffer;
 							uint64_t const rword = reve.buffer;
-							
+
 							if ( fword <= rword )
 							{
 								if ( (fword>>hashshift) >= minhash && (fword>>hashshift) < maxhash )
@@ -172,18 +172,18 @@ namespace libmaus2
 							{
 								if ( (rword>>hashshift) >= minhash && (rword>>hashshift) < maxhash )
 									callback(rword,z,true);
-							}					
+							}
 						}
-				
+
 						// compute next kmer data if there are more bases
 						if ( ++z < l-k+1 )
 						{
 							e -= E[*(fsequence++)];
-				
+
 							char const base = *(sequence++);
 							forw.pushBackMasked( S[base] );
 							reve.pushFront( R[base] );
-			
+
 							e += E[base];
 						}
 					}
@@ -210,12 +210,12 @@ namespace libmaus2
 				{
 					forw.reset();
 					reve.reset();
-				
+
 					char const * sequence = pattern;
 					char const * fsequence = sequence;
 					char const * rsequence = (sequence + k);
 
-					// number of indeterminate bases in current kmer		
+					// number of indeterminate bases in current kmer
 					unsigned int e = 0;
 					// fill in first kmer
 					for ( unsigned int i = 0; i < k; ++i )
@@ -223,11 +223,11 @@ namespace libmaus2
 						char const base = *(sequence++);
 						e += E [ base ];
 						forw.pushBackUnmasked( S [ base ]  );
-				
+
 						char const rbase = *(--rsequence);
 						reve.pushBackUnmasked( R [ rbase ] );
 					}
-				
+
 					rsequence = pattern + k;
 
 					// iterate over kmers
@@ -237,7 +237,7 @@ namespace libmaus2
 						{
 							uint64_t const fword = forw.buffer;
 							uint64_t const rword = reve.buffer;
-							
+
 							if ( fword <= rword )
 							{
 								if ( (fword>>hashshift) >= minhash && (fword>>hashshift) < maxhash )
@@ -247,22 +247,22 @@ namespace libmaus2
 							{
 								if ( (rword>>hashshift) >= minhash && (rword>>hashshift) < maxhash )
 									callback(rword,z,true);
-							}					
+							}
 						}
 						else
 						{
 							callback.fail(z);
 						}
-				
+
 						// compute next kmer data if there are more bases
 						if ( ++z < l-k+1 )
 						{
 							e -= E[*(fsequence++)];
-				
+
 							char const base = *(sequence++);
 							forw.pushBackMasked( S[base] );
 							reve.pushFront( R[base] );
-			
+
 							e += E[base];
 						}
 					}
@@ -287,11 +287,11 @@ namespace libmaus2
 				if ( l >= k )
 				{
 					forw.reset();
-				
+
 					pattern_iterator_type sequence = pattern_a;
 					pattern_iterator_type fsequence = sequence;
 
-					// number of indeterminate bases in current kmer		
+					// number of indeterminate bases in current kmer
 					unsigned int e = 0;
 					// fill in first kmer
 					for ( unsigned int i = 0; i < k; ++i )
@@ -300,26 +300,26 @@ namespace libmaus2
 						e += E [ base ];
 						forw.pushBackUnmasked( S [ base ]  );
 					}
-				
+
 					// iterate over kmers
 					for ( unsigned int z = 0; z < l-k+1; )
 					{
 						if ( e < 1 )
 						{
 							uint64_t const fword = forw.buffer;
-							
+
 							if ( (fword>>hashshift) >= minhash && (fword>>hashshift) < maxhash )
 								callback(fword,z);
 						}
-				
+
 						// compute next kmer data if there are more bases
 						if ( ++z < l-k+1 )
 						{
 							e -= E[*(fsequence++)];
-				
+
 							char const base = *(sequence++);
 							forw.pushBackMasked( S[base] );
-			
+
 							e += E[base];
 						}
 					}

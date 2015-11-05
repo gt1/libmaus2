@@ -38,15 +38,15 @@ namespace libmaus2
 				host = std::string();
 				port = 21;
 				path = std::string();
-			
+
 				std::string const prot = "ftp://";
 				if ( url.size() <= prot.size() || url.substr(0,prot.size()) != prot )
 					return false;
-					
+
 				url = url.substr(prot.size());
-				
+
 				size_t const firstslash = url.find_first_of('/');
-				
+
 				if ( firstslash != std::string::npos )
 				{
 					host = url.substr(0,firstslash);
@@ -56,28 +56,28 @@ namespace libmaus2
 				{
 					host = url;
 				}
-				
+
 				size_t const col = host.find_first_of(':');
-				
+
 				if ( col != std::string::npos )
 				{
 					std::istringstream portistr(host.substr(col+1));
 					portistr >> port;
-					
+
 					if ( ! portistr )
 						return false;
-						
+
 					host = host.substr(0,col);
 				}
-								
+
 				return true;
 			}
 
 			FtpUrl()
 			{
-			
+
 			}
-			
+
 			FtpUrl(std::string const & url)
 			{
 				if ( ! parseUrl(url,host,port,path) )

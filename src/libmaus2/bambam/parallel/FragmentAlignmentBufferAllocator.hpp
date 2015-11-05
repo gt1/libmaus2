@@ -31,11 +31,11 @@ namespace libmaus2
 			{
 				size_t numbuffers;
 				uint64_t pointermult;
-			
+
 				FragmentAlignmentBufferAllocator() {}
 				FragmentAlignmentBufferAllocator(size_t const rnumbuffers, uint64_t const rpointermult)
 				: numbuffers(rnumbuffers), pointermult(rpointermult) {}
-				
+
 				FragmentAlignmentBuffer::shared_ptr_type operator()()
 				{
 					FragmentAlignmentBuffer::shared_ptr_type tptr(new FragmentAlignmentBuffer(numbuffers,pointermult));

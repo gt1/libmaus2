@@ -38,7 +38,7 @@ namespace libmaus2
 				typedef MemInputBlock this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				//! input data
 				libmaus2::lz::BgzfInflateHeaderBase inflateheaderbase;
 				//! size of block payload
@@ -55,7 +55,7 @@ namespace libmaus2
 				uint64_t volatile blockid;
 				//! crc32
 				uint32_t volatile crc;
-				
+
 				size_t byteSize()
 				{
 					return
@@ -68,9 +68,9 @@ namespace libmaus2
 						sizeof(blockid) +
 						sizeof(crc);
 				}
-				
-				MemInputBlock() 
-				: 
+
+				MemInputBlock()
+				:
 					inflateheaderbase(),
 					payloadsize(0),
 					C(),
@@ -80,30 +80,30 @@ namespace libmaus2
 					blockid(0),
 					crc(0)
 				{}
-			
+
 				/**
 				 * read a bgzf compressed block from stream
-				 **/	
+				 **/
 				void readBlock(uint8_t * data, bool const rfinal)
 				{
 					libmaus2::util::CountGetObject<uint8_t *> stream(data);
-					
+
 					// read bgzf header
 					payloadsize = inflateheaderbase.readHeader(stream);
 
 					// set data pointer
 					C = stream.p;
-					
+
 					// compose crc
-					crc = 
+					crc =
 						(static_cast<uint32_t>(static_cast<uint8_t>(C[payloadsize+0])) <<  0) |
 						(static_cast<uint32_t>(static_cast<uint8_t>(C[payloadsize+1])) <<  8) |
 						(static_cast<uint32_t>(static_cast<uint8_t>(C[payloadsize+2])) << 16) |
 						(static_cast<uint32_t>(static_cast<uint8_t>(C[payloadsize+3])) << 24)
 					;
-						
-					// compose size of uncompressed block in bytes			
-					uncompdatasize = 
+
+					// compose size of uncompressed block in bytes
+					uncompdatasize =
 						(static_cast<uint64_t>(static_cast<uint8_t>(C[payloadsize+4])) << 0)
 						|
 						(static_cast<uint64_t>(static_cast<uint8_t>(C[payloadsize+5])) << 8)
@@ -111,16 +111,16 @@ namespace libmaus2
 						(static_cast<uint64_t>(static_cast<uint8_t>(C[payloadsize+6])) << 16)
 						|
 						(static_cast<uint64_t>(static_cast<uint8_t>(C[payloadsize+7])) << 24);
-	
+
 					// check that uncompressed size conforms with bgzf specs
 					if ( uncompdatasize > libmaus2::lz::BgzfConstants::getBgzfMaxBlockSize() )
 					{
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "MemInputBlock::readBlock(): uncompressed size is too large";
 						se.finish(false);
-						throw se;									
+						throw se;
 					}
-					
+
 					// check whether this is the final block and set the flag accordingly
 					final = rfinal;
 				}
@@ -131,9 +131,9 @@ namespace libmaus2
 				typedef MemInputBlockAllocator this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				MemInputBlockAllocator() {}
-				
+
 				MemInputBlock::shared_ptr_type operator()()
 				{
 					MemInputBlock::shared_ptr_type ptr(
@@ -146,14 +146,14 @@ namespace libmaus2
 			struct MemInputBlockTypeInfo
 			{
 				typedef MemInputBlock element_type;
-				typedef element_type::shared_ptr_type pointer_type;			
-				
+				typedef element_type::shared_ptr_type pointer_type;
+
 				static pointer_type deallocate(pointer_type /*p*/)
 				{
 					pointer_type ptr = getNullPointer();
 					return ptr;
 				}
-				
+
 				static pointer_type getNullPointer()
 				{
 					pointer_type ptr;

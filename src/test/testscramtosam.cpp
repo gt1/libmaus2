@@ -32,7 +32,7 @@ int main()
 #include <libmaus2/bambam/ScramDecoder.hpp>
 #include <libmaus2/bambam/ScramEncoder.hpp>
 
-#if defined(LIBMAUS2_HAVE_IRODS)	
+#if defined(LIBMAUS2_HAVE_IRODS)
 #include <libmaus2/irods/IRodsInputStreamFactory.hpp>
 #endif
 
@@ -42,7 +42,7 @@ int main(int argc, char * argv[])
 	{
 		::libmaus2::util::ArgInfo const arginfo(argc,argv);
 
-		#if defined(LIBMAUS2_HAVE_IRODS)	
+		#if defined(LIBMAUS2_HAVE_IRODS)
 		libmaus2::irods::IRodsInputStreamFactory::registerHandler();
 		#endif
 
@@ -59,7 +59,7 @@ int main(int argc, char * argv[])
 		::libmaus2::bambam::ScramEncoder enc(dec.getHeader(),"-","w", "/nfs/srpipe_references/references/PhiX/Illumina/all/fasta/phix-illumina.fa");
 
 		while ( dec.readAlignment() )
-			enc.encode(dec.getAlignment());			
+			enc.encode(dec.getAlignment());
 	}
 	catch(std::exception const & ex)
 	{

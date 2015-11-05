@@ -36,11 +36,11 @@
 		"testbammergequeryname", // PN
 		arginfo.commandline, // CL
 		::libmaus2::bambam::ProgramHeaderLineSet(headertext).getLastIdInChain(), // PP
-		std::string(PACKAGE_VERSION) // VN			
+		std::string(PACKAGE_VERSION) // VN
 	);
 	// construct new header
 	::libmaus2::bambam::BamHeader::unique_ptr_type uphead(new ::libmaus2::bambam::BamHeader(upheadtext));
-	
+
 	return UNIQUE_PTR_MOVE(uphead);
 }
 

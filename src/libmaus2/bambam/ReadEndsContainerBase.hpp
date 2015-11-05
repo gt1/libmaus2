@@ -29,11 +29,11 @@ namespace libmaus2
 		{
 			static unsigned int const baseIndexShift = 9;
 			static uint64_t const baseIndexStep = (1ull << baseIndexShift);
-			static uint64_t const baseIndexMask = baseIndexStep-1;		
+			static uint64_t const baseIndexMask = baseIndexStep-1;
 
 			static unsigned int const innerIndexShift = 2;
 			static uint64_t const innerIndexStep = (1ull << innerIndexShift);
-			static uint64_t const innerIndexMask = innerIndexStep-1;		
+			static uint64_t const innerIndexMask = innerIndexStep-1;
 		};
 	}
 }

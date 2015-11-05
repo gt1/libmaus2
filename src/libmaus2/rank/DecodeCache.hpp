@@ -35,11 +35,11 @@ namespace libmaus2
 		{
 			typedef DecodeCache<n,type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			private:
 			::libmaus2::autoarray::AutoArray<type> cache_n;
 			::libmaus2::autoarray::AutoArray<unsigned int> offset_n;
-			
+
 			void setOffsets()
 			{
 				unsigned int s = 0;
@@ -49,7 +49,7 @@ namespace libmaus2
 					s += CC64(n,i);
 				}
 			}
-			
+
 			public:
 			/**
 			 * constructor
@@ -58,14 +58,14 @@ namespace libmaus2
 			: cache_n( CC64.sum(n), false ), offset_n(n+1)
 			{
 				setOffsets();
-				
+
 				for ( unsigned int i = 0; i < (1u<<n); ++i )
 				{
 					unsigned int const b = popcnt(i);
 					cache_n[ offset_n[b] + CC64.encode(static_cast<type>(i),b) ] = i;
 				}
 			}
-			
+
 			/**
 			 * decode num with u significant bits
 			 * @param num code

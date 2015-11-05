@@ -41,19 +41,19 @@ namespace libmaus2
                         PosixSpinLock lock;
                         SimpleSemaphoreInterface::unique_ptr_type Psemaphore;
                         SimpleSemaphoreInterface & semaphore;
-                        
+
                         SynchronousHeap()
                         : Q(), lock(), Psemaphore(new PosixSemaphore), semaphore(*Psemaphore)
                         {
-                        
+
                         }
-                        
+
                         SynchronousHeap(compare const & comp)
                         : Q(comp)
                         {
-                        
+
                         }
-                        
+
                         unsigned int getFillState()
                         {
                                 lock.lock();
@@ -61,7 +61,7 @@ namespace libmaus2
                                 lock.unlock();
                                 return fill;
                         }
-                        
+
                         void enque(value_type const q)
                         {
                         	{
@@ -78,7 +78,7 @@ namespace libmaus2
                                 Q.pop();
                                 return v;
                         }
-                        
+
                         std::vector<value_type> pending()
                         {
 	                        std::priority_queue < value_type, std::vector<value_type>, compare > C;
@@ -92,18 +92,18 @@ namespace libmaus2
 	                        	V.push_back(C.top());
 	                        	C.pop();
 				}
-				
+
 				return V;
                         }
                 };
-                
+
                 template<typename _value_type>
                 struct SynchronousConsecutiveHeapDefaultInfo
                 {
                 	typedef _value_type value_type;
                 	typedef SynchronousConsecutiveHeapDefaultInfo<value_type> this_type;
                 	typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-                
+
                 	value_type operator()(value_type const i) const
                 	{
                 		return i;
@@ -114,7 +114,7 @@ namespace libmaus2
                 struct SynchronousConsecutiveHeap
                 {
                 	info_type const & info;
-                
+
                         std::priority_queue < value_type, std::vector<value_type>, compare > preQ;
                         value_type next;
                         std::deque<value_type> Q;
@@ -122,16 +122,16 @@ namespace libmaus2
                         SimpleSemaphoreInterface::unique_ptr_type Psemaphore;
                         SimpleSemaphoreInterface & semaphore;
                         value_type readyfor;
-                        
+
                         SynchronousConsecutiveHeap(
                         	compare const & comp,
                         	info_type const & rinfo
 			)
                         : info(rinfo), preQ(comp), next(value_type()), Q(), lock(), Psemaphore(new PosixSemaphore), semaphore(*Psemaphore), readyfor(value_type())
                         {
-                        
+
                         }
-                        
+
                         unsigned int getFillState()
                         {
                                 lock.lock();
@@ -139,18 +139,18 @@ namespace libmaus2
                                 lock.unlock();
                                 return fill;
                         }
-                        
+
                         template<typename glob_queue_type>
                         void drainPreQueue(glob_queue_type * const globlist)
                         {
                         	uint64_t postcnt = 0;
-                        
+
                         	{
 					libmaus2::parallel::ScopePosixSpinLock llock(lock);
-					while ( 
-						preQ.size() && 
-						info(preQ.top()) == next && 
-						info(preQ.top()) <= readyfor 
+					while (
+						preQ.size() &&
+						info(preQ.top()) == next &&
+						info(preQ.top()) <= readyfor
 					)
 					{
 						Q.push_back(preQ.top());
@@ -159,7 +159,7 @@ namespace libmaus2
 						preQ.pop();
 						++next;
 						++postcnt;
-					}                                
+					}
                                 }
 
                                 for ( uint64_t i = 0; i < postcnt; ++i )
@@ -174,7 +174,7 @@ namespace libmaus2
                         // template<typename glob_queue_type = libmaus2::parallel::TerminatableSynchronousQueue<value_type> >
                         template<typename glob_queue_type>
                         void enque(
-                        	value_type const q, 
+                        	value_type const q,
                         	glob_queue_type * const globlist = 0
 			)
                         {
@@ -190,11 +190,11 @@ namespace libmaus2
 			{
 				setReadyFor< libmaus2::parallel::TerminatableSynchronousQueue<value_type> > (rreadyfor,0);
 			}
-                        
+
                         // template<typename glob_queue_type = libmaus2::parallel::TerminatableSynchronousQueue<value_type> >
                         template<typename glob_queue_type>
                         void setReadyFor(
-                        	value_type const rreadyfor, 
+                        	value_type const rreadyfor,
                         	glob_queue_type * const globlist = 0
 			)
                         {
@@ -223,7 +223,7 @@ namespace libmaus2
                         	}
                         	semaphore.post();
                         }
-                };                
+                };
         }
 }
 #endif

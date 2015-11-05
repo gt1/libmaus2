@@ -27,10 +27,10 @@ namespace libmaus2
 		struct OutputStreamPointerWrapper
 		{
 			libmaus2::aio::OutputStream::unique_ptr_type ptr;
-			
+
 			OutputStreamPointerWrapper(libmaus2::aio::OutputStream::unique_ptr_type rptr)
 			: ptr(UNIQUE_PTR_MOVE(rptr)) {}
-			
+
 			std::ostream & getStreamReference()
 			{
 				return *ptr;

@@ -37,9 +37,9 @@ namespace libmaus2
 			typedef _bitwriter_type bitwriter_type;
 			typedef HuffmanEncoderFileTemplate<output_type,bitwriter_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			typedef typename output_type::iterator_type iterator_type;
-		
+
 			HuffmanEncoderFileTemplate(std::string const & newmergedfilenamerl, uint64_t const bufsize = 64*1024)
 			:
 				output_type(newmergedfilenamerl,bufsize,true/*truncate*/,0/*offset*/,true/*metasync*/),
@@ -57,14 +57,14 @@ namespace libmaus2
 			}
 			void flushBitStream()
 			{
-				bitwriter_type::flush();			
+				bitwriter_type::flush();
 			}
-			
+
 			void write(uint64_t const word, unsigned int const bits)
 			{
 				bitwriter_type::write(word,bits);
 			}
-			
+
 			uint64_t getPos() const
 			{
 				return output_type::getWrittenBytes();
@@ -79,7 +79,7 @@ namespace libmaus2
 				return static_cast<iterator_type &>(*this);
 			}
 		};
-		
+
 		typedef HuffmanEncoderFileTemplate< ::libmaus2::aio::SynchronousGenericOutputPosix<uint8_t>, ::libmaus2::bitio::FastWriteBitWriterStream8Posix > HuffmanEncoderFile;
 		typedef HuffmanEncoderFileTemplate< ::libmaus2::aio::SynchronousGenericOutput     <uint8_t>, ::libmaus2::bitio::FastWriteBitWriterStream8Std > HuffmanEncoderFileStd;
 	}

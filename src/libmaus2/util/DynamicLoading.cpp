@@ -20,9 +20,9 @@
 
 #if defined(LIBMAUS2_HAVE_DL_FUNCS)
 extern "C" {
-	void libmaus2_dlopen_dummy() 
+	void libmaus2_dlopen_dummy()
 	{
-	
+
 	}
 }
 
@@ -34,18 +34,18 @@ static std::string getLibraryPath()
 {
 	Dl_info libinfo;
 	int const r = dladdr(reinterpret_cast<void*>(libmaus2_dlopen_dummy), &libinfo);
-		
+
 	if ( ! r )
 	{
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "dladdr failed: " << dlerror() << std::endl;
 		se.finish();
-		throw se;	
+		throw se;
 	}
-	
+
 	libmaus2::autoarray::AutoArray<char> D(strlen(libinfo.dli_fname)+1,true);
 	std::copy(libinfo.dli_fname,libinfo.dli_fname + strlen(libinfo.dli_fname),D.begin());
-		
+
 	char * dn = dirname(D.begin());
 
 	return std::string(dn);
@@ -56,18 +56,18 @@ static std::string getLibraryName()
 {
 	Dl_info libinfo;
 	int const r = dladdr(reinterpret_cast<void*>(libmaus2_dlopen_dummy), &libinfo);
-		
+
 	if ( ! r )
 	{
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "dladdr failed: " << dlerror() << std::endl;
 		se.finish();
-		throw se;	
+		throw se;
 	}
-	
+
 	libmaus2::autoarray::AutoArray<char> D(strlen(libinfo.dli_fname)+1,true);
 	std::copy(libinfo.dli_fname,libinfo.dli_fname + strlen(libinfo.dli_fname),D.begin());
-		
+
 	char * bn = basename(D.begin());
 
 	return std::string(bn);
@@ -81,20 +81,20 @@ libmaus2::util::DynamicLibrary::DynamicLibrary(std::string const & rmodname)
 	#if defined(__linux__)
 	lib = dlopen(modname.c_str(),RTLD_LAZY | RTLD_NODELETE);
 	#else
-	lib = dlopen(modname.c_str(),RTLD_LAZY);	
+	lib = dlopen(modname.c_str(),RTLD_LAZY);
 	#endif
-	
+
 	// if not found then try with directory (installed module)
 	if ( ! lib )
-	{	
+	{
 		std::string const instmodname = getLibraryPath() + std::string("/") + std::string(PACKAGE_NAME)+std::string("/")+std::string(PACKAGE_VERSION)+std::string("/")+modname;
 		#if defined(__linux__)
 		lib = dlopen(instmodname.c_str(),RTLD_LAZY | RTLD_NODELETE);
 		#else
-		lib = dlopen(instmodname.c_str(),RTLD_LAZY);		
+		lib = dlopen(instmodname.c_str(),RTLD_LAZY);
 		#endif
 	}
-	
+
 	if ( ! lib )
 	{
 		::libmaus2::exception::LibMausException se;
@@ -108,13 +108,13 @@ libmaus2::util::DynamicLibrary::~DynamicLibrary()
 	dlclose(lib);
 }
 #endif
-	
+
 #if defined(LIBMAUS2_HAVE_DL_FUNCS)
 int libmaus2::util::DynamicLoading::callFunction(std::string const & modname, std::string const & funcname, int const arg, std::string const & argstr)
 {
 	typedef int (*func_t)(int, char const *, size_t);
-	DynamicLibraryFunction<func_t> DLF(modname,funcname);				
-	return DLF.func(arg,argstr.c_str(),argstr.size());					
+	DynamicLibraryFunction<func_t> DLF(modname,funcname);
+	return DLF.func(arg,argstr.c_str(),argstr.size());
 }
 #else
 int libmaus2::util::DynamicLoading::callFunction(std::string const & modname, std::string const & funcname, int const arg, std::string const & argstr)

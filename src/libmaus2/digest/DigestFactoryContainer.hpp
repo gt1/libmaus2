@@ -37,17 +37,17 @@ namespace libmaus2
 					S.insert(ita->first);
 				return S;
 			}
-			
+
 			static std::set<std::string> getSupportedDigests()
 			{
 				return getSupportedDigestsStatic();
 			}
-			
+
 			static std::string getSupportedDigestsList()
 			{
 				std::set<std::string> const S = getSupportedDigests();
 				std::ostringstream ostr;
-				
+
 				for ( std::set<std::string>::const_iterator ita = S.begin(); ita != S.end(); ++ita )
 				{
 					if ( ita != S.begin() )
@@ -57,7 +57,7 @@ namespace libmaus2
 
 				return ostr.str();
 			}
-			
+
 			static std::map< std::string, DigestFactoryInterface::shared_ptr_type > setupFactories(DigestFactoryInterface const & factory)
 			{
 				std::map< std::string, DigestFactoryInterface::shared_ptr_type > M;
@@ -67,24 +67,24 @@ namespace libmaus2
 					M [ *ita ] = sfactory;
 				return M;
 			}
-			
+
 			static std::map< std::string, DigestFactoryInterface::shared_ptr_type > setupFactories()
 			{
 				DigestFactory factory;
 				return setupFactories(factory);
 			}
-			
+
 			static void addFactories(DigestFactoryInterface const & factory)
 			{
 				std::map< std::string, DigestFactoryInterface::shared_ptr_type > M = setupFactories(factory);
 				for ( std::map< std::string, DigestFactoryInterface::shared_ptr_type >::iterator ita = M.begin(); ita != M.end(); ++ita )
 					factories[ita->first] = ita->second;
 			}
-			
+
 			static libmaus2::digest::DigestInterface::unique_ptr_type construct(std::string const & name)
 			{
 				std::map< std::string, DigestFactoryInterface::shared_ptr_type >::const_iterator ita = factories.find(name);
-				
+
 				if ( ita != factories.end() )
 				{
 					libmaus2::digest::DigestInterface::unique_ptr_type ptr(ita->second->construct(name));

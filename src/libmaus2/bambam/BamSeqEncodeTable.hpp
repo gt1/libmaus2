@@ -32,7 +32,7 @@ namespace libmaus2
 		{
 			//! mapping table
 			::libmaus2::autoarray::AutoArray<uint8_t> A;
-		
+
 			/**
 			 * constructor
 			 **/
@@ -45,7 +45,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < strlen(s); ++i )
 					A [ s[i] ] = i;
 			}
-			
+
 			/**
 			 * get code for base i
 			 *

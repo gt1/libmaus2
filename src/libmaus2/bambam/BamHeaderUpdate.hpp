@@ -37,7 +37,7 @@ namespace libmaus2
 			BamHeaderUpdate(libmaus2::util::ArgInfo const & rarginfo, std::string const & rid, std::string const & rpackageversion)
 			: arginfo(rarginfo), id(rid), packageversion(rpackageversion)
 			{
-			
+
 			}
 
 			static ::libmaus2::bambam::BamHeader::unique_ptr_type updateHeader(
@@ -56,11 +56,11 @@ namespace libmaus2
 					id, // PN
 					arginfo.commandline, // CL
 					::libmaus2::bambam::ProgramHeaderLineSet(headertext).getLastIdInChain(), // PP
-					packageversion //std::string(PACKAGE_VERSION) // VN			
+					packageversion //std::string(PACKAGE_VERSION) // VN
 				);
 				// construct new header
 				::libmaus2::bambam::BamHeader::unique_ptr_type uphead(new ::libmaus2::bambam::BamHeader(upheadtext));
-				
+
 				return UNIQUE_PTR_MOVE(uphead);
 			}
 

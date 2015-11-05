@@ -34,28 +34,28 @@ namespace libmaus2
 				typedef SamParseWorkPackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				uint64_t streamid;
 				SamParsePending SPP;
 				libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type db;
-				
+
 				SamParseWorkPackage()
 				: libmaus2::parallel::SimpleThreadWorkPackage(), streamid(0), SPP(), db()
-				{	
-				}		
+				{
+				}
 				SamParseWorkPackage(
-					uint64_t const rpriority, 
-					uint64_t const rdispatcherid, 
+					uint64_t const rpriority,
+					uint64_t const rdispatcherid,
 					uint64_t const rstreamid,
 					SamParsePending const & rSPP,
 					libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type rdb
 				)
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), streamid(rstreamid), SPP(rSPP), db(rdb)
 				{
-				
+
 				}
 				virtual ~SamParseWorkPackage() {}
-			
+
 				char const * getPackageName() const
 				{
 					return "SamParseWorkPackage";

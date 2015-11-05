@@ -30,9 +30,9 @@ namespace libmaus2
 			typedef BamIndexLinear this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			libmaus2::autoarray::AutoArray<uint64_t> intervals;
-			
+
 			BamIndexLinear() {}
 		};
 	}

@@ -46,7 +46,7 @@ namespace libmaus2
 		{
 			typedef ImpExternalWaveletGeneratorCompactHuffmanParallel this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			// rank type
 			typedef ::libmaus2::rank::ImpCacheLineRank rank_type;
 			// bit output stream contexts
@@ -55,7 +55,7 @@ namespace libmaus2
 			typedef context_type::unique_ptr_type context_ptr_type;
 			// vector of contexts
 			typedef ::libmaus2::autoarray::AutoArray<context_ptr_type> context_vector_type;
-			
+
 			// pair of context pointer and bit
 			typedef std::pair < uint64_t , bool > bit_type;
 			// vector of bit type
@@ -64,7 +64,7 @@ namespace libmaus2
 			typedef ::libmaus2::autoarray::AutoArray < bit_vector_type > bit_vectors_type;
 
 			private:
-			// huffman tree		
+			// huffman tree
 			libmaus2::huffman::HuffmanTree const & H;
 			// huffman encode table
 			libmaus2::huffman::HuffmanTree::EncodeTable const E;
@@ -100,39 +100,39 @@ namespace libmaus2
 				bit_writer_type ** contexts;
 				uint64_t * bitcnt;
 				uint64_t symbols;
-				
+
 				BufferType() : E(0), bv(0), symtooffset(0), contexts(0), bitcnt(0), symbols(0) {}
-			
+
 				void putSymbol(int64_t const s)
 				{
 					assert ( E->hasSymbol(s) );
 					unsigned int codelen = E->getCodeLength(s);
 					bit_type const * btp = bv + symtooffset[s-E->minsym];
-					
+
 					for ( unsigned int i = 0; i < codelen; ++i )
 					{
 						contexts[btp[i].first]->writeBit(btp[i].second);
 						bitcnt[btp[i].first]++;
 					}
-					
+
 					symbols += 1;
 				}
 			};
-			
+
 			BufferType & operator[](uint64_t const thread)
 			{
 				return buffers[thread];
 			}
-			
+
 			private:
 			::libmaus2::autoarray::AutoArray<BufferType> buffers;
 
 			void flush()
 			{
 			}
-			
+
 			static uint64_t const bufsize = 1024;
-			
+
 			public:
 			ImpExternalWaveletGeneratorCompactHuffmanParallel(
 				libmaus2::huffman::HuffmanTree const & rH,
@@ -140,7 +140,7 @@ namespace libmaus2
 				uint64_t const rnumthreads
 			)
 			: H(rH), E(H), tmpcnt(rtmpcnt), numthreads(rnumthreads),
-			  // symtorank(E.maxsym-E.minsym+1,false), 
+			  // symtorank(E.maxsym-E.minsym+1,false),
 			  symtooffset(E.maxsym-E.minsym+1,false),
 			  outstreamfilenames(numthreads * H.inner()),
 			  outstreams(numthreads * H.inner()),
@@ -155,10 +155,10 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < H.inner(); ++i )
 				{
 					P[H.leftChild(H.leafs()+i)] = H.leafs()+i;
-					P[H.rightChild(H.leafs()+i)] = H.leafs()+i;					
+					P[H.rightChild(H.leafs()+i)] = H.leafs()+i;
 				}
 				P[H.root()] = H.root();
-				
+
 				uint64_t totalbits = 0;
 				for ( uint64_t i = 0; i < H.leafs(); ++i )
 				{
@@ -166,9 +166,9 @@ namespace libmaus2
 					totalbits += E.getCodeLength(sym);
 				}
 
-				
+
 				bv = bit_vector_type(totalbits,false);
-				
+
 				uint64_t offset = 0;
 
 				for ( uint64_t i = 0; i < H.leafs(); ++i )
@@ -181,7 +181,7 @@ namespace libmaus2
 					unsigned int const numbits = E.getCodeLength(sym);
 					// code
 					uint64_t const code = E.getCode(sym);
-					
+
 					uint64_t node = i;
 					for ( uint64_t j = 0; j < numbits; ++j )
 					{
@@ -192,13 +192,13 @@ namespace libmaus2
 							code&(1ull<<j)
 						);
 					}
-					
+
 					offset += numbits;
 				}
 
 				// set up contexts
 				for ( uint64_t i = 0; i < numthreads * H.inner(); ++i )
-				{	
+				{
 					outstreamfilenames[i] = tmpcnt.getFileName();
 					libmaus2::util::TempFileRemovalContainer::addTempFile(outstreamfilenames[i]);
 					sync_out_ptr_type tstream(new sync_out_type(outstreamfilenames[i],bufsize));
@@ -209,7 +209,7 @@ namespace libmaus2
 					outstreambitwriters[i] = UNIQUE_PTR_MOVE(twriter);
 					outstreambitwritersp[i] = outstreambitwriters[i].get();
 				}
-				
+
 				for ( uint64_t i = 0; i < numthreads; ++i )
 				{
 					buffers[i].E = &E;
@@ -222,7 +222,7 @@ namespace libmaus2
 
 			template<typename stream_type>
 			uint64_t createFinalStream(stream_type & out)
-			{	
+			{
 				// add padding bit
 				for ( uint64_t i = 0; i < H.inner(); ++i )
 				{
@@ -239,7 +239,7 @@ namespace libmaus2
 					outstreams[i]->flush();
 					outstreams[i].reset();
 				}
-				
+
 				std::vector<std::string> concatTempFileNames(H.inner());
 				::libmaus2::autoarray::AutoArray<uint64_t> wordsv(H.inner());
 				#if defined(_OPENMP)
@@ -261,10 +261,10 @@ namespace libmaus2
 					libmaus2::util::TempFileRemovalContainer::addTempFile(concatTempFileNames[i]);
 					libmaus2::aio::OutputStream::unique_ptr_type PCOS(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(concatTempFileNames[i]));
 					std::ostream & COS = *PCOS;
-					
+
 					// round up
 					wordsv[i] = libmaus2::bitio::BitVectorConcat::concatenateBitVectors(infiles,COS,6);
-					
+
 					// flush and close file
 					COS.flush();
 					PCOS.reset();
@@ -283,33 +283,33 @@ namespace libmaus2
 				// number of inner nodes in tree
 				p += ::libmaus2::util::NumberSerialisation::serialiseNumber(out,H.inner()); // number of bit vectors
 
-				std::vector<uint64_t> nodeposvec;	
+				std::vector<uint64_t> nodeposvec;
 				/*
 				 * concatenate nodes in final output stream
 				 */
 				for ( int64_t i = 0; i < static_cast<int64_t>(H.inner()); ++i )
 				{
 					nodeposvec.push_back(p);
-				
+
 					libmaus2::aio::InputStream::unique_ptr_type Pistr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(concatTempFileNames[i]));
 					std::istream & istr = *Pistr;
 					uint64_t inwords;
 					::libmaus2::serialize::Serialize<uint64_t>::deserialize(istr,&inwords);
 					assert ( inwords == wordsv[i] );
 					assert ( inwords % 6 == 0 );
-					
+
 					uint64_t const bufblocks = 4096;
 					uint64_t const bufpaywords = bufblocks*6;
 					uint64_t const buftotalwords = bufblocks*8;
 					uint64_t const numblocks = (inwords + bufpaywords - 1) / bufpaywords;
-					
+
 					::libmaus2::autoarray::AutoArray<uint64_t> inbuf(bufpaywords);
 					::libmaus2::autoarray::AutoArray<uint64_t> outbuf(buftotalwords);
 					uint64_t s = 0;
 
 					p += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,inwords*64); // number of bits
 					p += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,(inwords/6)*8); // number of words
-					
+
 					for ( uint64_t j = 0; j < numblocks; ++j )
 					{
 						uint64_t const low = std::min(j * bufpaywords,inwords);
@@ -317,11 +317,11 @@ namespace libmaus2
 						uint64_t const size = high-low;
 						assert ( size % 6 == 0 );
 						uint64_t const bufs = size/6;
-						
+
 						uint64_t const readbytes = bufs * 6 * sizeof(uint64_t);
 						istr.read(reinterpret_cast<char *>(inbuf.get()), readbytes);
 						assert ( istr.gcount() == static_cast<int64_t>(readbytes) );
-						
+
 						uint64_t const * inptr = inbuf.begin();
 						uint64_t * outptr = outbuf.begin();
 						for ( uint64_t k = 0; k < bufs; ++k )
@@ -330,7 +330,7 @@ namespace libmaus2
 							uint64_t * subptr = outptr++;
 							*subptr = 0;
 							unsigned int shift = 0;
-							
+
 							uint64_t m = 0;
 							for ( uint64_t l = 0; l < 6; ++l, shift+=9 )
 							{
@@ -343,7 +343,7 @@ namespace libmaus2
 
 							s += m;
 						}
-						
+
 						assert ( inptr == inbuf.begin() + 6 * bufs );
 						assert ( outptr == outbuf.begin() + 8 * bufs );
 
@@ -352,25 +352,25 @@ namespace libmaus2
 						assert ( out );
 						p += writebytes;
 					}
-					
+
 					// libmaus2::aio::FileRemoval::removeFile ( tmpfilename );
 				}
 
 				uint64_t const indexpos = p;
 				p += ::libmaus2::util::NumberSerialisation::serialiseNumberVector(out,nodeposvec);
 				p += ::libmaus2::util::NumberSerialisation::serialiseNumber(out,indexpos);
-		
+
 				out.flush();
 
 				for ( uint64_t i = 0; i < H.inner(); ++i )
 					libmaus2::aio::FileRemoval::removeFile ( concatTempFileNames[i] );
-				
+
 				for ( uint64_t i = 0; i < outstreamfilenames.size(); ++i )
 					libmaus2::aio::FileRemoval::removeFile(outstreamfilenames[i]);
-				
+
 				return p;
 			}
-			
+
 			void createFinalStream(std::string const & filename)
 			{
 				libmaus2::aio::OutputStream::unique_ptr_type Postr(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(filename));

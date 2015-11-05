@@ -32,7 +32,7 @@ namespace libmaus2
 			typedef SimpleCompressedInputBlockConcatBlock this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			libmaus2::autoarray::AutoArray<uint8_t> I;
 			libmaus2::autoarray::AutoArray<uint8_t> O;
 			uint64_t metasize;
@@ -49,13 +49,13 @@ namespace libmaus2
 			: metasize(0), compsize(0), uncompsize(0), eof(true), currentInterval(0), blockstreampos(0),
 			  Pdecompressor(factory()), decompressor(*Pdecompressor)
 			{
-			
-			}			
+
+			}
 
 			bool uncompressBlock()
 			{
 				if ( uncompsize > O.size() )
-					O = libmaus2::autoarray::AutoArray<uint8_t>(uncompsize,false);			
+					O = libmaus2::autoarray::AutoArray<uint8_t>(uncompsize,false);
 
 				bool ok = true;
 
@@ -66,7 +66,7 @@ namespace libmaus2
 						reinterpret_cast<char *>(O.begin()),uncompsize
 					);
 				}
-								
+
 				if ( blockstreampos == currentInterval->end.first )
 				{
 					uncompsize = currentInterval->end.second;
@@ -78,10 +78,10 @@ namespace libmaus2
 						O.begin() + currentInterval->start.second,
 						uncompsize-currentInterval->start.second
 					);
-					
+
 					uncompsize -= currentInterval->start.second;
 				}
-				
+
 				return ok;
 			}
 		};

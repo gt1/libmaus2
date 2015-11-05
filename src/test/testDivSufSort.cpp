@@ -41,12 +41,12 @@ void testBin()
 	{
 		// unsigned int const n = 10;
 		typedef ::libmaus2::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int64_t *,int64_t const *,256,false /* parallel */> sort_type;
-		::libmaus2::autoarray::AutoArray<int64_t> SA(n+1,false);	
-		::libmaus2::autoarray::AutoArray<int64_t> ISA(n+1,false);	
+		::libmaus2::autoarray::AutoArray<int64_t> SA(n+1,false);
+		::libmaus2::autoarray::AutoArray<int64_t> ISA(n+1,false);
 		::libmaus2::autoarray::AutoArray<uint8_t> S(n+1,false);
 		::libmaus2::autoarray::AutoArray<uint8_t> BWT(n+1,false);
 		S[n] = '$';
-		
+
 		for ( uint64_t i = 0; i < (1ull<<n); ++i )
 		{
 			for ( uint64_t j = 0; j < n; ++j )
@@ -54,22 +54,22 @@ void testBin()
 
 			sort_type::divsufsort ( S.begin(), SA.get() , n+1 );
 			::libmaus2::autoarray::AutoArray<int64_t> PhiLCP = ::libmaus2::lcp::computeLcp(S.get(),n+1,SA.get());
-			
+
 			for ( uint64_t j = 0; j < SA.size(); ++j )
 				ISA[SA[j]] = j;
-				
+
 			for ( uint64_t j = 0; j < SA.size(); ++j )
 				BWT[j] = S[ (SA[j] + S.size() -1) % S.size() ];
-				
+
 			::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, uint64_t >::unique_ptr_type
 				PW(new ::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, uint64_t >(BWT.begin(),BWT.size()));
 			for ( uint64_t j = 0; j < S.size(); ++j )
 				assert ( (*PW)[j] == BWT[j] );
-				
+
 			::libmaus2::lf::LF LF(PW);
 			::libmaus2::fm::SimpleSampledSA< ::libmaus2::lf::LF > SSA(&LF,2);
 			::libmaus2::fm::SampledISA< ::libmaus2::lf::LF > SISA(&LF,2);
-			
+
 			::libmaus2::lcp::SuccinctLCP<
 				::libmaus2::lf::LF,
 				::libmaus2::fm::SimpleSampledSA< ::libmaus2::lf::LF >,
@@ -83,44 +83,44 @@ void testBin()
 				::libmaus2::fm::SimpleSampledSA< ::libmaus2::lf::LF >,
 				::libmaus2::fm::SampledISA< ::libmaus2::lf::LF >
 			>::writeSuccinctLCP(LF,SISA,PhiLCP,oout,MTFC);
-			
+
 			std::istringstream iin(oout.str());
 			::libmaus2::lcp::SuccinctLCP<
 				::libmaus2::lf::LF,
 				::libmaus2::fm::SimpleSampledSA< ::libmaus2::lf::LF >,
 				::libmaus2::fm::SampledISA< ::libmaus2::lf::LF >
 			> defSLCP(iin,SSA);
-			
+
 			for ( uint64_t j = 0; j < SA.size(); ++j )
 			{
 				// std::cerr << "***\t" << SLCP[j] << "\t" << defSLCP[j] << std::endl;
 				assert ( SLCP[j] == defSLCP[j] );
 			}
 
-			#if 0		
+			#if 0
 			for ( uint64_t i = 0; i < 2*SA.size(); ++i )
 				std::cerr << ::libmaus2::bitio::getBit(SLCP.LCP,i);
 			std::cerr << std::endl;
-			
+
 			for ( uint64_t i = 0; i < SA.size(); ++i )
-				std::cerr << "PLCP[" << i << "]=" << PhiLCP[ISA[i]] 
+				std::cerr << "PLCP[" << i << "]=" << PhiLCP[ISA[i]]
 					<< ":" << SLCP[ISA[i]]
 					<< std::endl;
 			#endif
-			
+
 			#if 0
 			bool thecase = false;
 			for ( uint64_t j = 1; j < n; ++j )
 				if ( PhiLCP[ISA[j-1]] == PhiLCP[ISA[j]] )
 					thecase = true;
-			
+
 			if ( thecase )
 			{
 				std::cerr << "------" << std::endl;
-				
+
 				for ( uint64_t j = 0; j < n; ++j )
 					std::cerr << "[" << j << "]" << std::string(S.begin()+SA[j],S.end()) << std::endl;
-					
+
 				for ( uint64_t j = 0; j < n; ++j )
 					std::cerr << "PLCP["<< j << "]=" << "LCP[" << ISA[j] << "]=" << PhiLCP[ISA[j]] << std::endl;
 			}
@@ -132,37 +132,37 @@ void testBin()
 void testLCP(::libmaus2::autoarray::AutoArray<uint8_t> const & data, ::libmaus2::autoarray::AutoArray<int64_t> const & SAdiv0)
 {
 	::libmaus2::timing::RealTimeClock drtc; drtc.start();
-	
+
 	uint64_t const n = data.size();
-	
+
 	std::cerr << "Computing LCP by Phi...";
-	drtc.start();	
+	drtc.start();
 	::libmaus2::autoarray::AutoArray<int64_t> PhiLCP = ::libmaus2::lcp::computeLcp(data.get(),n,SAdiv0.get());
 	std::cerr << "done, time " << drtc.getElapsedSeconds() << std::endl;
-	
+
 	::libmaus2::autoarray::AutoArray<uint32_t> USA(n);
 	std::copy(SAdiv0.begin(),SAdiv0.end(),USA.get());
 	std::cerr << "Computing LCP by oracle...";
-	drtc.start();	
+	drtc.start();
 	::libmaus2::lcp::OracleLCP<
-		uint8_t const *, 
+		uint8_t const *,
 		::libmaus2::rmq::FischerSystematicSuccinctRMQ,
 		::libmaus2::lcp::DefaultComparator<uint8_t>
 	>::dc_lcp_compute(data.get(), USA.get(), n, 8);
 	std::cerr << "done, time " << drtc.getElapsedSeconds() << std::endl;
 
-	::libmaus2::autoarray::AutoArray<uint32_t> KLCP(n,false);	
+	::libmaus2::autoarray::AutoArray<uint32_t> KLCP(n,false);
 	std::cerr << "Computing LCP via Kasai et al...";
 	drtc.start();
 	::libmaus2::lcp::computeLCPKasai(data.get(), n, SAdiv0.get(), KLCP.get());
 	std::cerr << "done, time " << drtc.getElapsedSeconds() << std::endl;
 
-	std::cerr << "Comparing Kasai to Phi...";	
+	std::cerr << "Comparing Kasai to Phi...";
 	for ( uint64_t i = 0; i < n; ++i )
 		assert ( KLCP[i] == PhiLCP[i] );
 	std::cerr << "done." << std::endl;
 
-	std::cerr << "Comparing Kasai to oracle...";	
+	std::cerr << "Comparing Kasai to oracle...";
 	for ( uint64_t i = 0; i < n; ++i )
 	{
 		if ( KLCP[i] != USA[i] )
@@ -186,7 +186,7 @@ void testTempFileContainer()
 	MTFC.getOutputTempFile(1) << "world\n";
 	MTFC.closeOutputTempFile(0);
 	MTFC.closeOutputTempFile(1);
-	
+
 	for ( uint64_t i = 0; i < 2; ++i )
 	{
 		std::istream & intmp = MTFC.openInputTempFile(i);
@@ -208,7 +208,7 @@ int main(int argc, char * argv[])
 		std::cerr << "usage: " << argv[0] << " <filename>" << std::endl;
 		return EXIT_FAILURE;
 	}
-	
+
 	::libmaus2::autoarray::AutoArray<uint8_t> data = ::libmaus2::util::GetFileSize::readFile(argv[1]);
 	std::cerr << "Got file of size " << data.size() << std::endl;
 
@@ -221,11 +221,11 @@ int main(int argc, char * argv[])
 		C.set ( i, data[i] );
 
 	uint64_t const n = data.getN();
-		
+
 	typedef ::libmaus2::suffixsort::DivSufSort<bitwidth,uint8_t *,uint8_t const *,int64_t *,int64_t const *> sort_type;
 	typedef sort_type::saidx_t saidx_t;
 
-	::libmaus2::autoarray::AutoArray<saidx_t> SAdiv0(n,false);	
+	::libmaus2::autoarray::AutoArray<saidx_t> SAdiv0(n,false);
 
 	std::cerr << "Running divsufsort...";
 	::libmaus2::timing::RealTimeClock drtc; drtc.start();
@@ -234,7 +234,7 @@ int main(int argc, char * argv[])
 
 	// xxx
 	data.release();
-	
+
 	#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 	typedef ::libmaus2::bitio::SynchronousSignedCompactArray signed_compact_array_type;
 	signed_compact_array_type CSA(n, ::libmaus2::math::bitsPerNum(n) + 1 );
@@ -254,12 +254,12 @@ int main(int argc, char * argv[])
 	std::cerr << "Running divsufsort on double compact representation using " << CSA.getB() << " bits per position...";
 	::libmaus2::timing::RealTimeClock rtc; rtc.start();
 	compact_index_sort_type::divsufsort(C.begin(), CSA.begin(), n);
-	std::cerr << "done, time " << rtc.getElapsedSeconds() << std::endl;	
+	std::cerr << "done, time " << rtc.getElapsedSeconds() << std::endl;
 	#endif
 
 	::libmaus2::suffixsort::DivSufSortUtils<
 		bitwidth,compact_it,compact_const_it,compact_index_it,compact_index_const_it>::sufcheck(C.begin(),CSA.begin(),n,1);
-	
+
 	for ( uint64_t i = 0; i < SAdiv0.getN(); ++i )
 		assert ( CSA.get(i) == SAdiv0[i] );
 }

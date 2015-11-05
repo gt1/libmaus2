@@ -33,12 +33,12 @@ namespace libmaus2
 			typedef MemoryFileContainer this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			static libmaus2::parallel::PosixMutex lock;
-			static std::map < 
-				std::string, MemoryFile::shared_ptr_type 
+			static std::map <
+				std::string, MemoryFile::shared_ptr_type
 			> M;
-			
+
 			static void rename(std::string const & from, std::string const & to)
 			{
 				libmaus2::parallel::ScopePosixMutex slock(lock);
@@ -88,11 +88,11 @@ namespace libmaus2
 			static MemoryFileAdapter::shared_ptr_type getEntry(std::string const & name)
 			{
 				libmaus2::parallel::ScopePosixMutex slock(lock);
-				
+
 				MemoryFile::shared_ptr_type memfile;
-				
+
 				std::map < std::string, MemoryFile::shared_ptr_type >::iterator ita = M.find(name);
-				
+
 				if ( ita != M.end() )
 				{
 					memfile = ita->second;
@@ -104,18 +104,18 @@ namespace libmaus2
 					M[name] = tmemfile;
 					memfile = tmemfile;
 				}
-					
+
 				MemoryFileAdapter::shared_ptr_type ptr(new MemoryFileAdapter(memfile));
-				
+
 				return ptr;
 			}
-			
+
 			static void eraseEntry(std::string const & name)
-			{				
+			{
 				libmaus2::parallel::ScopePosixMutex slock(lock);
 
 				std::map < std::string, MemoryFile::shared_ptr_type >::iterator ita = M.find(name);
-				
+
 				if ( ita != M.end() )
 					M.erase(ita);
 			}

@@ -21,6 +21,6 @@
 #include <libmaus2/lcs/SimdX86BandedGlobalAlignmentX128_16.hpp>
 #include <libmaus2/lcs/SimdX86GlobalAlignmentConstants128.hpp>
 #include <libmaus2/lcs/SimdX86BandedGlobalAlignmentX128_16_def.hpp>
-#include <libmaus2/lcs/SimdX86BandedGlobalAlignmentTemplate.cpp> 
+#include <libmaus2/lcs/SimdX86BandedGlobalAlignmentTemplate.cpp>
 #include <libmaus2/lcs/SimdX86BandedGlobalAlignmentX128_16_undef.hpp>
 #endif

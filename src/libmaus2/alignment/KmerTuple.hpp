@@ -31,14 +31,14 @@ namespace libmaus2
 			libmaus2::uint128_t kmer;
 			libmaus2::uint128_t shiftkmer;
 			uint64_t pos;
-			
+
 			KmerTuple() : kmer(0), shiftkmer(0), pos(0) {}
 			KmerTuple(
 				libmaus2::uint128_t rkmer,
 				libmaus2::uint128_t rshiftkmer,
 				uint64_t rpos
 			) : kmer(rkmer), shiftkmer(rshiftkmer), pos(rpos) {}
-			
+
 			bool operator<(KmerTuple const & O) const
 			{
 				if ( kmer != O.kmer )

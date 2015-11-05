@@ -23,20 +23,20 @@ int main()
 {
 	libmaus2::util::Histogram hist;
 	uint64_t i = 0;
-	
+
 	while ( std::cin )
 	{
 		uint64_t v;
 		std::cin >> v;
-		
+
 		if ( std::cin )
 		{
 			hist(v);
 		}
-		
+
 		if ( (++i & (1024*1024-1)) == 0 )
 			std::cerr << i << std::endl;
 	}
-	
+
 	std::cout << "avg\t" << hist.avg() << "\tmedian\t" << hist.median() << std::endl;
 }

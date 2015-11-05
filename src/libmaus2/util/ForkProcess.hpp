@@ -50,7 +50,7 @@ namespace libmaus2
 			bool result;
 			//! failure message
 			std::string failmessage;
-			
+
 			/**
 			 * send signal sig to process
 			 *
@@ -127,5 +127,5 @@ namespace libmaus2
 			bool join();
 		};
 	}
-}	
+}
 #endif

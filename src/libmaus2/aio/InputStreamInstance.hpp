@@ -30,7 +30,7 @@ namespace libmaus2
 			typedef InputStreamInstance this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			InputStreamInstance(std::string const & fn);
 
 			/**
@@ -52,7 +52,7 @@ namespace libmaus2
 			 *
 			 * @param filename name of file
 			 * @return size of file filename in bytes
-			 **/			
+			 **/
 			static uint64_t getFileSize(std::string const & filename)
 			{
 				this_type CIS(filename);

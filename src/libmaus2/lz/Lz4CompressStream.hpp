@@ -32,47 +32,47 @@ namespace libmaus2
 	namespace lz
 	{
 		struct Lz4CompressStream : public Lz4CompressStreamBuffer, public std::ostream
-		{	
+		{
 			typedef Lz4CompressStream this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			libmaus2::util::unique_ptr<std::ostringstream>::type memoryindexstream;
 
 			std::ostream * indexstream;
-		
+
 			Lz4CompressStream(std::ostream & out, uint64_t const buffersize)
 			: Lz4CompressStreamBuffer(out,buffersize), std::ostream(this), memoryindexstream(new std::ostringstream), indexstream(memoryindexstream.get())
 			{
 				Lz4CompressStreamBuffer::wrapped.setIndexStream(indexstream);
-			
+
 				std::ostringstream ostr;
 				// write buffer size
 				libmaus2::util::UTF8::encodeUTF8(buffersize,ostr);
 
-				Lz4CompressStreamBuffer::Lz4CompressWrapper::wrapped.writeUncompressed(ostr.str().c_str(),ostr.str().size());				
+				Lz4CompressStreamBuffer::Lz4CompressWrapper::wrapped.writeUncompressed(ostr.str().c_str(),ostr.str().size());
 			}
-			
+
 			void writeIndex()
 			{
 				flush();
-				
+
 				if ( memoryindexstream )
 				{
 					uint64_t const numoffsets = memoryindexstream->str().size() / sizeof(uint64_t);
-					
+
 					// start of index byte offset in output stream
 					uint64_t const indexoffset = Lz4CompressStreamBuffer::Lz4CompressWrapper::wrapped.align(8);
-					
+
 					// write number of payload bytes and number of entries in block pointer index
 					std::ostringstream numoffsetsostr;
 					libmaus2::util::NumberSerialisation::serialiseNumber(numoffsetsostr,Lz4CompressStreamBuffer::Lz4CompressWrapper::wrapped.getPayloadBytesWritten());
 					libmaus2::util::NumberSerialisation::serialiseNumber(numoffsetsostr,numoffsets);
 					Lz4CompressStreamBuffer::Lz4CompressWrapper::wrapped.writeUncompressed(numoffsetsostr.str().c_str(),numoffsetsostr.str().size());
-					
+
 					// write block pointers
 					Lz4CompressStreamBuffer::Lz4CompressWrapper::wrapped.writeUncompressed(memoryindexstream->str().c_str(),memoryindexstream->str().size());
-					
+
 					// write pointer to start of index
 					std::ostringstream blockindexptrstr;
 					libmaus2::util::NumberSerialisation::serialiseNumber(blockindexptrstr,indexoffset);

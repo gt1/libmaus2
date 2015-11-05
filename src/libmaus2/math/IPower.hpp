@@ -30,12 +30,12 @@ namespace libmaus2
 		{
 			static uint64_t const n = b * IPower<b,e-1>::n;
 		};
-		
+
 		template<uint64_t b>
 		struct IPower<b,0>
 		{
 			static uint64_t const n = 1;
-		};	
+		};
 	}
 }
 #endif

@@ -59,11 +59,11 @@ int main()
 					assert ( B.at(i).at(j) == A.at(i,j) );
 				}
 		}
-		
+
 		std::cerr << (ok ? "ok" : "failed") << std::endl;
 	}
 	catch(std::exception const & ex)
 	{
-	
+
 	}
 }

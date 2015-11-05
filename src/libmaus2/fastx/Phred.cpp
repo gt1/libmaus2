@@ -82,8 +82,8 @@ int main()
 		double const base = 10;
 		double const exponent = static_cast<double>(i) / 10.0;
 		double const val = 1.0 / ::std::pow(base,exponent);
-		
-		std::ostringstream lostr; 
+
+		std::ostringstream lostr;
 		::std::setprecision(20);
 		lostr << val;
 
@@ -94,20 +94,20 @@ int main()
 			lineostr = new std::ostringstream;
 			(*lineostr) << " ";
 		}
-		
+
 		(*lineostr) << val;
-		
+
 		if ( i+1 < thres )
 		{
 			(*lineostr) << ",";
-		}		
+		}
 	}
-	
+
 	if ( lineostr->str().size() )
 		std::cout << lineostr->str() << std::endl;
-		
+
 	delete lineostr;
-	
+
 	std::cout << "};\n";
 }
 #endif

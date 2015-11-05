@@ -28,7 +28,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <cassert>
-              
+
 namespace libmaus2
 {
 	namespace network
@@ -38,13 +38,13 @@ namespace libmaus2
 			typedef SocketPair this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			int fd[2];
-			
+
 			SocketPair()
 			{
 				fd[0] = fd[1] = -1;
-				
+
 				// if ( socketpair(AF_LOCAL,SOCK_STREAM,PF_LOCAL,&fd[0]) < 0 )
 				if ( socketpair(AF_LOCAL,SOCK_STREAM,0,&fd[0]) < 0 )
 				{
@@ -59,7 +59,7 @@ namespace libmaus2
 				closeParent();
 				closeChild();
 			}
-			
+
 			int parentRelease()
 			{
 				int const rfd = fd[1];
@@ -73,17 +73,17 @@ namespace libmaus2
 				fd[0] = -1;
 				return rfd;
 			}
-			
+
 			int parentGet()
 			{
 				return fd[1];
 			}
-			
+
 			int childGet()
 			{
 				return fd[0];
 			}
-			
+
 			void closeParent()
 			{
 				if ( fd[0] != -1 )
@@ -94,7 +94,7 @@ namespace libmaus2
 				#endif
 				fd[0] = -1;
 			}
-			
+
 			void closeChild()
 			{
 				if ( fd[1] != -1 )
@@ -105,19 +105,19 @@ namespace libmaus2
 				#endif
 				fd[1] = -1;
 			}
-			
+
 			// send file descriptor parent -> child
 			void sendFd(int const rfd)
 			{
 				libmaus2_network_sendFd_C(parentGet(),rfd);
 			}
-			
+
 			// receive file descriptor from parent
 			int receiveFd()
 			{
 				return libmaus2_network_receiveFd_C(childGet());
 			}
-			
+
 			bool pending()
 			{
 				int const fd = childGet();

@@ -30,7 +30,7 @@ std::set<std::string> libmaus2::digest::DigestFactory_CRC32C_SSE42::getSupported
 
 	return S;
 }
-						
+
 libmaus2::digest::DigestInterface::unique_ptr_type libmaus2::digest::DigestFactory_CRC32C_SSE42::constructStatic(std::string const & name)
 {
 	#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_x86_64) && defined(LIBMAUS2_HAVE_i386) && defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)

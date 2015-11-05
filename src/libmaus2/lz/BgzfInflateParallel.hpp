@@ -40,9 +40,9 @@ namespace libmaus2
 			BgzfInflateParallelContext inflatecontext;
 
 			libmaus2::autoarray::AutoArray<BgzfInflateParallelThread::unique_ptr_type> T;
-			
+
 			bool terminated;
-			
+
 			void init()
 			{
 
@@ -51,12 +51,12 @@ namespace libmaus2
 					BgzfInflateParallelThread::unique_ptr_type tTi(new BgzfInflateParallelThread(inflatecontext));
 					T[i] = UNIQUE_PTR_MOVE(tTi);
 					T[i]->start();
-				}			
+				}
 			}
-			
+
 			public:
 			BgzfInflateParallel(std::istream & rinflatein, uint64_t const rnumthreads, uint64_t const rnumblocks)
-			: 
+			:
 				inflategloblist(),
 				inflatecontext(inflategloblist,rinflatein,rnumblocks),
 				T(rnumthreads),
@@ -66,7 +66,7 @@ namespace libmaus2
 			}
 
 			BgzfInflateParallel(std::istream & rinflatein, std::ostream & rcopyostr, uint64_t const rnumthreads, uint64_t const rnumblocks)
-			: 
+			:
 				inflatecontext(inflategloblist,rinflatein,rnumblocks,rcopyostr),
 				T(rnumthreads),
 				terminated(false)
@@ -75,12 +75,12 @@ namespace libmaus2
 			}
 
 			BgzfInflateParallel(
-				std::istream & rinflatein, 
-				uint64_t const rnumthreads = 
+				std::istream & rinflatein,
+				uint64_t const rnumthreads =
 					std::max(std::max(libmaus2::parallel::OMPNumThreadsScope::getMaxThreads(),static_cast<uint64_t>(1))-1,
 						static_cast<uint64_t>(1))
 			)
-			: 
+			:
 				inflatecontext(inflategloblist,rinflatein,4*rnumthreads),
 				T(rnumthreads),
 				terminated(false)
@@ -89,20 +89,20 @@ namespace libmaus2
 			}
 
 			BgzfInflateParallel(
-				std::istream & rinflatein, 
+				std::istream & rinflatein,
 				std::ostream & rcopyostr,
-				uint64_t const rnumthreads = 
+				uint64_t const rnumthreads =
 					std::max(std::max(libmaus2::parallel::OMPNumThreadsScope::getMaxThreads(),static_cast<uint64_t>(1))-1,
 						static_cast<uint64_t>(1))
 			)
-			: 
+			:
 				inflatecontext(inflategloblist,rinflatein,4*rnumthreads,rcopyostr),
 				T(rnumthreads),
 				terminated(false)
 			{
 				init();
 			}
-			
+
 			uint64_t gcount() const
 			{
 				return inflatecontext.inflategcnt;
@@ -111,7 +111,7 @@ namespace libmaus2
 			BgzfInflateInfo readAndInfo(char * const data, uint64_t const n)
 			{
 				inflatecontext.inflategcnt = 0;
-					
+
 				if ( n < libmaus2::lz::BgzfInflateBlock::getBgzfMaxBlockSize() )
 				{
 					libmaus2::exception::LibMausException se;
@@ -124,11 +124,11 @@ namespace libmaus2
 				{
 					return BgzfInflateInfo(0,0,true);
 				}
-			
+
 				/* get object id */
 				BgzfThreadQueueElement const btqe = inflatecontext.inflatedecompressedlist.deque();
 				uint64_t objectid = btqe.objectid;
-				
+
 				/* we have an exception, terminate readers and throw it at caller */
 				if ( inflatecontext.inflateB[objectid]->failed() )
 				{
@@ -144,9 +144,9 @@ namespace libmaus2
 				}
 
 				BgzfInflateInfo const info = inflatecontext.inflateB[objectid]->blockinfo;
-				
+
 				/* empty block (EOF) */
-				if ( 
+				if (
 					! info.uncompressed
 					&&
 					inflatecontext.inflateB[objectid]->blockinfo.streameof
@@ -155,7 +155,7 @@ namespace libmaus2
 					libmaus2::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
 					inflatecontext.inflategloblist.terminate();
 					terminated = true;
-					
+
 					return info;
 				}
 				/* block contains data */
@@ -177,9 +177,9 @@ namespace libmaus2
 							0
 						)
 					);
-					
+
 					inflatecontext.inflategcnt = info.uncompressed;
-					
+
 					inflatecontext.inflatedecompressedlist.setReadyFor(
 						BgzfThreadQueueElement(
 							libmaus2::lz::BgzfThreadOpBase::libmaus2_lz_bgzf_op_none,
@@ -187,11 +187,11 @@ namespace libmaus2
 							blockid+1
 						)
 					);
-					
+
 					return info;
-				}				
+				}
 			}
-			
+
 			uint64_t read(char * const data, uint64_t const n)
 			{
 				return readAndInfo(data,n).uncompressed;

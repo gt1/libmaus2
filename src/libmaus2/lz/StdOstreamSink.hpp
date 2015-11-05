@@ -32,13 +32,13 @@ namespace libmaus2
 		struct StdOstreamSink : public ::snappy::Sink
 		{
 			typedef StdOstreamSink<out_type> this_type;
-			
+
 			out_type & out;
 			uint64_t written;
-			
+
 			StdOstreamSink(out_type & rout) : out(rout), written(0) {}
 			virtual ~StdOstreamSink() { out.flush(); }
-				
+
 			void Append(const char* bytes, size_t n)
 			{
 				out.write(bytes,n);

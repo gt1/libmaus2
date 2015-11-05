@@ -31,7 +31,7 @@ namespace libmaus2
 		{
 			typedef std::map<uint64_t,::libmaus2::bambam::DuplicationMetrics> map_type;
 			typedef libmaus2::util::unique_ptr<map_type>::type map_ptr_type;
-			
+
 			::libmaus2::bitio::BitVector B;
 			map_ptr_type Pmetrics;
 			map_type & metrics;
@@ -43,7 +43,7 @@ namespace libmaus2
 				for (
 					std::map<uint64_t,::libmaus2::bambam::DuplicationMetrics>::const_iterator ita = metrics.begin();
 					ita != metrics.end();
-					++ita 
+					++ita
 				)
 				{
 					libmaus2::util::NumberSerialisation::serialiseNumber(out,ita->first);
@@ -67,11 +67,11 @@ namespace libmaus2
 				uint64_t const n,
 				std::map<uint64_t,::libmaus2::bambam::DuplicationMetrics> & rmetrics
 			) : B(n), metrics(rmetrics) /* unpairedreadduplicates(), readpairduplicates(), metrics(rmetrics) */ {}
-			
+
 			void operator()(::libmaus2::bambam::ReadEnds const & A)
 			{
 				B.set(A.getRead1IndexInFile(),true);
-				
+
 				if ( A.isPaired() )
 				{
 					B.set(A.getRead2IndexInFile(),true);
@@ -81,7 +81,7 @@ namespace libmaus2
 				{
 					metrics[A.getLibraryId()].unpairedreadduplicates++;
 				}
-			}	
+			}
 
 			uint64_t getNumDups() const
 			{
@@ -89,7 +89,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < B.size(); ++i )
 					if ( B.get(i) )
 						dups++;
-				
+
 				return dups;
 			}
 			void addOpticalDuplicates(uint64_t const libid, uint64_t const count)
@@ -101,10 +101,10 @@ namespace libmaus2
 			{
 				return B[i];
 			}
-			
+
 			void flush(uint64_t const)
 			{
-			
+
 			}
 		};
 	}

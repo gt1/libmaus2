@@ -31,13 +31,13 @@ namespace libmaus2
 		struct Lz4CompressStreamBuffer : public Lz4CompressWrapper, public ::std::streambuf
 		{
 			::libmaus2::autoarray::AutoArray<char> buffer;
-		
+
 			Lz4CompressStreamBuffer(std::ostream & out, uint64_t const blocksize)
 			: Lz4CompressWrapper(out, blocksize), buffer(blocksize,false)
 			{
 				setp(buffer.begin(),buffer.end()-1);
 			}
-			
+
 			int_type overflow(int_type c = traits_type::eof())
 			{
 				if ( c != traits_type::eof() )
@@ -49,7 +49,7 @@ namespace libmaus2
 
 				return c;
 			}
-			
+
 			void doSync()
 			{
 				int64_t const n = pptr()-pbase();
@@ -61,7 +61,7 @@ namespace libmaus2
 				doSync();
 				Lz4CompressWrapper::wrapped.flush();
 				return 0; // no error, -1 for error
-			}			
+			}
 		};
 	}
 }

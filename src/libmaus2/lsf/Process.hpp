@@ -30,7 +30,7 @@ namespace libmaus2
 		struct Process
 		{
 			int64_t lsfid;
-			
+
 			enum state
 			{
 				state_unknown,
@@ -45,11 +45,11 @@ namespace libmaus2
 				state_perr,
 				state_wait
 			};
-			
+
 			state getState() const
 			{
 				int64_t const status = getIntState();
-			
+
 				if ( status & JOB_STAT_PEND )
 					return state_pending;
 				else if ( status & JOB_STAT_PSUSP )
@@ -73,34 +73,34 @@ namespace libmaus2
 				else
 					return state_unknown;
 			}
-			
+
 			int64_t getIntState() const
 			{
 				int lsfr = lsb_openjobinfo(lsfid,0/*jobname*/,0/*user*/,0/*queue*/,0/*host*/,ALL_JOB);
-				
+
 				if ( lsfr < 0 )
 				{
 					return 0;
 				}
 				else if ( lsfr == 0 )
 				{
-					lsb_closejobinfo();					
+					lsb_closejobinfo();
 					return 0;
 				}
 				else
 				{
 					jobInfoEnt const * jie = lsb_readjobinfo(&lsfr);
-					
+
 					if ( ! jie )
 					{
-						lsb_closejobinfo();					
-						return 0;				
+						lsb_closejobinfo();
+						return 0;
 					}
 
 					int64_t const status = jie->status;
 					lsb_closejobinfo();
-			
-					return status;		
+
+					return status;
 				}
 			}
 		};

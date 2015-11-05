@@ -35,14 +35,14 @@ namespace libmaus2
 			::libmaus2::bambam::BamAlignment::shared_ptr_type algn;
 			//! input list index
 			uint64_t index;
-			
+
 			/**
 			 * constructor for invalid/null object
 			 **/
 			MergeQueueElement()
 			{
 			}
-			
+
 			/**
 			 * construct from alignment and input list index
 			 *
@@ -64,19 +64,19 @@ namespace libmaus2
 				::libmaus2::bambam::BamAlignment::shared_ptr_type const & B)
 			{
 				int r = strcmp(A->getName(),B->getName());
-				
+
 				if ( r )
 					return r > 0;
 
 				return A->isRead2();
 			}
-			
+
 			/**
 			 * comparison operator calling compare method
 			 *
 			 * @param o other merge queue element
 			 * @return compare(algn,o.algn)
-			 **/			
+			 **/
 			bool operator<(MergeQueueElement const & o) const
 			{
 				return compare(algn,o.algn);

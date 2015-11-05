@@ -35,14 +35,14 @@ namespace libmaus2
 		struct MD5 : public libmaus2::digest::DigestBase<16,6 /* block size 64 shift */, true /* need padding */, 8 /* number length */, false>
 		{
 			void * ctx;
-		
+
 			static bool md5(std::string const & input, std::string & output);
 			static bool md5(std::vector<std::string> const & V, std::string & output);
 			static bool md5(std::vector<std::string> const & V, uint64_t const k, std::string & output);
 			static void md5(uint8_t const * in, size_t const len, uint8_t digest[digestlength]);
 			static void md5(uint8_t const * in, size_t const len, libmaus2::math::UnsignedInteger<digestlength/4> & digest);
 			static libmaus2::math::UnsignedInteger<digestlength/4> md5(uint8_t const * in, size_t const len);
-			
+
 			MD5();
 			~MD5();
 

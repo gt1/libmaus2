@@ -20,16 +20,16 @@
 
 ::std::ostream & libmaus2::fastx::operator<<(std::ostream & out, ::libmaus2::fastx::FastABgzfIndexEntry const & F)
 {
-	out 
-		<< "FastABgzfIndexEntry(" 
-		<< F.name 
-		<< "," 
-		<< F.shortname 
-		<< "," 
-		<< F.patlen 
-		<< "," 
-		<< F.zoffset 
-		<< "," 
+	out
+		<< "FastABgzfIndexEntry("
+		<< F.name
+		<< ","
+		<< F.shortname
+		<< ","
+		<< F.patlen
+		<< ","
+		<< F.zoffset
+		<< ","
 		<< F.numblocks << "," << "{";
 	for ( uint64_t i = 0; i < F.blocks.size(); ++i )
 		out << F.blocks[i] << ((i+1<F.blocks.size())?";":"");

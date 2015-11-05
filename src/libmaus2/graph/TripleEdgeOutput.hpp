@@ -32,7 +32,7 @@ namespace libmaus2
 		{
 			typedef TripleEdgeOutput this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			typedef ::libmaus2::autoarray::AutoArray<TripleEdge> buffer_type;
 			buffer_type B;
 			TripleEdge * const pa;
@@ -46,8 +46,8 @@ namespace libmaus2
 				if ( pc != pa )
 				{
 					std::ofstream ostr(filename.c_str(), std::ios::binary | std::ios::app );
-					ostr.write ( 
-						reinterpret_cast<char const *>(pa), 
+					ostr.write (
+						reinterpret_cast<char const *>(pa),
 						reinterpret_cast<char const *>(pc) - reinterpret_cast<char const *>(pa)
 					);
 					ostr.flush();
@@ -61,13 +61,13 @@ namespace libmaus2
 				if ( pc != pa )
 					std::sort ( pa, pc );
 			}
-			
+
 			void unify()
 			{
 				#if 0
 				uint64_t const uin = pc-pa;
 				#endif
-			
+
 				sortBuffer();
 
 				TripleEdge prevtrip;
@@ -76,7 +76,7 @@ namespace libmaus2
 				for ( TripleEdge const * pp = pa; pp != pc; ++pp )
 				{
 					TripleEdge const & T = *pp;
-									
+
 					if ( (T.a != prevtrip.a) || (T.b != prevtrip.b) )
 					{
 						if ( prevtrip.a != prevtrip.b )
@@ -91,13 +91,13 @@ namespace libmaus2
 				}
 				if ( prevtrip.a != prevtrip.b )
 					*(po++) = prevtrip;
-					
+
 				pc = po;
-				
+
 				#if 0
 				uint64_t const uout = pc-pa;
-				
-				std::cerr << "uin=" << uin << " uout=" << uout << std::endl;			
+
+				std::cerr << "uin=" << uin << " uout=" << uout << std::endl;
 				#endif
 			}
 
@@ -117,7 +117,7 @@ namespace libmaus2
 			{
 				flush();
 			}
-			
+
 			void flush()
 			{
 				writeOut();
@@ -128,7 +128,7 @@ namespace libmaus2
 				writeOut();
 			}
 
-			
+
 			bool write(TripleEdge const & T)
 			{
 				(*pc++) = T;

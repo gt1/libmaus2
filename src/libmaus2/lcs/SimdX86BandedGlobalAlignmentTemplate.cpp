@@ -24,7 +24,7 @@ static std::ostream & printRegister(std::ostream & out, LIBMAUS2_LCS_SIMD_BANDED
 	LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE sp[sizeof(reg)/sizeof(LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE)] __attribute__((aligned(sizeof(reg))));
 	LIBMAUS2_LCS_SIMD_BANDED_STORE(reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE *>(&sp[0]),reg);
 	for ( uint64_t i = 0; i < sizeof(reg)/sizeof(LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE); ++i )
-		out << static_cast<int>(sp[i]) << 
+		out << static_cast<int>(sp[i]) <<
 			((i+1<sizeof(reg)/sizeof(LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE))?",":"");
 	return out;
 }
@@ -34,7 +34,7 @@ static std::ostream & printRegisterChar(std::ostream & out, LIBMAUS2_LCS_SIMD_BA
 	LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE sp[sizeof(reg)/sizeof(LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE)] __attribute__((aligned(sizeof(reg))));
 	LIBMAUS2_LCS_SIMD_BANDED_STORE(reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE *>(&sp[0]),reg);
 	for ( uint64_t i = 0; i < sizeof(reg)/sizeof(LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE); ++i )
-		out << std::setw(2) << (sp[i]) << std::setw(0) << 
+		out << std::setw(2) << (sp[i]) << std::setw(0) <<
 			((i+1<(sizeof(reg)/sizeof(LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE)))?",":"");
 	return out;
 }
@@ -58,7 +58,7 @@ static std::string formatRegisterChar(LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const r
 
 libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME() : diagmem(0), diagmemsize(0), textmem(0), textmemsize(0), querymem(0), querymemsize(0)
 {
-			
+
 }
 
 static void alignedFree(void * mem)
@@ -156,22 +156,22 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 	size_t const words_necessary = (allocdiaglen + elements_per_word - 1)/elements_per_word;
 	// bytes per anti diagonal
 	size_t const bytes_per_diag = words_necessary * sizeof(LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE);
-	
+
 	// number of diagonals computed
 	size_t const compdiag = 2*std::min(l_a,l_b) + d;
 	// number of pre set diagonals
 	size_t const prediag = 2;
 	// number of allocated diagonals
 	size_t const allocdiag = prediag + compdiag;
-	
+
 	size_t const textelements = compdiag/2 + words_necessary * elements_per_word;  // (d+1)+(compdiag/2)+(d+1);
 	size_t const textelementsalloc = ((textelements + elements_per_word - 1) / elements_per_word) * elements_per_word;
 	size_t const textelementsallocbytes = textelementsalloc*sizeof(LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE);
-	
+
 	size_t const queryelements = textelements;
 	size_t const queryelementsalloc = ((queryelements + elements_per_word - 1) / elements_per_word) * elements_per_word;
 	size_t const queryelementsallocbytes = queryelementsalloc*sizeof(LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE);
-	
+
 	allocateMemory(allocdiag * bytes_per_diag, sizeof(LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE), diagmem, diagmemsize);
 	allocateMemory(textelementsallocbytes, sizeof(LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE), textmem, textmemsize);
 	allocateMemory(queryelementsallocbytes, sizeof(LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE), querymem, querymemsize);
@@ -181,7 +181,7 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 	std::fill(textmem,textmem + textelementsalloc, 0x00 );
 	std::fill(querymem,querymem + queryelementsalloc, 0x00 );
 	#endif
-	
+
 	LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE const asub = std::numeric_limits<LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE>::max()-1;
 	LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE const bsub = std::numeric_limits<LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE>::max()-2;
 
@@ -192,8 +192,8 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 	for ( uint64_t i = 0; i < l_a && textmemc != textmeme; ++i )
 		*(textmemc++) = a[i];
 	while ( textmemc != textmeme )
-		*(textmemc++) = asub;		
-	
+		*(textmemc++) = asub;
+
 	LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE *bcopy = querymem + queryelements;
 	size_t const bpad = words_necessary * elements_per_word - (d+1);
 	for ( size_t i = 0; i < bpad; ++i )
@@ -201,10 +201,10 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 	size_t maxqcopy = queryelements - bpad;
 	size_t qcopy = std::min(l_b,maxqcopy);
 	for ( size_t i = 0; i < qcopy; ++i )
-		*(--bcopy) = b[i];		
+		*(--bcopy) = b[i];
 	while ( bcopy != querymem )
 		*(--bcopy) = bsub;
-				
+
 	std::fill(diagmem,diagmem + 2 * words_necessary * elements_per_word, std::numeric_limits<LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE>::max());
 	diagmem [ words_necessary * elements_per_word + d ] = 0;
 
@@ -220,22 +220,22 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 	ffback[2*d+1] = std::numeric_limits<LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE>::max();
 	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_ffback = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const *>(&ffback[0]));
 	#endif
-	
+
 	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_all_one = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const *>(&LIBMAUS2_LCS_SIMD_BANDED_ALL_ONE[0]));
 
 	LIBMAUS2_LCS_SIMD_BANDED_INIT
-	
+
 	for ( int64_t di = 1; di <= static_cast<int64_t>(compdiag); ++di )
 	{
 		assert ( diag_1 == reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE *>(diagmem) + (di-1)*words_necessary );
 		// std::cerr << "di=" << di << " allocdiag=" << allocdiag << std::endl;
-	
+
 		LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE const * t = textmem + (di>>1);
-		// LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE const * q = querymem + queryelements - (2*d+1) - ((di+1)>>1); 
-		LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE const * q = querymem + queryelements - bpad - (d) - ((di+1)>>1); 
+		// LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE const * q = querymem + queryelements - (2*d+1) - ((di+1)>>1);
+		LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE const * q = querymem + queryelements - bpad - (d) - ((di+1)>>1);
 		LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const * wt = reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const *>(t);
 		LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const * wq = reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const *>(q);
-		
+
 		assert ( t + words_necessary * elements_per_word <= textmem + textelementsalloc );
 		assert ( q + words_necessary * elements_per_word <= querymem + queryelementsalloc );
 		#if 0
@@ -248,13 +248,13 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 		#endif
 		#if 0
 		if ( q + words_necessary * elements_per_word > querymem + queryelementsalloc )
-		{		
+		{
 			std::cerr << "di=" << di << std::endl;
 			std::cerr << "q=" << q << std::endl;
 			assert ( q + words_necessary * elements_per_word <= querymem + queryelementsalloc );
 		}
 		#endif
-		
+
 		#if 0
 		{
 			LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_t = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wt);
@@ -262,7 +262,7 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 			std::cerr << "di=" << di << " " << formatRegisterChar(v_t) << " " << formatRegisterChar(v_q) << std::endl;
 		}
 		#endif
-			
+
 		// uneven row
 		if ( (di & 1) == 1 )
 		{
@@ -270,26 +270,26 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 			if ( words_necessary == 1 )
 			{
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE prev_0 = ff0;
-								
+
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_diag_1 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(diag_1++);
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_diag_0 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(diag_0++);
-	
+
 				#if 0
 				// insert FF at back
 				v_diag_0 = LIBMAUS2_LCS_SIMD_BANDED_OR(v_diag_0,v_ffback);
 				#endif
-				
+
 				// shift to right and insert ff at front
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE vdiag_0_shift = LIBMAUS2_LCS_SIMD_BANDED_OR(LIBMAUS2_LCS_SIMD_BANDED_SHIFTRIGHT(v_diag_0),prev_0);
-				
+
 				// load text
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_t = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wt++);
-				
+
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_q = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wq++);
 
 				// compare (1 iff symbols are not equal)
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_eq = LIBMAUS2_LCS_SIMD_BANDED_ANDNOT(LIBMAUS2_LCS_SIMD_BANDED_CMPEQ(v_t,v_q),v_all_one);
-				
+
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_min =
 					LIBMAUS2_LCS_SIMD_BANDED_MIN(
 						LIBMAUS2_LCS_SIMD_BANDED_MIN(
@@ -298,30 +298,30 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 						),
 						LIBMAUS2_LCS_SIMD_BANDED_ADD(v_diag_1,v_eq)
 					);
-					
+
 				LIBMAUS2_LCS_SIMD_BANDED_STORE(diag_n++,v_min);
 			}
 			// more than one word necessary
 			else if ( words_necessary > 1 )
 			{
-				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE prev = ff0;	
-				
+				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE prev = ff0;
+
 				for ( size_t z = 0; z < words_necessary; ++z )
 				{
-					// two diags back			
+					// two diags back
 					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_diag_1 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(diag_1++);
 					// load text
 					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_t = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wt++);
-					// load query				
+					// load query
 					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_q = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wq++);
 					// compare (1 iff symbols are not equal)
 					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_eq = LIBMAUS2_LCS_SIMD_BANDED_ANDNOT(LIBMAUS2_LCS_SIMD_BANDED_CMPEQ(v_t,v_q),v_all_one);
 
 					// next one back
 					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_diag_0 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(diag_0++);
-					
+
 					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const left = v_diag_0;
-					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const top = 
+					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const top =
 						LIBMAUS2_LCS_SIMD_BANDED_OR(
 							LIBMAUS2_LCS_SIMD_BANDED_SHIFTRIGHT(v_diag_0),
 							prev
@@ -336,10 +336,10 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 							),
 							LIBMAUS2_LCS_SIMD_BANDED_ADD(v_diag_1,v_eq)
 						);
-				
-					// store		
+
+					// store
 					LIBMAUS2_LCS_SIMD_BANDED_STORE(diag_n++,v_min);
-					
+
 					prev = LIBMAUS2_LCS_SIMD_BANDED_SELECTLAST(v_diag_0);
 				}
 			}
@@ -355,12 +355,12 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_diag_0_shift = LIBMAUS2_LCS_SIMD_BANDED_OR(LIBMAUS2_LCS_SIMD_BANDED_SHIFTLEFT(v_diag_0),zff);
 
 				// load text
-				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_t = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wt++);				
+				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_t = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wt++);
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_q = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wq++);
 
 				// compare (1 iff symbols are not equal)
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_eq = LIBMAUS2_LCS_SIMD_BANDED_ANDNOT(LIBMAUS2_LCS_SIMD_BANDED_CMPEQ(v_t,v_q),v_all_one);
-				
+
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_min =
 					LIBMAUS2_LCS_SIMD_BANDED_MIN(
 						LIBMAUS2_LCS_SIMD_BANDED_MIN(
@@ -369,7 +369,7 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 						),
 						LIBMAUS2_LCS_SIMD_BANDED_ADD(v_diag_1,v_eq)
 					);
-					
+
 				LIBMAUS2_LCS_SIMD_BANDED_STORE(diag_n++,v_min);
 			}
 			// more than one word necessary
@@ -377,21 +377,21 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 			{
 				// one diag back
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_diag_0_p = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(diag_0++);
-			
+
 				for ( size_t z = 1; z < words_necessary; ++z )
 				{
-					// two diags back			
+					// two diags back
 					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_diag_1 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(diag_1++);
 					// load text
 					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_t = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wt++);
-					// load query				
+					// load query
 					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_q = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wq++);
 					// compare (1 iff symbols are not equal)
 					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_eq = LIBMAUS2_LCS_SIMD_BANDED_ANDNOT(LIBMAUS2_LCS_SIMD_BANDED_CMPEQ(v_t,v_q),v_all_one);
 
 					// next one back
 					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_diag_0_n = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(diag_0++);
-					
+
 					// left
 					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const left = v_diag_0_p;
 					// top
@@ -410,18 +410,18 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 							),
 							LIBMAUS2_LCS_SIMD_BANDED_ADD(v_diag_1,v_eq)
 						);
-				
-					// store		
+
+					// store
 					LIBMAUS2_LCS_SIMD_BANDED_STORE(diag_n++,v_min);
-					
+
 					v_diag_0_p = v_diag_0_n;
 				}
 
-				// two diags back			
+				// two diags back
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_diag_1 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(diag_1++);
 				// load text
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_t = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wt++);
-				// load query				
+				// load query
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_q = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wq++);
 				// compare (1 iff symbols are not equal)
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_eq = LIBMAUS2_LCS_SIMD_BANDED_ANDNOT(LIBMAUS2_LCS_SIMD_BANDED_CMPEQ(v_t,v_q),v_all_one);
@@ -444,10 +444,10 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 						),
 						LIBMAUS2_LCS_SIMD_BANDED_ADD(v_diag_1,v_eq)
 					);
-				
-				// store		
+
+				// store
 				LIBMAUS2_LCS_SIMD_BANDED_STORE(diag_n++,v_min);
-			}		
+			}
 		}
 	}
 
@@ -456,18 +456,18 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 	{
 		for ( int64_t j = 0; j <= l_a; ++j )
 		{
-			std::pair<int64_t,int64_t> const P = squareToDiag(std::pair<int64_t,int64_t>(i,j),d);					
-				
+			std::pair<int64_t,int64_t> const P = squareToDiag(std::pair<int64_t,int64_t>(i,j),d);
+
 			// std::cerr << i << "," << j << " -> " << P.first << "," << P.second << std::endl;
-			
+
 			#if 1
-			if ( P.first >= 0 && P.first <= compdiag && P.first % 2 == 0 && P.second >= 0 && P.second < 2*d+1 ) 
+			if ( P.first >= 0 && P.first <= compdiag && P.first % 2 == 0 && P.second >= 0 && P.second < 2*d+1 )
 			{
 				std::cerr << std::setw(4) << static_cast<int>(diagmem [ words_necessary * elements_per_word * (P.first+1) + P.second ]) << std::setw(0);
 			}
 			else if ( P.first >= 0 && P.first <= compdiag && P.first % 2 == 1 && P.second >= 0 && P.second < 2*(d+1) )
 			{
-				std::cerr << std::setw(4) << static_cast<int>(diagmem [ words_necessary * elements_per_word * (P.first+1) + P.second ]) << std::setw(0);						
+				std::cerr << std::setw(4) << static_cast<int>(diagmem [ words_necessary * elements_per_word * (P.first+1) + P.second ]) << std::setw(0);
 			}
 			else
 			{
@@ -478,13 +478,13 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 		std::cerr << std::endl;
 	}
 	#endif
-	
+
 	std::pair<int64_t,int64_t> cur = squareToDiag(std::pair<int64_t,int64_t>(l_b,l_a),d);
 	libmaus2::lcs::AlignmentTraceContainer::reset();
-	
+
 	// trace back
-	if ( 
-		(cur.first >= 0 && cur.first <= static_cast<int64_t>(compdiag)) && 
+	if (
+		(cur.first >= 0 && cur.first <= static_cast<int64_t>(compdiag)) &&
 		(
 			(((cur.first & 1) == 0) && cur.second >= 0 && cur.second < static_cast<int64_t>(2*d+1))
 			||
@@ -495,25 +495,25 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 		size_t const diaglen = words_necessary * elements_per_word;
 		LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE * p = diagmem + (cur.first + 1) * diaglen + cur.second;
 		size_t pa = l_a, pb = l_b;
-		
+
 		int64_t const editdistance = *p;
 		if ( libmaus2::lcs::AlignmentTraceContainer::capacity() < std::min(l_a,l_b) + editdistance )
 		{
 			libmaus2::lcs::AlignmentTraceContainer::resize(std::min(l_a,l_b) + editdistance);
 			libmaus2::lcs::AlignmentTraceContainer::reset();
 		}
-		
+
 		while ( cur.first != 0 || cur.second != static_cast<int64_t>(d) )
 		{
 			bool neq;
-			
+
 			if ( pa && pb && *p == *(p-2*diaglen) + (neq=(a[pa-1] != b[pb-1])) )
 			{
 				pa -= 1;
 				pb -= 1;
 				p -= 2*diaglen;
 				cur.first -= 2;
-				
+
 				if ( neq )
 					*(--libmaus2::lcs::AlignmentTraceContainer::ta) = STEP_MISMATCH;
 				else

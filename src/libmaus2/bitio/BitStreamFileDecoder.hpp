@@ -28,11 +28,11 @@ namespace libmaus2
 		struct BitStreamFileDecoder
 		{
 			typedef ::libmaus2::huffman::BitInputBuffer4 sbis_type;
-			
+
 			::libmaus2::aio::InputStreamInstance::unique_ptr_type istr;
 			sbis_type::raw_input_ptr_type ript;
 			sbis_type::unique_ptr_type SBIS;
-			
+
 			static ::libmaus2::aio::InputStreamInstance::unique_ptr_type openFileAtPosition(std::string const & filename, uint64_t const pos)
 			{
 				::libmaus2::aio::InputStreamInstance::unique_ptr_type istr(new ::libmaus2::aio::InputStreamInstance(filename));
@@ -49,7 +49,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < (bitpos%8); ++i )
 					SBIS->readBit();
 			}
-			
+
 			bool readBit()
 			{
 				return SBIS->readBit();

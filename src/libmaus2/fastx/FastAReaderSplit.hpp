@@ -44,9 +44,9 @@ namespace libmaus2
                         unsigned int patbuffill;
 
                         FastAReaderSplit(
-				std::string const & filename, 
-				int const qualof = -1 /* qualityOffset*/, 
-				unsigned int numbuffers = 16, 
+				std::string const & filename,
+				int const qualof = -1 /* qualityOffset*/,
+				unsigned int numbuffers = 16,
 				unsigned int bufsize = 16*1024,
 				uint64_t const fileoffset = 0,
 				uint64_t const rnextid = 0)
@@ -55,16 +55,16 @@ namespace libmaus2
                         }
 
                         FastAReaderSplit(
-				std::vector<std::string> const & filenames, 
-				int const qualof = -1 /* qualityOffset*/, 
-				unsigned int numbuffers = 16, 
+				std::vector<std::string> const & filenames,
+				int const qualof = -1 /* qualityOffset*/,
+				unsigned int numbuffers = 16,
 				unsigned int bufsize = 16*1024,
 				uint64_t const fileoffset = 0,
 				uint64_t const rnextid = 0)
                         : FastAReader(filenames,qualof,numbuffers,bufsize,fileoffset,rnextid), patbuffill(0)
                         {
                         }
-                        
+
 			FastAReaderSplit(
 				std::string const & filename,
 				FastInterval const & rinterval,
@@ -84,11 +84,11 @@ namespace libmaus2
 			: FastAReader(filenames,rinterval.unsplit(),qualof,numbuffers,bufsize), patbuffill(0)
 			{
 			}
-                        
+
                         uint64_t countPatterns()
                         {
                                 uint64_t count = 0;
-                                
+
                                 while ( skipPattern() )
                                         count += 2;
 
@@ -102,7 +102,7 @@ namespace libmaus2
 				if ( foundnextmarker )
 				{
 	                                uint64_t count = 0;
-                                
+
 					do
 					{
 						uint64_t const o = ::libmaus2::aio::SynchronousFastReaderBase::getC() - 1;
@@ -116,7 +116,7 @@ namespace libmaus2
 						        uint64_t symcount = 0;
 							skipPattern(symcount);
 							count += 2;
-							
+
 							if ( symcount > 2 )
 							{
 							        gsymcount += symcount-2;
@@ -125,16 +125,16 @@ namespace libmaus2
 							}
 						}
 
-                                                uint64_t const endo = 
-                                                        foundnextmarker ? 
-                                                                (::libmaus2::aio::SynchronousFastReaderBase::getC() - 1) 
-                                                                : 
+                                                uint64_t const endo =
+                                                        foundnextmarker ?
+                                                                (::libmaus2::aio::SynchronousFastReaderBase::getC() - 1)
+                                                                :
                                                                 (::libmaus2::aio::SynchronousFastReaderBase::getC());
 						V.push_back(FastInterval(scount,count,o,endo,gsymcount,minlen,maxlen));
 					}
         	                        while ( foundnextmarker );
                         	}
-				
+
 				return V;
                         }
 
@@ -144,7 +144,7 @@ namespace libmaus2
 				return reader.enumerateOffsets(steps);
                         }
 
-                        static std::vector<FastInterval> enumerateOffsets(std::vector<std::string> const & filenames, 
+                        static std::vector<FastInterval> enumerateOffsets(std::vector<std::string> const & filenames,
 				uint64_t const steps = 1)
                         {
                                 FastAReaderSplit reader(filenames);
@@ -161,7 +161,7 @@ namespace libmaus2
                         static std::vector<FastInterval> buildIndex(std::string const & filename, uint64_t const steps = 1)
                         {
 				std::string const indexfilename = getIndexFileName(filename,steps);
-				
+
 				if ( ::libmaus2::util::GetFileSize::fileExists ( indexfilename ) )
 				{
 				        libmaus2::aio::InputStreamInstance istr(indexfilename);
@@ -172,11 +172,11 @@ namespace libmaus2
 				{
                                         reader_type reader(filename);
 	        			std::vector<FastInterval> intervals = reader.enumerateOffsets(steps);
-				
+
         				libmaus2::aio::OutputStreamInstance ostr(indexfilename);
 	        			FastInterval::serialiseVector(ostr,intervals);
 		        		ostr.flush();
-				
+
 			        	return intervals;
                                 }
                         }
@@ -184,7 +184,7 @@ namespace libmaus2
                         static std::vector<FastInterval> buildIndex(std::vector < std::string > const & filenames, uint64_t const steps = 1)
                         {
                                 std::vector < FastInterval > intervals;
-                        
+
                                 #if defined(_OPENMP)
                                 #pragma omp parallel for schedule(dynamic,1)
                                 #endif
@@ -194,10 +194,10 @@ namespace libmaus2
                                 for ( uint64_t i = 0; i < filenames.size(); ++i )
                                 {
                                         std::vector<FastInterval> subintervals = buildIndex(filenames[i], steps);
-                                        
+
                                         uint64_t const eo = intervals.size() ? intervals.back().fileoffsethigh : 0;
                                         uint64_t const eh = intervals.size() ? intervals.back().high : 0;
-                                        
+
                                         for ( uint64_t j = 0; j < subintervals.size(); ++j )
                                         {
                                                 FastInterval fi = subintervals[j];
@@ -208,7 +208,7 @@ namespace libmaus2
                                                 intervals.push_back(fi);
                                         }
                                 }
-                                
+
                                 return intervals;
                         }
 
@@ -217,13 +217,13 @@ namespace libmaus2
                         {
                                 FastAReaderSplit reader(filename);
                                 pattern_type pat;
-                                
+
                                 if ( ! reader.getNextPatternUnlocked(pat) )
                                         return 0;
                                 else
                                         return pat.patlen;
                         }
-                        
+
                         static uint64_t countPatterns(std::string const & filename)
                         {
                                 FastAReaderSplit reader(filename);
@@ -241,14 +241,14 @@ namespace libmaus2
                                 {
                                         pattern_type rawpat;
                                         bool const ok = FastAReader::getNextPatternUnlocked(rawpat);
-                                                                                
+
                                         if ( ! ok )
                                                 return false;
 
                                         patbuf[1].sid = rawpat.sid + "/1";
                                         patbuf[1].spattern = rawpat.spattern.substr(0, rawpat.spattern.size()/2 );
                                         patbuf[1].patid = 2*rawpat.patid;
-                                        
+
                                         if ( patbuf[1].spattern.size() )
                                                 patbuf[1].spattern = patbuf[1].spattern.substr(0, patbuf[1].spattern.size() - 1 );
                                         patbuf[1].pattern = patbuf[1].spattern.c_str();
@@ -257,17 +257,17 @@ namespace libmaus2
                                         patbuf[0].sid = rawpat.sid + "/2";
                                         patbuf[0].spattern = rawpat.spattern.substr(rawpat.spattern.size()/2 );
                                         patbuf[0].patid = 2*rawpat.patid + 1;
-                                        
+
                                         if ( patbuf[0].spattern.size() )
                                                 patbuf[0].spattern = patbuf[0].spattern.substr(1);
                                         patbuf[0].pattern = patbuf[0].spattern.c_str();
                                         patbuf[0].patlen = patbuf[0].spattern.size();
-                                        
+
                                         patbuffill = 2;
                                 }
-                                
+
                                 assert ( patbuffill );
-                                
+
                                 pattern = patbuf [ --patbuffill ] ;
 
                                 return true;
@@ -278,7 +278,7 @@ namespace libmaus2
                                 unsigned int const s)
                         {
                                 unsigned int i = 0;
-                                
+
                                 while ( i < s )
                                 {
                                         if ( getNextPatternUnlocked(pat[i]) )
@@ -286,36 +286,36 @@ namespace libmaus2
                                         else
                                                 break;
                                 }
-                                
+
                                 return i;
                         }
-                        
+
                         unsigned int fillIdBlock(FastIDBlock & block, unsigned int const s)
                         {
                                 block.setup(s);
                                 block.idbase = nextid;
-                                
+
                                 unsigned int i = 0;
-                                
+
                                 while ( i < block.numid )
                                 {
                                         pattern_type pat;
-                                        
+
                                         if ( getNextPatternUnlocked(pat) )
                                                 block.ids[i++] = pat.sid;
                                         else
                                                 break;
                                 }
-                                
+
                                 block.blocksize = i;
-                                
+
                                 return i;
                         }
-                        
+
                         static int getOffset(std::string const /*inputfile*/)
                         {
                                 return -1;
-                        }	
+                        }
                 };
 	}
 }

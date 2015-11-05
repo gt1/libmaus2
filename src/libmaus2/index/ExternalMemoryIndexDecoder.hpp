@@ -37,16 +37,16 @@ namespace libmaus2
 			typedef ExternalMemoryIndexDecoder<data_type,base_level_log,inner_level_log,comparator> this_type;
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			static uint64_t const base_index_step = 1ull << base_level_log;
 			static uint64_t const inner_index_step = 1ull << inner_level_log;
-		
+
 			libmaus2::aio::InputStream::unique_ptr_type PPFIS;
 			std::istream & PFIS;
 
 			std::vector<uint64_t> levelstarts;
 			std::vector<uint64_t> levelcnts;
-						
+
 			uint64_t const object_size;
 			uint64_t const record_size;
 
@@ -55,14 +55,14 @@ namespace libmaus2
 			typedef typename cache_level_type::shared_ptr_type cache_level_ptr_type;
 			typedef libmaus2::autoarray::AutoArray< cache_level_ptr_type > cache_type;
 			cache_type cache;
-			
+
 			data_type minel;
 			bool minelvalid;
 			std::pair<uint64_t,uint64_t> minelpos;
 			data_type maxel;
 			bool maxelvalid;
 			std::pair<uint64_t,uint64_t> maxelpos;
-			
+
 			/**
 			 * set up decoder
 			 *
@@ -70,7 +70,7 @@ namespace libmaus2
 			 **/
 			void setup(uint64_t const cache_thres = 2048)
 			{
-				uint64_t const endofindex = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);				
+				uint64_t const endofindex = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
 				PFIS.seekg(endofindex,std::ios::beg);
 				PFIS.seekg(-8,std::ios::cur);
 				uint64_t const numlevels = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
@@ -99,7 +99,7 @@ namespace libmaus2
 				for ( uint64_t ii = 0; ii < numlevels; ++ii )
 				{
 					uint64_t const i = numlevels-ii-1;
-					
+
 					if ( (cachesum + levelcnts[i])*record_size <= cache_thres )
 					{
 						cache_level_ptr_type Pcachelevel(new cache_level_type(levelcnts[i]));
@@ -108,25 +108,25 @@ namespace libmaus2
 						PFIS.seekg(levelstarts[i], std::ios::beg);
 						for ( uint64_t j = 0; j < levelcnts[i]; ++j )
 							cachelevel[j].deserialise(PFIS);
-						cache[i] = Pcachelevel;	
+						cache[i] = Pcachelevel;
 						cachesum += levelcnts[i];
 						numcache += 1;
 					}
-				
+
 					#if 0
-					std::cerr << "levelcnts[" << i << "]=" << levelcnts[i] << " cachesum=" << cachesum 
+					std::cerr << "levelcnts[" << i << "]=" << levelcnts[i] << " cachesum=" << cachesum
 						<< " total=" << cachesum * record_size
 						<< std::endl;
 					#endif
 				}
-				
+
 				// std::cerr << "checking cache...";
 				for ( uint64_t ii = 0; ii < numlevels; ++ii )
 				{
 					uint64_t const i = numlevels-ii-1;
-					
+
 					if ( cache[i] )
-					{						
+					{
 						for ( uint64_t j = 0; j < levelcnts[i]; ++j )
 						{
 							uint64_t jj = j;
@@ -141,22 +141,22 @@ namespace libmaus2
 					}
 				}
 				// std::cerr << "done." << std::endl;
-			
-				// get minimum element (if any)		 
+
+				// get minimum element (if any)
 				if ( levelcnts.size() && levelcnts[0] )
 				{
 				 	PFIS.clear();
 				 	PFIS.seekg(levelstarts[0], std::ios::beg);
 				 	minelpos.first  = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
 				 	minelpos.second = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
-					minel.deserialise(PFIS);	
+					minel.deserialise(PFIS);
 					minelvalid = true;
 
 					PFIS.clear();
 					PFIS.seekg(levelstarts[0] + (levelcnts[0]-1) * record_size, std::ios::beg);
 				 	maxelpos.first  = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
 				 	maxelpos.second = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
-					maxel.deserialise(PFIS);					
+					maxel.deserialise(PFIS);
 					maxelvalid = true;
 				}
 				else
@@ -166,20 +166,20 @@ namespace libmaus2
 				}
 			}
 
-			ExternalMemoryIndexDecoder(std::string const & filename, uint64_t const rcache_thres = 2048) 
+			ExternalMemoryIndexDecoder(std::string const & filename, uint64_t const rcache_thres = 2048)
 			: PPFIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename)), PFIS(*PPFIS), object_size(data_type::getSerialisedObjectSize()), record_size(2*sizeof(uint64_t)+object_size)
 			{
 				setup(rcache_thres);
 			}
 
-			ExternalMemoryIndexDecoder(std::istream & rstream, uint64_t const rcache_thres = 2048) 
+			ExternalMemoryIndexDecoder(std::istream & rstream, uint64_t const rcache_thres = 2048)
 			: PPFIS(), PFIS(rstream), object_size(data_type::getSerialisedObjectSize()), record_size(2*sizeof(uint64_t)+object_size)
 			{
 				setup(rcache_thres);
 			}
 
 			/**
-			 * get offset for element i at base layer of index			
+			 * get offset for element i at base layer of index
 			 *
 			 * @param i base block index
 			 * @return offset in data file (start of compressed block and offset inside compressed block)
@@ -187,7 +187,7 @@ namespace libmaus2
 			std::pair<uint64_t,uint64_t> operator[](uint64_t const i)
 			{
 				assert ( i < levelcnts[0] );
-			
+
 				PFIS.clear();
 				PFIS.seekg(levelstarts[0] + i * record_size);
 
@@ -197,20 +197,20 @@ namespace libmaus2
 				Q.deserialise(PFIS);
 
 				std::pair<uint64_t,uint64_t> const P(pfirst,psecond);
-				
+
 				if ( cache[0] )
 				{
 					assert ( (*(cache[0]))[i].P == P );
 					assert ( (*(cache[0]))[i].D == Q );
 				}
-				
+
 				return P;
 			}
-			
+
 			data_type getBaseLevelBlockStart(uint64_t const i)
 			{
 				assert ( i < levelcnts[0] );
-				
+
 				PFIS.clear();
 				PFIS.seekg(levelstarts[0] + i * record_size);
 
@@ -226,14 +226,14 @@ namespace libmaus2
 					assert ( (*(cache[0]))[i].P == P );
 					assert ( (*(cache[0]))[i].D == Q );
 				}
-			
+
 				return Q;
 			}
 
 			data_type getLevelBlockStart(unsigned int const level, uint64_t const i)
 			{
 				assert ( i < levelcnts[level] );
-				
+
 				PFIS.clear();
 				PFIS.seekg(levelstarts[level] + i * record_size);
 
@@ -249,11 +249,11 @@ namespace libmaus2
 					assert ( (*(cache[level]))[i].P == P );
 					assert ( (*(cache[level]))[i].D == Q );
 				}
-				
-			
+
+
 				return Q;
 			}
-			
+
 			/**
 			 * return number of base blocks in index
 			 **/
@@ -261,7 +261,7 @@ namespace libmaus2
 			{
 				return levelcnts.size() ? levelcnts.at(0) : 0;
 			}
-			
+
 			std::ostream & printLevel(std::ostream & out, int const l)
 			{
 				PFIS.seekg(levelstarts[l], std::ios::beg);
@@ -271,10 +271,10 @@ namespace libmaus2
 					uint64_t const psecond = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
 					data_type Q;
 					Q.deserialise(PFIS);
-				
+
 					out << "E(" <<l <<"," << i <<")=([" << pfirst << "," << psecond << "," << Q << ")\n";
 				}
-				
+
 				return out;
 
 			}
@@ -285,42 +285,42 @@ namespace libmaus2
 					printLevel(out,i);
 				return out;
 			}
-			
+
 			/**
 			 * find largest element smaller than E in index
 			 **/
 			ExternalMemoryIndexDecoderFindLargestSmallerResult<data_type> findLargestSmaller(
-				data_type const & E, 
+				data_type const & E,
 				bool const cacheOnly = false,
 				comparator comp = comparator()
 			)
 			{
 				bool const debug = true;
-				
+
 				#if 0
 				std::cerr << "checking for " << E << std::endl;
 				std::cerr << "minimum element valid " << minelvalid << std::endl;
 				std::cerr << "minimum element " << minel << std::endl;
 				#endif
-				
+
 				if ( ! minelvalid )
 					return ExternalMemoryIndexDecoderFindLargestSmallerResult<data_type>();
-			
+
 				// check for empty array or minimum too large
 				if ( !comp(minel,E) )
 					return ExternalMemoryIndexDecoderFindLargestSmallerResult<data_type>(minelpos,0,minel);
-			
+
 				// block id
 				uint64_t blockid = 0;
 				// element
 				data_type PE;
 				// offset of PE in compressed data file
 				std::pair<uint64_t,uint64_t> P;
-				
+
 				for ( int level = static_cast<int>(levelstarts.size())-1; level >= 0; --level )
 				{
 					uint64_t const index_step = (1ull << inner_level_log);
-					
+
 					// if level is cached then use binary search
 					if ( cache[level] )
 					{
@@ -330,12 +330,12 @@ namespace libmaus2
 						typename cache_level_type::const_iterator ita = cachelevel.begin();
 						typename cache_level_type::const_iterator it_start = ita + scanstart;
 						typename cache_level_type::const_iterator it_end   = ita + std::min(scanstart+index_step,levelcnts[level]);
-						
+
 						// binary search
 						while ( it_end-it_start > 1 )
 						{
 							typename cache_level_type::const_iterator it_mid = it_start + ((it_end-it_start)>>1);
-							
+
 							if ( comp(it_mid->D,E) )
 								it_start = it_mid;
 							else
@@ -347,8 +347,8 @@ namespace libmaus2
 						if ( debug )
 						{
 							typename cache_level_type::const_iterator itz = ita + scanstart;
-							
-							while ( 
+
+							while (
 								itz   < it_end &&
 								itz+1 < it_end &&
 								comp((itz+1)->D,E)
@@ -356,11 +356,11 @@ namespace libmaus2
 							{
 								++itz;
 							}
-							
+
 							assert ( itz == it_start );
-								
+
 						}
-					
+
 						blockid = (it_start-ita);
 						P  = it_start->P;
 						PE = it_start->D;
@@ -377,14 +377,14 @@ namespace libmaus2
 
 						uint64_t const scanstart = blockid * index_step;
 						PFIS.seekg(levelstarts[level] + scanstart * record_size, std::ios::beg);
-						
+
 						for ( uint64_t j = scanstart; j < levelcnts[level]; ++j )
 						{
 							uint64_t const pfirst = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
 							uint64_t const psecond = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
 							data_type Q;
 							Q.deserialise(PFIS);
-							
+
 							if ( comp(Q,E) ) // Q<E -> still ok
 							{
 								blockid = j;
@@ -399,11 +399,11 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				#if 0
 				std::cerr << "blockid=" << blockid << std::endl;
 				#endif
-				
+
 				return ExternalMemoryIndexDecoderFindLargestSmallerResult<data_type>(P,blockid,PE);
 			}
 		};

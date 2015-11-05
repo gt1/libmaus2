@@ -33,16 +33,16 @@ namespace libmaus2
 			typedef _rank_type rank_type;
 			typedef FastRank<value_type,rank_type> this_type;
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			uint64_t n;
 			libmaus2::autoarray::AutoArray<value_type> AV;
-			value_type * V;	
+			value_type * V;
 			libmaus2::autoarray::AutoArray<rank_type> R;
 			int64_t maxsym;
 			uint64_t mod;
 			uint64_t mask;
 			uint64_t invmask;
-			
+
 			uint64_t rank(int64_t const sym, uint64_t const i) const
 			{
 				if ( expect_false(sym > maxsym) )
@@ -59,17 +59,17 @@ namespace libmaus2
 					j = ((i-sym)&invmask)+sym;
 					r = R[j];
 				}
-				
+
 				while ( j != i )
 					r += (V[++j] == sym);
-				
+
 				return r;
 			}
-			
+
 			template<typename iterator>
 			FastRank(
-				iterator it, 
-				uint64_t const rn, 
+				iterator it,
+				uint64_t const rn,
 				int64_t rmaxsym = std::numeric_limits<int64_t>::min()
 			)
 			: n(rn), AV(n,false), V(AV.begin())
@@ -79,14 +79,14 @@ namespace libmaus2
 				#else
 				uint64_t const numthreads = 1;
 				#endif
-				
+
 				libmaus2::parallel::OMPLock lock;
 
 				if ( rmaxsym == std::numeric_limits<int64_t>::min() )
 				{
 					uint64_t nperpack = (n+numthreads-1)/numthreads;
 					int64_t  packs = (n + nperpack - 1)/nperpack;
-					
+
 					#if defined(_OPENMP)
 					#pragma omp parallel for
 					#endif
@@ -95,14 +95,14 @@ namespace libmaus2
 						lock.lock();
 						int64_t lmax = std::numeric_limits<int64_t>::min();
 						lock.unlock();
-						
+
 						uint64_t const low = p * nperpack;
 						uint64_t const high = std::min(low+nperpack,n);
-						
+
 						iterator itc = it + low;
 						iterator ite = it + high;
 						value_type * O = V + low;
-						
+
 						for ( ; itc != ite; ++itc )
 						{
 							lmax = std::max(
@@ -110,14 +110,14 @@ namespace libmaus2
 								);
 							*(O++) = *itc;
 						}
-							
+
 						lock.lock();
 						rmaxsym = std::max(rmaxsym,lmax);
 						lock.unlock();
 					}
-					
+
 					maxsym = rmaxsym;
-				
+
 					if ( n > 0 && maxsym < 0 )
 					{
 						libmaus2::exception::LibMausException lme;
@@ -131,7 +131,7 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < n; ++i )
 						assert ( V[i] == it[i] );
 					#endif
-					
+
 					mod = libmaus2::math::nextTwoPow(maxsym+1);
 					mask = mod-1;
 					invmask = ~mask;
@@ -139,9 +139,9 @@ namespace libmaus2
 					uint64_t const div = libmaus2::math::lcm(numthreads,mod);
 					nperpack = (n+div-1)/div;
 					packs = (n + nperpack - 1)/nperpack;
-					
+
 					// std::cerr << "mod=" << mod << " mask=" << std::hex << mask << " invmask=" << invmask << std::dec << std::endl;
-					
+
 					libmaus2::autoarray::AutoArray<uint64_t> Alhist(mod * packs,false);
 
 					#if defined(_OPENMP)
@@ -154,16 +154,16 @@ namespace libmaus2
 
 						uint64_t const low = p * nperpack;
 						uint64_t const high = std::min(low+nperpack,n);
-						
+
 						for ( value_type * i = V + low; i != V + high; ++i )
 							lhist[*i]++;
 					}
-					
+
 					// compute prefix sums
 					for ( uint64_t i = 0; i < mod; ++i )
 					{
 						uint64_t acc = 0;
-						
+
 						for ( int64_t j = 0; j < packs; ++j )
 						{
 							uint64_t const t = Alhist[
@@ -180,18 +180,18 @@ namespace libmaus2
 						uint64_t * const lhist = Alhist.begin() + p * mod;
 
 						uint64_t const low = p * nperpack;
-						
+
 						std::map<value_type,uint64_t> M;
 						for ( uint64_t i = 0; i < low; ++i )
 							M [ it[i] ]++;
-						
+
 						for ( uint64_t i = 0; i < mod; ++i )
 							assert ( lhist[i] == M[i] );
 					}
 					#endif
-					
+
 					R = libmaus2::autoarray::AutoArray<rank_type>(n,false);
-					
+
 					#if defined(_OPENMP)
 					#pragma omp parallel for
 					#endif
@@ -201,7 +201,7 @@ namespace libmaus2
 
 						uint64_t const low = p * nperpack;
 						uint64_t const high = std::min(low+nperpack,n);
-						
+
 						for ( uint64_t i = low ; i < high; ++i )
 						{
 							value_type const sym = V[i];
@@ -209,8 +209,8 @@ namespace libmaus2
 							R[i] = lhist[i & mask];
 						}
 					}
-					
-				}	
+
+				}
 				else // if ( rmaxsym >= 0 )
 				{
 					maxsym = rmaxsym;
@@ -233,27 +233,27 @@ namespace libmaus2
 					{
 						uint64_t * const lhist = Alhist.begin() + p * mod;
 						std::fill(lhist,lhist+mod,0ull);
-						
+
 						uint64_t const low = p * nperpack;
 						uint64_t const high = std::min(low+nperpack,n);
-						
+
 						iterator itc = it + low;
 						iterator ite = it + high;
 						value_type * O = V + low;
-						
+
 						for ( ; itc != ite; ++itc )
 						{
 							value_type const sym = *itc;
 							*(O++) = sym;
 							lhist[sym]++;
-						}							
+						}
 					}
-					
+
 					// compute prefix sums
 					for ( uint64_t i = 0; i < mod; ++i )
 					{
 						uint64_t acc = 0;
-						
+
 						for ( int64_t j = 0; j < packs; ++j )
 						{
 							uint64_t const t = Alhist[
@@ -263,10 +263,10 @@ namespace libmaus2
 							acc += t;
 						}
 					}
-					
+
 					// compute R array
 					R = libmaus2::autoarray::AutoArray<rank_type>(n,false);
-					
+
 					#if defined(_OPENMP)
 					#pragma omp parallel for
 					#endif
@@ -276,7 +276,7 @@ namespace libmaus2
 
 						uint64_t const low = p * nperpack;
 						uint64_t const high = std::min(low+nperpack,n);
-						
+
 						for ( uint64_t i = low ; i < high; ++i )
 						{
 							value_type const sym = V[i];
@@ -285,7 +285,7 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				#if 0
 				std::map<value_type,rank_type> M;
 				for ( uint64_t i = 0; i < n; ++i )

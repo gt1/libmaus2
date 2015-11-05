@@ -34,13 +34,13 @@ namespace libmaus2
 			RAZFDecoder(std::string const & filename)
 			: libmaus2::lz::RAZFDecoderBuffer(filename), ::std::istream(this)
 			{
-				
+
 			}
-			
+
 			RAZFDecoder(std::istream & in)
 			: libmaus2::lz::RAZFDecoderBuffer(in), ::std::istream(this)
 			{
-			
+
 			}
 
 			static int getSymbolAtPosition(std::string const & filename, uint64_t const offset)

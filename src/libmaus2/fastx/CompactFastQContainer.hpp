@@ -33,31 +33,31 @@ namespace libmaus2
                         typedef CompactFastQContainer this_type;
                         typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
                         typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			::libmaus2::autoarray::AutoArray<uint8_t> T;
 			::libmaus2::fastx::CompactFastQContainerDictionary::unique_ptr_type dict;
 			::libmaus2::fastx::CompactFastQHeader::unique_ptr_type H;
 			::libmaus2::fastx::CompactFastQContext C;
-			
+
 			uint64_t byteSize() const
 			{
 				return T.byteSize() + dict->byteSize() + H->byteSize() + C.byteSize();
 			}
-			
+
 			struct GetObject
 			{
 				uint8_t const * T;
-				
+
 				GetObject(uint8_t const * rT) : T(rT) {}
-				
+
 				int get() { return *(T++); }
 			};
-			
+
 			static unique_ptr_type construct(std::istream & textstr)
 			{
 				return UNIQUE_PTR_MOVE(unique_ptr_type(new this_type(textstr)));
 			}
-			
+
 			CompactFastQContainer(std::istream & textstr)
 			: T(textstr), dict(new ::libmaus2::fastx::CompactFastQContainerDictionary(textstr)), H(), C()
 			{
@@ -66,7 +66,7 @@ namespace libmaus2
 			}
 
 			CompactFastQContainer(::libmaus2::network::SocketBase * textstr)
-			: T(textstr->readMessageInBlocks<uint8_t,::libmaus2::autoarray::alloc_type_cxx>()), 
+			: T(textstr->readMessageInBlocks<uint8_t,::libmaus2::autoarray::alloc_type_cxx>()),
 			  dict(new ::libmaus2::fastx::CompactFastQContainerDictionary(textstr)), H(), C()
 			{
 				GetObject G(T.begin());
@@ -83,7 +83,7 @@ namespace libmaus2
 			{
 				libmaus2::aio::InputStreamInstance istr(filename);
 				unique_ptr_type ptr(new this_type(istr));
-				
+
 				if ( ! istr )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -91,10 +91,10 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				return UNIQUE_PTR_MOVE(ptr);
 			}
-			
+
 			void serialise(std::ostream & out) const
 			{
 				T.serialize(out);
@@ -132,14 +132,14 @@ namespace libmaus2
 				C.nextid = i;
 				::libmaus2::fastx::CompactFastQDecoderBase::decodeElement<GetObject>(G,*H,C,pat);
 			}
-			
+
 			element_type operator[](uint64_t const i) const
 			{
 				element_type element;
 				getElement(element,i);
 				return element;
 			}
-			
+
 			uint64_t size() const
 			{
 				return H->numreads;

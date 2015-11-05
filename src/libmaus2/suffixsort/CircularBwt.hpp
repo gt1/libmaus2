@@ -39,7 +39,7 @@ namespace libmaus2
 				::libmaus2::autoarray::AutoArray<saidx_t> SA(s2.size()-beg);
 				sort_type::divsufsort ( utext, SA.begin() , SA.size() );
 				// std::cerr << "done." << std::endl;
-				
+
 				std::vector<bool> gt(len+1,false);
 
 				std::string bwt(len,' ');
@@ -49,11 +49,11 @@ namespace libmaus2
 					if ( SA[i] < static_cast<saidx_t>(len) )
 					{
 						gt [ SA[i] ] = gtf;
-						
+
 						#if defined(DEBUG)
 						assert ( gtf == (s2.substr(beg+SA[i]) > s2.substr(beg)) );
 						#endif
-						
+
 						if ( SA[i] == 0 )
 						{
 							if ( zrank )
@@ -66,21 +66,21 @@ namespace libmaus2
 							bwt[j++] = utext [ SA[i]-1 ];
 						}
 					}
-					
+
 				#if defined(DEBUG)
 				std::cerr << "-----\n\n";
 				for ( uint64_t i = 0; i < SA.size(); ++i )
 					if ( SA[i] < len )
 						std::cerr << "[" << std::setw(2) << std::setfill('0') << SA[i] << std::setw(0) << "] = " << s2.substr(beg+SA[i]) << std::endl;
 				#endif
-				
+
 				std::string const gtbackleft = s2.substr(beg+len);
 				std::string const gtbackright = s2.substr(beg);
-				
+
 				#if defined(DEBUG)
 				std::cerr << "gt[len] = " << gtbackleft << " > " << gtbackright << " = " << (gtbackleft > gtbackright) << std::endl;
 				#endif
-				
+
 				gt[len] = gtbackleft > gtbackright;
 
 				assert ( j == len );

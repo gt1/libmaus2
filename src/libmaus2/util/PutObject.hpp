@@ -30,18 +30,18 @@ namespace libmaus2
 		{
 			typedef _iterator iterator;
 			typedef typename ::std::iterator_traits<iterator>::value_type value_type;
-			
+
 			iterator p;
-			
+
 			PutObject(iterator rp) : p(rp) {}
 			void put(value_type const v) { *(p++) = v; }
 			template<typename copy_value_type>
-			void write(copy_value_type const * v, uint64_t n) 
+			void write(copy_value_type const * v, uint64_t n)
 			{
 				while ( n-- )
 					*(p++) = *(v++);
 			}
-			
+
 			operator bool() const { return true; }
 		};
 	}

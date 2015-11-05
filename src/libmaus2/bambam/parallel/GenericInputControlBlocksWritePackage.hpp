@@ -34,12 +34,12 @@ namespace libmaus2
 				typedef GenericInputControlBlocksWritePackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				std::vector<libmaus2::bambam::parallel::GenericInputControlCompressionPending> GICCPV;
 				std::ostream * out;
 
 				GenericInputControlBlocksWritePackage() : libmaus2::parallel::SimpleThreadWorkPackage(), GICCPV(), out(0) {}
-				GenericInputControlBlocksWritePackage(uint64_t const rpriority, uint64_t const rdispatcherid, 
+				GenericInputControlBlocksWritePackage(uint64_t const rpriority, uint64_t const rdispatcherid,
 					std::vector<libmaus2::bambam::parallel::GenericInputControlCompressionPending> rGICCPV, std::ostream * rout)
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), GICCPV(rGICCPV), out(rout)
 				{
@@ -47,7 +47,7 @@ namespace libmaus2
 				char const * getPackageName() const
 				{
 					return "GenericInputControlBlocksWritePackage";
-				}                                                                                                                                                                                                                                                                                                  
+				}
 			};
 		}
 	}

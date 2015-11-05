@@ -20,12 +20,12 @@
 #if defined(LIBMAUS2_HAVE_GMP)
 #include <gmp.h>
 #endif
-			
+
 #if defined(LIBMAUS2_HAVE_GMP)
 struct Tmp
 {
 	mpf_t tv;
-	
+
 	Tmp(double const t)
 	{
 		mpf_init_set_d(tv,t);
@@ -52,11 +52,11 @@ struct MpfContainer
 
 	MpfContainer()
 	{
-	
+
 	}
 	~MpfContainer()
 	{
-	
+
 	}
 };
 #endif
@@ -67,20 +67,20 @@ static mpf_t & decode(void * data)
 	return reinterpret_cast<MpfContainer *>(data)->v;
 }
 #endif
-				
+
 libmaus2::math::GmpFloat::GmpFloat(
-	double 
+	double
 	#if defined(LIBMAUS2_HAVE_GMP)
 		rv
 	#endif
 	,
-	unsigned int 
+	unsigned int
 	#if defined(LIBMAUS2_HAVE_GMP)
 		prec
 	#endif
 )
 : v(0)
-{	
+{
 	#if defined(LIBMAUS2_HAVE_GMP)
 	v = new MpfContainer();
 	mpf_init2(decode(v),prec);
@@ -93,7 +93,7 @@ libmaus2::math::GmpFloat::GmpFloat(
 	#endif
 }
 libmaus2::math::GmpFloat::GmpFloat(
-	GmpFloat const & 
+	GmpFloat const &
 	#if defined(LIBMAUS2_HAVE_GMP)
 		o
 	#endif
@@ -116,7 +116,7 @@ libmaus2::math::GmpFloat::~GmpFloat()
 }
 
 libmaus2::math::GmpFloat & libmaus2::math::GmpFloat::operator=(
-	GmpFloat const & 
+	GmpFloat const &
 	#if defined(LIBMAUS2_HAVE_GMP)
 		o
 	#endif
@@ -145,7 +145,7 @@ std::string libmaus2::math::GmpFloat::toString() const
 }
 
 libmaus2::math::GmpFloat & libmaus2::math::GmpFloat::operator+=(
-	GmpFloat const & 
+	GmpFloat const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
@@ -158,7 +158,7 @@ libmaus2::math::GmpFloat & libmaus2::math::GmpFloat::operator+=(
 }
 
 libmaus2::math::GmpFloat & libmaus2::math::GmpFloat::operator-=(
-	GmpFloat const & 
+	GmpFloat const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
@@ -171,7 +171,7 @@ libmaus2::math::GmpFloat & libmaus2::math::GmpFloat::operator-=(
 }
 
 libmaus2::math::GmpFloat & libmaus2::math::GmpFloat::operator*=(
-	GmpFloat const & 
+	GmpFloat const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
@@ -184,7 +184,7 @@ libmaus2::math::GmpFloat & libmaus2::math::GmpFloat::operator*=(
 }
 
 libmaus2::math::GmpFloat & libmaus2::math::GmpFloat::operator/=(
-	GmpFloat const & 
+	GmpFloat const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
@@ -205,7 +205,7 @@ libmaus2::math::GmpFloat & libmaus2::math::GmpFloat::operator-()
 }
 
 bool libmaus2::math::GmpFloat::operator<(
-	GmpFloat const & 
+	GmpFloat const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
@@ -219,7 +219,7 @@ bool libmaus2::math::GmpFloat::operator<(
 }
 
 bool libmaus2::math::GmpFloat::operator<=(
-	GmpFloat const & 
+	GmpFloat const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
@@ -233,7 +233,7 @@ bool libmaus2::math::GmpFloat::operator<=(
 }
 
 bool libmaus2::math::GmpFloat::operator==(
-	GmpFloat const & 
+	GmpFloat const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
@@ -247,7 +247,7 @@ bool libmaus2::math::GmpFloat::operator==(
 }
 
 bool libmaus2::math::GmpFloat::operator!=(
-	GmpFloat const & 
+	GmpFloat const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
@@ -261,7 +261,7 @@ bool libmaus2::math::GmpFloat::operator!=(
 }
 
 bool libmaus2::math::GmpFloat::operator>(
-	GmpFloat const & 
+	GmpFloat const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
@@ -275,8 +275,8 @@ bool libmaus2::math::GmpFloat::operator>(
 }
 
 bool libmaus2::math::GmpFloat::operator>=(
-	GmpFloat const & 
-		#if defined(LIBMAUS2_HAVE_GMP)	
+	GmpFloat const &
+		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
 ) const
@@ -298,19 +298,19 @@ libmaus2::math::GmpFloat::operator double() const
 }
 
 libmaus2::math::GmpFloat libmaus2::math::operator+(
-	libmaus2::math::GmpFloat const & 
-		#if defined(LIBMAUS2_HAVE_GMP)	
+	libmaus2::math::GmpFloat const &
+		#if defined(LIBMAUS2_HAVE_GMP)
 		A
 		#endif
-		, 
-	libmaus2::math::GmpFloat const & 
-		#if defined(LIBMAUS2_HAVE_GMP)	
+		,
+	libmaus2::math::GmpFloat const &
+		#if defined(LIBMAUS2_HAVE_GMP)
 		B
 		#endif
 )
 {
 	unsigned int const outprec =
-	#if defined(LIBMAUS2_HAVE_GMP)	
+	#if defined(LIBMAUS2_HAVE_GMP)
 		std::max(mpf_get_prec(decode(A.v)),mpf_get_prec(decode(B.v)));
 	#else
 		0;
@@ -322,19 +322,19 @@ libmaus2::math::GmpFloat libmaus2::math::operator+(
 	return R;
 }
 libmaus2::math::GmpFloat libmaus2::math::operator-(
-	libmaus2::math::GmpFloat const & 
+	libmaus2::math::GmpFloat const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		A
 		#endif
-		, 
-	libmaus2::math::GmpFloat const & 
+		,
+	libmaus2::math::GmpFloat const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		B
 		#endif
 )
 {
 	unsigned int const outprec =
-	#if defined(LIBMAUS2_HAVE_GMP)	
+	#if defined(LIBMAUS2_HAVE_GMP)
 		std::max(mpf_get_prec(decode(A.v)),mpf_get_prec(decode(B.v)));
 	#else
 		0;
@@ -346,19 +346,19 @@ libmaus2::math::GmpFloat libmaus2::math::operator-(
 	return R;
 }
 libmaus2::math::GmpFloat libmaus2::math::operator*(
-	libmaus2::math::GmpFloat const & 
+	libmaus2::math::GmpFloat const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		A
 		#endif
-		, 
-	libmaus2::math::GmpFloat const & 
+		,
+	libmaus2::math::GmpFloat const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		B
 		#endif
 )
 {
 	unsigned int const outprec =
-	#if defined(LIBMAUS2_HAVE_GMP)	
+	#if defined(LIBMAUS2_HAVE_GMP)
 		std::max(mpf_get_prec(decode(A.v)),mpf_get_prec(decode(B.v)));
 	#else
 		0;
@@ -370,19 +370,19 @@ libmaus2::math::GmpFloat libmaus2::math::operator*(
 	return R;
 }
 libmaus2::math::GmpFloat libmaus2::math::operator/(
-	libmaus2::math::GmpFloat const & 
+	libmaus2::math::GmpFloat const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		A
 		#endif
-		, 
-	libmaus2::math::GmpFloat const & 
+		,
+	libmaus2::math::GmpFloat const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		B
 		#endif
 )
 {
 	unsigned int const outprec =
-	#if defined(LIBMAUS2_HAVE_GMP)	
+	#if defined(LIBMAUS2_HAVE_GMP)
 		std::max(mpf_get_prec(decode(A.v)),mpf_get_prec(decode(B.v)));
 	#else
 		0;

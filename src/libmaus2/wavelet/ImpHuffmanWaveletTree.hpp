@@ -40,20 +40,20 @@ namespace libmaus2
 			typedef ::libmaus2::rank::ImpCacheLineRank rank_type;
 			typedef rank_type::unique_ptr_type rank_ptr_type;
 			typedef ::libmaus2::autoarray::AutoArray<rank_ptr_type> rank_array_type;
-			
+
 			uint64_t const n;
 			::libmaus2::util::shared_ptr < ::libmaus2::huffman::HuffmanTreeNode >::type const sroot;
 			rank_array_type dicts;
 			rank_type const * root;
 			::libmaus2::huffman::EncodeTable<1> enctable;
 			uint64_t maxdepth;
-			
+
 			std::vector<uint64_t> nodepos;
-			
+
 			uint64_t byteSize() const
 			{
 				uint64_t s = 0;
-				
+
 				s += sizeof(uint64_t);
 				s += sroot->byteSize();
 
@@ -61,13 +61,13 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < dicts.size(); ++i )
 					if ( dicts[i] )
 						s += dicts[i]->byteSize();
-				
+
 				s += enctable.byteSize();
 				s += sizeof(uint64_t);
-				
+
 				return s;
 			}
-			
+
 			bool haveSymbol(::libmaus2::huffman::HuffmanTreeNode const * node, int64_t const sym) const
 			{
 				if ( node->isLeaf() )
@@ -81,7 +81,7 @@ namespace libmaus2
 				{
 					::libmaus2::huffman::HuffmanTreeInnerNode const * inode =
 						dynamic_cast< ::libmaus2::huffman::HuffmanTreeInnerNode const *>(node);
-					
+
 					return haveSymbol(inode->left,sym) || haveSymbol(inode->right,sym);
 				}
 			}
@@ -90,12 +90,12 @@ namespace libmaus2
 			{
 				return haveSymbol(sroot.get(),sym);
 			}
-			
+
 			::libmaus2::autoarray::AutoArray<int64_t> getSymbolArray() const
 			{
 				return sroot->symbolArray();
 			}
-			
+
 			uint64_t getB() const
 			{
 				::libmaus2::autoarray::AutoArray<int64_t> syms = getSymbolArray();
@@ -116,7 +116,7 @@ namespace libmaus2
 					return ::libmaus2::math::numbits(static_cast<uint64_t>(syms[syms.size()-1]));
 				}
 			}
-			
+
 			uint64_t serialise(std::ostream & out) const
 			{
 				uint64_t p = 0;
@@ -132,12 +132,12 @@ namespace libmaus2
 
 				return p;
 			}
-			
+
 			uint64_t serialize(std::ostream & out) const
 			{
 				return serialise(out);
 			}
-			
+
 			static std::vector<uint64_t> loadIndex(std::string const & filename)
 			{
 				libmaus2::aio::InputStream::unique_ptr_type Pistr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename));
@@ -147,15 +147,15 @@ namespace libmaus2
 				Pistr->seekg(indexpos,std::ios::beg);
 				return ::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(*Pistr);
 			}
-			
+
 			void init()
 			{
 				std::map < ::libmaus2::huffman::HuffmanTreeNode const * , ::libmaus2::huffman::HuffmanTreeInnerNode const * > parentMap;
 				std::map < ::libmaus2::huffman::HuffmanTreeInnerNode const *, uint64_t > nodeToId;
-				
+
 				std::stack < ::libmaus2::huffman::HuffmanTreeNode const * > S;
 				S.push(sroot.get());
-				
+
 				while ( ! S.empty() )
 				{
 					::libmaus2::huffman::HuffmanTreeNode const * cur = S.top();
@@ -175,22 +175,22 @@ namespace libmaus2
 						S.push ( node->left );
 					}
 				}
-				
+
 				for ( std::map < ::libmaus2::huffman::HuffmanTreeInnerNode const *, uint64_t >::const_iterator ita = nodeToId.begin();
 					ita != nodeToId.end(); ++ita )
 				{
 					::libmaus2::huffman::HuffmanTreeInnerNode const * node = ita->first;
 					uint64_t const nodeid = ita->second;
-					
+
 					if ( parentMap.find(node) != parentMap.end() )
 					{
 						::libmaus2::huffman::HuffmanTreeInnerNode const * parent = parentMap.find(node)->second;
 						uint64_t const parentid = nodeToId.find(parent)->second;
-						
+
 						dicts [ nodeid ] -> parent = dicts [ parentid ].get();
-						
+
 						assert ( node == parent->left || node == parent->right );
-						
+
 						if ( node == parent->left )
 						{
 							dicts [ parentid ] -> left = dicts [ nodeid ].get();
@@ -200,7 +200,7 @@ namespace libmaus2
 							dicts [ parentid ] -> right = dicts [ nodeid ] .get();
 						}
 					}
-					
+
 					#if 0
 					if ( node->left->isLeaf() )
 					{
@@ -217,13 +217,13 @@ namespace libmaus2
 				{
 					root = dicts[0].get();
 				}
-				
+
 				::libmaus2::autoarray::AutoArray<uint64_t> depth = sroot->depthArray();
 				maxdepth = 0;
 				for ( uint64_t i = 0; i < depth.size(); ++i )
 					maxdepth = std::max(maxdepth,depth[i]);
 			}
-			
+
 			template<typename stream_type>
 			ImpHuffmanWaveletTree(stream_type & in)
 			:
@@ -241,17 +241,17 @@ namespace libmaus2
 				maxdepth(0)
 			{
 				// std::cerr << "** n=" << n << std::endl;
-			
+
 				for ( uint64_t i = 0; i < dicts.size(); ++i )
 				{
 					rank_ptr_type tdictsi(new rank_type(in));
 					dicts [ i ] = UNIQUE_PTR_MOVE(tdictsi);
 					dicts [ i ] -> checkSanity();
 				}
-					
+
 				nodepos = ::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
 				::libmaus2::util::NumberSerialisation::deserialiseNumber(in); // index position
-				
+
 				init();
 			}
 
@@ -272,21 +272,21 @@ namespace libmaus2
 				maxdepth(0)
 			{
 				s += 2*sizeof(uint64_t);
-			
+
 				for ( uint64_t i = 0; i < dicts.size(); ++i )
 				{
 					rank_ptr_type tdictsi(new rank_type(in,s));
 					dicts [ i ] = UNIQUE_PTR_MOVE(tdictsi);
 				}
-					
+
 				nodepos = ::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
 				::libmaus2::util::NumberSerialisation::deserialiseNumber(in); // index position
-				
+
 				s += (1+nodepos.size()+1)*sizeof(uint64_t);
-				
+
 				init();
 			}
-			
+
 			private:
 			ImpHuffmanWaveletTree(
 				std::string const & filename,
@@ -308,24 +308,24 @@ namespace libmaus2
 					rank_ptr_type tdictsi(new rank_type(istr));
 					dicts[i] = UNIQUE_PTR_MOVE(tdictsi);
 				}
-			
+
 				init();
 			}
-			
+
 			public:
 			static unique_ptr_type load(std::string const & filename)
 			{
 				libmaus2::aio::InputStream::unique_ptr_type Pistr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename));
-				std::istream & in = *Pistr;				
+				std::istream & in = *Pistr;
 				uint64_t const n = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				::libmaus2::util::shared_ptr< ::libmaus2::huffman::HuffmanTreeNode >::type const sroot = ::libmaus2::huffman::HuffmanTreeNode::deserialize(in);
 				uint64_t const numnodes = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				Pistr.reset();
-				
+
 				std::vector<uint64_t> const nodepos = loadIndex(filename);
-				
+
 				unique_ptr_type p ( new this_type(filename,n,sroot,numnodes,nodepos) );
-				
+
 				return UNIQUE_PTR_MOVE(p);
 			}
 
@@ -344,16 +344,16 @@ namespace libmaus2
 				rank_type const * node = root;
 				::libmaus2::huffman::HuffmanTreeNode const * hnode = sroot.get();
 				unsigned int sym;
-				
+
 				#if 0
 				if ( i % (32*1024) == 0 )
 					std::cerr << "i=" << i << std::endl;
 				#endif
-				
+
 				while ( node )
 				{
 					uint64_t const r1 = node->inverseSelect1(i,sym);
-					
+
 					if ( sym )
 					{
 						i = r1-1;
@@ -367,9 +367,9 @@ namespace libmaus2
 						hnode = dynamic_cast< ::libmaus2::huffman::HuffmanTreeInnerNode const *>(hnode)->left;
 					}
 				}
-				
+
 				assert ( hnode->isLeaf() );
-				
+
 				return dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const *>(hnode)->symbol;
 			}
 
@@ -378,7 +378,7 @@ namespace libmaus2
 				rank_type const * node = root;
 				::libmaus2::huffman::HuffmanTreeNode const * hnode = sroot.get();
 				unsigned int sym;
-				
+
 				while ( node )
 				{
 					uint64_t const r1 = node->inverseSelect1(i,sym);
@@ -396,9 +396,9 @@ namespace libmaus2
 						hnode = dynamic_cast< ::libmaus2::huffman::HuffmanTreeInnerNode const *>(hnode)->left;
 					}
 				}
-				
+
 				assert ( hnode->isLeaf() );
-				
+
 				return std::pair<uint64_t,uint64_t>(
 					dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const *>(hnode)->symbol,
 					i);
@@ -408,7 +408,7 @@ namespace libmaus2
 			{
 				if ( !enctable.checkSymbol(sym) )
 					return 0;
-			
+
 				unsigned int const b = enctable[sym].second;
 				uint64_t const s = enctable[sym].first.A[0];
 				rank_type const * node = root;
@@ -418,15 +418,15 @@ namespace libmaus2
 				::libmaus2::huffman::HuffmanTreeNode const * hnode = sroot.get();
 				std::cerr << "code is " << s << " length "<< b << std::endl;
 				#endif
-				
-				
+
+
 				for ( uint64_t mask = 1ull << (b-1); mask; mask >>= 1 )
 				{
 					#if defined(HDEBUG)
 					bool const bit = s & mask;
 					std::cerr << "bit=" << bit << " mask=" << mask << std::endl;
 					#endif
-					
+
 					if ( s & mask )
 					{
 						uint64_t const r1 = node->rank1(i);
@@ -452,17 +452,17 @@ namespace libmaus2
 						#endif
 					}
 				}
-				
+
 				#if defined(HDEBUG)
 				assert ( hnode->isLeaf() );
 
-				assert ( 
+				assert (
 					dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const *>(hnode)->symbol
 					== sym );
 				std::cerr << "here." << std::endl;
 				#endif
-					
-				
+
+
 				return i+1;
 			}
 
@@ -474,7 +474,7 @@ namespace libmaus2
 				unsigned int const b = enctable[sym].second;
 				uint64_t const s = enctable[sym].first.A[0];
 				rank_type const * node = root;
-				
+
 				for ( uint64_t mask = 1ull << (b-1); mask; mask >>= 1 )
 				{
 					if ( s & mask )
@@ -488,7 +488,7 @@ namespace libmaus2
 						node = node->left;
 					}
 				}
-				
+
 				return i;
 			}
 
@@ -496,11 +496,11 @@ namespace libmaus2
 			{
 				if ( !enctable.checkSymbol(sym) )
 					return std::pair<uint64_t,uint64_t>(0,0);
-					
+
 				unsigned int const b = enctable[sym].second;
 				uint64_t const s = enctable[sym].first.A[0];
 				rank_type const * node = root;
-				
+
 				for ( uint64_t mask = 1ull << (b-1); mask; mask >>= 1 )
 				{
 					if ( s & mask )
@@ -516,7 +516,7 @@ namespace libmaus2
 						node = node->left;
 					}
 				}
-				
+
 				return std::pair<uint64_t,uint64_t>(l,r);
 			}
 
@@ -529,7 +529,7 @@ namespace libmaus2
 				unsigned int const b = enctable[sym].second;
 				uint64_t const s = enctable[sym].first.A[0];
 				rank_type const * node = root;
-				
+
 				for ( uint64_t mask = 1ull << (b-1); mask; mask >>= 1 )
 				{
 					if ( s & mask )
@@ -545,7 +545,7 @@ namespace libmaus2
 						node = node->left;
 					}
 				}
-				
+
 				return std::pair<uint64_t,uint64_t>(D[sym]+l,D[sym]+r);
 			}
 
@@ -553,7 +553,7 @@ namespace libmaus2
 			{
 				if ( !enctable.checkSymbol(sym) )
 					return std::numeric_limits<uint64_t>::max();
-					
+
 				unsigned int const b = enctable[sym].second;
 				uint64_t const s = enctable[sym].first.A[0];
 				rank_type const * node = root;
@@ -564,7 +564,7 @@ namespace libmaus2
 						node = node->right;
 					else
 						node = node->left;
-						
+
 				assert ( mask == 1 );
 
 				do
@@ -573,12 +573,12 @@ namespace libmaus2
 						i = node->select1(i);
 					else
 						i = node->select0(i);
-						
+
 					node = node->parent;
 					mask <<= 1;
 
 				} while ( mask != (1ull<<b) );
-				
+
 				return i;
 			}
 
@@ -605,29 +605,29 @@ namespace libmaus2
 				std::map < int64_t, uint64_t > M;
 
 				// uint64_t cnt = 0;
-				
+
 				*(SP++) = EnumerateRangeSymbolsStackElement(l,r,EnumerateRangeSymbolsStackElement::first,root,sroot.get());
 				while ( SP != S )
 				{
 					EnumerateRangeSymbolsStackElement & E = *(--SP);
-				
-					/*	
+
+					/*
 					::std::cerr << "NodePortion(" << E.node.level << "," <<
 							E.node.left << "," <<
 							E.node.right << "," <<
 							E.left << "," <<
 							E.right << "," <<
 							E.node.level << ")" <<
-							((E.node.level == b) ? "*" : "") 
+							((E.node.level == b) ? "*" : "")
 							<< " :: " << SP-S
 							<< " offset=" << offset
 							<< ::std::endl;
 					*/
-					
+
 					if ( E.r-E.l )
 					{
 						if ( E.hnode->isLeaf() )
-						{	
+						{
 							M[dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol] = E.r-E.l;
 						}
 						else
@@ -658,9 +658,9 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				return M;
-				
+
 			}
 
 			template<typename iterator, bool sort /* = true */>
@@ -682,11 +682,11 @@ namespace libmaus2
 				while ( SP != S )
 				{
 					EnumerateRangeSymbolsStackElement & E = *(--SP);
-				
+
 					if ( E.r-E.l )
 					{
 						if ( E.hnode->isLeaf() )
-						{	
+						{
 							*(PP++) = std::pair<int64_t,uint64_t>(
 								dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol,
 								E.r-E.l
@@ -720,10 +720,10 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				if ( sort )
 					std::sort ( P,PP );
-				return PP-P;	
+				return PP-P;
 			}
 
 			template<typename iterator>
@@ -744,11 +744,11 @@ namespace libmaus2
 				while ( SP != S )
 				{
 					EnumerateRangeSymbolsStackElement & E = *(--SP);
-				
+
 					if ( E.r-E.l )
 					{
 						if ( E.hnode->isLeaf() )
-						{	
+						{
 							P [ dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol ] = E.r-E.l;
 						}
 						else
@@ -778,15 +778,15 @@ namespace libmaus2
 							}
 						}
 					}
-				}				
+				}
 			}
-			
+
 			struct StepElement
 			{
 				int64_t sym;
 				uint64_t base;
 				uint64_t size;
-				
+
 				StepElement() {}
 				StepElement(int64_t const rsym, uint64_t rbase, uint64_t rsize)
 				: sym(rsym), base(rbase), size(rsize) {}
@@ -810,7 +810,7 @@ namespace libmaus2
 				while ( SP != S )
 				{
 					EnumerateRangeSymbolsStackElement & E = *(--SP);
-				
+
 					if ( E.r-E.l )
 					{
 						if ( E.hnode->isLeaf() )
@@ -842,8 +842,8 @@ namespace libmaus2
 							}
 						}
 					}
-				}				
-				
+				}
+
 				return PP-P;
 			}
 
@@ -865,11 +865,11 @@ namespace libmaus2
 				while ( SP != S )
 				{
 					EnumerateRangeSymbolsStackElement & E = *(--SP);
-				
+
 					if ( E.r-E.l )
 					{
 						if ( E.hnode->isLeaf() )
-						{	
+						{
 							P [ dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol ] = std::pair<uint64_t,uint64_t>(E.l,E.r-E.l);
 						}
 						else
@@ -899,19 +899,19 @@ namespace libmaus2
 							}
 						}
 					}
-				}				
+				}
 			}
-			
+
 			struct EnumerateRangeSymbolsStackElement
 			{
 				enum visit { first, second, third };
-			
+
 				uint64_t l;
 				uint64_t r;
 				visit v;
 				rank_type const * node;
 				::libmaus2::huffman::HuffmanTreeNode const * hnode;
-				
+
 				EnumerateRangeSymbolsStackElement() : l(0), r(0), v(first), node(0), hnode(0) {}
 				EnumerateRangeSymbolsStackElement(
 					uint64_t const rl,
@@ -920,18 +920,18 @@ namespace libmaus2
 					rank_type const * const rnode,
 					::libmaus2::huffman::HuffmanTreeNode const * const rhnode
 				) : l(rl), r(rr), v(rv), node(rnode), hnode(rhnode) {}
-				
+
 				EnumerateRangeSymbolsStackElement left() const
 				{
 					assert ( ! hnode->isLeaf() );
-					
+
 					return
 						EnumerateRangeSymbolsStackElement(node->rankm0(l),node->rankm0(r),first,node->left, dynamic_cast< ::libmaus2::huffman::HuffmanTreeInnerNode const * >(hnode)->left);
 				}
 				EnumerateRangeSymbolsStackElement right() const
 				{
 					assert ( ! hnode->isLeaf() );
-					
+
 					return
 						EnumerateRangeSymbolsStackElement(node->rankm1(l),node->rankm1(r),first,node->right, dynamic_cast< ::libmaus2::huffman::HuffmanTreeInnerNode const * >(hnode)->right);
 				}
@@ -962,13 +962,13 @@ namespace libmaus2
 				while ( SP != S )
 				{
 					EnumerateRangeSymbolsStackElement & E = *(--SP);
-				
+
 					if ( includeEmpty || (E.r-E.l) )
 					{
 						if ( E.hnode->isLeaf() )
-						{	
+						{
 							int64_t const sym = dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol;
-							*(PP++) = 
+							*(PP++) =
 								std::pair< int64_t,std::pair<uint64_t,uint64_t> > (
 									sym,
 									std::pair<uint64_t,uint64_t>(
@@ -1005,28 +1005,28 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				if ( sort )
 					std::sort ( P,PP );
-				return PP-P;	
+				return PP-P;
 			}
 
 			template<typename iterator_D, typename callback_type>
 			void multiRankCallBack(
-				uint64_t const l, 
-				uint64_t const r, 
-				iterator_D D, 
+				uint64_t const l,
+				uint64_t const r,
+				iterator_D D,
 				callback_type & cb) const
 			{
 				multiRankCallBackTemplate<iterator_D,callback_type,false>(l,r,D,cb);
 			}
 
-			template<typename iterator_D, typename callback_type, 
+			template<typename iterator_D, typename callback_type,
 				bool includeEmpty /* = false */>
 			void multiRankCallBackTemplate(
-				uint64_t const l, 
-				uint64_t const r, 
-				iterator_D D, 
+				uint64_t const l,
+				uint64_t const r,
+				iterator_D D,
 				callback_type & cb) const
 			{
 				uint64_t const stackdepth = maxdepth+1;
@@ -1044,11 +1044,11 @@ namespace libmaus2
 				while ( SP != S )
 				{
 					EnumerateRangeSymbolsStackElement & E = *(--SP);
-				
+
 					if ( includeEmpty || (E.r-E.l) )
 					{
 						if ( E.hnode->isLeaf() )
-						{	
+						{
 							int64_t const sym = dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol;
 							cb ( sym, D[sym] + E.l, D[sym] + E.r );
 						}
@@ -1079,13 +1079,13 @@ namespace libmaus2
 							}
 						}
 					}
-				}				
+				}
 			}
-			
+
 			template<typename lcp_iterator, typename queue_type, typename iterator_D>
 			inline uint64_t multiRankLCPSet(
-				uint64_t const l, 
-				uint64_t const r, 
+				uint64_t const l,
+				uint64_t const r,
 				iterator_D D,
 				lcp_iterator WLCP,
 				typename std::iterator_traits<lcp_iterator>::value_type const unset,
@@ -1109,15 +1109,15 @@ namespace libmaus2
 				while ( SP != S )
 				{
 					EnumerateRangeSymbolsStackElement & E = *(--SP);
-				
+
 					if ( (E.r-E.l) )
 					{
 						if ( E.hnode->isLeaf() )
-						{	
+						{
 							int64_t const sym = dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol;
 							uint64_t const sp = D[sym] + E.l;
 							uint64_t const ep = D[sym] + E.r;
-						
+
 							if ( WLCP[ep] == unset )
 	                	                        {
 	                	                        	WLCP[ep] = cur_l;
@@ -1152,15 +1152,15 @@ namespace libmaus2
 							}
 						}
 					}
-				}		
-				
-				return s;		
+				}
+
+				return s;
 			}
 
 			template<typename lcp_iterator, typename queue_type, typename iterator_D>
 			inline uint64_t multiRankLCPSetLarge(
-				uint64_t const l, 
-				uint64_t const r, 
+				uint64_t const l,
+				uint64_t const r,
 				iterator_D D,
 				lcp_iterator & WLCP,
 				uint64_t const cur_l,
@@ -1183,11 +1183,11 @@ namespace libmaus2
 				while ( SP != S )
 				{
 					EnumerateRangeSymbolsStackElement & E = *(--SP);
-				
+
 					if ( (E.r-E.l) )
 					{
 						if ( E.hnode->isLeaf() )
-						{	
+						{
 							int64_t const sym = dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol;
 							uint64_t const sp = D[sym] + E.l;
 							uint64_t const ep = D[sym] + E.r;
@@ -1197,7 +1197,7 @@ namespace libmaus2
         		                                        WLCP.set(ep, cur_l);
                 		                                PQ1->push_back( std::pair<uint64_t,uint64_t>(sp,ep) );
                 		                                s++;
-							}				
+							}
 						}
 						else
 						{
@@ -1226,8 +1226,8 @@ namespace libmaus2
 							}
 						}
 					}
-				}	
-							
+				}
+
 				return s;
 			}
 		};

@@ -37,7 +37,7 @@ namespace libmaus2
                         typedef FastClient<socket_base> this_type;
                         typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
                         typedef typename socket_base::pattern_type pattern_type;
-                        
+
                         FastClient(
                                 unsigned short const fqserverport,
                                 std::string const shostname,

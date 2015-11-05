@@ -27,7 +27,7 @@ namespace libmaus2
 	namespace util
 	{
 		template<
-			typename iterator_type, 
+			typename iterator_type,
 			typename comparator_type = std::less< typename std::iterator_traits<iterator_type>::value_type >
 		>
 		struct LongestIncreasingSubsequence
@@ -49,9 +49,9 @@ namespace libmaus2
 
 				for ( uint64_t i = 0; i < n; ++i )
 				{
-					// find largest j such that X[M[j]] < X[i]		
+					// find largest j such that X[M[j]] < X[i]
 					int64_t l = 0, r = M.size();
-					
+
 					// if M is empty or element at index i is new minimum
 					if ( (! M.size()) || (! ( comparator(X[M[0]],X[i]) )) )
 						l = -1;
@@ -65,7 +65,7 @@ namespace libmaus2
 							else
 								r = m;
 						}
-					
+
 					// #define LONGESTINCREASINGDEBUG
 					#if ! defined(LONGESTINCREASINGDEBUG)
 					int64_t const j = l;
@@ -77,10 +77,10 @@ namespace libmaus2
 
 					assert ( l == j );
 					#endif
-					
+
 					// set length of LISS ending at index i
 					L [ i ] = static_cast<uint64_t>(j+2);
-					
+
 					if ( static_cast<uint64_t>(j+1) < M.size() )
 					{
 						assert ( ! comparator(X[M[j+1]],X[i]) );
@@ -95,11 +95,11 @@ namespace libmaus2
 					}
 
 					if ( j >= 0 )
-						P[i] = M[j];	
+						P[i] = M[j];
 					else
 						P[i] = i;
 				}
-				
+
 				if ( M.size() )
 				{
 					// fill in one liss (by indexes (not value) of elements in X)
@@ -109,9 +109,9 @@ namespace libmaus2
 					{
 						M [ i ] = m;
 						m = P[m];
-					}				
+					}
 				}
-				
+
 				#if 0
 				for ( uint64_t i = 0; i < LA.size(); ++i )
 				{
@@ -121,7 +121,7 @@ namespace libmaus2
 
 				return M;
 			}
-			
+
 			/*
 			 * compute all LISS starting at any index, added 2015
 			 */
@@ -134,7 +134,7 @@ namespace libmaus2
 				::libmaus2::autoarray::AutoArray<uint64_t> P(n,false);
 				// length of LISS starting at index i
 				::libmaus2::autoarray::AutoArray<uint64_t> L(n,false);
-				
+
 				std::vector<uint64_t> M;
 
 				// histogram - number of LISS of given length (offset by 1 as there are no empty LISS)
@@ -142,9 +142,9 @@ namespace libmaus2
 
 				for ( int64_t i = static_cast<int64_t>(n)-1; i >= 0; --i )
 				{
-					// find largest j such that X[M[j]] < X[i]		
+					// find largest j such that X[M[j]] < X[i]
 					int64_t l = 0, r = M.size();
-					
+
 					// if M is empty or element at index i is new minimum
 					if ( (! M.size()) || (! ( comparator(X[i],X[M[0]]) )) )
 						l = -1;
@@ -158,7 +158,7 @@ namespace libmaus2
 							else
 								r = m;
 						}
-					
+
 					// #define LONGESTINCREASINGDEBUG
 					#if ! defined(LONGESTINCREASINGDEBUG)
 					int64_t const j = l;
@@ -170,10 +170,10 @@ namespace libmaus2
 
 					assert ( l == j );
 					#endif
-					
+
 					// set length of LISS ending at index i
 					L [ i ] = static_cast<uint64_t>(j+2);
-					
+
 					if ( static_cast<uint64_t>(j+1) < M.size() )
 					{
 						assert ( ! comparator(X[i],X[M[j+1]]) );
@@ -188,11 +188,11 @@ namespace libmaus2
 					}
 
 					if ( j >= 0 )
-						P[i] = M[j];	
+						P[i] = M[j];
 					else
 						P[i] = i;
 				}
-				
+
 				if ( M.size() )
 				{
 					// fill in one liss (by indexes (not value) of elements in X)
@@ -203,17 +203,17 @@ namespace libmaus2
 						M [ i ] = m;
 						m = P[m];
 					}
-					
+
 					std::sort(M.begin(),M.end());
 				}
-				
+
 				#if 0
 				for ( uint64_t i = 0; i < LA.size(); ++i )
 				{
 					std::cerr << "LA[" << i << "]=" << LA[i] << std::endl;
 				}
 				#endif
-				
+
 				LongestIncreasingSubsequenceExtendedResult::unique_ptr_type R(
 					new LongestIncreasingSubsequenceExtendedResult(P,L)
 				);

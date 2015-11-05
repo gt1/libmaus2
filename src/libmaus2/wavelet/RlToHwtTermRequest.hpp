@@ -30,7 +30,7 @@ namespace libmaus2
 			typedef RlToHwtTermRequest this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			std::vector<std::string> bwt;
 			std::string hwt;
 			std::string tmpprefix;
@@ -38,7 +38,7 @@ namespace libmaus2
 			uint64_t bwtterm;
 			uint64_t p0r;
 			bool utf8;
-			
+
 			RlToHwtTermRequest() {}
 			RlToHwtTermRequest(
 				std::vector<std::string> const & rbwt,
@@ -49,7 +49,7 @@ namespace libmaus2
 				uint64_t const rp0r,
 				bool const rutf8
 			) : bwt(rbwt), hwt(rhwt), tmpprefix(rtmpprefix), huftreefilename(rhuftreefilename), bwtterm(rbwtterm), p0r(rp0r), utf8(rutf8) {}
-			
+
 			RlToHwtTermRequest(std::istream & in)
 			:
 				bwt(libmaus2::util::StringSerialisation::deserialiseStringVector(in)),
@@ -60,16 +60,16 @@ namespace libmaus2
 				p0r(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 				utf8(libmaus2::util::NumberSerialisation::deserialiseNumber(in))
 			{
-			
+
 			}
-			
+
 			static unique_ptr_type load(std::string const & filename)
 			{
 				libmaus2::aio::InputStreamInstance CIS(filename);
 				unique_ptr_type ptr(new this_type(CIS));
 				return UNIQUE_PTR_MOVE(ptr);
 			}
-			
+
 			std::ostream & serialise(std::ostream & out) const
 			{
 				libmaus2::util::StringSerialisation::serialiseStringVector(out,bwt);

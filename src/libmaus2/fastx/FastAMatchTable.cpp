@@ -29,6 +29,6 @@ std::ostream & libmaus2::fastx::operator<<(std::ostream & out, libmaus2::fastx::
 			out << V[i] << ((i+1<V.size())?",":"");
 		out << '\n';
 	}
-	
+
 	return out;
 }

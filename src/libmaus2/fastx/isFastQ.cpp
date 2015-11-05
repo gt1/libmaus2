@@ -23,11 +23,11 @@
 bool libmaus2::fastx::IsFastQ::isFastQ(std::istream & istr)
 {
 	int first = istr.get();
-          
+
 	if ( first >= 0 )
 	{
 		istr.unget();
-	
+
 		if ( first == '>' )
 			return false;
 		else if ( first == '@' )
@@ -46,7 +46,7 @@ bool libmaus2::fastx::IsFastQ::isFastQ(std::istream & istr)
 		se.getStream() << "libmaus2::fastx::IsFastQ::isFastQ(std::istream &): Failed to read first character from pattern file..";
 		se.finish();
 		throw se;
-	}	
+	}
 }
 
 bool libmaus2::fastx::IsFastQ::isFastQ(std::string const & filename)
@@ -64,21 +64,21 @@ bool libmaus2::fastx::IsFastQ::isFastQ(std::vector<std::string> const & filename
 		se.finish();
 		throw se;
 	}
-	
+
 	bool const isfq = isFastQ(filenames[0]);
-	
+
 	for ( uint64_t i = 1; i < filenames.size(); ++i )
 	{
 		bool const nisfq = isFastQ(filenames[i]);
-		
+
 		if ( nisfq != isfq )
 		{
 			::libmaus2::exception::LibMausException se;
 			se.getStream() << "libmaus2::fastx::IsFastQ::isFastQ(): file type inconsistent (FastA and FastQ in same list)";
 			se.finish();
-			throw se;		
+			throw se;
 		}
 	}
-	
+
 	return isfq;
 }

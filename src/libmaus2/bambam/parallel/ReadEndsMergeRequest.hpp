@@ -35,18 +35,18 @@ namespace libmaus2
 				libmaus2::bitio::BitVector * dupbitvec;
 				libmaus2::util::shared_ptr< std::vector< ::libmaus2::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type MI;
 				std::vector< std::pair<uint64_t,uint64_t> > SMI;
-				
+
 				ReadEndsMergeRequest()
 				: dupbitvec(0), MI(), SMI()
 				{
 				}
-				
+
 				ReadEndsMergeRequest(
 					libmaus2::bitio::BitVector * rdupbitvec,
 					libmaus2::util::shared_ptr< std::vector< ::libmaus2::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type rMI,
 					std::vector< std::pair<uint64_t,uint64_t> > const & rSMI
 				)
-				: dupbitvec(rdupbitvec), MI(rMI), SMI(rSMI) 
+				: dupbitvec(rdupbitvec), MI(rMI), SMI(rSMI)
 				{
 				}
 			};

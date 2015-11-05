@@ -27,7 +27,7 @@ namespace libmaus2
 	{
 		namespace parallel
 		{
-			// return a bgzf decoder object		
+			// return a bgzf decoder object
 			struct BgzfInflateZStreamBaseGetInterface
 			{
 				virtual ~BgzfInflateZStreamBaseGetInterface() {}

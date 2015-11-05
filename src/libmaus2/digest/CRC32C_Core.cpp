@@ -296,18 +296,18 @@ static uint32_t const crc32c_table_7[256]={
 /**
  The function below is originally by Mark Adler and was modified for libmaus2 by
  German Tischler.
- 
+
  Copyright (C) 2013 Mark Adler
  Copyright (C) 2014 German Tischler
- 
+
  This software is provided 'as-is', without any express or implied
  warranty.  In no event will the author be held liable for any damages
  arising from the use of this software.
-         
+
  Permission is granted to anyone to use this software for any purpose,
  including commercial applications, and to alter it and redistribute it
  freely, subject to the following restrictions:
-               
+
  1. The origin of this software must not be misrepresented; you must not
     claim that you wrote the original software. If you use this software
     in a product, an acknowledgment in the product documentation would be
@@ -315,7 +315,7 @@ static uint32_t const crc32c_table_7[256]={
  2. Altered source versions must be plainly marked as such, and must not be
     misrepresented as being the original software.
  3. This notice may not be removed or altered from any source distribution.
-                                         
+
  Mark Adler
  madler@alumni.caltech.edu
  **/
@@ -323,19 +323,19 @@ static uint32_t const crc32c_table_7[256]={
 uint32_t libmaus2::digest::CRC32C_Core::crc32c_core(uint32_t crci, uint8_t const * data, size_t len)
 {
 	uint64_t crc = crci ^ 0xffffffff;
-	
+
 	while (
-		len && 
+		len &&
 		((reinterpret_cast<size_t>(data) & 7) != 0)
 	)
 	{
 		crc = crc32c_table_0[(crc ^ *data++) & 0xff] ^ (crc >> 8);
 	        len--;
 	}
-	while (len >= 8) 
+	while (len >= 8)
 	{
 		crc ^= *reinterpret_cast<uint64_t const *>(data);
-		crc = 
+		crc =
 			crc32c_table_7[crc & 0xff] ^
 			crc32c_table_6[(crc >> 8) & 0xff] ^
 			crc32c_table_5[(crc >> 16) & 0xff] ^
@@ -347,7 +347,7 @@ uint32_t libmaus2::digest::CRC32C_Core::crc32c_core(uint32_t crci, uint8_t const
 		data += 8;
 		len -= 8;
 	}
-	while (len) 
+	while (len)
 	{
 		crc = crc32c_table_0[(crc ^ *data++) & 0xff] ^ (crc >> 8);
 		len--;
@@ -356,7 +356,7 @@ uint32_t libmaus2::digest::CRC32C_Core::crc32c_core(uint32_t crci, uint8_t const
 }
 #else
 /**
- * The code for the function below for computing CRC32C checksums was imported from the Linux 
+ * The code for the function below for computing CRC32C checksums was imported from the Linux
  * kernel. Some minor modifications were applied for libmaus2 by German Tischler.
  *
  * Copyright (c) 2004 Cisco Systems, Inc.
@@ -375,5 +375,5 @@ uint32_t libmaus2::digest::CRC32C_Core::crc32c_core(uint32_t crc, uint8_t const 
 	while (length--)
 		crc = crc32c_table_0[(crc ^ *data++) & 0xFFL] ^ (crc >> 8);
 	return ~crc;
-} 
+}
 #endif

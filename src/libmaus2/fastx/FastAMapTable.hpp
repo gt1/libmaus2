@@ -34,18 +34,18 @@ namespace libmaus2
 			: table(256,false)
 			{
 				::libmaus2::fastx::FastADefinedBasesTable FDBT;
-			
+
 				for ( uint64_t i = 0; i < 256; ++i )
 				{
 					uint8_t const up = isalpha(i) ? toupper(i) : i;
-					
+
 					if ( FDBT[up] )
 						table[i] = up;
 					else
 						table[i] = 'N';
 				}
 			}
-			
+
 			uint8_t operator[](uint8_t const i) const
 			{
 				return table[i];

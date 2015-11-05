@@ -32,16 +32,16 @@ namespace libmaus2
 		{
 			std::string prefix;
 			libmaus2::parallel::SynchronousCounter<uint64_t> * S;
-			
+
 			NamedTemporaryFileAllocator() : prefix(), S(0) {}
 			NamedTemporaryFileAllocator(
 				std::string const & rprefix,
 				libmaus2::parallel::SynchronousCounter<uint64_t> * const rS
 			) : prefix(rprefix), S(rS)
 			{
-			
+
 			}
-			
+
 			libmaus2::aio::NamedTemporaryFile::shared_ptr_type operator()()
 			{
 				uint64_t const lid = static_cast<uint64_t>((*S)++);

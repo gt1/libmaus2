@@ -38,12 +38,12 @@ void testSynchronousFastReaderBase(int argc, char ** argv)
 	{
 		::libmaus2::aio::SynchronousFastReaderBase SFRB(filenames,1,2,j);
 		int c = -1;
-		
+
 		while ( (c=SFRB.getNextCharacter()) != -1 )
 		{
 			std::cout.put(c);
 		}
-		
+
 		std::cout << std::endl;
 	}
 }

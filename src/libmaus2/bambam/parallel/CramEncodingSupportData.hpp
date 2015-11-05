@@ -47,12 +47,12 @@ namespace libmaus2
 
 				std::map<uint64_t,CramPassPointerObject::shared_ptr_type> passPointerActive;
 				libmaus2::parallel::PosixSpinLock passPointerActiveLock;
-				
+
 				void * context;
 
 				std::multimap<size_t,CramOutputBlock::shared_ptr_type> outputBlockFreeList;
 				libmaus2::parallel::PosixSpinLock outputBlockFreeListLock;
-				
+
 				std::set<CramOutputBlock::shared_ptr_type,CramOutputBlockIdComparator> outputBlockPendingList;
 				libmaus2::parallel::PosixSpinLock outputBlockPendingListLock;
 
@@ -61,11 +61,11 @@ namespace libmaus2
 
 				std::pair<int64_t volatile,uint64_t volatile> outputWriteNext;
 				libmaus2::parallel::PosixSpinLock outputWriteNextLock;
-												
+
 				bool getCramEncodingToken()
 				{
 					bool ok = false;
-					
+
 					cramtokenslock.lock();
 					if ( cramtokens )
 					{
@@ -73,10 +73,10 @@ namespace libmaus2
 						cramtokens -= 1;
 					}
 					cramtokenslock.unlock();
-					
+
 					return ok;
 				}
-				
+
 				void putCramEncodingToken()
 				{
 					cramtokenslock.lock();
@@ -85,7 +85,7 @@ namespace libmaus2
 				}
 
 				CramEncodingSupportData(size_t const numtokens)
-				: 
+				:
 				  cramtokens(numtokens),
 				  context(0),
 				  outputWriteNext()

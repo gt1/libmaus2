@@ -35,14 +35,14 @@
 namespace libmaus2
 {
 	namespace lcs
-	{		
+	{
 		struct GenericTraceContainer : public TraceContainer, public GenericAlignmentPrint
 		{
 			GenericTraceContainer(uint64_t const tracelen) : TraceContainer(tracelen) {}
 
 			template<typename iterator>
 			std::ostream & printAlignment(
-				std::ostream & out, 
+				std::ostream & out,
 				iterator ita,
 				iterator itb
 			) const
@@ -59,12 +59,12 @@ namespace libmaus2
 				return out;
 			}
 		};
-		
+
 		struct GenericEditDistance : public GenericTraceContainer
 		{
 			typedef GenericEditDistance this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			private:
 			uint64_t const n; // rows
 			uint64_t const m; // columns
@@ -81,7 +81,7 @@ namespace libmaus2
 			{
 				// std::cerr << "n=" << n << " m=" << m << " n1=" << n1 << " m1=" << m1 << std::endl;
 			}
-			
+
 			template<typename iterator_a, typename iterator_b>
 			EditDistanceResult process(
 				iterator_a a, iterator_b b,
@@ -92,16 +92,16 @@ namespace libmaus2
 				)
 			{
 				element_type * p = M.begin();
-				
+
 				// fill first column with zeroes
 				*(p++) = element_type(0,STEP_MATCH);
 				for ( uint64_t i = 1; i < n1; ++i )
 					*(p++) = element_type(-i*penalty_ins*first_ins_mult,STEP_INS);
-				
-				// p = current column	
+
+				// p = current column
 				// q = previous column
 				element_type * q = M.begin();
-				
+
 				// fill dynamic programming matrix
 				// iterator_b const ba = b;
 				iterator_b const be = b+m;
@@ -109,15 +109,15 @@ namespace libmaus2
 				while ( b != be )
 				{
 					typename std::iterator_traits<iterator_b>::value_type const bchar = *(b++);
-				
+
 					#if 0
 					assert ( (p-M.begin()) % n1 == 0 );
 					assert ( (q-M.begin()) % n1 == 0 );
 					#endif
-				
+
 					p->first = q->first - penalty_del * first_del_mult; // *
 					p->second = STEP_DEL;
-					
+
 					// iterate over rows
 					for ( iterator_a aa = a; aa != ae; ++aa )
 					{
@@ -128,7 +128,7 @@ namespace libmaus2
 						similarity_type const diag = (q++)->first + d;
 						// left
 						similarity_type const left = q->first - penalty_del;
-						
+
 						if ( diag >= top )
 						{
 							if ( diag >= left )
@@ -150,23 +150,23 @@ namespace libmaus2
 					p++;
 					q++;
 				}
-				
+
 				/* fill trace back array and build operation histogram */
 				uint64_t i = n;
 				uint64_t j = m;
 				element_type * pq = M.get() + j*n1 + i;
-				
+
 				ta = te;
-				
+
 				uint64_t numdel = 0;
 				uint64_t numin = 0;
 				uint64_t nummat = 0;
 				uint64_t nummis = 0;
-				
+
 				while ( pq != M.begin() )
 				{
 					*(--ta) = pq->second;
-				
+
 					switch ( pq->second )
 					{
 						case STEP_DEL:
@@ -192,14 +192,14 @@ namespace libmaus2
 				}
 
 				return EditDistanceResult(numin,numdel,nummat,nummis);
-			}	
+			}
 		};
-		
+
 		struct BandedEditDistance : public GenericTraceContainer
 		{
 			typedef BandedEditDistance this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			private:
 			uint64_t const n; // columns
 			uint64_t const n1; // n+1
@@ -209,7 +209,7 @@ namespace libmaus2
 			// matrix stored column wise
 			typedef std::pair < similarity_type, step_type > element_type;
 			::libmaus2::autoarray::AutoArray<element_type> M;
-						
+
 			public:
 			BandedEditDistance(uint64_t const rn, uint64_t const rm, uint64_t const rk)
 			: GenericTraceContainer(rn+rm), n(rn), n1(n+1), k(rk), k21(2*k+1), M( n1 * k21 )
@@ -220,14 +220,14 @@ namespace libmaus2
 			void printMatrix(uint64_t const m) const
 			{
 				std::cerr << "matrix" << std::endl;
-			
+
 				std::map < std::pair<int64_t,int64_t>, element_type > E;
-				
+
 				// column
 				for ( int64_t i = 0; i <= static_cast<int64_t>(n); ++i )
 				{
 					element_type const * p = M.begin() + i*k21;
-					
+
 					// row
 					for ( int64_t j = i - static_cast<int64_t>(k); j <= i+static_cast<int64_t>(k); ++j, ++p )
 					{
@@ -237,18 +237,18 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				// row
 				for ( int64_t j = 0; j <= static_cast<int64_t>(m); ++j )
 				{
 					// std::cerr << "row " << j << std::endl;
-				
+
 					for ( int64_t i = 0; i <= static_cast<int64_t>(n); ++i )
 					{
-						if ( 
+						if (
 							E.find(
 								std::pair<int64_t,int64_t>(j,i)
-							) != E.end() 
+							) != E.end()
 						)
 						{
 							element_type const e = E.find(std::pair<int64_t,int64_t>(j,i))->second;
@@ -263,7 +263,7 @@ namespace libmaus2
 
 			static bool validParameters(uint64_t const n, uint64_t const m, uint64_t const k)
 			{
-				return 
+				return
 					(m!=0)
 					&&
 					(n!=0)
@@ -275,7 +275,7 @@ namespace libmaus2
 					std::max(m,n)-std::min(m,n) <= k
 				;
 			}
-			
+
 			static uint64_t maxk(uint64_t const n, uint64_t const m)
 			{
 				if ( ! m*n )
@@ -289,18 +289,18 @@ namespace libmaus2
 			 **/
 			template<typename iterator_a, typename iterator_b>
 			EditDistanceResult process(
-				iterator_a a, 
-				iterator_b b, 
+				iterator_a a,
+				iterator_b b,
 				uint64_t const,
 				uint64_t const m,
 				similarity_type const first_del_mult = 1,
 				similarity_type const first_ins_mult = 1)
 			{
-				// p = current column	
+				// p = current column
 				// q = previous column
 				element_type * p = M.begin();
-				element_type * q = M.begin();	
-				
+				element_type * q = M.begin();
+
 				if ( k < std::max(n,m)-std::min(n,m) )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -315,7 +315,7 @@ namespace libmaus2
 					se.getStream() << "Invalid parameters in "
 						<< ::libmaus2::util::Demangle::demangle<this_type>() << "::process() (k too large)";
 					se.finish();
-					throw se;					
+					throw se;
 				}
 
 				// fill first column
@@ -323,13 +323,13 @@ namespace libmaus2
 				(*p++) = element_type(0,STEP_MATCH);
 				for ( uint64_t i = 0; i < k; ++i )
 					*(p++) = element_type(-(i+1)*penalty_del*first_del_mult,STEP_DEL);
-					
+
 				// check for n
 				uint64_t firstlooplimit = std::min(k,n1);
 				for ( uint64_t i = 0; i < firstlooplimit; ++i )
 				{
 					// std::cerr << "i=" << i << std::endl;
-				
+
 					typename ::std::iterator_traits<iterator_a>::value_type const ca = a[i];
 					#if defined(BANDEDLCSDEBUG)
 					std::cerr << "\n---\na[" << i << "]=" << a[i] << std::endl;
@@ -337,19 +337,19 @@ namespace libmaus2
 
 					assert ( (p - M.begin()) % k21 == 0 );
 					assert ( (q - M.begin()) % k21 == 0 );
-				
+
 					q += (k-i);
 					p += ((k-i)-1);
-					
+
 					#if defined(BANDEDLCSDEBUG)
 					std::cerr << "---" << std::endl;
 					std::cerr << "p-shift " << ((k-i)-1) << std::endl;
 					std::cerr << "q-shift " << (k-i) << std::endl;
 					#endif
-										
+
 					// first row has only left
 					*p = element_type(q->first - penalty_ins*first_ins_mult,STEP_INS);
-					
+
 					uint64_t const secondlooplimit = std::min(k+i,m);
 					for ( uint64_t j = 0; j < secondlooplimit; ++j )
 					{
@@ -357,13 +357,13 @@ namespace libmaus2
 						#if defined(BANDEDLCSDEBUG)
 						std::cerr << "b[" << j << "]=" << cb << std::endl;
 						#endif
-						
+
 						similarity_type const d = (ca==cb)?gain_match:-penalty_subst;
-						
+
 						similarity_type const diag = (q++)->first + d;
 						similarity_type const left = q->first - penalty_ins;
 						similarity_type const top = (p++)->first - penalty_del;
-						
+
 						if ( diag >= left )
 						{
 							if ( diag >= top )
@@ -387,16 +387,16 @@ namespace libmaus2
 
 					if ( k+i < m )
 					{
-						// final row has no left neighbour	
+						// final row has no left neighbour
 						typename ::std::iterator_traits<iterator_b>::value_type const cb = b[k+i];
 						#if defined(BANDEDLCSDEBUG)
 						std::cerr << "b[" << k+i << "]=" << cb << std::endl;
 						#endif
 
-						similarity_type const d = (ca==cb)?gain_match:-penalty_subst;	
+						similarity_type const d = (ca==cb)?gain_match:-penalty_subst;
 						similarity_type const diag = (q++)->first + d;
 						similarity_type const top = (p++)->first - penalty_del;
-							
+
 						if ( diag >= top )
 							*p = element_type(diag,(ca==cb) ? STEP_MATCH : STEP_MISMATCH);
 						else
@@ -424,7 +424,7 @@ namespace libmaus2
 				uint64_t const fullcols = havefullcols ? std::min((m+1)-k21,n1-(k+1)) : 0;
 
 				element_type * tt = 0;
-				
+
 				if ( havefullcols )
 				{
 					// std::cerr << "full cols " << fullcols << std::endl;
@@ -445,9 +445,9 @@ namespace libmaus2
 						// first row has only diagonal
 						//uint64_t j = i - k;
 						// std::cerr << "j=" << j << std::endl;
-						
+
 						// std::cerr << "*** i-k = " << i-k << std::endl;
-						
+
 						#if defined(BANDEDLCSDEBUG)
 						std::cerr << "b[" << i-k << "]=" << b[i-k] << std::endl;
 						#endif
@@ -464,25 +464,25 @@ namespace libmaus2
 						{
 							similarity_type const diag = (q++)->first - penalty_subst;
 							similarity_type const left = q->first - penalty_ins;
-							
+
 							if ( diag >= left )
 								*p = element_type(diag,STEP_MISMATCH);
 							else
-								*p = element_type(left,STEP_INS);							
+								*p = element_type(left,STEP_INS);
 						}
-						
+
 						for ( uint64_t j = i-k+1; j < i-k+k21-1; ++j )
 						{
 							typename ::std::iterator_traits<iterator_b>::value_type const cb = b[j];
 							#if defined(BANDEDLCSDEBUG)
 							std::cerr << "b[" << j << "]=" << b[j] << std::endl;
 							#endif
-							
+
 							similarity_type const d = (ca == cb) ? gain_match : (-penalty_subst);
 							similarity_type const diag = (q++)->first + d;
 							similarity_type const left = q->first - penalty_ins;
 							similarity_type const top = (p++)->first - penalty_del;
-							
+
 							if ( diag >= left )
 							{
 								if ( diag >= top )
@@ -498,7 +498,7 @@ namespace libmaus2
 									*p = element_type(left,STEP_INS);
 							}
 						}
-						
+
 						// last row
 						typename ::std::iterator_traits<iterator_b>::value_type const cb = b[i-k+k21-1];
 						#if defined(BANDEDLCSDEBUG)
@@ -507,39 +507,39 @@ namespace libmaus2
 						similarity_type const d = (ca == cb) ? gain_match : (-penalty_subst);
 						similarity_type const diag = (q++)->first + d;
 						similarity_type const top = (p++)->first - penalty_del;
-						
+
 						if ( diag >= top )
 							*p = element_type(diag,(ca==cb)?STEP_MATCH:STEP_MISMATCH);
 						else
 							*p = element_type(top,STEP_DEL);
-							
+
 						tt = p;
 
 						p++;
-						
+
 						// *p = element_type(q->first - penalty_ins,STEP_INS);
-						
+
 						/*
 						std::cerr << "pmod " << (p - M.begin()) % k21 << std::endl;
 						std::cerr << "qmod " << (q - M.begin()) % k21 << std::endl;
 						*/
 					}
 				}
-				
+
 				#if defined(BANDEDLCSDEBUG)
 				printMatrix(m);
 				#endif
-				
+
 				#if defined(BANDEDLCSDEBUG)
 				std::cerr << "n=" << n << " fullcols=" << fullcols << " k=" << k << " firstlooplimit=" << firstlooplimit << std::endl;
 				#endif
-				
+
 				for ( uint64_t i = firstlooplimit + fullcols; i < n; ++i )
 				{
 					// std::cerr << "Process column " << (i+1) << std::endl;
-					
+
 					// std::cerr << "j start " << i-firstlooplimit << std::endl;
-					
+
 					if ( i-firstlooplimit < m )
 					{
 						typename ::std::iterator_traits<iterator_a>::value_type const ca = a[i];
@@ -549,7 +549,7 @@ namespace libmaus2
 
 						assert ( (p - M.begin()) % k21 == 0 );
 						assert ( (q - M.begin()) % k21 == 0 );
-						
+
 						#if defined(BANDEDLCSDEBUG)
 						std::cerr << "b[" << i-firstlooplimit << "]=" << b[i-firstlooplimit] << std::endl;
 						#endif
@@ -561,31 +561,31 @@ namespace libmaus2
 							if ( diag >= left )
 								*p = element_type(diag,STEP_MATCH);
 							else
-								*p = element_type(left,STEP_INS);						
+								*p = element_type(left,STEP_INS);
 						}
 						else
 						{
 							similarity_type const diag = (q++)->first - penalty_subst;
 							similarity_type const left = q->first - penalty_ins;
-							
+
 							if ( diag >= left )
 								*p = element_type(diag,STEP_MISMATCH);
 							else
-								*p = element_type(left,STEP_INS);							
+								*p = element_type(left,STEP_INS);
 						}
-						
+
 						for ( uint64_t j = i-firstlooplimit+1; j < m; ++j )
 						{
 							typename ::std::iterator_traits<iterator_b>::value_type const cb = b[j];
 							#if defined(BANDEDLCSDEBUG)
 							std::cerr << "b[" << j << "]=" << b[j] << std::endl;
 							#endif
-							
+
 							similarity_type const d = (ca == cb) ? gain_match : (-penalty_subst);
 							similarity_type const diag = (q++)->first + d;
 							similarity_type const left = q->first - penalty_ins;
 							similarity_type const top = (p++)->first - penalty_del;
-							
+
 							if ( diag >= left )
 							{
 								if ( diag >= top )
@@ -601,11 +601,11 @@ namespace libmaus2
 									*p = element_type(left,STEP_INS);
 							}
 						}
-						
+
 						tt = p;
-						
+
 						p++;
-						
+
 						p += i - (firstlooplimit+fullcols) + 1;
 						q += i - (firstlooplimit+fullcols) + 1;
 
@@ -615,8 +615,8 @@ namespace libmaus2
 						#endif
 					}
 				}
-				
-				
+
+
 				// std::cerr << "trace offset " << tt- (M.begin()+n*k21) << std::endl;;
 
 				// printMatrix(m);
@@ -624,9 +624,9 @@ namespace libmaus2
 				assert ( tt );
 				// similarity_type const score = tt->first;
 				step_type * tc = te;
-				
+
 				uint64_t numins = 0, numdel = 0, nummis = 0, nummat = 0;
-				
+
 				while ( tt != (M.begin()+k) )
 				{
 					#if 0
@@ -634,9 +634,9 @@ namespace libmaus2
 					std::cerr << "row " << (tt-M.begin()) % k21 << std::endl;
 					std::cerr << AlignmentPritn::stepToString(tt->second) << std::endl;
 					#endif
-				
+
 					*(--tc) = tt->second;
-					
+
 					switch ( tt->second )
 					{
 						case STEP_MATCH:
@@ -660,13 +660,13 @@ namespace libmaus2
 					}
 				}
 				ta = tc;
-				
+
 				#if 0
 				for ( step_type * tq = tc; tq != te; ++tq )
 					std::cerr << AlignmentPrint::stepToString(*tq);
 				std::cerr << std::endl;
 				#endif
-				
+
 				return EditDistanceResult(numins,numdel,nummat,nummis);
 			}
 		};

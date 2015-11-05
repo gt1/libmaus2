@@ -33,22 +33,22 @@ uint64_t libmaus2::util::VarBitList::select1(uint64_t rank) const
 		I++;
 		pos++;
 	}
-		
+
 	while ( rank )
 	{
 		I++;
 		pos++;
-		
-		
+
+
 		while ( ! (*I) )
 		{
 			I++;
 			pos++;
 		}
-		
+
 		rank--;
-	}	
-	
+	}
+
 	return pos;
 }
 uint64_t libmaus2::util::VarBitList::select0(uint64_t rank) const
@@ -61,22 +61,22 @@ uint64_t libmaus2::util::VarBitList::select0(uint64_t rank) const
 		I++;
 		pos++;
 	}
-		
+
 	while ( rank )
 	{
 		I++;
 		pos++;
-		
-		
+
+
 		while ( (*I) )
 		{
 			I++;
 			pos++;
 		}
-		
+
 		rank--;
-	}	
-	
+	}
+
 	return pos;
 }
 
@@ -84,7 +84,7 @@ uint64_t libmaus2::util::VarBitList::select0(uint64_t rank) const
 uint64_t libmaus2::util::VarBitList::rank1(uint64_t pos)
 {
 	std::list<bool>::iterator I = B.begin();
-	
+
 	uint64_t pc = 0;
 	for ( uint64_t i = 0; i <= pos; ++i )
 	{
@@ -92,7 +92,7 @@ uint64_t libmaus2::util::VarBitList::rank1(uint64_t pos)
 			pc++;
 		I++;
 	}
-	
+
 	return pc;
 }
 
@@ -101,10 +101,10 @@ void libmaus2::util::VarBitList::insertBit(uint64_t pos, bool b)
 	assert ( pos <= B.size() );
 
 	std::list<bool>::iterator I = B.begin();
-	
+
 	for ( uint64_t i = 0; i < pos; ++i )
 		I++;
-		
+
 	B.insert(I,b);
 }
 void libmaus2::util::VarBitList::deleteBit(uint64_t pos)
@@ -112,22 +112,22 @@ void libmaus2::util::VarBitList::deleteBit(uint64_t pos)
 	assert ( pos < B.size() );
 
 	std::list<bool>::iterator I = B.begin();
-	
+
 	for ( uint64_t i = 0; i < pos; ++i )
 		I++;
 
-	B.erase(I);	
+	B.erase(I);
 }
 void libmaus2::util::VarBitList::setBit(uint64_t pos, bool b)
 {
 	assert ( pos < B.size() );
 
 	std::list<bool>::iterator I = B.begin();
-	
+
 	for ( uint64_t i = 0; i < pos; ++i )
 		I++;
 
-	*I = b;	
+	*I = b;
 }
 
 std::ostream & libmaus2::util::operator<<(std::ostream & out, libmaus2::util::VarBitList const & B)

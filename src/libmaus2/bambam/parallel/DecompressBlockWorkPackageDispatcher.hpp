@@ -38,52 +38,52 @@ namespace libmaus2
 				InputBlockReturnInterface & inputBlockReturnInterface;
 				DecompressedBlockAddPendingInterface & decompressedBlockPendingInterface;
 				BgzfInflateZStreamBaseReturnInterface & decoderReturnInterface;
-	
+
 				DecompressBlockWorkPackageDispatcher(
 					DecompressBlockWorkPackageReturnInterface & rpackageReturnInterface,
 					InputBlockReturnInterface & rinputBlockReturnInterface,
 					DecompressedBlockAddPendingInterface & rdecompressedBlockPendingInterface,
 					BgzfInflateZStreamBaseReturnInterface & rdecoderReturnInterface
-	
+
 				) : packageReturnInterface(rpackageReturnInterface), inputBlockReturnInterface(rinputBlockReturnInterface),
 				    decompressedBlockPendingInterface(rdecompressedBlockPendingInterface), decoderReturnInterface(rdecoderReturnInterface)
 				{
-				
+
 				}
-			
+
 				virtual void dispatch(
-					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadWorkPackage * P,
 					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
 				)
 				{
 					DecompressBlockWorkPackage * BP = dynamic_cast<DecompressBlockWorkPackage *>(P);
 					assert ( BP );
-					
+
 					// decompress the block
 					BP->outputblock->decompressBlock(BP->decoder.get(),BP->inputblock.get());
-	
+
 					// compute crc of uncompressed data
 					uint32_t const crc = BP->outputblock->computeCrc();
-	
+
 					// check crc
 					if ( crc != BP->inputblock->crc )
 					{
 						tpi.getGlobalLock().lock();
-						std::cerr << "crc failed for block " << BP->inputblock->blockid 
+						std::cerr << "crc failed for block " << BP->inputblock->blockid
 							<< " expecting " << std::hex << BP->inputblock->crc << std::dec
 							<< " got " << std::hex << crc << std::dec << std::endl;
 						tpi.getGlobalLock().unlock();
-						
+
 						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "DecompressBlockWorkPackageDispatcher: corrupt input data (crc mismatch)\n";
 						lme.finish();
 						throw lme;
 					}
-					
+
 					// set stream and block id
 					BP->outputblock->streamid = BP->inputblock->streamid;
 					BP->outputblock->blockid = BP->inputblock->blockid;
-	
+
 					// return zstream base (decompressor)
 					decoderReturnInterface.putBgzfInflateZStreamBaseReturn(BP->decoder);
 					// return input block
@@ -92,7 +92,7 @@ namespace libmaus2
 					decompressedBlockPendingInterface.putDecompressedBlockAddPending(BP->outputblock);
 					// return work meta package
 					packageReturnInterface.putDecompressBlockWorkPackage(BP);
-				}		
+				}
 			};
 		}
 	}

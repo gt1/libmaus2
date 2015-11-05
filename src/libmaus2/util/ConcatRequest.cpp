@@ -28,11 +28,11 @@ libmaus2::util::ConcatRequest::ConcatRequest(
 }
 
 libmaus2::util::ConcatRequest::ConcatRequest(std::istream & in)
-: 
+:
 infilenames ( ::libmaus2::util::StringSerialisation::deserialiseStringVector(in) ),
 outfilename ( ::libmaus2::util::StringSerialisation::deserialiseString(in) )
 {
-	
+
 }
 
 void libmaus2::util::ConcatRequest::serialise(std::ostream & out) const

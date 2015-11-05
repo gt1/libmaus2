@@ -31,12 +31,12 @@ namespace libmaus2
 			typedef StdInputOutputStreamFactory this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			static std::ios_base::openmode getOpenMode()
 			{
 				return std::ios::in|std::ios::out|std::ios::binary|std::ios::trunc;
 			}
-			
+
 			virtual ~StdInputOutputStreamFactory() {}
 			virtual libmaus2::aio::InputOutputStream::unique_ptr_type constructUnique(std::string const & filename, std::ios_base::openmode mode)
 			{

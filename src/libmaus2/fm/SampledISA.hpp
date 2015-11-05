@@ -39,8 +39,8 @@ namespace libmaus2
                         uint64_t isasamplingrate;
                         uint64_t isasamplingmask;
                         unsigned int isasamplingshift;
-                        ::libmaus2::autoarray::AutoArray<uint64_t> SISA;	
-                        
+                        ::libmaus2::autoarray::AutoArray<uint64_t> SISA;
+
                         uint64_t byteSize() const
                         {
                         	return
@@ -49,15 +49,15 @@ namespace libmaus2
                         		sizeof(unsigned int)+
                         		SISA.byteSize();
                         }
-                        
+
                         void setSamplingRate(uint64_t samplingrate)
                         {
                         	isasamplingrate = samplingrate;
                         	isasamplingmask = isasamplingrate-1;
                         	isasamplingshift = 0;
-                        	
+
                         	uint64_t tisasamplingrate = isasamplingrate;
-                        	
+
                         	while ( ! (tisasamplingrate&1) )
                         	{
                         		tisasamplingrate >>= 1;
@@ -80,7 +80,7 @@ namespace libmaus2
                                 s += ::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&i);
                                 return i;
                         }
-                                
+
                         static ::libmaus2::autoarray::AutoArray<uint32_t> readArray32(std::istream & in)
                         {
                                 ::libmaus2::autoarray::AutoArray<uint32_t> A;
@@ -116,7 +116,7 @@ namespace libmaus2
                                 s += SISA.serialize(out);
                                 return s;
                         }
-                        
+
                         uint64_t deserialize(std::istream & in)
                         {
                                 uint64_t s = 0;
@@ -125,22 +125,22 @@ namespace libmaus2
                                 // std::cerr << "ISA: " << s << " bytes = " << s*8 << " bits" << " = " << (s+(1024*1024-1))/(1024*1024) << " mb" << " samplingrate = " << isasamplingrate << std::endl;
                                 return s;
                         }
-                        
+
                         static unique_ptr_type load(lf_type const * lf, std::string const & fn)
                         {
                         	libmaus2::aio::InputStreamInstance CIS(fn);
 				unique_ptr_type ptr(new this_type(lf,CIS));
                         	return UNIQUE_PTR_MOVE(ptr);
                         }
-                        
+
                         SampledISA(lf_type const * rlf, std::istream & in) : lf(rlf) { deserialize(in); }
                         SampledISA(lf_type const * rlf, std::istream & in, uint64_t & s) : lf(rlf) { s += deserialize(in); }
 
 			SampledISA(
-				lf_type const * rlf, 
-				uint64_t const risasamplingrate, 
+				lf_type const * rlf,
+				uint64_t const risasamplingrate,
 				::libmaus2::autoarray::AutoArray<uint64_t>  & rSISA)
-			: lf(rlf), SISA(rSISA) 
+			: lf(rlf), SISA(rSISA)
 			{
 				setSamplingRate(risasamplingrate);
 			}
@@ -151,7 +151,7 @@ namespace libmaus2
                           SISA ( (lf->getN() + isasamplingrate - 1)/isasamplingrate )
                         {
 				setSamplingRate(risasamplingrate);
-				
+
 				if ( verbose )
 	                                std::cerr << "Computing Sampled ISA...";
 
@@ -167,7 +167,7 @@ namespace libmaus2
                                 {
                                         if ( (i & (1024*1024-1)) == 0 && verbose )
                                                 std::cerr << "(" << i/(1024*1024) << ")";
-                                
+
                                         r = (*lf)(r); // LF mapping
 
                                         if ( i % isasamplingrate == 0 )
@@ -177,7 +177,7 @@ namespace libmaus2
 	                                std::cerr << ")";
 
                                 assert ( r == rr );
-        
+
         			if ( verbose )
 	                                std::cerr << "done." << std::endl;
                         }
@@ -191,10 +191,10 @@ namespace libmaus2
 
                                 if ( nextpreval >= lf->getN() )
                                         r = (*lf)(SISA[0]), // LF
-                                        nextpreval = lf->getN()-1;		
+                                        nextpreval = lf->getN()-1;
                                 else
                                         r = SISA[ nextpreval >> isasamplingshift ];
-                                        
+
                                 while ( nextpreval != i )
                                         r = (*lf)(r), // LF
                                         nextpreval--;

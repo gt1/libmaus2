@@ -28,29 +28,29 @@ namespace libmaus2
 	{
 		namespace parallel
 		{
-			
+
 			struct CramEncodingWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef CramEncodingWorkPackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				void * package;
 				ScramCramEncoding * iolibInterface;
-			
+
 				CramEncodingWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), package(0), iolibInterface(0) {}
 				CramEncodingWorkPackage(uint64_t const rpriority, uint64_t const rdispatcherid, void * rpackage, ScramCramEncoding * riolibInterface)
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), package(rpackage), iolibInterface(riolibInterface)
 				{
-				
+
 				}
 				virtual ~CramEncodingWorkPackage() {}
-				
+
 				virtual char const * getPackageName() const
 				{
 					return "CramEncodingWorkPackage";
 				}
-				
+
 				void dispatch()
 				{
 					int r;

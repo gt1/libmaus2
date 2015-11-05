@@ -32,13 +32,13 @@ namespace libmaus2
 		struct CompactSparseArray
 		{
 			typedef CompactSparseArray this_type;
-			
+
 			typedef uint64_t value_type;
 
 			typedef ::libmaus2::util::AssignmentProxy<this_type,value_type> proxy_type;
 			typedef ::libmaus2::util::AssignmentProxyIterator<this_type,value_type> iterator;
 			typedef ::libmaus2::util::ConstIterator<this_type,value_type> const_iterator;
-			
+
 			const_iterator begin() const
 			{
 				return const_iterator(this,0);
@@ -55,23 +55,23 @@ namespace libmaus2
 			{
 				return iterator(this,size());
 			}
-			
+
 			uint64_t size() const
 			{
 				return n;
 			}
 
 			uint64_t * D;
-			
+
 			uint64_t const n; // length of sequence
 			uint64_t const b; // bits per stored number
-			
+
 			uint64_t const o; // additive offset
 			uint64_t const k; // multiplicative offset
 
 			CompactSparseArray(
 				uint64_t * rD,
-				uint64_t const rn, 
+				uint64_t const rn,
 				uint64_t const rb,
 				uint64_t const ro,
 				uint64_t const rk
@@ -79,7 +79,7 @@ namespace libmaus2
 			{}
 
 			uint64_t get(uint64_t i) const { return ::libmaus2::bitio::getBits(D, i*k + o, b); }
-			void set(uint64_t i, uint64_t v) { putBits(D, i*k+o, b, v); /* assert ( get(i) == v ); */ }	
+			void set(uint64_t i, uint64_t v) { putBits(D, i*k+o, b, v); /* assert ( get(i) == v ); */ }
 		};
 	}
 }

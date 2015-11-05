@@ -31,18 +31,18 @@ libmaus2::util::TempFileNameGenerator::~TempFileNameGenerator()
 std::string libmaus2::util::TempFileNameGenerator::getFileName()
 {
 	lock.lock();
-	
+
 	std::string const fn = state.getFileName();
 
 	lock.unlock();
-	
+
 	return fn;
 }
 
 void libmaus2::util::TempFileNameGenerator::cleanupDirs()
 {
 	TempFileNameGeneratorState rmdirstate = startstate;
-	
+
 	while ( rmdirstate != state )
 	{
 		rmdirstate.removeDirs();

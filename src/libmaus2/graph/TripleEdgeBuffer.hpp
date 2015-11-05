@@ -51,12 +51,12 @@ namespace libmaus2
 			{
 				// flush();
 			}
-			
+
 			std::string flush()
 			{
 				return finalMerge();
 			}
-			
+
 			std::string getNextFileName()
 			{
 				return tmpgen.getFileName();
@@ -65,7 +65,7 @@ namespace libmaus2
 			std::string finalMerge()
 			{
 				std::vector < std::string > rest;
-				
+
 				for ( unsigned int i = 0; i < filenames.size(); ++i )
 					for ( unsigned int j = 0; j < filenames[i].size(); ++j )
 						rest.push_back(filenames[i][j]);
@@ -73,10 +73,10 @@ namespace libmaus2
 
 				std::string const outputfilename = getNextFileName();
 				TripleEdgeOperations::multiwayMergeFiles ( rest, outputfilename );
-				
+
 				for ( uint64_t i = 0; i < rest.size(); ++i )
 					libmaus2::aio::FileRemoval::removeFile ( rest[i] );
-				
+
 				return outputfilename;
 			}
 
@@ -101,7 +101,7 @@ namespace libmaus2
 				std::string outputfilename;
 
 				filenamelock.lock();
-				
+
 				if ( ! (level < filenames.size()) )
 					pushLevel();
 

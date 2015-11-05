@@ -48,14 +48,14 @@ namespace libmaus2
 					lme.finish();
 					throw lme;
 				}
-				
+
 				switch ( sfs.f_type )
 				{
 					case 0xEF53: // EXT{2,3,4}
 					case 0x58465342: // XFS
 						return true;
 					default:
-						return false;		                                                                      
+						return false;
 				}
 				#else
 				return false;

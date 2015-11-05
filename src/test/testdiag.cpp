@@ -25,13 +25,13 @@ struct MultipleAlignmentMatrixElement
 {
 	int64_t score;
 	uint8_t * bits;
-	
+
 	MultipleAlignmentMatrixElement()
 	: score(std::numeric_limits<int64_t>::min()), bits(0)
 	{
-	
+
 	}
-	
+
 	operator bool() const
 	{
 		return score != std::numeric_limits<int64_t>::min();
@@ -53,12 +53,12 @@ struct NumberBlockDiagonal
 	libmaus2::autoarray::AutoArray<element_type> A;
 
 	NumberBlockDiagonal(
-		uint64_t const rr, 
+		uint64_t const rr,
 		uint64_t const rk,
 		uint64_t const rdiag
 	)
-	: r(rr), 
-	  w(2*rr+1), 
+	: r(rr),
+	  w(2*rr+1),
 	  k(rk),
 	  k1(k-1),
 	  next(libmaus2::math::nextTwoPow(w)),
@@ -69,7 +69,7 @@ struct NumberBlockDiagonal
 	{
 		assert ( k > 0 );
 	}
-	
+
 	template<typename iterator>
 	element_type const & operator()(iterator I) const
 	{
@@ -97,11 +97,11 @@ struct NumberBlockDiagonal
 			i |= (static_cast<int64_t>(I[j])+r-off);
 		}
 		i += off * blocklen;
-		
+
 		assert ( i < A.size() );
 		return A[i];
 	}
-	
+
 	template<typename iterator>
 	bool valid(iterator it)
 	{
@@ -113,7 +113,7 @@ struct NumberBlockDiagonal
 			if ( s < -r || s > r )
 				return false;
 		}
-				
+
 		return true;
 	}
 };
@@ -124,7 +124,7 @@ std::ostream & operator<<(std::ostream & out, NumberBlockDiagonal const & NB)
 	{
 		uint64_t const mod = i % NB.blocklen;
 		uint64_t const div = i / NB.blocklen;
-		
+
 		bool ok = div <= NB.diag;
 		for ( uint64_t j = 1; j < NB.k; ++j )
 		{
@@ -135,51 +135,51 @@ std::ostream & operator<<(std::ostream & out, NumberBlockDiagonal const & NB)
 		if ( ok && NB.A[i] )
 		{
 			out << "A(";
-		
+
 			out << div << ";";
-		
+
 			for ( uint64_t j = 1; j < NB.k; ++j )
 			{
 				int64_t const coord = static_cast<int64_t>((mod>>((NB.k-j-1)*NB.shift)) & ((1ull<<NB.shift)-1))-NB.r+div;
 				out << coord << ((j+1<NB.k)?";":"");
 			}
-			
+
 			out << ")=" << NB.A[i] << '\n';
 		}
 	}
-	
+
 	return out;
 }
 
 void align(std::vector<std::string> const & A, uint64_t const radius)
 {
 	NumberBlockDiagonal NB(radius,A.size(),A[0].size());
-	
+
 	{
 		std::vector<uint64_t> V(NB.k);
 		NB(V.begin()).score = 0;
 	}
 
-	std::vector<int64_t> coord(NB.k);	
+	std::vector<int64_t> coord(NB.k);
 	#if 0
 	uint64_t const mask = (1ull<<NB.shift)-1;
 	#endif
 	uint64_t const loops = ::libmaus2::math::ipow(NB.w,NB.k1);
-	
+
 	for ( uint64_t z = 0; z < A[0].size(); ++z )
 	{
 		coord[0] = z;
-	
+
 		for ( uint64_t y = 0; y < loops; ++y )
 		{
 			bool ok = true;
 
 			for ( uint64_t j = 1; j < NB.k; ++j )
 			{
-				coord[NB.k-j] = ((y/libmaus2::math::ipow(NB.w,j-1))%NB.w) -NB.r+z;				
+				coord[NB.k-j] = ((y/libmaus2::math::ipow(NB.w,j-1))%NB.w) -NB.r+z;
 				ok = ok && coord[NB.k-j] >= 0;
 			}
-			
+
 			if ( ok )
 			{
 				for ( uint64_t j = 0; j < coord.size(); ++j )
@@ -189,7 +189,7 @@ void align(std::vector<std::string> const & A, uint64_t const radius)
 		}
 	}
 
-	#if 0		
+	#if 0
 	std::cerr << NB;
 	std::cerr << "loops=" << loops << std::endl;
 	#endif
@@ -203,7 +203,7 @@ int main()
 	V.push_back("ACACGTA");
 	uint64_t const radius = 5;
 	align(V,radius);
-	
+
 	#if 0
 	NumberBlockDiagonal NB(5,3,5);
 	std::cerr << NB.r << std::endl;

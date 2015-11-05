@@ -32,31 +32,31 @@ namespace libmaus2
 		{
 			typedef _package_type package_type;
 			typedef typename package_type::unique_ptr_type package_ptr_type;
-			
+
 			libmaus2::parallel::PosixSpinLock lock;
 			libmaus2::autoarray::AutoArray<package_ptr_type> packages;
 			libmaus2::autoarray::AutoArray<package_type *> freelist;
 			uint64_t freelistFill;
-			
+
 			SimpleThreadPoolWorkPackageFreeList() : freelistFill(0) {}
-			
+
 			size_t size()
 			{
 				libmaus2::parallel::ScopePosixSpinLock llock(lock);
-				return packages.size();				
+				return packages.size();
 			}
-			
+
 			package_type * getPackage()
 			{
 				libmaus2::parallel::ScopePosixSpinLock llock(lock);
-			
+
 				if ( ! freelistFill )
 				{
 					uint64_t const newlistsize = packages.size() ? 2*packages.size() : 1;
-					
+
 					libmaus2::autoarray::AutoArray<package_ptr_type> newpackages(newlistsize);
 					libmaus2::autoarray::AutoArray<package_type *> newfreelist(newlistsize);
-					
+
 					for ( uint64_t i = 0; i < packages.size(); ++i )
 					{
 						newpackages[i] = UNIQUE_PTR_MOVE(packages[i]);
@@ -67,14 +67,14 @@ namespace libmaus2
 						newpackages[i] = UNIQUE_PTR_MOVE(tptr);
 						newfreelist[freelistFill++] = newpackages[i].get();
 					}
-					
+
 					packages = newpackages;
 					freelist = newfreelist;
 				}
-				
+
 				return freelist[--freelistFill];
 			}
-			
+
 			void returnPackage(package_type * ptr)
 			{
 				libmaus2::parallel::ScopePosixSpinLock llock(lock);

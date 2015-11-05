@@ -34,7 +34,7 @@ void libmaus2::util::I386CacheLineSize::cpuid(
 	#endif
 
 	regsave_type * regsave = 0;
-	
+
 	try
 	{
 		regsave = new regsave_type[9];
@@ -43,7 +43,7 @@ void libmaus2::util::I386CacheLineSize::cpuid(
 		regsave[1] = ebx;
 		regsave[2] = ecx;
 		regsave[3] = edx;
-		
+
 		#if defined(LIBMAUS2_HAVE_x86_64)
 		asm volatile(
 			"mov %%rax,(4*8)(%0)\n"
@@ -57,22 +57,22 @@ void libmaus2::util::I386CacheLineSize::cpuid(
 			"mov (1*8)(%%rsi),%%rbx\n"
 			"mov (2*8)(%%rsi),%%rcx\n"
 			"mov (3*8)(%%rsi),%%rdx\n"
-			
+
 			"cpuid\n"
-			
+
 			"mov %%rax,(0*8)(%%rsi)\n"
 			"mov %%rbx,(1*8)(%%rsi)\n"
 			"mov %%rcx,(2*8)(%%rsi)\n"
 			"mov %%rdx,(3*8)(%%rsi)\n"
 
 			"mov %%rsi,%0\n"
-			
+
 			"mov (4*8)(%0),%%rax\n"
 			"mov (5*8)(%0),%%rbx\n"
 			"mov (6*8)(%0),%%rcx\n"
 			"mov (7*8)(%0),%%rdx\n"
 			"mov (8*8)(%0),%%rsi\n"
-			: : "a" (&regsave[0]) : "memory" ); 
+			: : "a" (&regsave[0]) : "memory" );
 		#else
 		asm volatile(
 			"mov %%eax,(4*4)(%0)\n"
@@ -86,31 +86,31 @@ void libmaus2::util::I386CacheLineSize::cpuid(
 			"mov (1*4)(%%esi),%%ebx\n"
 			"mov (2*4)(%%esi),%%ecx\n"
 			"mov (3*4)(%%esi),%%edx\n"
-			
+
 			"cpuid\n"
-			
+
 			"mov %%eax,(0*4)(%%esi)\n"
 			"mov %%ebx,(1*4)(%%esi)\n"
 			"mov %%ecx,(2*4)(%%esi)\n"
 			"mov %%edx,(3*4)(%%esi)\n"
 
 			"mov %%esi,%0\n"
-			
+
 			"mov (4*4)(%0),%%eax\n"
 			"mov (5*4)(%0),%%ebx\n"
 			"mov (6*4)(%0),%%ecx\n"
 			"mov (7*4)(%0),%%edx\n"
 			"mov (8*4)(%0),%%esi\n"
-			: : "a" (&regsave[0]) : "memory" ); 
+			: : "a" (&regsave[0]) : "memory" );
 		#endif
-		
+
 		eax = regsave[0];
 		ebx = regsave[1];
 		ecx = regsave[2];
 		edx = regsave[3];
-		
+
 		// std::cerr << "eax=" << eax << " ebx=" << ebx << " ecx=" << ecx << " edx=" << edx << std::endl;
-		
+
 		delete [] regsave;
 		regsave = 0;
 	}
@@ -211,7 +211,7 @@ unsigned int libmaus2::util::I386CacheLineSize::getCacheLineSize()
 			}
 
 			nextcnt++;
-		}		
+		}
 	}
 	if ( cachelinesize == 0 && 2 <= eax )
 	{
@@ -239,7 +239,7 @@ bool libmaus2::util::I386CacheLineSize::hasSSE()
 	ecx = 0;
 	edx = 0;
 	cpuid(eax,ebx,ecx,edx);
-	
+
 	if ( 1 > eax )
 		return false;
 
@@ -263,7 +263,7 @@ bool libmaus2::util::I386CacheLineSize::hasSSE2()
 	ecx = 0;
 	edx = 0;
 	cpuid(eax,ebx,ecx,edx);
-	
+
 	if ( 1 > eax )
 		return false;
 
@@ -287,7 +287,7 @@ bool libmaus2::util::I386CacheLineSize::hasSSE3()
 	ecx = 0;
 	edx = 0;
 	cpuid(eax,ebx,ecx,edx);
-	
+
 	if ( 1 > eax )
 		return false;
 
@@ -311,7 +311,7 @@ bool libmaus2::util::I386CacheLineSize::hasSSSE3()
 	ecx = 0;
 	edx = 0;
 	cpuid(eax,ebx,ecx,edx);
-	
+
 	if ( 1 > eax )
 		return false;
 
@@ -335,7 +335,7 @@ bool libmaus2::util::I386CacheLineSize::hasSSE41()
 	ecx = 0;
 	edx = 0;
 	cpuid(eax,ebx,ecx,edx);
-	
+
 	if ( 1 > eax )
 		return false;
 
@@ -359,7 +359,7 @@ bool libmaus2::util::I386CacheLineSize::hasSSE42()
 	ecx = 0;
 	edx = 0;
 	cpuid(eax,ebx,ecx,edx);
-	
+
 	if ( 1 > eax )
 		return false;
 
@@ -383,7 +383,7 @@ bool libmaus2::util::I386CacheLineSize::hasPopCnt()
 	ecx = 0;
 	edx = 0;
 	cpuid(eax,ebx,ecx,edx);
-	
+
 	if ( 1 > eax )
 		return false;
 
@@ -407,7 +407,7 @@ bool libmaus2::util::I386CacheLineSize::hasAVX()
 	ecx = 0;
 	edx = 0;
 	cpuid(eax,ebx,ecx,edx);
-	
+
 	if ( 1 > eax )
 		return false;
 
@@ -423,9 +423,9 @@ bool libmaus2::util::I386CacheLineSize::hasAVX()
 	if ( (ecx & 0x018000000ul) != 0x018000000ul )
 		return false;
 
-	// check state saving for xmm and ymm		
+	// check state saving for xmm and ymm
 	uint64_t const xbv = xgetbv(0);
-		
+
 	if ( (xbv & 0x6) != 0x6 )
 		return false;
 
@@ -443,7 +443,7 @@ bool libmaus2::util::I386CacheLineSize::hasAVX2()
 	ecx = 0;
 	edx = 0;
 	cpuid(eax,ebx,ecx,edx);
-	
+
 	if ( 1 > eax )
 		return false;
 
@@ -458,12 +458,12 @@ bool libmaus2::util::I386CacheLineSize::hasAVX2()
 	if ( (ecx & 0x08000000ul) != 0x08000000ul )
 		return false;
 
-	// check state saving for xmm and ymm		
+	// check state saving for xmm and ymm
 	uint64_t const xbv = xgetbv(0);
-		
+
 	if ( (xbv & 0x6) != 0x6 )
 		return false;
-		
+
 	if ( 7 > eax )
 		return false;
 

@@ -31,21 +31,21 @@ namespace libmaus2
 			{
 				unsigned char const * u = reinterpret_cast<unsigned char const *>(s.c_str());
 				uint64_t const n = s.size();
-				
+
 				libmaus2::autoarray::AutoArray<unsigned char> T(n ? (2*n-1) : 0);
 				libmaus2::autoarray::AutoArray<int> SA(n ? (2*n-1) : 0);
-				
+
 				if ( n )
 				{
 					std::copy(u,u+n,T.begin());
 					std::copy(u,u+n-1,T.begin()+n);
 
 					DivSufSort<32,unsigned char *, unsigned char const *, int *, int const *,256,false>::divsufsort(T.begin(),SA.begin(),2*n-1);
-					
+
 					libmaus2::autoarray::AutoArray<int> LCP = libmaus2::lcp::computeLcp(T.begin(),2*n-1,SA.begin());
-					
+
 					int prev = -1;
-					
+
 					for ( uint64_t i = 0; i < 2*n-1; ++i )
 						if ( SA[i] < static_cast<int64_t>(n) )
 						{
@@ -53,9 +53,9 @@ namespace libmaus2
 							for ( int64_t j = prev + 1; j < static_cast<int64_t>(i); ++j )
 								l = std::min(static_cast<int64_t>(LCP[j]),l);
 							LCP[i] = l;
-							prev = i;						
+							prev = i;
 						}
-					
+
 					uint64_t o = 0;
 					for ( uint64_t i = 0; i < 2*n-1; ++i )
 						if ( SA[i] < static_cast<int64_t>(n) )
@@ -68,7 +68,7 @@ namespace libmaus2
 					uint64_t j = 1;
 					while ( j < n && LCP[j] >= static_cast<int64_t>(n) )
 						++j;
-						
+
 					return *std::min_element(SA.begin(),SA.begin()+j);
 				}
 				else

@@ -19,7 +19,7 @@
 #if ! defined(LIBMAUS2_PARALLEL_NAMEDPOSIXSEMAPHORE_HPP)
 #define LIBMAUS2_PARALLEL_NAMEDPOSIXSEMAPHORE_HPP
 
-#include <cstring>              
+#include <cstring>
 #include <string>
 #include <sstream>
 #include <iomanip>
@@ -43,21 +43,21 @@ namespace libmaus2
 			private:
 			NamedPosixSemaphore & operator=(NamedPosixSemaphore const &);
 			NamedPosixSemaphore(NamedPosixSemaphore const &);
-		
+
 			public:
 			std::string const semname;
 			bool const primary;
 			sem_t * psemaphore;
-			
+
 			static std::string getDefaultName()
 			{
 				std::ostringstream ostr;
-				ostr << "/s" 
+				ostr << "/s"
 					<< std::hex << std::setw(4) << std::setfill('0') << (getpid()&0xFFFF) << std::setw(0) << std::dec
 					<< std::hex << std::setw(8) << std::setfill('0') << (time(0)&0xFFFFFFFFULL) << std::setw(0) << std::dec;
-				return ostr.str();			
+				return ostr.str();
 			}
-			
+
 			NamedPosixSemaphore(std::string const & rsemname, bool rprimary)
 			: semname(rsemname), primary(rprimary), psemaphore(0)
 			{
@@ -65,7 +65,7 @@ namespace libmaus2
 					psemaphore = sem_open(semname.c_str(), O_CREAT | O_EXCL, 0700, 0);
 				else
 					psemaphore = sem_open(semname.c_str(), 0);
-					
+
 				if ( psemaphore == SEM_FAILED )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -86,7 +86,7 @@ namespace libmaus2
                         	while ( sem_post ( psemaphore ) != 0 )
                         	{
                         		int const lerrno = errno;
-                        		
+
                         		switch ( lerrno )
                         		{
                         			case EINTR:
@@ -107,7 +107,7 @@ namespace libmaus2
                         	while ( sem_wait ( psemaphore ) != 0 )
                         	{
                         		int const lerrno = errno;
-                        		
+
                         		switch ( lerrno )
                         		{
                         			case EINTR:
@@ -120,7 +120,7 @@ namespace libmaus2
 							throw se;
 						}
                         		}
-                        	
+
                         	}
 			}
 
@@ -129,7 +129,7 @@ namespace libmaus2
                         	while ( sem_trywait ( psemaphore ) != 0 )
                         	{
                         		int const lerrno = errno;
-                        		
+
                         		switch ( lerrno )
                         		{
                         			case EAGAIN:
@@ -146,7 +146,7 @@ namespace libmaus2
 						}
                         		}
                         	}
-                        	
+
                         	return true;
 			}
 
@@ -154,7 +154,7 @@ namespace libmaus2
                         {
                         	int v = 0;
                         	int r = sem_getvalue(psemaphore,&v);
-                        	
+
                         	if ( r != 0 )
                         	{
 					::libmaus2::exception::LibMausException se;
@@ -162,10 +162,10 @@ namespace libmaus2
 					se.finish();
 					throw se;
                         	}
-                        	
+
                         	return v;
                         }
-                        
+
                         void assureNonZero()
                         {
                         	if ( !getValue() )

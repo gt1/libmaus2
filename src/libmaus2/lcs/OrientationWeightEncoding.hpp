@@ -32,18 +32,18 @@ namespace libmaus2
 		{
 			typedef ::libmaus2::graph::TripleEdge edge_type;
 
-			static unsigned int const orientation_bits = 
+			static unsigned int const orientation_bits =
 				::libmaus2::math::MetaNumBits<overlap_ar_complete_b>::bits;
 			static unsigned int const orientation_mask =
 				static_cast<uint64_t>((1ull << orientation_bits)-1ull);
 			static unsigned int const orientation_shift = 8*sizeof(edge_type::link_weight_type)-orientation_bits;
-			
+
 			static edge_type::link_weight_type addOrientation(
 				edge_type::link_weight_type const weight,
 				overlap_orientation const orientation
 			)
 			{
-				return 
+				return
 					weight | (static_cast<edge_type::link_weight_type>(orientation) << orientation_shift);
 			}
 			static edge_type::link_weight_type removeOrientation(
@@ -63,7 +63,7 @@ namespace libmaus2
 					case overlap_a_front_dovetail_b_back: return overlap_a_front_dovetail_b_back;
 					case overlap_a_front_dovetail_b_front: return overlap_a_front_dovetail_b_front;
 					case overlap_a_back_dovetail_b_back: return overlap_a_back_dovetail_b_back;
-					// 
+					//
 					case overlap_a_covers_b: return overlap_a_covers_b;
 					case overlap_b_covers_a: return overlap_b_covers_a;
 					case overlap_ar_covers_b: return overlap_ar_covers_b;

@@ -35,17 +35,17 @@ uint64_t libmaus2::util::StringSerialisation::serialiseString(std::ostream & out
 		se.finish();
 		throw se;
 	}
-	
+
 	return CPO.c + s.size();
 }
 
 std::string libmaus2::util::StringSerialisation::deserialiseString(std::istream & in)
 {
 	uint64_t const u = ::libmaus2::util::UTF8::decodeUTF8(in);
-	
+
 	::libmaus2::autoarray::AutoArray<char> A(u,false);
 	in.read ( A.get(), u );
-	
+
 	if ( (!in) || (in.gcount() != static_cast<int64_t>(u)) )
 	{
 		::libmaus2::exception::LibMausException se;
@@ -54,7 +54,7 @@ std::string libmaus2::util::StringSerialisation::deserialiseString(std::istream 
 		throw se;
 	}
 
-	return std::string ( A.get(), A.get()+u );		
+	return std::string ( A.get(), A.get()+u );
 }
 
 void libmaus2::util::StringSerialisation::serialiseStringVector ( std::ostream & out, std::vector < std::string > const & V )
@@ -67,10 +67,10 @@ std::vector < std::string > libmaus2::util::StringSerialisation::deserialiseStri
 {
 	uint64_t const numstrings = deserialiseNumber(in);
 	std::vector < std::string > strings;
-	
+
 	for ( uint64_t i = 0; i < numstrings; ++i )
 		strings.push_back ( deserialiseString(in) );
-	
+
 	return strings;
 }
 
@@ -98,10 +98,10 @@ std::vector < std::vector < std::string > > libmaus2::util::StringSerialisation:
 {
 	uint64_t const numvectors = deserialiseNumber(in);
 	std::vector < std::vector < std::string > > vectors;
-	
+
 	for ( uint64_t i = 0; i < numvectors; ++i )
 		vectors.push_back ( deserialiseStringVector(in) );
-	
+
 	return vectors;
 }
 
@@ -109,10 +109,10 @@ std::deque < std::vector < std::string > > libmaus2::util::StringSerialisation::
 {
 	uint64_t const numvectors = deserialiseNumber(in);
 	std::deque < std::vector < std::string > > vectors;
-	
+
 	for ( uint64_t i = 0; i < numvectors; ++i )
 		vectors.push_back ( deserialiseStringVector(in) );
-	
+
 	return vectors;
 }
 

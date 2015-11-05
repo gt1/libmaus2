@@ -28,7 +28,7 @@
 namespace libmaus2
 {
 	namespace lcs
-	{		
+	{
 		template<
 			libmaus2::lcs::edit_distance_priority_type _edit_distance_priority = ::libmaus2::lcs::del_ins_diag
 		>
@@ -39,7 +39,7 @@ namespace libmaus2
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef EditDistanceResult result_type;
 
-			private:			
+			private:
 			uint64_t n; // columns
 			uint64_t n1; // n+1
 			uint64_t m;
@@ -54,8 +54,8 @@ namespace libmaus2
 				uint64_t const i, uint64_t const j
 			) const
 			{
-				if ( 
-				
+				if (
+
 					static_cast<int64_t>(i)-static_cast<int64_t>(j) >= -static_cast<int64_t>(k)
 					&&
 					static_cast<int64_t>(i)-static_cast<int64_t>(j) <=  static_cast<int64_t>(k)
@@ -66,11 +66,11 @@ namespace libmaus2
 				)
 				{
 					element_type const * p = M.begin();
-				
+
 					p += i*(k21);
 					p += k;
 					p += static_cast<int64_t>(j) - static_cast<int64_t>(i);
-				
+
 					return *p;
 				}
 				else
@@ -78,7 +78,7 @@ namespace libmaus2
 					return element_type();
 				}
 			}
-			
+
 			std::pair<int64_t,int64_t> decode(element_type const * p)
 			{
 				uint64_t const off = p-M.begin();
@@ -87,7 +87,7 @@ namespace libmaus2
 				uint64_t const j = static_cast<int64_t>(i)+o-k;
 				return std::pair<int64_t,int64_t>(i,j);
 			}
-			
+
 			std::string decodes(element_type const * p)
 			{
 				std::pair<int64_t,int64_t> P = decode(p);
@@ -105,28 +105,28 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				n = rn;
 				n1 = n+1;
 				m = rm;
 				m1 = m+1;
 				k = rk;
 				k21 = (k<<1)+1;
-				
+
 				if ( M.size() < m1 * k21 )
 					M = libmaus2::autoarray::AutoArray<element_type>(m1 * k21,false);
 				if ( EditDistanceTraceContainer::capacity() < rn+rm+1 )
-					EditDistanceTraceContainer::resize(rn+rm+1);					
+					EditDistanceTraceContainer::resize(rn+rm+1);
 			}
-			
+
 			public:
 			static bool validParameters(
 				uint64_t const n,
 				uint64_t const m,
-				uint64_t const k				
+				uint64_t const k
 			)
 			{
-				return 
+				return
 					(n+1) >= (2*(k+1))
 					&&
 					(m+1) >= (2*(k+1))
@@ -134,16 +134,16 @@ namespace libmaus2
 					((std::max(n,m)-std::min(n,m)) <= k)
 				;
 			}
-			
+
 			BandedEditDistance()
 			{
 			}
-			
+
 			void align(uint8_t const * a, size_t const l_a, uint8_t const * b, size_t const l_b, size_t const k)
 			{
 				process(a,l_a,b,l_b,k,0,1,1,1);
 			}
-			
+
 			template<typename iterator_a, typename iterator_b>
 			result_type process(
 				iterator_a aa,
@@ -158,16 +158,16 @@ namespace libmaus2
 			)
 			{
 				setup(rn,rm,rk);
-			
+
 				if ( k )
 				{
 					element_type * p = M.begin();
 					element_type * q = p;
-					
+
 					p += k;
 					for ( uint64_t i = 0; i < (k+1); ++i )
 						*(p++) = element_type(-static_cast<similarity_type>(i*penalty_del),STEP_DEL);
-						
+
 					iterator_a a = aa;
 					iterator_b b = bb;
 					/*
@@ -177,12 +177,12 @@ namespace libmaus2
 					{
 						p += (k-i);
 						q += (k-i+1);
-						
-						typename std::iterator_traits<iterator_b>::value_type const bchar = *(b++);					
+
+						typename std::iterator_traits<iterator_b>::value_type const bchar = *(b++);
 
 						// top
 						*p = element_type(q->first-penalty_ins,STEP_INS);
-						
+
 						iterator_a const ae = a + (k+i) - 1;
 						while ( a != ae )
 						{
@@ -192,7 +192,7 @@ namespace libmaus2
 							bool const dmatch = ( *(a++) == bchar );
 							// diagonal
 							similarity_type const diag =
-								dmatch 
+								dmatch
 								?
 								(q->first + gain_match)
 								:
@@ -204,148 +204,6 @@ namespace libmaus2
 							// move pointer in current row
 							p++;
 
-							switch ( edit_distance_priority )
-							{
-								case del_ins_diag:
-									if ( left >= top )
-									{
-										if ( left >= diag )								
-											// left
-											*p = element_type(left,STEP_DEL);
-										else
-											// diag
-											*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
-									}
-									// top > left
-									else
-									{
-										if ( top >= diag )
-											// top
-											*p = element_type(top,STEP_INS);
-										else
-											// diag
-											*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
-									}
-									break;
-								case diag_del_ins:
-									if ( diag >= left )
-									{
-										if ( diag >= top )
-											// diag
-											*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
-										else
-											// top
-											*p = element_type(top,STEP_INS);
-									}
-									else
-									{
-										if ( left >= top )
-											// left
-											*p = element_type(left,STEP_DEL);
-										else
-											// top
-											*p = element_type(top,STEP_INS);
-									}
-									break;
-							}						
-						}
-						
-						// no top for last column
-						{
-							// left
-							similarity_type const left =  p->first - penalty_del;
-							// diagonal match?
-							bool const dmatch = ( *(a++) == bchar );
-							// diagonal
-							similarity_type const diag =
-								dmatch 
-								?
-								(q->first + gain_match)
-								:
-								(q->first - penalty_subst);
-							// move pointer in row above
-							q++;
-							// move pointer in current row
-							p++;
-							
-							switch ( edit_distance_priority )
-							{
-								case del_ins_diag:
-									if ( left >= diag )							
-										*p = element_type(left,STEP_DEL);
-									else
-										*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
-									break;
-								case diag_del_ins:
-									if ( diag >= left )
-										*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
-									else
-										*p = element_type(left,STEP_DEL);
-									break;
-							}
-						}
-						
-						p++;
-						a -= (k+i);
-					}
-					
-					assert ( a == aa );
-					
-					/*
-					 * rows which do not touch any border
-					 */
-					for ( uint64_t i = k+1; (b != (bb+m)) && (i-k+k21-2 < n); ++i )
-					{
-						/*
-						 * process [ i-k+1 , i-k+k21-1 ) on a
-						 */	 
-						typename std::iterator_traits<iterator_b>::value_type const bchar = *(b++);
-						assert ( ((p-M.begin()) % k21) == 0 );
-						assert ( ((q-M.begin()) % k21) == 0 );
-						assert ( static_cast<int64_t>(a-aa) == static_cast<int64_t>(i-k-1) );
-						
-						bool const af_dmatch = ( (*(a++)) == bchar);
-						similarity_type af_diag = af_dmatch ? (q->first + gain_match) : (q->first - penalty_subst);
-						q++;
-						similarity_type af_top = q->first - penalty_ins;
-
-						switch ( edit_distance_priority )
-						{
-							case del_ins_diag:
-								if ( af_top >= af_diag )
-									*p = element_type(af_top,STEP_INS);
-								else						
-									*p = element_type(af_diag,af_dmatch ? STEP_MATCH : STEP_MISMATCH);
-								break;
-							case diag_del_ins:
-								if ( af_diag >= af_top )
-									*p = element_type(af_diag,af_dmatch ? STEP_MATCH : STEP_MISMATCH);
-								else
-									*p = element_type(af_top,STEP_INS);
-								break;
-						}
-						
-						iterator_a const ae = a + (k21-1) - 1;
-						while ( a != ae )
-						{
-							// left
-							similarity_type const left =  p->first - penalty_del;
-							// diagonal match?
-							bool const dmatch = ( (*(a++)) == bchar);
-							// diagonal
-							similarity_type const diag =
-								dmatch 
-								?
-								(q->first + gain_match)
-								:
-								(q->first - penalty_subst);
-							// move pointer in row above
-							q++;
-							// top
-							similarity_type const top = q->first - penalty_ins;
-							// move pointer in current row
-							p++;
-							
 							switch ( edit_distance_priority )
 							{
 								case del_ins_diag:
@@ -356,7 +214,7 @@ namespace libmaus2
 											*p = element_type(left,STEP_DEL);
 										else
 											// diag
-											*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);								
+											*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
 									}
 									// top > left
 									else
@@ -391,7 +249,7 @@ namespace libmaus2
 									break;
 							}
 						}
-						
+
 						// no top for last column
 						{
 							// left
@@ -400,7 +258,7 @@ namespace libmaus2
 							bool const dmatch = ( *(a++) == bchar );
 							// diagonal
 							similarity_type const diag =
-								dmatch 
+								dmatch
 								?
 								(q->first + gain_match)
 								:
@@ -426,23 +284,31 @@ namespace libmaus2
 									break;
 							}
 						}
-						
+
 						p++;
-						a -= (k21-1);
+						a -= (k+i);
 					}
-					
-					for ( uint64_t pskip = 1; (b - bb) != static_cast<int64_t>(m); ++pskip )
+
+					assert ( a == aa );
+
+					/*
+					 * rows which do not touch any border
+					 */
+					for ( uint64_t i = k+1; (b != (bb+m)) && (i-k+k21-2 < n); ++i )
 					{
+						/*
+						 * process [ i-k+1 , i-k+k21-1 ) on a
+						 */
+						typename std::iterator_traits<iterator_b>::value_type const bchar = *(b++);
 						assert ( ((p-M.begin()) % k21) == 0 );
 						assert ( ((q-M.begin()) % k21) == 0 );
-						
-						typename std::iterator_traits<iterator_b>::value_type const bchar = *(b++);
+						assert ( static_cast<int64_t>(a-aa) == static_cast<int64_t>(i-k-1) );
 
 						bool const af_dmatch = ( (*(a++)) == bchar);
 						similarity_type af_diag = af_dmatch ? (q->first + gain_match) : (q->first - penalty_subst);
 						q++;
 						similarity_type af_top = q->first - penalty_ins;
-						
+
 						switch ( edit_distance_priority )
 						{
 							case del_ins_diag:
@@ -458,8 +324,8 @@ namespace libmaus2
 									*p = element_type(af_top,STEP_INS);
 								break;
 						}
-						
-						iterator_a const ae = aa + n;
+
+						iterator_a const ae = a + (k21-1) - 1;
 						while ( a != ae )
 						{
 							// left
@@ -468,7 +334,7 @@ namespace libmaus2
 							bool const dmatch = ( (*(a++)) == bchar);
 							// diagonal
 							similarity_type const diag =
-								dmatch 
+								dmatch
 								?
 								(q->first + gain_match)
 								:
@@ -479,7 +345,7 @@ namespace libmaus2
 							similarity_type const top = q->first - penalty_ins;
 							// move pointer in current row
 							p++;
-							
+
 							switch ( edit_distance_priority )
 							{
 								case del_ins_diag:
@@ -495,7 +361,7 @@ namespace libmaus2
 									// top > left
 									else
 									{
-										if ( top >= diag )								
+										if ( top >= diag )
 											// top
 											*p = element_type(top,STEP_INS);
 										else
@@ -525,12 +391,146 @@ namespace libmaus2
 									break;
 							}
 						}
-						
+
+						// no top for last column
+						{
+							// left
+							similarity_type const left =  p->first - penalty_del;
+							// diagonal match?
+							bool const dmatch = ( *(a++) == bchar );
+							// diagonal
+							similarity_type const diag =
+								dmatch
+								?
+								(q->first + gain_match)
+								:
+								(q->first - penalty_subst);
+							// move pointer in row above
+							q++;
+							// move pointer in current row
+							p++;
+
+							switch ( edit_distance_priority )
+							{
+								case del_ins_diag:
+									if ( left >= diag )
+										*p = element_type(left,STEP_DEL);
+									else
+										*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+									break;
+								case diag_del_ins:
+									if ( diag >= left )
+										*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+									else
+										*p = element_type(left,STEP_DEL);
+									break;
+							}
+						}
+
 						p++;
-						
+						a -= (k21-1);
+					}
+
+					for ( uint64_t pskip = 1; (b - bb) != static_cast<int64_t>(m); ++pskip )
+					{
+						assert ( ((p-M.begin()) % k21) == 0 );
+						assert ( ((q-M.begin()) % k21) == 0 );
+
+						typename std::iterator_traits<iterator_b>::value_type const bchar = *(b++);
+
+						bool const af_dmatch = ( (*(a++)) == bchar);
+						similarity_type af_diag = af_dmatch ? (q->first + gain_match) : (q->first - penalty_subst);
+						q++;
+						similarity_type af_top = q->first - penalty_ins;
+
+						switch ( edit_distance_priority )
+						{
+							case del_ins_diag:
+								if ( af_top >= af_diag )
+									*p = element_type(af_top,STEP_INS);
+								else
+									*p = element_type(af_diag,af_dmatch ? STEP_MATCH : STEP_MISMATCH);
+								break;
+							case diag_del_ins:
+								if ( af_diag >= af_top )
+									*p = element_type(af_diag,af_dmatch ? STEP_MATCH : STEP_MISMATCH);
+								else
+									*p = element_type(af_top,STEP_INS);
+								break;
+						}
+
+						iterator_a const ae = aa + n;
+						while ( a != ae )
+						{
+							// left
+							similarity_type const left =  p->first - penalty_del;
+							// diagonal match?
+							bool const dmatch = ( (*(a++)) == bchar);
+							// diagonal
+							similarity_type const diag =
+								dmatch
+								?
+								(q->first + gain_match)
+								:
+								(q->first - penalty_subst);
+							// move pointer in row above
+							q++;
+							// top
+							similarity_type const top = q->first - penalty_ins;
+							// move pointer in current row
+							p++;
+
+							switch ( edit_distance_priority )
+							{
+								case del_ins_diag:
+									if ( left >= top )
+									{
+										if ( left >= diag )
+											// left
+											*p = element_type(left,STEP_DEL);
+										else
+											// diag
+											*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+									}
+									// top > left
+									else
+									{
+										if ( top >= diag )
+											// top
+											*p = element_type(top,STEP_INS);
+										else
+											// diag
+											*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+									}
+									break;
+								case diag_del_ins:
+									if ( diag >= left )
+									{
+										if ( diag >= top )
+											// diag
+											*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+										else
+											// top
+											*p = element_type(top,STEP_INS);
+									}
+									else
+									{
+										if ( left >= top )
+											// left
+											*p = element_type(left,STEP_DEL);
+										else
+											// top
+											*p = element_type(top,STEP_INS);
+									}
+									break;
+							}
+						}
+
+						p++;
+
 						p += pskip;
 						q += pskip;
-						
+
 						a -= (k21-pskip-1);
 					}
 
@@ -539,11 +539,11 @@ namespace libmaus2
 					{
 						for ( uint64_t j = 0; j < n1; ++j )
 						{
-							std::cerr << "(" 
+							std::cerr << "("
 								<< std::setw(4)
-								<< (*this)(i,j).first 
+								<< (*this)(i,j).first
 								<< std::setw(0)
-								<< "," 
+								<< ","
 								<< (*this)(i,j).second
 								<< ","
 								<< ((j > 0) ? aa[j-1] : ' ')
@@ -551,23 +551,23 @@ namespace libmaus2
 								<< ((i > 0) ? bb[i-1] : ' ')
 								<< ")";
 						}
-						
+
 						std::cerr << std::endl;
 					}
 					#endif
-					
+
 					p = M.begin() + (static_cast<int64_t>(m * k21) + (static_cast<int64_t>(k) - (static_cast<int64_t>(m)-static_cast<int64_t>(n))));
-					
+
 					step_type * tc = te;
-					
+
 					uint64_t numins = 0, numdel = 0, nummis = 0, nummat = 0;
 
 					while ( p != (M.begin()+k) )
 					{
 						// std::cerr << AlignmentPrint::stepToString(p->second) << std::endl;
-					
+
 						*(--tc) = p->second;
-						
+
 						switch ( p->second )
 						{
 							case STEP_MATCH:
@@ -599,11 +599,11 @@ namespace libmaus2
 				{
 					assert ( k == 0 );
 					assert ( n == m );
-					
+
 					step_type * tc = te - n;
 					ta = tc;
 					uint64_t nummis = 0, nummat = 0;
-					
+
 					for ( uint64_t i = 0; i < n; ++i )
 						if ( aa[i] == bb[i] )
 						{

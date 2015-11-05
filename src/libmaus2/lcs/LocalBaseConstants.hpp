@@ -29,10 +29,10 @@ namespace libmaus2
 		struct LocalBaseConstants
 		{
 			enum step_type { STEP_MATCH, STEP_MISMATCH, STEP_INS, STEP_DEL, STEP_RESET };
-			
+
 			virtual ~LocalBaseConstants() {}
 		};
-		
+
 		std::ostream & operator<<(std::ostream & out, LocalBaseConstants::step_type const s);
 	}
 }

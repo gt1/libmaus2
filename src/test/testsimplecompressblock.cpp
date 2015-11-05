@@ -33,7 +33,7 @@ void testInputBlock()
 	libmaus2::lz::ZlibCompressorObjectFactory compfact;
 	libmaus2::lz::SimpleCompressedOutputStream<std::ostream> compstr(ostr,compfact);
 	libmaus2::autoarray::AutoArray<char> B(64*1024,false);
-	
+
 	while ( std::cin )
 	{
 		std::cin.read(B.begin(),B.size());
@@ -42,16 +42,16 @@ void testInputBlock()
 	}
 	compstr.flush();
 	ostr.flush();
-	
+
 	std::istringstream istr(ostr.str());
 	libmaus2::lz::ZlibDecompressorObjectFactory decompfact;
 	libmaus2::lz::SimpleCompressedInputBlock block(decompfact);
-	
+
 	while ( block.readBlock(istr) && ! block.eof )
 	{
 		bool const ok = block.uncompressBlock();
 		assert ( ok );
-		
+
 		std::cout.write(reinterpret_cast<char const *>(block.O.begin()),block.uncompsize);
 	}
 }
@@ -65,14 +65,14 @@ void testConcatInputBlock()
 	libmaus2::lz::ZlibCompressorObjectFactory zcfact;
 	uint64_t low = 0;
 	std::vector<libmaus2::lz::SimpleCompressedStreamNamedInterval> intervals;
-	
+
 	std::vector<std::string> filenames;
 	for ( uint64_t i = 0; i < parts; ++i )
 	{
 		uint64_t const rest = (data.size()-low);
 		uint64_t const blocksize = std::min(partsize,rest);
 		uint64_t const high = low + blocksize;
-	
+
 		std::ostringstream fnostr;
 		fnostr << "tmp_" << std::setw(6) << std::setfill('0') << i;
 		std::string const fn = fnostr.str();
@@ -86,27 +86,27 @@ void testConcatInputBlock()
 		zout.put(0);
 		zout.flush();
 		COS.flush();
-		
+
 		low = high;
-		
+
 		intervals.push_back(libmaus2::lz::SimpleCompressedStreamNamedInterval(std::pair<uint64_t,uint64_t>(0,0),std::pair<uint64_t,uint64_t>(0,0),"/dev/nullz"));
 		intervals.push_back(libmaus2::lz::SimpleCompressedStreamNamedInterval(pre,post,fn));
 		intervals.push_back(libmaus2::lz::SimpleCompressedStreamNamedInterval(std::pair<uint64_t,uint64_t>(0,0),std::pair<uint64_t,uint64_t>(0,0),"/dev/nullz"));
 	}
 
 	intervals.push_back(libmaus2::lz::SimpleCompressedStreamNamedInterval(std::pair<uint64_t,uint64_t>(0,0),std::pair<uint64_t,uint64_t>(0,0),"/dev/nullz"));
-	
+
 	libmaus2::lz::ZlibDecompressorObjectFactory zdfact;
 	libmaus2::lz::SimpleCompressedInputBlockConcatBlock block(zdfact);
 	libmaus2::lz::SimpleCompressedInputBlockConcat conc(intervals);
-	
+
 	do
 	{
 		conc.readBlock(block);
 		block.uncompressBlock();
-		
+
 		std::cout.write(reinterpret_cast<char const *>(block.O.begin()),block.uncompsize);
-		
+
 	} while ( ! block.eof );
 }
 
@@ -115,7 +115,7 @@ int main()
 	try
 	{
 		// testInputBlock();
-		testConcatInputBlock();		
+		testConcatInputBlock();
 	}
 	catch(std::exception const & ex)
 	{

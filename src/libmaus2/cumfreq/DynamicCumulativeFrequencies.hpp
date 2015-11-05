@@ -55,7 +55,7 @@ namespace libmaus2
 				{
 					uint64_t width2 = width>>1;
 					uint64_t const mid = left+width2;
-					
+
 					// key is larger than middle,
 					// add this power of two
 					if ( key > mid )
@@ -67,10 +67,10 @@ namespace libmaus2
 						if ( !(width&1) )
 							width2 -= 1;
 					}
-					
+
 					width = width2;
 				}
-				
+
 				return cumfreq;
 			}
 
@@ -89,7 +89,7 @@ namespace libmaus2
 				{
 					uint64_t width2 = width>>1;
 					uint64_t const m = left+width2;
-					
+
 					// key is larger than middle,
 					// add this power of two
 					if ( key > m )
@@ -105,13 +105,13 @@ namespace libmaus2
 					{
 						table[m] += v;
 					}
-					
+
 					width = width2;
 				}
-				
+
 				return cumfreq;
 			}
-			
+
 			uint64_t inc(uint64_t const key)
 			{
 				return add(key,1);

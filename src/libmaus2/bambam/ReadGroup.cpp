@@ -21,11 +21,11 @@
 std::ostream & operator<<(std::ostream & out, libmaus2::bambam::ReadGroup const & RG)
 {
 	out << "ReadGroup(ID=" << RG.ID;
-	
+
 	for ( ::libmaus2::util::unordered_map<std::string,std::string>::type::const_iterator ita = RG.M.begin();
 		ita != RG.M.end(); ++ita )
 		out << "," << ita->first << "=" << ita->second;
-	
+
 	out << ")";
 
 	return out;

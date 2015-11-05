@@ -32,27 +32,27 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			std::string const filename;
 			libmaus2::aio::InputStream::unique_ptr_type pCIS;
 			std::istream * in;
-			
+
 			ReadEndsStreamDecoderFileBase(std::string const & rfilename)
 			: filename(rfilename), pCIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename)), in(pCIS.get())
 			{}
-			
+
 			ReadEndsStreamDecoderFileBase(std::istream & rin)
 			: filename(), pCIS(), in(&rin)
 			{
-			
+
 			}
 
 			ReadEndsStreamDecoderFileBase()
 			: filename(), pCIS(), in()
 			{
-			
+
 			}
-		
+
 		};
 	}
 }

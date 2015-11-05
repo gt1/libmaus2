@@ -28,7 +28,7 @@ namespace libmaus2
 		struct BSwapBase
 		{
 			virtual ~BSwapBase() {}
-		
+
 			/**
 			 * invert byte order of 2 byte word
 			 * @param val
@@ -36,7 +36,7 @@ namespace libmaus2
 			 **/
 			static inline uint16_t bswap2(uint16_t val)
 			{
-				#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386) 
+				#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)
 				__asm__("xchg %%al,%%ah" : "+a"(val));
 				return val;
 				#else
@@ -55,10 +55,10 @@ namespace libmaus2
 				return val;
 				#else
 				return
-					  ((val & 0xff000000) >> 24) 
+					  ((val & 0xff000000) >> 24)
 					| ((val & 0x000000ff) << 24)
-					| ((val & 0x00ff0000) >>  8) 
-					| ((val & 0x0000ff00) <<  8) 
+					| ((val & 0x00ff0000) >>  8)
+					| ((val & 0x0000ff00) <<  8)
 					;
 				#endif
 			}

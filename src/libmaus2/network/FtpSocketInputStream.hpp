@@ -30,17 +30,17 @@ namespace libmaus2
 			typedef FtpSocketInputStream this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			FtpSocketInputStream(
 				std::string const & url,
-				uint64_t const bufsize, 
+				uint64_t const bufsize,
 				uint64_t const pushbacksize = 0
-			) 
+			)
 			:
 				FtpSocketInputStreamBuffer(url,bufsize,pushbacksize),
 				std::istream(this)
 			{
-			
+
 			}
 		};
 	}

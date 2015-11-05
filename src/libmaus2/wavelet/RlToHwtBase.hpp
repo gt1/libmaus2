@@ -49,25 +49,25 @@ namespace libmaus2
 			{
 				return _utf8_input_type;
 			}
-			
+
 			static libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type loadWaveletTree(std::string const & hwt)
 			{
 				libmaus2::aio::InputStreamInstance CIS(hwt);
 				libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type pICHWT(new libmaus2::wavelet::ImpCompactHuffmanWaveletTree(CIS));
 				return UNIQUE_PTR_MOVE(pICHWT);
 			}
-			
+
 			struct RlDecoderInfoObject
 			{
 				rl_decoder * dec;
 				uint64_t block;
 				uint64_t blocksleft;
-				
+
 				uint64_t low;
 				uint64_t end;
 				uint64_t blocksize;
 				uint64_t blockoffset;
-				
+
 				RlDecoderInfoObject() : dec(0), block(0), blocksleft(0), low(0), end(0), blocksize(0), blockoffset(0) {}
 				RlDecoderInfoObject(
 					rl_decoder * rdec,
@@ -79,54 +79,54 @@ namespace libmaus2
 					uint64_t const rblockoffset
 				) : dec(rdec), block(rblock), blocksleft(rblocksleft), low(rlow), end(rend), blocksize(rblocksize), blockoffset(rblockoffset)
 				{
-				
+
 				}
-				
+
 				bool hasNextBlock() const
 				{
 					return blocksleft > 1;
 				}
-				
+
 				RlDecoderInfoObject nextBlock() const
 				{
 					assert ( hasNextBlock() );
 					return RlDecoderInfoObject(dec,block+1,blocksleft-1,low+blocksize,end,blocksize,blockoffset);
 				}
-				
+
 				uint64_t getLow() const
 				{
-					return low;	
+					return low;
 				}
-				
+
 				uint64_t getHigh() const
 				{
 					return std::min(low+blocksize,end);
 				}
-				
+
 				uint64_t getAbsoluteBlock() const
 				{
 					return block + blockoffset;
 				}
 			};
-			
+
 			template<typename _object_type>
 			struct Todo
 			{
 				typedef _object_type object_type;
 				std::stack<object_type> todo;
 				libmaus2::parallel::OMPLock lock;
-				
+
 				Todo()
 				{
-				
+
 				}
-				
+
 				void push(object_type const & o)
 				{
 					libmaus2::parallel::ScopeLock sl(lock);
 					todo.push(o);
 				}
-				
+
 				bool pop(object_type & o)
 				{
 					libmaus2::parallel::ScopeLock sl(lock);
@@ -139,7 +139,7 @@ namespace libmaus2
 					else
 					{
 						return false;
-					}	
+					}
 				}
 			};
 
@@ -149,7 +149,7 @@ namespace libmaus2
 				uint64_t high;
 				unsigned int depth;
 				uint32_t node;
-				
+
 				WtTodo() : low(0), high(0), depth(0), node(0) {}
 				WtTodo(
 					uint64_t const rlow,
@@ -157,12 +157,12 @@ namespace libmaus2
 					unsigned int const rdepth,
 					uint32_t const rnode
 				) : low(rlow), high(rhigh), depth(rdepth), node(rnode) {}
-				
+
 				std::ostream & output(std::ostream & out) const
 				{
 					return out << "WtTodo(low=" << low << ",high=" << high << ",depth=" << depth << ",node=" << node << ")";
 				}
-				
+
 				std::string toString() const
 				{
 					std::ostringstream ostr;
@@ -176,14 +176,14 @@ namespace libmaus2
 			 **/
 			template<typename entity_type>
 			static libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type rlToHwtTermSmallAlphabet(
-				std::vector<std::string> const & bwt, 
+				std::vector<std::string> const & bwt,
 				std::string const & huftreefilename,
 				uint64_t const bwtterm,
 				uint64_t const p0r
 				)
 			{
 				// std::cerr << "(" << libmaus2::util::Demangle::demangle<entity_type>() << ")";
-			
+
 				// load the huffman tree
 				::libmaus2::huffman::HuffmanTree::unique_ptr_type UH = loadCompactHuffmanTree(huftreefilename);
 				::libmaus2::huffman::HuffmanTree & H = *UH;
@@ -196,10 +196,10 @@ namespace libmaus2
 				// get maximum symbol
 				int64_t const maxsym = symbols.size() ? symbols[symbols.size()-1] : -1;
 				// check it is in range
-				assert ( 
+				assert (
 					maxsym < 0
 					||
-					static_cast<uint64_t>(maxsym) <= static_cast<uint64_t>(std::numeric_limits<entity_type>::max()) 
+					static_cast<uint64_t>(maxsym) <= static_cast<uint64_t>(std::numeric_limits<entity_type>::max())
 				);
 				// size of symbol table
 				uint64_t const tablesize = maxsym+1;
@@ -220,7 +220,7 @@ namespace libmaus2
 					assert ( symtonodesvecsize <= std::numeric_limits<uint32_t>::max() );
 					symtonodesvecsize += E.getCodeLength(sym);
 				}
-				
+
 				libmaus2::autoarray::AutoArray<uint32_t> symtonodes(symtonodesvecsize,false);
 				uint32_t * symtonodesp = symtonodes.begin();
 				for ( uint64_t i = 0; i < symbols.size(); ++i )
@@ -229,15 +229,15 @@ namespace libmaus2
 					uint64_t const sym = symbols[i];
 					// node
 					uint64_t node = H.root();
-					
+
 					assert ( symtonodesp-symtonodes.begin() == symtonodevecoffsets[sym] );
-					
+
 					for ( uint64_t j = 0; j < E.getCodeLength(sym); ++j )
 					{
 						// add symbol to inner node
 						//symtonodes [ sym ] . push_back( node - H.leafs() );
 						*(symtonodesp++) = node - H.leafs();
-						
+
 						// follow tree link according to code of symbol
 						if ( E.getBitFromTop(sym,j) )
 							node = H.rightChild(node);
@@ -246,7 +246,7 @@ namespace libmaus2
 					}
 				}
 				assert ( symtonodesp = symtonodes.end() );
-						
+
 				// total size
 				uint64_t const n = rl_decoder::getLength(bwt);
 				// before
@@ -255,22 +255,22 @@ namespace libmaus2
 				uint64_t const n_1 = 1;
 				// after
 				uint64_t const n_2 = n-(n_0+n_1);
-				
+
 				#if defined(_OPENMP)
 				uint64_t const numthreads = omp_get_max_threads();
 				#else
 				uint64_t const numthreads = 1;
 				#endif
-				
+
 				assert ( numthreads );
-				
+
 				uint64_t const blocksperthread = 4;
 				uint64_t const targetblocks = numthreads * blocksperthread;
 				// maximum internal memory for blocks
 				uint64_t const blockmemthres = 1024ull*1024ull;
 				// per thread
 				uint64_t const blocksizethres = (blockmemthres*sizeof(entity_type) + numthreads-1)/numthreads;
-				
+
 				// block sizes
 				uint64_t const t_0 = std::min(blocksizethres,(n_0 + (targetblocks-1))/targetblocks);
 				uint64_t const t_1 = std::min(blocksizethres,(n_1 + (targetblocks-1))/targetblocks);
@@ -284,19 +284,19 @@ namespace libmaus2
 				// blocks per thread
 				uint64_t const blocks_per_thread_0 = (b_0 + numthreads-1)/numthreads;
 				uint64_t const blocks_per_thread_2 = (b_2 + numthreads-1)/numthreads;
-				
+
 				// local character histograms
 				libmaus2::autoarray::AutoArray<uint64_t> localhist(numthreads * tablesize,false);
 				// global node sizes
 				libmaus2::autoarray::AutoArray2d<uint64_t> localnodehist(inner,b_g+1,true);
 
 				#if 0
-				std::cerr << "(" << symtonodevecoffsets.byteSize() << "," << symtonodes.byteSize() << "," << localhist.byteSize() << "," 
+				std::cerr << "(" << symtonodevecoffsets.byteSize() << "," << symtonodes.byteSize() << "," << localhist.byteSize() << ","
 					<< (inner * (b_g+1) * sizeof(uint64_t)) << ")";
 				#endif
-				
+
 				libmaus2::parallel::OMPLock cerrlock;
-				
+
 				libmaus2::autoarray::AutoArray<typename rl_decoder::unique_ptr_type> rldecs(2*numthreads);
 				Todo<RlDecoderInfoObject> todostack;
 				// set up block information for symbols after terminator
@@ -306,7 +306,7 @@ namespace libmaus2
 					uint64_t const baseblock = i*blocks_per_thread_2;
 					uint64_t const highblock = std::min(baseblock + blocks_per_thread_2, b_2);
 					uint64_t const low = n_0+n_1+baseblock * t_2;
-								
+
 					if ( low < n )
 					{
 						typename rl_decoder::unique_ptr_type tptr(new rl_decoder(IDD,IECV.get(),low));
@@ -326,7 +326,7 @@ namespace libmaus2
 					uint64_t const baseblock = i*blocks_per_thread_0;
 					uint64_t const highblock = std::min(baseblock + blocks_per_thread_0, b_0);
 					uint64_t const low = baseblock * t_0;
-								
+
 					if ( low < n_0 )
 					{
 						typename rl_decoder::unique_ptr_type tptr(new rl_decoder(IDD,IECV.get(),low));
@@ -336,16 +336,16 @@ namespace libmaus2
 							rldecs[i].get(),baseblock,highblock-baseblock,
 							low,n_0,t_0,0
 							)
-						);				
+						);
 					}
 				}
-				
+
 				#if defined(_OPENMP)
 				#pragma omp parallel
 				#endif
 				{
 					RlDecoderInfoObject dio;
-					
+
 					while ( todostack.pop(dio) )
 					{
 						#if defined(_OPENMP)
@@ -353,7 +353,7 @@ namespace libmaus2
 						#else
 						uint64_t const tid = 0;
 						#endif
-					
+
 						// pointer to histogram memory for this block
 						uint64_t * const hist = localhist.begin() + tid*tablesize;
 						// erase histogram
@@ -362,16 +362,16 @@ namespace libmaus2
 						// lower and upper bound of block in symbols
 						uint64_t const low  = dio.getLow();
 						uint64_t const high = dio.getHigh();
-						
+
 						assert ( high > low );
-						
+
 						rl_decoder & dec = *(dio.dec);
 
 						// symbols to be processed
 						uint64_t todo = high-low;
 						std::pair<int64_t,uint64_t> R(-1,0);
 						uint64_t toadd = 0;
-							
+
 						while ( todo )
 						{
 							// decode a run
@@ -383,12 +383,12 @@ namespace libmaus2
 							// add it
 							hist [ R.first ] += toadd;
 							// reduce todo
-							todo -= toadd;					
+							todo -= toadd;
 						}
-						
+
 						if ( R.first != -1 && toadd != R.second )
 							dec.putBack(std::pair<int64_t,uint64_t>(R.first,R.second-toadd));
-						
+
 						if ( dio.hasNextBlock() )
 							todostack.push(dio.nextBlock());
 
@@ -398,17 +398,17 @@ namespace libmaus2
 							if ( E.hasSymbol(sym) )
 							{
 								uint32_t * symtonodesp = symtonodes.begin() + symtonodevecoffsets[sym];
-							
+
 								for ( uint64_t i = 0; i < E.getCodeLength(sym); ++i )
 									localnodehist(*(symtonodesp++) /* symtonodes[sym][i] */,blockid) += hist[sym];
 									// localnodehist(symtonodes[sym][i],blockid) += hist[sym];
 							}
 					}
 				}
-				
+
 				for ( uint64_t i = 0; i < rldecs.size(); ++i )
 					rldecs[i].reset();
-				
+
 				// terminator
 				for ( uint64_t i = 0; i < E.getCodeLength(bwtterm); ++i )
 					// localnodehist ( symtonodes[bwtterm][i], b_0 ) += 1;
@@ -416,7 +416,7 @@ namespace libmaus2
 
 				// compute prefix sums for each node
 				localnodehist.prefixSums();
-				
+
 				#if 0
 				for ( uint64_t node = 0; node < inner; ++node )
 					for ( uint64_t b = 0; b < b_g+1; ++b )
@@ -433,18 +433,18 @@ namespace libmaus2
 				{
 					uint64_t const nodebits = localnodehist(node,b_g) + 1;
 					uint64_t const nodedatawords = (nodebits+63)/64;
-						
+
 					rank_ptr_type tRnode(new rank_type(nodebits));
 					R[node] = UNIQUE_PTR_MOVE(tRnode);
 					P[node] = R[node]->A.end() - nodedatawords;
-					
+
 					#if defined(_OPENMP)
 					#pragma omp parallel for
 					#endif
 					for ( int64_t i = 0; i < static_cast<int64_t>(nodedatawords); ++i )
 						P[node][i] = 0;
 				}
-				
+
 				libmaus2::parallel::OMPLock nodelock;
 
 				// set up block information for symbols after terminator
@@ -454,7 +454,7 @@ namespace libmaus2
 					uint64_t const baseblock = i*blocks_per_thread_2;
 					uint64_t const highblock = std::min(baseblock + blocks_per_thread_2, b_2);
 					uint64_t const low = n_0+n_1+baseblock * t_2;
-								
+
 					if ( low < n )
 					{
 						typename rl_decoder::unique_ptr_type tptr(new rl_decoder(IDD,IECV.get(),low));
@@ -474,7 +474,7 @@ namespace libmaus2
 					uint64_t const baseblock = i*blocks_per_thread_0;
 					uint64_t const highblock = std::min(baseblock + blocks_per_thread_0, b_0);
 					uint64_t const low = baseblock * t_0;
-								
+
 					if ( low < n_0 )
 					{
 						typename rl_decoder::unique_ptr_type tptr(new rl_decoder(IDD,IECV.get(),low));
@@ -484,7 +484,7 @@ namespace libmaus2
 							rldecs[i].get(),baseblock,highblock-baseblock,
 							low,n_0,t_0,0
 							)
-						);				
+						);
 					}
 				}
 
@@ -493,7 +493,7 @@ namespace libmaus2
 				#endif
 				{
 					RlDecoderInfoObject dio;
-					
+
 					while ( todostack.pop(dio) )
 					{
 						#if defined(_OPENMP)
@@ -507,22 +507,22 @@ namespace libmaus2
 						std::cerr << "[" << tid << "] processing block " << dio.getAbsoluteBlock() << std::endl;
 						nodelock.unlock();
 						#endif
-						
+
 						// lower and upper bound of block in symbols
 						uint64_t const low  = dio.getLow();
 						uint64_t const high = dio.getHigh();
-						
+
 						assert ( high > low );
-									
+
 						entity_type * const block = U.begin() + (tid*t_g*2);
 						entity_type * const tblock = block + t_g;
-						
+
 						// open decoder
 						// rl_decoder dec(bwt,low);
-						
+
 						// symbols to be processed
 						uint64_t todo = high-low;
-						
+
 						entity_type * tptr = block;
 
 						rl_decoder & dec = *(dio.dec);
@@ -530,7 +530,7 @@ namespace libmaus2
 						// symbols to be processed
 						std::pair<int64_t,uint64_t> R(-1,0);
 						uint64_t toadd = 0;
-						
+
 						// load data
 						while ( todo )
 						{
@@ -542,50 +542,50 @@ namespace libmaus2
 							toadd = std::min(todo,R.second);
 							// reduce todo
 							todo -= toadd;
-							
+
 							for ( uint64_t i = 0; i < toadd; ++i )
 								*(tptr++) = R.first;
 						}
 
 						if ( R.first != -1 && toadd != R.second )
 							dec.putBack(std::pair<int64_t,uint64_t>(R.first,R.second-toadd));
-						
+
 						if ( dio.hasNextBlock() )
 							todostack.push(dio.nextBlock());
-						
+
 						for ( uint64_t i = 0; i < (high-low); ++i )
 						{
 							uint64_t const sym = block[i];
 							block[i] = E.getCode(sym) << (8*sizeof(entity_type)-E.getCodeLength(sym));
 						}
-						
+
 						std::stack<WtTodo> todostack;
 						todostack.push(WtTodo(0,high-low,0,H.root()));
-						
+
 						while ( todostack.size() )
 						{
 							WtTodo const wtcur = todostack.top();
 							todostack.pop();
-							
+
 							#if 0
 							std::cerr << wtcur << std::endl;
 							#endif
-							
+
 							// inner node id
 							uint64_t const unode = wtcur.node - H.root();
 							// shift for relevant bit
 							unsigned int const shift = (8*sizeof(entity_type)-1)-wtcur.depth;
-							
+
 							// bit offset
 							uint64_t bitoff = localnodehist(unode,dio.getAbsoluteBlock());
 							uint64_t towrite = wtcur.high-wtcur.low;
 							entity_type * ptr = block+wtcur.low;
-							
+
 							entity_type * optrs[2] = { tblock, tblock+t_g-1 };
 							static int64_t const inc[2] = { 1, -1 };
 							uint64_t bcnt[2]; bcnt[0] = 0; bcnt[1] = 0;
-						
-							// align to word boundary	
+
+							// align to word boundary
 							nodelock.lock();
 							while ( towrite && ((bitoff%64)!=0) )
 							{
@@ -595,14 +595,14 @@ namespace libmaus2
 								bcnt[bit]++;
 								(*optrs[bit]) = sym;
 								optrs[bit] += inc[bit];
-							
+
 								libmaus2::bitio::putBit(P[unode],bitoff,bit);
-							
+
 								towrite--;
 								bitoff++;
 							}
 							nodelock.unlock();
-							
+
 							// write full words
 							uint64_t * PP = P[unode] + (bitoff/64);
 							while ( towrite >= 64 )
@@ -620,12 +620,12 @@ namespace libmaus2
 									v <<= 1;
 									v |= bit;
 								}
-							
+
 								*(PP++) = v;
 								towrite -= 64;
 								bitoff += 64;
 							}
-							
+
 							// write rest
 							// assert ( towrite < 64 );
 							nodelock.lock();
@@ -637,15 +637,15 @@ namespace libmaus2
 								bcnt[bit]++;
 								(*optrs[bit]) = sym;
 								optrs[bit] += inc[bit];
-			
-								libmaus2::bitio::putBit(P[unode],bitoff,bit);
-							
-								towrite--;
-								bitoff++;	
-							}
-							nodelock.unlock();					
 
-							/* write data back */	
+								libmaus2::bitio::putBit(P[unode],bitoff,bit);
+
+								towrite--;
+								bitoff++;
+							}
+							nodelock.unlock();
+
+							/* write data back */
 							ptr = block + wtcur.low;
 							entity_type * inptr = tblock;
 							for ( uint64_t i = 0; i < bcnt[0]; ++i )
@@ -654,7 +654,7 @@ namespace libmaus2
 							inptr = tblock + t_g;
 							for ( uint64_t i = 0; i < bcnt[1]; ++i )
 								*(ptr++) = *(--inptr);
-								
+
 							// recursion
 							if ( ( ! H.isLeaf( H.rightChild(wtcur.node) ) ) && (bcnt[1] != 0) )
 								todostack.push(WtTodo(wtcur.high-bcnt[1],wtcur.high,wtcur.depth+1,H.rightChild(wtcur.node)));
@@ -675,9 +675,9 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < E.getCodeLength(bwtterm); ++i )
 					{
 						uint64_t const bit = E.getBitFromTop(bwtterm,i);
-						uint64_t const unode = node - H.root();				
+						uint64_t const unode = node - H.root();
 						libmaus2::bitio::putBit ( P[unode] , localnodehist ( unode , b_0 ), bit );
-						
+
 						if ( bit )
 							node = H.rightChild(node);
 						else
@@ -693,18 +693,18 @@ namespace libmaus2
 				{
 					uint64_t const nodebits = localnodehist(node,b_g) + 1;
 					uint64_t const nodedatawords = (nodebits+63)/64;
-					
+
 					uint64_t * inptr = P[node];
-					uint64_t * outptr = R[node]->A.begin();	
-					
+					uint64_t * outptr = R[node]->A.begin();
+
 					uint64_t accb = 0;
-					
+
 					uint64_t todo = nodedatawords;
-					
+
 					while ( todo )
 					{
 						uint64_t const toproc = std::min(todo,static_cast<uint64_t>(6));
-						
+
 						uint64_t miniword = 0;
 						uint64_t miniacc = 0;
 						for ( uint64_t i = 0; i < toproc; ++i )
@@ -713,23 +713,23 @@ namespace libmaus2
 							miniacc  += libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(inptr[i]);
 						}
 						miniword |= (miniacc << (toproc*9));
-						
+
 						for ( uint64_t i = 0; i < toproc; ++i )
 							outptr[2+i] = inptr[i];
 						outptr[0] = accb;
 						outptr[1] = miniword;
-						
+
 						accb += miniacc;
 						inptr += toproc;
 						outptr += 2+toproc;
 						todo -= toproc;
 					}
 				}
-				
+
 				libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type pICHWT(
 					new libmaus2::wavelet::ImpCompactHuffmanWaveletTree(n,H,R)
 				);
-				
+
 				#if 0
 				libmaus2::wavelet::ImpCompactHuffmanWaveletTree const & ICHWT = *pICHWT;
 				// open decoder
@@ -741,7 +741,7 @@ namespace libmaus2
 					#if 0
 					std::cerr << ICHWT[i] << "(" << sym << ")" << ";";
 					#endif
-								
+
 					if ( i == p0r )
 						assert ( ICHWT[i] == bwtterm );
 					else
@@ -750,14 +750,14 @@ namespace libmaus2
 						assert ( ranktable[sym] == ICHWT.rankm(sym,i) );
 						assert ( ICHWT.select(sym,ranktable[sym]) == i );
 						ranktable[sym]++;
-						assert ( ranktable[sym] == ICHWT.rank(sym,i) );				
+						assert ( ranktable[sym] == ICHWT.rank(sym,i) );
 					}
 				}
 				#if 0
 				std::cerr << std::endl;
 				#endif
 				#endif
-				
+
 				return UNIQUE_PTR_MOVE(pICHWT);
 			}
 
@@ -765,23 +765,23 @@ namespace libmaus2
 			 * specialised version for small alphabets
 			 **/
 			static libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type rlToHwtSmallAlphabet(
-				std::string const & bwt, 
+				std::string const & bwt,
 				std::string const & huftreefilename
 			)
 			{
 				// load the huffman tree
 				::libmaus2::huffman::HuffmanTree::unique_ptr_type UH = loadCompactHuffmanTree(huftreefilename);
 				::libmaus2::huffman::HuffmanTree & H = *UH;
-				libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ptr(rlToHwtSmallAlphabet(bwt,H));		
+				libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ptr(rlToHwtSmallAlphabet(bwt,H));
 				return UNIQUE_PTR_MOVE(ptr);
 			}
-			
+
 			/**
 			 * specialised version for small alphabets
 			 **/
 			template<typename entity_type>
 			static libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type rlToHwtSmallAlphabet(
-				std::string const & bwt, 
+				std::string const & bwt,
 				::libmaus2::huffman::HuffmanTree const & H
 			)
 			{
@@ -796,8 +796,8 @@ namespace libmaus2
 				// check it is in range
 				assert (
 					(maxsym < 0)
-					|| 
-					static_cast<uint64_t>(maxsym) <= static_cast<uint64_t>(std::numeric_limits<entity_type>::max()) 
+					||
+					static_cast<uint64_t>(maxsym) <= static_cast<uint64_t>(std::numeric_limits<entity_type>::max())
 				);
 				// size of symbol table
 				uint64_t const tablesize = maxsym+1;
@@ -815,7 +815,7 @@ namespace libmaus2
 					assert ( symtonodesvecsize <= std::numeric_limits<uint32_t>::max() );
 					symtonodesvecsize += E.getCodeLength(sym);
 				}
-				
+
 				libmaus2::autoarray::AutoArray<uint32_t> symtonodes(symtonodesvecsize,false);
 				uint32_t * symtonodesp = symtonodes.begin();
 				for ( uint64_t i = 0; i < symbols.size(); ++i )
@@ -824,15 +824,15 @@ namespace libmaus2
 					uint64_t const sym = symbols[i];
 					// node
 					uint64_t node = H.root();
-					
+
 					assert ( symtonodesp-symtonodes.begin() == symtonodevecoffsets[sym] );
-					
+
 					for ( uint64_t j = 0; j < E.getCodeLength(sym); ++j )
 					{
 						// add symbol to inner node
 						//symtonodes [ sym ] . push_back( node - H.leafs() );
 						*(symtonodesp++) = node - H.leafs();
-						
+
 						// follow tree link according to code of symbol
 						if ( E.getBitFromTop(sym,j) )
 							node = H.rightChild(node);
@@ -844,7 +844,7 @@ namespace libmaus2
 
 
 
-				#if 0		
+				#if 0
 				// compute symbol to node mapping
 				std::vector < std::vector < uint32_t > > symtonodes(tablesize);
 				for ( uint64_t i = 0; i < symbols.size(); ++i )
@@ -853,12 +853,12 @@ namespace libmaus2
 					uint64_t const sym = symbols[i];
 					// node
 					uint64_t node = H.root();
-					
+
 					for ( uint64_t j = 0; j < E.getCodeLength(sym); ++j )
 					{
 						// add symbol to inner node
 						symtonodes [ sym ] . push_back( node - H.leafs() );
-						
+
 						// follow tree link according to code of symbol
 						if ( E.getBitFromTop(sym,j) )
 							node = H.rightChild(node);
@@ -867,29 +867,29 @@ namespace libmaus2
 					}
 				}
 				#endif
-				
+
 				// total size
 				uint64_t const n = rl_decoder::getLength(bwt);
 
 				::libmaus2::huffman::IndexDecoderDataArray IDD(std::vector<std::string>(1,bwt));
-				::libmaus2::huffman::IndexEntryContainerVector::unique_ptr_type IECV = 
+				::libmaus2::huffman::IndexEntryContainerVector::unique_ptr_type IECV =
 					::libmaus2::huffman::IndexLoader::loadAccIndex(std::vector<std::string>(1,bwt));
-				
+
 				#if defined(_OPENMP)
 				uint64_t const numthreads = omp_get_max_threads();
 				#else
 				uint64_t const numthreads = 1;
 				#endif
-				
+
 				assert ( numthreads );
-				
+
 				uint64_t const blocksperthread = 4;
 				uint64_t const targetblocks = numthreads * blocksperthread;
 				// maximum internal memory for blocks
 				uint64_t const blockmemthres = 1024ull*1024ull;
 				// per thread
 				uint64_t const blocksizethres = (blockmemthres*sizeof(entity_type) + numthreads-1)/numthreads;
-				
+
 				// block size
 				uint64_t const t_g = std::min(blocksizethres,(n + (targetblocks-1))/targetblocks);
 				// actual number of blocks
@@ -903,10 +903,10 @@ namespace libmaus2
 				libmaus2::autoarray::AutoArray2d<uint64_t> localnodehist(inner,b_g+1,true);
 
 				#if 0
-				std::cerr << "(" << symtonodevecoffsets.byteSize() << "," << symtonodes.byteSize() << "," << localhist.byteSize() << "," 
+				std::cerr << "(" << symtonodevecoffsets.byteSize() << "," << symtonodes.byteSize() << "," << localhist.byteSize() << ","
 					<< (inner * (b_g+1) * sizeof(uint64_t)) << ")";
 				#endif
-				
+
 				libmaus2::parallel::OMPLock cerrlock;
 
 				libmaus2::autoarray::AutoArray<typename rl_decoder::unique_ptr_type> rldecs(numthreads);
@@ -917,7 +917,7 @@ namespace libmaus2
 					uint64_t const baseblock = i*blocks_per_thread_g;
 					uint64_t const highblock = std::min(baseblock + blocks_per_thread_g, b_g);
 					uint64_t const low = baseblock * t_g;
-								
+
 					if ( low < n )
 					{
 						typename rl_decoder::unique_ptr_type tptr(new rl_decoder(IDD,IECV.get(),low));
@@ -931,13 +931,13 @@ namespace libmaus2
 						);
 					}
 				}
-			
+
 				#if defined(_OPENMP)
 				#pragma omp parallel
 				#endif
 				{
 					RlDecoderInfoObject dio;
-					
+
 					while ( todostack.pop(dio) )
 					{
 						#if defined(_OPENMP)
@@ -945,7 +945,7 @@ namespace libmaus2
 						#else
 						uint64_t const tid = 0;
 						#endif
-					
+
 						// pointer to histogram memory for this block
 						uint64_t * const hist = localhist.begin() + tid*tablesize;
 						// erase histogram
@@ -954,7 +954,7 @@ namespace libmaus2
 						// lower and upper bound of block in symbols
 						uint64_t const low  = dio.getLow();
 						uint64_t const high = dio.getHigh();
-						
+
 						assert ( high > low );
 
 						rl_decoder & dec = *(dio.dec);
@@ -963,7 +963,7 @@ namespace libmaus2
 						uint64_t todo = high-low;
 						std::pair<int64_t,uint64_t> R(-1,0);
 						uint64_t toadd = 0;
-						
+
 						while ( todo )
 						{
 							// decode a run
@@ -975,12 +975,12 @@ namespace libmaus2
 							// add it
 							hist [ R.first ] += toadd;
 							// reduce todo
-							todo -= toadd;					
+							todo -= toadd;
 						}
 
 						if ( R.first != -1 && toadd != R.second )
 							dec.putBack(std::pair<int64_t,uint64_t>(R.first,R.second-toadd));
-						
+
 						if ( dio.hasNextBlock() )
 							todostack.push(dio.nextBlock());
 
@@ -990,7 +990,7 @@ namespace libmaus2
 							if ( E.hasSymbol(sym) )
 							{
 								uint32_t * symtonodesp = symtonodes.begin() + symtonodevecoffsets[sym];
-								
+
 								for ( uint64_t i = 0; i < E.getCodeLength(sym) /* symtonodes[sym].size() */; ++i )
 									localnodehist(*(symtonodesp++) /* symtonodes[sym][i] */,blockid) += hist[sym];
 									// localnodehist(symtonodes[sym][i],blockid) += hist[sym];
@@ -1000,10 +1000,10 @@ namespace libmaus2
 
 				for ( uint64_t i = 0; i < numthreads; ++i )
 					rldecs[i].reset();
-				
+
 				// compute prefix sums for each node
 				localnodehist.prefixSums();
-				
+
 				#if 0
 				for ( uint64_t node = 0; node < inner; ++node )
 					for ( uint64_t b = 0; b < b_g+1; ++b )
@@ -1025,18 +1025,18 @@ namespace libmaus2
 					std::cerr << "node " << node << " bits " << localnodehist(node,b_g) << " words " <<
 						(localnodehist(node,b_g)+63)/64 << std::endl;
 					#endif
-						
+
 					rank_ptr_type tRnode(new rank_type(nodebits));
 					R[node] = UNIQUE_PTR_MOVE(tRnode);
 					P[node] = R[node]->A.end() - nodedatawords;
-					
+
 					#if defined(_OPENMP)
 					#pragma omp parallel for
 					#endif
 					for ( int64_t i = 0; i < static_cast<int64_t>(nodedatawords); ++i )
 						P[node][i] = 0;
 				}
-				
+
 				libmaus2::parallel::OMPLock nodelock;
 
 				// set up block information
@@ -1045,7 +1045,7 @@ namespace libmaus2
 					uint64_t const baseblock = i*blocks_per_thread_g;
 					uint64_t const highblock = std::min(baseblock + blocks_per_thread_g, b_g);
 					uint64_t const low = baseblock * t_g;
-								
+
 					if ( low < n )
 					{
 						typename rl_decoder::unique_ptr_type tptr(new rl_decoder(IDD,IECV.get(),low));
@@ -1065,7 +1065,7 @@ namespace libmaus2
 				#endif
 				{
 					RlDecoderInfoObject dio;
-					
+
 					while ( todostack.pop(dio) )
 					{
 						#if defined(_OPENMP)
@@ -1079,16 +1079,16 @@ namespace libmaus2
 						std::cerr << "[" << tid << "] processing block " << b << std::endl;
 						nodelock.unlock();
 						#endif
-						
+
 						// lower and upper bound of block in symbols
 						uint64_t const low  = dio.getLow();
 						uint64_t const high = dio.getHigh();
-						
+
 						assert ( high > low );
 
 						entity_type * const block = U.begin() + (tid*t_g*2);
 						entity_type * const tblock = block + t_g;
-						
+
 						entity_type * tptr = block;
 
 						rl_decoder & dec = *(dio.dec);
@@ -1109,50 +1109,50 @@ namespace libmaus2
 							toadd = std::min(todo,R.second);
 							// reduce todo
 							todo -= toadd;
-							
+
 							for ( uint64_t i = 0; i < toadd; ++i )
 								*(tptr++) = R.first;
 						}
 
 						if ( R.first != -1 && toadd != R.second )
 							dec.putBack(std::pair<int64_t,uint64_t>(R.first,R.second-toadd));
-						
+
 						if ( dio.hasNextBlock() )
 							todostack.push(dio.nextBlock());
-						
+
 						for ( uint64_t i = 0; i < (high-low); ++i )
 						{
 							uint64_t const sym = block[i];
 							block[i] = E.getCode(sym) << (8*sizeof(entity_type)-E.getCodeLength(sym));
 						}
-						
+
 						std::stack<WtTodo> todostack;
 						todostack.push(WtTodo(0,high-low,0,H.root()));
-						
+
 						while ( todostack.size() )
 						{
 							WtTodo const wtcur = todostack.top();
 							todostack.pop();
-							
+
 							#if 0
 							std::cerr << wtcur << std::endl;
 							#endif
-							
+
 							// inner node id
 							uint64_t const unode = wtcur.node - H.root();
 							// shift for relevant bit
 							unsigned int const shift = (8*sizeof(entity_type)-1)-wtcur.depth;
-							
+
 							// bit offset
 							uint64_t bitoff = localnodehist(unode,dio.getAbsoluteBlock());
 							uint64_t towrite = wtcur.high-wtcur.low;
 							entity_type * ptr = block+wtcur.low;
-							
+
 							entity_type * optrs[2] = { tblock, tblock+t_g-1 };
 							static int64_t const inc[2] = { 1, -1 };
 							uint64_t bcnt[2]; bcnt[0] = 0; bcnt[1] = 0;
-						
-							// align to word boundary	
+
+							// align to word boundary
 							nodelock.lock();
 							while ( towrite && ((bitoff%64)!=0) )
 							{
@@ -1162,14 +1162,14 @@ namespace libmaus2
 								bcnt[bit]++;
 								(*optrs[bit]) = sym;
 								optrs[bit] += inc[bit];
-							
+
 								libmaus2::bitio::putBit(P[unode],bitoff,bit);
-							
+
 								towrite--;
 								bitoff++;
 							}
 							nodelock.unlock();
-							
+
 							// write full words
 							uint64_t * PP = P[unode] + (bitoff/64);
 							while ( towrite >= 64 )
@@ -1187,12 +1187,12 @@ namespace libmaus2
 									v <<= 1;
 									v |= bit;
 								}
-							
+
 								*(PP++) = v;
 								towrite -= 64;
 								bitoff += 64;
 							}
-							
+
 							// write rest
 							// assert ( towrite < 64 );
 							nodelock.lock();
@@ -1206,13 +1206,13 @@ namespace libmaus2
 								optrs[bit] += inc[bit];
 
 								libmaus2::bitio::putBit(P[unode],bitoff,bit);
-							
-								towrite--;
-								bitoff++;	
-							}
-							nodelock.unlock();					
 
-							/* write data back */	
+								towrite--;
+								bitoff++;
+							}
+							nodelock.unlock();
+
+							/* write data back */
 							ptr = block + wtcur.low;
 							entity_type * inptr = tblock;
 							for ( uint64_t i = 0; i < bcnt[0]; ++i )
@@ -1221,7 +1221,7 @@ namespace libmaus2
 							inptr = tblock + t_g;
 							for ( uint64_t i = 0; i < bcnt[1]; ++i )
 								*(ptr++) = *(--inptr);
-								
+
 							// recursion
 							if ( ( ! H.isLeaf( H.rightChild(wtcur.node) ) ) && (bcnt[1] != 0) )
 								todostack.push(WtTodo(wtcur.high-bcnt[1],wtcur.high,wtcur.depth+1,H.rightChild(wtcur.node)));
@@ -1239,18 +1239,18 @@ namespace libmaus2
 				{
 					uint64_t const nodebits = localnodehist(node,b_g) + 1;
 					uint64_t const nodedatawords = (nodebits+63)/64;
-					
+
 					uint64_t * inptr = P[node];
-					uint64_t * outptr = R[node]->A.begin();	
-					
+					uint64_t * outptr = R[node]->A.begin();
+
 					uint64_t accb = 0;
-					
+
 					uint64_t todo = nodedatawords;
-					
+
 					while ( todo )
 					{
 						uint64_t const toproc = std::min(todo,static_cast<uint64_t>(6));
-						
+
 						uint64_t miniword = 0;
 						uint64_t miniacc = 0;
 						for ( uint64_t i = 0; i < toproc; ++i )
@@ -1259,23 +1259,23 @@ namespace libmaus2
 							miniacc  += libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(inptr[i]);
 						}
 						miniword |= (miniacc << (toproc*9));
-						
+
 						for ( uint64_t i = 0; i < toproc; ++i )
 							outptr[2+i] = inptr[i];
 						outptr[0] = accb;
 						outptr[1] = miniword;
-						
+
 						accb += miniacc;
 						inptr += toproc;
 						outptr += 2+toproc;
 						todo -= toproc;
 					}
 				}
-				
+
 				libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type pICHWT(
 					new libmaus2::wavelet::ImpCompactHuffmanWaveletTree(n,H,R)
 				);
-				
+
 				#if 0
 				libmaus2::wavelet::ImpCompactHuffmanWaveletTree const & ICHWT = *pICHWT;
 				// open decoder
@@ -1285,18 +1285,18 @@ namespace libmaus2
 				{
 					int64_t const sym = dec.decode();
 					std::cerr << ICHWT[i] << "(" << sym << ")" << ";";
-								
+
 					assert ( sym == ICHWT[i] );
 					assert ( ranktable[sym] == ICHWT.rankm(sym,i) );
 					assert ( ICHWT.select(sym,ranktable[sym]) == i );
 					ranktable[sym]++;
-					assert ( ranktable[sym] == ICHWT.rank(sym,i) );				
+					assert ( ranktable[sym] == ICHWT.rank(sym,i) );
 				}
 
 				std::cerr << std::endl;
 
 				#endif
-				
+
 				return UNIQUE_PTR_MOVE(pICHWT);
 			}
 
@@ -1309,7 +1309,7 @@ namespace libmaus2
 				#endif
 
 				uint64_t const n = rl_decoder::getLength(bwt);
-				
+
 				uint64_t const numpacks = 4*numthreads;
 				uint64_t const packsize = (n + numpacks - 1)/numpacks;
 				::libmaus2::parallel::OMPLock histlock;
@@ -1323,25 +1323,25 @@ namespace libmaus2
 					uint64_t const low = std::min(t*packsize,n);
 					uint64_t const high = std::min(low+packsize,n);
 					::libmaus2::util::Histogram lhist;
-					
+
 					if ( high-low )
 					{
 						rl_decoder dec(std::vector<std::string>(1,bwt),low);
-						
+
 						uint64_t todec = high-low;
 						std::pair<int64_t,uint64_t> P;
-						
+
 						while ( todec )
 						{
 							P = dec.decodeRun();
 							assert ( P.first >= 0 );
 							P.second = std::min(P.second,todec);
 							lhist.add(P.first,P.second);
-							
+
 							todec -= P.second;
 						}
 					}
-					
+
 					histlock.lock();
 					mhist->merge(lhist);
 					histlock.unlock();
@@ -1349,20 +1349,20 @@ namespace libmaus2
 
 				return UNIQUE_PTR_MOVE(mhist);
 			}
-			
+
 			static unsigned int utf8WaveletMaxThreads()
 			{
 				return 24;
 			}
-			
+
 			static uint64_t utf8WaveletMaxPartMem()
 			{
 				return 64ull*1024ull*1024ull;
 			}
 
 			static libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type rlToHwt(
-				std::string const & bwt, 
-				std::string const & hwt, 
+				std::string const & bwt,
+				std::string const & hwt,
 				std::string const tmpprefix
 			)
 			{
@@ -1370,7 +1370,7 @@ namespace libmaus2
 				::std::map<int64_t,uint64_t> const chist = mhist->getByType<int64_t>();
 
 				::libmaus2::huffman::HuffmanTree H ( chist.begin(), chist.size(), false, true, true );
-				
+
 				if ( utf8Wavelet() )
 				{
 					::libmaus2::wavelet::Utf8ToImpCompactHuffmanWaveletTree::constructWaveletTreeFromRl<rl_decoder,true /* radix sort */>(
@@ -1393,7 +1393,7 @@ namespace libmaus2
 						assert ( sym == IHWL[i] );
 					}
 					std::cerr << "done." << std::endl;
-					
+
 					std::cerr << "Running inverse select loop...";
 					uint64_t r = 0;
 					for ( uint64_t i = 0; i < IHWT->size(); ++i )
@@ -1467,7 +1467,7 @@ namespace libmaus2
 							assert ( t < static_cast<int64_t>(numthreads) );
 							uint64_t const low = std::min(t*packsize,n);
 							uint64_t const high = std::min(low+packsize,n);
-							
+
 							::libmaus2::wavelet::ImpExternalWaveletGeneratorCompactHuffmanParallel::BufferType & BTS = IEWGH[t];
 
 							if ( high-low )
@@ -1476,7 +1476,7 @@ namespace libmaus2
 
 								uint64_t todec = high-low;
 								std::pair<int64_t,uint64_t> P;
-								
+
 								while ( todec )
 								{
 									P = dec.decodeRun();
@@ -1485,12 +1485,12 @@ namespace libmaus2
 
 									for ( uint64_t i = 0; i < P.second; ++i )
 										BTS.putSymbol(P.first);
-									
+
 									todec -= P.second;
 								}
 							}
 						}
-						
+
 						IEWGH.createFinalStream(hwt);
 
 						libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type IHWT(libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(hwt));
@@ -1498,10 +1498,10 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			static void rlToHwtTerm(
-				std::vector<std::string> const & bwt, 
-				std::string const & hwt, 
+				std::vector<std::string> const & bwt,
+				std::string const & hwt,
 				std::string const tmpprefix,
 				::libmaus2::huffman::HuffmanTree & H,
 				uint64_t const bwtterm,
@@ -1515,7 +1515,7 @@ namespace libmaus2
 						utf8WaveletMaxPartMem() /* maximum part size */,
 						utf8WaveletMaxThreads()
 					);
-					
+
 					#if 0
 					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type IHWT(libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(hwt));
 					rl_decoder rldec(bwt);
@@ -1530,7 +1530,7 @@ namespace libmaus2
 					#endif
 				}
 				else
-				{			
+				{
 					::libmaus2::util::TempFileNameGenerator tmpgen(tmpprefix,3);
 
 					#if defined(_OPENMP)
@@ -1544,7 +1544,7 @@ namespace libmaus2
 					assert ( p0r < n );
 					uint64_t const nlow = p0r;
 					uint64_t const nhigh = n - (nlow + 1);
-					
+
 					uint64_t const packsizelow  = (nlow + numthreads - 1)/numthreads;
 					uint64_t const numpackslow  = packsizelow ? ( (nlow + packsizelow-1)/packsizelow ) : 0;
 					uint64_t const packsizehigh = (nhigh + numthreads - 1)/numthreads;
@@ -1560,7 +1560,7 @@ namespace libmaus2
 						assert ( t < static_cast<int64_t>(numthreads) );
 						uint64_t const low  = std::min(t*packsizelow,nlow);
 						uint64_t const high = std::min(low+packsizelow,nlow);
-						
+
 						::libmaus2::wavelet::ImpExternalWaveletGeneratorCompactHuffmanParallel::BufferType & BTS = IEWGH[t];
 
 						if ( high-low )
@@ -1569,7 +1569,7 @@ namespace libmaus2
 
 							uint64_t todec = high-low;
 							std::pair<int64_t,uint64_t> P;
-							
+
 							while ( todec )
 							{
 								P = dec.decodeRun();
@@ -1578,12 +1578,12 @@ namespace libmaus2
 
 								for ( uint64_t i = 0; i < P.second; ++i )
 									BTS.putSymbol(P.first);
-								
+
 								todec -= P.second;
 							}
 						}
 					}
-					
+
 					IEWGH[numthreads].putSymbol(bwtterm);
 
 					#if defined(_OPENMP)
@@ -1594,7 +1594,7 @@ namespace libmaus2
 						assert ( t < static_cast<int64_t>(numthreads) );
 						uint64_t const low  = std::min(nlow + 1 + t*packsizehigh,n);
 						uint64_t const high = std::min(low+packsizehigh,n);
-						
+
 						::libmaus2::wavelet::ImpExternalWaveletGeneratorCompactHuffmanParallel::BufferType & BTS = IEWGH[numthreads+1+t];
 
 						if ( high-low )
@@ -1603,7 +1603,7 @@ namespace libmaus2
 
 							uint64_t todec = high-low;
 							std::pair<int64_t,uint64_t> P;
-							
+
 							while ( todec )
 							{
 								P = dec.decodeRun();
@@ -1612,19 +1612,19 @@ namespace libmaus2
 
 								for ( uint64_t i = 0; i < P.second; ++i )
 									BTS.putSymbol(P.first);
-								
+
 								todec -= P.second;
 							}
 						}
 					}
-					
+
 					IEWGH.createFinalStream(hwt);
 				}
 			}
-			
+
 			static void rlToHwtTerm(
-				std::vector<std::string> const & bwt, 
-				std::string const & hwt, 
+				std::vector<std::string> const & bwt,
+				std::string const & hwt,
 				std::string const tmpprefix,
 				::std::map<int64_t,uint64_t> const & chist,
 				uint64_t const bwtterm,
@@ -1641,7 +1641,7 @@ namespace libmaus2
 				::libmaus2::huffman::HuffmanTree::unique_ptr_type tH(new ::libmaus2::huffman::HuffmanTree(*CIN));
 				// CIN->close();
 				CIN.reset();
-				
+
 				return UNIQUE_PTR_MOVE(tH);
 			}
 
@@ -1649,17 +1649,17 @@ namespace libmaus2
 			{
 				// deserialise symbol frequences
 				libmaus2::aio::InputStreamInstance::unique_ptr_type chistCIN(new libmaus2::aio::InputStreamInstance(huftreefilename));
-				::libmaus2::huffman::HuffmanTreeNode::shared_ptr_type shnode = 
+				::libmaus2::huffman::HuffmanTreeNode::shared_ptr_type shnode =
 					::libmaus2::huffman::HuffmanTreeNode::deserialize(*chistCIN);
 				//chistCIN->close();
 				chistCIN.reset();
-				
+
 				return shnode;
 			}
 
 			static libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type rlToHwtTerm(
-				std::vector<std::string> const & bwt, 
-				std::string const & hwt, 
+				std::vector<std::string> const & bwt,
+				std::string const & hwt,
 				std::string const tmpprefix,
 				std::string const huftreefilename,
 				uint64_t const bwtterm,
@@ -1674,30 +1674,30 @@ namespace libmaus2
 				if ( H.maxDepth() <= 8*sizeof(uint8_t) && H.maxSymbol() <= std::numeric_limits<uint8_t>::max() )
 				{
 					// std::cerr << "(small)";
-					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type tICHWT(rlToHwtTermSmallAlphabet<uint8_t>(bwt,huftreefilename,bwtterm,p0r));			
+					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type tICHWT(rlToHwtTermSmallAlphabet<uint8_t>(bwt,huftreefilename,bwtterm,p0r));
 					return UNIQUE_PTR_MOVE(tICHWT);
 				}
 				else if ( H.maxDepth() <= 8*sizeof(uint16_t) && H.maxSymbol() <= std::numeric_limits<uint16_t>::max() )
 				{
 					// std::cerr << "(small)";
-					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type tICHWT(rlToHwtTermSmallAlphabet<uint16_t>(bwt,huftreefilename,bwtterm,p0r));			
+					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type tICHWT(rlToHwtTermSmallAlphabet<uint16_t>(bwt,huftreefilename,bwtterm,p0r));
 					return UNIQUE_PTR_MOVE(tICHWT);
 				}
 				else if ( H.maxDepth() <= 8*sizeof(uint32_t) && H.maxSymbol() <= std::numeric_limits<uint16_t>::max() )
 				{
 					// std::cerr << "(small)";
-					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type tICHWT(rlToHwtTermSmallAlphabet<uint32_t>(bwt,huftreefilename,bwtterm,p0r));			
+					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type tICHWT(rlToHwtTermSmallAlphabet<uint32_t>(bwt,huftreefilename,bwtterm,p0r));
 					return UNIQUE_PTR_MOVE(tICHWT);
 				}
 				else if ( H.maxDepth() <= 8*sizeof(uint64_t) && H.maxSymbol() <= std::numeric_limits<uint16_t>::max() )
 				{
 					// std::cerr << "(small)";
-					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type tICHWT(rlToHwtTermSmallAlphabet<uint64_t>(bwt,huftreefilename,bwtterm,p0r));			
+					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type tICHWT(rlToHwtTermSmallAlphabet<uint64_t>(bwt,huftreefilename,bwtterm,p0r));
 					return UNIQUE_PTR_MOVE(tICHWT);
 				}
 				else
 				{
-				
+
 					// std::cerr << "(large)";
 					rlToHwtTerm(bwt,hwt,tmpprefix,H,bwtterm,p0r);
 					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type tICHWT(loadWaveletTree(hwt));

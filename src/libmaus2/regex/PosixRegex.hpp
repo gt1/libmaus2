@@ -37,7 +37,7 @@ namespace libmaus2
 		struct PosixRegex
 		{
 			regex_t preg;
-			
+
 			PosixRegex(std::string const & pattern, int const cflags = REG_EXTENDED)
 			{
 				int res = regcomp(&preg,pattern.c_str(),cflags);
@@ -46,7 +46,7 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to compile regular expression " << pattern << std::endl;
 					se.finish();
-					throw se;		
+					throw se;
 				}
 			}
 			~PosixRegex()
@@ -71,13 +71,13 @@ namespace libmaus2
 				int64_t r = 0;
 				char const * d = c;
 				std::vector<uint64_t> V;
-				
+
 				while ( (r = findFirstMatch(d)) >= 0 )
 				{
 					V.push_back( (d-c)+r );
 					d = d+r+1;
 				}
-				
+
 				return V;
 			}
 			std::string replaceFirstMatch(char const * c, char const * repl) const
@@ -89,13 +89,13 @@ namespace libmaus2
 					uint64_t const start = pmatch[0].rm_so;
 					uint64_t const end = pmatch[0].rm_eo;
 					uint64_t const plen = end-start;
-					
+
 					std::string R( strlen(c) - plen + strlen(repl), ' ' );
 
 					std::copy(c,c+pmatch[0].rm_so,R.begin());
 					std::copy(repl,repl+strlen(repl),R.begin()+pmatch[0].rm_so);
 					std::copy(c+pmatch[0].rm_eo,c+strlen(c),R.begin()+pmatch[0].rm_so+strlen(repl));
-					
+
 					return R;
 				}
 				else
@@ -103,11 +103,11 @@ namespace libmaus2
 					return std::string(c);
 				}
 			}
-			
+
 			std::string replaceAllMatches(char const * c, char const * repl) const
 			{
 				std::vector<char> ostr;
-				
+
 				while ( *c )
 				{
 					regmatch_t pmatch[1];
@@ -117,7 +117,7 @@ namespace libmaus2
 						uint64_t const start = pmatch[0].rm_so;
 						uint64_t const end = pmatch[0].rm_eo;
 						// uint64_t const plen = end-start;
-				
+
 						char const * d = c + start;
 						for ( ; c != d; ++c )
 							ostr.push_back( *c );
@@ -131,7 +131,7 @@ namespace libmaus2
 							ostr.push_back( *(c++) );
 					}
 				}
-				
+
 				return std::string(ostr.begin(),ostr.end());
 			}
 		};

@@ -28,7 +28,7 @@ namespace libmaus2
 		struct BgzfInflateParallelWrapper
 		{
 			BgzfInflateParallel bgzf;
-			
+
 			BgzfInflateParallelWrapper(std::istream & rin)
 			: bgzf(rin) {}
 			BgzfInflateParallelWrapper(std::istream & rin, uint64_t const rnumthreads)

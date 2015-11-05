@@ -24,15 +24,15 @@
 namespace libmaus2
 {
 	namespace bambam
-	{		
+	{
 		namespace parallel
 		{
 			struct AlignmentRewriteBufferCoordinateComparator
 			{
 				AlignmentRewriteBuffer * buffer;
-				
+
 				AlignmentRewriteBufferCoordinateComparator(AlignmentRewriteBuffer * rbuffer) : buffer(rbuffer) {}
-				
+
 				bool operator()(AlignmentRewriteBuffer::pointer_type A, AlignmentRewriteBuffer::pointer_type B) const
 				{
 					return buffer->decodeCoordinate(A) < buffer->decodeCoordinate(B);

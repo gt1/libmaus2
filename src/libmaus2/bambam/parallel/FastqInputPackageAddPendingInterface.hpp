@@ -26,12 +26,12 @@ namespace libmaus2
 	namespace bambam
 	{
 		namespace parallel
-		{			
+		{
 			struct FastqInputPackageAddPendingInterface
 			{
 				virtual ~FastqInputPackageAddPendingInterface() {}
 				virtual void fastqInputPackageAddPending(FastQInputDescBase::input_block_type::shared_ptr_type) = 0;
-			};			
+			};
 		}
 	}
 }

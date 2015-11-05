@@ -24,6 +24,6 @@ std::ostream & libmaus2::fastx::operator<<(std::ostream & out, ::libmaus2::fastx
 
 	for ( unsigned int i = 0; i < S.width; ++i, pmask >>= 2, shift -= 2 )
 		out << ((S.buffer & pmask) >> shift);
-		
+
 	return out;
-}		
+}

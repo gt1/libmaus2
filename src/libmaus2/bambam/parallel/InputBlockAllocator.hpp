@@ -30,7 +30,7 @@ namespace libmaus2
 			struct InputBlockAllocator
 			{
 				InputBlockAllocator() {}
-				
+
 				InputBlock::shared_ptr_type operator()()
 				{
 					InputBlock::shared_ptr_type tptr(new InputBlock);

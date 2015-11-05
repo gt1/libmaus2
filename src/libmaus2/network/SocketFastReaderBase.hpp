@@ -41,7 +41,7 @@ namespace libmaus2
 		{
 			typedef SocketFastReaderBase this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			private:
 			::libmaus2::network::SocketBase * socket;
 			::libmaus2::autoarray::AutoArray<uint8_t> B;
@@ -49,9 +49,9 @@ namespace libmaus2
 			uint8_t * pc;
 			uint8_t * pe;
 			uint64_t c;
-			
+
 			::libmaus2::fastx::CharBuffer cb;
-			
+
 			uint64_t readNumber1()
 			{
 				int const v = getNextCharacter();
@@ -85,7 +85,7 @@ namespace libmaus2
 
 			public:
 			SocketFastReaderBase(::libmaus2::network::SocketBase * rsocket, uint64_t const bufsize)
-			: 
+			:
 				socket(rsocket),
 				B(bufsize),
 				pa(B.get()),
@@ -111,7 +111,7 @@ namespace libmaus2
 				if ( pc == pe )
 				{
 					ssize_t red = socket->read ( reinterpret_cast<char *>(pa), B.size() );
-					
+
 					if (  red > 0 )
 					{
 						pc = pa;
@@ -119,31 +119,31 @@ namespace libmaus2
 					}
 					else
 					{
-						return -1;	
+						return -1;
 					}
 				}
-				
+
 				c += 1;
 				return *(pc++);
 			}
-			
+
 			std::pair < char const *, uint64_t > getLineRaw()
 			{
 				int c;
 				cb.reset();
 				while ( (c=getNextCharacter()) >= 0 && c != '\n' )
 					cb.bufferPush(c);
-				
+
 				if ( cb.length == 0 && c == -1 )
 					return std::pair<char const *, uint64_t>(reinterpret_cast<char const *>(0),0);
 				else
 					return std::pair<char const *, uint64_t>(cb.buffer,cb.length);
 			}
-			
+
 			bool getLine(std::string & s)
 			{
 				std::pair < char const *, uint64_t > P = getLineRaw();
-				
+
 				if ( P.first )
 				{
 					s = std::string(P.first,P.first+P.second);
@@ -153,7 +153,7 @@ namespace libmaus2
 				{
 					return false;
 				}
-			}			
+			}
 		};
 	}
 }

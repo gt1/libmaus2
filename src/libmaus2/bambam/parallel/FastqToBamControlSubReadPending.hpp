@@ -38,7 +38,7 @@ namespace libmaus2
 				uint64_t volatile subid;
 				uint64_t volatile absid;
 				DecompressedBlock::shared_ptr_type deblock;
-					
+
 				FastqToBamControlSubReadPending() : block(), subid(0), absid(0), deblock() {}
 				FastqToBamControlSubReadPending(
 					FastQInputDescBase::input_block_type::shared_ptr_type rblock,

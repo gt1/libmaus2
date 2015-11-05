@@ -36,7 +36,7 @@ namespace libmaus2
 				int64_t subid;
 				libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type obuf;
 				libmaus2::lz::BgzfDeflateZStreamBaseFlushInfo flushinfo;
-				
+
 				WritePendingObject() {}
 				WritePendingObject(
 					uint64_t const rstreamid,
@@ -47,7 +47,7 @@ namespace libmaus2
 					libmaus2::lz::BgzfDeflateZStreamBaseFlushInfo const & rflushinfo
 				) : streamid(rstreamid), out(rout), blockid(rblockid), subid(rsubid), obuf(robuf), flushinfo(rflushinfo)
 				{
-				
+
 				}
 			};
 		}

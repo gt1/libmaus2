@@ -42,14 +42,14 @@ namespace libmaus2
 			typedef ::boost::hash<T> hash_type;
 			#else
 			#error "Required unordered_set not found."
-			#endif			
+			#endif
 		};
 
 		template<typename T, typename H = typename unordered_set_hash<T>::hash_type >
 		struct unordered_set
 		{
 			#if defined(LIBMAUS2_USE_STD_UNORDERED_SET)
-			typedef typename ::std::unordered_set<T,H> type;			
+			typedef typename ::std::unordered_set<T,H> type;
 			#elif defined(LIBMAUS2_USE_BOOST_UNORDERED_SET)
 			typedef typename ::boost::unordered_set<T,H> type;
 			#else

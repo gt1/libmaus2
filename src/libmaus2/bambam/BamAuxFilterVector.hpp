@@ -31,9 +31,9 @@ namespace libmaus2
 		{
 			typedef BamAuxFilterVector this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			libmaus2::bitio::BitVector B;
-			
+
 			size_t byteSize() const
 			{
 				return B.byteSize();
@@ -42,7 +42,7 @@ namespace libmaus2
 			static libmaus2::bambam::BamAuxFilterVector::unique_ptr_type parseAuxFilterList(libmaus2::util::ArgInfo const & arginfo)
 			{
 				libmaus2::bambam::BamAuxFilterVector::unique_ptr_type pfilter;
-				
+
 				if ( arginfo.hasArg("auxfilter") )
 				{
 					libmaus2::bambam::BamAuxFilterVector::unique_ptr_type tfilter(
@@ -51,7 +51,7 @@ namespace libmaus2
 
 					std::string const filterlist = arginfo.getUnparsedValue("auxfilter","");
 					std::deque<std::string> tokens = libmaus2::util::stringFunctions::tokenize<std::string>(filterlist,std::string(","));
-					
+
 					for ( uint64_t i = 0; i < tokens.size(); ++i )
 					{
 						if ( tokens[i].size() != 2 )
@@ -61,18 +61,18 @@ namespace libmaus2
 							se.finish();
 							throw se;
 						}
-						
+
 						tfilter->set(tokens[i]);
 					}
-					
+
 					pfilter = UNIQUE_PTR_MOVE(tfilter);
 				}
-				
+
 				return UNIQUE_PTR_MOVE(pfilter);
 			}
-			
+
 			BamAuxFilterVector() : B(256*256)  {}
-			BamAuxFilterVector(char const * const * tags) : B(256*256) 
+			BamAuxFilterVector(char const * const * tags) : B(256*256)
 			{
 				while ( *tags )
 				{
@@ -83,18 +83,18 @@ namespace libmaus2
 					set(c[0],c[1]);
 				}
 			}
-			BamAuxFilterVector(std::vector<std::string> const & tags) : B(256*256) 
+			BamAuxFilterVector(std::vector<std::string> const & tags) : B(256*256)
 			{
 				for ( uint64_t i = 0; i < tags.size(); ++i )
 					set(tags[i]);
 			}
 			template<typename iterator>
-			BamAuxFilterVector(iterator ita, iterator ite) : B(256*256) 
+			BamAuxFilterVector(iterator ita, iterator ite) : B(256*256)
 			{
 				for ( ; ita != ite ; ++ita )
 					set(*ita);
 			}
-						
+
 			void set(std::string const & s)
 			{
 				if ( s.size() == 2 )
@@ -110,10 +110,10 @@ namespace libmaus2
 					throw se;
 				}
 			}
-			
+
 			void set(uint8_t const ca, uint8_t const cb)
 			{
-				B.set( 
+				B.set(
 					(static_cast<uint64_t>(ca) << 8)
 					|
 					(static_cast<uint64_t>(cb) << 0),
@@ -123,14 +123,14 @@ namespace libmaus2
 
 			void clear(uint8_t const ca, uint8_t const cb)
 			{
-				B.set( 
+				B.set(
 					(static_cast<uint64_t>(ca) << 8)
 					|
 					(static_cast<uint64_t>(cb) << 0),
 					0
 				);
 			}
-			
+
 			bool operator()(uint8_t const ca, uint8_t const cb) const
 			{
 				return B[(static_cast<uint64_t>(ca) << 8) | (static_cast<uint64_t>(cb) << 0)];

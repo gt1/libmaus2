@@ -44,7 +44,7 @@ namespace libmaus2
 			typedef libmaus2::aio::InputStreamInstance input_stream_type;
 			//! pointer to input stream
 			typedef libmaus2::util::shared_ptr<input_stream_type>::type input_stream_ptr_type;
-			
+
 			//! temporary file name generator object
 			libmaus2::util::TempFileNameGenerator & tmpgen;
 			//! output streams
@@ -55,7 +55,7 @@ namespace libmaus2
 			std::map < uint64_t, input_stream_ptr_type > instreams;
 			//! concurrency lock
 			libmaus2::parallel::OMPLock lock;
-			
+
 			/**
 			 * constructor
 			 *
@@ -67,7 +67,7 @@ namespace libmaus2
 			{
 				libmaus2::util::TempFileRemovalContainer::setup();
 			}
-			
+
 			/**
 			 * open temp file for id and return reference;
 			 * destroys previous files and existing references to id
@@ -119,9 +119,9 @@ namespace libmaus2
 			{
 				libmaus2::parallel::ScopeLock slock(lock);
 				assert ( filenames.find(id) != filenames.end() );
-				
+
 				instreams[id] = input_stream_ptr_type(new input_stream_type(filenames.find(id)->second));
-					
+
 				return *(instreams[id]);
 			}
 			/**

@@ -37,14 +37,14 @@ namespace libmaus2
 			container_type const & container;
 			//! current index
 			uint64_t i;
-			
+
 			/**
 			 * constructor
 			 *
 			 * @param rcontainer container to be wrapped
 			 **/
 			ContainerGetObject(container_type const & rcontainer) : container(rcontainer), i(0) {}
-			
+
 			/**
 			 * @return next element
 			 **/

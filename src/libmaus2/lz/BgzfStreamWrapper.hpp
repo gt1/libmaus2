@@ -38,38 +38,38 @@ namespace libmaus2
 
 			BgzfStreamWrapperBuffer(BgzfStreamWrapperBuffer const &);
 			BgzfStreamWrapperBuffer & operator=(BgzfStreamWrapperBuffer&);
-			
+
 			public:
 			BgzfStreamWrapperBuffer(stream_type & rstream, ::std::size_t rbuffersize, std::size_t rpushbackspace)
-			: stream(rstream), 
+			: stream(rstream),
 			  buffersize(rbuffersize),
 			  pushbackspace(rpushbackspace),
 			  buffer(buffersize+pushbackspace,false), streamreadpos(0)
 			{
-				setg(buffer.end(), buffer.end(), buffer.end());	
+				setg(buffer.end(), buffer.end(), buffer.end());
 			}
-			
+
 			uint64_t tellg() const
 			{
 				return streamreadpos - (egptr()-gptr());
 			}
-			
+
 			private:
 			// gptr as unsigned pointer
 			uint8_t const * uptr() const
 			{
 				return reinterpret_cast<uint8_t const *>(gptr());
 			}
-			
+
 			int_type underflow()
 			{
 				if ( gptr() < egptr() )
 					return static_cast<int_type>(*uptr());
-					
+
 				assert ( gptr() == egptr() );
-				
+
 				char * midptr = buffer.begin() + pushbackspace;
-				uint64_t const copyavail = 
+				uint64_t const copyavail =
 					std::min(
 						// previously read
 						static_cast<uint64_t>(gptr()-eback()),
@@ -77,20 +77,20 @@ namespace libmaus2
 						static_cast<uint64_t>(midptr-buffer.begin())
 					);
 				::std::memmove(midptr-copyavail,gptr()-copyavail,copyavail);
-				
+
 				size_t n = 0;
 				bool done = false;
-				
+
 				while ( ! done )
 				{
-					BgzfInflateInfo const info = stream.readAndInfo(midptr, buffer.end()-midptr);						
+					BgzfInflateInfo const info = stream.readAndInfo(midptr, buffer.end()-midptr);
 					n = info.uncompressed;
-					
+
 					// non eof block
 					if ( n )
 					{
 						streamreadpos += n;
-						done = true;			
+						done = true;
 					}
 					else
 					{
@@ -102,7 +102,7 @@ namespace libmaus2
 						// intermediate empty block, skip it
 						else
 						{
-						
+
 						}
 					}
 				}
@@ -111,7 +111,7 @@ namespace libmaus2
 
 				if (!n)
 					return traits_type::eof();
-									
+
 				return static_cast<int_type>(*uptr());
 			}
 		};
@@ -122,7 +122,7 @@ namespace libmaus2
 			BgzfStreamWrapper(stream_type & stream, uint64_t const buffersize, uint64_t const pushbackspace)
 			: BgzfStreamWrapperBuffer<stream_type>(stream,buffersize,pushbackspace), ::std::istream(this)
 			{
-				
+
 			}
 			uint64_t tellg() const
 			{

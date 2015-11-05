@@ -31,12 +31,12 @@ void testSynchronousReorderSet()
 		TSH.enque(3,2);
 		TSH.enque(4,7);
 		TSH.terminate();
-		
+
 		while ( true )
 		{
 			try
 			{
-				uint64_t const v = TSH.deque();	
+				uint64_t const v = TSH.deque();
 				std::cerr << v << std::endl;
 			}
 			catch(std::exception const &ex)

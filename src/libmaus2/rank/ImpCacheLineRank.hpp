@@ -35,8 +35,8 @@ namespace libmaus2
 		{
 			typedef ImpCacheLineRank this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
-			static uint64_t const bitsperword = 8*sizeof(uint64_t);		
+
+			static uint64_t const bitsperword = 8*sizeof(uint64_t);
 			static uint64_t const datawordsperblock = 6;
 			static uint64_t const bitsperblock = bitsperword*datawordsperblock;
 
@@ -52,17 +52,17 @@ namespace libmaus2
 			ImpCacheLineRank * right;
 			ImpCacheLineRank * parent;
 			#endif
-			
+
 			uint64_t byteSize() const
 			{
-				return 
+				return
 					4*sizeof(uint64_t)+
 					#if defined(LIBMAUS2_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
 					3*sizeof(ImpCacheLineRank *)+
 					#endif
 					A.byteSize();
 			}
-			
+
 			uint64_t serialise(std::ostream & out) const
 			{
 				uint64_t s = 0;
@@ -70,13 +70,13 @@ namespace libmaus2
 				s += A.serialize(out);
 				return s;
 			}
-			
+
 			void serialise(::libmaus2::network::SocketBase * socket) const
 			{
 				socket->writeSingle<uint64_t>(n);
 				socket->writeMessageInBlocks<uint64_t,::libmaus2::autoarray::alloc_type_memalign_cacheline>(A);
 			}
-			
+
 			uint64_t serialisedSize() const
 			{
 				return sizeof(uint64_t) + A.serialisedSize();
@@ -88,7 +88,7 @@ namespace libmaus2
 				::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&n);
 				return n;
 			}
-			
+
 			ImpCacheLineRank(uint64_t const rn)
 			: n(rn), datawords( (n+63)/64 ), indexwords( 2 * ((datawords+5)/6) ),
 			  numblocks( (n+bitsperblock-1)/bitsperblock ),
@@ -99,29 +99,29 @@ namespace libmaus2
 			{}
 
 			ImpCacheLineRank(::libmaus2::network::SocketBase * in)
-			: n(in->readSingle<uint64_t>()), datawords( (n+63)/64 ), indexwords( 2 * ((datawords+5)/6) ), 
+			: n(in->readSingle<uint64_t>()), datawords( (n+63)/64 ), indexwords( 2 * ((datawords+5)/6) ),
 			  numblocks( (n+bitsperblock-1)/bitsperblock ),
 			  A(in->readMessageInBlocks<uint64_t,::libmaus2::autoarray::alloc_type_memalign_cacheline>())
 			  #if defined(LIBMAUS2_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
 			  , left(0), right(0), parent(0)
 			  #endif
 			{
-			
+
 			}
 
 			ImpCacheLineRank(std::istream & in)
-			: n(deserialiseNumber(in)), datawords( (n+63)/64 ), indexwords( 2 * ((datawords+5)/6) ), 
+			: n(deserialiseNumber(in)), datawords( (n+63)/64 ), indexwords( 2 * ((datawords+5)/6) ),
 			  numblocks( (n+bitsperblock-1)/bitsperblock ),
 			  A(in)
 			  #if defined(LIBMAUS2_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
 			  , left(0), right(0), parent(0)
 			  #endif
 			{
-			
+
 			}
 
 			ImpCacheLineRank(std::istream & in, uint64_t & s)
-			: n(deserialiseNumber(in)), datawords( (n+63)/64 ), indexwords( 2 * ((datawords+5)/6) ), 
+			: n(deserialiseNumber(in)), datawords( (n+63)/64 ), indexwords( 2 * ((datawords+5)/6) ),
 			  numblocks( (n+bitsperblock-1)/bitsperblock ),
 			  A(in,s)
 			  #if defined(LIBMAUS2_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
@@ -134,12 +134,12 @@ namespace libmaus2
 			void checkSanity() const
 			{
 				uint64_t R[2] = {0,0};
-				
+
 				for ( uint64_t i = 0; i < n; ++i )
 				{
 					bool const bit = (*this)[i];
 					R [ bit ] ++;
-					
+
 					if ( bit )
 					{
 						assert ( R[bit] == rank1(i) );
@@ -150,7 +150,7 @@ namespace libmaus2
 						assert ( R[bit] == rank0(i) );
 						assert ( R[!bit] == rank1(i) );
 					}
-				}		
+				}
 			}
 
 
@@ -161,13 +161,13 @@ namespace libmaus2
 				uint64_t s;
 				uint64_t * p;
 				uint64_t * ps;
-				
+
 				WriteContext(uint64_t * rp = 0)
 				: bitpos(0), w(0), s(0), p(rp), ps(p)
 				{}
-				
+
 				void writeBit(bool const rb)
-				{				
+				{
 					// save sum if new block
 					if ( bitpos == 0 )
 					{
@@ -179,15 +179,15 @@ namespace libmaus2
 					uint64_t const b = rb ? 1 : 0;
 					w <<= 1;
 					w |=  b;
-					
+
 					bitpos++;
 					s += b;
-					
+
 					if ( (bitpos & 63) == 0 )
 					{
 						// save word if full
 						*(p++) = w;
-						// in block	
+						// in block
 						ps[1] |= (s - ps[0]) << (9*(bitpos>>6));
 
 						if ( bitpos == 6*64 )
@@ -195,7 +195,7 @@ namespace libmaus2
 							bitpos = 0;
 						}
 					}
-					
+
 				}
 				void flush()
 				{
@@ -204,12 +204,12 @@ namespace libmaus2
 						writeBit(0);
 				}
 			};
-			
+
 			struct WriteContextExternal
 			{
 				typedef WriteContextExternal this_type;
 				typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-				
+
 				static unique_ptr_type construct(std::string const & filename, uint64_t const n, bool const writeHeader = true)
 				{
 					unique_ptr_type ptr(new this_type(filename,n,writeHeader));
@@ -220,26 +220,26 @@ namespace libmaus2
 					unique_ptr_type ptr(new this_type(out,n,writeHeader));
 					return UNIQUE_PTR_MOVE(ptr);
 				}
-			
+
 				uint64_t bitpos;
 				uint64_t w;
 				uint64_t s;
-				
+
 				::libmaus2::autoarray::AutoArray<uint64_t> B;
 				uint64_t * p;
 				uint64_t * ps;
-				
+
 				libmaus2::aio::OutputStreamInstance::unique_ptr_type Postr;
 				::std::ostream & ostr;
 				::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type out;
-				
+
 				uint64_t blockswritten;
-				
+
 				void fillHeader()
 				{
 					fillHeader(blockswritten * 6 * 64);
 				}
-				
+
 				void fillHeader(uint64_t const n)
 				{
 					ostr.seekp(0,std::ios::beg);
@@ -248,11 +248,11 @@ namespace libmaus2
 					// write n
 					::libmaus2::serialize::Serialize<uint64_t>::serialize(ostr,n);
 					// write auto array header
-					::libmaus2::serialize::Serialize<uint64_t>::serialize(ostr,words);					
+					::libmaus2::serialize::Serialize<uint64_t>::serialize(ostr,words);
 				}
-				
+
 				WriteContextExternal(std::string const & filename)
-				: bitpos(0), w(0), s(0), 
+				: bitpos(0), w(0), s(0),
 				  B(8), p(B.begin()), ps(p),
 				  Postr(new libmaus2::aio::OutputStreamInstance(filename)),
 				  ostr(*Postr),
@@ -270,7 +270,7 @@ namespace libmaus2
 				}
 
 				WriteContextExternal(std::string const & filename, uint64_t const n, bool const writeHeader = true)
-				: bitpos(0), w(0), s(0), 
+				: bitpos(0), w(0), s(0),
 				  B(8), p(B.begin()), ps(p),
 				  Postr(new libmaus2::aio::OutputStreamInstance(filename)),
 				  ostr(*Postr),
@@ -291,7 +291,7 @@ namespace libmaus2
 				}
 
 				WriteContextExternal(std::ostream & rostr, uint64_t const n, bool const writeHeader = true)
-				: bitpos(0), w(0), s(0), 
+				: bitpos(0), w(0), s(0),
 				  B(8), p(B.begin()), ps(p),
 				  ostr(rostr),
 				  blockswritten(0)
@@ -313,7 +313,7 @@ namespace libmaus2
 				{
 					flush();
 				}
-				
+
 				void reset()
 				{
 					bitpos = 0;
@@ -323,11 +323,11 @@ namespace libmaus2
 					ps = p;
 					blockswritten = 0;
 				}
-				
+
 				void reinit(uint64_t const n, bool const writeHeader = true)
 				{
 					shallowFlush();
-					
+
 					reset();
 
 					if ( writeHeader )
@@ -339,9 +339,9 @@ namespace libmaus2
 						::libmaus2::serialize::Serialize<uint64_t>::serialize(ostr,words);
 					}
 				}
-				
+
 				void writeBit(bool const rb)
-				{				
+				{
 					// save sum if new block
 					if ( bitpos == 0 )
 					{
@@ -352,15 +352,15 @@ namespace libmaus2
 					uint64_t const b = rb ? 1 : 0;
 					w <<= 1;
 					w |=  b;
-					
+
 					bitpos++;
 					s += b;
-					
+
 					if ( (bitpos & 63) == 0 )
 					{
 						// save word if full
 						*(p++) = w;
-						// in block	
+						// in block
 						ps[1] |= (s - ps[0]) << (9*(bitpos>>6));
 
 						// if buffer is full
@@ -373,7 +373,7 @@ namespace libmaus2
 							blockswritten++;
 						}
 					}
-					
+
 				}
 				void flush()
 				{
@@ -395,7 +395,7 @@ namespace libmaus2
 					return blockswritten*B.size();
 				}
 			};
-			
+
 			WriteContext getWriteContext()
 			{
 				return WriteContext(A.begin());
@@ -410,7 +410,7 @@ namespace libmaus2
 				uint64_t const * wordptr = A.get() + ((datablock << 3) + inblockword + 2);
 				return ::libmaus2::bitio::getBit(wordptr,inword);
 			}
-			
+
 			uint64_t inverseSelect1(uint64_t const i, unsigned int & sym) const
 			{
 				uint64_t const datablock = (i>>7)/3; // 6*64 = 3*128 bits per block
@@ -418,34 +418,34 @@ namespace libmaus2
 				uint64_t const inblockword = (inblockbit >> 6);
 				uint64_t const inword = inblockbit - (inblockword<<6);
 				uint64_t const * blockptr = A.get() + (datablock << 3);
-				
+
 				sym = ::libmaus2::bitio::getBit(blockptr+inblockword+2,inword);
 				uint64_t const r1 = blockptr[0] + ((blockptr[1] >> (inblockword*9)) & ((1ull<<9)-1)) +
 						popcount8(blockptr[2+inblockword],inword);
-			
-				return r1;			
+
+				return r1;
 			}
 
 			uint64_t rank1(uint64_t i) const
 			{
 				// std::cerr << "rank1(" << i << "),  n=" << n << std::endl;
-			
+
 				uint64_t const datablock = (i>>7)/3; // 6*64 = 3*128 bits per block
 				uint64_t const inblockbit = i-((datablock<<7)*3);
 				uint64_t const inblockword = (inblockbit >> 6);
 				uint64_t const inword = inblockbit - (inblockword<<6);
 				uint64_t const * blockptr = A.get() + (datablock << 3);
-				
+
 				return
 					blockptr[0] +
 					((blockptr[1] >> (inblockword*9)) & ((1ull<<9)-1)) +
 					popcount8(blockptr[2+inblockword],inword);
 			}
-			
+
 			uint64_t slowRank1(uint64_t i) const
 			{
 				uint64_t fullblocks = (i/64)/6;
-				
+
 				uint64_t s = 0;
 				uint64_t const * p = A.get();
 				for ( uint64_t j = 0; j < fullblocks; ++j )
@@ -457,20 +457,20 @@ namespace libmaus2
 					for ( uint64_t k = 0; k < 6; ++k )
 						s += popcount8(*(p++));
 				}
-				
+
 				i -= fullblocks*6*64;
 				assert ( *p == s );
 				p++;
 				p++;
-				
+
 				while ( i >= 64 )
 				{
 					i -= 64;
 					s += popcount8(*(p++));
 				}
-				
+
 				s += popcount8(*p,i);
-				
+
 				return s;
 			}
 
@@ -481,7 +481,7 @@ namespace libmaus2
 				uint64_t const inblockword = (inblockbit >> 6);
 				uint64_t const inword = inblockbit - (inblockword<<6);
 				uint64_t const * blockptr = A.get() + (datablock << 3);
-				
+
 				return
 					blockptr[0] +
 					((blockptr[1] >> (inblockword*9)) & ((1ull<<9)-1)) +
@@ -507,26 +507,26 @@ namespace libmaus2
 			{
 				return i - rankm1(i);
 			}
-			
+
 			uint64_t selectOneBlock(uint64_t const i) const
 			{
-				uint64_t left = 0, right = numblocks;				
-				
+				uint64_t left = 0, right = numblocks;
+
 				while ( right-left > 1 )
 				{
 					uint64_t const mid = (left+right)>>1;
 					uint64_t const blockoffset = (mid << 3);
 					uint64_t const prerank = A[blockoffset];
-					
+
 					if ( i < prerank )
 						right = mid;
 					else
 						left = mid;
 				}
-				
+
 				return left;
 			}
-			
+
 			uint64_t select1(uint64_t i) const
 			{
 				// select large block
@@ -534,7 +534,7 @@ namespace libmaus2
 				uint64_t const blockoffset = block<<3;
 				uint64_t const * const P = A.begin()+blockoffset;
 				i -= *P;
-				
+
 				// select small block
 				unsigned int subblock = 0;
 				unsigned int subblockp1shift = 9;
@@ -545,13 +545,13 @@ namespace libmaus2
 					subblock++;
 					subblockp1shift += 9;
 					subsubsub = subsub;
-				}				
+				}
 				i -= subsubsub;
-				
+
 				// select bit in small block
 				// word
 				uint64_t v = P[2+subblock];
-				
+
 				// now find correct position in word
 				uint64_t woff = 0;
 				uint64_t lpcnt;
@@ -588,12 +588,12 @@ namespace libmaus2
 				else
 					v >>= 1;
 
-				// done				
+				// done
 				return block*bitsperblock + subblock*bitsperword + woff;
 			}
-			
+
 			/**
-			 * Return the position of the ii'th 0 bit. This function is implemented using a 
+			 * Return the position of the ii'th 0 bit. This function is implemented using a
 			 * binary search on the rank1 function.
 			 **/
 			uint64_t select1Slow(uint64_t const ii) const
@@ -601,7 +601,7 @@ namespace libmaus2
 				uint64_t const i = ii+1;
 
 				uint64_t left = 0, right = n;
-				
+
 				while ( (right-left) )
 				{
 					uint64_t const d = right-left;
@@ -621,11 +621,11 @@ namespace libmaus2
 					else
 						right = mid;
 				}
-				
-				return n;		
+
+				return n;
 			}
 			/**
-			 * Return the position of the ii'th 0 bit. This function is implemented using a 
+			 * Return the position of the ii'th 0 bit. This function is implemented using a
 			 * binary search on the rank0 function.
 			 **/
 			uint64_t select0(uint64_t const ii) const
@@ -633,7 +633,7 @@ namespace libmaus2
 				uint64_t const i = ii+1;
 
 				uint64_t left = 0, right = n;
-				
+
 				while ( (right-left) )
 				{
 					uint64_t const d = right-left;
@@ -653,8 +653,8 @@ namespace libmaus2
 					else
 						right = mid;
 				}
-				
-				return n;		
+
+				return n;
 			}
 
 			uint64_t excess(uint64_t const i) const
@@ -672,16 +672,16 @@ namespace libmaus2
 		{
 			typedef ImpCacheLineRankSelectAdapter this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			ImpCacheLineRank const & ICLR;
 			::libmaus2::select::ESelectBase<1> ESB;
-			
+
 			ImpCacheLineRankSelectAdapter(ImpCacheLineRank const & rICLR)
 			: ICLR(rICLR), ESB()
 			{
-			
+
 			}
-			
+
 
 			uint64_t select1(uint64_t i) const
 			{
@@ -690,7 +690,7 @@ namespace libmaus2
 				uint64_t const blockoffset = block<<3;
 				uint64_t const * const P = ICLR.A.begin()+blockoffset;
 				i -= *P;
-				
+
 				// select small block
 				unsigned int subblock = 0;
 				unsigned int subblockp1shift = 9;
@@ -701,13 +701,13 @@ namespace libmaus2
 					subblock++;
 					subblockp1shift += 9;
 					subsubsub = subsub;
-				}				
+				}
 				i -= subsubsub;
-				
+
 				// select bit in small block
 				// word
 				uint64_t v = P[2+subblock];
-				
+
 				// now find correct position in word
 				uint64_t woff = 0;
 				uint64_t lpcnt;
@@ -724,7 +724,7 @@ namespace libmaus2
 					v >>= 16;
 
 				// 16 bits left, use lookup table for rest
-				return 
+				return
 					block*ImpCacheLineRank::bitsperblock + subblock*ImpCacheLineRank::bitsperword + woff +
 					ESB.R [ ((v&0xFFFFull) << 4) | i ];
 			}

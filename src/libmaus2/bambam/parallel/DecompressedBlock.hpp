@@ -41,7 +41,7 @@ namespace libmaus2
 				typedef DecompressedBlock this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-	
+
 				//! decompressed data
 				libmaus2::autoarray::AutoArray<char,libmaus2::autoarray::alloc_type_c> D;
 				//! size of uncompressed data
@@ -54,14 +54,14 @@ namespace libmaus2
 				uint64_t streamid;
 				//! block id
 				uint64_t blockid;
-				
+
 				//! parse pointers
 				libmaus2::autoarray::AutoArray<size_t,libmaus2::autoarray::alloc_type_c> PP;
 				//! number of parse pointers
 				size_t nPP;
 				//! current parse pointer
 				size_t cPP;
-				
+
 				size_t byteSize() const
 				{
 					return
@@ -75,32 +75,32 @@ namespace libmaus2
 						sizeof(nPP) +
 						sizeof(cPP);
 				}
-				
+
 				char const * appendData(uint8_t const * d, size_t const c)
 				{
 					ptrdiff_t const o = P - D.begin();
-					
+
 					if ( uncompdatasize + c > D.size() )
 						D.resize(uncompdatasize + c);
-					
+
 					P = D.begin() + o;
-					
+
 					std::copy(d,d+c,D.begin()+uncompdatasize);
-					
+
 					return D.begin() + uncompdatasize;
 				}
 
 				void pushData(uint8_t const * d, size_t const c)
-				{			
+				{
 					size_t const nsize = uncompdatasize + c + sizeof(uint32_t);
-						
+
 					if ( nsize > D.size() )
 					{
 						ptrdiff_t const o = P - D.begin();
 						D.resize(nsize);
 						P = D.begin() + o;
 					}
-					
+
 					D[uncompdatasize++] = (c >> 0) & 0xFF;
 					D[uncompdatasize++] = (c >> 8) & 0xFF;
 					D[uncompdatasize++] = (c >> 16) & 0xFF;
@@ -110,20 +110,20 @@ namespace libmaus2
 				}
 
 				void pushDataNoSize(uint8_t const * d, size_t const c)
-				{			
+				{
 					size_t const nsize = uncompdatasize + c;
-						
+
 					if ( nsize > D.size() )
 					{
 						ptrdiff_t const o = P - D.begin();
 						D.resize(nsize);
 						P = D.begin() + o;
 					}
-					
+
 					std::copy(d,d+c,D.begin()+uncompdatasize);
 					uncompdatasize += c;
 				}
-				
+
 				void pushParsePointer(char const * c)
 				{
 					size_t const o = c-D.begin();
@@ -132,37 +132,37 @@ namespace libmaus2
 					assert ( nPP < PP.size() );
 					PP[nPP++] = o;
 				}
-				
+
 				char * getParsePointer(size_t i)
 				{
 					return D.begin() + PP[i];
 				}
-				
+
 				char * getPrevParsePointer()
 				{
 					return D.begin() + PP[cPP-1];
 				}
-				
+
 				void resetParseArray()
 				{
 					nPP = 0;
 					cPP = 0;
 				}
-				
+
 				size_t getNumParsePointers() const
 				{
 					return nPP;
 				}
-				
+
 				char const * getNextParsePointer()
 				{
 					return D.begin() + PP[cPP++];
 				}
-				
-				DecompressedBlock() 
-				: 
-					D(libmaus2::lz::BgzfConstants::getBgzfMaxBlockSize(),false), 
-					uncompdatasize(0), 
+
+				DecompressedBlock()
+				:
+					D(libmaus2::lz::BgzfConstants::getBgzfMaxBlockSize(),false),
+					uncompdatasize(0),
 					P(0),
 					final(false),
 					streamid(0),
@@ -170,7 +170,7 @@ namespace libmaus2
 					PP(0),
 					nPP(0)
 				{}
-				
+
 				/**
 				 * computes and returns the crc32 of the block
 				 **/
@@ -180,7 +180,7 @@ namespace libmaus2
 					crc = crc32(crc,reinterpret_cast<Bytef const*>(P),uncompdatasize);
 					return crc;
 				}
-	
+
 				uint64_t decompressBlock(
 					libmaus2::lz::BgzfInflateZStreamBase * decoder,
 					char * in,
@@ -206,7 +206,7 @@ namespace libmaus2
 					decoder->zdecompress(in,inlen,D.begin()+outoff,outlen);
 					return outlen;
 				}
-	
+
 				uint64_t decompressBlock(
 					libmaus2::lz::BgzfInflateZStreamBase * decoder,
 					InputBlock * inblock,
@@ -230,7 +230,7 @@ namespace libmaus2
 					P = D.begin();
 					return decompressBlock(decoder,inblock->C,inblock->payloadsize,uncompdatasize,outoff);
 				}
-	
+
 				uint64_t decompressBlock(
 					libmaus2::parallel::LockedFreeList<
 						libmaus2::lz::BgzfInflateZStreamBase,
@@ -243,7 +243,7 @@ namespace libmaus2
 					unsigned int const outoff = 0
 				)
 				{
-					libmaus2::lz::BgzfInflateZStreamBase::shared_ptr_type decoder = deccont.get();				
+					libmaus2::lz::BgzfInflateZStreamBase::shared_ptr_type decoder = deccont.get();
 					uint64_t const r = decompressBlock(decoder.get(),in,inlen,outlen,outoff);
 					deccont.put(decoder);
 					return r;
@@ -261,12 +261,12 @@ namespace libmaus2
 					unsigned int const outoff = 0
 				)
 				{
-					libmaus2::lz::BgzfInflateZStreamBase::shared_ptr_type decoder = deccont.get();				
+					libmaus2::lz::BgzfInflateZStreamBase::shared_ptr_type decoder = deccont.get();
 					uint64_t const r = decompressBlock(decoder.get(),in,inlen,outlen,outoff);
 					deccont.put(decoder);
 					return r;
 				}
-				
+
 				uint64_t decompressBlock(
 					libmaus2::parallel::LockedFreeList<
 						libmaus2::lz::BgzfInflateZStreamBase,

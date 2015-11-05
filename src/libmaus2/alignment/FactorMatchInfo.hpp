@@ -31,7 +31,7 @@ namespace libmaus2
 			uint64_t pos;
 			uint64_t offset;
 			uint64_t len;
-			
+
 			FactorMatchInfo() : pos(0), offset(0), len(0) {}
 			FactorMatchInfo(
 				uint64_t const rpos,
@@ -39,9 +39,9 @@ namespace libmaus2
 				uint64_t const rlen
 			) : pos(rpos), offset(roffset), len(rlen)
 			{
-			
+
 			}
-			
+
 			bool operator<(FactorMatchInfo const & O) const
 			{
 				return pos < O.pos;

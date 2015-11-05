@@ -41,7 +41,7 @@ namespace libmaus2
                                 {
                                         spacetable[i] = isspace(i);
                                         nospacetable[i] = !spacetable[i];
-                                }        
+                                }
                         }
                 };
 	}

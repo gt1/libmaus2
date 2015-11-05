@@ -38,16 +38,16 @@ namespace libmaus2
 				libmaus2::dazzler::db::DatabaseFile const & DB;
 				std::set<uint64_t> missing;
 				std::set<uint64_t> seen;
-				
+
 				libmaus2::autoarray::AutoArray<char> B;
 				libmaus2::autoarray::AutoArray<uint64_t> O;
 				std::map<uint64_t,uint64_t> MM;
-				
+
 				ReadContainer(libmaus2::dazzler::db::DatabaseFile const & rDB)
 				: mutex(), DB(rDB)
 				{
 				}
-				
+
 				void fullreset()
 				{
 					missing.clear();
@@ -57,7 +57,7 @@ namespace libmaus2
 					MM.clear();
 				}
 
-				template<typename iterator>	
+				template<typename iterator>
 				int64_t fill(iterator low, iterator high, uint64_t const maxmem, std::ostream * verbstr = 0)
 				{
 					MM.clear();
@@ -84,14 +84,14 @@ namespace libmaus2
 					MM.clear();
 					B.resize(0);
 					O.resize(0);
-					
+
 					uint64_t const high = DB.getReadDataVectorMemInterval(low,maxmem,B,O);
 					for ( uint64_t i = low; i < high; ++i )
 						MM [ i ] = i-low;
-						
+
 					if ( verbstr )
 						(*verbstr) << "[V] fill mem [" << low << "," << high << ")" << std::endl;
-					
+
 					return high;
 				}
 
@@ -100,15 +100,15 @@ namespace libmaus2
 					MM.clear();
 					B.resize(0);
 					O.resize(0);
-					
+
 					std::pair<uint64_t,uint64_t> const P = DB.getReadDataVectorMemInterval(low,high,maxmem,B,O);
 					high = P.first;
 					for ( uint64_t i = low; i < high; ++i )
 						MM [ i ] = i-low;
-						
+
 					if ( verbstr )
 						(*verbstr) << "[V] fill mem [" << low << "," << high << ")" << std::endl;
-					
+
 					return P;
 				}
 
@@ -117,7 +117,7 @@ namespace libmaus2
 					MM.clear();
 					B.resize(0);
 					O.resize(0);
-					
+
 					std::vector<uint64_t> I;
 					for ( uint64_t i = low; i < high; ++i )
 					{
@@ -126,7 +126,7 @@ namespace libmaus2
 					}
 					DB.getReadDataVector(I,B,O);
 				}
-				
+
 				std::pair<uint8_t const *, uint64_t> get(uint64_t const i)
 				{
 					if ( MM.find(i) == MM.end() )
@@ -136,7 +136,7 @@ namespace libmaus2
 							missing.insert(i);
 							// std::cerr << "missing " << i << std::endl;
 						}
-						
+
 						return std::pair<uint8_t const *, uint64_t>(0,0);
 					}
 					else
@@ -144,40 +144,40 @@ namespace libmaus2
 						uint64_t const id = MM.find(i)->second;
 						uint64_t const off0 = O[id];
 						uint64_t const off1 = O[id+1];
-						
+
 						std::pair<uint8_t const *, uint64_t> const P(reinterpret_cast<uint8_t const *>(B.begin()+off0),off1-off0);
-					
+
 						//std::cerr << "Checking " << i << std::endl;
-						
+
 						#if 0
 						std::string const R = DB[i];
 						assert ( R.size() == P.second );
 						assert ( memcmp(R.c_str(),P.first,P.second) == 0 );
 						#endif
-						
+
 						return P;
 					}
 				}
-				
+
 				void reset()
 				{
-					for ( std::map<uint64_t,uint64_t>::const_iterator ita = MM.begin(); ita != MM.end(); ++ita )		
+					for ( std::map<uint64_t,uint64_t>::const_iterator ita = MM.begin(); ita != MM.end(); ++ita )
 						seen.insert(ita->first);
 
 					missing.clear();
-					
+
 					B.resize(0);
 					O.resize(0);
 					MM.clear();
 				}
-				
+
 				bool haveMissing(std::ostream * verbstr = 0) const
 				{
 					if ( verbstr )
 						(*verbstr) << "[V] missing " << missing.size() << std::endl;
 					return missing.size();
 				}
-				
+
 				bool haveSeen(uint64_t const i) const
 				{
 					return seen.find(i) != seen.end();

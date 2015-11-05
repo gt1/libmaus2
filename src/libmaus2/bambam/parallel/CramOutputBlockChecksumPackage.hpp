@@ -28,29 +28,29 @@ namespace libmaus2
 	namespace bambam
 	{
 		namespace parallel
-		{			
+		{
 			struct CramOutputBlockChecksumPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef CramOutputBlockChecksumPackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				CramOutputBlock::shared_ptr_type block;
 				libmaus2::digest::DigestInterface * filechecksum;
-			
+
 				CramOutputBlockChecksumPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), block(), filechecksum(0) {}
 				CramOutputBlockChecksumPackage(
-					uint64_t const rpriority, 
-					uint64_t const rdispatcherid, 
+					uint64_t const rpriority,
+					uint64_t const rdispatcherid,
 					CramOutputBlock::shared_ptr_type rblock,
 					libmaus2::digest::DigestInterface * rfilechecksum
 				)
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), block(rblock), filechecksum(rfilechecksum)
 				{
-				
+
 				}
 				virtual ~CramOutputBlockChecksumPackage() {}
-				
+
 				virtual char const * getPackageName() const
 				{
 					return "CramOutputBlockChecksumPackage";

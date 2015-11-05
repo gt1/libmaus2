@@ -38,19 +38,19 @@ namespace libmaus2
                         typedef _value_type value_type;
                         typedef _compare compare;
                         typedef TerminatableSynchronousHeap<value_type,compare> this_type;
-                                                
+
                         pthread_mutex_t mutex;
                         pthread_cond_t cond;
                         size_t volatile numwait;
                         std::priority_queue<value_type, std::vector<value_type>, compare > Q;
                         volatile uint64_t terminated;
                         uint64_t const terminatedthreshold;
-                                             
+
                         struct MutexLock
                         {
                                 pthread_mutex_t * mutex;
                                 bool locked;
-                                
+
                                 void obtain()
                                 {
                                         if ( ! locked )
@@ -67,12 +67,12 @@ namespace libmaus2
                                                 locked = true;
                                         }
                                 }
-                                
+
                                 MutexLock(pthread_mutex_t & rmutex) : mutex(&rmutex), locked(false)
                                 {
                                         obtain();
                                 }
-                                
+
                                 void release()
                                 {
                                         if ( locked )
@@ -88,9 +88,9 @@ namespace libmaus2
                                                 }
 
                                                 locked = false;
-                                        }                                
+                                        }
                                 }
-                                
+
                                 ~MutexLock()
                                 {
                                         release();
@@ -120,7 +120,7 @@ namespace libmaus2
 					throw lme;
 				}
 			}
-                                                
+
                         TerminatableSynchronousHeap(uint64_t const rterminatedthreshold = 1)
                         : numwait(0), Q(), terminated(0), terminatedthreshold(rterminatedthreshold)
 			{
@@ -150,7 +150,7 @@ namespace libmaus2
 					throw;
 				}
 			}
-                        
+
                         ~TerminatableSynchronousHeap()
                         {
 				pthread_mutex_destroy(&mutex);
@@ -162,7 +162,7 @@ namespace libmaus2
                                 MutexLock M(mutex);
                                 Q.push(v);
                                 int const r = pthread_cond_signal(&cond);
-                                                                
+
        	                        if ( r )
                	                {
                        	                int const error = errno;
@@ -176,15 +176,15 @@ namespace libmaus2
                         size_t getFillState()
                         {
                                 uint64_t f;
-                                
+
                                 {
                                         MutexLock M(mutex);
                                         f = Q.size();
                                 }
-                                
+
                                 return f;
                         }
-                        
+
                         bool isTerminated()
                         {
                                 bool lterminated;
@@ -194,7 +194,7 @@ namespace libmaus2
                                 }
                                 return lterminated;
                         }
-                        
+
                         void terminate()
                         {
                         	MutexLock M(mutex);
@@ -207,16 +207,16 @@ namespace libmaus2
 				for ( size_t i = 0; i < numnoti; ++i )
         	                	pthread_cond_signal(&cond);
                         }
-                        
+
                         value_type deque()
                         {
                                 MutexLock M(mutex);
-                                
+
                                 while ( (terminated < terminatedthreshold) && (!Q.size()) )
                                 {
                                         numwait++;
                                         int const r = pthread_cond_wait(&cond,&mutex);
-                                        
+
                                         if ( r )
                                         {
                                                 int const error = errno;
@@ -225,10 +225,10 @@ namespace libmaus2
                                                 lme.finish();
                                                 throw lme;
                                         }
-                                        
+
                                         numwait--;
                                 }
-                                
+
                                 if ( Q.size() )
                                 {
                                         value_type v = Q.top();
@@ -237,7 +237,7 @@ namespace libmaus2
                                 }
                                 else
                                 {
-                                        throw std::runtime_error("Heap is terminated");                                
+                                        throw std::runtime_error("Heap is terminated");
                                 }
                         }
 
@@ -254,7 +254,7 @@ namespace libmaus2
 	                        	V.push_back(C.top());
 	                        	C.pop();
 				}
-				
+
 				return V;
                         }
                 };
@@ -268,37 +268,37 @@ namespace libmaus2
                         typedef _value_type value_type;
                         typedef _compare compare;
                         typedef TerminatableSynchronousHeap<value_type,compare> this_type;
-                                                
+
                         libmaus2::parallel::SimpleSemaphoreInterface::unique_ptr_type Psemaphore;
                         libmaus2::parallel::SimpleSemaphoreInterface & semaphore;
                         libmaus2::parallel::PosixSpinLock lock;
-                        
+
                         size_t volatile numwait;
                         std::priority_queue<value_type, std::vector<value_type>, compare > Q;
                         volatile uint64_t terminated;
                         uint64_t const terminatedthreshold;
 
                         TerminatableSynchronousHeap(uint64_t const rterminatedthreshold = 1)
-                        : Psemaphore(new libmaus2::parallel::PosixSemaphore), 
+                        : Psemaphore(new libmaus2::parallel::PosixSemaphore),
                           semaphore(*Psemaphore),
                           lock(),
                           numwait(0), Q(), terminated(0), terminatedthreshold(rterminatedthreshold)
                         {
-                        
+
                         }
 
                         TerminatableSynchronousHeap(compare const & comp, uint64_t const rterminatedthreshold = 1)
-                        : Psemaphore(new libmaus2::parallel::PosixSemaphore), 
+                        : Psemaphore(new libmaus2::parallel::PosixSemaphore),
                           semaphore(*Psemaphore),
                           lock(),
                           numwait(0), Q(), terminated(0), terminatedthreshold(rterminatedthreshold)
                         {
-                        
+
                         }
-                        
+
                         ~TerminatableSynchronousHeap()
                         {
-                        
+
                         }
 
                         void enque(value_type const v)
@@ -314,13 +314,13 @@ namespace libmaus2
                                 uint64_t f = Q.size();
                                 return f;
                         }
-                        
+
                         bool isTerminated()
                         {
                         	ScopePosixSpinLock M(lock);
                                 return terminated >= terminatedthreshold;
                         }
-                        
+
                         void terminate()
                         {
                         	ScopePosixSpinLock M(lock);
@@ -333,22 +333,22 @@ namespace libmaus2
 				for ( size_t i = 0; i < numnoti; ++i )
         	                	semaphore.post();
                         }
-                        
+
                         value_type deque()
                         {
                         	ScopePosixSpinLock M(lock);
-                                
+
                                 while ( (terminated < terminatedthreshold) && (!Q.size()) )
                                 {
                                         numwait++;
-                                
+
                                         M.unlock();
                                         semaphore.wait();
                                         M.lock();
 
                                         numwait--;
                                 }
-                                
+
                                 if ( Q.size() )
                                 {
                                         value_type v = Q.top();
@@ -357,7 +357,7 @@ namespace libmaus2
                                 }
                                 else
                                 {
-                                        throw std::runtime_error("Heap is terminated");                                
+                                        throw std::runtime_error("Heap is terminated");
                                 }
                         }
 
@@ -374,7 +374,7 @@ namespace libmaus2
 	                        	V.push_back(C.top());
 	                        	C.pop();
 				}
-				
+
 				return V;
                         }
                 };

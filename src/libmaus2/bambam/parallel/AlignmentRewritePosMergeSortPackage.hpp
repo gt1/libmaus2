@@ -35,20 +35,20 @@ namespace libmaus2
 			{
 				typedef AlignmentRewriteBuffer::pointer_type * iterator;
 				typedef _order_type order_type;
-				
+
 				typedef AlignmentRewritePosMergeSortPackage<order_type> this_type;
 				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-							
+
 				typedef libmaus2::sorting::ParallelStableSort::MergeRequest<iterator,order_type> request_type;
-			
+
 				request_type * request;
 				AlignmentRewritePosSortContextMergePackageFinished * mergedInterface;
-	
+
 				AlignmentRewritePosMergeSortPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), request(0) {}
-				
+
 				AlignmentRewritePosMergeSortPackage(
-					uint64_t const rpriority, 
+					uint64_t const rpriority,
 					request_type * rrequest,
 					AlignmentRewritePosSortContextMergePackageFinished * rmergedInterface,
 					uint64_t const rdispatcherId
@@ -56,7 +56,7 @@ namespace libmaus2
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherId), request(rrequest), mergedInterface(rmergedInterface)
 				{
 				}
-			
+
 				char const * getPackageName() const
 				{
 					return "AlignmentRewritePosMergeSortPackage";

@@ -95,14 +95,14 @@ namespace libmaus2
 				{
 					return 8;
 				}
-				
+
 				static unsigned int getInputBlockCount()
 				{
 					return 1ull << getInputBlockCountShift();
 				}
-							
+
 				libmaus2::parallel::LockedBool decodingFinished;
-				
+
 				libmaus2::parallel::SimpleThreadPool & STP;
 				libmaus2::parallel::LockedFreeList<
 					libmaus2::lz::BgzfInflateZStreamBase,
@@ -126,20 +126,20 @@ namespace libmaus2
 				libmaus2::parallel::SimpleThreadPoolWorkPackageFreeList<DecompressBlocksWorkPackage> decompressBlocksWorkPackages;
 				libmaus2::parallel::SimpleThreadPoolWorkPackageFreeList<ParseBlockWorkPackage> parseBlockWorkPackages;
 				libmaus2::parallel::SimpleThreadPoolWorkPackageFreeList<ValidateBlockFragmentWorkPackage> validateBlockFragmentWorkPackages;
-				
+
 				libmaus2::parallel::LockedQueue<ControlInputInfo::input_block_type::shared_ptr_type> decompressPendingQueue;
-				
+
 				libmaus2::parallel::PosixSpinLock decompressLock;
 				libmaus2::parallel::LockedFreeList<DecompressedBlock,DecompressedBlockAllocator,DecompressedBlockTypeInfo> decompressBlockFreeList;
-				
+
 				libmaus2::parallel::LockedCounter bgzfin;
 				libmaus2::parallel::LockedCounter bgzfde;
 				libmaus2::parallel::LockedBool decompressFinished;
-				
+
 				libmaus2::parallel::SynchronousCounter<uint64_t> inputBlockReturnCount;
 				libmaus2::parallel::PosixSpinLock requeReadPendingLock;
 				libmaus2::parallel::LockedBool requeReadPending;
-				
+
 				libmaus2::bambam::parallel::ParseInfo parseInfo;
 
 				// decompressed blocks ready to be parsed
@@ -176,24 +176,24 @@ namespace libmaus2
 				{
 					return 8*1024*1024;
 				}
-				
+
 				ChecksumsInterface::shared_ptr_type getSeqChecksumsObject()
 				{
 					return ChecksumsInterface::shared_ptr_type();
 				}
-				
+
 				void returnSeqChecksumsObject(ChecksumsInterface::shared_ptr_type)
 				{
 				}
-				
+
 
 				ValidationControl(
 					libmaus2::parallel::SimpleThreadPool & rSTP,
 					std::istream & in
 				)
-				: 
+				:
 					decodingFinished(false),
-					STP(rSTP), 
+					STP(rSTP),
 					zstreambases(STP.getNumThreads()),
 					IBWPD(*this,*this,*this),
 					IBWPDid(STP.getNextDispatcherId()),
@@ -234,13 +234,13 @@ namespace libmaus2
 					if ( ! controlInputInfo.getEOF() )
 						enqueReadPackage();
 				}
-				
+
 				void requeRead()
 				{
 					libmaus2::parallel::ScopePosixSpinLock llock(requeReadPendingLock);
 					requeReadPending.set(true);
 				}
-				
+
 				void waitDecompressFinished()
 				{
 					while ( ! decompressFinished.get() )
@@ -260,31 +260,31 @@ namespace libmaus2
 				{
 					zstreambases.put(decoder);
 				}
-				
+
 				libmaus2::lz::BgzfInflateZStreamBase::shared_ptr_type getBgzfInflateZStreamBase()
 				{
 					return zstreambases.get();
 				}
 
-				// work package return routines				
+				// work package return routines
 				void putInputBlockWorkPackage(InputBlockWorkPackage * package) { readWorkPackages.returnPackage(package); }
-				void putDecompressBlockWorkPackage(DecompressBlockWorkPackage * package) { decompressBlockWorkPackages.returnPackage(package); }				
+				void putDecompressBlockWorkPackage(DecompressBlockWorkPackage * package) { decompressBlockWorkPackages.returnPackage(package); }
 				void putDecompressBlocksWorkPackage(DecompressBlocksWorkPackage * package) { decompressBlocksWorkPackages.returnPackage(package); }
 				void putReturnParsePackage(ParseBlockWorkPackage * package) { parseBlockWorkPackages.returnPackage(package); }
 				void putReturnValidateBlockFragmentPackage(ValidateBlockFragmentWorkPackage * package) { validateBlockFragmentWorkPackages.returnPackage(package); }
-				
+
 				// return input block after decompression
-				void putInputBlockReturn(ControlInputInfo::input_block_type::shared_ptr_type block) 
-				{ 					
+				void putInputBlockReturn(ControlInputInfo::input_block_type::shared_ptr_type block)
+				{
 					uint64_t const freecnt = controlInputInfo.inputBlockFreeList.putAndCount(block);
 					uint64_t const capacity = controlInputInfo.inputBlockFreeList.capacity();
-					
+
 					bool req = false;
-					
+
 					{
 						libmaus2::parallel::ScopePosixSpinLock llock(requeReadPendingLock);
 						bool const pending = requeReadPending.get();
-						
+
 						if ( (pending && freecnt >= (capacity>>2)) )
 						{
 							req = true;
@@ -295,7 +295,7 @@ namespace libmaus2
 					if ( req )
 						checkEnqueReadPackage();
 				}
-				
+
 				static uint64_t getDecompressBatchSize()
 				{
 					return 4;
@@ -305,44 +305,44 @@ namespace libmaus2
 				{
 					std::vector<ControlInputInfo::input_block_type::shared_ptr_type> ginblocks;
 					std::vector<DecompressedBlock::shared_ptr_type> goutblocks;
-					
+
 					{
 						libmaus2::parallel::ScopePosixSpinLock plock(decompressPendingQueue.getLock());
 
 						uint64_t const psize = decompressPendingQueue.sizeUnlocked();
-							
+
 						if ( ! psize )
 							return;
-								
+
 						bool const forcerun = decompressPendingQueue.backUnlocked()->final;
 						if ( (! forcerun) && (psize < getDecompressBatchSize()) )
 							return;
-							
+
 						libmaus2::parallel::ScopePosixSpinLock flock(decompressBlockFreeList.getLock());
 						uint64_t const fsize = decompressBlockFreeList.freeUnlocked();
 						if ( (! forcerun) && (fsize < getDecompressBatchSize()) )
 							return;
-							
+
 						uint64_t const csize = std::min(psize,fsize);
 						for ( uint64_t i = 0; i < csize; ++i )
 						{
 							ginblocks.push_back(decompressPendingQueue.dequeFrontUnlocked());
-							goutblocks.push_back(decompressBlockFreeList.getUnlocked());					
+							goutblocks.push_back(decompressBlockFreeList.getUnlocked());
 						}
 					}
-				
+
 					if ( ginblocks.size() )
 					{
 						std::vector<ControlInputInfo::input_block_type::shared_ptr_type> inblocks;
 						std::vector<DecompressedBlock::shared_ptr_type> outblocks;
 
 						uint64_t const loops = (ginblocks.size() + getDecompressBatchSize() - 1)/getDecompressBatchSize();
-						
+
 						for ( uint64_t l = 0; l < loops; ++l )
 						{
 							uint64_t const low = l * getDecompressBatchSize();
 							uint64_t const high = std::min(low + getDecompressBatchSize(),static_cast<uint64_t>(ginblocks.size()));
-							
+
 							std::vector<ControlInputInfo::input_block_type::shared_ptr_type> inblocks(ginblocks.begin()+low,ginblocks.begin()+high);
 							std::vector<DecompressedBlock::shared_ptr_type> outblocks(goutblocks.begin()+low,goutblocks.begin()+high);
 
@@ -362,7 +362,7 @@ namespace libmaus2
 					bgzfin += ite-ita;
 					{
 						libmaus2::parallel::ScopePosixSpinLock llock(decompressPendingQueue.getLock());
-						for ( 
+						for (
 							std::deque<ControlInputInfo::input_block_type::shared_ptr_type>::iterator itc = ita;
 							itc != ite; ++itc )
 							decompressPendingQueue.push_backUnlocked(*itc);
@@ -371,7 +371,7 @@ namespace libmaus2
 					checkEnqueDecompress();
 				}
 
-				void putInputBlockAddPending(ControlInputInfo::input_block_type::shared_ptr_type package) 
+				void putInputBlockAddPending(ControlInputInfo::input_block_type::shared_ptr_type package)
 				{
 					bgzfin.increment();
 					decompressPendingQueue.push_back(package);
@@ -386,16 +386,16 @@ namespace libmaus2
 
 					#if 0
 					STP.getGlobalLock().lock();
-					std::cerr << "check pending, parsePending.size()=" << parsePending.size() << " stall slot " 
-						<< parseStallSlot 
+					std::cerr << "check pending, parsePending.size()=" << parsePending.size() << " stall slot "
+						<< parseStallSlot
 						<< " next id "
 						<< (parsePending.size() ? parsePending.top().first : -1)
 						<< std::endl;
 					STP.getGlobalLock().unlock();
 					#endif
-	
+
 					AlignmentBuffer::shared_ptr_type algnbuffer = AlignmentBuffer::shared_ptr_type();
-	
+
 					#if 0
 					{
 					std::ostringstream ostr;
@@ -403,22 +403,22 @@ namespace libmaus2
 					STP.addLogStringWithThreadId(ostr.str());
 					}
 					#endif
-				
-					// is there a buffer in the stall slot?					
-					if ( 
+
+					// is there a buffer in the stall slot?
+					if (
 						parsePending.size() &&
 						(parsePending.top().first == nextDecompressedBlockToBeParsed) &&
 						(algnbuffer=parseStallSlot)
 					)
-					{					
+					{
 						parseStallSlot = AlignmentBuffer::shared_ptr_type();
-											
-						DecompressedPendingObject obj = parsePending.pop();		
-	
+
+						DecompressedPendingObject obj = parsePending.pop();
+
 						#if 0
 						STP.addLogStringWithThreadId("erasing stall slot for block id" + libmaus2::util::NumberSerialisation::formatNumber(obj.second->blockid,0));
 						#endif
-						
+
 						ParseBlockWorkPackage * package = parseBlockWorkPackages.getPackage();
 						*package = ParseBlockWorkPackage(
 							0 /* prio */,
@@ -430,21 +430,21 @@ namespace libmaus2
 						STP.enque(package);
 					}
 					// do we have a buffer in the free list
-					else if ( 
-						parsePending.size() && 
+					else if (
+						parsePending.size() &&
 						(parsePending.top().first == nextDecompressedBlockToBeParsed) &&
 						(algnbuffer = parseBlockFreeList.getIf())
 					)
 					{
 						algnbuffer->reset();
 						algnbuffer->id = nextParseBufferId++;
-					
-						DecompressedPendingObject obj = parsePending.pop();		
-						
+
+						DecompressedPendingObject obj = parsePending.pop();
+
 						#if 0
 						STP.addLogStringWithThreadId("using free block for block id" + libmaus2::util::NumberSerialisation::formatNumber(obj.second->blockid,0));
 						#endif
-											
+
 						ParseBlockWorkPackage * package = parseBlockWorkPackages.getPackage();
 						*package = ParseBlockWorkPackage(
 							0 /* prio */,
@@ -458,7 +458,7 @@ namespace libmaus2
 					#if 1
 					else
 					{
-						STP.addLogStringWithThreadId("checkParsePendingList no action");			
+						STP.addLogStringWithThreadId("checkParsePendingList no action");
 					}
 					#endif
 				}
@@ -466,13 +466,13 @@ namespace libmaus2
 				void putDecompressedBlockReturn(libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type block)
 				{
 					decompressBlockFreeList.put(block);
-					checkEnqueDecompress();				
+					checkEnqueDecompress();
 
 					{
 					libmaus2::parallel::ScopePosixSpinLock slock(nextDecompressedBlockToBeParsedLock);
 					nextDecompressedBlockToBeParsed += 1;
 					}
-					
+
 					checkParsePendingList();
 				}
 
@@ -480,16 +480,16 @@ namespace libmaus2
 				{
 					{
 						libmaus2::parallel::ScopePosixSpinLock slock(parseStallSlotLock);
-						
+
 						// parse stall slot should be empty
 						if ( parseStallSlot )
 							STP.printLog(std::cerr);
-										
+
 						assert ( parseStallSlot == AlignmentBuffer::shared_ptr_type() );
 
 						parseStallSlot = algn;
 					}
-					
+
 					checkParsePendingList();
 				}
 
@@ -500,22 +500,22 @@ namespace libmaus2
 
 					{
 						libmaus2::parallel::ScopePosixSpinLock sreadsParsedLastPrintLock(readsParsedLastPrintLock);
-						
+
 						if ( ((readsParsed >> 20) != (readsParsedLastPrint >> 20)) || algn->final )
 						{
 							libmaus2::parallel::ScopePosixSpinLock SPSL(STP.getGlobalLock());
 							std::cerr << readsParsed << std::endl;
 							readsParsedLastPrint = readsParsed;
-						}				
+						}
 					}
-					
+
 					if ( algn->final )
 						lastParseBlockSeen.set(true);
-					
+
 					uint64_t const f = algn->fill();
 					uint64_t const readsPerPackage = std::max((f + STP.getNumThreads() - 1)/STP.getNumThreads(),static_cast<uint64_t>(1));
 					uint64_t const validationPackages = std::max((f + readsPerPackage - 1)/readsPerPackage, static_cast<uint64_t>(1));
-					
+
 					{
 						libmaus2::parallel::ScopePosixSpinLock llock(validationActiveLock);
 						validationActive[algn->id] = algn;
@@ -530,13 +530,13 @@ namespace libmaus2
 						ValidateBlockFragmentWorkPackage * package = validateBlockFragmentWorkPackages.getPackage();
 						*package = ValidateBlockFragmentWorkPackage(0/*prio*/,ValidationFragment(low,high,algn),VBFWPDid);
 						STP.enque(package);
-					}						
+					}
 				}
 
 				void putDecompressedBlockAddPending(DecompressedBlock::shared_ptr_type block)
 				{
 					uint64_t cnt = bgzfde.increment();
-					
+
 					if ( controlInputInfo.getEOF() && (static_cast<uint64_t>(bgzfin) == cnt) )
 						decompressFinished.set(true);
 
@@ -545,21 +545,21 @@ namespace libmaus2
 						libmaus2::parallel::ScopePosixSpinLock slock(parsePendingLock);
 						parsePending.push(DecompressedPendingObject(block->blockid,block));
 					}
-					
-					checkParsePendingList();					
+
+					checkParsePendingList();
 				}
-				
+
 				void validateBlockFragmentFinished(ValidationFragment & V, bool const ok)
 				{
 					readsValidated += (V.high-V.low);
-				
+
 					AlignmentBuffer::shared_ptr_type algn = V.buffer;
 					bool returnbuffer = false;
-					
+
 					{
 						libmaus2::parallel::ScopePosixSpinLock llock(validationActiveLock);
 						validationOk[algn->id] = validationOk[algn->id] && ok;
-						
+
 						if ( -- validationFragmentsPerId[algn->id] == 0 )
 						{
 							bool const gok = validationOk.find(algn->id)->second;
@@ -570,28 +570,28 @@ namespace libmaus2
 								lme.finish();
 								throw lme;
 							}
-						
+
 							validationFragmentsPerId.erase(validationFragmentsPerId.find(algn->id));
 							validationActive.erase(validationActive.find(algn->id));
 							validationOk.erase(validationOk.find(algn->id));
 							returnbuffer = true;
 						}
 					}
-					
+
 					if ( returnbuffer )
 					{
 						blocksValidated += 1;
 						parseBlockFreeList.put(algn);
-						checkParsePendingList();			
+						checkParsePendingList();
 					}
-					
+
 					if ( lastParseBlockSeen.get() && blocksValidated == blocksParsed )
 					{
 						lastParseBlockValidated.set(true);
 					}
 
 					if ( lastParseBlockValidated.get() )
-						decodingFinished.set(true);		
+						decodingFinished.set(true);
 				}
 			};
 		}

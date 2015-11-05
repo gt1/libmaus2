@@ -31,15 +31,15 @@ int main(int argc, char * argv[])
 		libmaus2::aio::PosixFdInputStream PFIS(STDIN_FILENO);
 		libmaus2::bambam::SamDecoder SD(PFIS);
 		libmaus2::bambam::BamAlignment const & algn = SD.getAlignment();
-		libmaus2::bambam::BamHeader const & header = SD.getHeader();		
+		libmaus2::bambam::BamHeader const & header = SD.getHeader();
 		::libmaus2::bambam::BamFormatAuxiliary aux;
 
 		libmaus2::bambam::BamBlockWriterBase::unique_ptr_type Pwriter(libmaus2::bambam::BamBlockWriterBaseFactory::construct(header,arginfo));
 		libmaus2::bambam::BamBlockWriterBase & writer = *Pwriter;
-		
+
 		if ( verbose )
 			std::cerr << header.text;
-		
+
 		while ( SD.readAlignment() )
 		{
 			algn.checkAlignment(header);
@@ -50,11 +50,11 @@ int main(int argc, char * argv[])
 				algn.formatAlignment(std::cerr,header,aux);
 				std::cerr.put('\n');
 			}
-		}	
+		}
 	}
 	catch(std::exception const & ex)
 	{
 		std::cerr << ex.what() << std::endl;
-		return EXIT_FAILURE;	
+		return EXIT_FAILURE;
 	}
 }

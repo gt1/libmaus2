@@ -28,7 +28,7 @@
 std::set<libmaus2::lcs::BandedAlignerFactory::aligner_type> libmaus2::lcs::BandedAlignerFactory::getSupportedAligners()
 {
 	std::set<aligner_type> S;
-	
+
 	S.insert(libmaus2::lcs::BandedAlignerFactory::libmaus2_lcs_BandedAlignerFactory_BandedEditDistance);
 
 	#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_8) && defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)
@@ -81,7 +81,7 @@ std::set<libmaus2::lcs::BandedAlignerFactory::aligner_type> libmaus2::lcs::Bande
 		S.insert(libmaus2_lcs_BandedAlignerFactory_y256_16);
 	}
 	#endif
-	
+
 	return S;
 }
 
@@ -176,7 +176,7 @@ libmaus2::lcs::BandedAligner::unique_ptr_type libmaus2::lcs::BandedAlignerFactor
 			lme.getStream() << "libmaus2::lcs::BandedAlignerFactory::construct: unsupported aligner type Y256_8" << std::endl;
 			lme.finish();
 			throw lme;
-			break;			
+			break;
 			#endif
 		}
 		case libmaus2_lcs_BandedAlignerFactory_y256_16:
@@ -207,7 +207,7 @@ libmaus2::lcs::BandedAligner::unique_ptr_type libmaus2::lcs::BandedAlignerFactor
 			lme.getStream() << "libmaus2::lcs::BandedAlignerFactory::construct: unsupported aligner type Y256_16" << std::endl;
 			lme.finish();
 			throw lme;
-			break;			
+			break;
 			#endif
 
 		}
@@ -225,7 +225,7 @@ libmaus2::lcs::BandedAligner::unique_ptr_type libmaus2::lcs::BandedAlignerFactor
 std::ostream & libmaus2::lcs::operator<<(std::ostream & out, BandedAlignerFactory::aligner_type const & A)
 {
 	switch ( A )
-	{	
+	{
 		case ::libmaus2::lcs::BandedAlignerFactory::libmaus2_lcs_BandedAlignerFactory_BandedEditDistance:
 			out << "libmaus2_lcs_BandedAlignerFactory_BandedEditDistance";
 			break;
@@ -241,7 +241,7 @@ std::ostream & libmaus2::lcs::operator<<(std::ostream & out, BandedAlignerFactor
 		case ::libmaus2::lcs::BandedAlignerFactory::libmaus2_lcs_BandedAlignerFactory_y256_16:
 			out << "libmaus2_lcs_BandedAlignerFactory_y256_16";
 			break;
-	}                                                                                                                                                       
+	}
 
 	return out;
 }

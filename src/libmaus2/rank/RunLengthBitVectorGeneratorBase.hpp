@@ -30,11 +30,11 @@ namespace libmaus2
 	namespace rank
 	{
 		struct RunLengthBitVectorGeneratorBase
-		{		
+		{
 			typedef RunLengthBitVectorGeneratorBase this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			// number of bits per rank acc
 			uint64_t const rankaccbits;
 			// rank acc (number of 1 bits seen so far)
@@ -49,15 +49,15 @@ namespace libmaus2
 			::libmaus2::gamma::GammaEncoder < ::libmaus2::aio::SynchronousGenericOutput<uint64_t> > & GE;
 			// index stream
 			std::iostream & indexstr;
-			
+
 			RunLengthBitVectorGeneratorBase(
 				uint64_t const rbacc, // start 1 bit accumulator value
 				unsigned int const rblocksize, // block size
 				::libmaus2::gamma::GammaEncoder < ::libmaus2::aio::SynchronousGenericOutput<uint64_t> > & rGE,
 				std::iostream & rindexstr
 			)
-			: 
-				rankaccbits(libmaus2::rank::RunLengthBitVectorBase::getRankAccBits()), 
+			:
+				rankaccbits(libmaus2::rank::RunLengthBitVectorBase::getRankAccBits()),
 				bacc(rbacc),
 				blocksize(rblocksize),
 				blocks(0),
@@ -66,20 +66,20 @@ namespace libmaus2
 			{
 				blockcnt[0] = blockcnt[1] = 0;
 			}
-			
+
 			void putrun(bool const sym, uint64_t len)
 			{
 				// std::cerr << size() << " " << "putrun(" << sym << "," << len << ")" << std::endl;
-			
+
 				assert ( len );
-				
+
 				// block is not complete
 				do
 				{
 					// std::cerr << "subputrun(" << sym << "," << len << ")" << std::endl;
-				
+
 					uint64_t const oldsum = blockcnt[0] + blockcnt[1];
-			
+
 					// start of new block?
 					if ( !oldsum )
 					{
@@ -89,12 +89,12 @@ namespace libmaus2
 						libmaus2::serialize::Serialize<uint64_t>::serialize(indexstr,bitoff);
 						// write accumulator bacc
 						GE.encodeWord(bacc,rankaccbits);
-						// encode first bit				
+						// encode first bit
 						GE.encodeWord(sym,1);
 						// increment number of blocks
 						blocks += 1;
 					}
-					
+
 					assert ( oldsum < blocksize );
 					uint64_t const space = blocksize - oldsum;
 
@@ -103,7 +103,7 @@ namespace libmaus2
 					{
 						// write run (sym,len)
 						GE.encode(len-1);
-						
+
 						blockcnt[sym] += len;
 						len = 0;
 					}
@@ -112,12 +112,12 @@ namespace libmaus2
 					{
 						// write run (sym,towrite)
 						GE.encode(space-1);
-						
+
 						blockcnt[sym] += space;
 						len -= space;
-						
+
 						assert ( blockcnt[0] + blockcnt[1] == blocksize );
-						
+
 						// update rank accumulator
 						bacc += blockcnt[1];
 						// reset in block counters
@@ -129,10 +129,10 @@ namespace libmaus2
 
 			uint64_t size() const
 			{
-				return blocks ? 
+				return blocks ?
 						(
 							(blockcnt[0]+blockcnt[1]) ? (blocks-1)*blocksize+blockcnt[0]+blockcnt[1] : (blocks*blocksize)
-						) 
+						)
 						: 0;
 			}
 		};

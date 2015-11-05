@@ -32,7 +32,7 @@
 std::set<libmaus2::lcs::AlignerFactory::aligner_type> libmaus2::lcs::AlignerFactory::getSupportedAligners()
 {
 	std::set<aligner_type> S;
-	
+
 	S.insert(libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_EditDistance);
 	S.insert(libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_ND);
 	S.insert(libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_NDextend);
@@ -92,7 +92,7 @@ std::set<libmaus2::lcs::AlignerFactory::aligner_type> libmaus2::lcs::AlignerFact
 	#if defined(LIBMAUS2_HAVE_DALIGNER)
 	S.insert(libmaus2_lcs_AlignerFactory_Daligner_NP);
 	#endif
-	
+
 	return S;
 }
 
@@ -202,7 +202,7 @@ libmaus2::lcs::Aligner::unique_ptr_type libmaus2::lcs::AlignerFactory::construct
 			lme.getStream() << "libmaus2::lcs::AlignerFactory::construct: unsupported aligner type Y256_8" << std::endl;
 			lme.finish();
 			throw lme;
-			break;			
+			break;
 			#endif
 		}
 		case libmaus2_lcs_AlignerFactory_y256_16:
@@ -233,7 +233,7 @@ libmaus2::lcs::Aligner::unique_ptr_type libmaus2::lcs::AlignerFactory::construct
 			lme.getStream() << "libmaus2::lcs::AlignerFactory::construct: unsupported aligner type Y256_16" << std::endl;
 			lme.finish();
 			throw lme;
-			break;			
+			break;
 			#endif
 
 		}
@@ -247,8 +247,8 @@ libmaus2::lcs::Aligner::unique_ptr_type libmaus2::lcs::AlignerFactory::construct
 			lme.getStream() << "libmaus2::lcs::AlignerFactory::construct: unsupported aligner type Daligner" << std::endl;
 			lme.finish();
 			throw lme;
-			break;						
-			#endif	
+			break;
+			#endif
 		}
 		default:
 		{
@@ -264,7 +264,7 @@ libmaus2::lcs::Aligner::unique_ptr_type libmaus2::lcs::AlignerFactory::construct
 std::ostream & libmaus2::lcs::operator<<(std::ostream & out, AlignerFactory::aligner_type const & A)
 {
 	switch ( A )
-	{	
+	{
 		case ::libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_EditDistance:
 			out << "libmaus2_lcs_AlignerFactory_EditDistance";
 			break;
@@ -292,7 +292,7 @@ std::ostream & libmaus2::lcs::operator<<(std::ostream & out, AlignerFactory::ali
 		case ::libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_Daligner_NP:
 			out << "libmaus2_lcs_AlignerFactory_Daligner_NP";
 			break;
-	}                                                                                                                                                       
+	}
 
 	return out;
 }

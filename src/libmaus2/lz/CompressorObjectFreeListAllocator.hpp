@@ -30,13 +30,13 @@ namespace libmaus2
 			typedef CompressorObjectFreeListAllocator this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			libmaus2::lz::CompressorObjectFactory::shared_ptr_type factory;
-			
+
 			CompressorObjectFreeListAllocator(libmaus2::lz::CompressorObjectFactory::shared_ptr_type & rfactory)
 			: factory(rfactory) {}
 			virtual ~CompressorObjectFreeListAllocator() {}
-			
+
 			CompressorObject * operator()()
 			{
 				CompressorObject::unique_ptr_type tptr((*factory)());

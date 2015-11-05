@@ -33,20 +33,20 @@ namespace libmaus2
 				typedef ValidateBlockWorkPackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				AlignmentBuffer::shared_ptr_type parseBlock;
-	
+
 				ValidateBlockWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), parseBlock() {}
-				
+
 				ValidateBlockWorkPackage(
-					uint64_t const rpriority, 
+					uint64_t const rpriority,
 					AlignmentBuffer::shared_ptr_type rparseBlock,
 					uint64_t const rparseDispatcherId
 				)
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rparseDispatcherId), parseBlock(rparseBlock)
 				{
 				}
-			
+
 				char const * getPackageName() const
 				{
 					return "ValidateBlockWorkPackage";

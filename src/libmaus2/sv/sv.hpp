@@ -36,7 +36,7 @@ namespace libmaus2
 			static ::libmaus2::autoarray::AutoArray< typename std::iterator_traits<iterator>::value_type > nsv(iterator SUF, uint64_t const n)
 			{
 				typedef typename std::iterator_traits<iterator>::value_type value_type;
-			  
+
 				// allocate result array
 				::libmaus2::autoarray::AutoArray<value_type> next(n,false);
 
@@ -46,17 +46,17 @@ namespace libmaus2
 					// initialize next for rank n-1
 					next[n-1] = n;
 				}
-			  
+
 				// compute next for the remaining ranks
 				for ( int64_t r = static_cast<int64_t>(n)-2; r >= 0; --r )
 				{
 					uint64_t t = static_cast<uint64_t>(r) + 1;
-			  
+
 					while ( (t < n) && (SUF[t] >= SUF[r]) )
 						t = next[t];
 					next[r] = t;
 				}
-			  
+
 				// return result
 				return next;
 			}
@@ -90,13 +90,13 @@ namespace libmaus2
 				for ( uint64_t r = 1; r < n; ++r )
 				{
 					int64_t t = r - 1;
-			  
+
 					while ( (t > 0) && (SUF[t] >= SUF[r]) )
 						t = prev[t];
-					
+
 					prev[r] = t;
 				}
-			  
+
 				// return result
 				return prev;
 			}

@@ -28,28 +28,28 @@
 namespace libmaus2
 {
 	namespace parallel
-	{		
+	{
 		struct ThreadPool : public ThreadPoolInterface
 		{
 			typedef ThreadPool this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			uint64_t nextpackageid;
 			libmaus2::parallel::PosixMutex nextpackageidlock;
-			
+
 			libmaus2::parallel::PosixConditionSemaphore startsem;
-			
+
 			std::map<uint64_t, ThreadWorkPackage::shared_ptr_type> packagemap;
-			
+
 			libmaus2::autoarray::AutoArray<ThreadPoolThread::unique_ptr_type> threads;
 			libmaus2::parallel::TerminatableSynchronousHeap<
 				libmaus2::parallel::ThreadWorkPackage *,
 				libmaus2::parallel::ThreadWorkPackageComparator
 			> Q;
-			
+
 			libmaus2::util::unordered_map<uint64_t,ThreadWorkPackageDispatcher *>::type dispatchers;
-			
+
 			ThreadPool(uint64_t const rnumthreads)
 			: nextpackageid(0), threads(rnumthreads)
 			{
@@ -68,17 +68,17 @@ namespace libmaus2
 			~ThreadPool()
 			{
 				join();
-				
+
 				for ( uint64_t i = 0; i < threads.size(); ++i )
-					threads[i].reset();			
+					threads[i].reset();
 			}
-			
+
 			void join()
 			{
 				for ( uint64_t i = 0; i < threads.size(); ++i )
-					threads[i]->tryJoin();			
+					threads[i]->tryJoin();
 			}
-						
+
 			void enque(ThreadWorkPackage const & P)
 			{
 				ThreadWorkPackage::shared_ptr_type SP = P.sclone();
@@ -87,7 +87,7 @@ namespace libmaus2
 				packagemap[SP->packageid] = SP;
 				Q.enque(SP.get());
 			}
-			
+
 			void terminate()
 			{
 				Q.terminate();
@@ -95,8 +95,8 @@ namespace libmaus2
 			void freePackage(libmaus2::parallel::ThreadWorkPackage * P)
 			{
 				libmaus2::parallel::ScopePosixMutex lock(nextpackageidlock);
-				std::map<uint64_t, ThreadWorkPackage::shared_ptr_type>::iterator it = 
-					packagemap.find(P->packageid);			
+				std::map<uint64_t, ThreadWorkPackage::shared_ptr_type>::iterator it =
+					packagemap.find(P->packageid);
 				if ( it != packagemap.end() )
 					packagemap.erase(it);
 			}
@@ -110,7 +110,7 @@ namespace libmaus2
 			}
 			ThreadWorkPackageDispatcher * getDispatcher(libmaus2::parallel::ThreadWorkPackage * P)
 			{
-				libmaus2::util::unordered_map<uint64_t,ThreadWorkPackageDispatcher *>::type::iterator it = 
+				libmaus2::util::unordered_map<uint64_t,ThreadWorkPackageDispatcher *>::type::iterator it =
 					dispatchers.find(P->dispatcherid);
 				assert ( it != dispatchers.end() );
 				return it->second;

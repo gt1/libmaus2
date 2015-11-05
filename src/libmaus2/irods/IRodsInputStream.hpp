@@ -30,10 +30,10 @@ namespace libmaus2
 			typedef IRodsInputStream this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
-			IRodsInputStream(std::string const & irodsPath, int64_t const bufsize = 64*1024, uint64_t const pushbacksize = 0) 
+
+			IRodsInputStream(std::string const & irodsPath, int64_t const bufsize = 64*1024, uint64_t const pushbacksize = 0)
 			: IRodsInputStreamBuffer(irodsPath,bufsize,pushbacksize), std::istream(this) {}
-			
+
 			virtual ~IRodsInputStream() {}
 		};
 	}

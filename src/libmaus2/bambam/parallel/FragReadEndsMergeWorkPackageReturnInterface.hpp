@@ -26,7 +26,7 @@ namespace libmaus2
 	namespace bambam
 	{
 		namespace parallel
-		{			
+		{
 			struct FragReadEndsMergeWorkPackageReturnInterface
 			{
 				virtual ~FragReadEndsMergeWorkPackageReturnInterface() {}

@@ -34,21 +34,21 @@ namespace libmaus2
 			static bool const rmmtreedebug = _rmmtreedebug;
 			typedef RMMTree<base_layer_type,klog,rmmtreedebug>  this_type;
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			typedef libmaus2::util::ImpCompactNumberArray C_type;
 			// typedef libmaus2::util::Array864 C_type;
 			typedef C_type::unique_ptr_type C_ptr_type;
 
 			static unsigned int const k = (1u << klog);
 			static uint64_t const kmask = (k-1);
-			
+
 			base_layer_type const & B;
 			uint64_t const n;
 			unsigned int const numlevels;
 			libmaus2::autoarray::AutoArray< libmaus2::bitio::CompactArray::unique_ptr_type > I;
 			libmaus2::autoarray::AutoArray< C_ptr_type > C;
 			libmaus2::autoarray::AutoArray< uint64_t > S;
-			
+
 			uint64_t byteSize() const
 			{
 				uint64_t s =
@@ -57,17 +57,17 @@ namespace libmaus2
 					I.byteSize() +
 					C.byteSize() +
 					S.byteSize();
-					
+
 				for ( uint64_t i = 0; i < I.size(); ++i )
 					if ( I[i] )
 						s += I[i]->byteSize();
 				for ( uint64_t i = 0; i < C.size(); ++i )
 					if ( C[i] )
 						s += C[i]->byteSize();
-						
+
 				return s;
 			}
-			
+
 			template<typename stream_type>
 			void serialise(stream_type & out)
 			{
@@ -78,16 +78,16 @@ namespace libmaus2
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,C.size());
 
 				S.serialize(out);
-				
+
 				for ( uint64_t i = 0; i < I.size(); ++i )
 					I[i]->serialize(out);
 				for ( uint64_t i = 0; i < C.size(); ++i )
 					C[i]->serialise(out);
 			}
-			
+
 			template<typename stream_type>
 			RMMTree(stream_type & in, base_layer_type const & rB)
-			: 
+			:
 				B(rB),
 				n(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 				numlevels(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
@@ -102,11 +102,11 @@ namespace libmaus2
 				}
 				for ( uint64_t i = 0; i < C.size(); ++i )
 				{
-					C_ptr_type Ci(C_type::load(in));					
+					C_ptr_type Ci(C_type::load(in));
 					C[i] = UNIQUE_PTR_MOVE(Ci);
 				}
 			}
-			
+
 			static unique_ptr_type load(base_layer_type const & B, std::string const & fn)
 			{
 				libmaus2::aio::InputStreamInstance CIS(fn);
@@ -123,21 +123,21 @@ namespace libmaus2
 				else
 					return C[level-1]->get(i);
 			}
-			
+
 			static unsigned int computeNumLevels(uint64_t const n)
 			{
 				uint64_t in = n;
 				unsigned int level = 0;
-				
+
 				while ( in > 1 )
 				{
 					in = ( in + k - 1 ) >> klog;
 					level += 1;
 				}
 
-				return level;	
+				return level;
 			}
-			
+
 			template<typename in_iterator>
 			static libmaus2::util::Histogram::unique_ptr_type fillSubHistogram(
 				in_iterator in_it,
@@ -149,7 +149,7 @@ namespace libmaus2
 
 				uint64_t const full = in >> klog;
 				uint64_t const rest = in-full*k;
-			
+
 				for ( uint64_t i = 0; i < full; ++i )
 				{
 					uint64_t vmin = *(in_it++);
@@ -159,7 +159,7 @@ namespace libmaus2
 						if ( vj < vmin )
 							vmin = vj;
 					}
-					
+
 					hist(libmaus2::math::bitsPerNum(vmin));
 				}
 				if ( rest )
@@ -171,10 +171,10 @@ namespace libmaus2
 						if ( vj < vmin )
 							vmin = vj;
 					}
-					
+
 					hist(libmaus2::math::bitsPerNum(vmin));
 				}
-				
+
 				return UNIQUE_PTR_MOVE(phist);
 			}
 
@@ -199,7 +199,7 @@ namespace libmaus2
 			{
 				uint64_t const full = in >> klog;
 				uint64_t const rest = in-full*k;
-			
+
 				for ( uint64_t i = 0; i < full; ++i )
 				{
 					uint64_t vmin = *(in_it++);
@@ -213,7 +213,7 @@ namespace libmaus2
 							jmin = j;
 						}
 					}
-					
+
 					I.set(i,jmin);
 					impgen.add(vmin);
 				}
@@ -230,10 +230,10 @@ namespace libmaus2
 							jmin = j;
 						}
 					}
-					
+
 					I.set(full,jmin);
 					impgen.add(vmin);
-				}		
+				}
 			}
 
 			RMMTree(base_layer_type const & rB, uint64_t const rn)
@@ -241,11 +241,11 @@ namespace libmaus2
 			{
 				uint64_t in = n;
 				unsigned int level = 0;
-				
+
 				while ( in > 1 )
 				{
 					uint64_t const out = (in+k-1) >> klog;
-					
+
 					// minimal indices for next level
 					libmaus2::bitio::CompactArray::unique_ptr_type tIlevel(
                                                 new libmaus2::bitio::CompactArray(out,klog));
@@ -263,25 +263,25 @@ namespace libmaus2
 						libmaus2::util::Histogram::unique_ptr_type tsubhist(fillSubHistogram(C[level-1]->begin(),in));
 						subhist = UNIQUE_PTR_MOVE(tsubhist);
 					}
-					
+
 					C_type::generator_type impgen(*subhist);
 
 					if ( level == 0 )
 						fillSubArrays(B.begin(),in,*(I[level]),impgen);
 					else
 						fillSubArrays(C[level-1]->begin(),in,*(I[level]),impgen);
-						
+
 					C_ptr_type tClevel(impgen.createFinal());
 					C[level] = UNIQUE_PTR_MOVE(tClevel);
-					
+
 					in = out;
 					++level;
 				}
-				
+
 				S[0] = n;
 				for ( uint64_t i = 0; i < numlevels; ++i )
 					S[i+1] = I[i]->size();
-				
+
 				if ( rmmtreedebug )
 					for ( uint64_t kk = k, level = 0; kk < n; kk *= k, ++level )
 					{
@@ -290,7 +290,7 @@ namespace libmaus2
 						while ( low < n )
 						{
 							uint64_t const high = std::min(low+kk,n);
-							
+
 							uint64_t minv = B[low];
 							uint64_t mini = low;
 							for ( uint64_t i = low+1; i < high; ++i )
@@ -299,16 +299,16 @@ namespace libmaus2
 									minv = B[i];
 									mini = i;
 								}
-								
+
 							assert ( (*C[level])[z] == minv );
 							assert ( (*I[level])[z] == ((mini-low)*k)/kk );
-						
-							++z;	
+
+							++z;
 							low = high;
 						}
 					}
 			}
-			
+
 			/*
 			 * position of next smaller value after index i (or n if there is no such position)
 			 */
@@ -323,7 +323,7 @@ namespace libmaus2
 				uint64_t nval = rval;
 
 				uint64_t ii = i;
-				
+
 				for ( unsigned int level = 0; (nval == rval) && level < I.size(); ++level )
 				{
 					while ( ++ii & kmask && ii < S[level] )
@@ -342,7 +342,7 @@ namespace libmaus2
 					ii >>= klog;
 				}
 				nsvloopdone:
-				
+
 				// if there is no next smaller value
 				if ( nval == rval )
 					ni = n;
@@ -351,22 +351,22 @@ namespace libmaus2
 					while ( nlevel-- )
 					{
 						ni <<= klog;
-						
+
 						while ( (*this)(nlevel,ni) >= rval )
 							++ni;
 					}
-					
+
 				if ( rmmtreedebug )
 				{
 					uint64_t dni = n;
 					for ( uint64_t z = i+1; (dni==n) && z < n; ++z )
 						if ( B[z] < rval )
 							dni = z;
-				
+
 					if ( dni != ni )
 						std::cerr << "i=" << i << " dni=" << dni << " ni=" << ni << " rval=" << rval << std::endl;
 				}
-				
+
 				return ni;
 			}
 
@@ -381,7 +381,7 @@ namespace libmaus2
 				uint64_t nval = rval;
 
 				uint64_t ii = i;
-				
+
 				for ( unsigned int level = 0; (nval == rval) && level < I.size(); ++level )
 				{
 					while ( ++ii & kmask && ii < S[level] )
@@ -400,7 +400,7 @@ namespace libmaus2
 					ii >>= klog;
 				}
 				nsvloopdone:
-				
+
 				// if there is no next smaller value
 				if ( nval == rval )
 					ni = n;
@@ -409,22 +409,22 @@ namespace libmaus2
 					while ( nlevel-- )
 					{
 						ni <<= klog;
-						
+
 						while ( (*this)(nlevel,ni) >= rval )
 							++ni;
 					}
-					
+
 				if ( rmmtreedebug )
 				{
 					uint64_t dni = n;
 					for ( uint64_t z = i+1; (dni==n) && z < n; ++z )
 						if ( B[z] < rval )
 							dni = z;
-				
+
 					if ( dni != ni )
 						std::cerr << "i=" << i << " dni=" << dni << " ni=" << ni << " rval=" << rval << std::endl;
 				}
-				
+
 				return ni;
 			}
 
@@ -442,7 +442,7 @@ namespace libmaus2
 				uint64_t nval = rval;
 
 				uint64_t jj = j;
-				
+
 				for ( unsigned int level = 0; (nval == rval) && level < I.size(); ++level )
 				{
 					while ( jj-- & kmask )
@@ -461,7 +461,7 @@ namespace libmaus2
 					jj >>= klog;
 				}
 				psvloopdone:
-				
+
 				// if there is no next smaller value
 				if ( nval == rval )
 					nj = -1;
@@ -470,22 +470,22 @@ namespace libmaus2
 					while ( nlevel-- )
 					{
 						nj = (nj<<klog) + (k-1);
-						
+
 						while ( (*this)(nlevel,nj) >= rval )
 							--nj;
 					}
-				
+
 				if ( rmmtreedebug )
 				{
 					int64_t dnj = -1;
 					for ( int64_t z = static_cast<int64_t>(j)-1; (dnj==-1) && z >= 0; --z )
 						if ( B[z] < rval )
 							dnj = z;
-				
+
 					if ( dnj != nj )
 						std::cerr << "j=" << j << " dnj=" << dnj << " nj=" << nj << " rval=" << rval << std::endl;
-				}			
-				
+				}
+
 				return nj;
 			}
 
@@ -503,7 +503,7 @@ namespace libmaus2
 				uint64_t nval = rval;
 
 				uint64_t jj = j;
-				
+
 				for ( unsigned int level = 0; (nval == rval) && level < I.size(); ++level )
 				{
 					while ( jj-- & kmask )
@@ -522,7 +522,7 @@ namespace libmaus2
 					jj >>= klog;
 				}
 				psvloopdone:
-				
+
 				// if there is no next smaller value
 				if ( nval == rval )
 					nj = 0;
@@ -531,22 +531,22 @@ namespace libmaus2
 					while ( nlevel-- )
 					{
 						nj = (nj<<klog) + (k-1);
-						
+
 						while ( (*this)(nlevel,nj) >= rval )
 							--nj;
 					}
-				
+
 				if ( rmmtreedebug )
 				{
 					int64_t dnj = 0;
 					for ( int64_t z = static_cast<int64_t>(j)-1; (dnj==-1) && z >= 0; --z )
 						if ( B[z] < rval )
 							dnj = z;
-				
+
 					if ( dnj != nj )
 						std::cerr << "j=" << j << " dnj=" << dnj << " nj=" << nj << " rval=" << rval << std::endl;
-				}			
-				
+				}
+
 				return nj;
 			}
 
@@ -562,8 +562,8 @@ namespace libmaus2
 
 				uint64_t ii = i;
 				uint64_t jj = j;
-				
-				for ( 
+
+				for (
 					unsigned int level = 0;
 					true;
 					++level
@@ -571,14 +571,14 @@ namespace libmaus2
 				{
 					uint64_t const ip = ii>>klog;
 					uint64_t const jp = jj>>klog;
-					
+
 					// if we have reached the lowest common ancestor node of i and j
 					if ( ip == jp )
 					{
-						for ( 
-							int64_t z = static_cast<int64_t>(jj)-1; 
-							z >= static_cast<int64_t>(ii+1); 
-							--z 
+						for (
+							int64_t z = static_cast<int64_t>(jj)-1;
+							z >= static_cast<int64_t>(ii+1);
+							--z
 						)
 						{
 							uint64_t t;
@@ -615,16 +615,16 @@ namespace libmaus2
 								rminlevel = level;
 							}
 						}
-						
+
 						ii = ip;
 						jj = jp;
 					}
 				}
-				
+
 				uint64_t minv;
 				uint64_t mini;
 				unsigned int minlevel;
-				
+
 				if ( rminv < lminv )
 				{
 					minv = rminv;
@@ -637,9 +637,9 @@ namespace libmaus2
 					mini = lmini;
 					minlevel = lminlevel;
 				}
-				
+
 				// #define RMMTREEDEBUG
-				
+
 				if ( rmmtreedebug )
 					assert ( (*this)(minlevel,mini) == minv );
 
@@ -647,11 +647,11 @@ namespace libmaus2
 				while ( minlevel != 0 )
 				{
 					mini = (mini << klog) + I[--minlevel]->get(mini);
-						
+
 					if ( rmmtreedebug )
 						assert ( (*this)(minlevel,mini) == minv );
 				}
-				
+
 				if ( rmmtreedebug )
 				{
 					uint64_t dminv = std::numeric_limits<uint64_t>::max();
@@ -662,11 +662,11 @@ namespace libmaus2
 							dminv = (*this)(0,z);
 							dmini = z;
 						}
-					
+
 					assert ( minv == dminv );
 					assert ( mini == dmini );
 				}
-								
+
 				return mini;
 			}
 		};

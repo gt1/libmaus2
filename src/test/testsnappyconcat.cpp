@@ -40,29 +40,29 @@ void testSingle(std::string const & s0)
 				std::ostringstream o_0;
 				libmaus2::lz::SnappyCompressorObjectFactory scompfact;
 				libmaus2::lz::SimpleCompressedOutputStream<std::ostream> lzout_0(o_0,scompfact,bs);
-			
+
 				lzout_0.write(s0.c_str(),b_0);
 				std::pair<uint64_t,uint64_t> start_0 = lzout_0.getOffset();
 				lzout_0.write(s0.c_str()+b_0,b_1);
-				// std::pair<uint64_t,uint64_t> end_0 = 
+				// std::pair<uint64_t,uint64_t> end_0 =
 					lzout_0.getOffset();
 				lzout_0.write(s0.c_str()+b_0+b_1,s0.size()-(b_0+b_1));
 				lzout_0.flush();
-						
+
 				std::string const u0 = s0.substr(b_0,b_1);
-				
+
 				std::istringstream i_0(o_0.str());
 				libmaus2::lz::SnappyDecompressorObjectFactory decompfact;
 				libmaus2::lz::SimpleCompressedInputStream<std::istream> decomp(i_0,decompfact,start_0);
-				
+
 				uint64_t j = 0;
 				for ( uint64_t i = 0; i < u0.size(); ++i )
 				{
 					int const c = decomp.get();
 					assert ( c == u0[j++] );
 				}
-				
-				// uint64_t const r = 
+
+				// uint64_t const r =
 					decomp.read(C.begin(),l0-(b_0+b_1));
 				assert ( decomp.get() == std::istream::traits_type::eof() );
 			}
@@ -80,7 +80,7 @@ void testConcat(std::string const & s0, std::string const & s1)
 					for ( uint64_t c_1 = 0; c_1 <= l1-c_0; ++c_1 )
 					{
 						#if 0
-						std::cerr 
+						std::cerr
 							<< "b_0=" << b_0 << " b_1=" << b_1 << " "
 							<< "c_0=" << c_0 << " c_1=" << c_1 << " "
 							<< "bs=" << bs
@@ -91,7 +91,7 @@ void testConcat(std::string const & s0, std::string const & s1)
 						libmaus2::lz::SnappyCompressorObjectFactory scompfact;
 						libmaus2::lz::SimpleCompressedOutputStream<std::ostream> lzout_0(o_0,scompfact,bs);
 						libmaus2::lz::SimpleCompressedOutputStream<std::ostream> lzout_1(o_1,scompfact,bs);
-						
+
 						// std::cerr << "encoding s_0" << std::endl;
 						lzout_0.write(s0.c_str(),b_0);
 						std::pair<uint64_t,uint64_t> start_0 = lzout_0.getOffset();
@@ -99,9 +99,9 @@ void testConcat(std::string const & s0, std::string const & s1)
 						std::pair<uint64_t,uint64_t> end_0 = lzout_0.getOffset();
 						lzout_0.write(s0.c_str()+b_0+b_1,s0.size()-(b_0+b_1));
 						lzout_0.flush();
-						
+
 						std::string const u0 = s0.substr(b_0,b_1);
-						
+
 						// std::cerr << "encoding s_1" << std::endl;
 						lzout_1.write(s1.c_str(),c_0);
 						std::pair<uint64_t,uint64_t> start_1 = lzout_1.getOffset();
@@ -112,38 +112,38 @@ void testConcat(std::string const & s0, std::string const & s1)
 
 						std::string const u1 = s1.substr(c_0,c_1);
 						std::string const u = u0+u1;
-						
+
 						std::istringstream i_0(o_0.str());
 						libmaus2::lz::SimpleCompressedConcatInputStreamFragment<std::istream> frag_0(start_0,end_0,&i_0);
 						std::istringstream i_1(o_1.str());
 						libmaus2::lz::SimpleCompressedConcatInputStreamFragment<std::istream> frag_1(start_1,end_1,&i_1);
-						
+
 						std::vector<libmaus2::lz::SimpleCompressedConcatInputStreamFragment<std::istream> > frags;
 						frags.push_back(frag_0);
 						frags.push_back(frag_1);
-						
+
 						libmaus2::lz::SnappyDecompressorObjectFactory decompfact;
 						libmaus2::lz::SimpleCompressedConcatInputStream<std::istream> conc(frags,decompfact);
-						
+
 						#if 0
 						std::cerr << "expecting " << u << std::endl;
 						std::cerr << "write     ";
 						std::cerr.write(s0.c_str()+b_0,b_1);
 						std::cerr.write(s1.c_str()+c_0,c_1);
 						std::cerr << std::endl;
-						
-						std::cerr << "frags[0]=" 
+
+						std::cerr << "frags[0]="
 							<< frags[0].low.first << ","
 							<< frags[0].low.second << ","
 							<< frags[0].high.first << ","
 							<< frags[0].high.second << std::endl;
-						std::cerr << "frags[1]=" 
+						std::cerr << "frags[1]="
 							<< frags[1].low.first << ","
 							<< frags[1].low.second << ","
 							<< frags[1].high.first << ","
 							<< frags[1].high.second << std::endl;
 						#endif
-						
+
 						int c = -1;
 						uint64_t j = 0;
 						while ( (c = conc.get()) != -1 )
@@ -163,7 +163,7 @@ int main()
 	try
 	{
 		testSingle("schloss");
-		
+
 		testConcat("schloss","dagstuhl");
 		testConcat("dagstuhl","schloss");
 		testConcat("schloss","");

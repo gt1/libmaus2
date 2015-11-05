@@ -24,14 +24,14 @@ uint64_t libmaus2::util::Concat::concat(std::istream & in, std::ostream & out)
 {
 	::libmaus2::autoarray::AutoArray < char > buf(16*1024,false);
 	uint64_t c = 0;
-	
+
 	while ( in )
 	{
 		in.read(buf.get(), buf.getN());
 		out.write ( buf.get(), in.gcount() );
 		c += in.gcount();
 	}
-	
+
 	return c;
 }
 
@@ -41,7 +41,7 @@ uint64_t libmaus2::util::Concat::concat(std::string const & filename, std::ostre
 	::libmaus2::autoarray::AutoArray < char > buf(16*1024,false);
 	libmaus2::aio::InputStreamInstance in(filename);
 	uint64_t c = 0;
-	
+
 	while ( n )
 	{
 		uint64_t const toread = std::min(n,buf.getN());
@@ -51,27 +51,27 @@ uint64_t libmaus2::util::Concat::concat(std::string const & filename, std::ostre
 		n -= toread;
 		c += toread;
 	}
-		
+
 	return c;
 }
 
 uint64_t libmaus2::util::Concat::concat(std::vector < std::string > const & files, std::ostream & out, bool const rem)
 {
 	uint64_t c = 0;
-	
+
 	for ( uint64_t i = 0; i < files.size(); ++i )
 	{
 		c += concat ( files[i] , out );
 		if ( rem )
 			::libmaus2::aio::FileRemoval::removeFile ( files[i] );
 	}
-	
+
 	return c;
 }
 
 uint64_t libmaus2::util::Concat::concatParallel(
-	std::vector < std::string > const & files, 
-	std::string const & outputfilename, 
+	std::vector < std::string > const & files,
+	std::string const & outputfilename,
 	bool const rem
 )
 {
@@ -87,7 +87,7 @@ uint64_t libmaus2::util::Concat::concatParallel(
 
 	#if defined(_OPENMP)
 	#pragma omp parallel for schedule(dynamic,1)
-	#endif			
+	#endif
 	for ( int64_t i = 0; i < static_cast<int64_t>(files.size()); ++i )
 	{
 		std::fstream out(outputfilename.c_str(), std::ios::in|std::ios::out|std::ios::binary|std::ios::ate);
@@ -98,18 +98,18 @@ uint64_t libmaus2::util::Concat::concatParallel(
 		out.flush();
 		out.close();
 	}
-	
+
 	return P[files.size()];
 }
 
 uint64_t libmaus2::util::Concat::concatParallel(
-	std::vector < std::vector < std::string > > const & files, 
-	std::string const & outputfilename, 
+	std::vector < std::vector < std::string > > const & files,
+	std::string const & outputfilename,
 	bool const rem
 )
 {
 	std::vector<std::string> sfiles;
-	
+
 	for ( uint64_t i = 0; i < files.size(); ++i )
 		for ( uint64_t j = 0; j < files[i].size(); ++j )
 			sfiles.push_back(files[i][j]);
@@ -123,16 +123,16 @@ uint64_t libmaus2::util::Concat::concat(std::vector < std::string > const & file
 	uint64_t const c = concat(files,out,rem);
 	out.flush();
 	return c;
-}			
+}
 
 uint64_t libmaus2::util::Concat::concat(
-	std::vector < std::vector < std::string > > const & files, 
-	std::string const & outputfilename, 
+	std::vector < std::vector < std::string > > const & files,
+	std::string const & outputfilename,
 	bool const rem
 )
 {
 	std::vector<std::string> sfiles;
-	
+
 	for ( uint64_t i = 0; i < files.size(); ++i )
 		for ( uint64_t j = 0; j < files[i].size(); ++j )
 			sfiles.push_back(files[i][j]);

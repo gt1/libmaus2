@@ -53,20 +53,20 @@ namespace libmaus2
 			data_iterator Ue;
 			data_type mask;
 			data_type cur;
-			
+
 			public:
 			/**
 			 * initialize writer with pointer to array
 			 **/
 			CheckedBitWriterTemplate(data_iterator rU, data_iterator rUe) : U(rU), Ue(rUe), mask(basemask), cur(0) {}
-			
+
 			void writeUnary(uint64_t k)
 			{
 				for ( uint64_t i = 0; i < k; ++i )
 					writeBit(0);
 				writeBit(1);
 			}
-			
+
 			/**
 			 *
 			 **/
@@ -77,17 +77,17 @@ namespace libmaus2
 				unsigned int log_1 = ::libmaus2::math::numbits(n);
 				// number of bits to store log_1
 				unsigned int log_2 = ::libmaus2::math::numbits(log_1);
-				
+
 				// write log_2 in unary form
 				writeUnary(log_2);
-				
+
 				// write log_1 using log_2 bits
 				write(log_1,log_2);
-				
+
 				// write n using log_1 bits
 				write(n,log_1);
 			}
-			
+
 			/**
 			 * write a b bit number n
 			 * @param n number to be written
@@ -99,7 +99,7 @@ namespace libmaus2
 				if ( b )
 				{
 					N m = static_cast<N>(1) << (b-1);
-						
+
 					// write number, msb to lsb
 					for ( unsigned int i = 0; i < b; ++i, m >>= 1 )
 					{
@@ -119,13 +119,13 @@ namespace libmaus2
 			 **/
 			void writeBit(bool const bit)
 			{
-				if ( bit ) 
+				if ( bit )
 				{
 					cur |= mask;
 				}
-				
+
 				mask >>= 1;
-				
+
 				if ( ! mask )
 				{
 					assert ( U != Ue );

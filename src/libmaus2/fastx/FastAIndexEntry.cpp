@@ -20,7 +20,7 @@
 
 std::ostream & libmaus2::fastx::operator<<(std::ostream & out, libmaus2::fastx::FastAIndexEntry const & entry)
 {
-	out 
+	out
 		<< entry.name << "\t"
 		<< entry.length << "\t"
 		<< entry.offset << "\t"
@@ -29,4 +29,3 @@ std::ostream & libmaus2::fastx::operator<<(std::ostream & out, libmaus2::fastx::
 
 	return out;
 }
-

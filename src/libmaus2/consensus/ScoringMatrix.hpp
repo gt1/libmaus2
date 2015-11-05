@@ -36,14 +36,14 @@ namespace libmaus2
 {
 	namespace consensus
 	{
-		struct ScoringMatrix : 
+		struct ScoringMatrix :
 			public seqan::Score < int, seqan::ScoreMatrix<seqan::Dna5, seqan::Default> >,
 			public ::libmaus2::util::Object< ::libmaus2::consensus::ScoringMatrix >
 		{
 			typedef ScoringMatrix this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			typedef seqan::Dna5 TSequenceValue;
 			typedef seqan::Score < int, seqan::ScoreMatrix<TSequenceValue, seqan::Default> > base_type;
 

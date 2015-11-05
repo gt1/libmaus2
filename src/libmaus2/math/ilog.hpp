@@ -29,16 +29,16 @@ namespace libmaus2
 		static unsigned int ilog(uint64_t m)
 		{
 			unsigned int l = 0;
-			
+
 			if ( ! m )
 				return 0;
-			
+
 			while ( m != 1 )
 			{
 				m >>= 1;
 				l++;
 			}
-			
+
 			return l;
 		}
 	}

@@ -36,13 +36,13 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			static uint64_t const nndblocksize = 32;
-			
+
 			::libmaus2::bitio::CompactArray::unique_ptr_type m_abs_samples;
 			::libmaus2::bitio::CompactArray::unique_ptr_type m_differences;
 			::libmaus2::bitio::IndexedBitVector::unique_ptr_type m_contains_abs_sample;
 			uint64_t m_ones;
 			uint64_t m_size;
-			
+
 			uint64_t byteSize() const;
 			uint64_t size() const;
 
@@ -56,7 +56,7 @@ namespace libmaus2
 				uint64_t const r = rankm1(idx+1);
 				return r && (selectp(r) == idx);
 			}
-			
+
 			uint64_t rank1(uint64_t const idx) const
 			{
 				return rankm1(idx+1);
@@ -64,32 +64,31 @@ namespace libmaus2
 
 			/**
 			 * rank excluding index idx
-			 **/	
+			 **/
 			uint64_t rankm1(uint64_t idx) const;
-			
+
 			uint64_t select1(uint64_t i) const
 			{
 				return selectp(i+1);
 			}
-			
+
 			/* ranks start at 1 */
 			uint64_t selectp(uint64_t i) const;
-			
-			uint64_t prev1(uint64_t i) const 
+
+			uint64_t prev1(uint64_t i) const
 			{
 				uint64_t r = rankm1(i+1);
 				assert(r>0);
 				return selectp(r);
 			}
 
-			uint64_t next1(uint64_t i) const 
+			uint64_t next1(uint64_t i) const
 			{
 				uint64_t r = rankm1(i);
 				assert(r < m_ones);
 				return selectp(r+1);
-			}                                    
+			}
 		};
 	}
 }
 #endif
-

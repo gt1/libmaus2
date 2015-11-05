@@ -32,7 +32,7 @@ namespace libmaus2
 
 			libmaus2::bambam::ReadEnds A;
 			ReadEndsListNode * next;
-			
+
 			ReadEndsListNode() : next(0) {}
 		};
 	}

@@ -37,7 +37,7 @@ static ::libmaus2::bitio::IndexedBitVector::unique_ptr_type getUsedSeqVector(std
 	::libmaus2::bitio::IndexedBitVector::unique_ptr_type Psqused(new ::libmaus2::bitio::IndexedBitVector(PBHLM->getNumRef()));
 	::libmaus2::bitio::IndexedBitVector & sqused = *Psqused;
 	uint64_t c = 0;
-	while ( 
+	while (
 		libmaus2::bambam::BamAlignmentDecoder::readAlignmentGz(bgzfin,algn)
 	)
 	{
@@ -53,13 +53,13 @@ static ::libmaus2::bitio::IndexedBitVector::unique_ptr_type getUsedSeqVector(std
 			assert ( refid >= 0 );
 			sqused.set(refid,true);
 		}
-		
+
 		if ( ((++c) & (1024*1024-1)) == 0 )
 			std::cerr << "[V] " << c/(1024*1024) << std::endl;
 	}
-	
+
 	sqused.setupIndex();
-	
+
 	return UNIQUE_PTR_MOVE(Psqused);
 }
 
@@ -94,7 +94,7 @@ static void filterBamUsedSequences(
 		{
 			algn.putRefId(-1);
 		}
-		
+
 		if ( algn.isPaired() && algn.isMapped() )
 		{
 			int64_t const refid = algn.getNextRefID();
@@ -106,15 +106,15 @@ static void filterBamUsedSequences(
 		{
 			algn.putNextRefId(-1);
 		}
-		
+
 		algn.serialise(bgzfout);
-		
+
 		if ( ((++c) & (1024*1024-1)) == 0 )
 			std::cerr << "[V] " << c/(1024*1024) << std::endl;
 	}
-	
+
 	bgzfout.flush();
-	bgzfout.addEOFBlock();	
+	bgzfout.addEOFBlock();
 }
 
 
@@ -123,7 +123,7 @@ int main(int argc, char * argv[])
 	try
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
-		
+
 		if ( ! arginfo.hasArg("I") )
 		{
 			libmaus2::exception::LibMausException lme;
@@ -131,18 +131,18 @@ int main(int argc, char * argv[])
 			lme.finish();
 			throw lme;
 		}
-		
+
 		std::string const fn = arginfo.restargs.at(0);
-		
+
 		::libmaus2::bitio::IndexedBitVector::unique_ptr_type PIBV;
-		
+
 		// compute vector of used sequences
 		{
 			libmaus2::aio::PosixFdInputStream in(fn);
 			::libmaus2::bitio::IndexedBitVector::unique_ptr_type TIBV(getUsedSeqVector(in));
 			PIBV = UNIQUE_PTR_MOVE(TIBV);
 		}
-		
+
 		// filter file and remove all unused sequences from header
 		{
 			libmaus2::aio::PosixFdInputStream in(fn);

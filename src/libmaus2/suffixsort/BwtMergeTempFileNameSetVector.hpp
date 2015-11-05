@@ -29,7 +29,7 @@ namespace libmaus2
 		{
 			private:
 			std::vector < ::libmaus2::suffixsort::BwtMergeTempFileNameSet > V;
-			
+
 			public:
 			BwtMergeTempFileNameSetVector(std::string const & tmpfilenamebase, uint64_t const num, uint64_t const numbwt, uint64_t const numgt)
 			: V(num)
@@ -37,7 +37,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < num; ++i )
 					V[i] = ::libmaus2::suffixsort::BwtMergeTempFileNameSet(tmpfilenamebase,i,numbwt,numgt);
 			}
-			
+
 			::libmaus2::suffixsort::BwtMergeTempFileNameSet const & operator[](size_t i) const
 			{
 				return V[i];
@@ -46,4 +46,3 @@ namespace libmaus2
 	}
 }
 #endif
-

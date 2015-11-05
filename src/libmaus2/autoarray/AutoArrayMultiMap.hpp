@@ -37,7 +37,7 @@ namespace libmaus2
 			typedef std::pair<key_type,value_type> * iterator;
 			typedef key_type const * const_key_iterator;
 			typedef key_type * key_iterator;
-			
+
 			struct FirstComparator
 			{
 				bool operator()(std::pair<key_type,value_type> const & A, std::pair<key_type,value_type> const & B) const
@@ -56,18 +56,18 @@ namespace libmaus2
 
 				const_iterator it;
 				uint64_t n;
-				
+
 				AutoArrayMultiMapValueAdapter(const_iterator const & rit, uint64_t const rn)
 				: it(rit), n(rn)
 				{
-				
+
 				}
-				
+
 				value_type const & operator[](uint64_t const i) const
 				{
 					return it[i].second;
 				}
-				
+
 				uint64_t size() const
 				{
 					return n;
@@ -83,7 +83,7 @@ namespace libmaus2
 			uint64_t fk;
 
 			AutoArrayMultiMap() : A(), f(0), sorted(true), K(), fk(0) {}
-			
+
 			void insert(key_type const & key, value_type const & value)
 			{
 				if ( f == A.size() )
@@ -98,7 +98,7 @@ namespace libmaus2
 				A[f++] = std::pair<key_type,value_type>(key,value);
 				sorted = false;
 			}
-			
+
 			void sort()
 			{
 				if ( ! sorted )
@@ -109,14 +109,14 @@ namespace libmaus2
 					sorted = true;
 				}
 			}
-			
+
 			void clear()
 			{
 				f = 0;
 				fk = 0;
 				sorted = true;
 			}
-			
+
 			iterator lower_bound(key_type const & key)
 			{
 				assert ( sorted );
@@ -127,7 +127,7 @@ namespace libmaus2
 					FirstComparator()
 				);
 			}
-			
+
 			iterator upper_bound(key_type const & key)
 			{
 				assert ( sorted );
@@ -136,9 +136,9 @@ namespace libmaus2
 					A.begin()+f,
 					std::pair<key_type,value_type>(key,value_type()),
 					FirstComparator()
-				);	
+				);
 			}
-			
+
 			std::pair<iterator,iterator> equal_range(key_type const & key)
 			{
 				return std::pair<iterator,iterator>(lower_bound(key),upper_bound(key));
@@ -154,7 +154,7 @@ namespace libmaus2
 					FirstComparator()
 				);
 			}
-			
+
 			const_iterator upper_bound(key_type const & key) const
 			{
 				assert ( sorted );
@@ -163,14 +163,14 @@ namespace libmaus2
 					A.begin()+f,
 					std::pair<key_type,value_type>(key,value_type()),
 					FirstComparator()
-				);	
+				);
 			}
-			
+
 			std::pair<const_iterator,const_iterator> equal_range(key_type const & key) const
 			{
 				return std::pair<const_iterator,const_iterator>(lower_bound(key),upper_bound(key));
 			}
-			
+
 			const_key_iterator kbegin() const
 			{
 				assert ( sorted );
@@ -194,7 +194,7 @@ namespace libmaus2
 				assert ( sorted );
 				return K.begin() + fk;
 			}
-			
+
 			value_adapter_type getVector(key_type const & key) const
 			{
 				std::pair<const_iterator,const_iterator> eq = equal_range(key);

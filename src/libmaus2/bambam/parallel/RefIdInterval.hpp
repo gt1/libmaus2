@@ -40,10 +40,10 @@ namespace libmaus2
 				uint64_t b_low;
 				// high byte mark in buffer
 				uint64_t b_high;
-				
+
 				RefIdInterval() : refid(-1), i_low(0), i_high(0), b_low(0), b_high(0)
 				{
-				
+
 				}
 				RefIdInterval(
 					int32_t const rrefid,
@@ -51,7 +51,7 @@ namespace libmaus2
 					uint64_t const rb_low
 				) : refid(rrefid), i_low(ri_low), i_high(ri_low), b_low(rb_low), b_high(rb_low) {}
 			};
-			
+
 			std::ostream & operator<<(std::ostream & out, RefIdInterval const & R);
 		}
 	}

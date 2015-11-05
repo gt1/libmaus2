@@ -40,7 +40,7 @@ namespace libmaus2
 				::libmaus2::network::SocketBase::shared_ptr_type controlsock;
 				uint64_t id;
 				std::string hostname;
-				
+
 				ControlDescriptor() : id(0) {}
 				ControlDescriptor(
 					::libmaus2::network::SocketBase::shared_ptr_type & rcontrolsock,
@@ -64,11 +64,11 @@ namespace libmaus2
 				::libmaus2::network::DispatchCallback * dc = 0
 			);
 			std::vector<int> getOpenFds() const;
-			
+
 			LogReceiver(
 				std::string const & rlogfileprefix,
-				unsigned int rport, 
-				unsigned int const rbacklog, 
+				unsigned int rport,
+				unsigned int const rbacklog,
 				unsigned int const tries = 64*1024
 			);
 			~LogReceiver();

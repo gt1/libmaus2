@@ -41,7 +41,7 @@ namespace libmaus2
 			data_type * const pe;
 
 			SocketOutputBufferTemplate(
-				::libmaus2::network::SocketBase * rdst, 
+				::libmaus2::network::SocketBase * rdst,
 				int const rtag,
 				uint64_t const bufsize)
 			: dst(rdst), tag(rtag), B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN())
@@ -71,7 +71,7 @@ namespace libmaus2
 					writeBuffer();
 			}
 		};
-		
+
 		typedef SocketOutputBufferTemplate<uint64_t> SocketOutputBuffer8;
 		typedef SocketOutputBufferTemplate<uint32_t> SocketOutputBuffer4;
 		typedef SocketOutputBufferTemplate<uint16_t> SocketOutputBuffer2;

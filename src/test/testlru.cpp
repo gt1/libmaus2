@@ -29,20 +29,20 @@ void testlrusparsefile(uint64_t const tparts, uint64_t const maxcur)
 
 	for ( uint64_t j = 0; j < parts; ++j )
 		SLRUFB.remove(j);
-	
+
 	for ( uint64_t i = 0; i < bytesperpart; ++i )
 	{
 		for ( uint64_t j = 0; j < parts; ++j )
 		{
 			uint64_t const p = j * bytesperpart + i;
-			
+
 			if ( p < C.size() )
 			{
 				libmaus2::aio::InputOutputStream & str = SLRUFB[j];
 				str.put(C[p]);
 			}
 		}
-		
+
 		if ( i % 1024 == 0 )
 			std::cerr << static_cast<double>(i)/bytesperpart << std::endl;
 	}
@@ -51,7 +51,7 @@ void testlrusparsefile(uint64_t const tparts, uint64_t const maxcur)
 	{
 		libmaus2::aio::InputOutputStream & str = SLRUFB[j];
 		str.flush();
-		
+
 		str.seekg(0,std::ios::end);
 		str.clear();
 		#if 0
@@ -62,20 +62,20 @@ void testlrusparsefile(uint64_t const tparts, uint64_t const maxcur)
 		#if 0
 		uint64_t const l2 = str.tellg();
 		#endif
-		
+
 		for ( uint64_t i = 0; i < bytesperpart; ++i )
 		{
 			uint64_t const p = j * bytesperpart + i;
-			
+
 			if ( p < C.size() )
 			{
 				int const c = str.get();
 				assert ( c >= 0 );
 				assert ( c == C[p] );
-			}				
+			}
 		}
 	}
-	
+
 	for ( uint64_t j = 0; j < parts; ++j )
 		SLRUFB.remove(j);
 
@@ -92,18 +92,18 @@ int main()
 		std::cerr << SLRU.get(2) << std::endl;
 		std::cerr << SLRU.get(3) << std::endl;
 		std::cerr << SLRU.get(4) << std::endl;
-		
+
 		for ( uint64_t i = 0; i < 16*1024; ++i )
 		{
 			std::cerr << SLRU.get(rand()%5) << std::endl;
 		}
-		
+
 		testlrusparsefile(5, 7);
 		testlrusparsefile(5, 3);
 		testlrusparsefile(5, 1);
 	}
 	catch(std::exception const & ex)
 	{
-	
+
 	}
 }

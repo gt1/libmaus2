@@ -54,7 +54,7 @@ namespace libmaus2
 			typedef ConsensusComputationBase this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			private:
 			::libmaus2::util::ObjectBase::unique_ptr_type const mscoring;
 			void computeMultipleAlignment(void * vR, void const * vV) const;
@@ -70,7 +70,7 @@ namespace libmaus2
 			friend int ::libmaus2_consensus_ConsensusComputationBase_construct_wrapper(void ** P);
 
 			ConsensusComputationBase();
-						
+
 			public:
 			static std::vector<std::string> computeMultipleAlignment(void const * obj, std::vector<std::string> const & V);
 			static std::string computeConsensus(void const * obj, std::vector<std::string> const & V, int const verbose = false, std::ostream * ostr = 0);
@@ -78,16 +78,16 @@ namespace libmaus2
 			static void construct(void ** P);
 			static void destruct(void * P);
 		};
-		
+
 		struct ConsensusComputation
 		{
 			typedef ConsensusComputation this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			// ::libmaus2::util::ObjectBase::unique_ptr_type obj;
 			void * obj;
-			
+
 			ConsensusComputation() : obj(0)
 			{
 				ConsensusComputationBase::construct(&obj);
@@ -112,7 +112,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-			
+
 				return ConsensusComputationBase::computeConsensus(obj,V,verbose,ostr);
 			}
 			std::string computeConsensus(std::vector< ::libmaus2::fastx::FastQElement > const & V, int const verbose = false, std::ostream * ostr = 0)
@@ -126,7 +126,7 @@ namespace libmaus2
 				}
 
 				// std::cerr << "Sending ptr " << obj << " from top " << std::endl;
-				return ConsensusComputationBase::computeConsensus(obj,V,verbose,ostr);			
+				return ConsensusComputationBase::computeConsensus(obj,V,verbose,ostr);
 			}
 		};
 	}

@@ -28,7 +28,7 @@
 namespace libmaus2
 {
 	namespace bambam
-	{	
+	{
 		/**
 		 * SAM file decoding class
 		 **/
@@ -65,15 +65,15 @@ namespace libmaus2
 				char const * pa = 0;
 				char const * pe = 0;
 				bool const ok = lb.getline(&pa,&pe);
-				
+
 				if ( ! ok )
 					return false;
-					
+
 				samline.parseSamLine(pa,pe);
-			
+
 				if ( ! delayPutRank )
 					putRank();
-			
+
 				return true;
 			}
 
@@ -83,7 +83,7 @@ namespace libmaus2
 				char const * pa = 0;
 				char const * pe = 0;
 				bool lineok = true;
-				
+
 				while ( (lineok = lb.getline(&pa,&pe)) )
 				{
 					if ( pe-pa > 0 && pa[0] == '@' )
@@ -96,15 +96,15 @@ namespace libmaus2
 						break;
 					}
 				}
-				
+
 				if ( lineok )
 					lb.putback(pa);
-				
+
 				::libmaus2::bambam::BamHeader::unique_ptr_type tptr(new ::libmaus2::bambam::BamHeader(istr.str()));
-				
+
 				return UNIQUE_PTR_MOVE(tptr);
 			}
-						
+
 			public:
 			/**
 			 * constructor by file name
@@ -113,7 +113,7 @@ namespace libmaus2
 			 * @param rputrank if true, then a rank auxiliary tag will be attached to each alignment
 			 **/
 			SamDecoder(std::string const & filename, bool const rputrank = false)
-			: 
+			:
 			  libmaus2::bambam::BamAlignmentDecoder(rputrank),
 			  AISTR(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename)),
 			  in(*AISTR),
@@ -122,7 +122,7 @@ namespace libmaus2
 			  bamheader(*Pbamheader),
 			  samline(bamheader, alignment)
 			{}
-			
+
 			/**
 			 * constructor by input stream
 			 *
@@ -130,7 +130,7 @@ namespace libmaus2
 			 * @param rputrank if true, then a rank auxiliary tag will be attached to each alignment
 			 **/
 			SamDecoder(std::istream & rin, bool const rputrank = false)
-			: 
+			:
 			  libmaus2::bambam::BamAlignmentDecoder(rputrank),
 			  AISTR(new libmaus2::aio::InputStream(rin)),
 			  in(*AISTR),
@@ -147,7 +147,7 @@ namespace libmaus2
 			 * @param rputrank if true, then a rank auxiliary tag will be attached to each alignment
 			 **/
 			SamDecoder(libmaus2::aio::InputStream::unique_ptr_type & rin, bool const rputrank = false)
-			: 
+			:
 			  libmaus2::bambam::BamAlignmentDecoder(rputrank),
 			  AISTR(UNIQUE_PTR_MOVE(rin)),
 			  in(*AISTR),

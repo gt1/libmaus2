@@ -30,7 +30,7 @@ namespace libmaus2
 		struct TempFileContainer
 		{
 			virtual ~TempFileContainer() {}
-			
+
 			virtual std::ostream & openOutputTempFile(uint64_t) = 0;
 			virtual std::ostream & getOutputTempFile(uint64_t) = 0;
 			virtual void closeOutputTempFile(uint64_t) = 0;

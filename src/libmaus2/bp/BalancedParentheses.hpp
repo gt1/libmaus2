@@ -54,7 +54,7 @@ struct BalancedParentheses : public BalancedParenthesesBase
 			pio0->byteSize() +
 			pion1->byteSize() +
 			pio1->byteSize() +
-			pio1lookup.byteSize();	
+			pio1lookup.byteSize();
 	}
 
 	::libmaus2::autoarray::AutoArray<uint64_t> computePio1Lookup() const
@@ -74,10 +74,10 @@ struct BalancedParentheses : public BalancedParenthesesBase
 				pio1lookup[j] = i;
 				pio1lookup[i] = j;
 			}
-		
+
 		return pio1lookup;
 	}
-	
+
 	uint64_t findClosePio0(uint64_t const i) const
 	{
 		uint64_t const pio0rank = pion0->rank1(i)-1;
@@ -94,9 +94,9 @@ struct BalancedParentheses : public BalancedParenthesesBase
 			uint64_t const pio1close = pio1lookup[pio1rank];
 			uint64_t const pio0close = pion1->select1(pio1close);
 			uint64_t const rclose = pion0->select1(pio0close);
-			return rclose;				
+			return rclose;
 		}
-		
+
 		// previous pioneer in level 2 index at level 1
 		uint64_t const prev2 = pion1->prev1(pio0rank);
 		// should be a pioneer
@@ -110,29 +110,29 @@ struct BalancedParentheses : public BalancedParenthesesBase
 		// difference in excess
 		int64_t const prev2excessdiff = pio0->excess(pio0rank,prev2);
 		// assert ( prev2excessdiff > 0 );
-		
+
 		// closing par on level 2
 		uint64_t const close2 = pio1lookup[prev2index2];
 		// closing pioneer on level 1
 		uint64_t const close1 = pion1->select1(close2);
-		
+
 		// obtained pioneers should be closing
 		// assert ( ! ((*pio1)[close2]) );
 		// assert ( ! ((*pio0)[close1]) );
-		
+
 		// par is supposed to be behind actual one
 		// assert ( close1 > lookupFindClose(pio0->get(),pio0rank) );
-		
+
 		uint64_t ci = close1;
 		uint64_t minmatex = 0;
 		while ( ci / blocksize == close1 / blocksize )
 		{
-			if ( - pio0->excess ( close1, ci ) == prev2excessdiff ) 
+			if ( - pio0->excess ( close1, ci ) == prev2excessdiff )
 				minmatex = ci;
 			ci--;
 		}
-		
-		return pion0->select1(minmatex);			
+
+		return pion0->select1(minmatex);
 	}
 
 	uint64_t findOpenPio0(uint64_t const i) const
@@ -151,9 +151,9 @@ struct BalancedParentheses : public BalancedParenthesesBase
 			uint64_t const pio1open = pio1lookup[pio1rank];
 			uint64_t const pio0open = pion1->select1(pio1open);
 			uint64_t const ropen = pion0->select1(pio0open);
-			return ropen;				
+			return ropen;
 		}
-		
+
 		// next pioneer in level 2 index at level 1
 		uint64_t const next2 = pion1->next1(pio0rank);
 		// should be a pioneer
@@ -173,11 +173,11 @@ struct BalancedParentheses : public BalancedParenthesesBase
 		uint64_t const open2 = pio1lookup[next2index2];
 		// opening pioneer on level 1
 		uint64_t const open1 = pion1->select1(open2);
-		
+
 		// obtained pioneers should be closing
 		// assert ( ((*pio1)[open2]) );
 		// assert ( ((*pio0)[open1]) );
-		
+
 		// par is supposed to be before actual one
 		// assert ( open1 < lookupFindOpen(pio0->get(),pio0rank) );
 
@@ -185,11 +185,11 @@ struct BalancedParentheses : public BalancedParenthesesBase
 		uint64_t maxmatex = 0;
 		while ( ci / blocksize == open1 / blocksize )
 		{
-			if ( pio0->excess ( open1, ci ) == next2excessdiff ) 
+			if ( pio0->excess ( open1, ci ) == next2excessdiff )
 				maxmatex = ci;
 			ci++;
 		}
-		
+
 		return pion0->select1(maxmatex+1);
 	}
 
@@ -200,11 +200,11 @@ struct BalancedParentheses : public BalancedParenthesesBase
 		uint64_t const lfo = lookupFindCloseOrFar(UB,i,blocksize);
 		if ( lfo != std::numeric_limits<uint64_t>::max() )
 			return lfo;
-		
+
 		// level 1 pioneer par?
 		if ( (*pion0)[i] )
 			return findClosePio0(i);
-		
+
 		// previous pioneer
 		uint64_t const prevpio = pion0->prev1(i);
 		int64_t const prev1excessdiff = UUB.excess(i,prevpio);
@@ -214,11 +214,11 @@ struct BalancedParentheses : public BalancedParenthesesBase
 		uint64_t minmatex = 0;
 		while ( ci / blocksize == pioclosing / blocksize )
 		{
-			if ( - UUB.excess ( pioclosing, ci ) == prev1excessdiff ) 
+			if ( - UUB.excess ( pioclosing, ci ) == prev1excessdiff )
 				minmatex = ci;
 			ci--;
 		}
-		
+
 		return minmatex;
 	}
 
@@ -228,13 +228,13 @@ struct BalancedParentheses : public BalancedParenthesesBase
 		uint64_t const lfo = lookupFindOpenOrFar(UB,i,blocksize);
 		if ( lfo != std::numeric_limits<uint64_t>::max() )
 			return lfo;
-				
+
 		// level 1 pioneer par?
 		if ( (*pion0)[i] )
 			return findOpenPio0(i);
 
 		// uint64_t const expected = lookupFindOpen(UB,i);
-		
+
 		// next pioneer
 		uint64_t const nextpio = pion0->next1(i);
 		int64_t const next1excessdiff = UUB.excess(nextpio,i)+1;
@@ -244,11 +244,11 @@ struct BalancedParentheses : public BalancedParenthesesBase
 		uint64_t maxmatex = 0;
 		while ( ci / blocksize == pioopening / blocksize )
 		{
-			if ( UUB.excess ( pioopening, ci ) == next1excessdiff ) 
+			if ( UUB.excess ( pioopening, ci ) == next1excessdiff )
 				maxmatex = ci;
 			ci++;
 		}
-		
+
 		return maxmatex+1;
 	}
 
@@ -261,14 +261,14 @@ struct BalancedParentheses : public BalancedParenthesesBase
 		// closing?
 		if ( !UUB[i] )
 			i = findOpen(i);
-			
+
 		// root of tree?
 		if ( ! i )
 			return 0;
-		
+
 		// i should be an opening par now
 		assert ( UUB[i] );
-		
+
 		// move left among siblings until we reached a leftmost child node
 		while ( !UUB[i-1] )
 			i = findOpen(i-1);
@@ -277,11 +277,11 @@ struct BalancedParentheses : public BalancedParenthesesBase
 		assert ( i );
 		assert ( UUB[i] );
 		assert ( UUB[i-1] );
-		
+
 		// return parent
 		return i-1;
 	}
-	
+
 	void checkScanFind() const
 	{
 		std::stack < uint64_t > S;
@@ -297,24 +297,24 @@ struct BalancedParentheses : public BalancedParenthesesBase
 				uint64_t const v0 = S.top(); S.pop();
 				uint64_t const v1 = IS.top(); IS.pop();
 				assert ( v0 == v1 );
-				
+
 				uint64_t const cl = lookupFindClose(UB,v0);
-					
+
 				if ( cl != i )
 					std::cerr << "v0=" << v0 << " i=" << i << " cl=" << cl << std::endl;
 				assert ( cl == i );
 
 				uint64_t const ol = lookupFindOpen(UB, i);
-				
+
 				if ( ol != v0 )
 				{
 					std::cerr << "Fail." << std::endl;
 				}
-				
+
 				assert ( ol == v0 );
-				
+
 				unsigned int const blocksize = 64;
-				assert ( 
+				assert (
 					lookupFindCloseOrFar(UB,v0,blocksize) == lookupFindClose(UB,v0)
 					||
 					(
@@ -323,7 +323,7 @@ struct BalancedParentheses : public BalancedParenthesesBase
 						lookupFindCloseOrFar(UB,v0,blocksize) == std::numeric_limits<uint64_t>::max()
 					)
 				);
-				assert ( 
+				assert (
 					lookupFindOpenOrFar(UB,i,blocksize) == lookupFindOpen(UB,i)
 					||
 					(
@@ -332,21 +332,21 @@ struct BalancedParentheses : public BalancedParenthesesBase
 						lookupFindOpenOrFar(UB,i,blocksize) == std::numeric_limits<uint64_t>::max()
 					)
 				);
-				
+
 				// std::cerr << "v0=" << v0 << " v1=" << v1 << std::endl;
 			}
 	}
-	
+
 	void printBPSizeInfo() const
 	{
 		std::cerr << "size " << (byteSize()*8.0)/UUB.size() << " bits per par" << std::endl;
 		uint64_t const numpion = pion0->rank1(pion0->size()-1);
-		std::cerr << "Number of pioneer parentheses: " << numpion << " number of parentheses: " << pion0->size() << std::endl;		
+		std::cerr << "Number of pioneer parentheses: " << numpion << " number of parentheses: " << pion0->size() << std::endl;
 		std::cerr << "Lenght of BP:" << UUB.size() << std::endl;
 		std::cerr << "Length of pio0: " << pio0->size() << std::endl;
-		std::cerr << "Length of pio1: " << pio1->size() << std::endl;	
+		std::cerr << "Length of pio1: " << pio1->size() << std::endl;
 	}
-	
+
 	void checkOperations() const
 	{
 		std::cerr << "Checking...";
@@ -357,7 +357,7 @@ struct BalancedParentheses : public BalancedParenthesesBase
 			assert ( findClose(i) ==  lookupFindClose(UB,i) );
 			assert ( findOpen(i) == lookupFindOpen(UB,i) );
 			#endif
-			
+
 			if ( UUB[i] )
 			{
 				if ( parstack.size() )
@@ -370,7 +370,7 @@ struct BalancedParentheses : public BalancedParenthesesBase
 				if ( parstack.size() )
 					assert ( parstack.back() == enclose(i) );
 			}
-			
+
 			#if 0
 			par.push_back(findClose(i) );
 			par.push_back(findOpen(i) );
@@ -382,7 +382,7 @@ struct BalancedParentheses : public BalancedParenthesesBase
 	}
 
 	BalancedParentheses(::libmaus2::bitio::IndexedBitVector::unique_ptr_type & rPUUB)
-	: PUUB(UNIQUE_PTR_MOVE(rPUUB)), UUB(*PUUB), UB(UUB.get()), 
+	: PUUB(UNIQUE_PTR_MOVE(rPUUB)), UUB(*PUUB), UB(UUB.get()),
 	  // first level pioneer data
 	  pion0(BalancedParenthesesBase::calculatePioneerBitVectorNND(UUB,blocksize)),
 	  // pion0(BalancedParenthesesBase::calculatePioneerBitVector(UUB, blocksize)),

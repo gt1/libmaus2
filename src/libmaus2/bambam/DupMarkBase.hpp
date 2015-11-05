@@ -43,7 +43,7 @@ namespace libmaus2
 		struct DupMarkBase
 		{
 			// #define DEBUG
-			
+
 			#if defined(DEBUG)
 			#define MARKDUPLICATEPAIRSDEBUG
 			#define MARKDUPLICATEFRAGSDEBUG
@@ -81,9 +81,9 @@ namespace libmaus2
 					for ( iterator lfrags_c = lfrags_a; lfrags_c != lfrags_e; ++lfrags_c )
 						std::cerr << "[V] [D] considering " << projector::deref(*lfrags_c) << std::endl;
 					#endif
-				
+
 					uint64_t maxscore = projector::deref(*lfrags_a).getScore();
-					
+
 					iterator lfrags_m = lfrags_a;
 					for ( iterator lfrags_c = lfrags_a+1; lfrags_c != lfrags_e; ++lfrags_c )
 						if ( projector::deref(*lfrags_c).getScore() > maxscore )
@@ -100,40 +100,40 @@ namespace libmaus2
 							#endif
 							DSC(projector::deref(*lfrags_c));
 						}
-				
+
 					// check for optical duplicates
 					std::sort ( lfrags_a, lfrags_e, ::libmaus2::bambam::OpticalComparator() );
-					
+
 					for ( iterator low = lfrags_a; low != lfrags_e; )
 					{
 						iterator high = low+1;
-						
+
 						// search top end of tile
-						while ( 
-							high != lfrags_e && 
+						while (
+							high != lfrags_e &&
 							projector::deref(*high).getReadGroup() == projector::deref(*low).getReadGroup() &&
 							projector::deref(*high).getTile() == projector::deref(*low).getTile() )
 						{
 							++high;
 						}
-						
+
 						if ( high-low > 1 && projector::deref(*low).getTile() )
 						{
 							#if defined(DEBUG)
 							std::cerr << "[D] Range " << high-low << std::endl; // << " for " << projector::deref(*low) << std::endl;
 							#endif
-						
+
 							std::vector<bool> opt(high-low,false);
 							bool haveoptdup = false;
-							
+
 							for ( iterator i = low; i+1 != high; ++i )
 							{
-								for ( 
-									iterator j = i+1; 
+								for (
+									iterator j = i+1;
 									j != high && projector::deref(*j).getX() - projector::deref(*i).getX() <= optminpixeldif;
-									++j 
+									++j
 								)
-									if ( 
+									if (
 										::libmaus2::math::iabs(
 											static_cast<int64_t>(projector::deref(*i).getY())
 											-
@@ -141,12 +141,12 @@ namespace libmaus2
 										)
 										<= optminpixeldif
 									)
-								{	
+								{
 									opt [ j - low ] = true;
 									haveoptdup = true;
 								}
 							}
-							
+
 							if ( haveoptdup )
 							{
 								unsigned int const lib = projector::deref(*low).getLibraryId();
@@ -154,13 +154,13 @@ namespace libmaus2
 								for ( uint64_t i = 0; i < opt.size(); ++i )
 									if ( opt[i] )
 										numopt++;
-										
-								DSC.addOpticalDuplicates(lib,numopt);	
+
+								DSC.addOpticalDuplicates(lib,numopt);
 							}
 						}
-						
+
 						low = high;
-					}	
+					}
 				}
 				else
 				{
@@ -169,9 +169,9 @@ namespace libmaus2
 					for ( iterator i = lfrags_a; i != lfrags_e; ++i )
 						std::cerr << "[V] " << projector::deref(*i) << std::endl;
 					#endif
-				
+
 				}
-				
+
 				uint64_t const lfragssize = lfrags_e-lfrags_a;
 				// all but one are duplicates
 				return lfragssize ? 2*(lfragssize - 1) : 0;
@@ -216,16 +216,16 @@ namespace libmaus2
 					for ( iterator lfrags_c = lfrags_a; lfrags_c != lfrags_e; ++lfrags_c )
 						std::cerr << "[V] " << projector::deref(*lfrags_c) << std::endl;
 					#endif
-				
+
 					bool containspairs = false;
 					bool containsfrags = false;
-					
+
 					for ( iterator lfrags_c = lfrags_a; lfrags_c != lfrags_e; ++lfrags_c )
 						if ( projector::deref(*lfrags_c).isPaired() )
 							containspairs = true;
 						else
 							containsfrags = true;
-					
+
 					// if there are any single fragments
 					if ( containsfrags )
 					{
@@ -235,7 +235,7 @@ namespace libmaus2
 							#if defined(MARKDUPLICATEFRAGSDEBUG)
 							std::cerr << "[V] there are pairs, marking single ends as duplicates" << std::endl;
 							#endif
-						
+
 							uint64_t dupcnt = 0;
 							// std::cerr << "Contains pairs." << std::endl;
 							for ( iterator lfrags_c = lfrags_a; lfrags_c != lfrags_e; ++lfrags_c )
@@ -244,8 +244,8 @@ namespace libmaus2
 									DSC(projector::deref(*lfrags_c));
 									dupcnt++;
 								}
-								
-							return dupcnt;	
+
+							return dupcnt;
 						}
 						// if all are single keep highest score only
 						else
@@ -254,10 +254,10 @@ namespace libmaus2
 							std::cerr << "[V] there are only fragments, keeping best one" << std::endl;
 							#endif
 							// std::cerr << "Frags only." << std::endl;
-						
+
 							uint64_t maxscore = projector::deref(*lfrags_a).getScore();
 							iterator lfrags_m = lfrags_a;
-							
+
 							for ( iterator lfrags_c = lfrags_a+1; lfrags_c != lfrags_e; ++lfrags_c )
 								if ( projector::deref(*lfrags_c).getScore() > maxscore )
 								{
@@ -270,17 +270,17 @@ namespace libmaus2
 									DSC(projector::deref(*lfrags_c));
 
 							return lfragssize-1;
-						}			
+						}
 					}
 					else
 					{
 						#if defined(MARKDUPLICATEFRAGSDEBUG)
 						std::cerr << "[V] group does not contain unpaired reads." << std::endl;
 						#endif
-					
+
 						return 0;
 					}
-				}	
+				}
 				else
 				{
 					return 0;
@@ -306,7 +306,7 @@ namespace libmaus2
 
 			static bool isDupPair(::libmaus2::bambam::ReadEndsBase const & A, ::libmaus2::bambam::ReadEndsBase const & B)
 			{
-				bool const notdup = 
+				bool const notdup =
 					A.getLibraryId()       != B.getLibraryId()       ||
 					A.getTagId()           != B.getTagId()           ||
 					A.getRead1Sequence()   != B.getRead1Sequence()   ||
@@ -315,20 +315,20 @@ namespace libmaus2
 					A.getRead2Sequence()   != B.getRead2Sequence()   ||
 					A.getRead2Coordinate() != B.getRead2Coordinate()
 				;
-				
+
 				return ! notdup;
 			}
 
 			static bool isDupFrag(::libmaus2::bambam::ReadEndsBase const & A, ::libmaus2::bambam::ReadEndsBase const & B)
 			{
-				bool const notdup = 
+				bool const notdup =
 					A.getLibraryId()       != B.getLibraryId()       ||
 					A.getTagId()           != B.getTagId()           ||
 					A.getRead1Sequence()   != B.getRead1Sequence()   ||
 					A.getRead1Coordinate() != B.getRead1Coordinate() ||
 					A.getOrientation()     != B.getOrientation()
 				;
-				
+
 				return ! notdup;
 			}
 
@@ -350,7 +350,7 @@ namespace libmaus2
 
 				::libmaus2::aio::OutputStream::unique_ptr_type pO;
 				std::ostream * poutputstr = 0;
-				
+
 				if ( arginfo.hasArg("O") && (arginfo.getValue<std::string>("O","") != "") )
 				{
 					::libmaus2::aio::OutputStream::unique_ptr_type tpO(
@@ -377,7 +377,7 @@ namespace libmaus2
 					headout.flush();
 				}
 
-				
+
 				uint64_t const bmod = libmaus2::math::nextTwoPow(mod);
 				uint64_t const bmask = bmod-1;
 
@@ -386,24 +386,24 @@ namespace libmaus2
 				libmaus2::lz::BgzfRecode rec(in,outputstr,level);
 				for ( uint64_t i = 0; Pcbs && i < Pcbs->size(); ++i )
 					rec.registerBlockOutputCallback(Pcbs->at(i));
-				
+
 				bool haveheader = false;
 				bool recactive = false;
 				uint64_t blockskip = 0;
-				
+
 				libmaus2::bambam::BamHeaderParserState bhps;
-				
+
 				std::cerr << "[D] using incremental BAM header parser on serial decoder." << std::endl;
-				
+
 				/* read  blocks until we have reached the end of the BAM header */
 				while ( (!haveheader) && (recactive = !(rec.getBlockPlusEOF().second)) )
 				{
 					libmaus2::util::GetObject<uint8_t const *> G(rec.deflatebase.pa);
 					std::pair<bool,uint64_t> const ps = bhps.parseHeader(G,rec.P.second);
-					haveheader = ps.first;		
+					haveheader = ps.first;
 					blockskip = ps.second; // bytes used for header in this block
 				}
-				
+
 				if ( blockskip )
 				{
 					uint64_t const bytesused = (rec.deflatebase.pc - rec.deflatebase.pa) - blockskip;
@@ -411,7 +411,7 @@ namespace libmaus2
 					rec.deflatebase.pc = rec.deflatebase.pa + bytesused;
 					rec.P.second = bytesused;
 					blockskip = 0;
-					
+
 					if ( ! bytesused )
 						(recactive = !(rec.getBlockPlusEOF().second));
 				}
@@ -425,7 +425,7 @@ namespace libmaus2
 				uint64_t alcnt = 0;
 				unsigned int const dupflagskip = 15;
 				// uint8_t const dupflagmask = static_cast<uint8_t>(~(4u));
-						
+
 				/* while we have alignment data blocks */
 				while ( recactive )
 				{
@@ -444,7 +444,7 @@ namespace libmaus2
 									blocklen = *(reinterpret_cast<uint32_t const *>(pa));
 									blocklenred = sizeof(uint32_t);
 									pa += sizeof(uint32_t);
-									
+
 									state = state_pre_skip;
 									preskip = dupflagskip;
 								}
@@ -468,7 +468,7 @@ namespace libmaus2
 									pa += skip;
 									preskip -= skip;
 									blocklen -= skip;
-									
+
 									if ( ! skip )
 										state = state_marking;
 								}
@@ -499,7 +499,7 @@ namespace libmaus2
 									blocklenred = 0;
 									blocklen = 0;
 									alcnt++;
-									
+
 									if ( verbose && ((alcnt & (bmask)) == 0) )
 									{
 										std::cerr << "[V] Marked " << (alcnt+1) << " (" << (alcnt+1)/(1024*1024) << "," << static_cast<double>(alcnt+1)/maxrank << ")"
@@ -515,16 +515,16 @@ namespace libmaus2
 							}
 						}
 
-					rec.putBlock();			
+					rec.putBlock();
 					(recactive = !(rec.getBlockPlusEOF().second));
 				}
-						
+
 				rec.addEOFBlock();
 				outputstr.flush();
-				
+
 				if ( verbose )
 					std::cerr << "[V] Marked " << 1.0 << " total for marking time "
-						<< globrtc.formatTime(globrtc.getElapsedSeconds()) 
+						<< globrtc.formatTime(globrtc.getElapsedSeconds())
 						<< " "
 						<< libmaus2::util::MemUsage()
 						<< std::endl;
@@ -548,9 +548,9 @@ namespace libmaus2
 				::libmaus2::bambam::BamHeader::unique_ptr_type uphead(::libmaus2::bambam::BamHeaderUpdate::updateHeader(arginfo,bamheader,progid,packageversion));
 
 				::libmaus2::aio::OutputStream::unique_ptr_type pO;
-				
+
 				std::ostream * poutputstr = 0;
-				
+
 				if ( arginfo.hasArg("O") && (arginfo.getValue<std::string>("O","") != "") )
 				{
 					::libmaus2::aio::OutputStream::unique_ptr_type tpO(
@@ -584,24 +584,24 @@ namespace libmaus2
 
 				libmaus2::timing::RealTimeClock globrtc; globrtc.start();
 				libmaus2::timing::RealTimeClock locrtc; locrtc.start();
-				
+
 				bool haveheader = false;
 				bool recactive = false;
 				uint64_t blockskip = 0;
 
 				libmaus2::bambam::BamHeaderParserState bhps;
-				
+
 				std::cerr << "[D] using incremental BAM header parser on parallel recoder." << std::endl;
-				
+
 				/* read  blocks until we have reached the end of the BAM header */
 				while ( (!haveheader) && (recactive=rec.getBlock()) )
 				{
 					libmaus2::util::GetObject<uint8_t const *> G(rec.deflatebase.pa);
 					std::pair<bool,uint64_t> const ps = bhps.parseHeader(G,rec.P.second);
-					haveheader = ps.first;		
+					haveheader = ps.first;
 					blockskip = ps.second; // bytes used for header in this block
 				}
-				
+
 				if ( blockskip )
 				{
 					uint64_t const bytesused = (rec.deflatebase.pc - rec.deflatebase.pa) - blockskip;
@@ -609,7 +609,7 @@ namespace libmaus2
 					rec.deflatebase.pc = rec.deflatebase.pa + bytesused;
 					rec.P.second = bytesused;
 					blockskip = 0;
-					
+
 					if ( ! bytesused )
 						(recactive=rec.getBlock());
 				}
@@ -623,7 +623,7 @@ namespace libmaus2
 				uint64_t alcnt = 0;
 				unsigned int const dupflagskip = 15;
 				// uint8_t const dupflagmask = static_cast<uint8_t>(~(4u));
-						
+
 				/* while we have alignment data blocks */
 				while ( recactive )
 				{
@@ -642,7 +642,7 @@ namespace libmaus2
 									blocklen = *(reinterpret_cast<uint32_t const *>(pa));
 									blocklenred = sizeof(uint32_t);
 									pa += sizeof(uint32_t);
-									
+
 									state = state_pre_skip;
 									preskip = dupflagskip;
 								}
@@ -666,7 +666,7 @@ namespace libmaus2
 									pa += skip;
 									preskip -= skip;
 									blocklen -= skip;
-									
+
 									if ( ! skip )
 										state = state_marking;
 								}
@@ -691,7 +691,7 @@ namespace libmaus2
 									blocklenred = 0;
 									blocklen = 0;
 									alcnt++;
-									
+
 									if ( verbose && ((alcnt & (bmask)) == 0) )
 									{
 										std::cerr << "[V] Marked " << (alcnt+1) << " (" << (alcnt+1)/(1024*1024) << "," << static_cast<double>(alcnt+1)/maxrank << ")"
@@ -707,16 +707,16 @@ namespace libmaus2
 							}
 						}
 
-					rec.putBlock();			
+					rec.putBlock();
 					(recactive=rec.getBlock());
 				}
-						
+
 				rec.addEOFBlock();
 				outputstr.flush();
-				
+
 				if ( verbose )
 					std::cerr << "[V] Marked " << 1.0 << " total for marking time "
-						<< globrtc.formatTime(globrtc.getElapsedSeconds()) 
+						<< globrtc.formatTime(globrtc.getElapsedSeconds())
 						<< " "
 						<< libmaus2::util::MemUsage()
 						<< std::endl;
@@ -742,7 +742,7 @@ namespace libmaus2
 				::libmaus2::aio::OutputStream::unique_ptr_type pO;
 
 				std::ostream * poutputstr = 0;
-				
+
 				if ( arginfo.hasArg("O") && (arginfo.getValue<std::string>("O","") != "") )
 				{
 					::libmaus2::aio::OutputStream::unique_ptr_type tpO(
@@ -758,7 +758,7 @@ namespace libmaus2
 				}
 
 				std::ostream & outputstr = *poutputstr;
-				
+
 				libmaus2::timing::RealTimeClock globrtc, locrtc;
 				globrtc.start(); locrtc.start();
 				uint64_t const bmod = libmaus2::math::nextTwoPow(mod);
@@ -775,9 +775,9 @@ namespace libmaus2
 						alignment.putFlags(alignment.getFlags() | dup);
 					else
 						alignment.putFlags(alignment.getFlags() & notdup);
-											
+
 					alignment.serialise(writer->getStream());
-					
+
 					if ( verbose && ((r+1) & bmask) == 0 )
 					{
 						std::cerr << "[V] Marked " << (r+1) << " (" << (r+1)/(1024*1024) << "," << static_cast<double>(r+1)/maxrank << ")"
@@ -789,13 +789,13 @@ namespace libmaus2
 						locrtc.start();
 					}
 				}
-				
+
 				writer.reset();
 				outputstr.flush();
 				pO.reset();
-				
+
 				if ( verbose )
-					std::cerr << "[V] Marked " << maxrank << "(" << maxrank/(1024*1024) << "," << 1 << ")" << " total for marking time " << globrtc.formatTime(globrtc.getElapsedSeconds()) 
+					std::cerr << "[V] Marked " << maxrank << "(" << maxrank/(1024*1024) << "," << 1 << ")" << " total for marking time " << globrtc.formatTime(globrtc.getElapsedSeconds())
 						<< " "
 						<< libmaus2::util::MemUsage()
 						<< std::endl;
@@ -834,7 +834,7 @@ namespace libmaus2
 						alignment.putFlags(alignment.getFlags() | dup);
 						alignment.serialise(dupwriter->getStream());
 					}
-					
+
 					if ( verbose && ((r+1) & bmask) == 0 )
 					{
 						std::cerr << "[V] Filtered " << (r+1) << " (" << (r+1)/(1024*1024) << "," << static_cast<double>(r+1)/maxrank << ")"
@@ -846,9 +846,9 @@ namespace libmaus2
 						locrtc.start();
 					}
 				}
-					
+
 				if ( verbose )
-					std::cerr << "[V] Filtered " << maxrank << "(" << maxrank/(1024*1024) << "," << 1 << ")" << " total for marking time " << globrtc.formatTime(globrtc.getElapsedSeconds()) 
+					std::cerr << "[V] Filtered " << maxrank << "(" << maxrank/(1024*1024) << "," << 1 << ")" << " total for marking time " << globrtc.formatTime(globrtc.getElapsedSeconds())
 						<< " "
 						<< libmaus2::util::MemUsage()
 						<< std::endl;
@@ -875,11 +875,11 @@ namespace libmaus2
 			)
 			{
 				bool const rmdup = arginfo.getValue<int>("rmdup",defaultrmdup);
-				uint64_t const markthreads = 
+				uint64_t const markthreads =
 					std::max(
 						static_cast<uint64_t>(1),arginfo.getValue<uint64_t>("markthreads",defaultmarkthreads)
 					);
-					
+
 				bool const outputisfile = arginfo.hasArg("O") && (arginfo.getUnparsedValue("O","") != "");
 				std::string outputfilename = outputisfile ? arginfo.getUnparsedValue("O","") : "";
 				std::string dupoutputfilename = rmdup ? arginfo.getUnparsedValue("D","") : std::string();
@@ -962,7 +962,7 @@ namespace libmaus2
 				std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback * > * Pdupcbs = 0;
 				if ( dupcbs.size() )
 					Pdupcbs = &dupcbs;
-				
+
 				#if 0
 				cbs.push_back(&md5cb);
 				cbs.push_back(&indexcb);
@@ -972,12 +972,12 @@ namespace libmaus2
 				if ( rmdup )
 				{
 					::libmaus2::bambam::BamHeader::unique_ptr_type uphead(::libmaus2::bambam::BamHeaderUpdate::updateHeader(arginfo,bamheader,progid,packageversion));
-					
+
 					bool const inputisbam = (arginfo.hasArg("I") && (arginfo.getValue<std::string>("I","") != "")) || rewritebam;
-				
+
 					::libmaus2::aio::OutputStream::unique_ptr_type pO;
 					std::ostream * poutputstr = 0;
-					
+
 					if ( outputisfile )
 					{
 						::libmaus2::aio::OutputStream::unique_ptr_type tpO(
@@ -992,7 +992,7 @@ namespace libmaus2
 					}
 
 					std::ostream & outputstr = *poutputstr;
-					
+
 					if ( inputisbam )
 					{
 						// multiple input files
@@ -1019,7 +1019,7 @@ namespace libmaus2
 							{
 								::libmaus2::bambam::BamDecoder decoder(inputfilename);
 								decoder.disableValidation();
-								::libmaus2::bambam::BamWriter::unique_ptr_type writer(new ::libmaus2::bambam::BamWriter(outputstr,*uphead,level,Pcbs));	
+								::libmaus2::bambam::BamWriter::unique_ptr_type writer(new ::libmaus2::bambam::BamWriter(outputstr,*uphead,level,Pcbs));
 								::libmaus2::bambam::BamWriter::unique_ptr_type dupwriter(dupoutputfilename.size() ? new ::libmaus2::bambam::BamWriter(dupoutputfilename,*uphead,level,Pdupcbs) : NULL);
 								removeDuplicatesFromFileTemplate(verbose,maxrank,mod,DSC,decoder,*writer,dupwriter.get());
 							}
@@ -1037,7 +1037,7 @@ namespace libmaus2
 						}
 					}
 					else
-					{		
+					{
 						libmaus2::bambam::BamAlignmentSnappyInput decoder(recompressedalignments);
 						if ( verbose )
 							std::cerr << "[V] Reading snappy alignments from " << recompressedalignments << std::endl;
@@ -1067,7 +1067,7 @@ namespace libmaus2
 							libmaus2::aio::InputStreamFactoryContainer::constructUnique(inputfilename)
 						);
 						libmaus2::aio::InputStream & PFIS = *PPFIS;
-					
+
 						if ( markthreads == 1 )
 							addBamDuplicateFlag(arginfo,verbose,bamheader,maxrank,mod,level,DSC,PFIS /* CIS */,Pcbs,progid,packageversion);
 						else
@@ -1076,10 +1076,10 @@ namespace libmaus2
 					else
 					{
 						if ( rewritebam )
-						{	
+						{
 							libmaus2::aio::InputStream::unique_ptr_type pCIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(recompressedalignments));
 							libmaus2::aio::InputStream & CIS = *pCIS;
-							
+
 							if ( markthreads == 1 )
 								addBamDuplicateFlag(arginfo,verbose,bamheader,maxrank,mod,level,DSC,CIS,Pcbs,progid,packageversion);
 							else
@@ -1094,7 +1094,7 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				if ( Pmd5cb )
 				{
 					Pmd5cb->saveDigestAsFile(md5filename);

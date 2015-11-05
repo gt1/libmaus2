@@ -34,7 +34,7 @@ namespace libmaus2
 		struct SimpleCountingHashBase
 		{
 			typedef _key_type key_type;
-		
+
 			static _key_type unused()
 			{
 				return std::numeric_limits<key_type>::max();
@@ -49,10 +49,10 @@ namespace libmaus2
 				return libmaus2::hashing::EvaHash::hash642(&v,1);
 			}
 		};
-	
+
 		template<
-			typename _key_type, 
-			typename _count_type, 
+			typename _key_type,
+			typename _count_type,
 			typename _base_type = SimpleCountingHashBase<_key_type>,
 			typename _hash_type = SimpleCountingHashBaseType<_key_type>
 		>
@@ -76,13 +76,13 @@ namespace libmaus2
 			uint64_t hashsize;
 			uint64_t hashmask;
 			uint64_t fill;
-			
+
 			// value array
 			::libmaus2::autoarray::AutoArray<key_type> H;
 			// count array
 			::libmaus2::autoarray::AutoArray<count_type> C;
-			
-			public:			
+
+			public:
 			key_type const * begin() const { return H.begin(); }
 			key_type const * end() const { return H.end(); }
 			key_type * begin() { return H.begin(); }
@@ -91,7 +91,7 @@ namespace libmaus2
 			count_type const * cntend() const { return C.end(); }
 			count_type * cntbegin() { return C.begin(); }
 			count_type * cntend() { return C.end(); }
-			
+
 			void clear()
 			{
 				for ( key_type * p = begin(); p != end(); ++p )
@@ -100,10 +100,10 @@ namespace libmaus2
 					*p = count_type();
 				fill = 0;
 			}
-			
+
 			uint64_t byteSize() const
 			{
-				return 
+				return
 					sizeof(slog)+
 					sizeof(hashsize)+
 					sizeof(hashmask)+
@@ -121,7 +121,7 @@ namespace libmaus2
 				H = from.H;
 				C = from.C;
 			}
-			
+
 			uint64_t getTableSize() const
 			{
 				return H.size();
@@ -138,7 +138,7 @@ namespace libmaus2
 				uint64_t const blocksize = (from.H.size()+numblocks-1) / numblocks;
 				uint64_t const idlow = blockid*blocksize;
 				uint64_t const idhigh = std::min(idlow+blocksize,from.H.size());
-				
+
 				for ( uint64_t i = idlow; i < idhigh; ++i )
 					if ( from.H[i] != base_type::unused() )
 						to.insert(from.H[i],from.C[i]);
@@ -165,7 +165,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < H.size(); ++i )
 					if ( H[i] != base_type::unused() )
 						O->insert ( H[i], C[i] );
-				
+
 				slog = O->slog;
 				hashsize = O->hashsize;
 				hashmask = O->hashmask;
@@ -179,35 +179,35 @@ namespace libmaus2
 			{
 				std::fill(H.begin(),H.end(),base_type::unused());
 			}
-			
+
 			uint64_t hash(key_type const v) const
 			{
 				return hash_type::hash(v) & hashmask;
 			}
-			
+
 			inline uint64_t displace(uint64_t const p, key_type const & v) const
 			{
 				return (p + primes16[v&0xFFFFu]) & hashmask;
 			}
-			
+
 			uint64_t size() const
 			{
 				return fill;
 			}
-		
-			// saturating increment	
+
+			// saturating increment
 			uint64_t increment(uint64_t const p, uint64_t const inc = 1)
 			{
 				uint64_t c;
-				
+
 				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 				bool ok = false;
 				c = 0;
-				
+
 				while ( ! ok )
 				{
 					c = C[p];
-					
+
 					if ( c == std::numeric_limits<count_type>::max() )
 						ok = true;
 					else
@@ -220,7 +220,7 @@ namespace libmaus2
 				}
 				#else
 				clock.lock();
-				
+
 				if ( C[p] == std::numeric_limits<count_type>::max() )
 					c = C[p];
 				else
@@ -231,10 +231,10 @@ namespace libmaus2
 
 				clock.unlock();
 				#endif
-				
+
 				return c;
 			}
-			
+
 			double loadFactor() const
 			{
 				return static_cast<double>(fill) / H.size();
@@ -244,11 +244,11 @@ namespace libmaus2
 			{
 				if ( loadFactor() >= loadthres || fill == H.size() )
 					extendInternal();
-				
+
 				return insert(v,inc);
 			}
 
-			// insert value and return count after insertion			
+			// insert value and return count after insertion
 			count_type insert(key_type const v, uint64_t const inc = 1)
 			{
 				if ( v == base_type::unused() )
@@ -256,12 +256,12 @@ namespace libmaus2
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "SimpleCountingHash::insert(): cannot insert key " << v << std::endl;
 					lme.finish();
-					throw lme;				
+					throw lme;
 				}
-			
+
 				uint64_t const p0 = hash(v);
 				uint64_t p = p0;
-				
+
 				// uint64_t loopcnt = 0;
 
 				do
@@ -292,9 +292,9 @@ namespace libmaus2
 							H[p] = v;
 						hlock.unlock();
 						#endif
-						
+
 						assert ( H[p] != base_type::unused() );
-						
+
 						// got it
 						if ( H[p] == v )
 						{
@@ -314,23 +314,23 @@ namespace libmaus2
 						}
 						// someone else snapped position p before we got it
 						else
-						{			
+						{
 							p = displace(p,v);
 						}
 					}
-				
-					/*	
+
+					/*
 					if ( ++loopcnt % 1024 == 0 )
 						std::cerr << "loopcnt " << loopcnt << " v=" << v << std::endl;
 					*/
 				} while ( p != p0 );
-				
+
 				::libmaus2::exception::LibMausException se;
 				se.getStream() << "SimpleCountingHash::insert(): unable to insert, table is full." << std::endl;
 				se.finish();
 				throw se;
 			}
-			
+
 			// returns true if value v is contained
 			bool contains(key_type const v) const
 			{
@@ -354,10 +354,10 @@ namespace libmaus2
 						p = displace(p,v);
 					}
 				} while ( p != p0 );
-				
+
 				return false;
 			}
-			
+
 			// get count for value v
 			count_type getCount(key_type const v) const
 			{
@@ -381,7 +381,7 @@ namespace libmaus2
 						p = displace(p,v);
 					}
 				} while ( p != p0 );
-				
+
 				return 0;
 			}
 		};
@@ -391,14 +391,14 @@ namespace libmaus2
 		{
 			typedef _key_type key_type;
 			typedef _count_type count_type;
-			
+
 			typedef SimpleCountingHash<key_type,count_type> base_type;
 			typedef ExtendingSimpleCountingHash<key_type,count_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			typename ::libmaus2::util::SimpleCountingHash<key_type,count_type>::unique_ptr_type tmpMap;
-		
+
 			ExtendingSimpleCountingHash(unsigned int const rslog) : base_type(rslog) {}
 
 			void checkExtend(
@@ -410,40 +410,40 @@ namespace libmaus2
 					#if ! defined(_OPENMP)
 
 					base_type::extendInternal();
-					
+
 					#else
 
 					uint64_t const threadid = omp_get_thread_num();
-					
+
 					#pragma omp barrier
-					
+
 					if ( threadid == 0 )
 						// produce empty hash map
 						tmpMap = UNIQUE_PTR_MOVE(base_type::extendEmpty());
-					
+
 					#pragma omp barrier
-					
+
 					// fill empty hash map
 					::libmaus2::parallel::OMPLock cntlock;
 					int64_t cnt = 0;
-					
+
 					while ( cnt < omp_get_num_threads() )
 					{
 						int64_t id;
-						
+
 						cntlock.lock();
 						if ( cnt < omp_get_num_threads() )
 							id = cnt++;
 						else
 							id = omp_get_num_threads();
 						cntlock.unlock();
-						
+
 						if ( id < omp_get_num_threads() )
 							base_type::copy(*this,*tmpMap,id,omp_get_num_threads());
 					}
-						
+
 					#pragma omp barrier
-					
+
 					if ( threadid == 0 )
 					{
 						#if 0
@@ -459,10 +459,10 @@ namespace libmaus2
 						#endif
 						// std::cerr << "New hash map size " << base_type::getTableSize() << std::endl;
 					}
-					
+
 					#pragma omp barrier
-					
-					#endif		
+
+					#endif
 				}
 			}
 

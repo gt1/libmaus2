@@ -31,14 +31,14 @@ namespace libmaus2
 			typedef BgzfDeflateOutputBufferBase this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			::libmaus2::autoarray::AutoArray<uint8_t> outbuf;
 
-			BgzfDeflateOutputBufferBase(int const level) : outbuf(getOutBufSizeTwo(level),false) 
+			BgzfDeflateOutputBufferBase(int const level) : outbuf(getOutBufSizeTwo(level),false)
 			{
-				setupHeader(outbuf.begin());			
+				setupHeader(outbuf.begin());
 			}
-			
+
 			size_t byteSize()
 			{
 				return outbuf.byteSize();

@@ -25,11 +25,11 @@
 namespace libmaus2
 {
 	namespace parallel
-	{		
+	{
 		struct ThreadPoolInterface : public ThreadPoolInterfaceEnqueTermInterface
 		{
 			virtual ~ThreadPoolInterface() {}
-			
+
 			virtual void notifyThreadStart() = 0;
 			virtual void registerDispatcher(uint64_t const id, ThreadWorkPackageDispatcher * D) = 0;
 

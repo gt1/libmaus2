@@ -32,7 +32,7 @@ namespace libmaus2
 				libmaus2::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type block;
 				uint64_t subid;
 				uint64_t absid;
-				
+
 				SamParsePending() : block(), subid(0), absid(0) {}
 				SamParsePending(
 					libmaus2::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type rblock,
@@ -40,7 +40,7 @@ namespace libmaus2
 					uint64_t rabsid
 				) : block(rblock), subid(rsubid), absid(rabsid)
 				{
-				
+
 				}
 			};
 		}

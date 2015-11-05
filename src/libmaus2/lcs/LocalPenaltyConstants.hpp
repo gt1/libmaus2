@@ -32,8 +32,8 @@ namespace libmaus2
 			static similarity_type const penalty_ins = 3;
 			static similarity_type const penalty_del = 3;
 			static similarity_type const penalty_subst = 1;
-			static similarity_type const gain_match = 1;		
-			
+			static similarity_type const gain_match = 1;
+
 			virtual ~LocalPenaltyConstants() {}
 		};
 	}

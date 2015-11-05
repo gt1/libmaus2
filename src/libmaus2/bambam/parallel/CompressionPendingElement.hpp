@@ -24,7 +24,7 @@
 namespace libmaus2
 {
 	namespace bambam
-	{		
+	{
 		namespace parallel
 		{
 			struct CompressionPendingElement
@@ -33,7 +33,7 @@ namespace libmaus2
 				uint64_t blockid;
 				uint64_t subid;
 				uint64_t totalsubids;
-				
+
 				CompressionPendingElement() : buffer(0), blockid(0), subid(0), totalsubids(0) {}
 				CompressionPendingElement(
 					AlignmentRewriteBuffer * rbuffer,
@@ -42,7 +42,7 @@ namespace libmaus2
 					uint64_t const rtotalsubids
 				) : buffer(rbuffer), blockid(rblockid), subid(rsubid), totalsubids(rtotalsubids)
 				{
-				
+
 				}
 			};
 		}

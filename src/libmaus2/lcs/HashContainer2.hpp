@@ -72,7 +72,7 @@ namespace libmaus2
 			static ::libmaus2::autoarray::AutoArray<uint8_t> const S;
 			static ::libmaus2::autoarray::AutoArray<unsigned int> const E;
 
-			typedef int32_t offset_type;			
+			typedef int32_t offset_type;
 
 			// k-gram
 			uint32_t const k;
@@ -93,13 +93,13 @@ namespace libmaus2
 
 			typedef ::libmaus2::util::SimpleHashMap<uint32_t,offset_type> o_type;
 			o_type O;
-			
-			bool get(uint32_t const v) const 
+
+			bool get(uint32_t const v) const
 			{
 				return O.contains(v);
 			}
-			void put(uint32_t const v, offset_type const o) 
-			{ 
+			void put(uint32_t const v, offset_type const o)
+			{
 				if ( get(v) )
 					O.insert(v,std::numeric_limits<offset_type>::min());
 				else
@@ -122,11 +122,11 @@ namespace libmaus2
 					if ( ita->first != O.unused() )
 					{
 						forw.buffer = ita->first;
-						
+
 						std::cerr << "k-mer " << decodeBuffer(forw);
 						std::cerr << " pos=" << ita->second;
 						std::cerr << std::endl;
-					
+
 					}
 			}
 
@@ -134,10 +134,10 @@ namespace libmaus2
 			HashContainer2(unsigned int const rk, unsigned int const rm)
 			: k(rk), hashbits(k<<1), hashlen(1u<<hashbits), hashmask(hashlen-1), forw(k),
 			  trace(),
-			  m(rm), mp(m-k+1), 
+			  m(rm), mp(m-k+1),
 			  O(::libmaus2::math::ilog(2*m))
 			{}
-			
+
 
 			template<typename buffer_type>
 			static std::string decodeBuffer(buffer_type const & reve)
@@ -152,8 +152,8 @@ namespace libmaus2
 						case '2': rstring[i] = 'G'; break;
 						case '3': rstring[i] = 'T'; break;
 					}
-				}	
-				return rstring;	
+				}
+				return rstring;
 			}
 
 			template<typename iterator>
@@ -162,7 +162,7 @@ namespace libmaus2
 				forw.reset();
 				// reset hash
 				O.clear();
-				
+
 				iterator sequence = pattern;
 				iterator fsequence = sequence;
 				typedef typename std::iterator_traits<iterator>::value_type value_type;
@@ -197,13 +197,13 @@ namespace libmaus2
 						e += E[base];
 					}
 				}
-				
+
 				cleanHash();
 			}
 
 			template<typename iterator>
 			inline ::libmaus2::lcs::SuffixPrefixResult match(
-				iterator pattern, 
+				iterator pattern,
 				offset_type const n,
 				iterator ref,
 				double const indelfrac = 0.05
@@ -211,10 +211,10 @@ namespace libmaus2
 			{
 				trace.resize(0);
 				::libmaus2::lcs::SuffixPrefixResult SPR;
-			
+
 				#define HASHSPDEBUG
-			
-				#if defined(HASHSPDEBUG)	
+
+				#if defined(HASHSPDEBUG)
 				print();
 				#endif
 
@@ -256,11 +256,11 @@ namespace libmaus2
 						if ( e < 1 )
 						{
 							#define HASHSPDEBUG
-						
+
 							#if defined(HASHSPDEBUG)
 							// std::cerr << "Trying to match " << decodeBuffer(forw) << std::endl;
 							#endif
-							
+
 							// is current k-mer in index?
 							if ( get(forw.buffer) )
 							{
@@ -270,7 +270,7 @@ namespace libmaus2
 								offsets.push_back(::libmaus2::lcs::OffsetElement(z,offset(forw.buffer)));
 
 								#if defined(HASHSPDEBUG)
-								std::cerr << "Matching " << decodeBuffer(forw) 
+								std::cerr << "Matching " << decodeBuffer(forw)
 									<< " position on A=" << offset(forw.buffer)
 									<< " position on B=" << z << std::endl;
 								#endif
@@ -289,8 +289,8 @@ namespace libmaus2
 							e += E[base];
 						}
 					}
-					
-					std::vector < uint64_t > LIS = ::libmaus2::util::LongestIncreasingSubsequence< 
+
+					std::vector < uint64_t > LIS = ::libmaus2::util::LongestIncreasingSubsequence<
 						std::vector < ::libmaus2::lcs::OffsetElement >::const_iterator,
 						::libmaus2::lcs::OffsetElementOffsetComparator
 					>::longestIncreasingSubsequence(
@@ -303,40 +303,40 @@ namespace libmaus2
 							<< "(" << offsets[LIS[i]].querypos << "," << offsets[LIS[i]].offset << ")";
 					std::cerr << std::endl;
 					#endif
-					
+
 					std::vector < ::libmaus2::lcs::OffsetElement > noffsets;
 					for ( uint64_t i = 0; i < LIS.size(); ++i )
 						noffsets.push_back(offsets[LIS[i]]);
 					offsets = noffsets;
 
 					if ( offsets.size() )
-					{					
+					{
 						std::back_insert_iterator < std::deque < libmaus2::lcs::BaseConstants::step_type > > tracebi(trace);
 						uint64_t aclip = 0;
 
 						uint64_t const nmmax = std::max(static_cast<uint64_t>(n),static_cast<uint64_t>(m));
 						int64_t  const indellen = static_cast<int64_t>(std::ceil(nmmax * indelfrac));
-						
+
 						/* is there an unmatched part in front? */
 						if ( offsets[0] . querypos )
 						{
 							// unmatched symbols in query (b)
 							int64_t missing = offsets[0].querypos;
-							
+
 							// std::cerr << "Something missing." << std::endl;
-							
+
 							int64_t const bstart = 0;
-							int64_t const bend = missing;	
+							int64_t const bend = missing;
 							int64_t alignposb = bstart;
 							int64_t alignlenb = bend-bstart;
-							
+
 							int64_t const aend = offsets[0].offset;
 							int64_t const astart = std::max( aend - static_cast<int64_t>( missing + indellen ), static_cast<int64_t>(0) );
 							int64_t alignlena = aend-astart;
 							int64_t alignposa = astart;
-							
+
 							#if 0
-							std::cerr << "Align " << 
+							std::cerr << "Align " <<
 								std::string(ref+astart,ref+aend) << " to " <<
 								std::string(pattern+bstart,pattern+bend)
 								<< std::endl;
@@ -347,13 +347,13 @@ namespace libmaus2
 								#if defined(HASHSPDEBUG)
 								std::cerr << "Using banded." << std::endl;
 								#endif
-								
+
 								::libmaus2::lcs::BandedEditDistance lcsobj(alignlena,alignlenb,indellen);
-								::libmaus2::lcs::EditDistanceResult R = 
+								::libmaus2::lcs::EditDistanceResult R =
 									lcsobj.process(ref+alignposa,pattern+alignposb,alignlena,alignlenb,0,0);
 
 								uint64_t const frontinserts = lcsobj.getFrontInserts();
-								
+
 								#if 1
 								alignposa += frontinserts;
 								alignlena -= frontinserts;
@@ -372,13 +372,13 @@ namespace libmaus2
 								#if defined(HASHSPDEBUG)
 								std::cerr << "Using generic." << std::endl;
 								#endif
-								
+
 								::libmaus2::lcs::GenericEditDistance lcsobj(alignlena,alignlenb,indellen);
-								::libmaus2::lcs::EditDistanceResult R = 
+								::libmaus2::lcs::EditDistanceResult R =
 									lcsobj.process(ref+alignposa,pattern+alignposb,alignlena,alignlenb,0,0);
 
 								uint64_t const frontinserts = lcsobj.getFrontInserts();
-								
+
 								#if 1
 								alignposa += frontinserts;
 								alignlena -= frontinserts;
@@ -397,25 +397,25 @@ namespace libmaus2
 						{
 							aclip = offsets[0].offset;
 						}
-						
+
 						int64_t oleft = 0;
 						while ( oleft != static_cast<int64_t>(offsets.size()) )
 						{
-							int64_t const odif = 
-								static_cast<int64_t>(offsets[oleft].offset) - 
+							int64_t const odif =
+								static_cast<int64_t>(offsets[oleft].offset) -
 								static_cast<int64_t>(offsets[oleft].querypos);
 							int64_t oright = oleft;
-						
+
 							while ( oright != static_cast<int64_t>(offsets.size()) &&
 								(
-									static_cast<int64_t>(offsets[oright].offset) - 
-									static_cast<int64_t>(offsets[oright].querypos) 
+									static_cast<int64_t>(offsets[oright].offset) -
+									static_cast<int64_t>(offsets[oright].querypos)
 									== odif
 								) &&
 								(offsets[oright].querypos-offsets[oleft].querypos == oright-oleft)
 							)
 								oright++;
-							
+
 							#if 0
 							std::cerr << "oleft=" << offsets[oleft] << ","
 								<< "oright=" << offsets[oright-1] << std::endl;
@@ -423,7 +423,7 @@ namespace libmaus2
 
 							for ( int64_t i = 0; i < k+(oright-oleft-1); ++i )
 								*(tracebi++) = ::libmaus2::lcs::BaseConstants::STEP_MATCH;
-								
+
 							if ( oright != static_cast<int64_t>(offsets.size()) )
 							{
 								#if 0
@@ -435,10 +435,10 @@ namespace libmaus2
 								uint64_t bstart = offsets[oright-1].querypos + k;
 								uint64_t bend = offsets[oright].querypos;
 								uint64_t pcnt = 0;
-								
+
 								// m length of a
 
-								while ( 
+								while (
 									(astart > aend || bstart > bend)
 									&&
 									trace.size()
@@ -453,15 +453,15 @@ namespace libmaus2
 									trace.pop_back();
 									pcnt++;
 								}
-								
+
 								assert ( astart <= aend );
 								assert ( bstart <= bend );
-								
-								while ( 
-									pcnt < k 
-									&& 
-									trace.size() 
-									&& 
+
+								while (
+									pcnt < k
+									&&
+									trace.size()
+									&&
 									trace.back() == ::libmaus2::lcs::BaseConstants::STEP_MATCH
 								)
 								{
@@ -472,19 +472,19 @@ namespace libmaus2
 									bstart--;
 									pcnt++;
 								}
-								
+
 								tracebi = std::back_insert_iterator < std::deque < libmaus2::lcs::BaseConstants::step_type > >(trace);
-								
+
 								uint64_t const alignposa = astart;
 								uint64_t const alignlena = aend-astart;
 								uint64_t const alignposb = bstart;
 								uint64_t const alignlenb = bend-bstart;
-								
+
 								#if 0
 								std::cerr << "astart=" << astart << " aend=" << aend << " alen=" << alignlena << std::endl;
 								std::cerr << "bstart=" << bstart << " bend=" << bend << " blen=" << alignlenb << std::endl;
 								#endif
-								
+
 								#if 0
 								std::cerr << "Align " <<
 									std::string(ref+astart,ref+aend) << " to " <<
@@ -499,7 +499,7 @@ namespace libmaus2
 									#if defined(HASHSPDEBUG)
 									std::cerr << "Using banded." << std::endl;
 									#endif
-									
+
 									::libmaus2::lcs::BandedEditDistance lcsobj(alignlena,alignlenb,indellen);
 									/* ::libmaus2::lcs::EditDistanceResult R = */
 										lcsobj.process(ref+alignposa,pattern+alignposb,alignlena,alignlenb,1,1);
@@ -514,11 +514,11 @@ namespace libmaus2
 									#if defined(HASHSPDEBUG)
 									std::cerr << "Using generic." << std::endl;
 									#endif
-									
+
 									#if defined(HASHSPDEBUG)
 									std::cerr << "alignlena=" << alignlena << " alignlenb=" << alignlenb << std::endl;
 									#endif
-									
+
 									::libmaus2::lcs::GenericEditDistance lcsobj(alignlena,alignlenb,indellen);
 									/* ::libmaus2::lcs::EditDistanceResult R = */
 										lcsobj.process(ref+alignposa,pattern+alignposb,alignlena,alignlenb,1,1);
@@ -529,11 +529,11 @@ namespace libmaus2
 									lcsobj.appendTrace(tracebi);
 								}
 							}
-								
+
 							oleft = oright;
 						}
-						
-						if ( 
+
+						if (
 							static_cast<int64_t>(offsets.back().offset + k) != static_cast<int64_t>(m)
 						)
 						{
@@ -541,10 +541,10 @@ namespace libmaus2
 							uint64_t alignlena = m - alignposa;
 							uint64_t alignposb = offsets.back().querypos + k;
 							uint64_t alignlenb = std::min(alignlena + indellen, /* rest of b */ n-alignposb);
-							
+
 							#if 0
 							/* make length of alignment k */
-							while ( 
+							while (
 								alignlena < k &&
 								alignposa &&
 								alignposb &&
@@ -562,21 +562,21 @@ namespace libmaus2
 							std::cerr << std::string(ref+alignposa,ref+alignposa+alignlena) << std::endl;
 							std::cerr << std::string(pattern+alignposb,pattern+alignposb+alignlenb) << std::endl;
 							#endif
-							
+
 							// typedef typename ::std::iterator_traits<iterator>::value_type char_type;
 							// typedef typename ::std::iterator_traits<iterator>::reference char_reference_type;
 							// typedef typename ::std::iterator_traits<iterator>::pointer char_pointer_type;
 							// typedef typename ::std::iterator_traits<iterator>::difference_type char_difference_type;
 							typedef ::std::reverse_iterator<iterator> reverse_iterator;
-							
+
 							iterator refstart = ref+alignposa;
 							iterator refend   = refstart+alignlena;
 							iterator patstart = pattern+alignposb;
 							iterator patend   = patstart+alignlenb;
-							
+
 							reverse_iterator revrefstart(refend), revrefend(refstart);
 							reverse_iterator revpatstart(patend), revpatend(patstart);
-							
+
 							#if defined(HASHSPDEBUG)
 							std::cerr << "ra " << std::string(revrefstart,revrefend) << std::endl;
 							std::cerr << "rb " << std::string(revpatstart,revpatend) << std::endl;
@@ -588,7 +588,7 @@ namespace libmaus2
 								#if defined(HASHSPDEBUG)
 								std::cerr << "Using banded." << std::endl;
 								#endif
-								
+
 								::libmaus2::lcs::BandedEditDistance lcsobj(alignlenb,alignlena,indellen);
 								/* ::libmaus2::lcs::EditDistanceResult R = */
 									lcsobj.process(revpatstart,revrefstart,alignlenb,alignlena,0,0);
@@ -606,7 +606,7 @@ namespace libmaus2
 								#if defined(HASHSPDEBUG)
 								std::cerr << "Using generic." << std::endl;
 								#endif
-								
+
 								::libmaus2::lcs::GenericEditDistance lcsobj(alignlenb,alignlena,indellen);
 								/* ::libmaus2::lcs::EditDistanceResult R = */
 									lcsobj.process(revpatstart,revrefstart,alignlenb,alignlena,0,0);
@@ -625,19 +625,19 @@ namespace libmaus2
 							trace.pop_back();
 
 						bool traceupdated = true;
-						
+
 						while ( traceupdated )
 						{
 							traceupdated = false;
-						
+
 							uint64_t idcnt = 0;
 							uint64_t icnt = 0;
 							uint64_t dcnt = 0;
-							
+
 							for ( uint64_t i = 0; i < trace.size(); ++i )
 							{
-								if ( 
-									trace[i] == ::libmaus2::lcs::BaseConstants::STEP_INS 
+								if (
+									trace[i] == ::libmaus2::lcs::BaseConstants::STEP_INS
 									||
 									trace[i] == ::libmaus2::lcs::BaseConstants::STEP_DEL
 								)
@@ -654,21 +654,21 @@ namespace libmaus2
 									{
 										uint64_t const tracestart = i - idcnt;
 										uint64_t const traceend = i;
-										
+
 										#if defined(HASHSPDEBUG)
 										std::cerr << "idcnt=" << idcnt << ",";
 										for ( uint64_t j = tracestart; j < traceend; ++j )
 											std::cerr << trace[j];
 										std::cerr << std::endl;
 										#endif
-										
+
 										uint64_t apos = 0, bpos = 0;
 										for ( uint64_t j = 0; j < tracestart; ++j )
 											switch ( trace[j] )
 											{
 												case ::libmaus2::lcs::BaseConstants::STEP_MATCH:
 												case ::libmaus2::lcs::BaseConstants::STEP_MISMATCH:
-													apos++; 
+													apos++;
 													bpos++;
 													break;
 												case ::libmaus2::lcs::BaseConstants::STEP_INS:
@@ -691,23 +691,23 @@ namespace libmaus2
 										uint64_t const alignlenb = blen;
 										uint64_t const alignposa = apos+aclip;
 										uint64_t const alignposb = bpos;
-												
+
 										#if defined(HASHSPDEBUG)
 										std::cerr << "Realign\n" <<
 											std::string(ref+alignposa,ref+alignposa+alignlena) << "\n" <<
 											std::string(pattern+alignposb,pattern+alignposb+alignlenb) << "\n";
 										#endif
-											
+
 										std::deque < libmaus2::lcs::BaseConstants::step_type > newtrace;
 										std::back_insert_iterator < std::deque < libmaus2::lcs::BaseConstants::step_type > > newtracebi(newtrace);
 										std::copy ( trace.begin(), trace.begin() + tracestart, newtracebi );
-										
+
 										if ( ::libmaus2::lcs::BandedEditDistance::validParameters(alignlena,alignlenb,indellen) )
 										{
 											#if defined(HASHSPDEBUG)
 											std::cerr << "Using banded." << std::endl;
 											#endif
-											
+
 											::libmaus2::lcs::BandedEditDistance lcsobj(alignlena,alignlenb,indellen);
 											/* ::libmaus2::lcs::EditDistanceResult R = */
 												lcsobj.process(ref+alignposa,pattern+alignposb,alignlena,alignlenb,1,1);
@@ -722,11 +722,11 @@ namespace libmaus2
 											#if defined(HASHSPDEBUG)
 											std::cerr << "Using generic." << std::endl;
 											#endif
-											
+
 											#if defined(HASHSPDEBUG)
 											std::cerr << "alignlena=" << alignlena << " alignlenb=" << alignlenb << std::endl;
 											#endif
-											
+
 											::libmaus2::lcs::GenericEditDistance lcsobj(alignlena,alignlenb,indellen);
 											/* ::libmaus2::lcs::EditDistanceResult R = */
 												lcsobj.process(ref+alignposa,pattern+alignposb,alignlena,alignlenb,1,1);
@@ -740,10 +740,10 @@ namespace libmaus2
 										std::copy ( trace.begin()+traceend, trace.end(), newtracebi );
 										trace = newtrace;
 										traceupdated = true;
-										
+
 										break;
 									}
-								
+
 									idcnt = 0;
 									icnt = 0;
 									dcnt = 0;
@@ -770,7 +770,7 @@ namespace libmaus2
 								case ::libmaus2::lcs::BaseConstants::STEP_RESET:
 									break;
 							}
-						
+
 						uint64_t const bclip = n+numins-trace.size();
 
 						#if 0
@@ -781,16 +781,16 @@ namespace libmaus2
 							bclip++;
 						}
 						#endif
-						
+
 						// std::back_insert_iterator < std::deque < libmaus2::lcs::BaseConstants::step_type > > tracebi(trace);
 
 						SPR = ::libmaus2::lcs::SuffixPrefixResult(aclip,bclip,numins,numdel,nummat,nummis);
 					}
 				}
-				
+
 				return SPR;
 			}
-			
+
 			template<typename iterator_a, typename iterator_b>
 			std::ostream & printAlignmentLines(
 				std::ostream & out,
@@ -810,7 +810,7 @@ namespace libmaus2
 					trace.begin(),
 					trace.end()
 				);
-				
+
 				return out;
 			}
 		};

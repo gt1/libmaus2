@@ -32,16 +32,16 @@ namespace libmaus2
 				typedef OverlapMetaIteratorGet this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				typedef libmaus2::index::ExternalMemoryIndexDecoder<OverlapMeta,OverlapIndexerBase::base_level_log,OverlapIndexerBase::inner_level_log> index_type;
-				
+
 				std::vector<std::string> const V;
 				std::vector<std::string> IV;
 				libmaus2::autoarray::AutoArray<index_type::unique_ptr_type> I;
 				uint64_t t;
 				int64_t minaread;
 				int64_t maxaread;
-				
+
 				OverlapMetaIteratorGet(std::vector<std::string> const & rV)
 				: V(rV), IV(V.size()), I(V.size()), t(0), minaread(std::numeric_limits<int64_t>::max()), maxaread(-1)
 				{
@@ -63,22 +63,22 @@ namespace libmaus2
 						}
 					}
 				}
-			
+
 				uint64_t get(uint64_t const i) const
 				{
 					uint64_t s = 0;
 					for ( uint64_t j = 0; j < I.size(); ++j )
 					{
-						libmaus2::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<OverlapMeta> const R = 
+						libmaus2::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<OverlapMeta> const R =
 							I[j]->findLargestSmaller(OverlapMeta(i,0,0,0,0,0,0),true /* cache only */);
 						s += R.blockid;
 					}
-					
+
 					return s;
 				}
-				
+
 				typedef libmaus2::util::ConstIterator<OverlapMetaIteratorGet,uint64_t> iterator_type;
-				
+
 				iterator_type begin()
 				{
 					return iterator_type(this,minaread);
@@ -88,7 +88,7 @@ namespace libmaus2
 				{
 					return iterator_type(this,maxaread+1);
 				}
-				
+
 				std::vector<uint64_t> getBlockStarts(uint64_t const numblocks)
 				{
 					std::vector<uint64_t> Q(numblocks+1);
@@ -122,7 +122,7 @@ namespace libmaus2
 							}
 						}
 					}
-											
+
 					return Q;
 				}
 			};

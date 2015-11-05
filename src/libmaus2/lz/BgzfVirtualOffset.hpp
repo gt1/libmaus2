@@ -26,11 +26,11 @@ namespace libmaus2
 		struct BgzfVirtualOffset
 		{
 			uint64_t virtoffset;
-			
+
 			BgzfVirtualOffset() : virtoffset(0) {}
 			BgzfVirtualOffset(uint64_t const rvirtoffset) : virtoffset(rvirtoffset) {}
 			BgzfVirtualOffset(BgzfVirtualOffset const & o) : virtoffset(o.virtoffset) {}
-			
+
 			uint64_t getBlockOffset() const { return virtoffset >> 16; }
 			uint64_t getSubOffset() const { return virtoffset & 0xFFFFULL; }
 		};

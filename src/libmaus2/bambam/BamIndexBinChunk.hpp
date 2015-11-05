@@ -34,12 +34,12 @@ namespace libmaus2
 			uint64_t alstart;
 			uint64_t alcmpend;
 			uint64_t alend;
-			
+
 			BamIndexBinChunk()
 			{
-			
+
 			}
-			
+
 			BamIndexBinChunk(
 				uint64_t const rrefid,
 				uint64_t const rbin,
@@ -53,7 +53,7 @@ namespace libmaus2
 			{
 
 			}
-			
+
 			bool operator<(BamIndexBinChunk const & o) const
 			{
 				if ( refid != o.refid )
@@ -68,7 +68,7 @@ namespace libmaus2
 					return alcmpend < o.alcmpend;
 				if ( alend != o.alend )
 					return alend < o.alend;
-					
+
 				return false;
 			}
 		};

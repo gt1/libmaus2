@@ -42,9 +42,9 @@ namespace libmaus2
 			)
 			{
 				out << a.substr(0,SPR.aclip_left);
-				
+
 				std::string::const_iterator ita = a.begin() + SPR.aclip_left;
-				
+
 				for ( align_iterator ta = rta; ta != rte; ++ta )
 				{
 					switch ( *ta )
@@ -62,7 +62,7 @@ namespace libmaus2
 				}
 				out << std::string(ita,a.end());
 				out << std::endl;
-				
+
 				out << std::string(SPR.aclip_left,' ');
 				// out << std::string(SPR.aclip_left,' ') << std::endl;
 
@@ -85,7 +85,7 @@ namespace libmaus2
 				}
 				out << std::string(itb,b.end());
 				out << std::endl;
-				
+
 				return out;
 			}
 
@@ -95,16 +95,16 @@ namespace libmaus2
 				SuffixPrefixResult const & SPR,
 				uint64_t const rlinewidth,
 				align_iterator rta,
-				align_iterator rte				
+				align_iterator rte
 			)
 			{
 				std::ostringstream astr;
 				assert ( SPR.aclip_left <= a.size() );
 				astr << a.substr(0,SPR.aclip_left);
-				
+
 				/* print a */
 				std::string::const_iterator ita = a.begin() + SPR.aclip_left;
-				
+
 				for ( align_iterator ta = rta; ta != rte; ++ta )
 				{
 					switch ( *ta )
@@ -126,7 +126,7 @@ namespace libmaus2
 					}
 				}
 				astr << std::string(ita,a.end());
-				
+
 				/* print b */
 				std::ostringstream bstr;
 				bstr << std::string(SPR.aclip_left,' ');
@@ -164,11 +164,11 @@ namespace libmaus2
 				std::string const ca = cstr.str();
 				uint64_t const linewidth = rlinewidth-2;
 				uint64_t const numlines = (std::max(aa.size(),ba.size()) + linewidth-1) / linewidth;
-				
+
 				for ( uint64_t i = 0; i < numlines; ++i )
 				{
 					uint64_t pl = i*linewidth;
-					
+
 					out << "A ";
 					if ( pl < aa.size() )
 					{
@@ -176,7 +176,7 @@ namespace libmaus2
 						out << aa.substr(pl,alen);
 					}
 					out << std::endl;
-					
+
 					out << "B ";
 					if ( pl < ba.size() )
 					{
@@ -193,7 +193,7 @@ namespace libmaus2
 					}
 					out << std::endl;
 				}
-				
+
 				return out;
 			}
 		};

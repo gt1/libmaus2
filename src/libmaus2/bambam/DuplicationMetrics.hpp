@@ -54,7 +54,7 @@ namespace libmaus2
 			uint64_t readpairduplicates;
 			//! number of optical duplicates
 			uint64_t opticalduplicates;
-			
+
 			/**
 			 * constructor
 			 **/
@@ -67,9 +67,9 @@ namespace libmaus2
 				readpairduplicates(0),
 				opticalduplicates(0)
 			{
-				
+
 			}
-			
+
 			/**
 			 * constructor from stream
 			 *
@@ -97,18 +97,18 @@ namespace libmaus2
 			 * @param uniqueReadPairs number of unique read pairs (total minus duplicates)
 			 * @return estimated library size
 			 */
-			static int64_t estimateLibrarySize(int64_t const readPairs, int64_t const uniqueReadPairs) 
+			static int64_t estimateLibrarySize(int64_t const readPairs, int64_t const uniqueReadPairs)
 			{
 				int64_t const readPairDuplicates = readPairs - uniqueReadPairs;
 
-				if (readPairs > 0 && readPairDuplicates > 0) 
+				if (readPairs > 0 && readPairDuplicates > 0)
 				{
 					int64_t const n = readPairs;
 					int64_t const c = uniqueReadPairs;
 
 					double m = 1.0, M = 100.0;
 
-					if (c >= n || f(m*c, c, n) < 0) 
+					if (c >= n || f(m*c, c, n) < 0)
 					{
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "[E] Invalid values for pairs and unique pairs: " << n << ", " << c << std::endl;
@@ -128,10 +128,10 @@ namespace libmaus2
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "[E] Detected (most likely) non terminating while loop" << std::endl;
 						se.finish();
-						throw se;					
+						throw se;
 					}
 
-					for ( int i=0; i < 40; ++i ) 
+					for ( int i=0; i < 40; ++i )
 					{
 						double const r = (m+M)/2.0;
 						double const u = f( r * c, c, n );
@@ -142,7 +142,7 @@ namespace libmaus2
 
 					return static_cast<int64_t> (c * (m+M)/2.0);
 				}
-				else 
+				else
 				{
 					return -1;
 				}
@@ -157,7 +157,7 @@ namespace libmaus2
 			 * @param n
 			 * @return c/x - 1 + e^(-n/x)
 			 **/
-			static double f(double const x, double const c, double const n) 
+			static double f(double const x, double const c, double const n)
 			{
 				return c/x - 1 + ::std::exp(-n/x);
 			}
@@ -173,7 +173,7 @@ namespace libmaus2
 			 * @return a number z <= x that estimates if you had pairs*x as your sequencing then you
 			 *         would observe uniquePairs*z unique pairs.
 			 */
-			 static double estimateRoi(int64_t estimatedLibrarySize, double x, int64_t pairs, int64_t uniquePairs) 
+			 static double estimateRoi(int64_t estimatedLibrarySize, double x, int64_t pairs, int64_t uniquePairs)
 			 {
 			 	return estimatedLibrarySize * ( 1 - ::std::exp(-(x*pairs)/estimatedLibrarySize) ) / uniquePairs;
 			}
@@ -191,7 +191,7 @@ namespace libmaus2
                                 out << "LIBRARY\tUNPAIRED_READS_EXAMINED\tREAD_PAIRS_EXAMINED\tUNMAPPED_READS\tUNPAIRED_READ_DUPLICATES\tREAD_PAIR_DUPLICATES\tREAD_PAIR_OPTICAL_DUPLICATES\tPERCENT_DUPLICATION\tESTIMATED_LIBRARY_SIZE\n";
 				return out;
 			}
-		
+
 			/**
 			 * Calculates a histogram using the estimateRoi method to estimate the effective yield
 			 * doing x sequencing for x=1..10.
@@ -201,22 +201,22 @@ namespace libmaus2
 			std::map<unsigned int,double> calculateRoiHistogram()  const
 			{
 				std::map<unsigned int, double> H;
-				
+
 				try
 				{
 					int64_t const ESTIMATED_LIBRARY_SIZE = estimateLibrarySize(
-						static_cast<int64_t>(readpairsexamined) - static_cast<int64_t>(opticalduplicates), 
+						static_cast<int64_t>(readpairsexamined) - static_cast<int64_t>(opticalduplicates),
 						static_cast<int64_t>(readpairsexamined) - static_cast<int64_t>(readpairduplicates)
 					);
-					
+
 					if ( ESTIMATED_LIBRARY_SIZE < 0 )
 						return H;
 
 					int64_t const uniquePairs = readpairsexamined - readpairduplicates;
-						
+
 					for ( double x = 1.0; x <= 100.0; x+=1.0 )
 						H[x] += estimateRoi(ESTIMATED_LIBRARY_SIZE, x, readpairsexamined, uniquePairs);
-					
+
 					return H;
 				}
 				catch(...)
@@ -224,7 +224,7 @@ namespace libmaus2
 					return H;
 				}
 			}
-			
+
 			/**
 			 * print histogram
 			 *
@@ -234,11 +234,11 @@ namespace libmaus2
 			std::ostream & printHistogram(std::ostream & out) const
 			{
 				std::map<unsigned int,double> const H = calculateRoiHistogram();
-				
+
 				for ( std::map<unsigned int,double>::const_iterator ita = H.begin(); ita != H.end(); ++ita )
 					if ( ita->second )
 						out << ita->first << "\t" << ita->second << std::endl;
-						
+
 				return out;
 			}
 
@@ -251,13 +251,13 @@ namespace libmaus2
 			 **/
 			std::ostream & format(std::ostream & out, std::string const libraryName) const
 			{
-				int64_t const ESTIMATED_LIBRARY_SIZE = estimateLibrarySize(readpairsexamined - opticalduplicates, readpairsexamined - readpairduplicates);                           
-				double const PERCENT_DUPLICATION = 
+				int64_t const ESTIMATED_LIBRARY_SIZE = estimateLibrarySize(readpairsexamined - opticalduplicates, readpairsexamined - readpairduplicates);
+				double const PERCENT_DUPLICATION =
 					(unpaired + readpairsexamined*2) ?
-					((unpairedreadduplicates + 2*readpairduplicates) / 
+					((unpairedreadduplicates + 2*readpairduplicates) /
 					static_cast<double> (unpaired + readpairsexamined*2)) : 0;
-                                                                          
-				out 
+
+				out
 					<< libraryName << "\t"
 					<< unpaired << "\t"
 					<< readpairsexamined << "\t"
@@ -284,7 +284,7 @@ namespace libmaus2
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,readpairduplicates);
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,opticalduplicates);
 			}
-			
+
 			/**
 			 * read object from stream
 			 *
@@ -316,7 +316,7 @@ namespace libmaus2
 				opticalduplicates += O.opticalduplicates;
 				return *this;
 			}
-			
+
 			static std::map<uint64_t,libmaus2::bambam::DuplicationMetrics> add(
 				std::map<uint64_t,libmaus2::bambam::DuplicationMetrics> const & MA,
 				std::map<uint64_t,libmaus2::bambam::DuplicationMetrics> const & MB
@@ -325,7 +325,7 @@ namespace libmaus2
 				std::map<uint64_t,libmaus2::bambam::DuplicationMetrics> MO;
 				std::map<uint64_t,libmaus2::bambam::DuplicationMetrics>::const_iterator a_ita = MA.begin(), a_ite = MA.end();
 				std::map<uint64_t,libmaus2::bambam::DuplicationMetrics>::const_iterator b_ita = MB.begin(), b_ite = MB.end();
-				
+
 				while ( a_ita != a_ite && b_ita != b_ite )
 				{
 					if ( a_ita->first < b_ita->first )
@@ -348,19 +348,19 @@ namespace libmaus2
 						b_ita++;
 					}
 				}
-				
+
 				while ( a_ita != a_ite )
 				{
 					MO[a_ita->first] = a_ita->second;
-					a_ita++;					
+					a_ita++;
 				}
 
 				while ( b_ita != b_ite )
 				{
 					MO[b_ita->first] = b_ita->second;
-					b_ita++;					
+					b_ita++;
 				}
-				
+
 				return MO;
 			}
 		};

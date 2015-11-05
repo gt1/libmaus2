@@ -44,7 +44,7 @@ namespace libmaus2
                         public:
                         typedef IncreasingList this_type;
                         typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-                
+
                         private:
                         uint64_t const n;
                         uint64_t const b;
@@ -55,7 +55,7 @@ namespace libmaus2
                         ::libmaus2::autoarray::AutoArray < uint64_t > Bup;
                         // select dictionary for upper bitstream
                         ::libmaus2::rank::ERank222B::unique_ptr_type R;
-                        
+
                         public:
 
                         uint64_t get(uint64_t const i) const

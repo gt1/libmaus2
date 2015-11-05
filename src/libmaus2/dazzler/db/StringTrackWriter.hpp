@@ -31,12 +31,12 @@ namespace libmaus2
 			{
 				typedef StringTrackWriter this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-				
+
 				libmaus2::aio::OutputStreamInstance::unique_ptr_type annoOSI;
 				libmaus2::aio::OutputStreamInstance::unique_ptr_type dataOSI;
 				uint64_t p;
 				uint64_t r;
-				
+
 				StringTrackWriter(std::string const & annofilename, std::string const & datafilename)
 				:
 					annoOSI(new libmaus2::aio::OutputStreamInstance(annofilename)),
@@ -49,12 +49,12 @@ namespace libmaus2
 					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger4(*annoOSI,8,cigannooff); // size of anno entries
 					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(*annoOSI,0,cigannooff); // first offset
 				}
-				
+
 				~StringTrackWriter()
 				{
 					flush();
 				}
-				
+
 				void flush()
 				{
 					if ( annoOSI )
@@ -62,12 +62,12 @@ namespace libmaus2
 						annoOSI->seekp(0,std::ios::beg);
 						uint64_t cigannooff = 0;
 						libmaus2::dazzler::db::OutputBase::putLittleEndianInteger4(*annoOSI,r,cigannooff); // number of reads
-						
+
 						annoOSI.reset();
 						dataOSI.reset();
 					}
 				}
-				
+
 				void put(char const * c, uint64_t const n)
 				{
 					dataOSI->write(c,n);
@@ -77,7 +77,7 @@ namespace libmaus2
 					uint64_t cigannooff = 0;
 					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(*annoOSI,p,cigannooff); // first offset
 				}
-				
+
 				void put(std::string const & s)
 				{
 					put(s.c_str(),s.size());

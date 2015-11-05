@@ -31,11 +31,11 @@ namespace libmaus2
 		{
 			private:
 			uint64_t zabspos;
-			
+
 			public:
 			BwtMergeZBlockRequest(uint64_t rzabspos = 0) : zabspos(rzabspos) {}
 			BwtMergeZBlockRequest(std::istream & in) : zabspos(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)) {}
-			
+
 			template<typename stream_type>
 			void serialise(stream_type & out) const
 			{
@@ -47,12 +47,12 @@ namespace libmaus2
 				serialise(ostr);
 				return ostr.str();
 			}
-			
+
 			uint64_t getZAbsPos() const
 			{
 				return zabspos;
 			}
-			
+
 			operator uint64_t() const
 			{
 				return zabspos;
@@ -61,4 +61,3 @@ namespace libmaus2
 	}
 }
 #endif
-

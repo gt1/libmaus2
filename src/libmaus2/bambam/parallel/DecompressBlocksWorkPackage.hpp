@@ -37,29 +37,29 @@ namespace libmaus2
 
 				std::vector<ControlInputInfo::input_block_type::shared_ptr_type> inputblocks;
 				std::vector<DecompressedBlock::shared_ptr_type> outputblocks;
-	
+
 				DecompressBlocksWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage() {}
-				
+
 				void setData(
-					uint64_t const rpriority, 
+					uint64_t const rpriority,
 					std::vector<ControlInputInfo::input_block_type::shared_ptr_type> & rinputblocks,
 					std::vector<DecompressedBlock::shared_ptr_type> & routputblocks,
 					uint64_t const rdecompressDispatcherId
 				)
 				{
 					libmaus2::parallel::SimpleThreadWorkPackage::priority = rpriority;
-					
+
 					if ( inputblocks.size() != rinputblocks.size() )
 						inputblocks.resize(rinputblocks.size());
 					if ( outputblocks.size() != routputblocks.size() )
 						outputblocks.resize(routputblocks.size());
-						
+
 					std::copy(rinputblocks.begin(),rinputblocks.end(),inputblocks.begin());
 					std::copy(routputblocks.begin(),routputblocks.end(),outputblocks.begin());
-					
+
 					libmaus2::parallel::SimpleThreadWorkPackage::dispatcherid = rdecompressDispatcherId;
 				}
-			
+
 				char const * getPackageName() const
 				{
 					return "DecompressBlocksWorkPackage";

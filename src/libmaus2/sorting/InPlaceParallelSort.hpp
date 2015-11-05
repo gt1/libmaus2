@@ -41,7 +41,7 @@ namespace libmaus2
 				uint64_t const n = e-a;
 				int64_t const l = n/2;
 				iterator e1 = e-1;
-				
+
 				#if defined(_OPENMP)
 				#pragma omp parallel for
 				#endif
@@ -56,7 +56,7 @@ namespace libmaus2
 				parallelreverse(m,e);
 				parallelreverse(a,e);
 			}
-			
+
 			template<typename copy_type>
 			static void blockswap(void * pa, void * pb, uint64_t const s)
 			{
@@ -67,20 +67,20 @@ namespace libmaus2
 
 				copy_type * ca = reinterpret_cast<copy_type *>(pa);
 				copy_type * cb = reinterpret_cast<copy_type *>(pb);
-				
+
 				if ( s < parthres )
 				{
 					copy_type * ce = ca + full;
-					
+
 					while ( ca != ce )
 						std::swap(*(ca++),*(cb++));
-						
+
 					uint8_t * ua = reinterpret_cast<uint8_t *>(ca);
 					uint8_t * ue = ua + frac;
 					uint8_t * ub = reinterpret_cast<uint8_t *>(cb);
-					
+
 					while ( ua != ue )
-						std::swap(*(ua++),*(ub++));	
+						std::swap(*(ua++),*(ub++));
 				}
 				else
 				{
@@ -93,9 +93,9 @@ namespace libmaus2
 					uint8_t * ua = reinterpret_cast<uint8_t *>(ca+full);
 					uint8_t * ue = ua + frac;
 					uint8_t * ub = reinterpret_cast<uint8_t *>(cb+full);
-				
+
 					while ( ua != ue )
-						std::swap(*(ua++),*(ub++));	
+						std::swap(*(ua++),*(ub++));
 				}
 			}
 
@@ -125,7 +125,7 @@ namespace libmaus2
 			static void serialblockswap(iterator pa, iterator pb, uint64_t const s)
 			{
 				iterator pe = pa+s;
-				
+
 				while ( pa != pe )
 					std::swap(*(pa++),*(pb++));
 			}
@@ -160,20 +160,20 @@ namespace libmaus2
 
 			template<typename iterator, typename order_type, typename base_sort>
 			static void mergestepRecSerial(
-				iterator p, 
-				uint64_t const s, 
-				uint64_t const t, 
+				iterator p,
+				uint64_t const s,
+				uint64_t const t,
 				order_type order,
 				base_sort & basesort
 			)
 			{
 				if ( (!s) || (!t) )
 				{
-				
+
 				}
 				else if ( basesort(p,s,t,order) )
 				{
-				
+
 				}
 				else
 				{
@@ -185,19 +185,19 @@ namespace libmaus2
 					MergeStepBinSearchResult const msbsr_l = MergeStepBinSearchResult::mergestepbinsearch(aa,ae,ba,be,order);
 					MergeStepBinSearchResult const msbsr_r = MergeStepBinSearchResult::mergestepbinsearch(ba,be,aa,ae,order).sideswap();
 					MergeStepBinSearchResult const msbsr = (iabs(msbsr_l.nbest) <= iabs(msbsr_r.nbest)) ? msbsr_l : msbsr_r;
-					
+
 					uint64_t const l0 = msbsr.l0;
 					uint64_t const l1 = msbsr.l1;
-					
+
 					uint64_t const r0 = msbsr.r0;
 					uint64_t const r1 = msbsr.r1;
 
 					// std::cerr << "l=" << l0 << " n=" << (l0+r0) << " (s+t)/2=" << (s+t)/2 << std::endl;
-					
+
 					if ( (s+t)/2 != (l0+r0) )
 					{
 						std::cerr << "split uneven." << std::endl;
-					
+
 						#if 0
 						std::cerr << "l0=";
 						for ( uint64_t i = 0; i < l0; ++i )
@@ -220,10 +220,10 @@ namespace libmaus2
 						std::cerr << std::endl;
 						#endif
 					}
-					
+
 					// l0 l1 r0 r1 -> l0 r0 l1 r1
 					serialblockswap(p+l0,l1,r0);
-										
+
 					mergestepRecSerial(p,l0,r0,order,basesort);
 					mergestepRecSerial(p+l0+r0,l1,r1,order,basesort);
 				}
@@ -237,7 +237,7 @@ namespace libmaus2
 				uint64_t t;
 				order_type order;
 				basesort_type * basesort;
-				
+
 				MergeStepRecSerialRequest() : p(), s(0), t(0), order(), basesort(0) {}
 				MergeStepRecSerialRequest(
 					iterator rp,
@@ -246,7 +246,7 @@ namespace libmaus2
 					order_type rorder,
 					basesort_type * const rbasesort)
 				: p(rp), s(rs), t(rt), order(rorder), basesort(rbasesort) {}
-				
+
 				void dispatch()
 				{
 					mergestepRecSerial(p,s,t,order,*basesort);
@@ -255,20 +255,20 @@ namespace libmaus2
 
 			template<typename iterator, typename order_type, typename base_sort>
 			static void mergestepRec(
-				iterator p, 
-				uint64_t const s, 
-				uint64_t const t, 
+				iterator p,
+				uint64_t const s,
+				uint64_t const t,
 				order_type order,
 				base_sort & basesort
 			)
 			{
 				if ( (!s) || (!t) )
 				{
-				
+
 				}
 				else if ( basesort(p,s,t,order) )
 				{
-				
+
 				}
 				else
 				{
@@ -280,19 +280,19 @@ namespace libmaus2
 					MergeStepBinSearchResult const msbsr_l = MergeStepBinSearchResult::mergestepbinsearch(aa,ae,ba,be,order);
 					MergeStepBinSearchResult const msbsr_r = MergeStepBinSearchResult::mergestepbinsearch(ba,be,aa,ae,order).sideswap();
 					MergeStepBinSearchResult const msbsr = (iabs(msbsr_l.nbest) <= iabs(msbsr_r.nbest)) ? msbsr_l : msbsr_r;
-					
+
 					uint64_t const l0 = msbsr.l0;
 					uint64_t const l1 = msbsr.l1;
-					
+
 					uint64_t const r0 = msbsr.r0;
 					uint64_t const r1 = msbsr.r1;
 
 					// std::cerr << "l=" << l0 << " n=" << (l0+r0) << " (s+t)/2=" << (s+t)/2 << std::endl;
-					
+
 					if ( (s+t)/2 != (l0+r0) )
 					{
 						std::cerr << "split uneven." << std::endl;
-					
+
 						#if 0
 						std::cerr << "l0=";
 						for ( uint64_t i = 0; i < l0; ++i )
@@ -315,18 +315,18 @@ namespace libmaus2
 						std::cerr << std::endl;
 						#endif
 					}
-					
+
 					// l0 l1 r0 r1 -> l0 r0 l1 r1
-					// typedef typename ::std::iterator_traits<iterator>::value_type value_type;		
+					// typedef typename ::std::iterator_traits<iterator>::value_type value_type;
 					//blockswap<uint64_t>(p+l0,l1*sizeof(value_type),r0*sizeof(value_type));
-					
+
 					parallelblockswap(
 						p+l0,
 						p+l0+l1,
 						p+l0+l1+r0);
 
 					// std::cerr << "l1=" << l1 << " r0=" << r0 << std::endl;
-					
+
 					mergestepRec(p,l0,r0,order,basesort);
 					mergestepRec(p+l0+r0,l1,r1,order,basesort);
 				}
@@ -334,9 +334,9 @@ namespace libmaus2
 
 			template<typename iterator, typename order_type, typename base_sort>
 			static void mergestepRecLevel(
-				iterator p, 
-				uint64_t const s, 
-				uint64_t const t, 
+				iterator p,
+				uint64_t const s,
+				uint64_t const t,
 				order_type order,
 				base_sort & basesort,
 				int const level,
@@ -346,7 +346,7 @@ namespace libmaus2
 			{
 				if ( (!s) || (!t) )
 				{
-				
+
 				}
 				else if ( level >= levelthres )
 				{
@@ -362,19 +362,19 @@ namespace libmaus2
 					MergeStepBinSearchResult const msbsr_l = MergeStepBinSearchResult::mergestepbinsearch(aa,ae,ba,be,order);
 					MergeStepBinSearchResult const msbsr_r = MergeStepBinSearchResult::mergestepbinsearch(ba,be,aa,ae,order).sideswap();
 					MergeStepBinSearchResult const msbsr = (iabs(msbsr_l.nbest) <= iabs(msbsr_r.nbest)) ? msbsr_l : msbsr_r;
-					
+
 					uint64_t const l0 = msbsr.l0;
 					uint64_t const l1 = msbsr.l1;
-					
+
 					uint64_t const r0 = msbsr.r0;
 					uint64_t const r1 = msbsr.r1;
 
 					// std::cerr << "l=" << l0 << " n=" << (l0+r0) << " (s+t)/2=" << (s+t)/2 << std::endl;
-					
+
 					if ( (s+t)/2 != (l0+r0) )
 					{
 						std::cerr << "split uneven." << std::endl;
-					
+
 						#if 0
 						std::cerr << "l0=";
 						for ( uint64_t i = 0; i < l0; ++i )
@@ -397,18 +397,18 @@ namespace libmaus2
 						std::cerr << std::endl;
 						#endif
 					}
-					
+
 					// l0 l1 r0 r1 -> l0 r0 l1 r1
-					// typedef typename ::std::iterator_traits<iterator>::value_type value_type;		
+					// typedef typename ::std::iterator_traits<iterator>::value_type value_type;
 					//blockswap<uint64_t>(p+l0,l1*sizeof(value_type),r0*sizeof(value_type));
-					
+
 					parallelblockswap(
 						p+l0,
 						p+l0+l1,
 						p+l0+l1+r0);
 
 					// std::cerr << "l1=" << l1 << " r0=" << r0 << std::endl;
-					
+
 					mergestepRecLevel(p,l0,r0,order,basesort,level+1,levelthres,reqvec);
 					mergestepRecLevel(p+l0+r0,l1,r1,order,basesort,level+1,levelthres,reqvec);
 				}
@@ -416,9 +416,9 @@ namespace libmaus2
 
 			template<typename iterator, typename order_type, typename base_sort>
 			static void mergestep(
-				iterator p, 
-				uint64_t const s, 
-				uint64_t const t, 
+				iterator p,
+				uint64_t const s,
+				uint64_t const t,
 				order_type order,
 				base_sort & basesort
 			)
@@ -430,7 +430,7 @@ namespace libmaus2
 			template<typename iterator, typename base_sort>
 			static void mergestep(iterator p, uint64_t const s, uint64_t const t, base_sort & basesort)
 			{
-				typedef typename ::std::iterator_traits<iterator>::value_type value_type;		
+				typedef typename ::std::iterator_traits<iterator>::value_type value_type;
 				typedef std::less<value_type> order_type;
 				mergestepRec<iterator,order_type>(p,s,t,order_type(),basesort);
 				basesort.flush();
@@ -439,16 +439,16 @@ namespace libmaus2
 			struct TrivialBaseSort
 			{
 				TrivialBaseSort() {}
-				
+
 				template<typename iterator, typename order_type>
 				bool operator()(iterator, uint64_t const, uint64_t const, order_type)
 				{
 					return false;
 				}
-				
+
 				void flush()
 				{
-				
+
 				}
 			};
 
@@ -457,11 +457,11 @@ namespace libmaus2
 				uint64_t const thres;
 
 				FixedSizeBaseSort(uint64_t const rthres) : thres(rthres) {}
-				
+
 				template<typename iterator, typename order_type>
 				bool operator()(iterator p, uint64_t const s, uint64_t const t, order_type order)
 				{
-					if ( s+t <= thres )		
+					if ( s+t <= thres )
 					{
 						std::inplace_merge(p,p+s,p+s+t,order);
 						return true;
@@ -471,10 +471,10 @@ namespace libmaus2
 						return false;
 					}
 				}
-				
+
 				void flush()
 				{
-				
+
 				}
 			};
 
@@ -487,8 +487,8 @@ namespace libmaus2
 					uint64_t s;
 					uint64_t t;
 					order_type order;
-					
-					MergePackage() 
+
+					MergePackage()
 					: p(), s(0), t(0), order() {}
 					MergePackage(
 						iterator rp,
@@ -504,15 +504,15 @@ namespace libmaus2
 				MergePackage *       qc;
 				MergePackage * const qe;
 
-				ParallelFixedSizeBaseSort(uint64_t const rthres, uint64_t const rqsize) 
+				ParallelFixedSizeBaseSort(uint64_t const rthres, uint64_t const rqsize)
 				: thres(rthres), Q(rqsize,false), qa(Q.begin()), qc(qa), qe(Q.end()) {}
-				
+
 				bool operator()(iterator p, uint64_t const s, uint64_t const t, order_type order)
 				{
-					if ( s+t <= thres )		
+					if ( s+t <= thres )
 					{
 						*(qc++) = MergePackage(p,s,t,order);
-						
+
 						if ( qc == qe )
 							flush();
 
@@ -523,18 +523,18 @@ namespace libmaus2
 						return false;
 					}
 				}
-				
+
 				void flush()
 				{
 					int64_t const f = qc-qa;
-					
+
 					#if defined(_OPENMP)
 					#pragma omp parallel for schedule(dynamic,1)
 					#endif
 					for ( int64_t i = 0; i < f; ++i )
 					{
 						MergePackage const & qp = qa[i];
-						std::inplace_merge(qp.p,qp.p+qp.s,qp.p+qp.s+qp.t,qp.order);			
+						std::inplace_merge(qp.p,qp.p+qp.s,qp.p+qp.s+qp.t,qp.order);
 					}
 
 					qc = qa;
@@ -544,7 +544,7 @@ namespace libmaus2
 
 			template<typename iterator, typename order_type, typename base_sort>
 			static void inplacesort(
-				iterator a, 
+				iterator a,
 				iterator e,
 				order_type order,
 				base_sort & basesort
@@ -558,7 +558,7 @@ namespace libmaus2
 				#endif
 				uint64_t const s0 = (n+t-1)/t;
 				uint64_t const b = (n+s0-1)/s0;
-				
+
 				#if defined(_OPENMP)
 				#pragma omp parallel for schedule(dynamic,1)
 				#endif
@@ -568,29 +568,29 @@ namespace libmaus2
 					uint64_t const high = std::min(low+s0,n);
 					std::sort(a+low,a+high,order);
 				}
-				
+
 				// std::cerr << "sorted blocks." << std::endl;
-				
+
 				for ( uint64_t s = s0; s < n; s <<= 1 )
 				{
 					uint64_t const inblocks = (n+s-1)/s;
 					uint64_t const outblocks = (inblocks+1)>>1;
-					
+
 					for ( uint64_t o = 0; o < outblocks; ++o )
 					{
 						uint64_t const low0 = 2*o*s;
 						uint64_t const high0 = std::min(low0+s,n);
 						uint64_t const low1 = high0;
 						uint64_t const high1 = std::min(low1+s,n);
-						
+
 						mergestep(a+low0,high0-low0,high1-low1,order,basesort);
 					}
 				}
 			}
-			
+
 			template<typename iterator, typename order_type, typename base_sort>
 			static void inplacesort2(
-				iterator a, 
+				iterator a,
 				iterator e,
 				order_type order,
 				base_sort & basesort
@@ -604,7 +604,7 @@ namespace libmaus2
 				#endif
 				uint64_t const s0 = (n+t-1)/t;
 				uint64_t const b = (n+s0-1)/s0;
-				
+
 				#if defined(_OPENMP)
 				#pragma omp parallel for schedule(dynamic,1)
 				#endif
@@ -614,14 +614,14 @@ namespace libmaus2
 					uint64_t const high = std::min(low+s0,n);
 					std::sort(a+low,a+high,order);
 				}
-				
+
 				// std::cerr << "sorted blocks." << std::endl;
-				
+
 				for ( uint64_t s = s0; s < n; s <<= 1 )
 				{
 					uint64_t const inblocks = (n+s-1)/s;
 					uint64_t const outblocks = (inblocks+1)>>1;
-					
+
 					for ( uint64_t o = 0; o < outblocks; ++o )
 					{
 						uint64_t const low0 = 2*o*s;
@@ -630,12 +630,12 @@ namespace libmaus2
 						uint64_t const high1 = std::min(low1+s,n);
 
 						std::vector< MergeStepRecSerialRequest<iterator,order_type,base_sort> > reqvec;
-						
+
 						int levelthres = 0;
 						uint64_t const packsperthread = 4;
 						while ( (1ull<<levelthres) < packsperthread*t )
 							++levelthres;
-							
+
 						mergestepRecLevel(a+low0,high0-low0,high1-low1,order,basesort,0,levelthres,reqvec);
 
 						// std::cerr << "Calling dispatch for " << reqvec.size() << std::endl;

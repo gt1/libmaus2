@@ -53,7 +53,7 @@ namespace libmaus2
 					for ( size_t i = 0; i < sizeof(int32_t); ++i )
 					{
 						out.put((v >> (8*i)) & 0xFF);
-							
+
 						if ( !out )
 						{
 							libmaus2::exception::LibMausException lme;
@@ -73,7 +73,7 @@ namespace libmaus2
 					for ( size_t i = 0; i < sizeof(int16_t); ++i )
 					{
 						out.put((v >> (8*i)) & 0xFF);
-							
+
 						if ( !out )
 						{
 							libmaus2::exception::LibMausException lme;
@@ -94,7 +94,7 @@ namespace libmaus2
 					for ( size_t i = 0; i < sizeof(uint16_t); ++i )
 					{
 						out.put((v >> (8*i)) & 0xFF);
-							
+
 						if ( !out )
 						{
 							libmaus2::exception::LibMausException lme;
@@ -114,7 +114,7 @@ namespace libmaus2
 					for ( size_t i = 0; i < sizeof(uint32_t); ++i )
 					{
 						out.put((v >> (8*i)) & 0xFF);
-							
+
 						if ( !out )
 						{
 							libmaus2::exception::LibMausException lme;
@@ -134,7 +134,7 @@ namespace libmaus2
 					for ( size_t i = 0; i < sizeof(int64_t); ++i )
 					{
 						out.put((v >> (8*i)) & 0xFF);
-							
+
 						if ( !out )
 						{
 							libmaus2::exception::LibMausException lme;
@@ -145,12 +145,12 @@ namespace libmaus2
 						offset += 1;
 					}
 				}
-				
+
 				template<typename stream_type>
 				static void putFloat(stream_type & out, float const v, uint64_t & offset)
 				{
 					align(out, sizeof(int32_t), offset);
-					
+
 					union numberpun
 					{
 						float fvalue;
@@ -158,7 +158,7 @@ namespace libmaus2
 					};
 					numberpun np;
 					np.fvalue = v;
-					
+
 					putUnsignedLittleEndianInteger4(out,np.uvalue,offset);
 				}
 			};

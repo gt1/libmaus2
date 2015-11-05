@@ -29,7 +29,7 @@ namespace libmaus2
 		{
 			libmaus2::aio::InputStreamInstance istr;
 			SnappyInputStream instream;
-			
+
 			SnappyFileInputStream(std::string const & filename)
 			: istr(filename), instream(istr,0,true) {}
 			int get() { return instream.get(); }

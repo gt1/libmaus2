@@ -26,24 +26,24 @@
 namespace libmaus2
 {
 	namespace util
-	{	
+	{
 		struct TempFileNameGeneratorState
 		{
 			static int const dirmod = 64;
 			static int const filemod = 64;
 			static int const maxmod = (dirmod>filemod)?dirmod:filemod;
 			static int const digits = ::libmaus2::math::LogCeil<maxmod,10>::log;
-			
-			unsigned int depth;			
+
+			unsigned int depth;
 			std::vector < int > nextdir;
 			int64_t nextfile;
 			std::string const prefix;
-			
+
 			bool operator==(TempFileNameGeneratorState const & o) const;
 			bool operator!=(TempFileNameGeneratorState const & o) const;
 
 			TempFileNameGeneratorState(unsigned int const rdepth, std::string const & rprefix);
-			
+
 			void setup();
 			void next();
 			static std::string numToString(uint64_t const num, unsigned int dig);

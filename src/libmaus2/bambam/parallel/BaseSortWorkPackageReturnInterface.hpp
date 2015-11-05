@@ -31,7 +31,7 @@ namespace libmaus2
 			struct BaseSortWorkPackageReturnInterface
 			{
 				typedef _order_type order_type;
-				
+
 				virtual ~BaseSortWorkPackageReturnInterface() {}
 				virtual void putBaseSortWorkPackage(AlignmentRewritePosSortBaseSortPackage<order_type> * package) = 0;
 			};

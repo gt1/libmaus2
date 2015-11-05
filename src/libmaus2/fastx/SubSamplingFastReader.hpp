@@ -39,23 +39,23 @@ namespace libmaus2
 		{
 			typedef _reader_type reader_type;
 			typedef typename reader_type::unique_ptr_type reader_ptr_type;
-			
+
 			static bool const keep_pairs = _keep_pairs;
-			
+
 			typedef SubSamplingFastReader<reader_type,keep_pairs> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			typedef typename reader_type::pattern_type pattern_type;
-			
+
 			reader_ptr_type Preader;
-			
+
 			uint64_t const c;
 			uint64_t const d;
-			
+
 			static uint64_t const maxd = 64*1024;
-			
+
 			bool pairflag;
-			
+
 			void checkParameters() const
 			{
 				if ( d > maxd )
@@ -80,22 +80,22 @@ namespace libmaus2
 					throw se;
 				}
 			}
-			
+
 			SubSamplingFastReader(std::string const & filename, uint64_t const rc, uint64_t const rd) : Preader(new reader_type(std::vector<std::string>(1,filename))), c(rc), d(rd), pairflag(false)
 			{
 				checkParameters();
 			}
 			SubSamplingFastReader(std::vector<std::string> const & filenames, uint64_t const rc, uint64_t const rd) : Preader(new reader_type(filenames)), c(rc), d(rd), pairflag(false)
 			{
-				checkParameters();			
+				checkParameters();
 			}
 			SubSamplingFastReader(std::string const & filename, ::libmaus2::fastx::FastInterval const & FI, uint64_t const rc, uint64_t const rd) : Preader(new reader_type(std::vector<std::string>(1,filename),FI)), c(rc), d(rd), pairflag(false)
 			{
-				checkParameters();			
+				checkParameters();
 			}
 			SubSamplingFastReader(std::vector<std::string> const & filenames, ::libmaus2::fastx::FastInterval const & FI, uint64_t const rc, uint64_t const rd) : Preader(new reader_type(filenames,FI)), c(rc), d(rd), pairflag(false)
 			{
-				checkParameters();			
+				checkParameters();
 			}
 
                         bool getNextPatternUnlocked(pattern_type & pattern)
@@ -110,12 +110,12 @@ namespace libmaus2
                         		while ( true )
                         		{
                         			uint64_t const z = rand16() % d;
-                        			
+
                         			// RNG keep
                         			if ( z < c )
                         			{
                         				bool const ok = Preader->getNextPatternUnlocked(pattern);
-                        				
+
                         				if ( ok )
                         				{
                         					if ( keep_pairs )
@@ -132,7 +132,7 @@ namespace libmaus2
                         			else
                         			{
                         				uint64_t const skipcnt = keep_pairs ? 2 : 1;
-                        				
+
                         				for ( uint64_t i = 0; i < skipcnt; ++i )
 							{
 	                        				bool const ok = Preader->getNextPatternUnlocked(pattern);
@@ -144,7 +144,7 @@ namespace libmaus2
                         	}
                         }
 		};
-		
+
 		typedef SubSamplingFastReader< ::libmaus2::fastx::FastAReader, false > SubSamplingSingleFastAReader;
 		typedef SubSamplingFastReader< ::libmaus2::fastx::FastAReader, true > SubSamplingPairedFastAReader;
 		typedef SubSamplingFastReader< ::libmaus2::fastx::FastQReader, false > SubSamplingSingleFastQReader;

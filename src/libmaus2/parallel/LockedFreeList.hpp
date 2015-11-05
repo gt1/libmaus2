@@ -28,9 +28,9 @@ namespace libmaus2
 	namespace parallel
 	{
 		template<
-			typename _element_type, 
+			typename _element_type,
 			typename _allocator_type = libmaus2::util::FreeListDefaultAllocator<_element_type>,
-			typename _type_info_type = libmaus2::util::FreeListDefaultTypeInfo<_element_type> 
+			typename _type_info_type = libmaus2::util::FreeListDefaultTypeInfo<_element_type>
 		>
 		struct LockedFreeList : private libmaus2::util::FreeList<_element_type,_allocator_type,_type_info_type>
 		{
@@ -47,22 +47,22 @@ namespace libmaus2
 			LockedFreeList(uint64_t const numel, allocator_type allocator = allocator_type()) : base_type(numel,allocator)
 			{
 			}
-			
+
 			virtual ~LockedFreeList()
 			{
 			}
-			
+
 			libmaus2::parallel::PosixSpinLock & getLock()
 			{
 				return lock;
 			}
-			
+
 			bool empty()
 			{
 				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				return base_type::empty();
 			}
-			
+
 			bool emptyUnlocked()
 			{
 				return base_type::empty();
@@ -78,7 +78,7 @@ namespace libmaus2
 				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				return base_type::full();
 			}
-			
+
 			typename type_info_type::pointer_type get()
 			{
 				libmaus2::parallel::ScopePosixSpinLock slock(lock);
@@ -88,13 +88,13 @@ namespace libmaus2
 			typename type_info_type::pointer_type getIf()
 			{
 				libmaus2::parallel::ScopePosixSpinLock slock(lock);
-				
+
 				if ( base_type::empty() )
 					return type_info_type::getNullPointer();
 				else
 					return base_type::get();
 			}
-			
+
 			uint64_t get(std::vector<typename type_info_type::pointer_type> & V, uint64_t max)
 			{
 				libmaus2::parallel::ScopePosixSpinLock slock(lock);
@@ -102,7 +102,7 @@ namespace libmaus2
 					V.push_back(base_type::get());
 				return V.size();
 			}
-			
+
 			void put(typename type_info_type::pointer_type ptr)
 			{
 				libmaus2::parallel::ScopePosixSpinLock slock(lock);
@@ -114,17 +114,17 @@ namespace libmaus2
 				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				return base_type::putAndCount(ptr);
 			}
-			
+
 			uint64_t capacity() const
 			{
 				return base_type::capacity();
 			}
-			
+
 			uint64_t freeUnlocked() const
 			{
 				return base_type::free();
 			}
-			
+
 			size_t byteSize()
 			{
 				return base_type::byteSize();

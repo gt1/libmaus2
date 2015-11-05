@@ -68,7 +68,7 @@ namespace libmaus2
 			}
 
 			U64Buffer(std::string const & rkmerfilename, uint64_t const rbuffersize, uint64_t const maxmem)
-			: kmerfilename(rkmerfilename), fileidx(0), 
+			: kmerfilename(rkmerfilename), fileidx(0),
 				buffersize(rbuffersize),
 				bufferbytes(buffersize*sizeof(::libmaus2::graph::TripleEdge)),
 				buffersperfile( (maxmem+(bufferbytes-1))/bufferbytes )
@@ -117,8 +117,8 @@ namespace libmaus2
 				istr.read ( reinterpret_cast<char *>(T.get()), len);
 				assert ( istr );
 				assert ( istr.gcount() == static_cast<int64_t>(len) );
-				istr.close(); 
-				
+				istr.close();
+
 				std::sort ( T.get(), T.get() + numtriples );
 
 				libmaus2::aio::OutputStreamInstance ostr(filename);

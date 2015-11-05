@@ -43,33 +43,33 @@ int main()
 
 	libmaus2::timing::RealTimeClock rtc;
 	rtc.start();
-	
+
 	::libmaus2::aio::PosixFdInputStream posin(STDIN_FILENO,64*1024);
 	::libmaus2::fastx::FastAStreamSet FASS(posin);
 	libmaus2::autoarray::AutoArray<char> B(64*1024,false);
 	std::pair<std::string,::libmaus2::fastx::FastAStream::shared_ptr_type> P;
 	uint64_t bases = 0;
-	
+
 	double const erate = 0.03;
 	libmaus2::random::Random::setup();
-	
+
 	while ( FASS.getNextStream(P) )
 	{
 		libmaus2::wavelet::DynamicWaveletTree<8,8> D(2);
-	
+
 		std::string const & id = P.first;
 		::libmaus2::fastx::FastAStream & basestream = *(P.second);
-		
+
 		uint64_t cnt = 0;
 		while ( true )
 		{
 			basestream.read(B.begin(),B.size());
 			uint64_t gcnt = basestream.gcount();
-			
+
 			for ( size_t i = 0; i < gcnt; ++i )
 			{
 				char const c = B[i];
-				
+
 				if ( c == 'A' )
 					D.insert(0,cnt+i);
 				else if ( c == 'C' )
@@ -81,21 +81,21 @@ int main()
 				else
 					D.insert(libmaus2::random::Random::rand8()%4,cnt+i);
 			}
-			
+
 			cnt += gcnt;
-			
+
 			std::cerr << "\r" << std::string(80,' ') << "\r" << cnt;
-						
+
 			if ( !gcnt )
 				break;
 		}
-		
+
 		std::cerr << "\r" << std::string(80,' ') << "\r" << cnt << "\n";
 
 		uint64_t const errors = (D.size() * erate + 0.5);
-		
+
 		// std::cerr << "[V] Injecting " << errors << " errors." << std::endl;
-		
+
 		for ( uint64_t i = 0; i < errors; ++i )
 		{
 			unsigned int const errtype = libmaus2::random::Random::rand8() % 3;
@@ -130,7 +130,7 @@ int main()
 		}
 
 		std::cerr << id << "\t" << cnt << "\n";
-		
+
 		std::cout << ">" << P.first << "\n";
 		for ( uint64_t i = 0; i < D.size(); ++i )
 		{
@@ -144,9 +144,9 @@ int main()
 			}
 		}
 		std::cout.put('\n');
-		
+
 		bases += cnt;
 	}
-	
+
 	std::cerr << (bases / rtc.getElapsedSeconds()) << " bases/s " << "(" << bases << "/" << rtc.getElapsedSeconds() << ")" << std::endl;
 }

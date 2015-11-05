@@ -49,7 +49,7 @@ namespace libmaus2
 			SamEncoder(std::ostream & rostr, libmaus2::bambam::BamHeader const & rheader)
 			: PFOS(), ostr(rostr), header(rheader), auxdata()
 			{
-				ostr << header.text;			
+				ostr << header.text;
 			}
 			~SamEncoder() {}
 
@@ -59,9 +59,9 @@ namespace libmaus2
 			virtual void writeBamBlock(uint8_t const * E, uint64_t const blocksize)
 			{
 				libmaus2::bambam::BamAlignmentDecoderBase::formatAlignment(ostr,E,blocksize,header,auxdata);
-				ostr.put('\n');			
+				ostr.put('\n');
 			}
-			
+
 			/**
 			 * write alignment
 			 **/

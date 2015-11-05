@@ -31,7 +31,7 @@ std::ostream & libmaus2::bambam::operator<<(std::ostream & out, libmaus2::bambam
 		case libmaus2::bambam::ReadEnds::RF: out << "RF"; break;
 		case libmaus2::bambam::ReadEnds::RR: out << "RR"; break;
 	}
-	
+
 	return out;
 }
 
@@ -50,18 +50,18 @@ std::ostream & libmaus2::bambam::operator<<(std::ostream & out, libmaus2::bambam
 		<< "RG=" << RE.readGroup << ","
 		<< "tile=" << static_cast<int>(RE.tile) << ","
 		<< "x=" << RE.x << ","
-		<< "y=" << RE.y 
+		<< "y=" << RE.y
 		<< ")";
-		
+
 	return out;
 }
 
 std::ostream & libmaus2::bambam::operator<<(std::ostream & out, libmaus2::bambam::ReadEnds const & RE)
 {
 	out << "ReadEnds(" << static_cast<libmaus2::bambam::ReadEndsBase const &>(RE) << ")";
-		
+
 	if ( RE.p )
 		out << "[" << RE.p->getName() << "]";
-		
+
 	return out;
 }

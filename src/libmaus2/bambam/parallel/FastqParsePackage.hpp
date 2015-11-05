@@ -33,16 +33,16 @@ namespace libmaus2
 				typedef FastqParsePackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				FastqToBamControlSubReadPending data;
-			
+
 				FastqParsePackage() : libmaus2::parallel::SimpleThreadWorkPackage(), data()
-				{				
-				}		
+				{
+				}
 				FastqParsePackage(uint64_t const rpriority, uint64_t const rdispatcherid, FastqToBamControlSubReadPending & rdata)
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), data(rdata)
 				{
-				
+
 				}
 
 				char const * getPackageName() const

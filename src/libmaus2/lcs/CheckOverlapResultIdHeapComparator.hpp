@@ -28,7 +28,7 @@ namespace libmaus2
 		struct CheckOverlapResultIdHeapComparator
 		{
 			CheckOverlapResultIdComparator subcomp;
-		
+
 			bool operator()(CheckOverlapResult const & A, CheckOverlapResult const & B) const
 			{
 				return ! subcomp(A,B);

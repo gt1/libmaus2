@@ -35,7 +35,7 @@ int testBlockSynchronous()
 		#if defined(BSOB_DEBUG)
 		std::map < uint64_t, std::vector<uint64_t> > M;
 		#endif
-		
+
 		for ( uint64_t i = 0; i < 1024*1024*1024ull; ++i )
 		{
 			uint64_t vh = rand() % h;
@@ -44,16 +44,16 @@ int testBlockSynchronous()
 			#if defined(BSOB_DEBUG)
 			M[vh].push_back(vv);
 			#endif
-			
+
 			if ( ! (i & (1024*1024-1)) )
 				std::cerr << "(" << i << ")";
 		}
 		std::cerr << std::endl;
-		
+
 		std::cerr << "flush...";
 		B.flush();
 		std::cerr << "done." << std::endl;
-		
+
 		std::cerr << "presorting...";
 		B.presort(256*1024);
 		std::cerr << "done." << std::endl;
@@ -62,29 +62,29 @@ int testBlockSynchronous()
 		std::map < uint64_t, std::vector<uint64_t> > M2 = B.extract();
 		assert ( M == M2 );
 		#endif
-			
-		std::cerr << "distributing...";	
+
+		std::cerr << "distributing...";
 		std::vector<std::string> const filenames = B.distribute();
 		std::cerr << "done." <<std::endl;
-		
+
 		for ( uint64_t i = 0; i < filenames.size(); ++i )
 		{
 			#if defined(BSOB_DEBUG)
 			::libmaus2::aio::GenericInput<uint64_t> GI( filenames[i], 16*1024 );
 			std::vector <uint64_t> V;
-			
+
 			uint64_t v;
-			
+
 			while ( GI.getNext(v) )
 				V.push_back(v);
-				
+
 			assert (V.size() == M[i].size());
 			assert (V == M[i]);
 			#endif
-			
+
 			libmaus2::aio::FileRemoval::removeFile ( filenames[i] );
 		}
-	
+
 		return EXIT_SUCCESS;
 	}
 	catch(std::exception const & ex)

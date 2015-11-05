@@ -36,7 +36,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-                    
+
 namespace libmaus2
 {
 	namespace aio
@@ -55,7 +55,7 @@ namespace libmaus2
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! iterator type
 			typedef PutOutputIterator<data_type,this_type> iterator_type;
-                
+
 			private:
 			//! file name
 			std::string const filename;
@@ -63,7 +63,7 @@ namespace libmaus2
 			std::string const dirname;
 			//! run sync for meta information
 			bool const metasync;
-                
+
 			//! output buffer
                         ::libmaus2::autoarray::AutoArray<data_type> B;
                         //! output buffer begin pointer
@@ -74,7 +74,7 @@ namespace libmaus2
                         data_type * const pe;
                         //! file descriptor
                         int fd;
-                        
+
                         //! total bytes written
                         uint64_t totalwrittenbytes;
                         //! total words written
@@ -91,11 +91,11 @@ namespace libmaus2
                         {
                                 char const * ca = reinterpret_cast<char const *>(pa);
                                 char const * cc = reinterpret_cast<char const *>(pc);
-                                
+
                                 while ( ca != cc )
                                 {
 	                                ssize_t const written = write ( fd, ca, cc-ca );
-	                                
+
 	                                if ( written < 0 )
 	                                {
 	                                	switch ( errno )
@@ -109,7 +109,7 @@ namespace libmaus2
 								se.getStream() << "Failed to write in SynchronousGenericOutputPosix::writeBuffer(): " << strerror(errno)
 									<< " fd=" << fd << " filename=" << filename << " dirname=" << dirname << std::endl;
 								se.finish();
-								throw se;							
+								throw se;
 							}
 	                                	}
 	                                }
@@ -122,28 +122,28 @@ namespace libmaus2
                                 totalwrittenbytes += (pc-pa)*sizeof(data_type);
                                 totalwrittenwords += (pc-pa);
                                 pc = pa;
-                                
+
                                 #if 0
                                 ssize_t written = write ( fd, ca, cc-ca );
-                                
+
                                 if ( written != cc-ca )
                                 {
                                         ::libmaus2::exception::LibMausException se;
                                         se.getStream() << "Failed to write in SynchronousGenericOutputPosix::writeBuffer(): " << strerror(errno)
                                         	<< " fd=" << fd << " filename=" << filename << " dirname=" << dirname << std::endl;
                                         se.finish();
-                                        throw se;                              
+                                        throw se;
                                 }
-                                
+
                                 assert ( (cc-ca) % sizeof(data_type) == 0 );
                                 totalwrittenbytes += (cc-ca);
                                 totalwrittenwords += ((cc-ca)/sizeof(data_type));
-                                
+
                                 pc = pa;
                                 #endif
                         }
 
-                        
+
                         public:
                         /**
                          * get sum of file lengths for a list of files
@@ -167,7 +167,7 @@ namespace libmaus2
                         static uint64_t getFileSize(std::string const & filename)
                         {
                         	struct stat sb;
-                        	
+
                         	while ( ::stat(filename.c_str(),&sb) != 0 )
                         	{
                         		switch ( errno )
@@ -184,30 +184,30 @@ namespace libmaus2
 						}
                         		}
                         	}
-                        	
+
                         	return sb.st_size;
                         }
-                        
+
                         /**
                          * write array A to file outputfilename
                          *
                          * @param A array to be written
                          * @param outputfilename name of output file
                          **/
-			static void writeArray(::libmaus2::autoarray::AutoArray<data_type> const & A, 
+			static void writeArray(::libmaus2::autoarray::AutoArray<data_type> const & A,
 				std::string const & outputfilename)
 			{
 				this_type out(outputfilename,64*1024);
-				
+
 				for ( uint64_t i = 0; i < A.getN(); ++i )
 					out.put(A[i]);
-				
+
 				out.flush();
 			}
 
 			/**
 			 * get offset for appending to file filename
-			 * 
+			 *
 			 * @param filename name of output file
 			 * @return offset for appending to file
 			 **/
@@ -232,7 +232,7 @@ namespace libmaus2
                                 else
                                         return true;
 			}
-			
+
 			/**
 			 * instantiate object for a new file
 			 *
@@ -257,14 +257,14 @@ namespace libmaus2
 			 * @param rmetasync if true flushing will also sync meta data
 			 **/
                         SynchronousGenericOutputPosix(
-                                std::string const & rfilename, 
-                                uint64_t const bufsize, 
+                                std::string const & rfilename,
+                                uint64_t const bufsize,
                                 bool const truncate,
                                 uint64_t const offset,
                                 bool const rmetasync = true
                         )
                         : filename(rfilename), dirname(::libmaus2::util::ArgInfo::getDirName(filename)), metasync(rmetasync),
-                          B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN()), 
+                          B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN()),
                           fd ( -1 ),
                           totalwrittenbytes(0), totalwrittenwords(0)
                         {
@@ -296,13 +296,13 @@ namespace libmaus2
                                         se.finish();
                                         throw se;
                                 }
-                                
+
                                 #if 0
                                 std::cerr << "File " << filename << " opened for output in "
                                         << ::libmaus2::util::Demangle::demangle<this_type>() << std::endl;
                                 #endif
                         }
-                        
+
                         public:
                         /**
                          * destructor, close file
@@ -310,7 +310,7 @@ namespace libmaus2
                         ~SynchronousGenericOutputPosix()
                         {
                                 flush();
-                        
+
                                 while ( close(fd) < 0 )
                                 {
                                 	switch ( errno )
@@ -325,24 +325,24 @@ namespace libmaus2
 		                                        ::libmaus2::exception::LibMausException se;
         		                                se.getStream() << "Failed to close in ~SynchronousGenericOutputPosix:: " << strerror(errno);
                 		                        se.finish();
-                        		                throw se;                                                                                                      
+                        		                throw se;
 						}
 					}
                                 }
-                                
+
                                 #if 0
                                 std::cerr << "File " << filename << " closed succesfully." << std::endl;
                                 #endif
                         }
-                        
+
                         /**
-                         * flush meta information by syncing the meta information on the directory 
+                         * flush meta information by syncing the meta information on the directory
                          * contaning our output file
                          **/
                         void dirflush()
-                        {                        
+                        {
                                 int dirfd = -1;
-                                
+
                                 try
                                 {
                                         while ( (dirfd = open(dirname.c_str(),0)) < 0 )
@@ -359,11 +359,11 @@ namespace libmaus2
 		                                                ::libmaus2::exception::LibMausException se;
         		                                        se.getStream() << "Failed to open directory " << dirname << " in SynchronousGenericOutputPosix::flush(): " << strerror(errno);
                 		                                se.finish();
-                        		                        throw se;                                                                                                              
+                        		                        throw se;
 							}
 						}
                                         }
-                                        
+
                                         if ( fsync(dirfd) < 0 )
                                         {
                                         	std::cerr << "Failed to fsync directory " << dirname << " in SynchronousGenericOutputPosix::flush(): " << strerror(errno) << std::endl;
@@ -376,18 +376,18 @@ namespace libmaus2
                                         		case EINTR:
                                         		{
                                         			std::cerr << "Restarting close() call for directory interrupted by signal." << std::endl;
-                                        			break;                                        		
+                                        			break;
                                         		}
                                         		default:
                                         		{
 		                                                ::libmaus2::exception::LibMausException se;
         		                                        se.getStream() << "Failed to close directory " << dirname << " in SynchronousGenericOutputPosix::flush(): " << strerror(errno);
                 		                                se.finish();
-                        		                        throw se;                                                              
+                        		                        throw se;
 							}
 						}
                                         }
-                                        
+
                                         dirfd = -1;
                                 }
                                 catch(...)
@@ -399,14 +399,14 @@ namespace libmaus2
                                         		case EINTR:
                                         		{
                                         			std::cerr << "Restarting close() call for directory interrupted by signal." << std::endl;
-                                        			break;                                        		
+                                        			break;
                                         		}
                                         		default:
                                         		{
 		                                                ::libmaus2::exception::LibMausException se;
         		                                        se.getStream() << "Failed to close directory " << dirname << " in SynchronousGenericOutputPosix::flush(): " << strerror(errno);
                 		                                se.finish();
-                        		                        throw se;                                                              
+                        		                        throw se;
 							}
 						}
                                         }
@@ -421,7 +421,7 @@ namespace libmaus2
                         void flush()
                         {
                                 writeBuffer();
-                                
+
                                 while ( fsync(fd) != 0 )
                                 {
                                 	switch ( errno )
@@ -436,23 +436,23 @@ namespace libmaus2
 		                                        ::libmaus2::exception::LibMausException se;
         		                                se.getStream() << "Failed to fsync in SynchronousGenericOutputPosix::flush(): " << strerror(errno);
                 		                        se.finish();
-                        		                throw se;                                                              
+                        		                throw se;
 						}
 					}
                                 }
-                                
+
                                 dirflush();
-                                
+
                                 if ( metasync )
                                 {
                                         off_t const cursize = lseek(fd,0,SEEK_CUR);
-                                        
+
                                         if ( cursize == static_cast<off_t>(-1) )
                                         {
                                                 ::libmaus2::exception::LibMausException se;
                                                 se.getStream() << "Failed to lseek in SynchronousGenericOutputPosix::flush(): " << strerror(errno);
                                                 se.finish();
-                                                throw se;                                                              
+                                                throw se;
                                         }
 
                                         uint64_t okcnt = 0;
@@ -461,13 +461,13 @@ namespace libmaus2
                                         uint64_t const maxtotalcnt = 1024;
 
                                         off_t filesize = -1;
-                                        
+
                                         for ( ; okcnt < desokcnt && totalcnt < maxtotalcnt; ++totalcnt )
                                         {
                                                 dirflush();
-                                                
+
                                                 filesize = getFileSize(filename);
-                                                                       
+
                                                 if ( filesize == cursize )
                                                 {
                                                 	okcnt++;
@@ -475,10 +475,10 @@ namespace libmaus2
                                                 else
                                                 {
                                                 	okcnt = 0;
-                                                        std::cerr << "Waiting for meta data update of file " 
-                                                                << filename << " in SynchronousGenericOutputPosix::flush(), " 
-                                                                << " expected " << cursize 
-                                                                << " but systems reports " << filesize 
+                                                        std::cerr << "Waiting for meta data update of file "
+                                                                << filename << " in SynchronousGenericOutputPosix::flush(), "
+                                                                << " expected " << cursize
+                                                                << " but systems reports " << filesize
                                                                 << " okcnt " << okcnt
                                                                 << " totalcnt " << totalcnt
                                                                 << std::endl;
@@ -489,14 +489,14 @@ namespace libmaus2
 					if ( okcnt < desokcnt )
 					{
                                                 ::libmaus2::exception::LibMausException se;
-                                                se.getStream() << "Failed to flush file " << filename 
-                                                	<< " in SynchronousGenericOutputPosix::flush()" 
+                                                se.getStream() << "Failed to flush file " << filename
+                                                	<< " in SynchronousGenericOutputPosix::flush()"
                                                 	<< " file size reported is "
                                                 	<< filesize
                                                 	<< " but we expected " << cursize
                                                 	<< std::endl;
                                                 se.finish();
-                                                throw se;                                                              
+                                                throw se;
                                         }
                                 }
                         }
@@ -512,7 +512,7 @@ namespace libmaus2
                                 if ( pc == pe )
                                         writeBuffer();
                         }
-                        
+
                         /**
                          * @return number of words written
                          **/
@@ -520,7 +520,7 @@ namespace libmaus2
                         {
                                 return (pc-pa)+totalwrittenwords;
                         }
-                        
+
                         /**
                          * @return number of bytes written
                          **/
@@ -529,7 +529,7 @@ namespace libmaus2
                                 return (pc-pa)*sizeof(data_type)+totalwrittenbytes;
                         }
                 };
-                
+
 	}
 }
 #endif

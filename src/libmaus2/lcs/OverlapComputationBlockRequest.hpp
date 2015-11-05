@@ -34,7 +34,7 @@ namespace libmaus2
 		{
 			typedef OverlapComputationBlockRequest this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			uint64_t blockid;
 			uint64_t numblocks;
 			uint64_t subblockid;
@@ -50,18 +50,18 @@ namespace libmaus2
 
 			unsigned int mintracelength;
 			int64_t minscore;
-			uint64_t scorewindowsize;			
-			int64_t windowminscore;                  
+			uint64_t scorewindowsize;
+			int64_t windowminscore;
 			double maxindelfrac;
 			double maxsubstfrac;
-		
+
 			OverlapComputationBlockRequest()
 			: blockid(0), numblocks(0), subblockid(0), numsubblocks(0), FI(), SUBFI(), sublo(), inputfiles(),  numedges(0), \
-			  serverhostname(), serverport(0), isfastq(0), mintracelength(40), minscore(0), 
+			  serverhostname(), serverport(0), isfastq(0), mintracelength(40), minscore(0),
 			  scorewindowsize(0),
 			  windowminscore(0),
 			  maxindelfrac(0.01), maxsubstfrac(0.03) {}
-			
+
 			OverlapComputationBlockRequest(
 				uint64_t const rblockid,
 				uint64_t const rnumblocks,
@@ -74,7 +74,7 @@ namespace libmaus2
 				uint64_t const & rnumedges,
 				std::string const & rserverhostname,
 				unsigned short const & rserverport,
-				bool const & risfastq,	
+				bool const & risfastq,
 				unsigned int const rmintracelength,
 				int64_t const rminscore,
 				uint64_t const rscorewindowsize,
@@ -84,11 +84,11 @@ namespace libmaus2
 			) : blockid(rblockid), numblocks(rnumblocks), subblockid(rsubblockid), numsubblocks(rnumsubblocks),
 			    FI(rFI), SUBFI(rSUBFI), sublo(rsublo), inputfiles(rinputfiles), numedges(rnumedges),
 			    serverhostname(rserverhostname), serverport(rserverport), isfastq(risfastq),
-			    mintracelength(rmintracelength), minscore(rminscore), 
+			    mintracelength(rmintracelength), minscore(rminscore),
 			    scorewindowsize(rscorewindowsize), windowminscore(rwindowminscore),
 			    maxindelfrac(rmaxindelfrac), maxsubstfrac(rmaxsubstfrac)
 			{}
-			
+
 			OverlapComputationBlockRequest(std::istream & in)
 			:
 			 blockid(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
@@ -110,9 +110,9 @@ namespace libmaus2
 			 maxindelfrac(::libmaus2::util::GenericSerialisation::deserialise< std::istream, double >(in)),
 			 maxsubstfrac(::libmaus2::util::GenericSerialisation::deserialise< std::istream, double >(in))
 			{
-			
+
 			}
-			
+
 			void serialise(std::string const & filename)
 			{
 				libmaus2::aio::OutputStreamInstance ostr(filename);
@@ -121,7 +121,7 @@ namespace libmaus2
 				ostr.flush();
 				assert ( ostr );
 			}
-			
+
 			void serialise(std::ostream & out)
 			{
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,blockid);

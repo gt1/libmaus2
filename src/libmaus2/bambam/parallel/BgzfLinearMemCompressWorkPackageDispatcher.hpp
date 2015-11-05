@@ -31,7 +31,7 @@ namespace libmaus2
 	namespace bambam
 	{
 		namespace parallel
-		{			
+		{
 			// dispatcher for block compression
 			struct BgzfLinearMemCompressWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
@@ -47,19 +47,19 @@ namespace libmaus2
 					PutBgzfDeflateZStreamBaseInterface & rputBgzfDeflateZStreamBaseObject,
 					SmallLinearBlockCompressionPendingObjectFinishedInterface & rsmallLinearBlockCompressionPendingObjectFinishedObject,
 					AddWritePendingBgzfBlockInterface & raddWritePendingBgzfBlockObject
-				) : 
+				) :
 				    returnPackageObject(rreturnPackageObject),
 				    getBgzfDeflateZStreamBaseObject(rgetBgzfDeflateZStreamBaseObject),
 				    putBgzfDeflateZStreamBaseObject(rputBgzfDeflateZStreamBaseObject),
 				    smallLinearBlockCompressionPendingObjectFinishedObject(rsmallLinearBlockCompressionPendingObjectFinishedObject),
 				    addWritePendingBgzfBlockObject(raddWritePendingBgzfBlockObject)
 				{
-				
+
 				}
 
-			
+
 				virtual void dispatch(
-					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadWorkPackage * P,
 					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
@@ -68,9 +68,9 @@ namespace libmaus2
 
 					libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type outbuf = BP->outbuf;
 					libmaus2::lz::BgzfDeflateZStreamBase::shared_ptr_type compressor = getBgzfDeflateZStreamBaseObject.getBgzfDeflateZStreamBase();
-					
+
 					libmaus2::lz::BgzfDeflateZStreamBaseFlushInfo const flushinfo = compressor->flush(BP->obj.pa,BP->obj.pe,*outbuf);
-					
+
 					#if 0
 					tpi.getGlobalLock().lock();
 					std::cerr << "compressed " << BP->obj.blockid << "/" << BP->obj.subid << std::endl;
@@ -79,15 +79,15 @@ namespace libmaus2
 
 					// return compressor
 					putBgzfDeflateZStreamBaseObject.putBgzfDeflateZStreamBase(compressor);
-				
+
 					// return pending object
-					smallLinearBlockCompressionPendingObjectFinishedObject.smallLinearBlockCompressionPendingObjectFinished(BP->obj);	
+					smallLinearBlockCompressionPendingObjectFinishedObject.smallLinearBlockCompressionPendingObjectFinished(BP->obj);
 					// mark block as pending
 					addWritePendingBgzfBlockObject.addWritePendingBgzfBlock(BP->obj.blockid,BP->obj.subid,outbuf,flushinfo);
 
 					// return work package
 					returnPackageObject.returnBgzfLinearMemCompressWorkPackage(BP);
-				}		
+				}
 			};
 		}
 	}

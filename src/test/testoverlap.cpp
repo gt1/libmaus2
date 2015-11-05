@@ -27,6 +27,6 @@ int main()
 	}
 	catch(std::exception const & ex)
 	{
-	
+
 	}
 }

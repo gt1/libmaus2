@@ -38,38 +38,38 @@ namespace libmaus2
 
 			FastAStreamWrapper(FastAStreamWrapper const &);
 			FastAStreamWrapper & operator=(FastAStreamWrapper &);
-			
+
 			public:
 			FastAStreamWrapper(::libmaus2::fastx::FastALineParser & rparser, ::std::size_t rbuffersize, std::size_t rpushbackspace)
-			: parser(rparser), 
+			: parser(rparser),
 			  buffersize(rbuffersize),
 			  pushbackspace(rpushbackspace),
 			  buffer(buffersize+pushbackspace,false), streamreadpos(0)
 			{
-				setg(buffer.end(), buffer.end(), buffer.end());	
+				setg(buffer.end(), buffer.end(), buffer.end());
 			}
-			
+
 			uint64_t tellg() const
 			{
 				return streamreadpos - (egptr()-gptr());
 			}
-			
+
 			private:
 			// gptr as unsigned pointer
 			uint8_t const * uptr() const
 			{
 				return reinterpret_cast<uint8_t const *>(gptr());
 			}
-			
+
 			int_type underflow()
 			{
 				if ( gptr() < egptr() )
 					return static_cast<int_type>(*uptr());
-					
+
 				assert ( gptr() == egptr() );
-					
+
 				char * midptr = buffer.begin() + pushbackspace;
-				uint64_t const copyavail = 
+				uint64_t const copyavail =
 					std::min(
 						// previously read
 						static_cast<uint64_t>(gptr()-eback()),
@@ -78,7 +78,7 @@ namespace libmaus2
 					);
 				if ( copyavail )
 					::std::memmove(midptr-copyavail,gptr()-copyavail,copyavail);
-				
+
 				char * inptr = midptr;
 				uint64_t readavail = buffer.end()-midptr;
 				uint64_t n = 0;
@@ -88,7 +88,7 @@ namespace libmaus2
 				while ( running )
 				{
 					bool const lineok = parser.getNextLine(info);
-					
+
 					// no more lines?
 					if ( ! lineok )
 					{
@@ -110,24 +110,24 @@ namespace libmaus2
 
 								// copy data
 								memcpy(inptr,info.line,linecopy);
-								
+
 								// adjust stream info
 								inptr += linecopy;
 								readavail -= linecopy;
 								n += linecopy;
-								
+
 								// adjust line info
 								info.line += linecopy;
 								info.linelen -= linecopy;
-								
+
 								// put back rest if any
 								if ( info.linelen )
 									parser.putback(info);
-									
+
 								// quit loop if space is now full
 								if ( ! readavail )
 									running = false;
-									
+
 								break;
 							}
 						}
@@ -139,7 +139,7 @@ namespace libmaus2
 
 				if (!n)
 					return traits_type::eof();
-				
+
 				return static_cast<int_type>(*uptr());
 			}
 		};

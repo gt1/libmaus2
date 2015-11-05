@@ -50,13 +50,13 @@ namespace libmaus2
 			typedef BlockBufferTemplate<data_type> this_type;
 			//! unique pointer type
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
-			private:	
+
+			private:
 			::libmaus2::autoarray::AutoArray<data_type> B;
 			data_type * const pa;
 			data_type * pc;
 			data_type * const pe;
-			
+
 			public:
 			/**
 			 * constructor
@@ -66,9 +66,9 @@ namespace libmaus2
 			BlockBufferTemplate(uint64_t const s)
 			: B(s), pa(B.get()), pc(pa), pe(pa+s)
 			{
-			
+
 			}
-			
+
 			/**
 			 * put a single element
 			 *
@@ -80,7 +80,7 @@ namespace libmaus2
 				*(pc++) = v;
 				return pc == pe;
 			}
-			
+
 			/**
 			 * @return number of elements in buffer
 			 **/
@@ -88,7 +88,7 @@ namespace libmaus2
 			{
 				return pc - pa;
 			}
-			
+
 			/**
 			 * @return number of bytes in buffer
 			 **/
@@ -96,15 +96,15 @@ namespace libmaus2
 			{
 				return getFill() * sizeof(data_type);
 			}
-			
+
 			/**
 			 * reset buffer
 			 **/
 			void reset()
 			{
-				pc = pa; 
+				pc = pa;
 			}
-		
+
 			/**
 			 * write out buffer and reset it
 			 *
@@ -115,7 +115,7 @@ namespace libmaus2
 				out.write ( reinterpret_cast<char const *>(pa) , getFillBytes() );
 				reset();
 			}
-		
+
 			/**
 			 * fill buffer and then write it to out
 			 *
@@ -123,11 +123,11 @@ namespace libmaus2
 			 **/
 			void writeFull(std::ostream & out)
 			{
-				while ( pc != pe ) 
+				while ( pc != pe )
 					put(0);
 
 				assert ( getFill() == B.getN() );
-				
+
 				writeOut(out);
 			}
 		};
@@ -136,7 +136,7 @@ namespace libmaus2
 		 * block buffer for uint64_t data type
 		 **/
 		typedef BlockBufferTemplate<uint64_t> BlockBuffer;
-	
+
 		/**
 		 * synchronous blockwise output class split by hash values. impelemetation
 		 * first writes all files to a single stream and then splits it up upon request
@@ -155,7 +155,7 @@ namespace libmaus2
 			uint64_t const h;
 			uint64_t const s;
 
-			::libmaus2::autoarray::AutoArray < BlockBuffer::unique_ptr_type > B;			
+			::libmaus2::autoarray::AutoArray < BlockBuffer::unique_ptr_type > B;
 			::libmaus2::aio::SynchronousOutputBuffer8::unique_ptr_type idx;
 
 			/**
@@ -184,11 +184,11 @@ namespace libmaus2
 			 * @param rs buffer size
 			 **/
 			BlockSynchronousOutputBuffer8(
-				std::string const & rfilename, 
+				std::string const & rfilename,
 				uint64_t const rh,  /* number of buffers */
 				uint64_t const rs /* size of single buffer */
 			)
-			: filename(rfilename), ostr( new ostr_type ( filename.c_str(),std::ios::binary ) ), 
+			: filename(rfilename), ostr( new ostr_type ( filename.c_str(),std::ios::binary ) ),
 			  idxfilename(filename+".idx"), h(rh), s(rs), B(h), idx(new ::libmaus2::aio::SynchronousOutputBuffer8(idxfilename,1024))
 			{
 				for ( uint64_t i = 0; i < h; ++i )
@@ -228,11 +228,11 @@ namespace libmaus2
                                 ostr->close();
                                 ostr.reset();
 			}
-			
+
 			/**
 			 * extract written vectors by hash value
 			 *
-			 * @return map where keys are the hash values and value are 
+			 * @return map where keys are the hash values and value are
 			 *         vectors of the values written for the respective hash values
 			 **/
 			std::map<uint64_t,std::vector<uint64_t> > extract()
@@ -242,10 +242,10 @@ namespace libmaus2
 
                                 bool ok = true;
                                 uint64_t hv;
-                                ok = ok && idxin.getNext(hv);			
+                                ok = ok && idxin.getNext(hv);
                                 uint64_t wv;
                                 ok = ok && idxin.getNext(wv);
-                                
+
                                 std::map<uint64_t,std::vector<uint64_t> > M;
                                 while ( ok )
                                 {
@@ -256,25 +256,25 @@ namespace libmaus2
                                                 assert ( vok );
                                                 M [ hv ] . push_back(vv);
                                         }
-                                
-                                        ok = ok && idxin.getNext(hv);			
+
+                                        ok = ok && idxin.getNext(hv);
                                         ok = ok && idxin.getNext(wv);
                                 }
-                                
+
                                 return M;
 			}
-			
+
 			/**
 			 * distribute contents of the single file to multiple files
 			 *
 			 * @return vector containing the names of the files created for the single hash values.
-			 *         if a hash value has not received any elements than the 
+			 *         if a hash value has not received any elements than the
 			 *         corresponding file name is the empty string
 			 **/
 			std::vector < std::string > distribute()
 			{
 			        std::vector < std::string > filenames;
-			        
+
 			        for ( uint64_t i = 0; i < h; ++i )
 			        {
 			                std::ostringstream fnostr;
@@ -291,22 +291,22 @@ namespace libmaus2
 			        uint64_t proc = 0;
                                 libmaus2::aio::InputStreamInstance istr(filename);
 			        ::libmaus2::aio::SynchronousGenericInput<uint64_t> idxin ( idxfilename, 16 );
-			        
+
 			        bool ok = true;
-			        
+
 			        autoarray::AutoArray<uint64_t> buf(16*1024,false);
-			        
+
 			        while ( ok )
 			        {
 			                uint64_t hv;
                 			ok = ok && idxin.getNext(hv);
                 			uint64_t wv;
-	                		ok = ok && idxin.getNext(wv);			        
+	                		ok = ok && idxin.getNext(wv);
 
                                         if ( ok )
                                         {
                                                 std::ofstream out(filenames[hv].c_str(), std::ios::binary | std::ios::app );
-                                                
+
                                                 while ( wv )
                                                 {
                                                         uint64_t const toread = std::min(wv,buf.getN());
@@ -316,19 +316,19 @@ namespace libmaus2
                                                         out.write ( reinterpret_cast<char const *>(buf.get()), toread*sizeof(uint64_t));
                                                         assert ( out );
                                                         wv -= toread;
-                                                        
+
                                                         proc += toread*sizeof(uint64_t);
                                                 }
-                                                
+
                                                 out.flush();
                                                 out.close();
-                                                
+
                                                 /*
                                                 uint64_t const newfrac = (fracscale*proc)/fsize;
-                                                
+
                                                 if ( newfrac != lastval )
                                                 {
-                                                        std::cerr << "(" << 
+                                                        std::cerr << "(" <<
                                                                 static_cast<double>(proc)/static_cast<double>(fsize)
                                                                 << ")";
                                                         lastval = newfrac;
@@ -336,14 +336,14 @@ namespace libmaus2
                                                 */
                                         }
 			        }
-			        
+
 			        libmaus2::aio::FileRemoval::removeFile ( filename );
 			        libmaus2::aio::FileRemoval::removeFile ( idxfilename );
 
 			        for ( uint64_t i = 0; i < h; ++i )
 			                if ( ! libmaus2::aio::InputStreamFactoryContainer::tryOpen(filenames[i]) )
-                                                filenames[i] = std::string();                                        
-			        
+                                                filenames[i] = std::string();
+
 			        return filenames;
 			}
 
@@ -356,15 +356,15 @@ namespace libmaus2
 			void presort(uint64_t const maxsortmem)
 			{
 			        ::libmaus2::aio::SynchronousGenericInput<uint64_t> idxin ( idxfilename, 16 );
-			        
+
 			        assert ( maxsortmem >= (h+1)*sizeof(uint64_t) );
-			        
+
 			        // number of blocks we can load into memory at one time
-			        uint64_t const sortblocks = 
+			        uint64_t const sortblocks =
 			                std::max ( static_cast<uint64_t>(1),
         			                static_cast<uint64_t>(
         			                        (maxsortmem - (h+1)*sizeof(uint64_t))
-        	        		                / 
+        	        		                /
 	        	        	                ( (s + 2) * sizeof(uint64_t) )
                                                 )
                                         )
@@ -375,43 +375,43 @@ namespace libmaus2
 			        // offsets into D for blocks
                                 ::libmaus2::autoarray::AutoArray < uint64_t > H(h+1,false);
 			        ::libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > BD( sortblocks, false );
-			        
+
 			        std::fstream file(filename.c_str(), std::ios::in | std::ios::out | std::ios::binary );
-			        
+
         			::libmaus2::aio::SynchronousOutputBuffer8::unique_ptr_type idxcomp(
         			        new ::libmaus2::aio::SynchronousOutputBuffer8(filename + ".idxcmp",1024));
-			        
+
 			        bool ok = true;
-			        
+
 			        #if 0
 			        uint64_t lastval = 0;
 			        uint64_t fracscale = 5000;
 			        #endif
-			        
+
 			        while ( ok )
 			        {
 			                uint64_t b = 0;
 			                // erase H
 			                std::fill ( H.get(), H.get() + H.getN() , 0ull );
-			                
+
 			                while ( ok && b < sortblocks )
 			                {
 			                        uint64_t hv;
                 			        ok = ok && idxin.getNext(hv);
                 			        uint64_t wv;
-	                		        ok = ok && idxin.getNext(wv);			        
+	                		        ok = ok && idxin.getNext(wv);
 
                                                 if ( ok )
                                                 {
                                                         assert ( hv < h );
                                                         H [ hv ] += wv;
                                                         BD [ b ] = std::pair<uint64_t,uint64_t>(hv,wv);
-                                                        b += 1;                                                        
-                                                }            
+                                                        b += 1;
+                                                }
 			                }
-			                
+
 			                // std::cerr << "Sorting " << b << " blocks." << std::endl;
-			                
+
 			                if ( b )
 			                {
 			                        {
@@ -423,7 +423,7 @@ namespace libmaus2
 			                                        c += t;
 			                                }
                                                 }
-                                                
+
                                                 for ( uint64_t i = 0; i < h; ++i )
                                                         if ( H[i+1]-H[i] )
                                                         {
@@ -431,33 +431,33 @@ namespace libmaus2
                                                                 idxcomp->put(H[i+1]-H[i]);
                                                                 // std::cerr << "Writing " << (H[i+1]-H[i]) << " words for " << i << std::endl;
                                                         }
-                                                
+
                                                 int64_t rew = 0;
                                                 for ( uint64_t i = 0; i < b; ++i )
                                                 {
                                                         uint64_t const hv = BD[i].first;
                                                         uint64_t const wv = BD[i].second;
-                                        
+
                                                         // std::cerr << "Reading " << wv << " words for " << hv << std::endl;
-                                                                                
+
                                                         file.read ( reinterpret_cast<char *>(D.get() + H[hv]), wv*sizeof(uint64_t) );
                                                         assert ( file.gcount() == static_cast<int64_t>(wv*sizeof(uint64_t)) );
                                                         assert ( file );
                                                         rew += file.gcount();
                                                         H[hv] += wv;
                                                 }
-                                                
+
                                                 file.seekp ( file.tellp(), std::ios::beg );
                                                 file.seekp ( -rew, std::ios::cur);
-                                                
+
                                                 file.write(reinterpret_cast<char const *>(D.get()), H[h]*sizeof(uint64_t));
-                                                
+
                                                 file.seekg ( file.tellg(), std::ios::beg );
-                                                
+
                                                 /*
                                                 uint64_t const pos = file.tellg();
                                                 uint64_t const newfrac = (pos*fracscale)/fsize;
-                                                
+
                                                 if ( newfrac != lastval )
                                                 {
                                                         std::cerr << "(" << static_cast<double>(pos)/static_cast<double>(fsize) << ")";
@@ -467,7 +467,7 @@ namespace libmaus2
 			                }
 			        }
 
-                                // std::cerr << "(f";			        
+                                // std::cerr << "(f";
 			        file.flush();
 			        file.close();
 			        // std::cerr << ")";
@@ -475,7 +475,7 @@ namespace libmaus2
                                 std::string const idxcompfilename = idxcomp->getFilename();
 			        idxcomp->flush();
 			        idxcomp.reset();
-			        
+
 			        libmaus2::aio::FileRemoval::removeFile ( idxfilename );
 			        libmaus2::aio::OutputStreamFactoryContainer::rename ( idxcompfilename.c_str(), idxfilename.c_str() );
 			}

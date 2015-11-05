@@ -44,7 +44,7 @@ namespace libmaus2
                         private:
                         //! input stream
                         reader_type & file;
-                        
+
                         //! size of single block (in patterns)
                         unsigned int const blocksize;
                         //! number of blocks
@@ -64,9 +64,9 @@ namespace libmaus2
                          * @param rnumblocks number of blocks
                          **/
                         AsynchronousStreamReaderData(
-                                reader_type & rfile , 
-                                unsigned int const rblocksize, 
-                                unsigned int const rnumblocks 
+                                reader_type & rfile ,
+                                unsigned int const rblocksize,
+                                unsigned int const rnumblocks
                         )
                         : file(rfile), blocksize(rblocksize), numblocks(rnumblocks), blocks(blocksize*numblocks), blockp(numblocks)
                         {
@@ -77,15 +77,15 @@ namespace libmaus2
                                         blockp[i].blockid = i;
                                 }
                         }
-                       
+
                        	/**
                        	 * @return number of blocks in this object
-                       	 **/ 
+                       	 **/
                         unsigned int getNumEntities()
                         {
                                 return numblocks;
                         }
-                        
+
                         /**
                          * @param id block id
                          * @return data for block id
@@ -94,7 +94,7 @@ namespace libmaus2
                         {
                                 return &blockp[id];
                         }
-                        
+
                         /**
                          * map a data block to its id
                          *
@@ -103,7 +103,7 @@ namespace libmaus2
                          **/
                         unsigned int dataToId(data_type const * data)
                         {
-                               return data->blockid; 
+                               return data->blockid;
                         }
                         /**
                          * generate data (fill block blockid)
@@ -113,7 +113,7 @@ namespace libmaus2
                          **/
                         bool generateData(unsigned int const blockid)
                         {
-                                blockp[blockid].blocksize = file.fillPatternBlock(blockp[blockid].patterns,blocksize);        
+                                blockp[blockid].blocksize = file.fillPatternBlock(blockp[blockid].patterns,blocksize);
                                 return blockp[blockid].blocksize != 0;
                         }
                 };
@@ -129,7 +129,7 @@ namespace libmaus2
 
                         private:
                         file_type & file;
-                        
+
                         unsigned int const numblocks;
                         unsigned int const blocksize;
 
@@ -149,15 +149,15 @@ namespace libmaus2
                                 for ( unsigned int i = 0; i < numblocks; ++i )
                                         blockp[i].blockid = i;
                         }
-                        
+
                        	/**
                        	 * @return number of blocks in this object
-                       	 **/ 
+                       	 **/
                         unsigned int getNumEntities()
                         {
                                 return numblocks;
                         }
-                        
+
                         /**
                          * @param id block id
                          * @return data for block id
@@ -175,7 +175,7 @@ namespace libmaus2
                          **/
                         unsigned int dataToId(data_type const * data)
                         {
-                               return data->blockid; 
+                               return data->blockid;
                         }
 
                         /**
@@ -198,8 +198,8 @@ namespace libmaus2
                 struct AsynchronousStreamReader
                 {
                 	private:
-                        data_type & data;        
-                        
+                        data_type & data;
+
 			::libmaus2::parallel::SynchronousQueue<unsigned int> unfilled;
                         ::libmaus2::parallel::TerminatableSynchronousQueue<unsigned int> filled;
                         pthread_t thread;
@@ -211,7 +211,7 @@ namespace libmaus2
                                         unsigned int const blockid = unfilled.deque();
 
                                         bool const generated = data.generateData(blockid);
-                                        
+
                                         if ( ! generated )
                                                 filled.terminate();
                                         else
@@ -220,7 +220,7 @@ namespace libmaus2
 
                                 return 0;
                         }
-                        
+
                         static void * dispatcher ( void * object )
                         {
                                 AsynchronousStreamReader * reader = reinterpret_cast < AsynchronousStreamReader * > (object);
@@ -248,7 +248,7 @@ namespace libmaus2
 
                                 return data.getData(blockid);
                         }
-                        
+
                         /**
                          * return block
                          *
@@ -258,7 +258,7 @@ namespace libmaus2
                         {
                                 unfilled.enque(data.dataToId(block));
                         }
-                        
+
                         /**
                          * @return number of blocks currently available without blocking
                          **/
@@ -276,7 +276,7 @@ namespace libmaus2
                         {
                                 for ( unsigned int i = 0; i < data.getNumEntities(); ++i )
                                         unfilled.enque(i);
-                                
+
                                 if ( pthread_create ( & thread, 0, dispatcher, this ) )
                                 {
                                 	libmaus2::exception::LibMausException se;

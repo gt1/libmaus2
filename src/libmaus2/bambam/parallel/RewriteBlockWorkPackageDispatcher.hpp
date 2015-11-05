@@ -40,32 +40,32 @@ namespace libmaus2
 				AlignmentBufferReinsertInterface & alignmentBufferReinsertInterface;
 				AlignmentRewriteBufferAddPendingInterface & alignmentRewriteBufferAddPendingInterface;
 				AlignmentRewriteBufferReinsertForFillingInterface & alignmentRewriteBufferReinsertForFillingInterface;
-				
+
 				RewriteBlockWorkPackageDispatcher(
 					RewritePackageReturnInterface & rpackageReturnInterface,
 					AlignmentBufferReturnInterface & ralignmentBufferReturnInterface,
 					AlignmentBufferReinsertInterface & ralignmentBufferReinsertInterface,
 					AlignmentRewriteBufferAddPendingInterface & ralignmentRewriteBufferAddPendingInterface,
 					AlignmentRewriteBufferReinsertForFillingInterface & ralignmentRewriteBufferReinsertForFillingInterface
-				) : packageReturnInterface(rpackageReturnInterface), 
+				) : packageReturnInterface(rpackageReturnInterface),
 				    alignmentBufferReturnInterface(ralignmentBufferReturnInterface),
-				    alignmentBufferReinsertInterface(ralignmentBufferReinsertInterface), 
+				    alignmentBufferReinsertInterface(ralignmentBufferReinsertInterface),
 				    alignmentRewriteBufferAddPendingInterface(ralignmentRewriteBufferAddPendingInterface),
 				    alignmentRewriteBufferReinsertForFillingInterface(ralignmentRewriteBufferReinsertForFillingInterface)
 				{
 				}
-			
+
 				virtual void dispatch(
-					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadWorkPackage * P,
 					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
 				)
 				{
 					RewriteBlockWorkPackage * BP = dynamic_cast<RewriteBlockWorkPackage *>(P);
 					assert ( BP );
-					
+
 					libmaus2::bambam::BamAlignment * stallAlgn = 0;
 					bool rewriteBlockFull = false;
-	
+
 					while ( (!rewriteBlockFull) && (stallAlgn=BP->parseBlock->popStallBuffer()) )
 					{
 						if ( BP->rewriteBlock->put(reinterpret_cast<char const *>(stallAlgn->D.begin()),stallAlgn->blocksize) )
@@ -78,28 +78,28 @@ namespace libmaus2
 							rewriteBlockFull = true;
 						}
 					}
-					
+
 					// if there is still space in the rewrite block
 					if ( ! rewriteBlockFull )
 					{
 						std::deque<libmaus2::bambam::BamAlignment *> algns;
-						
-						while ( 
+
+						while (
 							(!rewriteBlockFull)
 							&&
-							BP->parseBlock->extractNextSameName(algns) 
+							BP->parseBlock->extractNextSameName(algns)
 						)
 						{
 							assert ( algns.size() );
-							
+
 							int64_t i1 = -1;
 							int64_t i2 = -1;
-							
+
 							for ( uint64_t i = 0; i < algns.size(); ++i )
 							{
 								uint16_t const flags = algns[i]->getFlags();
-								
-								if ( 
+
+								if (
 									(! (flags&libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FPAIRED))
 									||
 									(flags & (libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSECONDARY|libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSUPPLEMENTARY) )
@@ -107,7 +107,7 @@ namespace libmaus2
 								{
 									continue;
 								}
-								else if ( 
+								else if (
 									(flags&libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1)
 									&&
 									(!(flags&libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD2))
@@ -115,7 +115,7 @@ namespace libmaus2
 								{
 									i1 = i;
 								}
-								else if ( 
+								else if (
 									(flags&libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD2)
 									&&
 									(!(flags&libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1))
@@ -124,31 +124,31 @@ namespace libmaus2
 									i2 = i;
 								}
 							}
-							
+
 							if ( (i1 != -1) && (i2 != -1) )
 							{
 								libmaus2::bambam::BamAlignment & a1 = *(algns[i1]);
 								libmaus2::bambam::BamAlignment & a2 = *(algns[i2]);
-							
+
 								a1.filterOutAux(BP->parseBlock->MQMSMCMTfilter);
 								a2.filterOutAux(BP->parseBlock->MQMSMCMTfilter);
-								
+
 								if ( algns[i1]->blocksize + 6 * (3+sizeof(int32_t)) > algns[i1]->D.size() )
 									a1.D.resize(algns[i1]->blocksize + 8 * (3+sizeof(int32_t)));
 								if ( algns[i2]->blocksize + 6 * (3+sizeof(int32_t)) > algns[i2]->D.size() )
 									a2.D.resize(algns[i2]->blocksize + 8 * (3+sizeof(int32_t)));
-								
+
 								libmaus2::bambam::BamAlignment::fixMateInformationPreFiltered(a1,a2);
 								libmaus2::bambam::BamAlignment::addMateBaseScorePreFiltered(a1,a2);
 								libmaus2::bambam::BamAlignment::addMateCoordinatePreFiltered(a1,a2);
 								libmaus2::bambam::BamAlignment::addMateTagPreFiltered(a1,a2,"mt");
 							}
-						
+
 							while ( algns.size() )
 							{
 								libmaus2::bambam::BamAlignment * algn = algns.front();
 								int64_t const coordinate = algn->getCoordinate();
-								
+
 								if ( BP->rewriteBlock->put(reinterpret_cast<char const *>(algn->D.begin()),algn->blocksize,coordinate) )
 								{
 									BP->parseBlock->returnAlignment(algn);
@@ -158,19 +158,19 @@ namespace libmaus2
 								{
 									// block is full, stall rest of the alignments
 									rewriteBlockFull = true;
-									
+
 									for ( uint64_t i = 0; i < algns.size(); ++i )
 										BP->parseBlock->pushBackStallBuffer(algns[i]);
-										
+
 									algns.resize(0);
 								}
-							}					
+							}
 						}
 					}
-					
+
 					// force block pass if this is the final parse block
 					// rewriteBlockFull = rewriteBlockFull || BP->parseBlock->final;
-					
+
 					// if rewrite block is now full
 					if ( rewriteBlockFull )
 					{
@@ -190,18 +190,18 @@ namespace libmaus2
 						BP->parseBlock->reset();
 						alignmentBufferReturnInterface.putReturnAlignmentBuffer(BP->parseBlock);
 					}
-	
+
 					#if 0
 					// add algnbuffer to the free list
 					parseBlockFreeList.put(algn);
-	
+
 					// see if we can parse the next block now
 					checkParsePendingList();
 					#endif
-					
-					// return the work package				
-					packageReturnInterface.putReturnRewritePackage(BP);				
-				}		
+
+					// return the work package
+					packageReturnInterface.putReturnRewritePackage(BP);
+				}
 			};
 		}
 	}

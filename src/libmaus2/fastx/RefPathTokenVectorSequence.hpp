@@ -29,7 +29,7 @@ namespace libmaus2
 		struct RefPathTokenVectorSequence
 		{
 			std::vector<RefPathTokenVector> V;
-		
+
 			RefPathTokenVectorSequence(std::string const & s = std::string())
 			{
 				size_t i = 0;
@@ -37,7 +37,7 @@ namespace libmaus2
 				{
 					size_t j = i;
 					std::ostringstream substr;
-					while ( 
+					while (
 						((j  ) < s.size() && s[j  ] != ':')
 						||
 						((j+1) < s.size() && s[j  ] == ':' && s[j+1] == ':')
@@ -57,23 +57,23 @@ namespace libmaus2
 							j += 2;
 						}
 					}
-					
+
 					if ( j < s.size() )
 					{
 						assert ( s[j] == ':' );
 						j += 1;
 					}
-					
+
 					std::string const sub = substr.str();
 					if ( sub.size() )
 					{
 						V.push_back(RefPathTokenVector(sub));
 					}
-					
+
 					i = j;
 				}
 			}
-			
+
 			std::vector<std::string> expand(std::string const & s) const
 			{
 				std::vector<std::string> E;

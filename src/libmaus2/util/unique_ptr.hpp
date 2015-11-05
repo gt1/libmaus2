@@ -46,7 +46,7 @@ namespace libmaus2
 		struct unique_ptr
 		{
 			#if defined(LIBMAUS2_USE_STD_UNIQUE_PTR)
-			typedef typename ::std::unique_ptr<T> type;			
+			typedef typename ::std::unique_ptr<T> type;
 			#elif defined(LIBMAUS2_USE_BOOST_UNIQUE_PTR)
 			typedef typename ::boost::interprocess::unique_ptr<T,::libmaus2::deleter::Deleter<T> > type;
 			#else

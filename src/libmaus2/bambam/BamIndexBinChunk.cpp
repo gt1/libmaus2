@@ -20,7 +20,7 @@
 
 ::std::ostream & ::libmaus2::bambam::operator<<(::std::ostream & out, ::libmaus2::bambam::BamIndexBinChunk const & BC)
 {
-	out 
+	out
 		<< "BamIndexBinChunk("
 		<< "refid=" << BC.refid << ","
 		<< "bin=" << BC.bin << ","
@@ -28,6 +28,6 @@
 		<< "alstart=" << BC.alstart << ","
 		<< "alcmpend=" << BC.alcmpend << ","
 		<< "alend=" << BC.alend << ")";
-		
+
 	return out;
 }

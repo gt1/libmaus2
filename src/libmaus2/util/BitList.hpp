@@ -38,7 +38,7 @@ namespace libmaus2
 		{
 			//! stored bit vector a linked list
 			std::list< bool > B;
-			
+
 			/**
 			 * construct bit vector containing words*64 zero bits
 			 *

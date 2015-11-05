@@ -36,16 +36,16 @@ namespace libmaus2
 			typedef rank_type::WriteContextExternal context_type;
 			typedef context_type::unique_ptr_type context_ptr_type;
 			typedef ::libmaus2::autoarray::AutoArray<context_ptr_type> context_vector_type;
-		
+
 			private:
 			static uint64_t const bufsize = 64*1024;
-		
+
 			uint64_t const b;
 			::libmaus2::util::TempFileNameGenerator & tmpgen;
-			
+
 			std::vector < std::vector<std::string> > outputfilenames;
 			::libmaus2::autoarray::AutoArray<context_vector_type> contexts;
-			
+
 			uint64_t symbols;
 
 			void flush()
@@ -57,14 +57,14 @@ namespace libmaus2
 						contexts[i][j]->flush();
 					}
 			}
-			
+
 			public:
 			ImpExternalWaveletGenerator(uint64_t const rb, ::libmaus2::util::TempFileNameGenerator & rtmpgen)
 			: b(rb), tmpgen(rtmpgen), outputfilenames(b), contexts(b), symbols(0)
 			{
 				for ( uint64_t ib = 0; ib < b; ++ib )
 				{
-					contexts[ib] = context_vector_type( 1ull << ib );	
+					contexts[ib] = context_vector_type( 1ull << ib );
 					for ( uint64_t i = 0; i < (1ull<<ib); ++i )
 					{
 						outputfilenames[ib].push_back(tmpgen.getFileName());
@@ -73,7 +73,7 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 
 			void putSymbol(uint64_t const s)
 			{
@@ -89,24 +89,24 @@ namespace libmaus2
 					#endif
 					contexts[i][prefix]->writeBit(bit);
 				}
-				
+
 				symbols += 1;
 			}
 
 			void createFinalStream(std::ostream & out)
-			{			
+			{
 				flush();
 
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,symbols); // n
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,b); // b
-				
+
 				for ( uint64_t i = 0; i < contexts.size(); ++i )
 					for ( uint64_t j = 0; j < contexts[i].size(); ++j )
 					{
 						uint64_t const blockswritten = contexts[i][j]->blockswritten;
 						uint64_t const datawordswritten = 6*blockswritten;
 						uint64_t const allwordswritten = 8*blockswritten;
-						
+
 						contexts[i][j].reset();
 						// bits written
 						::libmaus2::serialize::Serialize<uint64_t>::serialize(out,64*datawordswritten);
@@ -115,13 +115,13 @@ namespace libmaus2
 						std::string const filename = outputfilenames[i][j];
 						libmaus2::aio::InputStreamInstance istr(filename);
 						::libmaus2::util::GetFileSize::copy (istr, out, allwordswritten, sizeof(uint64_t));
-						
+
 						libmaus2::aio::FileRemoval::removeFile(filename);
 					}
-				
+
 				out.flush();
 			}
-			
+
 			void createFinalStream(std::string const & filename)
 			{
 				libmaus2::aio::OutputStreamInstance ostr(filename);

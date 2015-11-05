@@ -31,7 +31,7 @@ namespace libmaus2
 			std::pair<uint64_t,uint64_t> start;
 			std::pair<uint64_t,uint64_t> end;
 			std::string name;
-			
+
 			SimpleCompressedStreamNamedInterval() : start(0,0), end(0,0) {}
 			SimpleCompressedStreamNamedInterval(
 				std::pair<uint64_t,uint64_t> const & rstart,
@@ -39,9 +39,9 @@ namespace libmaus2
 				std::string const & rname
 			) : start(rstart), end(rend), name(rname)
 			{
-			
+
 			}
-			
+
 			bool empty() const
 			{
 				return start == end;

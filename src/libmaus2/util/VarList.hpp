@@ -34,15 +34,15 @@ namespace libmaus2
 		struct VarList
 		{
 			std::list< N > B;
-			
+
 			VarList()
 			{
 			}
-			
+
 			uint64_t rank(uint64_t key, uint64_t pos) const
 			{
 				typename std::list<N>::const_iterator I = B.begin();
-				
+
 				uint64_t pc = 0;
 				for ( uint64_t i = 0; i <= pos; ++i )
 				{
@@ -50,22 +50,22 @@ namespace libmaus2
 						pc++;
 					I++;
 				}
-				
+
 				return pc;
 			}
 
 			uint64_t select(uint64_t key, uint64_t rank) const
 			{
 				std::list<bool>::const_iterator I = B.begin();
-				
+
 				uint64_t pos = 0;
-				
+
 				while ( (*I) != key )
 				{
 					pos++;
 					I++;
 				}
-					
+
 				while ( rank )
 				{
 					pos++;
@@ -76,52 +76,52 @@ namespace libmaus2
 						pos++;
 						I++;
 					}
-					
+
 					rank--;
 				}
-				
+
 				return pos;
 			}
-			
+
 			void insert(uint64_t pos, N b)
 			{
 				assert ( pos <= B.size() );
-			
+
 				typename std::list<N>::iterator I = B.begin();
-				
+
 				for ( uint64_t i = 0; i < pos; ++i )
 					I++;
-					
+
 				B.insert(I,b);
 			}
 			void remove(uint64_t pos)
 			{
 				assert ( pos < B.size() );
-			
+
 				typename std::list<N>::iterator I = B.begin();
-				
+
 				for ( uint64_t i = 0; i < pos; ++i )
 					I++;
 
-				B.erase(I);	
+				B.erase(I);
 			}
 			void set(uint64_t pos, N b)
 			{
 				assert ( pos < B.size() );
-			
+
 				typename std::list<N>::iterator I = B.begin();
-				
+
 				for ( uint64_t i = 0; i < pos; ++i )
 					I++;
 
-				*I = b;	
+				*I = b;
 			}
 			N get(uint64_t pos)
 			{
 				assert ( pos < B.size() );
-			
+
 				typename std::list<N>::iterator I = B.begin();
-				
+
 				for ( uint64_t i = 0; i < pos; ++i )
 					I++;
 

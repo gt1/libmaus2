@@ -24,7 +24,7 @@
 namespace libmaus2
 {
 	namespace bambam
-	{		
+	{
 		/**
 		 * callback interface for BamAlignment expung operations
 		 **/
@@ -34,7 +34,7 @@ namespace libmaus2
 			 * destructor
 			 **/
 			virtual ~BamAlignmentExpungeCallback() {}
-			
+
 			/**
 			 * called whenever an alignment is expunged from a data structure
 			 *

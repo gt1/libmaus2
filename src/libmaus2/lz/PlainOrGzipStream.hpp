@@ -34,13 +34,13 @@ namespace libmaus2
 			PlainOrGzipStream(int const rfd, uint64_t const bufsize = 64*1024, uint64_t const pushbacksize = 64*1024)
 			: PlainOrGzipStreamBufferWrapper(rfd,bufsize,pushbacksize), std::istream(PlainOrGzipStreamBufferWrapper::getStreamBuffer())
 			{
-			
-			}			
+
+			}
 			PlainOrGzipStream(std::istream & istr, uint64_t const bufsize = 64*1024, uint64_t const pushbacksize = 64*1024)
 			: PlainOrGzipStreamBufferWrapper(istr,bufsize,pushbacksize), std::istream(PlainOrGzipStreamBufferWrapper::getStreamBuffer())
 			{
-			
-			}			
+
+			}
 		};
 	}
 }

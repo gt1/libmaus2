@@ -47,12 +47,12 @@ namespace libmaus2
 			data_type * pc;
 			//! end of buffer pointer
 			data_type * const pe;
-			
+
 			//! total bytes written
 			uint64_t totalwrittenbytes;
 			//! total words written
 			uint64_t totalwrittenwords;
-			
+
 			/**
 			 * construct buffer of size bufsize
 			 *
@@ -61,7 +61,7 @@ namespace libmaus2
 			BufferedOutputBase(uint64_t const bufsize)
 			: B(bufsize), pa(B.begin()), pc(pa), pe(B.end()), totalwrittenbytes(0), totalwrittenwords(0)
 			{
-			
+
 			}
 			/**
 			 * destructor
@@ -75,7 +75,7 @@ namespace libmaus2
 			{
 				writeBuffer();
 			}
-			
+
 			/**
 			 * pure virtual buffer writing function
 			 **/
@@ -100,7 +100,7 @@ namespace libmaus2
 					return false;
 				}
 			}
-			
+
 			/**
 			 * put a list of elements
 			 *
@@ -120,7 +120,7 @@ namespace libmaus2
 						flush();
 				}
 			}
-			
+
 			/**
 			 * put an element without checking whether buffer fills up
 			 *
@@ -130,7 +130,7 @@ namespace libmaus2
 			{
 				*(pc++) = v;
 			}
-			
+
 			/**
 			 * @return space available in buffer (in elements)
 			 **/
@@ -138,7 +138,7 @@ namespace libmaus2
 			{
 				return pe-pc;
 			}
-			
+
 			/**
 			 * @return number of words written (including those still in the buffer)
 			 **/
@@ -146,7 +146,7 @@ namespace libmaus2
 			{
 				return totalwrittenwords + (pc-pa);
 			}
-			
+
 			/**
 			 * @return number of bytes written (including those still in the buffer)
 			 **/
@@ -154,7 +154,7 @@ namespace libmaus2
 			{
 				return getWrittenWords() * sizeof(data_type);
 			}
-			
+
 			/**
 			 * increase written accus by number of elements curently in buffer
 			 **/
@@ -163,7 +163,7 @@ namespace libmaus2
 				totalwrittenwords += (pc-pa);
 				totalwrittenbytes += (pc-pa)*sizeof(data_type);
 			}
-			
+
 			/**
 			 * @return number of elements currently in buffer
 			 **/
@@ -171,7 +171,7 @@ namespace libmaus2
 			{
 				return pc-pa;
 			}
-			
+
 			/**
 			 * reset buffer
 			 **/
@@ -181,7 +181,7 @@ namespace libmaus2
 				pc = pa;
 			}
 		};
-		
+
 		/**
 		 * class for buffer file output
 		 **/
@@ -199,7 +199,7 @@ namespace libmaus2
 
 			private:
 			std::ostream & out;
-			
+
 			public:
 			/**
 			 * constructor
@@ -210,7 +210,7 @@ namespace libmaus2
 			BufferedOutput(std::ostream & rout, uint64_t const bufsize)
 			: BufferedOutputBase<_data_type>(bufsize), out(rout)
 			{
-			
+
 			}
 			/**
 			 * destructor
@@ -228,7 +228,7 @@ namespace libmaus2
 				if ( base_type::fill() )
 				{
 					out.write ( reinterpret_cast<char const *>(base_type::pa), (base_type::pc-base_type::pa)*sizeof(data_type) );
-					
+
 					if ( ! out )
 					{
 						::libmaus2::exception::LibMausException se;
@@ -236,7 +236,7 @@ namespace libmaus2
 						se.finish();
 						throw se;
 					}
-					
+
 					base_type::reset();
 				}
 			}
@@ -266,7 +266,7 @@ namespace libmaus2
 			BufferedOutputNull(uint64_t const bufsize)
 			: BufferedOutputBase<_data_type>(bufsize)
 			{
-			
+
 			}
 			/**
 			 * destructor
@@ -301,13 +301,13 @@ namespace libmaus2
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! order pointer type
 			typedef typename ::libmaus2::util::unique_ptr<order_type>::type order_ptr_type;
-			
+
 			private:
 			std::ostream & out;
 			order_ptr_type Porder;
 			order_type & order;
 			std::vector<uint64_t> blocksizes;
-			
+
 			public:
 			/**
 			 * constructor
@@ -318,7 +318,7 @@ namespace libmaus2
 			SortingBufferedOutput(std::ostream & rout, uint64_t const bufsize)
 			: BufferedOutputBase<_data_type>(bufsize), out(rout), Porder(new order_type), order(*Porder), blocksizes()
 			{
-			
+
 			}
 
 			/**
@@ -331,9 +331,9 @@ namespace libmaus2
 			SortingBufferedOutput(std::ostream & rout, uint64_t const bufsize, order_type & rorder)
 			: BufferedOutputBase<_data_type>(bufsize), out(rout), Porder(), order(rorder), blocksizes()
 			{
-			
+
 			}
-			
+
 			/**
 			 * destructor
 			 **/
@@ -344,7 +344,7 @@ namespace libmaus2
 
 			/**
 			 * flush the buffer
-			 **/			
+			 **/
 			void flush()
 			{
 				base_type::flush();
@@ -359,9 +359,9 @@ namespace libmaus2
 				if ( base_type::fill() )
 				{
 					std::sort(base_type::pa,base_type::pc,order);
-					
+
 					out.write ( reinterpret_cast<char const *>(base_type::pa), base_type::fill()*sizeof(data_type) );
-					
+
 					if ( ! out )
 					{
 						::libmaus2::exception::LibMausException se;
@@ -369,13 +369,13 @@ namespace libmaus2
 						se.finish();
 						throw se;
 					}
-					
+
 					blocksizes.push_back(base_type::fill());
-					
+
 					base_type::reset();
 				}
 			}
-			
+
 			/**
 			 * get block sizes (number of elements written in each block)
 			 *

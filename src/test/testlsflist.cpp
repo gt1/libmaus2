@@ -25,7 +25,7 @@
 #include <lsf/lsbatch.h>
 #endif
 
-#include <unistd.h>                             
+#include <unistd.h>
 #include <sys/types.h>
 
 #include <libmaus2/LibMausConfig.hpp>
@@ -34,7 +34,7 @@
 int main(int argc, char * argv[])
 {
 	if (lsb_init(argv[0]) < 0)
-	{          
+	{
 		char buf[] = "lsb_init()";
 		lsb_perror(buf);
 		return EXIT_FAILURE;
@@ -43,11 +43,11 @@ int main(int argc, char * argv[])
 	char all[] = "all";
 	double const cpuexcessallowed = 0.25;
 	time_t minrun = 120;
-	
+
 	fprintf(stdout,"[V] excessallowed %lf minrun %ld\n", cpuexcessallowed, (long)minrun);
 
 	int lsfr = lsb_openjobinfo(0,0/*jobname*/,&all[0]/*user*/,0/*queue*/,0/*host*/,ALL_JOB);
-	
+
 	if ( lsfr < 0 )
 	{
 		fprintf(stderr, "lsb_openjobinfo failed.\n");
@@ -66,33 +66,33 @@ int main(int argc, char * argv[])
 			fprintf(stderr,"lsb_readjobinfo failed.\n");
 			return EXIT_FAILURE;
 		}
-	
+
 		int64_t const jobId = jie->jobId;
 		int64_t const state = jie->status;
-		
+
 		int const isrun = (state & JOB_STAT_RUN) != 0;
 		int const isfin = (state & (JOB_STAT_DONE|JOB_STAT_EXIT)) != 0;
 
 		// jobs's runtime
 		int64_t const rtime = (isfin ? jie->endTime :  time(0)) - jie->startTime;
-		
+
 		if ( (isrun | isfin) && (rtime >= minrun) )
 		{
 			int64_t const ctime = jie->runRusage.utime + jie->runRusage.stime;
 			double const ccpu = (double)(ctime)/(double)(rtime);
 			int64_t const reqcpu = jie->submit.numProcessors;
-			
+
 			if ( ccpu > reqcpu + cpuexcessallowed )
 			{
 				fprintf(stdout,"%12ld\t%6s\t%10lf\t%7ld\t",(long)jobId,jie->user,ccpu,(long)reqcpu);
-				
+
 				if ( state & JOB_STAT_RUN )
 					fprintf(stdout,"RUN;");
 				if ( state & JOB_STAT_DONE )
 					fprintf(stdout,"DONE;");
 				if ( state & JOB_STAT_EXIT )
 					fprintf(stdout,"EXIT;");
-				
+
 				fprintf(stdout,"\n");
 			}
 		}

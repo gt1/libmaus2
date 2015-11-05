@@ -40,10 +40,10 @@ typedef ::libmaus2::gamma::GammaRLDecoder rl_decoder;
 ::libmaus2::autoarray::AutoArray<uint64_t> libmaus2::fm::MausFmToBwaConversion::loadL2T(std::string const & infn)
 {
 	std::string const inhist = ::libmaus2::util::OutputFileNameTools::clipOff(infn,".bwt") + ".hist";
-	
+
 	::libmaus2::aio::InputStreamInstance histCIS(inhist);
 	std::map<uint64_t,uint64_t> chist = ::libmaus2::util::NumberMapSerialisation::deserialiseMap<std::istream,uint64_t,uint64_t>(histCIS);
-	
+
 	if ( ! chist.size() )
 	{
 		::libmaus2::exception::LibMausException se;
@@ -73,14 +73,14 @@ typedef ::libmaus2::gamma::GammaRLDecoder rl_decoder;
  **/
 ::libmaus2::autoarray::AutoArray<uint64_t> libmaus2::fm::MausFmToBwaConversion::loadL2(std::string const & infn)
 {
-	// load and shrink symbol histogram	
+	// load and shrink symbol histogram
 	::libmaus2::autoarray::AutoArray<uint64_t> L2 = loadL2T(infn);
 	if ( L2.size() != 6 || L2[0] != 0 || L2[1] != 1 )
 	{
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "error: symbol histogram is invalid." << std::endl;
 		se.finish();
-		throw se;			
+		throw se;
 	}
 	for ( uint64_t i = 0; i+1 < L2.size(); ++i )
 		L2[i] = L2[i+1]-L2[i];
@@ -102,24 +102,24 @@ typedef ::libmaus2::gamma::GammaRLDecoder rl_decoder;
 uint64_t libmaus2::fm::MausFmToBwaConversion::loadPrimary(std::string const & inisa)
 {
 	::libmaus2::aio::InputStreamInstance isaCIS(inisa);
-	
+
 	uint64_t isasamplingrate = 0;
 	::libmaus2::serialize::Serialize<uint64_t>::deserialize(isaCIS,&isasamplingrate);
 	uint64_t nisa = 0;
 	::libmaus2::serialize::Serialize<uint64_t>::deserialize(isaCIS,&nisa);
-	
+
 	::libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(isaCIS,64);
-	
+
 	int64_t const iprimary = SGI.get();
-	
+
 	if ( iprimary < 0 )
 	{
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "error: failed to read isa[0]" << std::endl;
 		se.finish();
-		throw se;	
+		throw se;
 	}
-	
+
 	return iprimary;
 }
 
@@ -159,13 +159,13 @@ void libmaus2::fm::MausFmToBwaConversion::rewriteSa(std::string const & infn, st
 {
 	std::string const inisa = ::libmaus2::util::OutputFileNameTools::clipOff(infn,".bwt") + ".isa";
 	uint64_t const primary = loadPrimary(inisa);
-	
+
 	::libmaus2::autoarray::AutoArray<uint64_t> L2 = loadL2(infn);
-	
+
 	uint64_t const n = rl_decoder::getLength(infn);
-	
+
 	std::cerr << "[D] n=" << n << std::endl;
-	
+
 	std::string const insa = ::libmaus2::util::OutputFileNameTools::clipOff(infn,".bwt") + ".sa";
 	::libmaus2::aio::InputStreamInstance saCIS(insa);
 
@@ -177,7 +177,7 @@ void libmaus2::fm::MausFmToBwaConversion::rewriteSa(std::string const & infn, st
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "error: suffix array sampling rate is 0" << std::endl;
 		se.finish();
-		throw se;	
+		throw se;
 	}
 
 	uint64_t nsa = 0;
@@ -187,15 +187,15 @@ void libmaus2::fm::MausFmToBwaConversion::rewriteSa(std::string const & infn, st
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "error: sampled suffix array is empty" << std::endl;
 		se.finish();
-		throw se;	
+		throw se;
 	}
-	
+
 	// skip over SA[0]
 	saCIS.ignore(sizeof(uint64_t));
 
 	uint64_t const nsa_in = (n+sasamplingrate-1)/sasamplingrate;
 	uint64_t const nsa_out = (n+sasamplingrate)/sasamplingrate;
-	
+
 	std::cerr << "[D] nsa_in" << nsa_in << " nsa_out=" << nsa_out << " sasamplingrate=" << sasamplingrate << std::endl;
 
 	::libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO64(out,64);
@@ -205,7 +205,7 @@ void libmaus2::fm::MausFmToBwaConversion::rewriteSa(std::string const & infn, st
 	SGO64.put(sasamplingrate);
 	SGO64.put(L2[4]);
 	SGO64.flush();
-	
+
 	// copy rest of sampled suffix array
 	::libmaus2::util::GetFileSize::copy(saCIS,out,(nsa_in-1)*sizeof(uint64_t));
 
@@ -214,7 +214,7 @@ void libmaus2::fm::MausFmToBwaConversion::rewriteSa(std::string const & infn, st
 		SGO64.put(0);
 		SGO64.flush();
 	}
-	
+
 	out.flush();
 }
 
@@ -230,12 +230,12 @@ void libmaus2::fm::MausFmToBwaConversion::rewrite(
 	S.insert(outsa);
 
 	if ( S.size() != 3 )
-	{				
+	{
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "error: conversion needs three different filenames, got "
 			<< inbwt << ", " << outbwt << " and " << outsa << std::endl;
 		se.finish();
-		throw se;	
+		throw se;
 	}
 
 	::libmaus2::aio::OutputStreamInstance COSbwt(outbwt);

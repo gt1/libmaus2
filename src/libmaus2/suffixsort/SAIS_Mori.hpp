@@ -61,7 +61,7 @@ namespace libmaus2
     {
       typedef uint64_t value_type;
     };
-  
+
     namespace saisxx_private {
 
     /* find the start or end of each bucket */
@@ -74,25 +74,25 @@ namespace libmaus2
     }
     template<typename bucketC_type, typename bucketB_type, typename index_type>
     void
-    getBuckets(const bucketC_type C, bucketB_type B, index_type k, bool end) 
+    getBuckets(const bucketC_type C, bucketB_type B, index_type k, bool end)
     {
       index_type i, sum = 0;
 
-      if(end != false) 
-      { 
-        for(i = 0; i < k; ++i) 
+      if(end != false)
+      {
+        for(i = 0; i < k; ++i)
         {
           sum += C[i];
           B[i] = sum;
-        } 
+        }
       }
-      else 
-      { 
-        for(i = 0; i < k; ++i) 
-        { 
-          sum += C[i]; 
-          B[i] = sum - C[i]; 
-        } 
+      else
+      {
+        for(i = 0; i < k; ++i)
+        {
+          sum += C[i];
+          B[i] = sum - C[i];
+        }
       }
     }
 
@@ -293,7 +293,7 @@ namespace libmaus2
              typename bucketC_type, typename bucketB_type, typename index_type>
     void
     induceSA(string_type T, sarray_type SA, bucketC_type C, bucketB_type B,
-             index_type n, index_type k, bool recount) 
+             index_type n, index_type k, bool recount)
     {
       typedef typename TextValueType<string_type>::value_type char_type;
       sarray_type b;
@@ -368,7 +368,7 @@ namespace libmaus2
              typename index_type>
     std::pair<index_type, index_type>
     stage1sort(string_type T, sarray_type SA,
-               bucketC_type C, 
+               bucketC_type C,
                bucketB_type B,
                index_type n, index_type k, unsigned flags) {
     typedef typename TextValueType<string_type>::value_type char_type;
@@ -468,50 +468,50 @@ namespace libmaus2
       char_type c0, c1;
       ::libmaus2::autoarray::AutoArray<index_type> ACp;
       ::libmaus2::autoarray::AutoArray<index_type> ABp;
-      
+
       // Cp used for character counts
 
       /* stage 1: reduce the problem by at least 1/2
          sort all the S-substrings */
       C = B = SA; /* for warnings */
       Cp = 0, Bp = 0;
-      if(k <= 256) 
+      if(k <= 256)
       {
         ACp = ::libmaus2::autoarray::AutoArray<index_type>(k,false);
         Cp = ACp.get();
-        if(k <= fs) 
+        if(k <= fs)
         {
           B = SA + (n + fs - k);
           flags = 1;
-        } 
-        else 
+        }
+        else
         {
           ABp = ::libmaus2::autoarray::AutoArray<index_type>(k,false);
           Bp = ABp.get();
           flags = 3;
         }
-      } 
-      else if(k <= fs) 
+      }
+      else if(k <= fs)
       {
         C = SA + (n + fs - k);
-        if(k <= (fs - k)) 
+        if(k <= (fs - k))
         {
           B = C - k;
           flags = 0;
-        } 
-        else if(k <= 1024) 
+        }
+        else if(k <= 1024)
         {
           ABp = ::libmaus2::autoarray::AutoArray<index_type>(k,false);
           Bp = ABp.get();
           flags = 2;
-        } 
-        else 
+        }
+        else
         {
           B = C;
           flags = 64 | 8;
         }
-      } 
-      else 
+      }
+      else
       {
         ACp = ::libmaus2::autoarray::AutoArray<index_type>(k,false);
         Cp = ACp.get();
@@ -653,4 +653,3 @@ namespace libmaus2
 
 #endif /* __cplusplus */
 #endif /* _SAIS_HXX */
-

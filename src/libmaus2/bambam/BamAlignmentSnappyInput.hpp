@@ -30,13 +30,13 @@ namespace libmaus2
 		{
 			::libmaus2::lz::SnappyFileInputStream GZ;
 			::libmaus2::bambam::BamAlignment alignment;
-			
+
 			BamAlignmentSnappyInput(std::string const & filename)
 			: GZ(filename)
 			{
-			
+
 			}
-			
+
 			::libmaus2::bambam::BamAlignment & getAlignment()
 			{
 				return alignment;
@@ -46,7 +46,7 @@ namespace libmaus2
 			{
 				return alignment;
 			}
-			
+
 			bool readAlignment()
 			{
 				/* read alignment block size */
@@ -57,7 +57,7 @@ namespace libmaus2
 				if ( bs3 < 0 )
 					// reached end of file
 					return false;
-				
+
 				/* assemble block size as LE integer */
 				alignment.blocksize = (bs0 << 0) | (bs1 << 8) | (bs2 << 16) | (bs3 << 24) ;
 
@@ -66,7 +66,7 @@ namespace libmaus2
 					alignment.D = ::libmaus2::bambam::BamAlignment::D_array_type(alignment.blocksize);
 				GZ.read(reinterpret_cast<char *>(alignment.D.begin()),alignment.blocksize);
 				// assert ( static_cast<int64_t>(GZ.gcount()) == static_cast<int64_t>(alignment.blocksize) );
-			
+
 				return true;
 			}
 		};

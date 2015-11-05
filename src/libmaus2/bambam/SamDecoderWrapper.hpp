@@ -27,7 +27,7 @@ namespace libmaus2
 	{
 		/**
 		 * class wrapping a SamDecoder object
-		 **/		
+		 **/
 		struct SamDecoderWrapper : public libmaus2::bambam::BamAlignmentDecoderWrapper
 		{
 			//! wrapped object
@@ -42,7 +42,7 @@ namespace libmaus2
 			SamDecoderWrapper(std::string const & filename, bool const rputrank = false) : samdec(filename,rputrank)
 			{
 			}
-			
+
 			/**
 			 * constructor
 			 *
@@ -62,7 +62,7 @@ namespace libmaus2
 			SamDecoderWrapper(libmaus2::aio::InputStream::unique_ptr_type & istr, bool const rputrank = false) : samdec(istr,rputrank)
 			{
 			}
-			
+
 			libmaus2::bambam::BamAlignmentDecoder & getDecoder()
 			{
 				return samdec;
@@ -71,4 +71,3 @@ namespace libmaus2
 	}
 }
 #endif
-

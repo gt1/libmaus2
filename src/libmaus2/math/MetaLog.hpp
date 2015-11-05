@@ -45,7 +45,7 @@ namespace libmaus2
 		{
 			static unsigned long long const val = 1;
 		};
-		
+
 		template<unsigned long long k>
 		struct MetaNumBits
 		{
@@ -56,25 +56,25 @@ namespace libmaus2
 		{
 		        static unsigned int const bits = 0;
 		};
-		
+
 		template<unsigned long long k>
 		struct MetaLog2Up
 		{
 			static unsigned int const log =
 				(
-					( 
-						MetaPow< 2, 
-						         MetaLog2<k>::log 
-					        >::val == k 
-					) 
-					? 
+					(
+						MetaPow< 2,
+						         MetaLog2<k>::log
+					        >::val == k
+					)
+					?
 					MetaLog2<k>::log : (MetaLog2<k>::log+1)
 				);
 		};
 		template<unsigned int k>
 		struct MetaLowBits
 		{
-			static unsigned long long const lowbits = ((MetaLowBits<k-1>::lowbits << 1) | 1ull);	
+			static unsigned long long const lowbits = ((MetaLowBits<k-1>::lowbits << 1) | 1ull);
 		};
 		template<>
 		struct MetaLowBits<0>

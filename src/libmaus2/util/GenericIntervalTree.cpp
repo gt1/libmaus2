@@ -18,7 +18,7 @@
 */
 
 #include <libmaus2/util/GenericIntervalTree.hpp>
-		
+
 libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > libmaus2::util::GenericIntervalTree::computeNonEmpty(::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & V)
 {
 	uint64_t nonempty = 0;
@@ -46,7 +46,7 @@ libmaus2::bitio::IndexedBitVector::unique_ptr_type libmaus2::util::GenericInterv
 }
 
 libmaus2::util::GenericIntervalTree::GenericIntervalTree(::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & H)
-: nonempty(computeNonEmpty(H)), BV(computeNonEmptyBV(H)), 
+: nonempty(computeNonEmpty(H)), BV(computeNonEmptyBV(H)),
   IT(nonempty.size() ? (new IntervalTree(nonempty,0,nonempty.size())) : 0)
 {
 

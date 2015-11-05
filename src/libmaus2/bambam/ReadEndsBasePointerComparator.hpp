@@ -24,7 +24,7 @@
 namespace libmaus2
 {
 	namespace bambam
-	{		
+	{
 		struct ReadEndsBasePointerComparator
 		{
 			bool operator()(ReadEndsBase const * A, ReadEndsBase const * B) const

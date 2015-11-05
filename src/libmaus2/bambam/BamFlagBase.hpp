@@ -50,7 +50,7 @@ namespace libmaus2
 				LIBMAUS2_BAMBAM_FSUPPLEMENTARY = (1u << 11),
 				LIBMAUS2_BAMBAM_FCIGAR32 = (1u << 15)
 			};
-			
+
 			//! cigar operator codes
 			enum bam_cigar_ops
 			{
@@ -63,7 +63,7 @@ namespace libmaus2
 				LIBMAUS2_BAMBAM_CPAD = 6,
 				LIBMAUS2_BAMBAM_CEQUAL = 7,
 				LIBMAUS2_BAMBAM_CDIFF = 8
-			};			
+			};
 
 			/**
 			 * convert a string to an alignment flag bit
@@ -116,13 +116,13 @@ namespace libmaus2
 			{
 				std::deque<std::string> const tokens = ::libmaus2::util::stringFunctions::tokenize(s,std::string(","));
 				uint64_t flags = 0;
-				
+
 				for ( uint64_t i = 0; i < tokens.size(); ++i )
 					flags |= stringToFlag(tokens[i]);
-					
+
 				return flags;
 			}
-		};		
+		};
 	}
 }
 #endif

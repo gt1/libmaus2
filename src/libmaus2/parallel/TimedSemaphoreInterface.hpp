@@ -23,7 +23,7 @@
 namespace libmaus2
 {
 	namespace parallel
-	{		
+	{
 		struct TimedSemaphoreInterface : public SimpleSemaphoreInterface
 		{
 			typedef TimedSemaphoreInterface this_type;

@@ -33,15 +33,15 @@ namespace libmaus2
 			typedef rank_type::writer_type writer_type;
 			typedef writer_type::data_type data_type;
 			typedef writer_type::unique_ptr_type writer_ptr_type;
-			typedef rank_type::unique_ptr_type rank_ptr_type;			
+			typedef rank_type::unique_ptr_type rank_ptr_type;
 			typedef ::libmaus2::autoarray::AutoArray<data_type> bit_vector_type;
 			typedef bit_vector_type::unique_ptr_type bit_vector_ptr_type;
 			static uint64_t const bitsperword = 8*sizeof(data_type);
-			
+
 			typedef MultiRankLF this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			uint64_t n;
 			::libmaus2::autoarray::AutoArray < bit_vector_ptr_type > bit_vectors;
 			::libmaus2::autoarray::AutoArray < rank_ptr_type > rank_dictionaries;
@@ -50,13 +50,13 @@ namespace libmaus2
 			uint64_t serialize(std::ostream & out) const
 			{
 				uint64_t s = 0;
-				
+
 				s += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,n);
 				s += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,bit_vectors.getN());
 
 				for ( uint64_t i = 0; i < bit_vectors.getN(); ++i )
 					s += bit_vectors[i]->serialize(out);
-					
+
 				s += D.serialize(out);
 
 				return s;
@@ -76,7 +76,7 @@ namespace libmaus2
 
 			static ::libmaus2::autoarray::AutoArray < bit_vector_ptr_type > deserializeBitVectors(std::istream & in, uint64_t & s)
 			{
-				
+
 				uint64_t numbitvectors = deserializeNumber(in,s);
 
 				::libmaus2::autoarray::AutoArray < bit_vector_ptr_type > bit_vectors(numbitvectors);
@@ -91,7 +91,7 @@ namespace libmaus2
 				uint64_t s = 0;
 				return deserializeBitVectors(in,s);
 			}
-			
+
 			static ::libmaus2::autoarray::AutoArray < uint64_t > deserializeArray(std::istream & in, uint64_t & s)
 			{
 				::libmaus2::autoarray::AutoArray < uint64_t > A;
@@ -104,7 +104,7 @@ namespace libmaus2
 				uint64_t s = 0;
 				return deserializeArray(in,s);
 			}
-			
+
 			MultiRankLF (std::istream & in, uint64_t & s)
 			: n(deserializeNumber(in,s)), bit_vectors ( deserializeBitVectors(in,s) ), rank_dictionaries(bit_vectors.getN()), D( deserializeArray(in,s) )
 			{
@@ -118,7 +118,7 @@ namespace libmaus2
                                                 );
 					rank_dictionaries[j] = UNIQUE_PTR_MOVE(trank_dictionariesj);
 				}
-			
+
 			}
 			MultiRankLF (std::istream & in)
 			: n(deserializeNumber(in)), bit_vectors ( deserializeBitVectors(in) ), rank_dictionaries(bit_vectors.getN()), D( deserializeArray(in) )
@@ -133,9 +133,9 @@ namespace libmaus2
                                                 );
 					rank_dictionaries[j] = UNIQUE_PTR_MOVE(trank_dictionariesj);
 				}
-			
+
 			}
-			
+
 			template<typename iterator>
 			MultiRankLF ( iterator BWT, uint64_t const rn, uint64_t rmaxval = 0 )
 			: n(rn)
@@ -145,12 +145,12 @@ namespace libmaus2
 					uint64_t maxval = rmaxval;
 					for ( uint64_t i = 0; i < n; ++i )
 						maxval = std::max ( maxval, static_cast<uint64_t>(BWT[i]) );
-					
+
 					bit_vectors = ::libmaus2::autoarray::AutoArray < bit_vector_ptr_type >(maxval+1);
 					rank_dictionaries = ::libmaus2::autoarray::AutoArray < rank_ptr_type >(maxval+1);
-					
+
 					::libmaus2::autoarray::AutoArray < writer_ptr_type > writers(maxval+1);
-					
+
 					for ( uint64_t i = 0; i < maxval+1; ++i )
 					{
 						// add one word for correct rankm1 at border
@@ -167,11 +167,11 @@ namespace libmaus2
                                                 );
 						writers[i] = UNIQUE_PTR_MOVE(twritersi);
 					}
-					
+
 					for ( uint64_t i = 0; i < n; ++i )
 					{
 						uint64_t const v = BWT[i];
-						
+
 						for ( uint64_t j = 0; j < maxval+1; ++j )
 							writers[j]->writeBit ( v == j );
 					}
@@ -188,14 +188,14 @@ namespace libmaus2
                                                                 )
                                                         );
 						rank_dictionaries[j] = UNIQUE_PTR_MOVE(trank_dictionariesj);
-						
+
 						D[j] = rank_dictionaries[j] -> rank1 (n - 1);
-					}					
+					}
 
 					{ uint64_t c = 0; for ( uint64_t i = 0; i < D.getN(); ++i ) { uint64_t t = D[i]; D[i] = c; c += t; } }
 				}
 			}
-			
+
 			uint64_t sortedSymbol(uint64_t r) const
 			{
 				uint64_t const syms = bit_vectors.getN() + 1;
@@ -204,19 +204,19 @@ namespace libmaus2
 						return syms-i-1;
 				return 0;
 			}
-			
+
 			uint64_t phi(uint64_t r) const
 			{
 				uint64_t const sym = sortedSymbol(r);
 				r -= D[sym];
 				return rank_dictionaries[sym]->select1(r);
 			}
-			
+
 			uint64_t getN() const
 			{
 				return n;
 			}
-			
+
 			uint64_t getB() const
 			{
 				if ( bit_vectors.getN() )
@@ -230,10 +230,10 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < bit_vectors.getN(); ++i )
 					if ( ::libmaus2::bitio::getBit ( bit_vectors[i]->get() , pos ) )
 						return i;
-				
+
 				throw std::runtime_error("Undefined position in MultiRankLF::operator[]");
 			}
-			
+
 			uint64_t operator()(uint64_t const r) const
 			{
 				return step((*this)[r],r);
@@ -242,7 +242,7 @@ namespace libmaus2
 
 			private:
 			// uint64_t rankm1(uint64_t const k, uint64_t const sp) const { return sp ? rank_dictionaries[k]->rank1(sp-1) : 0; }
-			inline uint64_t rankm1(uint64_t const k, uint64_t const sp) const 
+			inline uint64_t rankm1(uint64_t const k, uint64_t const sp) const
 			{
 				#if 0
 				bool ok = rank_dictionaries[k]->rankm1(sp) == (sp ? rank_dictionaries[k]->rank1(sp-1) : 0);
@@ -257,15 +257,15 @@ namespace libmaus2
 				return rank_dictionaries[k]->rankm1(sp);
 				#endif
 			}
-			
+
 			public:
 			inline uint64_t step(uint64_t const k, uint64_t const sp) const { return D[k] + rankm1(k,sp); }
 
-			template<typename iterator>	
+			template<typename iterator>
 			inline void search(iterator query, uint64_t const m, uint64_t & sp, uint64_t & ep) const
 			{
 				sp = 0, ep = n;
-				
+
 				for ( uint64_t i = 0; i < m && sp != ep; ++i )
 					sp = step(query[m-i-1],sp),
 					ep = step(query[m-i-1],ep);
@@ -275,11 +275,11 @@ namespace libmaus2
 			{
 				if ( ! n )
 					return 0;
-					
+
 				for ( uint64_t i = 0; i < bit_vectors.getN(); ++i )
 					if ( rank_dictionaries[i]->rank1(n-1) )
 						return rank_dictionaries[i]->select1(0);
-						
+
 				libmaus2::exception::LibMausException se;
 				se.getStream() << "MultiRankLF::zeroPosRank(): failed to find rank, inconsistent data." << std::endl;
 				se.finish();

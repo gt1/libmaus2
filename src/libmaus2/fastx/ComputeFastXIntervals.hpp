@@ -40,12 +40,12 @@ namespace libmaus2
 				#endif
 				for ( int64_t i = 0; i < static_cast<int64_t>(filenames.size()); ++i )
 					reader_type::buildIndex(filenames[i],indexstep);
-			
+
 				logfile << "Computing fastx intervals...";
 				std::vector< ::libmaus2::fastx::FastInterval > V = reader_type::buildIndex(filenames, indexstep );
 				logfile << "done." << std::endl;
 				return V;
-			}		
+			}
 		};
 	}
 }

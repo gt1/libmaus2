@@ -49,7 +49,7 @@ namespace libmaus2
 			unsigned int const bcnt = 8 * sizeof(value_type);
 			unsigned int const bshf = ::libmaus2::math::MetaLog2<bcnt>::log;
 			unsigned int byteSkip = (offset >> bshf);
-			
+
 			if ( numbits )
 			{
 				unsigned int const bmsk = (1ul<<bshf)-1ul;
@@ -65,73 +65,73 @@ namespace libmaus2
 				std::cerr << "bitskip: " << bitSkip << std::endl;
 				std::cerr << "restBits: " << restBits << std::endl;
 				#endif
-				
+
 				unsigned int const bitsinfirstword = std::min(numbits,restBits);
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "bits in first word: " << bitsinfirstword << std::endl;
 				#endif
-				
+
 				value_type const firstmask = ::libmaus2::math::lowbits(bitsinfirstword); // (static_cast<value_type>(1ULL) << bitsinfirstword) - 1;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "first mask: " << sbits(firstmask) << std::endl;
 				#endif
-				
+
 				unsigned int const firstshift = bcnt - bitSkip - bitsinfirstword;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "first shift: " << firstshift << std::endl;
 				#endif
-				
+
 				value_type const firstkeepmask = ~(firstmask << firstshift);
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "firstkeepmask: " << sbits(firstkeepmask) << std::endl;
 				#endif
 
-				// remove bits	
+				// remove bits
 				A[byteSkip] &= firstkeepmask;
 				// put bits
 				A[byteSkip] |= static_cast<value_type>(v >> (numbits - bitsinfirstword)) << firstshift;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "value: " << sbits(v) << std::endl;
 				std::cerr << "first word: " << sbits(A[byteSkip]) << std::endl;
 				#endif
-				
+
 				uint64_t const keepmask = ::libmaus2::math::lowbits(numbits - bitsinfirstword); // (1ull << (numbits - bitsinfirstword)) - 1;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "keepmask " << sbits(keepmask) << std::endl;
 				#endif
-				
+
 				v &= keepmask;
 				numbits -= bitsinfirstword;
 				byteSkip++;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "v " << sbits(v) << std::endl;
 				std::cerr << "numbits " << numbits << std::endl;
 				#endif
 			}
-			
+
 			while ( numbits >= bcnt )
 			{
 				unsigned int const innershift = numbits - bcnt;
 				uint64_t innermask = ::libmaus2::math::lowbits(innershift); // (1ull << innershift)-1;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "innershift " << innershift << std::endl;
 				std::cerr << "innermask " << sbits(innermask) << std::endl;
 				#endif
-				
+
 				A[byteSkip] = (v >> innershift);
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "innerword " << sbits(A[byteSkip]) << std::endl;
 				#endif
-				
+
 				v &= innermask;
 				numbits -= bcnt;
 				byteSkip++;
@@ -145,12 +145,12 @@ namespace libmaus2
 						// (static_cast<value_type>(1ul) << numbits)-1
 						::libmaus2::math::lowbits(numbits)
 					) << lastshift);
-			
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "lastshift " << lastshift << std::endl;
 				std::cerr << "lastmask " << sbits(lastmask) << std::endl;
 				#endif
-			
+
 				A[byteSkip] &= lastmask;
 				A[byteSkip] |= (v << lastshift);
 
@@ -170,7 +170,7 @@ namespace libmaus2
 			unsigned int const bcnt = 8 * sizeof(value_type);
 			unsigned int const bshf = ::libmaus2::math::MetaLog2<bcnt>::log;
 			unsigned int byteSkip = (offset >> bshf);
-			
+
 			if ( numbits )
 			{
 				unsigned int const bmsk = (1ul<<bshf)-1ul;
@@ -186,27 +186,27 @@ namespace libmaus2
 				std::cerr << "bitskip: " << bitSkip << std::endl;
 				std::cerr << "restBits: " << restBits << std::endl;
 				#endif
-				
+
 				unsigned int const bitsinfirstword = std::min(numbits,restBits);
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "bits in first word: " << bitsinfirstword << std::endl;
 				#endif
-				
+
 				value_type const firstmask = ::libmaus2::math::lowbits(bitsinfirstword); // (static_cast<value_type>(1ULL) << bitsinfirstword) - 1;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "first mask: " << sbits(firstmask) << std::endl;
 				#endif
-				
+
 				unsigned int const firstshift = bcnt - bitSkip - bitsinfirstword;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "first shift: " << firstshift << std::endl;
 				#endif
-				
+
 				value_type const firstkeepmask = ~(firstmask << firstshift);
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "firstkeepmask: " << sbits(firstkeepmask) << std::endl;
 				#endif
@@ -217,44 +217,44 @@ namespace libmaus2
 				// put bits
 				__sync_fetch_and_or(A+byteSkip,static_cast<value_type>(v >> (numbits - bitsinfirstword)) << firstshift);
 				// A[byteSkip] |= static_cast<value_type>(v >> (numbits - bitsinfirstword)) << firstshift;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "value: " << sbits(v) << std::endl;
 				std::cerr << "first word: " << sbits(A[byteSkip]) << std::endl;
 				#endif
-				
+
 				uint64_t const keepmask = ::libmaus2::math::lowbits(numbits - bitsinfirstword); // (1ull << (numbits - bitsinfirstword)) - 1;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "keepmask " << sbits(keepmask) << std::endl;
 				#endif
-				
+
 				v &= keepmask;
 				numbits -= bitsinfirstword;
 				byteSkip++;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "v " << sbits(v) << std::endl;
 				std::cerr << "numbits " << numbits << std::endl;
 				#endif
 			}
-			
+
 			while ( numbits >= bcnt )
 			{
 				unsigned int const innershift = numbits - bcnt;
 				uint64_t innermask = ::libmaus2::math::lowbits(innershift); // (1ull << innershift)-1;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "innershift " << innershift << std::endl;
 				std::cerr << "innermask " << sbits(innermask) << std::endl;
 				#endif
-				
+
 				A[byteSkip] = (v >> innershift);
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "innerword " << sbits(A[byteSkip]) << std::endl;
 				#endif
-				
+
 				v &= innermask;
 				numbits -= bcnt;
 				byteSkip++;
@@ -268,12 +268,12 @@ namespace libmaus2
 						// (static_cast<value_type>(1ul) << numbits)-1
 						::libmaus2::math::lowbits(numbits)
 					) << lastshift);
-			
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "lastshift " << lastshift << std::endl;
 				std::cerr << "lastmask " << sbits(lastmask) << std::endl;
 				#endif
-			
+
 				// A[byteSkip] &= lastmask;
 				__sync_fetch_and_and(A+byteSkip,lastmask);
 				//A[byteSkip] |= (v << lastshift);
@@ -295,7 +295,7 @@ namespace libmaus2
 			unsigned int const bcnt = 8 * sizeof(uint64_t);
 			unsigned int const bshf = ::libmaus2::math::MetaLog2<bcnt>::log;
 			unsigned int byteSkip = (offset >> bshf);
-			
+
 			if ( numbits )
 			{
 				unsigned int const bmsk = (1ul<<bshf)-1ul;
@@ -311,57 +311,57 @@ namespace libmaus2
 				std::cerr << "bitskip: " << bitSkip << std::endl;
 				std::cerr << "restBits: " << restBits << std::endl;
 				#endif
-				
+
 				unsigned int const bitsinfirstword = std::min(numbits,restBits);
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "bits in first word: " << bitsinfirstword << std::endl;
 				#endif
-				
+
 				uint64_t const firstmask = ::libmaus2::math::lowbits(bitsinfirstword); // (static_cast<uint64_t>(1ULL) << bitsinfirstword) - 1;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "first mask: " << sbits(firstmask) << std::endl;
 				#endif
-				
+
 				unsigned int const firstshift = bcnt - bitSkip - bitsinfirstword;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "first shift: " << firstshift << std::endl;
 				#endif
-				
+
 				uint64_t const firstkeepmask = ~(firstmask << firstshift);
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "firstkeepmask: " << sbits(firstkeepmask) << std::endl;
 				#endif
 
-				// remove bits	
+				// remove bits
 				A[byteSkip] &= firstkeepmask;
 				// put bits
 				A[byteSkip] |= static_cast<uint64_t>(v >> (numbits - bitsinfirstword)) << firstshift;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "value: " << sbits(v) << std::endl;
 				std::cerr << "first word: " << sbits(A[byteSkip]) << std::endl;
 				#endif
-				
+
 				uint64_t const keepmask = ::libmaus2::math::lowbits(numbits - bitsinfirstword); // (1ull << (numbits - bitsinfirstword)) - 1;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "keepmask " << sbits(keepmask) << std::endl;
 				#endif
-				
+
 				v &= keepmask;
 				numbits -= bitsinfirstword;
 				byteSkip++;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "v " << sbits(v) << std::endl;
 				std::cerr << "numbits " << numbits << std::endl;
 				#endif
 			}
-			
+
 			if ( numbits )
 			{
 				unsigned int const lastshift = bcnt - numbits;
@@ -370,12 +370,12 @@ namespace libmaus2
 						// (static_cast<uint64_t>(1ul) << numbits)-1
 						::libmaus2::math::lowbits(numbits)
 					) << lastshift);
-			
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "lastshift " << lastshift << std::endl;
 				std::cerr << "lastmask " << sbits(lastmask) << std::endl;
 				#endif
-			
+
 				A[byteSkip] &= lastmask;
 				A[byteSkip] |= (v << lastshift);
 
@@ -383,7 +383,7 @@ namespace libmaus2
 				std::cerr << "lastword " << sbits(A[byteSkip]) << std::endl;
 				#endif
 			}
-		}		
+		}
 
 		#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 		template<>
@@ -395,7 +395,7 @@ namespace libmaus2
 			unsigned int const bcnt = 8 * sizeof(uint64_t);
 			unsigned int const bshf = ::libmaus2::math::MetaLog2<bcnt>::log;
 			unsigned int byteSkip = (offset >> bshf);
-			
+
 			if ( numbits )
 			{
 				unsigned int const bmsk = (1ul<<bshf)-1ul;
@@ -411,32 +411,32 @@ namespace libmaus2
 				std::cerr << "bitskip: " << bitSkip << std::endl;
 				std::cerr << "restBits: " << restBits << std::endl;
 				#endif
-				
+
 				unsigned int const bitsinfirstword = std::min(numbits,restBits);
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "bits in first word: " << bitsinfirstword << std::endl;
 				#endif
-				
+
 				uint64_t const firstmask = ::libmaus2::math::lowbits(bitsinfirstword); // (static_cast<uint64_t>(1ULL) << bitsinfirstword) - 1;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "first mask: " << sbits(firstmask) << std::endl;
 				#endif
-				
+
 				unsigned int const firstshift = bcnt - bitSkip - bitsinfirstword;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "first shift: " << firstshift << std::endl;
 				#endif
-				
+
 				uint64_t const firstkeepmask = ~(firstmask << firstshift);
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "firstkeepmask: " << sbits(firstkeepmask) << std::endl;
 				#endif
 
-				// remove bits	
+				// remove bits
 				//A[byteSkip] &= firstkeepmask;
 				__sync_fetch_and_and(A+byteSkip,firstkeepmask);
 				// put bits
@@ -447,23 +447,23 @@ namespace libmaus2
 				std::cerr << "value: " << sbits(v) << std::endl;
 				std::cerr << "first word: " << sbits(A[byteSkip]) << std::endl;
 				#endif
-				
+
 				uint64_t const keepmask = ::libmaus2::math::lowbits(numbits - bitsinfirstword); // (1ull << (numbits - bitsinfirstword)) - 1;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "keepmask " << sbits(keepmask) << std::endl;
 				#endif
-				
+
 				v &= keepmask;
 				numbits -= bitsinfirstword;
 				byteSkip++;
-				
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "v " << sbits(v) << std::endl;
 				std::cerr << "numbits " << numbits << std::endl;
 				#endif
 			}
-			
+
 			if ( numbits )
 			{
 				unsigned int const lastshift = bcnt - numbits;
@@ -472,12 +472,12 @@ namespace libmaus2
 						// (static_cast<uint64_t>(1ul) << numbits)-1
 						::libmaus2::math::lowbits(numbits)
 					) << lastshift);
-			
+
 				#if defined(PUTBIT_DEBUG)
 				std::cerr << "lastshift " << lastshift << std::endl;
 				std::cerr << "lastmask " << sbits(lastmask) << std::endl;
 				#endif
-			
+
 				//A[byteSkip] &= lastmask;
 				__sync_fetch_and_and(A+byteSkip,lastmask);
 				// A[byteSkip] |= (v << lastshift);
@@ -487,9 +487,9 @@ namespace libmaus2
 				std::cerr << "lastword " << sbits(A[byteSkip]) << std::endl;
 				#endif
 			}
-		}		
+		}
 		#endif
-	
+
 	}
 }
 #endif

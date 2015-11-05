@@ -53,7 +53,7 @@ namespace libmaus2
 			{
 				return std::pair<int64_t,int64_t>(P.first-P.second,P.second);
 			}
-			
+
 			std::pair<int64_t,int64_t> squareToDiag(std::pair<int64_t,int64_t> const P)
 			{
 				return std::pair<int64_t,int64_t>(P.first+P.second,P.second);

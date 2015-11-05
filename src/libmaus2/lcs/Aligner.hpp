@@ -29,13 +29,13 @@ namespace libmaus2
 			typedef Aligner this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			virtual ~Aligner() {}
 			virtual void align(
 				uint8_t const * a,
 				size_t const l_a,
 				uint8_t const * b,
-				size_t const l_b				
+				size_t const l_b
 			) = 0;
 			virtual AlignmentTraceContainer const & getTraceContainer() const = 0;
 		};

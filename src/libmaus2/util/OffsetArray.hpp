@@ -33,10 +33,10 @@ namespace libmaus2
 			array_b_type const * data;
 			uint64_t n;
 			uint64_t offset;
-			
+
 			OffsetArray(array_a_type const * rSA, array_b_type const * rdata, uint64_t rn, uint64_t roffset)
 			: SA(rSA), data(rdata), n(rn), offset(roffset) {}
-			
+
 			int64_t operator[](uint64_t i) const
 			{
 				uint64_t const p = SA[i]+offset;

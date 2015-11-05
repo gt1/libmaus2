@@ -32,7 +32,7 @@ namespace libmaus2
 			GzipStreamWrapper(std::istream & in)
 			: GZ(in)
 			{
-			
+
 			}
 		};
 	}

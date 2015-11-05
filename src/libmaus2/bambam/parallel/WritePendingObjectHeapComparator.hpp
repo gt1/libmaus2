@@ -20,7 +20,7 @@
 #define LIBMAUS2_BAMBAM_PARALLEL_WRITEPENDINGOBJECTHEAPCOMPARATOR_HPP
 
 #include <libmaus2/bambam/parallel/WritePendingObject.hpp>
-			
+
 namespace libmaus2
 {
 	namespace bambam

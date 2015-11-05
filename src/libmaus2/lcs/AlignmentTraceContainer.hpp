@@ -38,14 +38,14 @@ namespace libmaus2
 			typedef AlignmentTraceContainer this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			private:
 			AlignmentTraceContainer & operator=(AlignmentTraceContainer const &);
 			AlignmentTraceContainer(AlignmentTraceContainer const &);
-		
+
 			public:
 			virtual ~AlignmentTraceContainer() {}
-		
+
 			// trace
 			::libmaus2::autoarray::AutoArray<step_type> trace;
 			//
@@ -55,26 +55,26 @@ namespace libmaus2
 			AlignmentTraceContainer(uint64_t const tracelen = 0)
 			: trace(tracelen), te(trace.end()), ta(te)
 			{
-			
+
 			}
-			
+
 			std::vector < std::pair<step_type,uint64_t> > getOpBlocks() const
 			{
 				std::vector < std::pair<step_type,uint64_t> > R;
-				
+
 				step_type const * tc = ta;
-				
+
 				while ( tc != te )
 				{
 					step_type const * tt = tc;
 					while ( tt != te && *tt == *tc )
 						++tt;
-						
+
 					R.push_back(std::pair<step_type,uint64_t>(*tc,tt-tc));
-					
+
 					tc = tt;
 				}
-				
+
 				return R;
 			}
 
@@ -82,34 +82,34 @@ namespace libmaus2
 			{
 				if ( static_cast<ptrdiff_t>(A.size()) < te-ta )
 					A.resize(te-ta);
-				
+
 				step_type const * tc = ta;
 				std::pair<step_type,uint64_t> * p = A.begin();
-				
+
 				while ( tc != te )
 				{
 					step_type const * tt = tc;
 					while ( tt != te && *tt == *tc )
 						++tt;
-					
+
 					*(p++) = std::pair<step_type,uint64_t>(*tc,tt-tc);
-					
+
 					tc = tt;
 				}
-				
+
 				return p-A.begin();
 			}
-			
+
 			void reset()
 			{
 				ta = te = trace.end();
 			}
-			
+
 			void reverse()
 			{
 				std::reverse(ta,te);
 			}
-			
+
 			unsigned int clipOffLastKMatches(unsigned int k)
 			{
 				unsigned int c = 0;
@@ -118,20 +118,20 @@ namespace libmaus2
 					--te;
 					++c;
 				}
-				
+
 				return c;
 			}
-			
+
 			uint64_t windowError(unsigned int k = 8*sizeof(uint64_t)) const
 			{
 				unsigned int maxerr = 0;
 				uint64_t evec = 0;
 				uint64_t const emask = ::libmaus2::math::lowbits(k);
-				
+
 				for ( step_type const * tc = ta; tc != te; ++tc )
 				{
 					evec <<= 1;
-					
+
 					switch ( *tc )
 					{
 						case STEP_MISMATCH:
@@ -146,33 +146,33 @@ namespace libmaus2
 							evec = 0;
 							break;
 					}
-					
+
 					evec &= emask;
-					
+
 					maxerr = std::max(maxerr,static_cast<unsigned int>(libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(evec)));
 				}
-				
+
 				return maxerr;
 			}
-			
+
 			struct ClipPair
 			{
 				std::pair<uint64_t,uint64_t> A;
 				std::pair<uint64_t,uint64_t> B;
-				
+
 				ClipPair() {}
 				ClipPair(
 					std::pair<uint64_t,uint64_t> const & rA,
 					std::pair<uint64_t,uint64_t> const & rB
 				) : A(rA), B(rB) {}
-				
+
 				bool check() const
 				{
 					return
 						A.first < A.second &&
 						B.first < B.second;
 				}
-				
+
 				static ClipPair merge(ClipPair const & A, ClipPair const & B)
 				{
 					return
@@ -187,23 +187,23 @@ namespace libmaus2
 							)
 						);
 				}
-				
+
 				static bool overlap(ClipPair const & A, ClipPair const & B)
 				{
 					if ( A.A.first > B.A.first )
 						return overlap(B,A);
-					
+
 					assert ( A.A.first <= B.A.first );
 					assert ( A.check() );
 					assert ( B.check() );
-					
+
 					bool oa = A.A.second >= B.A.first;
 					bool ob = A.B.second >= B.B.first;
-					
+
 					return oa || ob;
 				}
 			};
-			
+
 			static bool cross(
 				AlignmentTraceContainer const & A,
 				size_t Aapos,
@@ -217,15 +217,15 @@ namespace libmaus2
 			{
 				step_type const * Atc = A.ta;
 				step_type const * Btc = B.ta;
-				
-				while ( 
+
+				while (
 					(!(Aapos == Bapos && Abpos == Bbpos)) && (Atc != A.te) && (Btc != B.te)
 				)
 				{
 					// std::cerr << Aapos << "," << Abpos << " " << Bapos << "," << Bbpos << std::endl;
-				
-					while ( 
-						(Atc != A.te) && 
+
+					while (
+						(Atc != A.te) &&
 						(
 							(Aapos < Bapos) ||
 							((Aapos == Bapos) && (Abpos < Bbpos))
@@ -247,10 +247,10 @@ namespace libmaus2
 								break;
 							case STEP_RESET:
 								break;
-						}						
+						}
 					}
-					while ( 
-						(Btc != B.te) && 
+					while (
+						(Btc != B.te) &&
 						(
 							(Bapos < Aapos)
 							||
@@ -273,13 +273,13 @@ namespace libmaus2
 								break;
 							case STEP_RESET:
 								break;
-						}						
-					}					
+						}
+					}
 				}
-				
+
 				offseta = Atc - A.ta;
 				offsetb = Btc - B.ta;
-				
+
 				return
 					(Aapos == Bapos) && (Abpos == Bbpos);
 			}
@@ -295,13 +295,13 @@ namespace libmaus2
 			{
 				step_type const * Atc = A.ta;
 				step_type const * Btc = B.ta;
-				
-				while ( 
+
+				while (
 					(!(Aapos == Bapos)) && (Atc != A.te) && (Btc != B.te)
 				)
 				{
 					// std::cerr << Aapos << "," << Abpos << " " << Bapos << "," << Bbpos << std::endl;
-				
+
 					while ( (Atc != A.te) && (Aapos < Bapos) )
 					{
 						switch ( *(Atc++) )
@@ -317,7 +317,7 @@ namespace libmaus2
 								break;
 							case STEP_RESET:
 								break;
-						}						
+						}
 					}
 					while ( (Btc != B.te) && (Bapos < Aapos) )
 					{
@@ -334,13 +334,13 @@ namespace libmaus2
 								break;
 							case STEP_RESET:
 								break;
-						}						
-					}					
+						}
+					}
 				}
 
 				offseta = Atc - A.ta;
 				offsetb = Btc - B.ta;
-				
+
 				return (Aapos == Bapos);
 			}
 
@@ -355,14 +355,14 @@ namespace libmaus2
 			{
 				step_type const * Atc = A.ta;
 				step_type const * Btc = B.ta;
-				
-				while ( 
+
+				while (
 					(!(Abpos == Bbpos)) && (Atc != A.te) && (Btc != B.te)
 				)
 				{
 					// std::cerr << Aapos << "," << Abpos << " " << Bapos << "," << Bbpos << std::endl;
-				
-					while ( 
+
+					while (
 						(Atc != A.te) &&  (Abpos < Bbpos)
 					)
 					{
@@ -379,7 +379,7 @@ namespace libmaus2
 								break;
 							case STEP_RESET:
 								break;
-						}						
+						}
 					}
 					while ( (Btc != B.te) && (Bbpos < Abpos) )
 					{
@@ -396,13 +396,13 @@ namespace libmaus2
 								break;
 							case STEP_RESET:
 								break;
-						}						
-					}					
+						}
+					}
 				}
-				
+
 				offseta = Atc - A.ta;
 				offsetb = Btc - B.ta;
-				
+
 				return (Abpos == Bbpos);
 			}
 
@@ -417,12 +417,12 @@ namespace libmaus2
 			{
 				step_type const * Atc = A.te;
 				step_type const * Btc = B.te;
-				
+
 				while ( (!(Abpos == Bbpos)) && (Atc != A.ta) && (Btc != B.ta) )
 				{
 					// std::cerr << Aapos << "," << Abpos << " " << Bapos << "," << Bbpos << std::endl;
-				
-					while ( 
+
+					while (
 						(Atc != A.ta) &&  (Abpos > Bbpos)
 					)
 					{
@@ -439,7 +439,7 @@ namespace libmaus2
 								break;
 							case STEP_RESET:
 								break;
-						}						
+						}
 					}
 					while ( (Btc != B.ta) && (Bbpos > Abpos) )
 					{
@@ -456,13 +456,13 @@ namespace libmaus2
 								break;
 							case STEP_RESET:
 								break;
-						}						
-					}					
+						}
+					}
 				}
-				
+
 				offseta = Atc - A.ta;
 				offsetb = Btc - B.ta;
-				
+
 				return (Abpos == Bbpos);
 			}
 
@@ -490,25 +490,25 @@ namespace libmaus2
 			std::vector < ClipPair > lowQuality(int const k, unsigned int const thres) const
 			{
 				std::vector < ClipPair > R;
-				
+
 				#if defined(LIBMAUS2_HAVE_UNSIGNED_INT128)
 				typedef libmaus2::uint128_t mask_type;
 				#else
 				typedef uint64_t mask_type;
 				#endif
-				
+
 				assert ( k <= static_cast<int>(sizeof(mask_type) * 8) );
-				
+
 				if ( k && (te-ta) >= k )
 				{
 					std::vector < std::pair<uint64_t,uint64_t> > V;
-					
+
 					mask_type const outmask = static_cast<mask_type>(1) << (k-1);
 					mask_type w = 0;
 					unsigned int e = 0;
-					
+
 					step_type const * tc = ta;
-					
+
 					for ( int i = 0; i < (k-1); ++i, ++tc )
 						switch ( *tc )
 						{
@@ -525,9 +525,9 @@ namespace libmaus2
 							case STEP_RESET:
 								break;
 						}
-					
+
 					int64_t low = -1, high = -1;
-											
+
 					while ( tc != te )
 					{
 						if ( w & outmask )
@@ -547,7 +547,7 @@ namespace libmaus2
 							case STEP_RESET:
 								break;
 						}
-						
+
 						if ( e >= thres )
 						{
 							if ( low < 0 )
@@ -578,13 +578,13 @@ namespace libmaus2
 						pset.insert(V[i].first);
 						pset.insert(V[i].second);
 					}
-					
+
 					uint64_t apos = 0, bpos = 0;
 					for ( tc = ta; tc != te; ++tc )
 					{
 						if ( pset.find(tc-ta) != pset.end() )
 							pmap[tc-ta] = std::pair<uint64_t,uint64_t>(apos,bpos);
-					
+
 						switch ( *tc )
 						{
 							case STEP_MATCH:
@@ -600,56 +600,56 @@ namespace libmaus2
 								break;
 							case STEP_RESET:
 								break;
-						}						
+						}
 					}
 
 					if ( pset.find(tc-ta) != pset.end() )
 						pmap[tc-ta] = std::pair<uint64_t,uint64_t>(apos,bpos);
-						
+
 					for ( uint64_t i = 0; i < V.size(); ++i )
 					{
 						assert ( pmap.find(V[i].first) != pmap.end() );
 						assert ( pmap.find(V[i].second) != pmap.end() );
-						
+
 						std::map<uint64_t, std::pair<uint64_t,uint64_t> >::const_iterator Vfirst = pmap.find(V[i].first);
 						std::map<uint64_t, std::pair<uint64_t,uint64_t> >::const_iterator Vsecond = pmap.find(V[i].second);
 
 						std::pair<uint64_t,uint64_t> apos(Vfirst->second.first ,Vsecond->second.first);
 						std::pair<uint64_t,uint64_t> bpos(Vfirst->second.second,Vsecond->second.second);
-						
+
 						R.push_back(ClipPair(apos,bpos));
 					}
 				}
-				
+
 				uint64_t low = 0;
 				uint64_t o = 0;
-				
+
 				while ( low < R.size() )
 				{
 					ClipPair CP = R[low];
-					
+
 					uint64_t high = low+1;
 					while ( high < R.size() && ClipPair::overlap(CP,R[high]) )
 					{
 						CP = ClipPair::merge(CP,R[high]);
 						++high;
 					}
-					
+
 					R[o++] = CP;
-					
+
 					low = high;
 				}
-				
+
 				R.resize(o);
-				
+
 				return R;
 			}
-			
+
 			std::pair<uint64_t,uint64_t> prefixPositive(
 				int64_t const match_score    = gain_match,
 				int64_t const mismatch_score = penalty_subst,
 				int64_t const ins_score      = penalty_ins,
-				int64_t const del_score      = penalty_del			
+				int64_t const del_score      = penalty_del
 			)
 			{
 				std::reverse(ta,te);
@@ -657,7 +657,7 @@ namespace libmaus2
 				std::reverse(ta,te);
 				return P;
 			}
-			
+
 			static int64_t getScore(
 				step_type const * ta,
 				step_type const * te,
@@ -668,11 +668,11 @@ namespace libmaus2
 			)
 			{
 				int64_t score = 0;
-				
+
 				while ( ta != te )
 				{
 					step_type const cur = *(ta++);
-					
+
 					switch ( cur )
 					{
 						case STEP_MATCH:
@@ -692,10 +692,10 @@ namespace libmaus2
 							break;
 					}
 				}
-				
+
 				return score;
 			}
-			
+
 			std::pair<step_type const *, step_type const *> bestLocalScore(
 				int64_t const match_score    = gain_match,
 				int64_t const mismatch_score = penalty_subst,
@@ -717,17 +717,17 @@ namespace libmaus2
 			{
 				step_type const * tc = ta;
 				step_type const * tbegin = ta;
-				
+
 				step_type const * tbeststart = ta;
 				step_type const * tbestend = ta;
-				
+
 				int64_t score = 0;
 				int64_t bestscore = 0;
-				
+
 				while ( tc != te )
 				{
 					step_type const cur = *(tc++);
-					
+
 					switch ( cur )
 					{
 						case STEP_MATCH:
@@ -746,12 +746,12 @@ namespace libmaus2
 							score = 0;
 							break;
 					}
-					
+
 					if ( score > bestscore )
 					{
 						bestscore = score;
 						tbeststart = tbegin;
-						tbestend = tc;					
+						tbestend = tc;
 					}
 					if ( score < 0 )
 					{
@@ -759,14 +759,14 @@ namespace libmaus2
 						tbegin = tc;
 					}
 				}
-				
+
 				return std::pair<step_type const *, step_type const *>(tbeststart,tbestend);
 			}
-			
+
 			std::pair<step_type const *, step_type const *> bLengthFront(uint64_t l)
 			{
 				step_type const * tc = ta;
-				
+
 				while ( tc != te && l )
 				{
 					switch ( *(tc++) )
@@ -784,16 +784,16 @@ namespace libmaus2
 							break;
 					}
 				}
-				
+
 				assert ( ! l );
-				
+
 				return std::pair<step_type const *, step_type const *>(ta,tc);
 			}
 
 			std::pair<step_type const *, step_type const *> bLengthBack(uint64_t l)
 			{
 				step_type const * tc = te;
-				
+
 				while ( tc != ta && l )
 				{
 					switch ( *(--tc) )
@@ -811,9 +811,9 @@ namespace libmaus2
 							break;
 					}
 				}
-				
+
 				assert ( ! l );
-				
+
 				return std::pair<step_type const *, step_type const *>(tc,te);
 			}
 
@@ -829,12 +829,12 @@ namespace libmaus2
 			{
 				step_type_in_ptr tc = te;
 				step_type_in_ptr tne = te;
-				
+
 				int64_t score = 0;
 				while ( tc != ta )
 				{
 					step_type const cur = *(--tc);
-					
+
 					switch ( cur )
 					{
 						case STEP_MATCH:
@@ -853,14 +853,14 @@ namespace libmaus2
 							score = 0;
 							break;
 					}
-					
+
 					if ( score <= 0 )
 					{
 						score = 0;
 						tne = tc;
 					}
 				}
-				
+
 				// count how many symbols need to be removed from the back of a and b resp
 				uint64_t rema = 0, remb = 0;
 				for ( tc = tne; tc != te; ++tc )
@@ -880,12 +880,12 @@ namespace libmaus2
 						case STEP_RESET:
 							break;
 					}
-				
+
 				te = tne;
-				
-				return std::pair<uint64_t,uint64_t>(rema,remb);				
+
+				return std::pair<uint64_t,uint64_t>(rema,remb);
 			}
-			
+
 			std::pair<uint64_t,uint64_t> suffixPositive(
 				int64_t const match_score    = gain_match,
 				int64_t const mismatch_score = penalty_subst,
@@ -896,48 +896,48 @@ namespace libmaus2
 				return suffixPositive(ta,te,match_score,mismatch_score,ins_score,del_score);
 			}
 
-			
+
 			void push(AlignmentTraceContainer const & O)
 			{
 				size_t const pre = getTraceLength();
 				size_t const oth = O.getTraceLength();
-				
+
 				if ( ta != trace.begin() )
 				{
 					std::copy(ta,te,trace.begin());
 					ta = trace.begin();
 					te = trace.begin()+pre;
 				}
-				
+
 				if ( pre + oth > trace.size() )
-				{	
+				{
 					trace.resize(pre + oth);
-					
+
 					ta = trace.begin();
 					te = trace.begin()+pre;
 				}
-				
+
 				for ( size_t i = 0; i < oth; ++i )
 					*(te++) = O.ta[i];
 			}
-			
+
 			void resize(uint64_t const tracelen)
 			{
 				trace = ::libmaus2::autoarray::AutoArray<step_type>(tracelen,false);
 				te = trace.end();
 				ta = te;
 			}
-			
+
 			uint64_t capacity() const
 			{
 				return trace.size();
 			}
-			
+
 			uint64_t getTraceLength() const
 			{
 				return te-ta;
 			}
-			
+
 			template<typename it>
 			static int32_t getTraceScore(it ta, it te)
 			{
@@ -965,12 +965,12 @@ namespace libmaus2
 				}
 				return score;
 			}
-			
+
 			static std::vector< std::pair<int64_t,uint64_t> > matchDiagonalHistogram(step_type const * ta, step_type const * te)
 			{
 				std::map<int64_t,uint64_t> M;
 				uint64_t apos = 0, bpos = 0;
-				
+
 				for ( step_type const * tc = ta; tc != te; ++tc )
 				{
 					switch ( *tc )
@@ -994,11 +994,11 @@ namespace libmaus2
 							break;
 					}
 				}
-				
+
 				std::vector< std::pair<int64_t,uint64_t> > V;
 				for ( std::map<int64_t,uint64_t>::const_iterator ita = M.begin(); ita != M.end(); ++ita )
 					V.push_back(std::pair<int64_t,uint64_t>(ita->first,ita->second));
-				
+
 				return V;
 			}
 
@@ -1075,17 +1075,17 @@ namespace libmaus2
 			{
 				return advanceB(ta,te,adv);
 			}
-			
+
 			std::vector< std::pair<int64_t,uint64_t> > matchDiagonalHistogram()
 			{
 				return matchDiagonalHistogram(ta,te);
 			}
-						
+
 			static AlignmentStatistics getAlignmentStatistics(step_type const * ta, step_type const * te)
 			{
 				AlignmentStatistics stats;
-				
-				for ( step_type const * tc = ta; tc != te; ++tc )			
+
+				for ( step_type const * tc = ta; tc != te; ++tc )
 					switch ( *tc )
 					{
 						case STEP_MATCH:
@@ -1114,10 +1114,10 @@ namespace libmaus2
 
 			static uint64_t getNumErrors(step_type const * ta, step_type const * te)
 			{
-				AlignmentStatistics stats = getAlignmentStatistics(ta,te); 
+				AlignmentStatistics stats = getAlignmentStatistics(ta,te);
 				return stats.mismatches + stats.insertions + stats.deletions;
 			}
-			
+
 			uint64_t getNumErrors() const
 			{
 				return getNumErrors(ta,te);
@@ -1149,9 +1149,9 @@ namespace libmaus2
 							break;
 						case STEP_RESET:
 							break;
-					}						
+					}
 				}
-				
+
 				return std::pair<uint64_t,uint64_t>(apos,bpos);
 			}
 
@@ -1178,11 +1178,11 @@ namespace libmaus2
 							break;
 						case STEP_RESET:
 							break;
-					}						
+					}
 				}
 
 				R.push_back(std::pair<uint64_t,uint64_t>(apos,bpos));
-				
+
 				return R;
 			}
 
@@ -1207,7 +1207,7 @@ namespace libmaus2
 					{
 						assert ( apos >= k );
 						assert ( bpos >= k );
-						R.push_back(std::pair<uint64_t,uint64_t>(apos-k+off_a,bpos-k+off_b));	
+						R.push_back(std::pair<uint64_t,uint64_t>(apos-k+off_a,bpos-k+off_b));
 					}
 
 					e &= kmask1;
@@ -1232,14 +1232,14 @@ namespace libmaus2
 							break;
 						case STEP_RESET:
 							break;
-					}						
+					}
 				}
 
 				if ( (te-ta >= static_cast<ptrdiff_t>(k)) && (e == kmask) )
 				{
 					assert ( apos >= k );
 					assert ( bpos >= k );
-					R.push_back(std::pair<uint64_t,uint64_t>(apos-k+off_a,bpos-k+off_b));				
+					R.push_back(std::pair<uint64_t,uint64_t>(apos-k+off_a,bpos-k+off_b));
 				}
 			}
 
@@ -1248,7 +1248,7 @@ namespace libmaus2
 			{
 				getKMatchOffsets(ta,te,k,R,off_a,off_b);
 			}
-			
+
 			template<typename it>
 			static std::string traceToString(it ta, it te)
 			{
@@ -1278,35 +1278,35 @@ namespace libmaus2
 							break;
 					}
 				}
-				
+
 				return ostr.str();
 			}
-			
+
 			std::string traceToString() const
 			{
 				return traceToString(ta,te);
 			}
-			
+
 			int32_t getTraceScore() const
 			{
 				return getTraceScore(ta,te);
 			}
-			
+
 			bool operator==(AlignmentTraceContainer const & o) const
 			{
 				if ( getTraceLength() != o.getTraceLength() )
 					return false;
-				
+
 				step_type *  tc =   ta;
 				step_type * otc = o.ta;
-				
+
 				while ( tc != te )
 					if ( *(tc++) != *(otc++) )
 						return false;
-						
+
 				return true;
 			}
-			
+
 			bool operator!=(AlignmentTraceContainer const & o) const
 			{
 				return ! operator==(o);

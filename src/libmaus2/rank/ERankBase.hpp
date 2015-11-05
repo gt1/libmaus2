@@ -59,12 +59,12 @@ namespace libmaus2
 			 * cache for decoding enumerative code
 			 **/
 			static DecodeCache<16,uint16_t> DC16;
-			
+
 			protected:
-			
+
 			// #define RTABLE
 			// #define HAVE_SSE4
-			
+
 			/**
 			 * compute population count (number of 1 bits) of 16 bit number val
 			 * @param val
@@ -181,7 +181,7 @@ namespace libmaus2
 					0xFFFFFFFFUL,
 					0xFFFFFFFFUL
 				};
-			
+
 				#if ! defined(RANKTABLES)
 				val >>= (32-i);
 				val &= shiftmask[i];
@@ -231,7 +231,7 @@ namespace libmaus2
 			 **/
 			static inline uint64_t popcount8m1(uint64_t val, unsigned int const i)
 			{
-				static uint64_t const shiftmask[64] = 
+				static uint64_t const shiftmask[64] =
 				{
 					// 0-8
 					0,
@@ -306,7 +306,7 @@ namespace libmaus2
 					0xFFFFFFFFFFFFFFFFULL,
 					0xFFFFFFFFFFFFFFFFULL,
 				};
-			
+
 				#if ! defined(RANKTABLES)
 				val >>= (64-i);
 				val &= shiftmask[i];
@@ -376,8 +376,8 @@ namespace libmaus2
 			}
 			/**
 			 * count number of differing bitpairs (0,1) (2,3) ... (30,31)
-			 * @param a first value 
-			 * @param b first value 
+			 * @param a first value
+			 * @param b first value
 			 * @return number of differing bit pairs
 			 **/
 			inline static unsigned int diffcountpair(uint32_t const a, uint32_t const b)
@@ -386,8 +386,8 @@ namespace libmaus2
 			}
 			/**
 			 * count number of differing bitpairs (0,1) (2,3) ... (62,63)
-			 * @param a first value 
-			 * @param b first value 
+			 * @param a first value
+			 * @param b first value
 			 * @return number of differing bit pairs
 			 **/
 			inline static unsigned int diffcountpair(uint64_t const a, uint64_t const b)

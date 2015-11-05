@@ -34,67 +34,67 @@ namespace libmaus2
 			std::string const tmpfilenamebase;
 			SparseLRU SLRU;
 			std::map<uint64_t, libmaus2::aio::InputOutputStream::shared_ptr_type> COSmap;
-			
+
 			std::string getFileName(uint64_t const id) const
 			{
 				std::ostringstream ostr;
 				ostr << tmpfilenamebase << "_" << id;
 				return ostr.str();
 			}
-						
+
 			SparseLRUFileBunch(std::string const & rtmpfilenamebase, uint64_t const rmaxsimult)
 			: tmpfilenamebase(rtmpfilenamebase), SLRU(rmaxsimult)
 			{
-			
+
 			}
-			
+
 			void remove(uint64_t const fileid)
 			{
 				std::map<uint64_t, libmaus2::aio::InputOutputStream::shared_ptr_type>::iterator it = COSmap.find(fileid);
-				
+
 				if ( it != COSmap.end() )
 				{
 					SLRU.erase(fileid);
 					COSmap.erase(it);
 				}
-				
+
 				std::string const fn = getFileName(fileid);
-				
+
 				::libmaus2::aio::FileRemoval::removeFile ( fn );
 			}
-			
+
 			libmaus2::aio::InputOutputStream & operator[](uint64_t const fileid)
 			{
 				std::map<uint64_t, libmaus2::aio::InputOutputStream::shared_ptr_type>::iterator it = COSmap.find(fileid);
-				
+
 				if ( it != COSmap.end() )
 					return *(it->second);
-					
+
 				int64_t const kickid = SLRU.get(fileid);
-				
+
 				// close file
 				if ( kickid >= 0 )
 				{
 					std::map<uint64_t, libmaus2::aio::InputOutputStream::shared_ptr_type>::iterator ito = COSmap.find(kickid);
 					assert ( ito != COSmap.end() );
-					
+
 					ito->second->flush();
 					ito->second.reset();
 					COSmap.erase(ito);
 				}
-				
+
 				std::string const fn = getFileName(fileid);
-				
+
 				if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(fn) )
 				{
 					libmaus2::aio::InputOutputStream::shared_ptr_type ptr(libmaus2::aio::InputOutputStreamFactoryContainer::constructShared(fn,
 						std::ios_base::in | std::ios_base::out | std::ios_base::binary
 					));
-					
+
 					COSmap[fileid] = ptr;
-					
+
 					ptr->seekg(0,std::ios::end);
-				
+
 					return *ptr;
 				}
 				else
@@ -102,10 +102,10 @@ namespace libmaus2
 					libmaus2::aio::InputOutputStream::shared_ptr_type ptr(libmaus2::aio::InputOutputStreamFactoryContainer::constructShared(fn,
 						std::ios_base::in | std::ios_base::out | std::ios_base::binary | std::ios_base::trunc
 					));
-				
+
 					COSmap[fileid] = ptr;
-				
-					return *ptr;				
+
+					return *ptr;
 				}
 			}
 		};

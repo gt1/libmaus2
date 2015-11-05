@@ -19,7 +19,7 @@
 
 std::ostream & libmaus2::lcs::operator<<(std::ostream & out, libmaus2::lcs::AlignmentStatistics const & A)
 {
-	return out << "AlignmentStatistics(" 
+	return out << "AlignmentStatistics("
 		<< "matches=" << A.matches << ","
 		<< "mismatches=" << A.mismatches << ","
 		<< "insertions=" << A.insertions << ","

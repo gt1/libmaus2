@@ -23,7 +23,7 @@ uint64_t libmaus2::util::IncreasingList::byteSize() const
 {
 	return 6*sizeof(uint64_t) + Bup.byteSize() + C.byteSize();
 }
-			
+
 void libmaus2::util::IncreasingList::setup()
 {
 	::libmaus2::rank::ERank222B::unique_ptr_type tR(new ::libmaus2::rank::ERank222B(Bup.get(),Bup.size()*64));
@@ -31,7 +31,7 @@ void libmaus2::util::IncreasingList::setup()
 }
 
 libmaus2::util::IncreasingList::IncreasingList(uint64_t const rn, uint64_t const rb)
-: n(rn), b(rb), m(::libmaus2::math::lowbits(b)), C(n,b), 
+: n(rn), b(rb), m(::libmaus2::math::lowbits(b)), C(n,b),
   Bup( (((n*m) >> b) + n + 63) / 64 )
 {
 }
@@ -44,12 +44,12 @@ void libmaus2::util::IncreasingList::test(std::vector<uint64_t> const & W)
 		std::sort(V.begin(),V.end());
 		uint64_t const U = V.back() + 1;
 		IncreasingList IL(V.size(),U);
-		
+
 		for ( uint64_t i = 0; i < V.size(); ++i )
 			IL.put(i,V[i]);
-		
+
 		IL.setup();
-		
+
 		for ( uint64_t i = 0; i < V.size(); ++i )
 		{
 			assert ( V[i] == IL[i] );

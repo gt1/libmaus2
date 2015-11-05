@@ -38,47 +38,47 @@
 namespace libmaus2
 {
 	namespace parallel
-	{		
+	{
 		struct SimpleThreadPool : public SimpleThreadPoolInterface
 		{
 			typedef SimpleThreadPool this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			libmaus2::parallel::SynchronousCounter<uint64_t> nextDispatcherId;
-			
+
 			libmaus2::parallel::SynchronousCounter<uint64_t> nextpackageid;
 			bool volatile panicflag;
 			libmaus2::parallel::PosixSpinLock panicflaglock;
 			libmaus2::exception::LibMausException::unique_ptr_type lme;
-						
+
 			// semaphore for notifying about start completion
 			libmaus2::parallel::PosixConditionSemaphore startsem;
-				
-			// threads		
+
+			// threads
 			libmaus2::autoarray::AutoArray<SimpleThreadPoolThread::unique_ptr_type> threads;
 			// package heap
 			libmaus2::parallel::TerminatableSynchronousHeap<
 				libmaus2::parallel::SimpleThreadWorkPackage *,
 				libmaus2::parallel::SimpleThreadWorkPackageComparator
 			> Q;
-			
+
 			libmaus2::parallel::PosixSpinLock globallock;
-			
+
 			#if defined(__linux__)
 			// map linux tid -> thread id in this pool
 			std::map<uint64_t,uint64_t> pmap;
 			#endif
-			
+
 			std::vector<std::string> logvector;
 			uint64_t logvectorcur;
 			libmaus2::parallel::PosixSpinLock logvectorlock;
-			
+
 			libmaus2::parallel::PosixSpinLock & getGlobalLock()
 			{
 				return globallock;
 			}
-			
+
 			uint64_t getNumThreads() const
 			{
 				return threads.size();
@@ -98,7 +98,7 @@ namespace libmaus2
                         	libmaus2::parallel::ScopePosixSpinLock lpanicflaglock(panicflaglock);
                         	Q.terminate();
                         	panicflag = true;
-                        	
+
                         	if ( ! lme.get() )
                         	{
                         		libmaus2::exception::LibMausException::unique_ptr_type tex(ex.uclone());
@@ -111,7 +111,7 @@ namespace libmaus2
                         	libmaus2::parallel::ScopePosixSpinLock lpanicflaglock(panicflaglock);
                         	Q.terminate();
                         	panicflag = true;
-                        	
+
                         	if ( ! lme.get() )
                         	{
                         		libmaus2::exception::LibMausException::unique_ptr_type tlme(
@@ -122,13 +122,13 @@ namespace libmaus2
                         		lme->finish();
                         	}
                         }
-                        
+
                         bool isInPanicMode()
                         {
                         	libmaus2::parallel::ScopePosixSpinLock lpanicflaglock(panicflaglock);
-				return panicflag;                        
+				return panicflag;
                         }
-                        
+
                         void printPendingHistogram(std::ostream & out)
 			{
 				std::vector<libmaus2::parallel::SimpleThreadWorkPackage *> pending =
@@ -142,7 +142,7 @@ namespace libmaus2
 					out << "P\t" << ita->first << "\t" << ita->second << "\n";
 				}
 			}
-			
+
 			void printRunningHistogram(std::ostream & out)
 			{
 				std::vector<libmaus2::parallel::SimpleThreadWorkPackage *> running;
@@ -162,16 +162,16 @@ namespace libmaus2
 					out << "R\t" << ita->first << "\t" << ita->second << "\n";
 				}
 			}
-			
+
 			void printStateHistogram(std::ostream & out)
 			{
 				printPendingHistogram(out);
 				printRunningHistogram(out);
 			}
-			
+
 			// dispatcher map
 			libmaus2::util::unordered_map<uint64_t,SimpleThreadWorkPackageDispatcher *>::type dispatchers;
-			
+
 			SimpleThreadPool(
 				uint64_t const rnumthreads
 			)
@@ -193,30 +193,30 @@ namespace libmaus2
 			void internalJoin()
 			{
 				for ( uint64_t i = 0; i < threads.size(); ++i )
-					threads[i]->tryJoin();			
+					threads[i]->tryJoin();
 			}
 			~SimpleThreadPool()
 			{
 				internalJoin();
-				
+
 				for ( uint64_t i = 0; i < threads.size(); ++i )
-					threads[i].reset();			
+					threads[i].reset();
 			}
-			
+
 			void join()
 			{
 				internalJoin();
-				
+
 				if ( lme.get() )
 					throw *lme;
 			}
-						
+
 			void enque(SimpleThreadWorkPackage * P)
 			{
 				P->packageid = nextpackageid++;
 				Q.enque(P);
 			}
-			
+
 			void terminate()
 			{
 				Q.terminate();
@@ -231,7 +231,7 @@ namespace libmaus2
 			}
 			SimpleThreadWorkPackageDispatcher * getDispatcher(libmaus2::parallel::SimpleThreadWorkPackage * P)
 			{
-				libmaus2::util::unordered_map<uint64_t,SimpleThreadWorkPackageDispatcher *>::type::iterator it = 
+				libmaus2::util::unordered_map<uint64_t,SimpleThreadWorkPackageDispatcher *>::type::iterator it =
 					dispatchers.find(P->dispatcherid);
 				assert ( it != dispatchers.end() );
 				return it->second;
@@ -261,7 +261,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < threads.size(); ++i )
 					if ( threads[i]->isCurrent() )
 						return i;
-						
+
 				libmaus2::exception::LibMausException lme;
 				lme.getStream() << "SimpleThreadPool::getThreadId(): unable to find thread\n";
 				lme.finish();
@@ -274,20 +274,20 @@ namespace libmaus2
 				libmaus2::parallel::ScopePosixSpinLock slock(logvectorlock);
 				logvector[(logvectorcur++)%logvector.size()] = s;
 			}
-			
+
 			uint64_t rdtsc(void)
 			{
 				#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_x86_64)
 				uint32_t a, d;
-			      
+
 				__asm__ volatile("rdtsc" : "=a" (a), "=d" (d));
-			         
+
 			        return static_cast<uint64_t>(a) | (static_cast<uint64_t>(d)<<32);
 			        #else
 			        return 0;
 			        #endif
 			}
-			            
+
 			virtual void addLogStringWithThreadId(std::string const & s)
 			{
 				std::ostringstream ostr;
@@ -297,7 +297,7 @@ namespace libmaus2
 			virtual void printLog(std::ostream & out = std::cerr)
 			{
 				libmaus2::parallel::ScopePosixSpinLock slock(logvectorlock);
-				
+
 				uint64_t const numlogentries = logvectorcur;
 				uint64_t const numlogentriestoprint = std::min(numlogentries,static_cast<uint64_t>(logvector.size()));
 

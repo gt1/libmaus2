@@ -25,9 +25,9 @@
 #include <emmintrin.h>
 #endif
 
-libmaus2::digest::SHA2_512_sse4::SHA2_512_sse4() 
-: block(2*(1ull<<libmaus2::digest::SHA2_512_sse4::blockshift),false), 
-  digestw(base_type::digestlength / sizeof(uint64_t),false), 
+libmaus2::digest::SHA2_512_sse4::SHA2_512_sse4()
+: block(2*(1ull<<libmaus2::digest::SHA2_512_sse4::blockshift),false),
+  digestw(base_type::digestlength / sizeof(uint64_t),false),
   digestinit(base_type::digestlength / sizeof(uint64_t),false),
   index(0), blockcnt(0)
 {
@@ -37,7 +37,7 @@ libmaus2::digest::SHA2_512_sse4::SHA2_512_sse4()
 	lme.finish();
 	throw lme;
 	#endif
-	
+
 	#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)
 	if ( !libmaus2::util::I386CacheLineSize::hasSSE41() )
 	#else
@@ -51,14 +51,14 @@ libmaus2::digest::SHA2_512_sse4::SHA2_512_sse4()
 	}
 
 	// initial state for sha512
-	static uint64_t const digest[8] = 
+	static uint64_t const digest[8] =
 	{
                 0x6A09E667F3BCC908ull,0xBB67AE8584CAA73Bull,
                 0x3C6EF372FE94F82Bull,0xA54FF53A5F1D36F1ull,
                 0x510E527FADE682D1ull,0x9B05688C2B3E6C1Full,
 		0x1F83D9ABFB41BD6Bull,0x5BE0CD19137E2179ull
 	};
-	
+
 	for ( unsigned int i = 0; i < 8; ++i )
 		digestinit[i] = digest[i];
 }
@@ -80,20 +80,20 @@ void libmaus2::digest::SHA2_512_sse4::init()
 	__m128i ra = _mm_load_si128(pi++);
 	_mm_store_si128(po++,ra);
 	ra = _mm_load_si128(pi++);
-	_mm_store_si128(po++,ra);	
-	ra = _mm_load_si128(pi++);
-	_mm_store_si128(po++,ra);	
+	_mm_store_si128(po++,ra);
 	ra = _mm_load_si128(pi++);
 	_mm_store_si128(po++,ra);
-	#endif	
+	ra = _mm_load_si128(pi++);
+	_mm_store_si128(po++,ra);
+	#endif
 }
 void libmaus2::digest::SHA2_512_sse4::update(
 	#if defined(LIBMAUS2_HAVE_x86_64)
-	uint8_t const * t, 
+	uint8_t const * t,
 	size_t l
 	#else
-	uint8_t const *, 
-	size_t	
+	uint8_t const *,
+	size_t
 	#endif
 )
 {
@@ -106,12 +106,12 @@ void libmaus2::digest::SHA2_512_sse4::update(
 		index += tocopy;
 		t += tocopy;
 		l -= tocopy;
-		
+
 		if ( index == (1ull<<base_type::blockshift) )
 		{
 			// block is complete, handle it
 			sha512_sse4(&block[0],&digestw[0],1);
-			
+
 			//
 			blockcnt += 1;
 			index = 0;
@@ -124,14 +124,14 @@ void libmaus2::digest::SHA2_512_sse4::update(
 	}
 
 	uint64_t const fullblocks = (l >> base_type::blockshift);
-		
+
 	// handle fullblocks blocks without copying them
 	sha512_sse4(t,&digestw[0],fullblocks);
 
 	blockcnt += fullblocks;
 	t += fullblocks << base_type::blockshift;
 	l -= fullblocks << base_type::blockshift;
-		
+
 	std::copy(t,t+l,&block[index]);
 	index += l;
 	#endif
@@ -140,7 +140,7 @@ void libmaus2::digest::SHA2_512_sse4::digest(
 	#if defined(LIBMAUS2_HAVE_x86_64)
 	uint8_t * digest
 	#else
-	uint8_t *	
+	uint8_t *
 	#endif
 )
 {
@@ -149,14 +149,14 @@ void libmaus2::digest::SHA2_512_sse4::digest(
 	uint64_t const numbytes = (1ull<<base_type::blockshift) * blockcnt + index;
 	// total number of bits
 	uint64_t const numbits = numbytes << 3;
-		
+
 	// write start of padding
 	block[index++] = 0x80;
-	
+
 	// space left in current block after putting 0x80 marker
 	uint64_t const blockspace = (1ull<<base_type::blockshift)-index;
-	
-	// enough room to store the length of the message	
+
+	// enough room to store the length of the message
 	if ( blockspace >= numlen )
 	{
 		// not multiple of 2?
@@ -173,13 +173,13 @@ void libmaus2::digest::SHA2_512_sse4::digest(
 		}
 		// not multiple of 8?
 		if ( index & 4 )
-		{		
+		{
 			*(reinterpret_cast<uint32_t *>(&block[index])) = 0;
 			index += 4;
 		}
 		// not multiple of 16?
 		if ( index & 8 )
-		{		
+		{
 			*(reinterpret_cast<uint64_t *>(&block[index])) = 0;
 			index += 8;
 		}
@@ -191,9 +191,9 @@ void libmaus2::digest::SHA2_512_sse4::digest(
 		// use 64 bit = 8 byte words
 		while ( p128 != pe128 )
 			_mm_store_si128(p128++,z128);
-			
+
 		uint64_t * p = reinterpret_cast<uint64_t *>(p128);
-		
+
 		// fix this, implement for larger numbers
 		*(p++) = 0;
 		* p = libmaus2::rank::BSwapBase::bswap8(numbits);
@@ -216,35 +216,35 @@ void libmaus2::digest::SHA2_512_sse4::digest(
 		}
 		// not multiple of 8?
 		if ( index & 4 )
-		{		
+		{
 			*(reinterpret_cast<uint32_t *>(&block[index])) = 0;
 			index += 4;
 		}
 		// not multiple of 16?
 		if ( index & 8 )
-		{		
+		{
 			*(reinterpret_cast<uint64_t *>(&block[index])) = 0;
 			index += 8;
 		}
 
 		// rest of words in first block + all but one word in second block
 		uint64_t restwords = (((1ull << (base_type::blockshift+1))-index)>>4) - (numlen>>4);
-				
+
 		// erase using 128 bit words
 		__m128i * p128 = reinterpret_cast<__m128i *>(&block[index]);
 		__m128i * p128e = p128 + (restwords);
 		__m128i z128 = _mm_setzero_si128();
-		
+
 		while ( p128 != p128e )
 			_mm_store_si128(p128++,z128);
-		
+
 		// erase another 64 bit word, fixme: handle true 128 bit numbers
 		uint64_t * p = (reinterpret_cast<uint64_t *>(p128)); *p++ = 0;
 		*p = libmaus2::rank::BSwapBase::bswap8(numbits);
 
 		sha512_sse4(&block[0],&digestw[0],2);
 	}
-	
+
 	uint64_t * digest64 = reinterpret_cast<uint64_t *>(&digest[0]);
 	uint64_t * digest64e = digest64 + (base_type::digestlength / sizeof(uint64_t));
 	uint64_t * digesti = &digestw[0];
@@ -266,36 +266,36 @@ void libmaus2::digest::SHA2_512_sse4::copyFrom(
 	__m128i reg;
 	__m128i const * blockin  = reinterpret_cast<__m128i const *>(&O.block[0]);
 	__m128i       * blockout = reinterpret_cast<__m128i       *>(&  block[0]);
-	
+
 	reg = _mm_load_si128(blockin++);
-	_mm_store_si128(blockout++,reg);	
+	_mm_store_si128(blockout++,reg);
 	reg = _mm_load_si128(blockin++);
-	_mm_store_si128(blockout++,reg);	
+	_mm_store_si128(blockout++,reg);
 	reg = _mm_load_si128(blockin++);
-	_mm_store_si128(blockout++,reg);	
+	_mm_store_si128(blockout++,reg);
 	reg = _mm_load_si128(blockin++);
-	_mm_store_si128(blockout++,reg);	
+	_mm_store_si128(blockout++,reg);
 	reg = _mm_load_si128(blockin++);
-	_mm_store_si128(blockout++,reg);	
+	_mm_store_si128(blockout++,reg);
 	reg = _mm_load_si128(blockin++);
-	_mm_store_si128(blockout++,reg);	
+	_mm_store_si128(blockout++,reg);
 	reg = _mm_load_si128(blockin++);
-	_mm_store_si128(blockout++,reg);	
+	_mm_store_si128(blockout++,reg);
 	reg = _mm_load_si128(blockin++);
-	_mm_store_si128(blockout++,reg);	
-	
+	_mm_store_si128(blockout++,reg);
+
 	// digest length is 64
 	__m128i const * digestin  = reinterpret_cast<__m128i const *>(&O.digestw[0]);
 	__m128i       * digestout = reinterpret_cast<__m128i       *>(&  digestw[0]);
 
 	reg = _mm_load_si128(digestin++);
-	_mm_store_si128(digestout++,reg);	
+	_mm_store_si128(digestout++,reg);
 	reg = _mm_load_si128(digestin++);
-	_mm_store_si128(digestout++,reg);	
+	_mm_store_si128(digestout++,reg);
 	reg = _mm_load_si128(digestin++);
-	_mm_store_si128(digestout++,reg);	
+	_mm_store_si128(digestout++,reg);
 	reg = _mm_load_si128(digestin++);
-	_mm_store_si128(digestout++,reg);	
+	_mm_store_si128(digestout++,reg);
 
 	blockcnt = O.blockcnt;
 	index = O.index;

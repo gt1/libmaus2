@@ -51,14 +51,14 @@ namespace libmaus2
 			private:
 			//! additional key:value fields
 			std::string restkv;
-			
+
 			public:
 			// get sorted vector of key=value pairs
 			std::vector< std::pair<std::string,std::string> > getSortedKeyValuePairs() const
 			{
 				std::vector< std::pair<std::string,std::string> > V;
-			
-				// extract key:value pairs	
+
+				// extract key:value pairs
 				uint64_t low = 0;
 				while ( low != restkv.size() )
 				{
@@ -66,62 +66,62 @@ namespace libmaus2
 					uint64_t high = low;
 					while ( high != restkv.size() && restkv[high] != '\t' )
 						++high;
-						
+
 					// search for end of key
 					uint64_t klow = low;
 					uint64_t khigh = klow;
 					while ( khigh != high && restkv[khigh] != ':' )
 						++khigh;
-					
+
 					bool const ok = (khigh-klow==2) && restkv[khigh] == ':';
 					if ( ! ok )
 					{
 						libmaus2::exception::LibMausException lme;
-						lme.getStream() << "libmaus2::bambam::Chromosome::getSortedKeyValuePairs(): malformed key/value part " 
-							<< restkv 
+						lme.getStream() << "libmaus2::bambam::Chromosome::getSortedKeyValuePairs(): malformed key/value part "
+							<< restkv
 							<< " low=" << low << " high=" << high << " interval=" << std::string(restkv.begin()+low,restkv.begin()+high)
 							<< " klow=" << klow << " khigh=" << khigh << " kinterval=" << std::string(restkv.begin()+klow,restkv.begin()+khigh)
 							<< std::endl;
 						lme.finish();
 						throw lme;
 					}
-									
+
 					uint64_t vlow = khigh + 1;
 					uint64_t vhigh = high;
-					
+
 					V.push_back(
 						std::pair<std::string,std::string>(
 							restkv.substr(klow,khigh-klow),
 							restkv.substr(vlow,vhigh-vlow)
 						)
 					);
-					
+
 					assert ( high == restkv.size() || restkv[high] == '\t' );
-					
+
 					// consume '\t'
 					if ( high != restkv.size() )
 						high += 1;
-					
+
 					low = high;
 				}
-							
-				// sort key:value pairs	
+
+				// sort key:value pairs
 				std::sort(V.begin(),V.end());
-				
+
 				return V;
 			}
-			
+
 			std::string getRestKVString() const
 			{
 				return restkv;
 			}
-			
+
 			// rest string containing rest of tab separated key:value pairs
 			void setRestKVString(std::string const & rrestkv)
 			{
 				restkv = rrestkv;
 			}
-			
+
 			/**
 			 * constructor for empty reference sequence
 			 **/
@@ -132,7 +132,7 @@ namespace libmaus2
 			 **/
 			Chromosome(Chromosome const & o)
 			: name(o.name), len(o.len), restkv(o.restkv) {}
-			
+
 			/**
 			 * constructor from parameters
 			 *
@@ -156,27 +156,27 @@ namespace libmaus2
 					this->restkv = o.restkv;
 				}
 				return *this;
-			}			
-			
+			}
+
 			std::string createLine() const
 			{
 				std::ostringstream linestr;
-				linestr << "@SQ" 
+				linestr << "@SQ"
 					<< "\t" << "SN:" << name
 					<< "\t" << "LN:" << len;
 
-				// append rest of key:value pairs if any				
+				// append rest of key:value pairs if any
 				if ( restkv.size() )
 					linestr << '\t' << restkv;
-				
+
 				return linestr.str();
 			}
-			
+
 			std::pair<char const *, char const *> getName() const
 			{
 				return std::pair<char const *, char const *>(name.c_str(),name.c_str() + name.size());
 			}
-			
+
 			std::string getNameString() const
 			{
 				return name;
@@ -186,17 +186,17 @@ namespace libmaus2
 			{
 				return name.c_str();
 			}
-			
+
 			uint64_t getLength() const
 			{
 				return len;
 			}
-			
+
 			void setName(std::string const & rname)
 			{
 				name = rname;
 			}
-		};		
+		};
 	}
 }
 #endif

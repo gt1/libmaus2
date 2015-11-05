@@ -41,9 +41,9 @@ namespace libmaus2
 				state_perr,
 				state_wait
 			};
-		
+
 		};
-		
+
 		inline std::ostream & operator<<(std::ostream & out, LSFStateBase::state state)
 		{
 			switch ( state )
@@ -60,7 +60,7 @@ namespace libmaus2
 				case LSFStateBase::state_perr: out << "state_perr"; break;
 				case LSFStateBase::state_wait: out << "state_wait"; break;
 			}
-			
+
 			return out;
 		}
 	}

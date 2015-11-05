@@ -34,17 +34,17 @@ namespace libmaus2
             uint64_t s = 0;
             uint64_t u = 1;
             uint64_t r = 0;
-            
+
             // invariant at start of loop: r = sqrt(s)
             while ( s < n )
             {
               s += u;
               u += 2;
-              
+
               if ( s <= n )
                 r += 1;
             }
-            
+
             return r;
           }
   }

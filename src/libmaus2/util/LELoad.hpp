@@ -55,7 +55,7 @@ namespace libmaus2
 		inline uint64_t loadValueLE3Template(uint8_t const * p)
 		{
 			if ( mod )
-				return 
+				return
 					static_cast<uint64_t>(p[0]) |
 					(static_cast<uint64_t>(*(reinterpret_cast<uint16_t const *>(p+1))) << 8);
 			else
@@ -85,7 +85,7 @@ namespace libmaus2
 					return
 						static_cast<uint64_t>(*p) |
 						(static_cast<uint64_t>(*(reinterpret_cast<uint16_t const *>(p+1))) << 8) |
-						(static_cast<uint64_t>(p[3]) << 24);			
+						(static_cast<uint64_t>(p[3]) << 24);
 			}
 		}
 		inline uint64_t loadValueLE4(uint8_t const * p)
@@ -104,7 +104,7 @@ namespace libmaus2
 			switch ( mod )
 			{
 				case 0:
-					return 
+					return
 						static_cast<uint64_t>(*(reinterpret_cast<uint32_t const *>(p))) |
 						(static_cast<uint64_t>(p[4]) << 32);
 				case 1:
@@ -144,7 +144,7 @@ namespace libmaus2
 			static inline void loadMultipleValues(uint8_t const * p, iterator_A & A)
 			{
 				// std::cerr << "numlen=" << numlen << " mod=" << mod << " cnt=" << cnt << std::endl;
-			
+
 				switch ( numlen )
 				{
 					case 1: A[index] = loadValueLE1(p); break;
@@ -154,18 +154,18 @@ namespace libmaus2
 					case 5: A[index] = loadValueLE5Template<mod % 4>(p); break;
 					default: assert(0);
 				}
-				
+
 				LoadMultipleValuesNMC<iterator_A,numlen,mod+numlen,index+1,cnt-1>::loadMultipleValues(p+numlen,A);
-			}		
+			}
 		};
-		
+
 		template<typename iterator_A, unsigned int numlen, unsigned int mod, unsigned int index>
 		struct LoadMultipleValuesNMC<iterator_A,numlen,mod,index,0>
 		{
 			static inline void loadMultipleValues(uint8_t const *, iterator_A &)
 			{
 			}
-		};		
+		};
 
 		template<typename iterator_A, unsigned int numlen, unsigned int cnt>
 		struct LoadMultipleValuesNC
@@ -211,8 +211,8 @@ namespace libmaus2
 		template<typename iterator_A, unsigned int numlen>
 		struct LoadMultipleValuesNCCall
 		{
-			static inline void loadMultipleValues(uint8_t const * p, iterator_A & A, unsigned int const cnt) 
-			{ 
+			static inline void loadMultipleValues(uint8_t const * p, iterator_A & A, unsigned int const cnt)
+			{
 				switch ( cnt )
 				{
 					case 0: LoadMultipleValuesNC<iterator_A,numlen,0>::loadMultipleValues(p,A); break;

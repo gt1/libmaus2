@@ -43,10 +43,10 @@ namespace libmaus2
 			{
 				typedef typename input_types_type::base_input_stream base_input_stream;
 				typedef typename input_types_type::circular_wrapper circular_wrapper;
-				
+
 				circular_wrapper textstr(fn,t);
 				circular_wrapper patstr(fn,p);
-				
+
 				// dynamically growing best prefix table
 				::libmaus2::util::KMP::BestPrefix<base_input_stream> BP(patstr,m);
 				// adapter for accessing pattern in BP
@@ -60,7 +60,7 @@ namespace libmaus2
 					// restriction for position
 					n
 				);
-				
+
 				return Q.second;
 			}
 
@@ -81,10 +81,10 @@ namespace libmaus2
 			{
 				typedef typename input_types_type::base_input_stream base_input_stream;
 				typedef typename input_types_type::circular_wrapper circular_wrapper;
-				
+
 				circular_wrapper textstr(fn,t);
 				circular_wrapper patstr(fn,p);
-				
+
 				// dynamically growing best prefix table
 				::libmaus2::util::KMP::BestPrefix<base_input_stream> BP(patstr,m);
 				// adapter for accessing pattern in BP
@@ -100,7 +100,7 @@ namespace libmaus2
 					// bound on length
 					bound
 				);
-				
+
 				return Q.second;
 			}
 		};

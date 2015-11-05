@@ -30,12 +30,12 @@ namespace libmaus2
 			typedef SocketInputStream this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			SocketInputStream(
-				libmaus2::network::SocketInputInterface & rbase, 
-				uint64_t const bufsize, 
+				libmaus2::network::SocketInputInterface & rbase,
+				uint64_t const bufsize,
 				uint64_t const pushbacksize = 0
-			) 
+			)
 			: SocketInputStreamBuffer(rbase,bufsize,pushbacksize), std::istream(this)
 			{}
 		};

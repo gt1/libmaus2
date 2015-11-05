@@ -34,44 +34,44 @@ namespace libmaus2
 			typedef PosixFdInputStreamBuffer this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			private:
 			static int64_t getDefaultBlockSize()
 			{
 				return 64*1024;
 			}
-			
+
 			::libmaus2::aio::PosixFdInput & stream;
 			int64_t const optblocksize;
-			
+
 			int64_t const filesize;
 
 			uint64_t const blocksize;
 			uint64_t const putbackspace;
-			
+
 			::libmaus2::autoarray::AutoArray<char> buffer;
 
 			uint64_t symsread;
 
 			PosixFdInputStreamBuffer(PosixFdInputStreamBuffer const &);
 			PosixFdInputStreamBuffer & operator=(PosixFdInputStreamBuffer &);
-			
+
 			inline void setgchecked(char * a, char * b, char * c)
 			{
 				bool const ok = (a <= b) && (b <= c);
-				
+
 				if ( ! ok )
 				{
 					libmaus2::exception::LibMausException lme;
-					lme.getStream() << "PosixFdInputStreamBuffer: invalid parameters for setg detected, a=" 
+					lme.getStream() << "PosixFdInputStreamBuffer: invalid parameters for setg detected, a="
 						<< (void *)a << " b=" << (void *)b << " c=" << (void *)c << std::endl;
 					lme.finish();
 					throw lme;
 				}
-				
+
 				setg(a,b,c);
 			}
-			
+
 			void init(bool const repos)
 			{
 				// set empty buffer
@@ -80,24 +80,24 @@ namespace libmaus2
 				if ( repos )
 					stream.lseek(symsread);
 			}
-			
+
 			uint64_t getOptimalBlockSize()
 			{
 				int64_t const optblocksize = stream.getOptimalIOBlockSize();
-				
+
 				if ( optblocksize <= 0 )
 					return getDefaultBlockSize();
 				else
 					return optblocksize;
 			}
-			
+
 			public:
 			PosixFdInputStreamBuffer(
 				::libmaus2::aio::PosixFdInput & rstream,
 				int64_t const rblocksize,
 				uint64_t const rputbackspace = 0
 			)
-			: 
+			:
 			  stream(rstream),
 			  optblocksize(getOptimalBlockSize()),
 			  filesize(stream.sizeChecked()),
@@ -115,7 +115,7 @@ namespace libmaus2
 			{
 				return reinterpret_cast<uint8_t const *>(gptr());
 			}
-			
+
 			/**
 			 * seek to absolute position
 			 **/
@@ -129,7 +129,7 @@ namespace libmaus2
 					int64_t const curlow = cur - static_cast<int64_t>(gptr()-eback());
 					// current end of buffer (relative)
 					int64_t const curhigh = cur + static_cast<int64_t>(egptr()-gptr());
-					
+
 					// call relative seek, if target is in range
 					if ( sp >= curlow && sp <= curhigh )
 						return seekoff(static_cast<int64_t>(sp) - cur, ::std::ios_base::cur, which);
@@ -137,7 +137,7 @@ namespace libmaus2
 					// target is out of range, we really need to seek
 					uint64_t tsymsread = (sp / blocksize)*blocksize;
 
-					// set symsread					
+					// set symsread
 					symsread = tsymsread;
 
 					// reinit
@@ -145,34 +145,34 @@ namespace libmaus2
 
 					// read next block
 					underflow();
-					
+
 					// skip bytes in block to get to final position
 					setgchecked(
 						eback(),
-						gptr() + (static_cast<int64_t>(sp)-static_cast<int64_t>(tsymsread)), 
+						gptr() + (static_cast<int64_t>(sp)-static_cast<int64_t>(tsymsread)),
 						egptr()
 					);
-				
+
 					return sp;
 				}
-				
+
 				return -1;
 			}
-			
+
 			::std::streampos seekoff(::std::streamoff off, ::std::ios_base::seekdir way, ::std::ios_base::openmode which = ::std::ios_base::in | ::std::ios_base::out)
 			{
 				if ( which & ::std::ios_base::in )
 				{
 					int64_t abstarget = 0;
 					int64_t const cur = symsread - (egptr()-gptr());
-					
+
 					if ( way == ::std::ios_base::cur )
 						abstarget = cur + off;
 					else if ( way == ::std::ios_base::beg )
 						abstarget = off;
 					else // if ( way == ::std::ios_base::end )
 						abstarget = static_cast<int64_t>(filesize) + off;
-					
+
 					// no movement
 					if ( abstarget - cur == 0 )
 					{
@@ -205,10 +205,10 @@ namespace libmaus2
 						return seekpos(abstarget,which);
 					}
 				}
-				
+
 				return -1;
 			}
-			
+
 			int_type underflow()
 			{
 				// if there is still data, then return it
@@ -228,13 +228,13 @@ namespace libmaus2
 					gptr(),
 					buffer.begin() + putbackspace - putbackcopy
 				);
-				
+
 				// load data
 				uint64_t const uncompressedsize = stream.read(
 						buffer.begin()+putbackspace,
 						buffer.size()-putbackspace
 					);
-				
+
 				// set buffer pointers
 				setgchecked(
 					buffer.begin()+putbackspace-putbackcopy,
@@ -242,7 +242,7 @@ namespace libmaus2
 					buffer.begin()+putbackspace+uncompressedsize);
 
 				symsread += uncompressedsize;
-				
+
 				if ( uncompressedsize )
 					return static_cast<int_type>(*uptr());
 				else

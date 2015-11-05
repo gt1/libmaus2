@@ -47,7 +47,7 @@ static uint64_t count64(uint8_t const * p, uint8_t const c ='\n')
 		}
 
 		#else
-		
+
 		uint64_t v0 = static_cast<uint64_t>(static_cast<uint8_t>(p[0]-c));
 		uint64_t v1 = static_cast<uint64_t>(static_cast<uint8_t>(p[1]-c));
 		uint64_t v2 = static_cast<uint64_t>(static_cast<uint8_t>(p[2]-c));
@@ -56,21 +56,21 @@ static uint64_t count64(uint8_t const * p, uint8_t const c ='\n')
 		uint64_t v5 = static_cast<uint64_t>(static_cast<uint8_t>(p[5]-c));
 		uint64_t v6 = static_cast<uint64_t>(static_cast<uint8_t>(p[6]-c));
 		uint64_t v7 = static_cast<uint64_t>(static_cast<uint8_t>(p[7]-c));
-		
+
 		uint64_t v01 = v0|(v1<<8);
 		uint64_t v23 = v2|(v3<<8);
 		uint64_t v45 = v4|(v5<<8);
 		uint64_t v67 = v6|(v7<<8);
-		
+
 		uint64_t v0123 = v01 | (v23<<16);
 		uint64_t v4567 = v45 | (v67<<16);
-		
+
 		uint64_t v = v0123 | (v4567<<32);
-		
+
 		p += 8;
-		
+
 		#endif
-		
+
 		// set lowest bit in byte if any bit is set in the byte
 		v |= (v>>4);
 		v |= (v>>2);
@@ -83,11 +83,11 @@ static uint64_t count64(uint8_t const * p, uint8_t const c ='\n')
 		w |= v;
 	}
 
-	// invert bit mask	
+	// invert bit mask
 	w = ~w;
 
 	// count number of bits set in w (equals number of c bytes in block)
-	return libmaus2::rank::PopCnt8<sizeof(unsigned long long)>::popcnt8(w);	
+	return libmaus2::rank::PopCnt8<sizeof(unsigned long long)>::popcnt8(w);
 }
 
 /**
@@ -104,7 +104,7 @@ static uint64_t count(uint8_t const * p, uint64_t const n, uint8_t const c = '\n
 	uint64_t cnt = 0;
 	uint64_t full = n / 64;
 	uint64_t const rest = n - (full*64);
-	
+
 	while ( full-- )
 	{
 		__builtin_prefetch(p+4096,0/*rw*/,1);
@@ -115,10 +115,10 @@ static uint64_t count(uint8_t const * p, uint64_t const n, uint8_t const c = '\n
 		cnt += count64(p,c);
 		p += 64;
 	}
-	
+
 	for ( uint64_t i = 0; i < rest; ++i )
 		cnt += (*(p++) == c);
-		
+
 	return cnt;
 }
 

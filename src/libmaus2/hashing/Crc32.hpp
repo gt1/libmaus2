@@ -19,7 +19,7 @@
  */
 #if ! defined(LIBMAUS2_HASHING_CRC32_HPP)
 #define LIBMAUS2_HASHING_CRC32_HPP
- 
+
 #include <libmaus2/types/types.hpp>
 #include <libmaus2/rank/BSwapBase.hpp>
 #include <cstdlib>

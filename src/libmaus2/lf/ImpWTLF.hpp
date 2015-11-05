@@ -32,25 +32,25 @@ namespace libmaus2
 		{
 			typedef ::libmaus2::wavelet::ImpWaveletTree wt_type;
 			typedef wt_type::unique_ptr_type wt_ptr_type;
-			
+
 			typedef ImpWTLF this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			uint64_t n;
 			wt_ptr_type W;
 			::libmaus2::autoarray::AutoArray < uint64_t > D;
-			
+
 			void serialise(std::ostream & out)
 			{
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,n);
 				W->serialise(out);
 			}
-			
+
 			ImpWTLF(std::istream & in)
 			: n(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 			  W (new wt_type(in))
-			{				
+			{
 				if ( n )
 				{
 					D = ::libmaus2::autoarray::AutoArray < uint64_t >((1ull<<W->getB())+1);
@@ -65,7 +65,7 @@ namespace libmaus2
 			: n(rn)
 			{
 				if ( n )
-				{	
+				{
 					uint64_t maxval = rmaxval;
 					for ( uint64_t i = 0; i < n; ++i )
 						maxval = std::max ( maxval, static_cast<uint64_t>(BWT[i]) );
@@ -76,14 +76,14 @@ namespace libmaus2
 						IEWG.putSymbol(BWT[i]);
 					std::string const tmpfilename = rtmpgen.getFileName();
 					IEWG.createFinalStream(tmpfilename);
-					
+
 					{
 					libmaus2::aio::InputStreamInstance istr(tmpfilename);
 					wt_ptr_type tW(new wt_type(istr));
 					W = UNIQUE_PTR_MOVE(tW);
 					}
 					libmaus2::aio::FileRemoval::removeFile (tmpfilename);
-					
+
 					D = ::libmaus2::autoarray::AutoArray < uint64_t >((1ull<<W->getB())+1);
 					for ( uint64_t i = 0; i < (1ull<<W->getB()); ++i )
 						D [ i ] = W->rank(i,n-1);
@@ -109,38 +109,38 @@ namespace libmaus2
 			: n(decoder.getN())
 			{
 				if ( n )
-				{	
+				{
 					::libmaus2::wavelet::ImpExternalWaveletGenerator IEWG(b,rtmpgen);
 					for ( uint64_t i = 0; i < n; ++i )
 						IEWG.putSymbol(decoder.decode());
 					std::string const tmpfilename = rtmpgen.getFileName();
 					IEWG.createFinalStream(tmpfilename);
-					
+
 					{
 					libmaus2::aio::InputStreamInstance istr(tmpfilename);
 					wt_ptr_type tW(new wt_type(istr));
 					W = UNIQUE_PTR_MOVE(tW);
 					}
 					libmaus2::aio::FileRemoval::removeFile ( tmpfilename );
-					
+
 					D = ::libmaus2::autoarray::AutoArray < uint64_t >((1ull<<W->getB())+1);
 					for ( uint64_t i = 0; i < (1ull<<W->getB()); ++i )
 						D [ i ] = W->rank(i,n-1);
 					D.prefixSums();
 				}
 			}
-			
+
 			uint64_t getN() const
 			{
 				return n;
 			}
-			
+
 			private:
-			
+
 			public:
 			inline uint64_t rankm1(uint64_t const k, uint64_t const sp) const { return W->rankm1(k,sp); }
 			inline uint64_t step(uint64_t const k, uint64_t const sp) const { return D[k] + rankm1(k,sp); }
-			
+
 			uint64_t operator[](uint64_t const i) const
 			{
 				return (*W)[i];
@@ -152,11 +152,11 @@ namespace libmaus2
 				return D[P.first] + P.second;
 			}
 
-			template<typename iterator>	
+			template<typename iterator>
 			inline void search(iterator query, uint64_t const m, uint64_t & sp, uint64_t & ep) const
 			{
 				sp = 0, ep = n;
-				
+
 				for ( uint64_t i = 0; i < m && sp != ep; ++i )
 					sp = step(query[m-i-1],sp),
 					ep = step(query[m-i-1],ep);
@@ -170,7 +170,7 @@ namespace libmaus2
 						return syms-i-1;
 				return 0;
 			}
-			
+
 			uint64_t phi(uint64_t r) const
 			{
 				uint64_t const sym = sortedSymbol(r);

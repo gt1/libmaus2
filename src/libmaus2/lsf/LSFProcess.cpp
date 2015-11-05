@@ -38,15 +38,15 @@ uint64_t libmaus2::lsf::LSF::Mscale = 1000;
 void libmaus2::lsf::LSF::init(std::string const & sappname)
 {
 	::libmaus2::parallel::ScopeLock lock(lsflock);
-	
+
 	::libmaus2::autoarray::AutoArray<char> appname(sappname.size()+1);
 	::std::copy(sappname.begin(),sappname.end(),appname.get());
-                      
-        if (lsb_init(appname.get()) < 0) 
-        {					
+
+        if (lsb_init(appname.get()) < 0)
+        {
 		char buf[] = "lsb_init()";
 		lsb_perror(buf);
-                                      
+
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "lsb_init() in libmaus2::lsf::LSF::init" << std::endl;
 		se.finish();
@@ -57,7 +57,7 @@ void libmaus2::lsf::LSF::init(std::string const & sappname)
 std::string libmaus2::lsf::LSF::getClusterName()
 {
 	::libmaus2::parallel::ScopeLock lock(lsflock);
-	
+
 	char const *clustername = ls_getclustername();
 
         if (clustername == NULL) {
@@ -69,7 +69,7 @@ std::string libmaus2::lsf::LSF::getClusterName()
 		se.finish();
 		throw se;
         }
-        
+
         return std::string(clustername);
 }
 
@@ -93,7 +93,7 @@ int64_t libmaus2::lsf::LSFProcess::submitJob(
 	// ::libmaus2::parallel::ScopeLock lock(::libmaus2::lsf::LSF::lsflock);
 
         std::ostringstream bsubstr;
-        bsubstr 
+        bsubstr
                 << "bsub"
                 << " " << "-G \"" << sproject << "\""
                 << " " << "-P \"" << sproject << "\""
@@ -122,33 +122,33 @@ int64_t libmaus2::lsf::LSFProcess::submitJob(
         {
                 bsubstr << " " << "-m \"";
                 std::vector < std::string > const & vhosts = *hosts;
-                
+
                 for ( uint64_t h = 0; h < vhosts.size(); ++h )
                 {
                         bsubstr << vhosts[h];
                         if ( h+1 < vhosts.size() )
                                 bsubstr << " ";
                 }
-                
+
                 bsubstr << "\"";
         }
-        
+
         bsubstr << " ";
-        
+
         for ( uint64_t i = 0; i < scommand.size(); ++i )
                 if ( scommand[i] == '"' )
                         bsubstr << '"';
                 else
                         bsubstr << scommand[i];
-        
+
         std::string const bsub = bsubstr.str();
-                
+
         std::string out, err;
         #if 1
         std::cerr << "[[" << bsub << "]]" << std::endl;
         #endif
         int const ret = ::libmaus2::util::PosixExecute::execute(bsub,out,err);
-        
+
         if ( ret == 0 )
         {
                 std::deque<std::string> tokens = ::libmaus2::util::stringFunctions::tokenize(out,std::string(" "));
@@ -163,11 +163,11 @@ int64_t libmaus2::lsf::LSFProcess::submitJob(
                                 return id;
                 }
         }
-        
+
         ::libmaus2::exception::LibMausException se;
         se.getStream() << "Failed to create LSF process.";
         se.finish();
-        throw se;        
+        throw se;
 }
 
 libmaus2::lsf::LSFProcess::LSFProcess(
@@ -188,13 +188,13 @@ libmaus2::lsf::LSFProcess::LSFProcess(
 : id(submitJob(scommand,sjobname,sproject,squeuename,numcpu,maxmem,sinfilename,soutfilename,serrfilename,hosts,cwd,tmpspace,model))
 {
 }
-        		
+
 bool libmaus2::lsf::LSFProcess::isFinished() const
 {
 	::libmaus2::parallel::ScopeLock lock(::libmaus2::lsf::LSF::lsflock);
-	
+
         bool finished = false;
-        
+
         int numrec = lsb_openjobinfo(id,0,0,0,0,ALL_JOB);
 
         if ( numrec == -1 )
@@ -202,20 +202,20 @@ bool libmaus2::lsf::LSFProcess::isFinished() const
                 // std::cerr << "Job " << id << " not found in isFinished()" << std::endl;
                 return false;
         }
-        
+
         if ( numrec > 0 )
         {
                 jobInfoEnt const * jie = lsb_readjobinfo(&numrec);
-                
+
                 if ( jie )
                         // finished = (IS_FINISH(jie->status) && IS_POST_FINISH(jie->status));
                         finished = IS_FINISH(jie->status);
                 else
                         finished = false;
         }
-        
+
         lsb_closejobinfo();
-        
+
         // std::cerr << "Returning " << finished << " for job " << id << std::endl;
 
         return finished;
@@ -224,21 +224,21 @@ bool libmaus2::lsf::LSFProcess::isFinished() const
 bool libmaus2::lsf::LSFProcess::isKnown() const
 {
 	::libmaus2::parallel::ScopeLock lock(::libmaus2::lsf::LSF::lsflock);
-	
+
         int numrec = lsb_openjobinfo(id,0,0,0,0,ALL_JOB);
 
-        lsb_closejobinfo();        
+        lsb_closejobinfo();
 
 	if ( numrec <= 0 )
 		return false;
 	else
-		return true;	
+		return true;
 }
 
 bool libmaus2::lsf::LSFProcess::isUnfinished() const
 {
 	::libmaus2::parallel::ScopeLock lock(::libmaus2::lsf::LSF::lsflock);
-	
+
         int numrec = lsb_openjobinfo(id,0,0,0,0,ALL_JOB);
 
         // error, assume job is finished
@@ -248,23 +248,23 @@ bool libmaus2::lsf::LSFProcess::isUnfinished() const
         // job unknown, assume it is finished
 	if ( numrec == 0 )
 	{
-	        lsb_closejobinfo();        
+	        lsb_closejobinfo();
 		return false;
 	}
 	else // numrec > 0
 	{
         	// read record
                 jobInfoEnt const * jie = lsb_readjobinfo(&numrec);
-                
+
                 // this should not happen, assume job is finished
                 if ( !jie )
                 {
 		        lsb_closejobinfo();
-		        return false;        
+		        return false;
                 }
                 else
                 {
-		        
+
                 	bool const unfinished =
                 		(jie->status & JOB_STAT_PEND) ||
                 		(jie->status & JOB_STAT_PSUSP) ||
@@ -273,7 +273,7 @@ bool libmaus2::lsf::LSFProcess::isUnfinished() const
                 		(jie->status & JOB_STAT_SSUSP);
 
 		        lsb_closejobinfo();
-		        
+
 		        return unfinished;
                 }
 	}
@@ -282,7 +282,7 @@ bool libmaus2::lsf::LSFProcess::isUnfinished() const
 bool libmaus2::lsf::LSFProcess::isRunning() const
 {
 	::libmaus2::parallel::ScopeLock lock(::libmaus2::lsf::LSF::lsflock);
-	
+
         int numrec = lsb_openjobinfo(id,0,0,0,0,ALL_JOB);
 
         // function failed
@@ -290,21 +290,21 @@ bool libmaus2::lsf::LSFProcess::isRunning() const
                 return false;
 
         bool running = false;
-        
+
         // there are records
         if ( numrec > 0 )
         {
         	// read record
                 jobInfoEnt const * jie = lsb_readjobinfo(&numrec);
-                
+
                 if ( jie )
                         running = IS_START(jie->status);
 		else
 			running = false;
         }
-        
+
         lsb_closejobinfo();
-        
+
         // std::cerr << "Returning " << finished << " for job " << id << std::endl;
 
         return running;
@@ -315,7 +315,7 @@ bool libmaus2::lsf::LSFProcess::finishedOk() const
 	::libmaus2::parallel::ScopeLock lock(::libmaus2::lsf::LSF::lsflock);
 
         bool ok = false;
-        
+
         int numrec = lsb_openjobinfo(id,0,0,0,0,ALL_JOB);
 
         if ( numrec == -1 )
@@ -323,20 +323,20 @@ bool libmaus2::lsf::LSFProcess::finishedOk() const
                 // std::cerr << "Job " << id << " not found in isFinished()" << std::endl;
                 return false;
         }
-        
+
         if ( numrec > 0 )
         {
                 jobInfoEnt const * jie = lsb_readjobinfo(&numrec);
-                
+
                 if ( jie )
                         // ok = (IS_FINISH(jie->status) && IS_POST_FINISH(jie->status));
                         ok = IS_FINISH(jie->status) && (jie->status & JOB_STAT_DONE);
                 else
                         ok = false;
         }
-        
+
         lsb_closejobinfo();
-        
+
         // std::cerr << "Returning " << ok << " for job " << id << std::endl;
 
         return ok;
@@ -347,7 +347,7 @@ void libmaus2::lsf::LSFProcess::wait(int sleepinterval) const
         while ( isRunning() )
                 if ( sleepinterval )
                         sleep(sleepinterval);
-}		
+}
 
 std::string libmaus2::lsf::LSFProcess::getSingleHost() const
 {
@@ -371,11 +371,11 @@ std::string libmaus2::lsf::LSFProcess::getSingleHost() const
 bool libmaus2::lsf::LSFProcess::getHost(std::vector < std::string > & hostnames) const
 {
 	::libmaus2::parallel::ScopeLock lock(::libmaus2::lsf::LSF::lsflock);
-	
+
         bool hostok = false;
-        
+
         // std::cerr << "Getting host names for id " << id << std::endl;
-        
+
         int numrec = lsb_openjobinfo(id,0,0,0,0,ALL_JOB);
 
         if ( numrec <= 0 )
@@ -385,7 +385,7 @@ bool libmaus2::lsf::LSFProcess::getHost(std::vector < std::string > & hostnames)
         else if ( numrec > 0 )
         {
                 jobInfoEnt const * jie = lsb_readjobinfo(&numrec);
-                
+
                 if ( jie )
                 {
                         if ( jie->numExHosts )
@@ -396,20 +396,20 @@ bool libmaus2::lsf::LSFProcess::getHost(std::vector < std::string > & hostnames)
                         }
                 }
         }
-        
+
         lsb_closejobinfo();
-        
+
         return hostok;
-        
+
 }
 
 void libmaus2::lsf::LSFProcess::kill(int const sig) const
 {
 	::libmaus2::parallel::ScopeLock lock(::libmaus2::lsf::LSF::lsflock);
-	
+
         std::ostringstream ostr;
         ostr << "bkill -s " << sig << " " << id;
-        
+
         std::string out, err;
         ::libmaus2::util::PosixExecute::execute(ostr.str(),out,err);
 
@@ -445,9 +445,9 @@ static libmaus2::lsf::LSFProcess::state statusToState(int64_t const status)
 libmaus2::lsf::LSFProcess::state libmaus2::lsf::LSFProcess::getState(std::map<int64_t,int64_t> const & M) const
 {
 	state const s = statusToState(getIntState(M));
-	
+
 	// std::cerr << "id " << id << " state " << s << std::endl;
-	
+
 	return s;
 }
 
@@ -459,30 +459,30 @@ libmaus2::lsf::LSFProcess::state libmaus2::lsf::LSFProcess::getState() const
 int64_t libmaus2::lsf::LSFProcess::getIntState() const
 {
 	int lsfr = lsb_openjobinfo(id,0/*jobname*/,0/*user*/,0/*queue*/,0/*host*/,ALL_JOB);
-	
+
 	if ( lsfr < 0 )
 	{
 		return 0;
 	}
 	else if ( lsfr == 0 )
 	{
-		lsb_closejobinfo();					
+		lsb_closejobinfo();
 		return 0;
 	}
 	else
 	{
 		jobInfoEnt const * jie = lsb_readjobinfo(&lsfr);
-		
+
 		if ( ! jie )
 		{
-			lsb_closejobinfo();					
-			return 0;				
+			lsb_closejobinfo();
+			return 0;
 		}
 
 		int64_t const status = jie->status;
 		lsb_closejobinfo();
 
-		return status;		
+		return status;
 	}
 }
 
@@ -494,7 +494,7 @@ std::string getUserName()
 	::libmaus2::autoarray::AutoArray<char> Abuf(maxpwlen);
 	struct passwd pwd, * ppwd;
 	int const fail = getpwuid_r(uid,&pwd,Abuf.get(),maxpwlen,&ppwd);
-	
+
 	if ( ! fail )
 	{
 		return std::string(pwd.pw_name);
@@ -511,21 +511,21 @@ std::string getUserName()
 std::map < int64_t, int64_t> libmaus2::lsf::LSFProcess::getIntStates()
 {
 	::libmaus2::parallel::ScopeLock lock(::libmaus2::lsf::LSF::lsflock);
-	
+
 	std::string const username = getUserName();
 	::libmaus2::util::WriteableString W(username);
 	int lsfr = lsb_openjobinfo(0,0/*jobname*/,W.A.begin()/*user*/,0/*queue*/,0/*host*/,ALL_JOB);
-	
+
 	if ( lsfr < 0 )
 	{
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "lsb_openjobinfo failed." << std::endl;
 		se.finish();
-		throw se;		
+		throw se;
 	}
-	
+
 	std::map<int64_t,int64_t> M;
-	
+
 	while ( lsfr )
 	{
 		jobInfoEnt const * jie = lsb_readjobinfo(&lsfr);
@@ -533,22 +533,22 @@ std::map < int64_t, int64_t> libmaus2::lsf::LSFProcess::getIntStates()
 		if ( ! jie )
 		{
 			lsb_closejobinfo();
-			
+
 			::libmaus2::exception::LibMausException se;
 			se.getStream() << "lsb_readjobinfo failed." << std::endl;
 			se.finish();
 			throw se;
 		}
-		
+
 		int64_t const jobId = jie->jobId;
 		int64_t const state = jie->status;
 		M [ jobId ] = state;
 		// std::cerr << "jobId\t" << jobId << "\tstate\t" << state << std::endl;
 	}
-	
-	lsb_closejobinfo();	
-	
-	return M;				
+
+	lsb_closejobinfo();
+
+	return M;
 }
-              
+
 #endif

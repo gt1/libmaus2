@@ -35,11 +35,11 @@ namespace libmaus2
 			typedef DigestInterface this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			virtual ~DigestInterface() {}
 			virtual void digest(uint8_t * digest) = 0;
 			virtual void vinit() = 0;
-			virtual void vupdate(uint8_t const *, size_t) = 0;			
+			virtual void vupdate(uint8_t const *, size_t) = 0;
 			virtual size_t vdigestlength() = 0;
 
 			virtual std::string vdigestAsString()
@@ -57,7 +57,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < digestlength; ++i )
 					ostr << std::hex  << std::setfill('0') << std::setw(2) << static_cast<int>(D[i]) << std::dec << std::setw(0);
 				return ostr.str();
-			}                                                                                                                                                                                 
+			}
 		};
 	}
 }

@@ -28,7 +28,7 @@
 
 namespace libmaus2
 {
-	namespace bitio 
+	namespace bitio
 	{
 
 		inline void writeBit(uint8_t * const U, unsigned int const i, bool const b)
@@ -36,30 +36,30 @@ namespace libmaus2
 			unsigned int const byte = (i>>3);
 			unsigned int const bit = i-(byte<<3);
 			unsigned int const mask = (0x80>>bit);
-			
+
 			if ( b )
 				U[byte] |= mask;
 			else
 				U[byte] &= (~mask);
 		}
-		
+
 		struct ByteStreamBitWriter
 		{
 			uint8_t * U;
 			uint8_t mask;
 			uint8_t cur;
-			
+
 			ByteStreamBitWriter(uint8_t * rU) : U(rU), mask(0x80), cur(0) {}
-			
+
 			void writeBit(bool const bit)
 			{
-				if ( bit ) 
+				if ( bit )
 				{
 					cur |= mask;
 				}
-				
+
 				mask >>= 1;
-				
+
 				if ( ! mask )
 				{
 					*(U++) = cur;
@@ -89,14 +89,14 @@ namespace libmaus2
 			{
 				if ( numbits ) {
 					assert( (numbits == 8*sizeof(N)) || ((b >> numbits) == 0) );
-				
+
 					unsigned long long mask = 0x1ull << (numbits-1);
 
 					for ( ; mask ; mask >>=1 )
 						writeBit((b&mask)!=0);
 				}
 			}
-			
+
 			// write number in simple elias code (unary length, binary digits)
 			void writeElias(unsigned long const b) {
 				unsigned long tmpb = b;
@@ -107,16 +107,16 @@ namespace libmaus2
 					writeBit(0);
 					++numbits;
 				}
-				
+
 				writeBit(1);
-				
+
 				write(b,numbits);
 			}
-			
+
 			virtual unsigned long getBytesWritten() const {
 				return (getBitsWritten()+7)/8;
 			}
-			
+
 			virtual void writeByte(uint8_t b) {
 				write(b,8);
 			}
@@ -142,7 +142,7 @@ namespace libmaus2
 				flushBits = 0;
 			}
 			virtual ~ContainerBitOutputStream() throw() {}
-			
+
 			typedef typename container<uint8_t, std::allocator<uint8_t> >::const_iterator const_iterator;
 
 			std::pair<const_iterator,const_iterator> getIteratorPair() const {
@@ -154,12 +154,12 @@ namespace libmaus2
 			}
 
 			std::ostream & printState(std::ostream & out) {
-				out << std::hex << "curByte: " << static_cast<unsigned int>(curByte) 
+				out << std::hex << "curByte: " << static_cast<unsigned int>(curByte)
 					<< " curByteFill: " << std::dec << static_cast<unsigned int>(curByteFill)
 					<< " bitsWritten " << getBitsWritten()
 					<< " flushBits " << flushBits;
 				out << " [";
-				
+
 				for ( size_t i = 0; i < container<uint8_t, std::allocator<uint8_t> >::size(); ++i )
 					out << std::hex << "0x" << static_cast<unsigned int>(container<uint8_t, std::allocator<uint8_t> >::operator[](i)) << std::dec << ";";
 				out << "]" << std::endl;
@@ -170,12 +170,12 @@ namespace libmaus2
 				container<uint8_t, std::allocator<uint8_t> >::operator=(container<uint8_t, std::allocator<uint8_t> >());
 				curByte = 0;
 				curByteFill = 0;
-				flushBits = 0;		
+				flushBits = 0;
 			}
-			
+
 			std::ostream & writeContent(std::ostream & out) const {
 				unsigned char * a = 0;
-				
+
 				try {
 					a = new unsigned char[ container<uint8_t,std::allocator<uint8_t> >::size()];
 					std::copy(container<uint8_t, std::allocator<uint8_t> >::begin(),container<uint8_t, std::allocator<uint8_t> >::end(),a);
@@ -184,7 +184,7 @@ namespace libmaus2
 					delete [] a;
 					throw;
 				}
-				
+
 				return out;
 			}
 
@@ -202,7 +202,7 @@ namespace libmaus2
 					curByte = curByteFill = 0;
 				}
 			}
-			
+
 			unsigned long getNumFlushBits() const {
 				return flushBits;
 			}
@@ -219,7 +219,7 @@ namespace libmaus2
 			virtual void flushK(unsigned int k)
 			{
 				flush();
-				
+
 				while ( container<uint8_t, std::allocator<uint8_t> >::size() % k )
 				{
 					writeBit(0);
@@ -232,7 +232,7 @@ namespace libmaus2
 			{
 				return container<uint8_t, std::allocator<uint8_t> >::size() * 8 + curByteFill;
 			}
-			
+
 			template<typename it>
 			void append(it a, it b) {
 				std::back_insert_iterator< std::vector<uint8_t> > backins(*this);

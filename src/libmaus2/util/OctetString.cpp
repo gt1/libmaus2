@@ -25,8 +25,8 @@ uint64_t libmaus2::util::OctetString::computeOctetLength(std::istream &, uint64_
 }
 
 libmaus2::util::OctetString::shared_ptr_type libmaus2::util::OctetString::constructRaw(
-	std::string const & filename, 
-	uint64_t const offset, 
+	std::string const & filename,
+	uint64_t const offset,
 	uint64_t const blength
 )
 {
@@ -34,10 +34,10 @@ libmaus2::util::OctetString::shared_ptr_type libmaus2::util::OctetString::constr
 }
 
 libmaus2::util::OctetString::OctetString(
-	std::string const & filename, 
-	uint64_t offset, 
+	std::string const & filename,
+	uint64_t offset,
 	uint64_t blength)
-{	
+{
 	::libmaus2::aio::InputStreamInstance CIS(filename);
 	uint64_t const fs = ::libmaus2::util::GetFileSize::getFileSize(CIS);
 	offset = std::min(offset,fs);
@@ -51,7 +51,7 @@ libmaus2::util::OctetString::OctetString(
 libmaus2::util::OctetString::OctetString(std::istream & CIS, uint64_t blength)
 : A(blength,false)
 {
-	CIS.read(reinterpret_cast<char *>(A.begin()),blength);				
+	CIS.read(reinterpret_cast<char *>(A.begin()),blength);
 }
 
 
@@ -65,10 +65,10 @@ libmaus2::util::OctetString::OctetString(std::istream & CIS, uint64_t const octe
 ::libmaus2::util::Histogram::unique_ptr_type libmaus2::util::OctetString::getHistogram() const
 {
 	::libmaus2::util::Histogram::unique_ptr_type hist(new ::libmaus2::util::Histogram);
-	
+
 	for ( uint64_t i = 0; i < A.size(); ++i )
 		(*hist)(A[i]);
-		
+
 	return UNIQUE_PTR_MOVE(hist);
 }
 
@@ -76,9 +76,9 @@ std::map<int64_t,uint64_t> libmaus2::util::OctetString::getHistogramAsMap() cons
 {
 	::libmaus2::util::Histogram::unique_ptr_type hist(getHistogram());
 	return hist->getByType<int64_t>();
-}			
+}
 
-::libmaus2::autoarray::AutoArray<libmaus2::util::OctetString::saidx_t,::libmaus2::autoarray::alloc_type_c> 
+::libmaus2::autoarray::AutoArray<libmaus2::util::OctetString::saidx_t,::libmaus2::autoarray::alloc_type_c>
 	libmaus2::util::OctetString::computeSuffixArray32(bool const parallel) const
 {
 	if ( A.size() > static_cast<uint64_t>(::std::numeric_limits<saidx_t>::max()) )
@@ -88,12 +88,12 @@ std::map<int64_t,uint64_t> libmaus2::util::OctetString::getHistogramAsMap() cons
 		se.finish();
 		throw se;
 	}
-	
+
 	::libmaus2::autoarray::AutoArray<saidx_t,::libmaus2::autoarray::alloc_type_c> SA(A.size());
 	if ( parallel )
 		sort_type_parallel::divsufsort ( A.begin() , SA.begin() , A.size() );
 	else
 		sort_type_serial::divsufsort ( A.begin() , SA.begin() , A.size() );
-	
+
 	return SA;
 }

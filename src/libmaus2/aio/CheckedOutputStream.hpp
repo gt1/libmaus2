@@ -47,10 +47,10 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			private:
 			std::string const filename;
-			
+
 			public:
 			/**
 			 * constructor
@@ -76,10 +76,10 @@ namespace libmaus2
 			{
 				flush();
 			}
-			
+
 			/**
 			 * write n bytes from c to output stream. throws an exception if operation fails
-			 * 
+			 *
 			 * @param c buffer to be written
 			 * @param n size of buffer
 			 * @return *this
@@ -87,7 +87,7 @@ namespace libmaus2
 			CheckedOutputStream & write(char const * c, ::std::streamsize n)
 			{
 				std::ofstream::write(c,n);
-				
+
 				if ( ! *this )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -95,17 +95,17 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				return *this;
 			}
-			
+
 			/**
 			 * flush streambuf object. throws an exception if stream state goes bad
 			 **/
 			CheckedOutputStream & flush()
 			{
 				std::ofstream::flush();
-				
+
 				if ( ! *this )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -113,7 +113,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				return *this;
 			}
 		};

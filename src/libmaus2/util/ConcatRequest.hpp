@@ -36,7 +36,7 @@ namespace libmaus2
 			typedef ConcatRequest this_type;
 			//! unique pointer type
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			//! list of input file names
 			std::vector<std::string> const infilenames;
 			//! output file name
@@ -57,7 +57,7 @@ namespace libmaus2
 			 * @param in input stream
 			 **/
 			ConcatRequest(std::istream & in);
-			
+
 			/**
 			 * serialise object
 			 *

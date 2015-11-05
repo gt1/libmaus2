@@ -30,7 +30,7 @@ int main(int argc, char * argv[])
 		libmaus2::network::FtpSocket ftpsock(url,0,true);
 		std::istream & ftpstream = ftpsock.getStream();
 		std::istream * in = &ftpstream;
-		
+
 		libmaus2::lz::BufferedGzipStream::unique_ptr_type gzptr;
 		if ( gz )
 		{
@@ -38,7 +38,7 @@ int main(int argc, char * argv[])
 			gzptr = UNIQUE_PTR_MOVE(tptr);
 			in = gzptr.get();
 		}
-		
+
 		libmaus2::autoarray::AutoArray<char> A(1024*1024,false);
 		uint64_t r = 0;
 		while ( *in )
@@ -47,10 +47,10 @@ int main(int argc, char * argv[])
 			uint64_t const gcnt = in->gcount();
 			std::cout.write(A.begin(),gcnt);
 			r += gcnt;
-			
+
 			std::cerr << "\r" << std::string(80,' ') << "\r" << "[V] " << r/(1024*1024);
 		}
-		
+
 		std::cout.flush();
 		std::cerr << "\r" << std::string(80,' ') << "\r" << "[V] " << r/(1024*1024) << "\t" << r << "\t" << ftpsock.size << "\n";
 	}

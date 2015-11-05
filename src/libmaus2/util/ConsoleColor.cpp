@@ -18,7 +18,7 @@
 */
 
 #include <libmaus2/util/ConsoleColor.hpp>
-				
+
 bool libmaus2::util::ConsoleColor::istty()
 {
 	bool tty = false;
@@ -27,9 +27,9 @@ bool libmaus2::util::ConsoleColor::istty()
 	tty = isatty(STDERR_FILENO);
 	#endif
 
-	return tty;	
+	return tty;
 }
-	
+
 std::string libmaus2::util::ConsoleColor::color(libmaus2::util::ConsoleColor::Color c)
 {
 	bool const tty = istty();
@@ -102,7 +102,7 @@ std::string libmaus2::util::ConsoleColor::color(libmaus2::util::ConsoleColor::Co
 				break;
 		}
 	}
-	
+
 	return s;
 }
 
@@ -123,13 +123,13 @@ std::string libmaus2::util::ConsoleColor::start() {
 
 	if ( tty )
 	{
-	
+
 	}
 	else
 	{
 		s = "<pre><span style=\"color:black\">";
 	}
-	
+
 	return s;
 }
 std::string libmaus2::util::ConsoleColor::stop() {
@@ -139,12 +139,12 @@ std::string libmaus2::util::ConsoleColor::stop() {
 
 	if ( tty )
 	{
-	
+
 	}
 	else
 	{
 		s = "</span></pre>";
 	}
-	
+
 	return s;
 }

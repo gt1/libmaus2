@@ -25,7 +25,7 @@
 namespace libmaus2
 {
 	namespace parallel
-	{	
+	{
 		template<typename _value_type, typename _comparator_type = std::greater<_value_type> >
 		struct LockedHeap
 		{
@@ -37,25 +37,25 @@ namespace libmaus2
 
 			libmaus2::parallel::PosixSpinLock lock;
 			std::priority_queue<value_type,std::vector<value_type>,comparator_type> Q;
-			
+
 			LockedHeap()
 			: lock(), Q()
 			{
-			
+
 			}
-			
+
 			uint64_t size()
 			{
 				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				return Q.size();
 			}
-			
+
 			bool empty()
 			{
 				libmaus2::parallel::ScopePosixSpinLock llock(lock);
-				return Q.size() == 0;	
+				return Q.size() == 0;
 			}
-			
+
 			void push(value_type const v)
 			{
 				libmaus2::parallel::ScopePosixSpinLock llock(lock);
@@ -84,11 +84,11 @@ namespace libmaus2
 					v = Q.top();
 					Q.pop();
 					return true;
-				}		
+				}
 				else
 				{
 					return false;
-				}	
+				}
 			}
 		};
 	}

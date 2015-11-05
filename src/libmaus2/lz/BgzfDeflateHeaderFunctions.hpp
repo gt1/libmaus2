@@ -51,13 +51,13 @@ namespace libmaus2
 			{
 				return getBgzfHeaderSize() + getBgzfFooterSize() + getFlushBound(getBgzfMaxBlockSize(),level);
 			}
-			
+
 			public:
 			static void deflateinitz(z_stream * strm, int const level)
 			{
 				memset ( strm , 0, sizeof(z_stream) );
 				strm->zalloc = Z_NULL;
-				strm->zfree = Z_NULL; 
+				strm->zfree = Z_NULL;
 				strm->opaque = Z_NULL;
 				int ret = deflateInit2(strm, level, Z_DEFLATED, -15 /* window size */,
 					8 /* mem level, gzip default */, Z_DEFAULT_STRATEGY);
@@ -72,13 +72,13 @@ namespace libmaus2
 
 			static void deflatedestroyz(z_stream * strm)
 			{
-				deflateEnd(strm);		
+				deflateEnd(strm);
 			}
-			
+
 			struct LocalDeflateInfo
 			{
 				z_stream strm;
-				
+
 				LocalDeflateInfo(int const level)
 				{
 					deflateinitz(&strm,level);
@@ -88,7 +88,7 @@ namespace libmaus2
 					deflatedestroyz(&strm);
 				}
 			};
-			
+
 			static uint64_t getReqBufSpaceTwo(int const level)
 			{
 				uint64_t const halfblocksize = (getBgzfMaxBlockSize()+1)/2;
@@ -96,7 +96,7 @@ namespace libmaus2
 				uint64_t const doubleblocksize = 2 * singleblocksize;
 				return doubleblocksize;
 			}
-			
+
 			static void setupHeader(uint8_t * const outbuf)
 			{
 				outbuf[0] = ::libmaus2::lz::GzipHeader::ID1;
@@ -116,7 +116,7 @@ namespace libmaus2
 			static uint8_t const * fillHeaderFooter(
 				uint8_t const * const pa,
 				uint8_t * const outbuf,
-				unsigned int const payloadsize, 
+				unsigned int const payloadsize,
 				unsigned int const uncompsize
 			)
 			{
@@ -125,13 +125,13 @@ namespace libmaus2
 				assert ( blocksize < getBgzfMaxBlockSize() );
 				outbuf[16] = (blocksize >> 0) & 0xFF;
 				outbuf[17] = (blocksize >> 8) & 0xFF;
-				
+
 				uint8_t * footptr = outbuf + getBgzfHeaderSize() + payloadsize;
 
 				// compute crc of uncompressed data
 				uint32_t crc = crc32(0,0,0);
 				crc = crc32(crc, reinterpret_cast<Bytef const *>(pa), uncompsize);
-				
+
 				// crc
 				*(footptr++) = (crc >> 0)  & 0xFF;
 				*(footptr++) = (crc >> 8)  & 0xFF;
@@ -142,7 +142,7 @@ namespace libmaus2
 				*(footptr++) = (uncompsize >> 8) & 0xFF;
 				*(footptr++) = (uncompsize >> 16) & 0xFF;
 				*(footptr++) = (uncompsize >> 24) & 0xFF;
-				
+
 				return footptr;
 			}
 

@@ -26,7 +26,7 @@ namespace libmaus2
 	namespace bambam
 	{
 		namespace parallel
-		{			
+		{
 			struct DecompressedBlockReorderHeapComparator
 			{
 				bool operator()(DecompressedBlock::shared_ptr_type const & A, DecompressedBlock::shared_ptr_type const & B) const

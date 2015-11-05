@@ -33,30 +33,30 @@ namespace libmaus2
 				char const * datadir = getenv("REF_CACHE");
 				if ( (!datadir) || (!*datadir) )
 					datadir = NULL;
-				return datadir;	
+				return datadir;
 			}
-			
+
 			static char const * getRefPath()
 			{
 				char const * refpath = getenv("REF_PATH");
 				if ( (!refpath) || (!*refpath) )
 					refpath = NULL;
-				return refpath;	
+				return refpath;
 			}
 
 			char const * datadir;
 			char const * refpath;
 			RefPathTokenVector refcacheexp;
 			RefPathTokenVectorSequence refpathexp;
-			
+
 			RefPathLookup()
-			: 
-				datadir(getDataDir()), 
-				refpath(getRefPath()), 
+			:
+				datadir(getDataDir()),
+				refpath(getRefPath()),
 				refcacheexp(datadir ? std::string(datadir) : std::string()),
 				refpathexp(refpath ? std::string(refpath) : std::string())
 			{
-			
+
 			}
 
 			std::vector<std::string> expand(std::string const & sdigest) const
@@ -70,7 +70,7 @@ namespace libmaus2
 			{
 				std::vector<std::string> const E = expand(sdigest);
 				bool found = false;
-			
+
 				for ( size_t z = 0; (!found) && z < E.size(); ++z )
 				{
 					std::string e = E[z];
@@ -81,7 +81,7 @@ namespace libmaus2
 					if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(e) )
 						found = true;
 				}
-				
+
 				return found;
 			}
 		};

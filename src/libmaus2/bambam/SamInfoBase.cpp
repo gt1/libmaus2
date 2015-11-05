@@ -21,7 +21,7 @@
 /*
  * the tables below were produced by the following c program
  */
- 
+
 /*
 #include <string.h>
 #include <stdio.h>
@@ -40,7 +40,7 @@ void initSamCharTables()
 	memset(&rnameOtherValid[0],0,sizeof(rnameOtherValid));
 	memset(&seqValid[0],0,sizeof(seqValid));
 	memset(&qualValid[0],0,sizeof(qualValid));
-	
+
 	for ( i = '!'; i <= '?'; ++i )
 		qnameValid[i] = 1;
 	for ( i = 'A'; i <= '~'; ++i )
@@ -84,7 +84,7 @@ int main()
 	initSamCharTables();
 	fprintf(stdout,"#if ! defined(LIBMAUS2_BAMBAM_SAMINFO_HPP)\n");
 	fprintf(stdout,"#define LIBMAUS2_BAMBAM_SAMINFO_HPP\n\n");
-	char const * s = 
+	char const * s =
 		"namespace libmaus2\n"
 		"{\n"
 		"\tnamespace bambam\n"

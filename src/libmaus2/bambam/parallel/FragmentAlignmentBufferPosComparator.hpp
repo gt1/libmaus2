@@ -25,16 +25,16 @@
 namespace libmaus2
 {
 	namespace bambam
-	{		
+	{
 		namespace parallel
 		{
 			struct FragmentAlignmentBufferPosComparator
 			{
 				FragmentAlignmentBufferPosComparator()
 				{
-				
+
 				}
-				
+
 				bool operator()(uint8_t * A, uint8_t * B) const
 				{
 					return libmaus2::bambam::BamAlignmentPosComparator::compare(A + sizeof(uint32_t),B + sizeof(uint32_t));

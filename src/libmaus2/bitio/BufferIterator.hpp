@@ -32,27 +32,27 @@ namespace libmaus2
 		struct BufferIterator
 		{
 			typedef _data_type data_type;
-			
+
 			typedef BufferIterator<data_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			::libmaus2::bitio::OutputFile<data_type> outputfile;
 			::libmaus2::bitio::OutputBufferIterator<data_type> outputiterator;
 			::libmaus2::bitio::FastWriteBitWriterBuffer64 writer;
 			uint64_t bits;
-			
+
 			BufferIterator(std::string const & filename, uint64_t const bufsize)
 			: outputfile(bufsize,filename), outputiterator(outputfile), writer(outputiterator), bits(0)
 			{
-			
+
 			}
-			
+
 			void writeBit(uint64_t const bit)
 			{
 				writer.writeBit(bit);
 				bits++;
 			}
-			
+
 			void flush()
 			{
 				writer.flush();

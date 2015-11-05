@@ -39,7 +39,7 @@ namespace libmaus2
 			static bool isFastQ(std::istream & istr);
 			static bool isFastQ(std::string const & filename);
 			static bool isFastQ(std::vector<std::string> const & filenames);
-			
+
 			static int getFirstCharacter(std::istream & in)
 			{
 				int const c = in.peek();
@@ -54,13 +54,13 @@ namespace libmaus2
 				{
 					std::string const & fn = filenames[i];
 					libmaus2::aio::InputStreamInstance istr(fn);
-					
+
 					int const c = getFirstCharacter(istr);
-										
+
 					if ( c >= 0 )
 						return c;
 				}
-				
+
 				return -1;
 			}
 

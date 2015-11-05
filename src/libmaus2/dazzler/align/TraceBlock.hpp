@@ -32,14 +32,14 @@ namespace libmaus2
 				std::pair<int64_t,int64_t> A;
 				std::pair<int64_t,int64_t> B;
 				int64_t err;
-				
+
 				TraceBlock() {}
 				TraceBlock(
 					std::pair<int64_t,int64_t> const & rA,
 					std::pair<int64_t,int64_t> const & rB,
 					int64_t const rerr
 				) : A(rA), B(rB), err(rerr) {}
-				
+
 				libmaus2::math::IntegerInterval<int64_t> getAInterval() const
 				{
 					return libmaus2::math::IntegerInterval<int64_t>(A.first,A.second-1);
@@ -49,7 +49,7 @@ namespace libmaus2
 				{
 					return libmaus2::math::IntegerInterval<int64_t>(B.first,B.second-1);
 				}
-				
+
 				bool overlapsA(TraceBlock const & O) const
 				{
 					return !getAInterval().intersection(O.getAInterval()).isEmpty();
@@ -81,7 +81,7 @@ namespace libmaus2
 					swap();
 				}
 			};
-			
+
 			std::ostream & operator<<(std::ostream & out, TraceBlock const & TB);
 		}
 	}

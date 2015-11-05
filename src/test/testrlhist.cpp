@@ -36,22 +36,22 @@ int main(int argc, char * argv[])
 			runtotal += ita->second;
 			total += ita->first * ita->second;
 		}
-			
+
 		uint64_t const n = libmaus2::huffman::RLDecoder::getLength(fn);
-		
+
 		std::cout << "[S]\taverage run-length\t" << thist->avg() << std::endl;
-		
+
 		assert ( total == n );
 
 		uint64_t acc = 0;
 		bool accthresset = false;
 		uint64_t accthres = 0;
 		double const thres = 0.99999;
-		
-		for ( 
+
+		for (
 			std::map<uint64_t,uint64_t>::const_iterator ita = M.begin();
-			ita != M.end(); 
-			++ita 
+			ita != M.end();
+			++ita
 		)
 		{
 			acc += ita->second;
@@ -62,20 +62,20 @@ int main(int argc, char * argv[])
 			}
 			std::cout << ita->first << "\t" << ita->second << "\t" << static_cast<double>(acc) / runtotal << std::endl;
 		}
-		
+
 		uint64_t eacc = 0;
 		uint64_t ediv = 0;
-		for ( 
+		for (
 			std::map<uint64_t,uint64_t>::const_iterator ita = M.begin();
-			ita != M.end(); 
-			++ita 
+			ita != M.end();
+			++ita
 		)
 			if ( ita->first <= accthres )
 			{
 				eacc += ita->first * ita->second;
 				ediv += ita->second;
 			}
-		
+
 		std::cerr << "[S]\taverage run-length below acc thres\t" << thres << "\t" << static_cast<double>(eacc)/ediv << std::endl;
 	}
 	catch(std::exception const & ex)

@@ -39,15 +39,15 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray<uint8_t> data;
 			libmaus2::autoarray::AutoArray<uint8_t> id;
 			int64_t idlen;
-			
+
 			bool haveputback;
 			::libmaus2::fastx::FastALineParserLineInfo putbackinfo;
-			
+
 			FastALineParser(stream_type & rstream)
 			: stream(rstream), newlineterm('\n'), idlen(-1), haveputback(false)
 			{
 				int c = stream_type::traits_type::eof();
-				
+
 				// look for start marker
 				while ( (c=stream.peek()) != stream_type::traits_type::eof() )
 					if ( c == '>' )
@@ -55,7 +55,7 @@ namespace libmaus2
 					else
 						stream.get();
 			}
-			
+
 			void putback(::libmaus2::fastx::FastALineParserLineInfo const & info)
 			{
 				putbackinfo = info;
@@ -70,12 +70,12 @@ namespace libmaus2
 					info = putbackinfo;
 					return info.linetype != ::libmaus2::fastx::FastALineParserLineInfo::libmaus2_fastx_fasta_id_line_eof;
 				}
-			
+
 				uint8_t * pa = data.begin();
 				uint8_t * pc = pa;
 				uint8_t * pe = data.end();
 				int c = stream_type::traits_type::eof();
-				
+
 				while ( ! newlineterm[c=stream.get()] )
 				{
 					if ( pc == pe )
@@ -83,37 +83,37 @@ namespace libmaus2
 						libmaus2::autoarray::AutoArray<uint8_t> ndata(
 							std::max(static_cast<uint64_t>(1),static_cast<uint64_t>(2*data.size())),false);
 						std::copy(data.begin(),data.end(),ndata.begin());
-						
+
 						pa = ndata.begin();
 						pc = pa + data.size();
 						pe = ndata.end();
-						
+
 						data = ndata;
 					}
-					
+
 					*(pc++) = c;
 				}
-				
+
 				while ( pa != pc && spacetable.spacetable[*pa] )
 					++pa;
-			
+
 				info.line = pa;
 				info.linelen = pc - pa;
-				
+
 				if ( (info.linelen == 0) && (c == stream_type::traits_type::eof()) )
 				{
 					info.linetype = ::libmaus2::fastx::FastALineParserLineInfo::libmaus2_fastx_fasta_id_line_eof;
-					return false; 
+					return false;
 				}
 				else if ( info.linelen > 0 && *pa == '>' )
 				{
 					info.line++;
 					info.linelen--;
 					info.linetype = ::libmaus2::fastx::FastALineParserLineInfo::libmaus2_fastx_fasta_id_line;
-					
+
 					if ( id.size() < info.linelen )
 						id = libmaus2::autoarray::AutoArray<uint8_t>(info.linelen);
-						
+
 					idlen = info.linelen;
 					memcpy(id.begin(),info.line,info.linelen);
 					return true;
@@ -121,16 +121,16 @@ namespace libmaus2
 				else
 				{
 					info.linetype = ::libmaus2::fastx::FastALineParserLineInfo::libmaus2_fastx_fasta_base_line;
-					
+
 					uint8_t * op = pa;
-					
+
 					for ( uint8_t * p = pa; p != pc; ++p )
 						if ( spacetable.nospacetable[*p] )
 							*(op++) = FMT[(*p)];
-					
+
 					pc = op;
 					info.linelen = pc-pa;
-					
+
 					return true;
 				}
 			}

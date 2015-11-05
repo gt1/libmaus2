@@ -38,20 +38,20 @@ namespace libmaus2
 				ostr << "(" << P.first << "," << P.second << ")";
 				return ostr.str();
 			}
-			
+
 			static bool compareSortedStringPairVectors(
 				std::vector< std::pair<std::string,std::string> > const & SA,
 				std::vector< std::pair<std::string,std::string> > const & SB
 			)
 			{
 				uint64_t ia = 0, ib = 0;
-				
+
 				for ( ; ia != SA.size() && ib != SB.size() ; ++ia, ++ib )
 					if ( SA[ia] != SB[ib] )
 					{
 						#if 0
 						std::cerr << printPair(SA[ia]) << " != " << printPair(SB[ib]) << std::endl;
-						
+
 						for ( uint64_t i = 0; i < SA.size(); ++i )
 							std::cerr << SA[i].first << ";";
 						std::cerr << MA.size();
@@ -61,13 +61,13 @@ namespace libmaus2
 						std::cerr << MB.size();
 						std::cerr << std::endl;
 						#endif
-						
+
 						return SA[ia] < SB[ib];
 					}
 
 				return ia < ib;
 			}
-		
+
 			template<typename map_type>
 			static bool compare(map_type const & MA, map_type const & MB)
 			{
@@ -78,7 +78,7 @@ namespace libmaus2
 					SB.push_back(std::pair<std::string,std::string>(ita->first,ita->second));
 				std::sort(SA.begin(),SA.end());
 				std::sort(SB.begin(),SB.end());
-				
+
 				return compareSortedStringPairVectors(SA,SB);
 			}
 		};

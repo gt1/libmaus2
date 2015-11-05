@@ -25,7 +25,7 @@
 namespace libmaus2
 {
 	namespace parallel
-	{	
+	{
 		template<typename _value_type>
 		struct LockedQueue
 		{
@@ -36,40 +36,40 @@ namespace libmaus2
 
 			libmaus2::parallel::PosixSpinLock lock;
 			std::deque<value_type> Q;
-			
+
 			LockedQueue()
 			: lock(), Q()
 			{
-			
+
 			}
-			
+
 			libmaus2::parallel::PosixSpinLock & getLock()
 			{
 				return lock;
 			}
-			
+
 			bool emptyUnlocked()
 			{
 				return Q.size() == 0;
 			}
-			
+
 			uint64_t sizeUnlocked()
 			{
 				return Q.size();
-			}			
-			
+			}
+
 			uint64_t size()
 			{
 				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				return Q.size();
 			}
-			
+
 			bool empty()
 			{
 				libmaus2::parallel::ScopePosixSpinLock llock(lock);
-				return Q.size() == 0;	
+				return Q.size() == 0;
 			}
-			
+
 			void push_back(value_type const v)
 			{
 				libmaus2::parallel::ScopePosixSpinLock llock(lock);
@@ -152,7 +152,7 @@ namespace libmaus2
 				Q.pop_front();
 				return v;
 			}
-			
+
 			bool tryDequeFront(value_type & v)
 			{
 				libmaus2::parallel::ScopePosixSpinLock llock(lock);
@@ -161,13 +161,13 @@ namespace libmaus2
 					v = Q.front();
 					Q.pop_front();
 					return true;
-				}		
+				}
 				else
 				{
 					return false;
-				}	
+				}
 			}
-			
+
 			uint64_t tryDequeFront(std::vector<value_type> & V, uint64_t max)
 			{
 				libmaus2::parallel::ScopePosixSpinLock llock(lock);
@@ -176,7 +176,7 @@ namespace libmaus2
 					V.push_back(Q.front());
 					Q.pop_front();
 				}
-				return V.size();			
+				return V.size();
 			}
 
 			value_type dequeBack()

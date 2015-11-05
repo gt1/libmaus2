@@ -38,27 +38,27 @@ namespace libmaus2
 			stream_type & stream;
 			uint64_t const todecode;
 			uint64_t numdecoded;
-			
+
 			static uint64_t getEmptyBlockSize()
 			{
 				return ::libmaus2::fastx::CompactFastQHeader::getEmptyBlockHeaderSize();
 			}
-			
+
 			CompactFastQSingleBlockReader(
-				stream_type & rstream, 
+				stream_type & rstream,
 				uint64_t const rnextid = 0,
 				uint64_t const maxdecode = std::numeric_limits<uint64_t>::max()
 			)
-			: 
+			:
 			  ::libmaus2::fastx::CompactFastQHeader(rstream),
 			  ::libmaus2::fastx::CompactFastQContext(rnextid),
-			  stream(rstream), 
+			  stream(rstream),
 			  todecode(std::min(numreads,maxdecode)),
 			  numdecoded(0)
 			{
-				// quant.printClosestPhred(std::cerr);	
+				// quant.printClosestPhred(std::cerr);
 			}
-			
+
 			bool getNextPatternUnlocked(pattern_type & pattern)
 			{
 				if ( numdecoded >= todecode )

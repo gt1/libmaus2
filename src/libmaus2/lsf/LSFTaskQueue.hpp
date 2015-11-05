@@ -32,7 +32,7 @@ namespace libmaus2
 			uint64_t id;
 			std::string packettype;
 			std::string payload;
-			
+
 			LsfTaskQueueElement() {}
 			LsfTaskQueueElement(
 				uint64_t const rid,
@@ -40,7 +40,7 @@ namespace libmaus2
 				std::string rpayload
 			) : id(rid), packettype(rpackettype), payload(rpayload) {}
 		};
-		
+
 		inline std::ostream & operator<<(std::ostream & out, LsfTaskQueueElement const & LTQE)
 		{
 			out << "LsfTaskQueueElement("
@@ -48,16 +48,16 @@ namespace libmaus2
 				<< ")";
 			return out;
 		}
-	
+
 		struct LsfTaskQueue
 		{
 			bool verbose;
-			
+
 			LsfTaskQueue(bool const rverbose = false)
 			: verbose(rverbose)
 			{
 			}
-		
+
 			virtual ~LsfTaskQueue() {}
 
 			virtual bool empty() = 0;

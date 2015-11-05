@@ -51,7 +51,7 @@ uint64_t libmaus2::lz::SnappyCompress::compress(char const * in, uint64_t const 
 void libmaus2::lz::SnappyCompress::uncompress(char const * in, uint64_t const insize, std::string & out)
 {
 	bool const ok = ::snappy::Uncompress(in, insize, &out);
-	
+
 	if ( ! ok )
 	{
 		::libmaus2::exception::LibMausException se;
@@ -66,29 +66,29 @@ void libmaus2::lz::SnappyCompress::uncompress(std::istream & in, uint64_t const 
 	::libmaus2::lz::IstreamSource< ::libmaus2::aio::IStreamWrapper> sistr(ISW,insize);
 
 	bool const ok = ::snappy::RawUncompress(&sistr,out);
-	
+
 	if ( ! ok )
 	{
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "Failed to decompress snappy data in ::libmaus2::lz::SnappyCompress::uncompress(std::istream &, uint64_t, char *)" << std::endl;
 		se.finish();
-		throw se;	
+		throw se;
 	}
 }
 void libmaus2::lz::SnappyCompress::uncompress(
-	::libmaus2::lz::IstreamSource< ::libmaus2::aio::IStreamWrapper> & in, 
+	::libmaus2::lz::IstreamSource< ::libmaus2::aio::IStreamWrapper> & in,
 	char * out,
 	int64_t const /* length */
 )
 {
 	bool const ok = ::snappy::RawUncompress(&in,out);
-	
+
 	if ( ! ok )
 	{
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "Failed to decompress snappy data in ::libmaus2::lz::SnappyCompress::uncompress(::libmaus2::lz::IstreamSource< ::libmaus2::aio::IStreamWrapper> & in, char *, int64_t)" << std::endl;
 		se.finish();
-		throw se;	
+		throw se;
 	}
 }
 bool ::libmaus2::lz::SnappyCompress::rawuncompress(char const * compressed, uint64_t compressed_length, char * uncompressed)
@@ -110,19 +110,19 @@ uint64_t libmaus2::lz::SnappyCompress::compress(::libmaus2::lz::IstreamSource< :
 {
 	uint64_t const n = in.Available();
 	uint64_t r = n;
-	
+
 	while ( r )
 	{
 		size_t av = 0;
 		char const * B = in.Peek(&av);
 		uint64_t const tocopy = std::min(static_cast<uint64_t>(av),r);
-		
+
 		out.write(B,tocopy);
 		in.Skip(tocopy);
-		
+
 		r -= tocopy;
 	}
-	
+
 	return n;
 }
 uint64_t libmaus2::lz::SnappyCompress::compress(std::istream & in, uint64_t const n, std::ostream & out)
@@ -148,30 +148,30 @@ void ::libmaus2::lz::SnappyCompress::uncompress(std::istream & in, uint64_t cons
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "Failed to read data." << std::endl;
 		se.finish();
-		throw se;	
+		throw se;
 	}
 }
 void ::libmaus2::lz::SnappyCompress::uncompress(
-	::libmaus2::lz::IstreamSource< ::libmaus2::aio::IStreamWrapper> & in, 
+	::libmaus2::lz::IstreamSource< ::libmaus2::aio::IStreamWrapper> & in,
 	char * out,
 	int64_t const length
 )
 {
 	assert ( length >= 0 );
 	uint64_t r = length;
-	
+
 	while ( r )
 	{
 		size_t av = 0;
 		char const * B = in.Peek(&av);
 		uint64_t const tocopy = std::min(static_cast<uint64_t>(av),r);
-		
+
 		std::copy(B,B+tocopy,out);
 		in.Skip(tocopy);
 
-		out += tocopy;		
+		out += tocopy;
 		r -= tocopy;
-	}	
+	}
 }
 
 bool ::libmaus2::lz::SnappyCompress::rawuncompress(char const * compressed, uint64_t compressed_length, char * uncompressed)

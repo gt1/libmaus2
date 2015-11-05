@@ -33,7 +33,7 @@ namespace libmaus2
 		{
 			typedef ::libmaus2::fastx::FASTQEntry pattern_type;
 			typedef ::libmaus2::fastx::FastQElement element_type;
-			
+
 			template<typename stream_type>
 			static bool decodePattern(
 				stream_type & stream,
@@ -43,14 +43,14 @@ namespace libmaus2
 			)
 			{
 				bool const ok = ::libmaus2::fastx::CompactFastDecoderBase::decode(pattern,stream,context.nextid);
-				
+
 				std::ostringstream sidstr;
 				sidstr << "read_" << pattern.patid;
 				pattern.sid = sidstr.str();
 
 				if ( ! ok )
 					return false;
-				
+
 				uint64_t const l = pattern.getPatternLength();
 				if ( l > context.qbuf.size() )
 					context.qbuf = ::libmaus2::autoarray::AutoArray<uint8_t>(l);
@@ -59,14 +59,14 @@ namespace libmaus2
 				::libmaus2::util::PutObject<uint8_t *> P(context.qbuf.begin());
 				::libmaus2::bitio::ArrayDecode::decodeArray(stream,P,l,header.qbits);
 
-				// dequantise		
+				// dequantise
 				for ( uint64_t i = 0; i < l; ++i )
 					context.qbuf[i] = header.quant.phredForQuant[context.qbuf[i]]+33;
-				
+
 				pattern.quality = std::string(
 					reinterpret_cast<char const *>(context.qbuf.begin()),
 					reinterpret_cast<char const *>(context.qbuf.begin()+l));
-				
+
 				return true;
 			}
 
@@ -84,12 +84,12 @@ namespace libmaus2
 
 				if ( ! ok )
 					return false;
-					
+
 				element.name = pattern.sid;
 				element.query = pattern.pattern;
 				element.plus = pattern.plus;
 				element.quality = pattern.quality;
-				
+
 				return true;
 			}
 		};

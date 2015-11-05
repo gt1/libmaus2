@@ -25,7 +25,7 @@ namespace libmaus2
 {
 	namespace lcs
 	{
-		
+
 		struct CheckOverlapScoreComparatorGreater
 		{
 			bool operator()(CheckOverlapResult const & A, CheckOverlapResult const & B) const

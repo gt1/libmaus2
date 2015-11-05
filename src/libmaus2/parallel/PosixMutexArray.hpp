@@ -38,7 +38,7 @@ namespace libmaus2
 			{
 
 			}
-			
+
 			PosixMutex & get(uint64_t v)
 			{
 				return mutexes [ v >> (hashbits-blockbits) ];

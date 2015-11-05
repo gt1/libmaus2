@@ -28,27 +28,27 @@ namespace libmaus2
 	namespace bambam
 	{
 		namespace parallel
-		{			
+		{
 			struct FileChecksumBlockWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef FileChecksumBlockWorkPackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				libmaus2::bambam::parallel::GenericInputControlCompressionPending GICCP;
 				libmaus2::digest::DigestInterface * checksum;
 
 				FileChecksumBlockWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), GICCP(), checksum(0) {}
 				FileChecksumBlockWorkPackage(
-					uint64_t const rpriority, 
-					uint64_t const rdispatcherid, 
+					uint64_t const rpriority,
+					uint64_t const rdispatcherid,
 					libmaus2::bambam::parallel::GenericInputControlCompressionPending rGICCP,
 					libmaus2::digest::DigestInterface * rchecksum
 				)
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), GICCP(rGICCP), checksum(rchecksum)
 				{
 				}
-                        
+
 				virtual char const * getPackageName() const { return "FileChecksumBlockWorkPackage"; }
 			};
 		}

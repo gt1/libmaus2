@@ -41,16 +41,16 @@ namespace libmaus2
 		{
 			typedef GnuTLSSocket this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			std::string const hostname;
 
 			#if defined(LIBMAUS2_HAVE_GNUTLS)
-			gnutls_certificate_credentials_t xcred;	
+			gnutls_certificate_credentials_t xcred;
 			gnutls_session_t session;
 			#endif
 
 			libmaus2::network::ClientSocket::unique_ptr_type PCS;
-			
+
 			#if defined(LIBMAUS2_HAVE_GNUTLS)
 			static int verify_certificate_callback(gnutls_session_t session);
 			#endif
@@ -62,9 +62,9 @@ namespace libmaus2
 				char const * certdir,
 				bool const checkcertificate
 			);
-			
+
 			~GnuTLSSocket();
-			
+
 			void write(std::string const & s);
 			void write(char const * p, size_t n);
 			ssize_t readPart(char * p, size_t n);

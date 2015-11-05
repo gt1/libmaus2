@@ -26,7 +26,7 @@ namespace libmaus2
 	namespace bambam
 	{
 		namespace parallel
-		{			
+		{
 			struct CramOutputBlockIdComparator
 			{
 				bool operator()(CramOutputBlock::shared_ptr_type const & A, CramOutputBlock::shared_ptr_type const & B) const

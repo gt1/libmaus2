@@ -17,10 +17,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <libmaus2/util/ArgInfo.hpp>
-		
+
 bool libmaus2::util::ArgInfo::helpRequested() const
 {
-	return 
+	return
 		(argmap.size() == 0) &&
 		(restargs.size()==1) &&
 		(
@@ -33,11 +33,11 @@ bool libmaus2::util::ArgInfo::helpRequested() const
 std::string libmaus2::util::ArgInfo::getProgFileName(std::string const & progname)
 {
 	int64_t l = -1;
-	
+
 	for ( uint64_t i = 0; i < progname.size(); ++i )
 		if ( progname[i] == '/' )
 			l = i;
-	
+
 	if ( l < 0 )
 		return progname;
 	else
@@ -47,7 +47,7 @@ std::string libmaus2::util::ArgInfo::getProgFileName(std::string const & prognam
 std::string libmaus2::util::ArgInfo::getDefaultTmpFileName(std::string const & progname)
 {
 	std::ostringstream ostr;
-	ostr << getProgFileName(progname) 
+	ostr << getProgFileName(progname)
 		<< "_" << ::libmaus2::network::GetHostName::getHostName()
 		<< "_" << getpid()
 		<< "_" << time(0);
@@ -64,7 +64,7 @@ std::string libmaus2::util::ArgInfo::getCurDir()
 	size_t len = PATH_MAX;
 	char * p = 0;
 	::libmaus2::autoarray::AutoArray<char> Acurdir;
-	
+
 	do
 	{
 		Acurdir = ::libmaus2::autoarray::AutoArray<char>(len+1);
@@ -76,7 +76,7 @@ std::string libmaus2::util::ArgInfo::getCurDir()
 		len *= 2;
 	}
 	while ( (!p) && errno==ERANGE );
-	
+
 	if ( p )
 		return std::string(Acurdir.get());
 	else
@@ -118,7 +118,7 @@ void libmaus2::util::ArgInfo::init(std::vector<std::string> const args)
 		argmap[valpair.first] = valpair.second;
 		argmultimap.insert(std::pair<std::string,std::string>(valpair.first,valpair.second));
 	}
-	
+
 	for ( ; i < args.size(); ++i )
 		restargs.push_back(args[i]);
 }
@@ -132,8 +132,8 @@ std::string libmaus2::util::ArgInfo::reconstructCommandLine(int argc, char const
 		cl += argv[i];
 		if ( i+1 < argc )
 			cl += " ";
-	}			
-	
+	}
+
 	return cl;
 }
 
@@ -190,7 +190,7 @@ std::string libmaus2::util::ArgInfo::stringRestArg(uint64_t const i) const
 std::ostream & operator<<(std::ostream & out, libmaus2::util::ArgInfo const & arginfo)
 {
 	out << "ArgInfo(progname=" << arginfo.progname << ",{";
-	for ( 
+	for (
 		std::map<std::string,std::string>::const_iterator ita = arginfo.argmap.begin();
 		ita != arginfo.argmap.end(); )
 	{
@@ -209,4 +209,3 @@ std::ostream & operator<<(std::ostream & out, libmaus2::util::ArgInfo const & ar
 	out << "])";
 	return out;
 }
-

@@ -40,47 +40,47 @@ void libmaus2::util::MemLimit::setLimits(uint64_t const maxmem)
 void libmaus2::util::MemLimit::setAddressSpaceLimit(uint64_t const maxmem)
 {
 	#if defined(LIBMAUS2_HAVE_SETRLIMIT)
-	rlimit const lim = { 
-		static_cast<rlim_t>(maxmem), 
+	rlimit const lim = {
+		static_cast<rlim_t>(maxmem),
 		static_cast<rlim_t>(maxmem) };
 	if ( setrlimit(RLIMIT_AS,&lim) != 0 )
 	{
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "setrlimit(RLIMIT_AS," << maxmem << ") failed: " << strerror(errno) << std::endl;
 		se.finish();
-		throw se;					
-	}   
+		throw se;
+	}
 	#endif
 }
 
 void libmaus2::util::MemLimit::setDataLimit(uint64_t const maxmem)
 {
 	#if defined(LIBMAUS2_HAVE_SETRLIMIT)
-	rlimit const lim = { 
-		static_cast<rlim_t>(maxmem), 
+	rlimit const lim = {
+		static_cast<rlim_t>(maxmem),
 		static_cast<rlim_t>(maxmem) };
 	if ( setrlimit(RLIMIT_DATA,&lim) != 0 )
 	{
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "setrlimit(RLIMIT_DATA," << maxmem << ") failed: " << strerror(errno) << std::endl;
 		se.finish();
-		throw se;					
-	}   
+		throw se;
+	}
 	#endif
 }
 
 void libmaus2::util::MemLimit::setResidentSetSizeLimit(uint64_t const maxmem)
 {
 	#if defined(LIBMAUS2_HAVE_SETRLIMIT)
-	rlimit const lim = { 
-		static_cast<rlim_t>(maxmem), 
+	rlimit const lim = {
+		static_cast<rlim_t>(maxmem),
 		static_cast<rlim_t>(maxmem) };
 	if ( setrlimit(RLIMIT_RSS,&lim) != 0 )
 	{
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "setrlimit(RLIMIT_RSS," << maxmem << ") failed: " << strerror(errno) << std::endl;
 		se.finish();
-		throw se;					
-	}   
+		throw se;
+	}
 	#endif
 }

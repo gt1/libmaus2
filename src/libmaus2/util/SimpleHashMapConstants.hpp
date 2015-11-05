@@ -32,7 +32,7 @@ namespace libmaus2
 		struct SimpleHashMapConstants
 		{
 			typedef _key_type key_type;
-			
+
 			static key_type const unused()
 			{
 				return std::numeric_limits<key_type>::max();
@@ -42,19 +42,19 @@ namespace libmaus2
 			{
 				return unused()-1;
 			}
-			
+
 			// unused or deleted
 			static bool isFree(key_type const & v)
 			{
 				return (v & deleted()) == deleted();
 			}
-			
+
 			// in use (not unused or deleted)
 			static bool isInUse(key_type const & v)
 			{
 				return !isFree(v);
 			}
-			
+
 			virtual ~SimpleHashMapConstants() {}
 		};
 
@@ -62,21 +62,21 @@ namespace libmaus2
 		struct SimpleHashMapConstants< libmaus2::uint::UInt<k> >
 		{
 			typedef libmaus2::uint::UInt<k> key_type;
-			
+
 			key_type const unusedValue;
 			key_type const deletedValue;
-			
+
 			static key_type computeUnusedValue()
 			{
 				key_type U;
 				key_type Ulow(std::numeric_limits<uint64_t>::max());
-				
+
 				for ( unsigned int i = 0; i < k; ++i )
 				{
 					U <<= 64;
 					U |= Ulow;
 				}
-				
+
 				return U;
 			}
 
@@ -88,7 +88,7 @@ namespace libmaus2
 				U.setBit(k*64-1, 0);
 				return U;
 			}
-						
+
 			key_type const & unused() const
 			{
 				return unusedValue;
@@ -103,12 +103,12 @@ namespace libmaus2
 			{
 				return (v & deletedValue) == deletedValue;
 			}
-			
+
 			bool isInUse(key_type const & v) const
 			{
 				return !isFree(v);
 			}
-			
+
 			SimpleHashMapConstants() : unusedValue(computeUnusedValue()), deletedValue(computeDeletedValue()) {}
 			virtual ~SimpleHashMapConstants() {}
 		};

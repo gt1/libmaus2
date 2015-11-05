@@ -25,34 +25,34 @@
 namespace libmaus2
 {
 	namespace bambam
-	{		
+	{
 		namespace parallel
 		{
 			struct AlignmentRewriteBufferPosComparator
 			{
 				AlignmentRewriteBuffer * buffer;
 				uint8_t const * text;
-				
+
 				AlignmentRewriteBufferPosComparator(AlignmentRewriteBuffer * rbuffer)
 				: buffer(rbuffer), text(buffer->A.begin())
 				{
-				
+
 				}
-				
+
 				bool operator()(AlignmentRewriteBuffer::pointer_type A, AlignmentRewriteBuffer::pointer_type B) const
 				{
 					uint8_t const * pa = text + A + (sizeof(uint32_t) + sizeof(uint64_t));
 					uint8_t const * pb = text + B + (sizeof(uint32_t) + sizeof(uint64_t));
-	
+
 					int32_t const refa = ::libmaus2::bambam::BamAlignmentDecoderBase::getRefID(pa);
 					int32_t const refb = ::libmaus2::bambam::BamAlignmentDecoderBase::getRefID(pb);
-				
+
 					if ( refa != refb )
 						return  static_cast<uint32_t>(refa) < static_cast<uint32_t>(refb);
-	
+
 					int32_t const posa = ::libmaus2::bambam::BamAlignmentDecoderBase::getPos(pa);
 					int32_t const posb = ::libmaus2::bambam::BamAlignmentDecoderBase::getPos(pb);
-					
+
 					return posa < posb;
 				}
 			};

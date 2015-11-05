@@ -33,11 +33,11 @@ namespace libmaus2
 	namespace fastx
 	{
 		struct CompactFastQBlockGenerator
-		{			
+		{
 			typedef ::libmaus2::fastx::FastQReader reader_type;
 			typedef reader_type::unique_ptr_type reader_ptr_type;
 			typedef reader_type::pattern_type pattern_type;
-			
+
 			static ::libmaus2::fastx::FastInterval encodeCompactFastQBlock(
 				std::vector<std::string> const & filenames,
 				int const qualityOffset,
@@ -50,7 +50,7 @@ namespace libmaus2
 			)
 			{
 				reader_ptr_type preader;
-				
+
 				if ( inFI )
 					preader = UNIQUE_PTR_MOVE(reader_ptr_type(new reader_type(filenames,*inFI,qualityOffset)));
 				else
@@ -59,10 +59,10 @@ namespace libmaus2
 						reader_type::getDefaultBufferSize(),fileoffset)));
 
 				pattern_type pattern;
-				
+
 				if ( clrc )
 					clrc->reset();
-				
+
 				/* count number of reads and symbols in output block, compute quality score histogram */
 				uint64_t numreads = 0;
 				::libmaus2::util::CountPutObject CPO;
@@ -72,28 +72,28 @@ namespace libmaus2
 				for ( ; numreads < blocksize && preader->getNextPatternUnlocked(pattern); ++numreads )
 				{
 					uint64_t const codepospre = CPO.c;
-					
+
 					uint64_t const l = pattern.getPatternLength();
 
 					// encode pattern/query
 					::libmaus2::fastx::CompactFastEncoder::encodePattern(pattern,CPO,(1ul<<1));
-					
+
 					// length of quality info
 					CPO.c += ((l*qbits + 7)/8);
 					for ( uint64_t i = 0; i < l; ++i )
 						qhist(pattern.quality[i]);
-						
+
 					maxl = std::max(maxl,l);
 					minl = std::min(minl,l);
 					numsyms += l;
 
 					uint64_t const codepospost = CPO.c;
 					uint64_t const codelen = codepospost-codepospre;
-					
+
 					if ( clrc )
 						(*clrc)(::libmaus2::fastx::CompactFastQContainerDictionaryCreator::codelenrun_first,codelen);
 				}
-				
+
 				if ( numreads )
 				{
 					if ( clrc )
@@ -117,20 +117,20 @@ namespace libmaus2
 							VQ.push_back(::libmaus2::fastx::Phred::phred_error[ita->first]);
 						std::reverse(VQ.begin(),VQ.end());
 					}
-					
+
 					uint64_t const numsteps = std::min(
 						static_cast<uint64_t>(1ull<<qbits),
 						static_cast<uint64_t>(M.size())
 					);
 					::libmaus2::fastx::FqWeightQuantiser quant(VQ,numsteps);
-										
+
 					std::string const squant = quant.serialise();
-					
+
 					uint64_t const blockcodelength = 2*sizeof(uint64_t) + 1 + squant.size() + CPO.c;
-					
+
 					::libmaus2::util::CountPutIterator< std::ostream, uint8_t > CPI(&out);
 
-					// length of header: 8 + 8 + 1 + size(quantiser)					
+					// length of header: 8 + 8 + 1 + size(quantiser)
 					::libmaus2::util::NumberSerialisation::serialiseNumber(CPI,blockcodelength); // size of block in bytes
 					::libmaus2::util::NumberSerialisation::serialiseNumber(CPI,numreads); // number of reads in block
 					CPI.put(qbits); // number of bits per quality value
@@ -147,14 +147,14 @@ namespace libmaus2
 					for ( i = 0 ; i < numreads && preader->getNextPatternUnlocked(pattern); ++i )
 					{
 						uint64_t const codepospre = CPI.c;
-						
+
 						// std::cerr << pattern;
-					
+
 						::libmaus2::fastx::CompactFastEncoder::encodePattern(pattern,CPI,(1ul<<1));
 
 						::std::ostream_iterator<uint8_t> it(out);
 						::libmaus2::bitio::FastWriteBitWriterStream8 FWBWS(it);
-						
+
 						uint64_t const l = pattern.getPatternLength();
 						// std::cerr << "l=" << l << std::endl;
 						for ( uint64_t j = 0; j < l; ++j )
@@ -164,11 +164,11 @@ namespace libmaus2
 							// std::cerr << "qv=" << qv << " -> " << quant(qv) << std::endl;
 							FWBWS.write( quant.quantForPhred[qv], qbits );
 						}
-						
+
 						FWBWS.flush();
-						
+
 						CPI.c += (l*qbits+7)/8;
-						
+
 						uint64_t const codepospost = CPI.c;
 						uint64_t const codelen = codepospost-codepospre;
 
@@ -176,7 +176,7 @@ namespace libmaus2
 							(*clrc)(::libmaus2::fastx::CompactFastQContainerDictionaryCreator::codelenrun_second,codelen);
 					}
 					assert ( i == numreads );
-					
+
 					fileoffset += preader->getFilePointer();
 
 					if ( clrc )
@@ -185,7 +185,7 @@ namespace libmaus2
 					if ( clrc )
 						clrc->shiftLongPointers(2*sizeof(uint64_t)+1+squant.size());
 
-					#if 0				
+					#if 0
 					if ( clrc )
 						std::cerr << "Dict byte size " << clrc->byteSize() << std::endl;
 					#endif
@@ -197,22 +197,22 @@ namespace libmaus2
 					::libmaus2::fastx::FqWeightQuantiser quant;
 					std::string const squant = quant.serialise();
 
-					uint64_t const blockcodelength = 2*sizeof(uint64_t) + 1 + squant.size() + 
+					uint64_t const blockcodelength = 2*sizeof(uint64_t) + 1 + squant.size() +
 						::libmaus2::fastx::CompactFastDecoderBase::getTermLength();
-					
+
 					::libmaus2::util::CountPutIterator< std::ostream, uint8_t > CPI(&out);
 
 					::libmaus2::util::NumberSerialisation::serialiseNumber(CPI,blockcodelength); // size of block in bytes
 					::libmaus2::util::NumberSerialisation::serialiseNumber(CPI,numreads); // number of reads in block
 					CPI.put(qbits);
 					CPI.put(squant); // quantiser for quality scores
-					
+
 					::libmaus2::fastx::CompactFastEncoder::encodeEndMarker(CPI);
 
 					return ::libmaus2::fastx::FastInterval(0,0,0,0,0,0,0);
 				}
 			}
-			
+
 			static void encodeCompactFastQFile(
 				std::vector<std::string> const & filenames,
 				int qualityOffset,
@@ -228,12 +228,12 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				uint64_t fileoffset = 0;
 
 				::libmaus2::fastx::FastInterval FI;
 				std::vector < ::libmaus2::fastx::FastInterval > index;
-				
+
 				while ( (FI = encodeCompactFastQBlock(filenames,qualityOffset,fileoffset,blocksize,qbits,out)).high )
 				{
 					if ( index.size() )
@@ -243,9 +243,9 @@ namespace libmaus2
 						FI.fileoffset += index.back().fileoffsethigh;
 						FI.fileoffsethigh += index.back().fileoffsethigh;
 					}
-					
+
 					index.push_back(FI);
-					
+
 					//std::cerr << fileoffset << "::" << FI << std::endl;
 					std::cerr << FI << std::endl;
 				}
@@ -253,7 +253,7 @@ namespace libmaus2
 				::libmaus2::fastx::CompactFastEncoder::putIndex(index,out);
 				out.flush();
 			}
-			
+
 			static void encodeCompactFastQContainer(
 				std::vector<std::string> const & filenames,
 				int qualityOffset,
@@ -266,7 +266,7 @@ namespace libmaus2
 				::libmaus2::serialize::Serialize<uint64_t>::serialize(costr,0);
 				::libmaus2::fastx::CompactFastQContainerDictionaryCreator clrc;
 				uint64_t allfo = 0;
-				qualityOffset = qualityOffset ? qualityOffset : reader_type::getOffset(filenames);		
+				qualityOffset = qualityOffset ? qualityOffset : reader_type::getOffset(filenames);
 				::libmaus2::fastx::FastInterval const allFI = CompactFastQBlockGenerator::encodeCompactFastQBlock(
 					filenames,
 					qualityOffset,
@@ -278,15 +278,15 @@ namespace libmaus2
 					inFI);
 				uint64_t const textsize = costr.tellp() - static_cast< ::std::streampos > ( sizeof(uint64_t) );
 				std::cerr << "done." << std::endl;
-				
+
 				// write autoarray header
 				costr.seekp(0);
 				::libmaus2::serialize::Serialize<uint64_t>::serialize(costr,textsize);
 				costr.seekp(0,std::ios::end);
-				
+
 				// write dictionary
 				clrc.serialise(costr);
-				
+
 				// write interval
 				if ( inFI )
 					::libmaus2::fastx::FastInterval::serialise(costr,*inFI);

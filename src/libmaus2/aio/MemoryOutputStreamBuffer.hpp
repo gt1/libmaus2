@@ -57,7 +57,7 @@ namespace libmaus2
 
 			// open the file
 			libmaus2::aio::MemoryFileAdapter::shared_ptr_type doOpen(std::string const & filename)
-			{	
+			{
 				libmaus2::aio::MemoryFileAdapter::shared_ptr_type ptr(libmaus2::aio::MemoryFileContainer::getEntry(filename));
 				ptr->truncate();
 				return ptr;
@@ -73,11 +73,11 @@ namespace libmaus2
 				while ( n )
 				{
 					ssize_t const w = fd->write(p,n);
-					
+
 					if ( w < 0 )
 					{
 						int const error = errno;
-						
+
 						switch ( error )
 						{
 							case EINTR:
@@ -99,16 +99,16 @@ namespace libmaus2
 						writepos += w;
 					}
 				}
-				
+
 				assert ( ! n );
 			}
-			
+
 
 			public:
 			MemoryOutputStreamBuffer(std::string const & fn, int64_t const rbuffersize)
-			: 
-			  fd(doOpen(fn)), 
-			  buffersize((rbuffersize < 0) ? getDefaultBlockSize() : rbuffersize), 
+			:
+			  fd(doOpen(fn)),
+			  buffersize((rbuffersize < 0) ? getDefaultBlockSize() : rbuffersize),
 			  buffer(buffersize,false),
 			  writepos(0)
 			{
@@ -119,7 +119,7 @@ namespace libmaus2
 			{
 				sync();
 			}
-			
+
 			int_type overflow(int_type c = traits_type::eof())
 			{
 				if ( c != traits_type::eof() )
@@ -131,12 +131,12 @@ namespace libmaus2
 
 				return c;
 			}
-			
+
 			int sync()
 			{
 				doSync();
 				return 0; // no error, -1 for error
-			}			
+			}
 
 
 			/**

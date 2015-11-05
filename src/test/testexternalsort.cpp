@@ -28,10 +28,10 @@ int main()
 	typedef std::less<data_type> order_type;
 	typedef libmaus2::sorting::SortingBufferedOutputFile<data_type,order_type> sbof_type;
 	sbof_type SBOF(filename,16);
-	
+
 	for ( uint64_t i = 0; i < 256; ++i )
 		SBOF.put(i % 31);
-	
+
 	sbof_type::merger_ptr_type MRB(SBOF.getMerger());
 	data_type v;
 	data_type pre = 0;

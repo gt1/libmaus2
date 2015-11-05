@@ -28,7 +28,7 @@ namespace libmaus2
 		struct BidirectionalIndexIntervalSymbol : public libmaus2::fm::BidirectionalIndexInterval
 		{
 			int64_t sym;
-			
+
 			BidirectionalIndexIntervalSymbol() {}
 			BidirectionalIndexIntervalSymbol(BidirectionalIndexInterval const & rBI) : BidirectionalIndexInterval(rBI) {}
 			BidirectionalIndexIntervalSymbol(int64_t rsym, BidirectionalIndexInterval const & rBI) : BidirectionalIndexInterval(rBI), sym(rsym) {}

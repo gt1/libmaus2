@@ -22,7 +22,7 @@
 namespace libmaus2
 {
 	namespace lcs
-	{		
+	{
 		enum edit_distance_priority_type
 		{
 			del_ins_diag,

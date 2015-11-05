@@ -42,13 +42,13 @@ namespace libmaus2
 				typedef GenericInputBlock<meta_info_type> this_type;
 				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				libmaus2::autoarray::AutoArray<uint8_t,libmaus2::autoarray::alloc_type_c> A;
 				uint8_t * pa;
 				uint8_t * pc;
 				uint8_t * pe;
 				meta_info_type meta;
-				
+
 				size_t byteSize() const
 				{
 					return
@@ -58,40 +58,40 @@ namespace libmaus2
 						sizeof(pe) +
 						meta.byteSize();
 				}
-												
+
 				GenericInputBlock(
 					uint64_t const rsize
 				)
 				: A(rsize,false), pa(A.begin()), pc(pa), pe(pc)
 				{
-				
+
 				}
-				
+
 				void extend(uint64_t const extendc = 9, uint64_t const extendd = 8)
 				{
 					ptrdiff_t const coff = pc-pa;
 					ptrdiff_t const eoff = pe-pa;
-				
-					uint64_t const newsize = 
-						A.size() ? 
-						((A.size() * extendc + extendd-1)/extendd) 
+
+					uint64_t const newsize =
+						A.size() ?
+						((A.size() * extendc + extendd-1)/extendd)
 						: 1;
 					assert ( extendc > extendd );
 					assert ( newsize > A.size() );
 					A.resize(newsize);
-					
+
 					pa = A.begin();
 					pc = pa + coff;
 					pe = pa + eoff;
 				}
-				
+
 				void reset()
 				{
 					pc = pa;
 					pe = pa;
 					meta.reset();
 				}
-				
+
 				template<typename iterator>
 				void insert(iterator a, iterator e)
 				{
@@ -101,7 +101,7 @@ namespace libmaus2
 					// free space
 					assert ( A.end() >= pe );
 					uint64_t bfree = A.end() - pe;
-					
+
 					// req more than we currently have?
 					if ( req > bfree )
 					{
@@ -112,15 +112,15 @@ namespace libmaus2
 						pc = A.begin() + dc;
 						pe = A.begin() + de;
 					}
-					
-					// new free space	
+
+					// new free space
 					bfree = A.end() - pe;
 					assert ( bfree >= req );
-										
+
 					std::copy(a,e,pe);
 					pe += req;
 				}
-				
+
 				uint64_t extractRest(libmaus2::autoarray::AutoArray<uint8_t,libmaus2::autoarray::alloc_type_c> & R)
 				{
 					// number of bytes in use
@@ -128,24 +128,24 @@ namespace libmaus2
 
 					if ( bused > R.size() )
 						R.resize(bused);
-						
+
 					std::copy(pc,pe,R.begin());
-					
+
 					return bused;
 				}
-				
+
 				bool full() const
 				{
 					return pe == A.end();
 				}
-				
-				
+
+
 				template<typename stream_type>
 				GenericInputBlockFillResult fill(stream_type & stream, bool const finite = false, uint64_t const maxread = 0)
 				{
 					// number of bytes in use
 					uint64_t const bused = pe - pc;
-										
+
 					// move bytes in use to front of buffer
 					if ( bused )
 						::std::memmove(pa,pc,bused);
@@ -157,21 +157,21 @@ namespace libmaus2
 
 					// number of bytes free in buffer
 					uint64_t const bfree = A.end() - pe;
-					
+
 					uint64_t const readsize = finite ? std::min(bfree,maxread) : bfree;
-					
+
 					// read
 					stream.read(reinterpret_cast<char *>(pe),readsize);
-					
+
 					// number of bytes read
 					std::streamsize const gcnt = stream.gcount();
-					
+
 					// update pointer
 					pe += gcnt;
-					
+
 					return GenericInputBlockFillResult(
-						pe == pa /* empty */, 
-						(gcnt == 0) || (stream.peek() == std::ios::traits_type::eof())/* eof */, 
+						pe == pa /* empty */,
+						(gcnt == 0) || (stream.peek() == std::ios::traits_type::eof())/* eof */,
 						gcnt
 					);
 				}

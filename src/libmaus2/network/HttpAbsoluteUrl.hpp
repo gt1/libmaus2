@@ -38,20 +38,20 @@ namespace libmaus2
 			static bool isHttpAbsoluteUrl(std::string const & s)
 			{
 				std::string const prefix = "http://";
-				return (s.size() > prefix.size()) && s.substr(0,prefix.size()) == prefix;				
+				return (s.size() > prefix.size()) && s.substr(0,prefix.size()) == prefix;
 			}
 
 			static bool isHttpsAbsoluteUrl(std::string const & s)
 			{
 				std::string const prefix = "https://";
-				return (s.size() > prefix.size()) && s.substr(0,prefix.size()) == prefix;				
+				return (s.size() > prefix.size()) && s.substr(0,prefix.size()) == prefix;
 			}
-			
+
 			HttpAbsoluteUrl() {}
 			HttpAbsoluteUrl(std::string const url)
 			{
-				if ( 
-					! isHttpAbsoluteUrl(url) 
+				if (
+					! isHttpAbsoluteUrl(url)
 					&&
 					! isHttpsAbsoluteUrl(url)
 				)
@@ -59,59 +59,59 @@ namespace libmaus2
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HttpAbsoluteUrl: malformed url " << url << std::endl;
 					lme.finish();
-					throw lme;		
+					throw lme;
 				}
-				
+
 				ssl = isHttpsAbsoluteUrl(url);
-				
+
 				port = ssl ? 443 : 80;
-				
-				std::string rest = 
-					ssl ? 
+
+				std::string rest =
+					ssl ?
 					url.substr(::std::strlen("https://"))
 					:
 					url.substr(::std::strlen("http://"))
 					;
-				
+
 				uint64_t slash = 0;
 				while ( slash < rest.size() && rest[slash] != '/' )
 					++slash;
-				
+
 				host = rest.substr(0,slash);
-				
+
 				uint64_t col = host.size();
 				for ( uint64_t i = 0; i < host.size(); ++i )
 					if ( host[i] == ':' )
 						col = i;
-						
+
 				bool alldig = true;
 				for ( uint64_t i = col+1; i < host.size(); ++i )
 					if ( !isdigit(host[i]) )
 						alldig = false;
-						
+
 				if ( col != host.size() && alldig )
 				{
 					std::istringstream portistr(host.substr(col+1));
 					portistr >> port;
-					
+
 					if ( !portistr )
 					{
 						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "HttpAbsoluteUrl: malformed url " << url << std::endl;
 						lme.finish();
-						throw lme;		
+						throw lme;
 					}
-					
+
 					host = host.substr(0,col);
 				}
 
 				if ( slash != rest.size() )
 					path = rest.substr(slash);
-				
+
 				if ( ! path.size() )
 					path = "/";
-				
-				#if 0	
+
+				#if 0
 				std::cerr << "host " << host << std::endl;
 				std::cerr << "port " << port << std::endl;
 				std::cerr << "path " << path << std::endl;

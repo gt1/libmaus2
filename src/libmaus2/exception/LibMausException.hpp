@@ -34,7 +34,7 @@ namespace libmaus2
 		{
 			typedef LibMausException this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			::libmaus2::util::shared_ptr<std::ostringstream>::type postr;
 			std::string s;
 
@@ -47,14 +47,14 @@ namespace libmaus2
 			{
 
 			}
-			
+
 			unique_ptr_type uclone() const
 			{
 				unique_ptr_type uptr(new this_type);
-				
+
 				uptr->postr = libmaus2::util::shared_ptr<std::ostringstream>::type(new std::ostringstream(postr->str()));
 				uptr->s = s;
-				
+
 				return UNIQUE_PTR_MOVE(uptr);
 			}
 

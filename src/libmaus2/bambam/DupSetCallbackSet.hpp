@@ -32,7 +32,7 @@ namespace libmaus2
 			virtual void operator()(::libmaus2::bambam::ReadEnds const & A)
 			{
 				S.insert(A.getRead1IndexInFile());
-				
+
 				if ( A.isPaired() )
 					S.insert(A.getRead2IndexInFile());
 			}
@@ -42,7 +42,7 @@ namespace libmaus2
 			}
 			virtual void addOpticalDuplicates(uint64_t const, uint64_t const)
 			{
-			
+
 			}
 			virtual bool isMarked(uint64_t const i) const
 			{
@@ -50,7 +50,7 @@ namespace libmaus2
 			}
 			virtual void flush(uint64_t const)
 			{
-			
+
 			}
 		};
 	}

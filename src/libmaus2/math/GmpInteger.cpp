@@ -20,12 +20,12 @@
 #if defined(LIBMAUS2_HAVE_GMP)
 #include <gmp.h>
 #endif
-			
+
 #if defined(LIBMAUS2_HAVE_GMP)
 struct Tmp
 {
 	mpz_t tv;
-	
+
 	Tmp(int64_t const t)
 	{
 		mpz_init_set_ui(tv,t);
@@ -52,11 +52,11 @@ struct MpzContainer
 
 	MpzContainer()
 	{
-	
+
 	}
 	~MpzContainer()
 	{
-	
+
 	}
 };
 #endif
@@ -67,18 +67,18 @@ static mpz_t & decode(void * data)
 	return reinterpret_cast<MpzContainer *>(data)->v;
 }
 #endif
-				
+
 libmaus2::math::GmpInteger::GmpInteger(
-	int64_t 
+	int64_t
 	#if defined(LIBMAUS2_HAVE_GMP)
 		rv
 	#endif
 )
 : v(0)
-{	
+{
 	#if defined(LIBMAUS2_HAVE_GMP)
 	v = new MpzContainer();
-	
+
 	mpz_init(decode(v));
 
 	if ( rv )
@@ -86,24 +86,24 @@ libmaus2::math::GmpInteger::GmpInteger(
 		bool const neg = rv < 0;
 		if ( neg )
 			rv = -rv;
-			
+
 		uint64_t uv = static_cast<uint64_t>(rv);
-		
+
 		unsigned int const bytecopy = 2;
 		uint64_t const mask = (1ull << (bytecopy * 8))-1;
 		unsigned int const runs = sizeof(uint64_t) / bytecopy;
-		
+
 		for ( unsigned int i = 0; i < sizeof(uint64_t)/bytecopy; ++i )
 		{
 			unsigned int const shift = (runs-i-1)*8*bytecopy;
-			
+
 			Tmp stmp((uv >> shift) & mask);
 			mpz_mul_2exp(stmp.tv,stmp.tv,shift);
 			mpz_add(decode(v),decode(v),stmp.tv);
 		}
 
 		if ( neg )
-			mpz_neg(decode(v),decode(v));					
+			mpz_neg(decode(v),decode(v));
 	}
 	#else
 	libmaus2::exception::LibMausException lme;
@@ -113,7 +113,7 @@ libmaus2::math::GmpInteger::GmpInteger(
 	#endif
 }
 libmaus2::math::GmpInteger::GmpInteger(
-	GmpInteger const & 
+	GmpInteger const &
 	#if defined(LIBMAUS2_HAVE_GMP)
 		o
 	#endif
@@ -135,7 +135,7 @@ libmaus2::math::GmpInteger::~GmpInteger()
 }
 
 libmaus2::math::GmpInteger & libmaus2::math::GmpInteger::operator=(
-	GmpInteger const & 
+	GmpInteger const &
 	#if defined(LIBMAUS2_HAVE_GMP)
 		o
 	#endif
@@ -161,7 +161,7 @@ std::string libmaus2::math::GmpInteger::toString() const
 }
 
 libmaus2::math::GmpInteger & libmaus2::math::GmpInteger::operator+=(
-	GmpInteger const & 
+	GmpInteger const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
@@ -174,7 +174,7 @@ libmaus2::math::GmpInteger & libmaus2::math::GmpInteger::operator+=(
 }
 
 libmaus2::math::GmpInteger & libmaus2::math::GmpInteger::operator-=(
-	GmpInteger const & 
+	GmpInteger const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
@@ -187,7 +187,7 @@ libmaus2::math::GmpInteger & libmaus2::math::GmpInteger::operator-=(
 }
 
 libmaus2::math::GmpInteger & libmaus2::math::GmpInteger::operator*=(
-	GmpInteger const & 
+	GmpInteger const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
@@ -200,7 +200,7 @@ libmaus2::math::GmpInteger & libmaus2::math::GmpInteger::operator*=(
 }
 
 libmaus2::math::GmpInteger & libmaus2::math::GmpInteger::operator/=(
-	GmpInteger const & 
+	GmpInteger const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
@@ -213,7 +213,7 @@ libmaus2::math::GmpInteger & libmaus2::math::GmpInteger::operator/=(
 }
 
 libmaus2::math::GmpInteger & libmaus2::math::GmpInteger::operator%=(
-	GmpInteger const & 
+	GmpInteger const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
@@ -234,7 +234,7 @@ libmaus2::math::GmpInteger & libmaus2::math::GmpInteger::operator-()
 }
 
 bool libmaus2::math::GmpInteger::operator<(
-	GmpInteger const & 
+	GmpInteger const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
@@ -248,7 +248,7 @@ bool libmaus2::math::GmpInteger::operator<(
 }
 
 bool libmaus2::math::GmpInteger::operator<=(
-	GmpInteger const & 
+	GmpInteger const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
@@ -262,7 +262,7 @@ bool libmaus2::math::GmpInteger::operator<=(
 }
 
 bool libmaus2::math::GmpInteger::operator==(
-	GmpInteger const & 
+	GmpInteger const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
@@ -276,7 +276,7 @@ bool libmaus2::math::GmpInteger::operator==(
 }
 
 bool libmaus2::math::GmpInteger::operator!=(
-	GmpInteger const & 
+	GmpInteger const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
@@ -290,7 +290,7 @@ bool libmaus2::math::GmpInteger::operator!=(
 }
 
 bool libmaus2::math::GmpInteger::operator>(
-	GmpInteger const & 
+	GmpInteger const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
@@ -304,8 +304,8 @@ bool libmaus2::math::GmpInteger::operator>(
 }
 
 bool libmaus2::math::GmpInteger::operator>=(
-	GmpInteger const & 
-		#if defined(LIBMAUS2_HAVE_GMP)	
+	GmpInteger const &
+		#if defined(LIBMAUS2_HAVE_GMP)
 		o
 		#endif
 ) const
@@ -330,13 +330,13 @@ libmaus2::math::GmpInteger::operator uint64_t() const
 {
 	#if defined(LIBMAUS2_HAVE_GMP)
 	libmaus2::math::GmpInteger const mask(1ull << 32);
-	
+
 	libmaus2::math::GmpInteger const low = *this % mask;
 	libmaus2::math::GmpInteger const high = (*this / mask)%mask;
-	
+
 	uint64_t const ulow = mpz_get_ui(decode(low.v));
 	uint64_t const uhigh = mpz_get_ui(decode(high.v));
-	
+
 	return (uhigh<<32) | ulow;
 	#else
 	return 0;
@@ -353,15 +353,15 @@ libmaus2::math::GmpInteger::operator int64_t() const
 		R = -R;
 		neg = true;
 	}
-	
+
 	libmaus2::math::GmpInteger const mask(1ull << 32);
-	
+
 	libmaus2::math::GmpInteger const low = *this % mask;
 	libmaus2::math::GmpInteger const high = (*this / mask)%mask;
-	
+
 	uint64_t const ulow = mpz_get_ui(decode(low.v));
 	uint64_t const uhigh = mpz_get_ui(decode(high.v));
-	
+
 	int64_t const v = static_cast<int64_t>((uhigh<<32) | ulow);
 	return neg ? -v : v;
 	#else
@@ -370,13 +370,13 @@ libmaus2::math::GmpInteger::operator int64_t() const
 }
 
 libmaus2::math::GmpInteger libmaus2::math::operator+(
-	libmaus2::math::GmpInteger const & 
-		#if defined(LIBMAUS2_HAVE_GMP)	
+	libmaus2::math::GmpInteger const &
+		#if defined(LIBMAUS2_HAVE_GMP)
 		A
 		#endif
-		, 
-	libmaus2::math::GmpInteger const & 
-		#if defined(LIBMAUS2_HAVE_GMP)	
+		,
+	libmaus2::math::GmpInteger const &
+		#if defined(LIBMAUS2_HAVE_GMP)
 		B
 		#endif
 )
@@ -388,12 +388,12 @@ libmaus2::math::GmpInteger libmaus2::math::operator+(
 	return R;
 }
 libmaus2::math::GmpInteger libmaus2::math::operator-(
-	libmaus2::math::GmpInteger const & 
+	libmaus2::math::GmpInteger const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		A
 		#endif
-		, 
-	libmaus2::math::GmpInteger const & 
+		,
+	libmaus2::math::GmpInteger const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		B
 		#endif
@@ -406,12 +406,12 @@ libmaus2::math::GmpInteger libmaus2::math::operator-(
 	return R;
 }
 libmaus2::math::GmpInteger libmaus2::math::operator*(
-	libmaus2::math::GmpInteger const & 
+	libmaus2::math::GmpInteger const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		A
 		#endif
-		, 
-	libmaus2::math::GmpInteger const & 
+		,
+	libmaus2::math::GmpInteger const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		B
 		#endif
@@ -424,12 +424,12 @@ libmaus2::math::GmpInteger libmaus2::math::operator*(
 	return R;
 }
 libmaus2::math::GmpInteger libmaus2::math::operator/(
-	libmaus2::math::GmpInteger const & 
+	libmaus2::math::GmpInteger const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		A
 		#endif
-		, 
-	libmaus2::math::GmpInteger const & 
+		,
+	libmaus2::math::GmpInteger const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		B
 		#endif
@@ -442,12 +442,12 @@ libmaus2::math::GmpInteger libmaus2::math::operator/(
 	return R;
 }
 libmaus2::math::GmpInteger libmaus2::math::operator%(
-	libmaus2::math::GmpInteger const & 
+	libmaus2::math::GmpInteger const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		A
 		#endif
-		, 
-	libmaus2::math::GmpInteger const & 
+		,
+	libmaus2::math::GmpInteger const &
 		#if defined(LIBMAUS2_HAVE_GMP)
 		B
 		#endif

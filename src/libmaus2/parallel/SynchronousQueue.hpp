@@ -39,22 +39,22 @@ namespace libmaus2
                 	typedef _value_type value_type;
                 	typedef SynchronousQueue<value_type> this_type;
                 	typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-                	
+
                         std::deque < value_type > Q;
                         PosixSpinLock lock;
                         libmaus2::parallel::SimpleSemaphoreInterface::unique_ptr_type Psemaphore;
                         libmaus2::parallel::SimpleSemaphoreInterface & semaphore;
-                        
+
                         this_type * parent;
-                        
+
                         SynchronousQueue() : Q(), lock(), Psemaphore(new libmaus2::parallel::PosixSemaphore), semaphore(*Psemaphore), parent(0)
                         {
 
                         }
-                        
+
                         virtual ~SynchronousQueue()
                         {
-                        
+
                         }
 
                         bool empty()
@@ -66,14 +66,14 @@ namespace libmaus2
                         {
                         	return getFillState();
                         }
-                        
+
 			size_t getFillState()
                         {
                         	libmaus2::parallel::ScopePosixSpinLock llock(lock);
                                 size_t const fill = Q.size();
                                 return fill;
                         }
-                        
+
                         void enque(value_type const q)
                         {
                         	{
@@ -82,14 +82,14 @@ namespace libmaus2
 				}
 
                                 semaphore.post();
-                                
+
                                 if ( parent )
 	                                parent->enque(q);
                         }
                         virtual value_type deque()
                         {
                                 semaphore.wait();
-                                
+
                         	libmaus2::parallel::ScopePosixSpinLock llock(lock);
                                 value_type const v = Q.front();
                                 Q.pop_front();
@@ -98,7 +98,7 @@ namespace libmaus2
                         virtual bool trydeque(value_type & v)
                         {
                         	bool const ok = semaphore.trywait();
-                                
+
                                 if ( ok )
                                 {
 	                        	libmaus2::parallel::ScopePosixSpinLock llock(lock);
@@ -130,7 +130,7 @@ namespace libmaus2
 					throw se;
 				}
                         }
-                        
+
                         bool peek(value_type & v)
                         {
                         	lock.lock();

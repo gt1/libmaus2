@@ -44,7 +44,7 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			//! FastQ pattern type
 			typedef ::libmaus2::fastx::FASTQEntry pattern_type;
 
@@ -77,11 +77,11 @@ namespace libmaus2
 			 * @param mode file mode r (SAM), rb (BAM) or rc (CRAM)
 			 * @param reference reference file name (empty string for none)
 			 * @return decoder object
-			 **/					
+			 **/
 			libmaus2_bambam_ScramDecoder * allocateDecoder(std::string const & filename, std::string const & mode, std::string const & reference)
 			{
 				libmaus2_bambam_ScramDecoder * dec = d_new.func(filename.c_str(),mode.c_str(),reference.size() ? reference.c_str() : 0);
-				
+
 				if ( ! dec )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -89,7 +89,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-			
+
 				return dec;
 			}
 
@@ -100,7 +100,7 @@ namespace libmaus2
 			 * @param mode file mode r (SAM), rb (BAM) or rc (CRAM)
 			 * @param reference reference file name (empty string for none)
 			 * @return decoder object
-			 **/					
+			 **/
 			libmaus2_bambam_ScramDecoder * allocateDecoder(
 				std::string const & filename, std::string const & mode, std::string const & reference,
 				std::string const & ref,
@@ -109,31 +109,31 @@ namespace libmaus2
 			)
 			{
 				if ( mode != "rc" )
-				{				
+				{
 					::libmaus2::exception::LibMausException se;
-					se.getStream() << "ScramDecoder: failed to open file " << filename << " in mode " << mode 
+					se.getStream() << "ScramDecoder: failed to open file " << filename << " in mode " << mode
 						<< " with range (" << ref << "," << start << "," << end << "), "
 						<< "ranges are only supported for CRAM input" << std::endl;
 					se.finish();
 					throw se;
 				}
-			
+
 				libmaus2_bambam_ScramDecoder * dec = d_new_range.func(
 					filename.c_str(),mode.c_str(),reference.size() ? reference.c_str() : 0,
 					ref.c_str(),
 					start,end
 				);
-				
+
 				if ( ! dec )
 				{
 					::libmaus2::exception::LibMausException se;
-					se.getStream() << "ScramDecoder: failed to open file " << filename << " in mode " << mode 
+					se.getStream() << "ScramDecoder: failed to open file " << filename << " in mode " << mode
 						<< " with range (" << ref << "," << start << "," << end << ")"
 						<< std::endl;
 					se.finish();
 					throw se;
 				}
-			
+
 				return dec;
 			}
 
@@ -160,7 +160,7 @@ namespace libmaus2
 					bufsize,
 					rreferencefilename.size() ? rreferencefilename.c_str() : 0
 				);
-				
+
 				if ( ! dec )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -168,7 +168,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				return dec;
 			}
 
@@ -199,7 +199,7 @@ namespace libmaus2
 					ref.size() ? ref.c_str() : 0,
 					start,end
 				);
-				
+
 				if ( ! dec )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -207,16 +207,16 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				return dec;
 			}
 
 			bool readAlignmentInternal(bool const delayPutRank = false)
 			{
 				int const r = d_decode.func(dec);
-				
+
 				// std::cerr << "got code " << r << std::endl;
-				
+
 				if ( r == -2 )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -231,7 +231,7 @@ namespace libmaus2
 
 				if ( dec->blocksize > alignment.D.size() )
 					alignment.D = ::libmaus2::bambam::BamAlignment::D_array_type(dec->blocksize,false);
-						
+
 				memcpy(alignment.D.begin(),dec->buffer,dec->blocksize);
 				alignment.blocksize = dec->blocksize;
 
@@ -243,13 +243,13 @@ namespace libmaus2
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Invalid alignment: " << validity << std::endl;
 						se.finish();
-						throw se;					
+						throw se;
 					}
 				}
 
 				if ( ! delayPutRank )
 					putRank();
-			
+
 				return true;
 			}
 
@@ -263,7 +263,7 @@ namespace libmaus2
 			 * @param rputrank put rank (line number) on alignments
 			 **/
 			ScramDecoder(std::string const & filename, std::string const & mode, std::string const & reference, bool const rputrank = false)
-			: 
+			:
 				libmaus2::bambam::BamAlignmentDecoder(rputrank),
 				scram_mod("libmaus2_scram_mod.so"),
 				d_new(scram_mod,"libmaus2_bambam_ScramDecoder_New"),
@@ -292,7 +292,7 @@ namespace libmaus2
 				int64_t const start,
 				int64_t const end,
 				bool const rputrank = false)
-			: 
+			:
 				libmaus2::bambam::BamAlignmentDecoder(rputrank),
 				scram_mod("libmaus2_scram_mod.so"),
 				d_new(scram_mod,"libmaus2_bambam_ScramDecoder_New"),
@@ -320,9 +320,9 @@ namespace libmaus2
 			        scram_cram_io_allocate_read_input_t   callback_allocate_function,
 			        scram_cram_io_deallocate_read_input_t callback_deallocate_function,
 			        size_t const bufsize,
-			 	std::string const & reference,			                                        
+			 	std::string const & reference,
 				bool const rputrank = false)
-			: 
+			:
 				libmaus2::bambam::BamAlignmentDecoder(rputrank),
 				scram_mod("libmaus2_scram_mod.so"),
 				d_new(scram_mod,"libmaus2_bambam_ScramDecoder_New"),
@@ -357,12 +357,12 @@ namespace libmaus2
 			        scram_cram_io_allocate_read_input_t   callback_allocate_function,
 			        scram_cram_io_deallocate_read_input_t callback_deallocate_function,
 			        size_t const bufsize,
-			 	std::string const & reference,			                                        
+			 	std::string const & reference,
 				std::string const & ref,
 				int64_t const start,
 				int64_t const end,
 				bool const rputrank = false)
-			: 
+			:
 				libmaus2::bambam::BamAlignmentDecoder(rputrank),
 				scram_mod("libmaus2_scram_mod.so"),
 				d_new(scram_mod,"libmaus2_bambam_ScramDecoder_New"),
@@ -379,7 +379,7 @@ namespace libmaus2
 				bamheader(std::string(dec->header,dec->header+dec->headerlen))
 			{
 			}
-			
+
 			/**
 			 * destructor
 			 **/
@@ -399,7 +399,7 @@ namespace libmaus2
 
 		/**
 		 * class wrapping a ScramDecoder object
-		 **/		
+		 **/
 		struct ScramDecoderWrapper : public libmaus2::bambam::BamAlignmentDecoderWrapper
 		{
 			//! wrapped object
@@ -414,14 +414,14 @@ namespace libmaus2
 			 * @param rputrank put rank (line number) on alignments
 			 **/
 			ScramDecoderWrapper(
-				std::string const & filename, 
-				std::string const & mode, 
-				std::string const & reference, 
+				std::string const & filename,
+				std::string const & mode,
+				std::string const & reference,
 				bool const rputrank = false
 			)
 			: scramdec(filename,mode,reference,rputrank)
 			{
-			
+
 			}
 			/**
 			 * constructor
@@ -435,9 +435,9 @@ namespace libmaus2
 			 * @param rputrank put rank (line number) on alignments
 			 **/
 			ScramDecoderWrapper(
-				std::string const & filename, 
-				std::string const & mode, 
-				std::string const & reference, 
+				std::string const & filename,
+				std::string const & mode,
+				std::string const & reference,
 				std::string const & ref,
 				int64_t const start,
 				int64_t const end,
@@ -445,7 +445,7 @@ namespace libmaus2
 			)
 			: scramdec(filename,mode,reference,ref,start,end,rputrank)
 			{
-			
+
 			}
 			/**
 			 * constructor
@@ -461,11 +461,11 @@ namespace libmaus2
 			        scram_cram_io_allocate_read_input_t   callback_allocate_function,
 			        scram_cram_io_deallocate_read_input_t callback_deallocate_function,
 			        size_t const bufsize,
-			 	std::string const & reference,			                                        
+			 	std::string const & reference,
 				bool const rputrank = false)
 			: scramdec(filename,callback_allocate_function,callback_deallocate_function,bufsize,reference,rputrank)
 			{
-			
+
 			}
 			/**
 			 * constructor
@@ -485,16 +485,16 @@ namespace libmaus2
 			        scram_cram_io_allocate_read_input_t   callback_allocate_function,
 			        scram_cram_io_deallocate_read_input_t callback_deallocate_function,
 			        size_t const bufsize,
-			 	std::string const & reference,			                                        
+			 	std::string const & reference,
 				std::string const & ref,
 				int64_t const start,
 				int64_t const end,
 				bool const rputrank = false)
 			: scramdec(filename,callback_allocate_function,callback_deallocate_function,bufsize,reference,ref,start,end,rputrank)
 			{
-			
+
 			}
-			
+
 			libmaus2::bambam::BamAlignmentDecoder & getDecoder()
 			{
 				return scramdec;
@@ -504,4 +504,3 @@ namespace libmaus2
 	}
 }
 #endif
-

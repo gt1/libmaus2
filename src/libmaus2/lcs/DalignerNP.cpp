@@ -22,8 +22,8 @@
 #if defined(LIBMAUS2_HAVE_DALIGNER)
 #include <align.h>
 #endif
-		
-libmaus2::lcs::DalignerNP::DalignerNP() 
+
+libmaus2::lcs::DalignerNP::DalignerNP()
 #if defined(LIBMAUS2_HAVE_DALIGNER)
 : data(0)
 #endif
@@ -45,7 +45,7 @@ libmaus2::lcs::DalignerNP::DalignerNP()
 	throw lme;
 	#endif
 }
-libmaus2::lcs::DalignerNP::~DalignerNP() 
+libmaus2::lcs::DalignerNP::~DalignerNP()
 {
 	#if defined(LIBMAUS2_HAVE_DALIGNER)
 	Free_Work_Data(reinterpret_cast<Work_Data *>(data));
@@ -54,14 +54,14 @@ libmaus2::lcs::DalignerNP::~DalignerNP()
 }
 void libmaus2::lcs::DalignerNP::align(
 	#if defined(LIBMAUS2_HAVE_DALIGNER)
-	uint8_t const * a, 
-	size_t const l_a, 
-	uint8_t const * b, 
+	uint8_t const * a,
+	size_t const l_a,
+	uint8_t const * b,
 	size_t const l_b
 	#else
-	uint8_t const *, 
-	size_t const, 
-	uint8_t const *, 
+	uint8_t const *,
+	size_t const,
+	uint8_t const *,
 	size_t const
 	#endif
 )
@@ -71,7 +71,7 @@ void libmaus2::lcs::DalignerNP::align(
 		A.resize(l_a);
 	if ( l_b > B.size() )
 		B.resize(l_b);
-	
+
 	for ( size_t i = 0; i < l_a; ++i )
 		A[i] = libmaus2::fastx::mapChar(a[i]);
 	for ( size_t i = 0; i < l_b; ++i )
@@ -95,10 +95,10 @@ void libmaus2::lcs::DalignerNP::align(
 	algn.blen = l_b;
 
 	Compute_Trace_ALL(&algn,reinterpret_cast<Work_Data *>(data));
-	
+
 	if ( capacity() < l_a+l_b )
 		resize(l_a+l_b);
-		
+
 	ta = trace.begin();
 	te = trace.begin();
 
@@ -117,17 +117,17 @@ void libmaus2::lcs::DalignerNP::align(
 				char const tc = tp[i++];
 				char const qc = qp[j++];
 				bool const eq = tc == qc;
-				
+
 				if ( eq )
 				{
-					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;		
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;
 				}
 				else
 				{
-					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;						
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;
 				}
 			}
-			
+
 			*(te++)	= libmaus2::lcs::BaseConstants::STEP_INS;
 			++j;
 		}
@@ -139,14 +139,14 @@ void libmaus2::lcs::DalignerNP::align(
 				char const tc = tp[i++];
 				char const qc = qp[j++];
 				bool const eq = tc == qc;
-				
+
 				if ( eq )
 				{
-					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;		
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;
 				}
 				else
 				{
-					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;						
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;
 				}
 			}
 			*(te++)	= libmaus2::lcs::BaseConstants::STEP_DEL;
@@ -161,11 +161,11 @@ void libmaus2::lcs::DalignerNP::align(
 
 		if ( eq )
 		{
-			*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;		
+			*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;
 		}
 		else
 		{
-			*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;						
+			*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;
 		}
 	}
 	#endif

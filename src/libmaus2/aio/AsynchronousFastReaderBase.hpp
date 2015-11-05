@@ -93,18 +93,18 @@ namespace libmaus2
 			 * @param offset initial read offset in file
 			 **/
 			AsynchronousFastReaderBase(
-				std::string const & rfilename, 
-				unsigned int numbuffers = 16, 
-				unsigned int bufsize = 1024, 
+				std::string const & rfilename,
+				unsigned int numbuffers = 16,
+				unsigned int bufsize = 1024,
 				uint64_t const offset = 0)
-			: 
+			:
 				filenames(singleToList(rfilename)),
-				reader(filenames.begin(),filenames.end(),numbuffers,bufsize,offset), 
-				data(reinterpret_cast<char const *>(0),0), 
-				text(0), 
-				textlength(0), 
-				dataptr(0), 
-				firstbuf(true), 
+				reader(filenames.begin(),filenames.end(),numbuffers,bufsize,offset),
+				data(reinterpret_cast<char const *>(0),0),
+				text(0),
+				textlength(0),
+				dataptr(0),
+				firstbuf(true),
 				c(0)
 			{
 			}
@@ -119,17 +119,17 @@ namespace libmaus2
 			 **/
 			AsynchronousFastReaderBase(
 				std::vector<std::string> const & rfilenames,
-				unsigned int numbuffers = 16, 
-				unsigned int bufsize = 1024, 
+				unsigned int numbuffers = 16,
+				unsigned int bufsize = 1024,
 				uint64_t const offset = 0)
-			: 
+			:
 				filenames(rfilenames),
-				reader(filenames.begin(),filenames.end(),numbuffers,bufsize,offset), 
-				data(reinterpret_cast<char const *>(0),0), 
-				text(0), 
-				textlength(0), 
-				dataptr(0), 
-				firstbuf(true), 
+				reader(filenames.begin(),filenames.end(),numbuffers,bufsize,offset),
+				data(reinterpret_cast<char const *>(0),0),
+				text(0),
+				textlength(0),
+				dataptr(0),
+				firstbuf(true),
 				c(0)
 			{
 			}
@@ -141,7 +141,7 @@ namespace libmaus2
 			{
 				return c;
 			}
-			
+
 			/**
 			 * @return next character or -1 for EOF
 			 **/
@@ -167,7 +167,7 @@ namespace libmaus2
 					textlength = data.second;
 					dataptr = 0;
 				}
-				
+
 				c += 1;
 				return text[dataptr++];
 			}

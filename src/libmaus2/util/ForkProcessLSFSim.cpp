@@ -21,7 +21,7 @@
 #include <unistd.h>
 
 void libmaus2::util::ForkProcessLSFSim::initLSF(std::string const & s) {
-	LSFSim::init(s);	
+	LSFSim::init(s);
 }
 
 bool libmaus2::util::ForkProcessLSFSim::distributeUnique() { return false; }
@@ -81,7 +81,7 @@ std::string libmaus2::util::ForkProcessLSFSim::getSingleHost() const
 {
 	return "localhost";
 }
-		
+
 bool libmaus2::util::ForkProcessLSFSim::getHost(::std::vector<std::string> & hostnames)
 {
 	hostnames = std::vector < std::string >(1,"localhost");

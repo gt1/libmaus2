@@ -35,23 +35,23 @@ namespace libmaus2
 			static uint64_t encodeDouble(double const v)
 			{
 				assert ( std::numeric_limits<double>::is_iec559 );
-			
-				// copy 
+
+				// copy
 				double t = v;
-				
+
 				// check for nan
 				assert ( t == t );
-				
+
 				if ( (!(t<0)) && (!(t>0)) )
 					return 0;
 
-				// handle sign		
+				// handle sign
 				bool const sign = t < 0.0;
-			
+
 				// flip sign if negative
 				if ( sign )
 					t = -t;
-					
+
 				assert ( t > 0 );
 
 				// we currently do not handle denormalised numbers
@@ -63,7 +63,7 @@ namespace libmaus2
 				}
 
 				uint64_t o = 0;
-				
+
 				if ( t > std::numeric_limits<double>::max() )
 				{
 					o |= 0x7FFull << 52;
@@ -72,17 +72,17 @@ namespace libmaus2
 				{
 					int exp = 0;
 					t = frexp(t,&exp);
-					
+
 					exp += static_cast<int>(expbias);
 					assert ( exp >= 0 );
 					uint64_t const uexp = static_cast<uint64_t>(exp);
-					
+
 					// std::cerr << "exp=" << exp << std::endl;
-					
+
 					t *= 2;
 					assert ( t >= 1 );
 					t -= 1;
-					
+
 					for ( uint64_t i = 0; i < 52; ++i )
 					{
 						o <<= 1;
@@ -93,34 +93,34 @@ namespace libmaus2
 							t -= 1;
 						}
 					}
-					
+
 					o |= (uexp<<52);
 				}
 				o |= static_cast<uint64_t>(sign) << 63;
-				
+
 				return o;
 			}
-			
+
 			static double decodeDouble(uint64_t const o)
 			{
 				if ( ! o )
 					return 0.0;
-			
+
 				// extract sign
 				bool const sign = (o >> 63)&1;
-				
+
 				// extract exponent
 				int64_t const preexp = static_cast<int64_t>((o >> 52) & 0x7FF);
 				double d;
-				
+
 				// infinity
-				if ( 
-					(preexp == 0x7FF) 
-					&& 
+				if (
+					(preexp == 0x7FF)
+					&&
 					(
 						o & ((1ull<<52)-1)
-					) 
-					== 0 
+					)
+					== 0
 				)
 				{
 					d = std::numeric_limits<double>::infinity();
@@ -138,11 +138,11 @@ namespace libmaus2
 						if ( o & m )
 							d += 1;
 					}
-					
+
 					// shift into place (add exponent to d)
 					d = ldexp(d,exp-53);
 				}
-				
+
 				return sign ? -d : d;
 			}
 		};

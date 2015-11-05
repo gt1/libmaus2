@@ -18,7 +18,7 @@
 */
 
 #include <libmaus2/util/IntervalTree.hpp>
-			
+
 bool libmaus2::util::IntervalTree::isLeaf() const
 {
 	return !leftchild;
@@ -100,7 +100,7 @@ uint64_t libmaus2::util::IntervalTree::findTrace(std::vector < IntervalTree cons
 	else
 	{
 		return split;
-	}	
+	}
 }
 
 libmaus2::util::IntervalTree const * libmaus2::util::IntervalTree::lca(uint64_t const v, uint64_t const w) const
@@ -109,7 +109,7 @@ libmaus2::util::IntervalTree const * libmaus2::util::IntervalTree::lca(uint64_t 
 	findTrace(tracev,v);
 	findTrace(tracew,w);
 	assert ( tracev[0] == tracew[0] );
-	
+
 	IntervalTree const * lca = 0;
 	for ( uint64_t i = tracev.size()-1; !lca; --i )
 		for ( uint64_t j = 0; (!lca) && j < tracew.size(); ++j )
@@ -117,7 +117,7 @@ libmaus2::util::IntervalTree const * libmaus2::util::IntervalTree::lca(uint64_t 
 				lca = tracev[i];
 
 	assert ( lca );
-	
+
 	return lca;
 }
 
@@ -147,7 +147,7 @@ uint64_t libmaus2::util::IntervalTree::getNumLeafs() const
 std::ostream & libmaus2::util::IntervalTree::flatten(std::ostream & ostr, uint64_t depth) const
 {
 	ostr << std::string(depth,' ');
-	
+
 	if ( leftchild.get() )
 	{
 		ostr << "node(" << split << ")\n";
@@ -158,7 +158,7 @@ std::ostream & libmaus2::util::IntervalTree::flatten(std::ostream & ostr, uint64
 	{
 		ostr << "leaf(" << split << ")\n";
 	}
-	
+
 	return ostr;
 }
 

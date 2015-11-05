@@ -37,15 +37,15 @@ namespace libmaus2
 				std::map < uint64_t, vector_ptr_type> M;
 				std::vector<libmaus2::dazzler::align::Overlap> const & V;
 				int64_t const tspace;
-				
+
 				TraceBlockVectorCache(
 					std::vector<libmaus2::dazzler::align::Overlap> const & rV,
 					int64_t const rtspace
 				) : M(), V(rV), tspace(rtspace)
 				{
-				
+
 				}
-				
+
 				vector_type const & operator[](uint64_t const i)
 				{
 					if ( M.find(i) == M.end() )

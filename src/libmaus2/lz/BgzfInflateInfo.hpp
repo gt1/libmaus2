@@ -30,7 +30,7 @@ namespace libmaus2
 			uint64_t compressed;
 			uint64_t uncompressed;
 			bool streameof;
-			
+
 			BgzfInflateInfo() : compressed(0), uncompressed(0), streameof(false) {}
 			BgzfInflateInfo(BgzfInflateInfo const & o)
 			: compressed(o.compressed), uncompressed(o.uncompressed), streameof(o.streameof) {}
@@ -41,9 +41,9 @@ namespace libmaus2
 			)
 			: compressed(rcompressed), uncompressed(runcompressed), streameof(rstreameof)
 			{
-			
+
 			}
-			
+
 			BgzfInflateInfo & operator=(BgzfInflateInfo const & o)
 			{
 				compressed = o.compressed;

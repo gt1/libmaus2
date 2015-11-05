@@ -46,8 +46,8 @@ namespace libmaus2
 					V = -V;
 					R.push_back(V);
 				}
-				
-				return R[n];		
+
+				return R[n];
 			}
 		};
 	}

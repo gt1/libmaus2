@@ -38,7 +38,7 @@ namespace libmaus2
 			struct ControlInputInfo
 			{
 				typedef InputBlock input_block_type;
-			
+
 				// lock for everything below
 				libmaus2::parallel::PosixSpinLock readLock;
 				// input stream reference
@@ -55,18 +55,18 @@ namespace libmaus2
 					InputBlockAllocator,
 					InputBlockTypeInfo
 				> inputBlockFreeList;
-	
+
 				ControlInputInfo(
-					std::istream & ristr, 
+					std::istream & ristr,
 					uint64_t const rstreamid,
 					uint64_t const rfreelistsize
 				) : istr(ristr), eof(false), streamid(rstreamid), blockid(0), inputBlockFreeList(rfreelistsize) {}
-				
+
 				bool getEOF()
 				{
 					return eof.get();
 				}
-				
+
 				void setEOF(bool v)
 				{
 					eof.set(v);

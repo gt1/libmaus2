@@ -51,7 +51,7 @@ namespace libmaus2
 			size_t querymemsize;
 
 			static void allocateMemory(size_t const rsize, size_t const sizealign, LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE * & mem, size_t & memsize);
-			
+
 			public:
 			LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME();
 			~LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME();
@@ -63,21 +63,21 @@ namespace libmaus2
 				size_t const l_b,
 				size_t const d
 			);
-			
+
 			static std::pair<int64_t,int64_t> squareToDiag(std::pair<int64_t,int64_t> const P, size_t const d)
 			{
 				int64_t const di = P.first + P.second;
-				
+
 				if ( di % 2 == 0 )
 				{
 					return std::pair<int64_t,int64_t>(di,P.second - di / 2 + d);
 				}
 				else
-				{				
+				{
 					return std::pair<int64_t,int64_t>(di,P.second - (di) / 2 + d);
 				}
 			}
-			
+
 			AlignmentTraceContainer const & getTraceContainer() const;
 		};
 	}

@@ -74,8 +74,8 @@ namespace libmaus2
 			static bool rawuncompress(char const * compressed, uint64_t compressed_length, char * uncompressed);
 			static uint64_t compressBound(uint64_t length);
 			static uint64_t rawcompress(
-				char const * uncompressed, 
-				uint64_t uncompressed_length, 
+				char const * uncompressed,
+				uint64_t uncompressed_length,
 				char * compressed);
 		};
 	}

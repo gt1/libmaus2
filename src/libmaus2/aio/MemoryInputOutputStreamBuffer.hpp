@@ -58,13 +58,13 @@ namespace libmaus2
 
 			// open the file
 			libmaus2::aio::MemoryFileAdapter::shared_ptr_type doOpen(std::string const & filename, std::ios_base::openmode const cxxmode)
-			{	
+			{
 				if ( (cxxmode & std::ios::app) )
 				{
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "libmaus2::aio::MemoryInputOutputStreamBuffer::doOpen(): std::ios::app flag not supported" << std::endl;
 					lme.finish();
-					throw lme;				
+					throw lme;
 				}
 				if ( (cxxmode & std::ios::ate) )
 				{
@@ -75,18 +75,18 @@ namespace libmaus2
 				}
 				if ( ! ((cxxmode & std::ios::in) && (cxxmode & std::ios::out)) )
 				{
-				
+
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "libmaus2::aio::MemoryInputOutputStreamBuffer::doOpen(): std::ios::in or std::ios::out not set " << std::endl;
 					lme.finish();
 					throw lme;
 				}
-				
+
 				libmaus2::aio::MemoryFileAdapter::shared_ptr_type ptr(libmaus2::aio::MemoryFileContainer::getEntry(filename));
-				
+
 				if ( cxxmode & std::ios::trunc )
 					ptr->truncate();
-				
+
 				return ptr;
 			}
 
@@ -99,17 +99,17 @@ namespace libmaus2
 			void doFlush()
 			{
 			}
-			
+
 
 			// seek
 			off_t doSeek(int64_t const p, int const whence)
 			{
 				off_t off = static_cast<off_t>(-1);
-			
+
 				while ( (off=fd->lseek(p,whence)) == static_cast<off_t>(-1) )
 				{
 					int const error = errno;
-					
+
 					switch ( error )
 					{
 						case EINTR:
@@ -123,12 +123,12 @@ namespace libmaus2
 							se.finish();
 							throw se;
 						}
-					}					
+					}
 				}
-								
+
 				return off;
 			}
-			
+
 			// write buffer contents
 			void doSync()
 			{
@@ -140,11 +140,11 @@ namespace libmaus2
 				while ( n )
 				{
 					ssize_t const w = fd->write(p,n);
-					
+
 					if ( w < 0 )
 					{
 						int const error = errno;
-						
+
 						switch ( error )
 						{
 							case EINTR:
@@ -166,18 +166,18 @@ namespace libmaus2
 						writepos += w;
 					}
 				}
-				
+
 				assert ( ! n );
 			}
-			
+
 			size_t doRead(char * buffer, size_t count)
 			{
 				ssize_t r = -1;
-				
+
 				while ( (r=fd->read(buffer,count)) < 0 )
 				{
 					int const error = errno;
-					
+
 					switch ( error )
 					{
 						case EINTR:
@@ -191,9 +191,9 @@ namespace libmaus2
 							se.finish();
 							throw se;
 						}
-					}					
+					}
 				}
-				
+
 				return r;
 			}
 
@@ -202,24 +202,24 @@ namespace libmaus2
 			{
 				return reinterpret_cast<uint8_t const *>(gptr());
 			}
-			
+
 			void checkWriteBuffer()
 			{
 				// if write buffer is not empty, then flush it
 				if ( pptr() != pbase() )
 				{
 					doSync();
-										
+
 					// get write position
 					assert ( static_cast<off_t>(writepos) == doSeek(0,SEEK_CUR) );
-				}			
+				}
 			}
 
 			public:
 			MemoryInputOutputStreamBuffer(std::string const & fn, std::ios_base::openmode const cxxmode, int64_t const rbuffersize)
-			: 
-			  fd(doOpen(fn,cxxmode)), 
-			  buffersize(rbuffersize < 0 ? getDefaultBlockSize() : rbuffersize), 
+			:
+			  fd(doOpen(fn,cxxmode)),
+			  buffersize(rbuffersize < 0 ? getDefaultBlockSize() : rbuffersize),
 			  buffer(buffersize,false),
 			  readpos(0),
 			  writepos(0)
@@ -242,19 +242,19 @@ namespace libmaus2
 				// flush file
 				doFlush();
 				return 0; // no error, -1 for error
-			}			
+			}
 
 			int_type underflow()
 			{
 				// if there is still data, then return it
 				if ( gptr() < egptr() )
 					return static_cast<int_type>(*uptr());
-					
+
 				assert ( gptr() == egptr() );
 
 				// load data
 				size_t const g = doRead(buffer.begin(),buffersize);
-				
+
 				// set buffer pointers
 				setg(buffer.begin(),buffer.begin(),buffer.begin()+g);
 
@@ -283,15 +283,15 @@ namespace libmaus2
 			 * seek to absolute position
 			 **/
 			::std::streampos seekpos(::std::streampos sp, ::std::ios_base::openmode /* which */)
-			{			
+			{
 				// flush write buffer before seeking anywhere
 				checkWriteBuffer();
 				// seek
 				off_t const off = doSeek(sp,SEEK_SET);
-				
+
 				if ( off == static_cast<off_t>(-1) )
 					return -1;
-				
+
 				// empty get buffer
 				setg(buffer.end(),buffer.end(),buffer.end());
 				// empty put buffer
@@ -299,10 +299,10 @@ namespace libmaus2
 				// set positions
 				readpos = off;
 				writepos = off;
-				
+
 				return off;
 			}
-			
+
 			/**
 			 * relative seek
 			 **/

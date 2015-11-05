@@ -55,12 +55,12 @@ namespace libmaus2
 			rmm_tree_ptr_type RMM;
 			// length of sequence
 			uint64_t n;
-			
+
 			uint64_t getSigma() const
 			{
 				return LF->getSymbols().size();
 			}
-			
+
 			uint64_t byteSize() const
 			{
 				return
@@ -71,24 +71,24 @@ namespace libmaus2
 					RMM->byteSize() +
 					sizeof(uint64_t);
 			}
-			
+
 			// suffix tree node (interval [sp,ep) on suffix array)
 			struct Node
 			{
 				uint64_t sp;
 				uint64_t ep;
-				
+
 				Node() : sp(0), ep(0) {}
 				Node(uint64_t const rsp, uint64_t const rep) : sp(rsp), ep(rep) {}
 			};
-			
+
 			template<typename iterator>
 			void extractText(iterator const it, uint64_t const low, uint64_t const high) const
 			{
 				uint64_t r = (*SISA)[ high % n ];
 				// uint64_t c = high-low;
 				iterator ite = it + (high-low);
-				
+
 				while ( ite != it )
 				{
 					std::pair<int64_t,uint64_t> const P = LF->extendedLF(r);
@@ -103,20 +103,20 @@ namespace libmaus2
 				if ( D.size() < n )
 					D.resize(n);
 				extractText(D.begin(),0,n);
-				
+
 				return n;
 			}
-			
+
 			template<typename data_type>
 			uint64_t extractTextParallel(libmaus2::autoarray::AutoArray<data_type> & D) const
 			{
 				if ( D.size() < n )
 					D.resize(n);
-			
+
 				uint64_t const numthreads = libmaus2::parallel::OMPNumThreadsScope::getMaxThreads();
 				uint64_t const blocksize = (n + numthreads-1)/numthreads;
 				uint64_t const numblocks = (n + blocksize-1)/blocksize;
-				
+
 				#if defined(_OPENMP)
 				#pragma omp parallel for
 				#endif
@@ -126,10 +126,10 @@ namespace libmaus2
 					uint64_t const high = std::min(low+blocksize,n);
 					extractText(D.begin()+low,low,high);
 				}
-				
+
 				return n;
-			}			
-			
+			}
+
 			/*
 			 * string depth
 			 */
@@ -142,7 +142,7 @@ namespace libmaus2
 				else
 					return std::numeric_limits<uint64_t>::max();
 			}
-			
+
 			/**
 			 * letter at position SA[r]+i
 			 **/
@@ -150,15 +150,15 @@ namespace libmaus2
 			{
 				return (*LF)[(*SISA) [ ((*SSA)[r] + i+1) % n ]];
 			}
-			
-			/* 
-			 * tree root 
+
+			/*
+			 * tree root
 			 */
 			Node root() const
 			{
 				return Node(0,n);
 			}
-			
+
 			/*
 			 * append character on the left
 			 */
@@ -167,7 +167,7 @@ namespace libmaus2
 				std::pair<uint64_t,uint64_t> p = LF->step(sym,node.sp,node.ep);
 				return Node(p.first,p.second);
 			}
-			
+
 			/*
 			 * number of suffixes/leafs under node
 			 */
@@ -175,7 +175,7 @@ namespace libmaus2
 			{
 				return node.ep-node.sp;
 			}
-			
+
 			/*
 			 * parent node for node
 			 */
@@ -185,7 +185,7 @@ namespace libmaus2
 				uint64_t const k = (node.ep == n) ? node.sp : (((*LCP)[node.sp] > (*LCP)[node.ep]) ? node.sp : node.ep);
 				return Node(RMM->psvz(k),RMM->nsv(k));
 			}
-			
+
 			/*
 			 * enumerate children
 			 */
@@ -194,21 +194,21 @@ namespace libmaus2
 			{
 				Node node = firstChild(par);
 				iterator const ita = it;
-				
+
 				while ( node.ep-node.sp )
 				{
 					*(it++)	= node;
-					
+
 					if ( node.ep == par.ep )
 						break;
-					
+
 					// next one
 					node = Node(node.ep, RMM->nsv(node.ep,(*LCP)[node.ep]+1));
 				}
-				
+
 				return it-ita;
 			}
-			
+
 			/*
 			 * first child of node (or Node(0,0) if none)
 			 */
@@ -219,7 +219,7 @@ namespace libmaus2
 				else
 					return Node(0,0);
 			}
-			
+
 			/*
 			 * next sibling of node (or Node(0,0) if none)
 			 */
@@ -232,7 +232,7 @@ namespace libmaus2
 					// is node the last child?
 					if ( node.ep == par.ep )
 						return Node(0,0);
-						
+
 					return Node(node.ep, RMM->nsv(node.ep,(*LCP)[node.ep]+1));
 				}
 				else
@@ -240,18 +240,18 @@ namespace libmaus2
 					return Node(0,0);
 				}
 			}
-			
+
 			// comparator for suffix tree edges
 			struct ChildSearchAccessor
 			{
 				typedef ChildSearchAccessor this_type;
-			
+
 				CompressedSuffixTree const & CST;
 				std::vector < Node > const & children;
 				uint64_t const sl;
-				
+
 				typedef libmaus2::util::ConstIterator<this_type,int64_t> const_iterator;
-				
+
 				const_iterator begin() const
 				{
 					return const_iterator(this,0);
@@ -263,20 +263,20 @@ namespace libmaus2
 				ChildSearchAccessor(CompressedSuffixTree const & rCST, std::vector < Node > const & rchildren, uint64_t const rsl)
 				: CST(rCST), children(rchildren), sl(rsl)
 				{
-				
+
 				}
-				
+
 				int64_t get(uint64_t const i) const
 				{
 					return CST.letter(children[i].sp,sl);
 				}
-				
+
 				int64_t operator[](uint64_t const i) const
 				{
 					return get(i);
 				}
 			};
-			
+
 			/**
 			 * follow edge starting by letter a from node and return obtained node/leaf
 			 * or Node(0,0) if there is no such edge
@@ -285,7 +285,7 @@ namespace libmaus2
 			{
 				// string depth of input node
 				uint64_t const sl = sdepth(node);
-				
+
 				// extract all children
 				std::vector < Node > children;
 				Node chi = firstChild(node);
@@ -294,24 +294,24 @@ namespace libmaus2
 					children.push_back(chi);
 					chi = nextSibling(chi);
 				}
-				
+
 				// find queried letter by binary search on list of children
-				ChildSearchAccessor CSA(*this,children,sl);				
+				ChildSearchAccessor CSA(*this,children,sl);
 				ChildSearchAccessor::const_iterator const it = std::lower_bound(CSA.begin(),CSA.end(),a);
-				
+
 				if ( it != CSA.end() && *it == a )
 					return children[it-CSA.begin()];
 				else
 					return Node(0,0);
 			}
-			
+
 			/**
 			 * suffix link
 			 **/
 			Node slink(Node const & node) const
 			{
 				uint64_t const cnt = count(node);
-				
+
 				if ( cnt == n )
 				{
 					return Node(0,0);
@@ -333,7 +333,7 @@ namespace libmaus2
 					return Node(0,0);
 				}
 			}
-			
+
 			/*
 			 * constructor from single files
 			 */
@@ -344,7 +344,7 @@ namespace libmaus2
 				std::string const & lcpname,
 				std::string const & rmmname
 			)
-			: LF(lf_type::load(hwtname)), 
+			: LF(lf_type::load(hwtname)),
 			  SSA(ssa_type::load(LF.get(),saname)),
 			  SISA(sisa_type::load(LF.get(),isaname)),
 			  LCP(lcp_type::load(*SSA,lcpname)),
@@ -352,13 +352,13 @@ namespace libmaus2
 			  n(LF->getN())
 			{
 			}
-			
+
 			/**
 			 * constructor from serialised object
 			 **/
 			template<typename stream_type>
 			CompressedSuffixTree(stream_type & in)
-			: 
+			:
 				LF(new lf_type(in)),
 				SSA(new ssa_type(LF.get(),in)),
 				SISA(new sisa_type(LF.get(),in)),
@@ -366,9 +366,9 @@ namespace libmaus2
 				RMM(new rmm_tree_type(in,*LCP)),
 				n(LF->getN())
 			{
-			
+
 			}
-			
+
 			/**
 			 * serialise object to stream
 			 **/

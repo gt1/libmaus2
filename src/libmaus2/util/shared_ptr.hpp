@@ -36,7 +36,7 @@ namespace libmaus2
 		struct shared_ptr
 		{
 			#if defined(LIBMAUS2_USE_STD_SHARED_PTR)
-			typedef typename ::std::shared_ptr<T> type;			
+			typedef typename ::std::shared_ptr<T> type;
 			#elif defined(LIBMAUS2_USE_BOOST_SHARED_PTR)
 			typedef typename ::boost::shared_ptr<T> type;
 			#else

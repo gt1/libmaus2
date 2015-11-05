@@ -32,41 +32,41 @@ namespace libmaus2
 			private:
 			uint64_t zabspos;
 			uint64_t zrank;
-			
+
 			public:
 			BwtMergeZBlock()
 			: zabspos(0), zrank(0)
 			{
-			
+
 			}
-			
+
 			BwtMergeZBlock(uint64_t const rzabspos, uint64_t const rzrank)
 			: zabspos(rzabspos), zrank(rzrank) {}
-			
+
 			BwtMergeZBlock(std::istream & stream)
 			:
 				zabspos(::libmaus2::util::NumberSerialisation::deserialiseNumber(stream)),
 				zrank(::libmaus2::util::NumberSerialisation::deserialiseNumber(stream))
 			{
-			
+
 			}
-			
+
 			uint64_t getZAbsPos() const { return zabspos; }
 			uint64_t getZRank() const { return zrank; }
-			
+
 			static BwtMergeZBlock load(std::string const & s)
 			{
 				std::istringstream istr(s);
 				return BwtMergeZBlock(istr);
 			}
-			
+
 			template<typename stream_type>
 			void serialise(stream_type & stream) const
 			{
 				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,zabspos);
 				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,zrank);
 			}
-			
+
 			std::string serialise() const
 			{
 				std::ostringstream ostr;

@@ -34,14 +34,14 @@ namespace libmaus2
 		{
 			typedef RankTable this_type;
 			typedef ::libmaus2::util::unique_ptr < this_type >::type unique_ptr_type;
-			
+
 			private:
 			uint8_t const * const table;
 			static uint8_t * generateTable();
-			
+
 			RankTable & operator=(RankTable const &);
 			RankTable(RankTable const &);
-			
+
 			public:
 			/**
 			 * compute population count of the i+1 most significant bits in m
@@ -52,10 +52,10 @@ namespace libmaus2
 			unsigned int operator()(uint16_t const m, unsigned int const i) const
 			{
 				if ( m == 0xFFFFu ) return i+1;
-				uint8_t const b = table[ (m << 3) + (i >> 1) ];		
+				uint8_t const b = table[ (m << 3) + (i >> 1) ];
 				return (i&1)?(b >> 4):(b&0xF);
 			}
-		
+
 			/**
 			 * constructor
 			 **/
@@ -72,14 +72,14 @@ namespace libmaus2
 		{
 			typedef SimpleRankTable this_type;
 			typedef ::libmaus2::util::unique_ptr < this_type >::type unique_ptr_type;
-			
+
 			private:
 			uint8_t const * const table;
 			static uint8_t * generateTable();
-			
+
 			SimpleRankTable & operator=(SimpleRankTable const &);
 			SimpleRankTable(SimpleRankTable const &);
-			
+
 			public:
 			/**
 			 * compute population count of the i+1 most significant bits in m
@@ -91,7 +91,7 @@ namespace libmaus2
 			{
 				return table[m];
 			}
-		
+
 			/**
 			 * constructor
 			 **/

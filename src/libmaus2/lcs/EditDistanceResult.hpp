@@ -33,15 +33,15 @@ namespace libmaus2
 			uint64_t numdel;
 			uint64_t nummat;
 			uint64_t nummis;
-			
+
 			EditDistanceResult()
 			: numins(0), numdel(0), nummat(0), nummis(0)
 			{}
-			
+
 			EditDistanceResult(uint64_t rnumins, uint64_t rnumdel, uint64_t rnummat, uint64_t rnummis)
 			: numins(rnumins), numdel(rnumdel), nummat(rnummat), nummis(rnummis)
 			{}
-			
+
 			bool operator==(EditDistanceResult const & o) const
 			{
 				return
@@ -50,13 +50,13 @@ namespace libmaus2
 					nummat == o.nummat &&
 					nummis == o.nummis;
 			}
-			
+
 			bool operator!=(EditDistanceResult const & o) const
 			{
 				return !operator==(o);
 			}
 		};
-		
+
 		std::ostream & operator<<(std::ostream & out, EditDistanceResult const &);
 	}
 }

@@ -24,24 +24,24 @@ int main(int argc, char * argv[])
 	try
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
-		
+
 		std::string const fna = arginfo.getRestArg<std::string>(0);
 		std::string const fnb = arginfo.getRestArg<std::string>(1);
-		
+
 		libmaus2::bambam::BamDecoder bama(fna);
 		libmaus2::bambam::BamDecoder bamb(fnb);
-		
+
 		libmaus2::bambam::BamAlignment const & ala = bama.getAlignment();
 		libmaus2::bambam::BamAlignment const & alb = bamb.getAlignment();
-		
+
 		libmaus2::bambam::BamHeader const & heada = bama.getHeader();
 		libmaus2::bambam::BamHeader const & headb = bamb.getHeader();
-		
+
 		::libmaus2::bambam::BamFormatAuxiliary aux;
 		uint64_t alcnt = 0;
 		bool eq = true;
 		uint64_t const mod = 16*1024*1024;
-		
+
 		while ( bama.readAlignment() )
 		{
 			if ( ! bamb.readAlignment() )
@@ -52,15 +52,15 @@ int main(int argc, char * argv[])
 				throw se;
 			}
 
-			if ( 
-				(ala.blocksize != alb.blocksize) 
+			if (
+				(ala.blocksize != alb.blocksize)
 				||
 				memcmp(ala.D.begin(),alb.D.begin(),ala.blocksize)
 			)
 			{
 				std::string const sama = ala.formatAlignment(heada,aux);
 				std::string const samb = alb.formatAlignment(headb,aux);
-			
+
 				if ( sama != samb )
 				{
 					std::cerr << "--- Difference ---" << std::endl;
@@ -68,7 +68,7 @@ int main(int argc, char * argv[])
 					std::cerr << samb << std::endl;
 					eq = false;
 				}
-			
+
 			}
 
 			if ( (++alcnt) % (mod) == 0 )
@@ -82,7 +82,7 @@ int main(int argc, char * argv[])
 			se.finish();
 			throw se;
 		}
-		
+
 		std::cerr << (eq?"equal":"different") << std::endl;
 	}
 	catch(std::exception const & ex)

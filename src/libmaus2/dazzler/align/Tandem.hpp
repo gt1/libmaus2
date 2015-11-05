@@ -32,7 +32,7 @@ namespace libmaus2
 				uint64_t high;
 				std::vector<uint64_t> periods;
 				std::vector<libmaus2::dazzler::align::OverlapMeta> meta;
-				
+
 				Tandem() {}
 				Tandem(uint64_t const rlow, uint64_t const rhigh, std::vector<uint64_t> const & rperiods, std::vector<libmaus2::dazzler::align::OverlapMeta> const & rmeta)
 				: low(rlow), high(rhigh), periods(rperiods), meta(rmeta) {}
@@ -40,7 +40,7 @@ namespace libmaus2
 				{
 					deserialise(in);
 				}
-				
+
 				uint64_t serialise(std::ostream & out) const
 				{
 					uint64_t offset = 0;
@@ -55,7 +55,7 @@ namespace libmaus2
 						 s += meta[i].serialise(out);
 					return (4 + periods.size()) * sizeof(uint64_t) + s;
 				}
-				
+
 				uint64_t deserialise(std::istream & in)
 				{
 					uint64_t offset = 0;
@@ -73,7 +73,7 @@ namespace libmaus2
 					return (4 + periods.size()) * sizeof(uint64_t) + s;
 				}
 			};
-			
+
 			std::ostream & operator<<(std::ostream & out, Tandem const & T);
 		}
 	}

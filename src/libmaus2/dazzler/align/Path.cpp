@@ -27,11 +27,11 @@ std::ostream & libmaus2::dazzler::align::operator<<(std::ostream & out, Path con
 	out << "bbpos=" << P.bbpos << ";";
 	out << "aepos=" << P.aepos << ";";
 	out << "bepos=" << P.bepos << ";";
-	
+
 	for ( size_t i = 0; i < P.path.size(); ++i )
 		out << "[" << P.path[i].first << "," << P.path[i].second << "]" << (i+1 < P.path.size() ? ";" : "");
-	
+
 	out << ")";
-	
+
 	return out;
 }

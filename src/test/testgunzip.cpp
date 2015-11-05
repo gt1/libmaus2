@@ -27,7 +27,7 @@ int main()
 		// ::libmaus2::lz::BufferedGzipStream BGS(std::cin);
 		libmaus2::lz::PlainOrGzipStream BGS(std::cin);
 		::libmaus2::autoarray::AutoArray<char> B(64*1024);
-		
+
 		while ( BGS )
 		{
 			BGS.read(B.begin(),B.size());
@@ -35,9 +35,9 @@ int main()
 			if ( n > 0 )
 				std::cout.write(B.begin(),n);
 		}
-		
+
 		std::cout.flush();
-		
+
 		return EXIT_SUCCESS;
 	}
 	catch(std::exception const & ex)

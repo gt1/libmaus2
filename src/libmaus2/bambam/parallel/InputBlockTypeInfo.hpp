@@ -30,15 +30,15 @@ namespace libmaus2
 			struct InputBlockTypeInfo
 			{
 				typedef InputBlockTypeInfo this_type;
-				
+
 				typedef libmaus2::bambam::parallel::InputBlock::shared_ptr_type pointer_type;
-				
+
 				static pointer_type getNullPointer()
 				{
 					pointer_type p;
 					return p;
 				}
-				
+
 				static pointer_type deallocate(pointer_type /* p */)
 				{
 					return getNullPointer();

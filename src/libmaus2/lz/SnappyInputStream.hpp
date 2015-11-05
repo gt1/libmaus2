@@ -32,7 +32,7 @@ namespace libmaus2
 			typedef SnappyInputStream this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			std::istream & in;
 			uint64_t readpos;
 			bool const setpos;
@@ -43,14 +43,14 @@ namespace libmaus2
 			char const * pc;
 			char const * pe;
 			uint64_t gcnt;
-			
+
 			bool eofthrow;
-			
+
 			void setEofThrow(bool const v)
 			{
 				eofthrow = v;
 			}
-			
+
 			uint8_t checkedGet()
 			{
 				if ( setpos )
@@ -58,25 +58,25 @@ namespace libmaus2
 					in.seekg(readpos,std::ios::beg);
 					in.clear();
 				}
-			
+
 				int const c = in.get();
-				
+
 				if ( c < 0 )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Unexpected EOF in SnappyInputStream::checkedGet()" << std::endl;
 					se.finish();
-					throw se;	
+					throw se;
 				}
-				
+
 				readpos += 1;
-				
+
 				return c;
 			}
-			
+
 			SnappyInputStream(
-				std::istream & rin, 
-				uint64_t rreadpos = 0, 
+				std::istream & rin,
+				uint64_t rreadpos = 0,
 				bool const rsetpos = false,
 				uint64_t rendpos = std::numeric_limits<uint64_t>::max()
 			)
@@ -84,39 +84,39 @@ namespace libmaus2
 			  B(), pa(0), pc(0), pe(0), gcnt(0), eofthrow(false)
 			{
 			}
-			
+
 			int peek()
 			{
 				// std::cerr << "peek." << std::endl;
-			
+
 				if ( pc == pe )
 				{
 					// std::cerr << "buffer empty." << std::endl;
-					
+
 					fillBuffer();
-					
+
 					if ( pc == pe )
 					{
 						// std::cerr << "Buffer still empty." << std::endl;
 						gcnt = 0;
 						return -1;
 					}
-					
+
 					// std::cerr << "Buffer ok." << std::endl;
 				}
-				
+
 				assert ( pc != pe );
-				
+
 				gcnt = 1;
-				return *reinterpret_cast<uint8_t const *>(pc);	
+				return *reinterpret_cast<uint8_t const *>(pc);
 			}
-			
+
 			int get()
 			{
 				if ( pc == pe )
 				{
 					fillBuffer();
-					
+
 					if ( pc == pe )
 					{
 						gcnt = 0;
@@ -133,79 +133,79 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				assert ( pc != pe );
-				
+
 				gcnt = 1;
-				return *(reinterpret_cast<uint8_t const *>(pc++));	
+				return *(reinterpret_cast<uint8_t const *>(pc++));
 			}
-			
+
 			uint64_t read(char * B, uint64_t n)
 			{
 				uint64_t r = 0;
-			
+
 				while ( n )
 				{
 					if ( pc == pe )
 					{
 						fillBuffer();
-						
+
 						if ( pc == pe )
 							break;
 					}
-					
+
 					uint64_t const av = pe-pc;
 					uint64_t const tocopy = std::min(av,n);
-					
+
 					std::copy(pc,pc+tocopy,B);
-					
+
 					pc += tocopy;
 					n -= tocopy;
 					B += tocopy;
 					r += tocopy;
 				}
-				
+
 				gcnt = r;
-				
+
 				return r;
 			}
 
 			uint64_t ignore(uint64_t n)
 			{
 				uint64_t r = 0;
-			
+
 				while ( n )
 				{
 					if ( pc == pe )
 					{
 						fillBuffer();
-						
+
 						if ( pc == pe )
 							break;
 					}
-					
+
 					uint64_t const av = pe-pc;
 					uint64_t const tocopy = std::min(av,n);
-					
+
 					pc += tocopy;
 					n -= tocopy;
 					r += tocopy;
 				}
-				
+
 				gcnt = r;
-				
+
 				return r;
 			}
-			
+
 			uint64_t gcount() const
 			{
 				return gcnt;
 			}
-			
+
 			void fillBuffer()
 			{
 				assert ( pc == pe );
-				
+
 				if ( setpos )
 				{
 					// std::cerr << "Seeking to " << readpos << std::endl;
@@ -216,27 +216,27 @@ namespace libmaus2
 				if ( in.peek() >= 0 && readpos < endpos )
 				{
 					#if 0
-					std::cerr << "Filling block, readpos " << readpos 
-						<< " stream at pos " << in.tellg() 
+					std::cerr << "Filling block, readpos " << readpos
+						<< " stream at pos " << in.tellg()
 						<< " endpos " << endpos
 						<< std::endl;
 					#endif
-				
+
 					uint64_t blocksize = sizeof(uint64_t) + sizeof(uint64_t);
-					
+
 					// size of uncompressed buffer
 					uint64_t const n        = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 					// size of compressed data
 					uint64_t const datasize = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 					// add to block size
 					blocksize += datasize;
-						
+
 					if ( n > B.size() )
 					{
 						B = ::libmaus2::autoarray::AutoArray<char>(0,false);
 						B = ::libmaus2::autoarray::AutoArray<char>(n,false);
 					}
-					
+
 					pa = B.begin();
 					pc = pa;
 					pe = pa + n;
@@ -259,7 +259,7 @@ namespace libmaus2
 					readpos += blocksize;
 				}
 			}
-		};		
+		};
 	}
 }
 #endif

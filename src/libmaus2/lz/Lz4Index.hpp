@@ -35,35 +35,35 @@ namespace libmaus2
 		struct Lz4Index
 		{
 			std::istream & stream;
-			
+
 			uint64_t blocksize;
 			uint64_t metapos;
 			uint64_t payloadbytes;
 			uint64_t numblocks;
 			uint64_t indexpos;
-			
+
 			Lz4Index(std::istream & rstream)
 			: stream(rstream), blocksize(libmaus2::util::NumberSerialisation::deserialiseNumber(stream))
-			{	
+			{
 				// read block size
 				stream.clear();
 				stream.seekg(0,std::ios::beg);
 				blocksize = libmaus2::util::UTF8::decodeUTF8(stream);
-				
+
 				// read meta position
 				stream.clear();
 				stream.seekg(-static_cast<ssize_t>(sizeof(uint64_t)),std::ios::end);
 				metapos = libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
-				
+
 				// read payloadbytes
 				stream.clear();
 				stream.seekg(metapos,std::ios::beg);
 				payloadbytes = libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
 				numblocks = libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
-				
+
 				indexpos = metapos + 2*sizeof(uint64_t);
 			}
-			
+
 			uint64_t operator[](uint64_t const i) const
 			{
 				stream.clear();

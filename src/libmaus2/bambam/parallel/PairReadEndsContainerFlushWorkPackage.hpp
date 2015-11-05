@@ -33,25 +33,25 @@ namespace libmaus2
 				typedef PairReadEndsContainerFlushWorkPackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				libmaus2::bambam::ReadEndsContainer::shared_ptr_type REC;
-		
+
 				PairReadEndsContainerFlushWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), REC()
 				{
-				
-				}		
+
+				}
 				PairReadEndsContainerFlushWorkPackage(
 					libmaus2::bambam::ReadEndsContainer::shared_ptr_type RREC,
-					uint64_t const rpriority, 
-					uint64_t const rdispatcherid, 
+					uint64_t const rpriority,
+					uint64_t const rdispatcherid,
 					uint64_t const rpackageid = 0
 				)
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), REC(RREC)
 				{
-				
+
 				}
 				~PairReadEndsContainerFlushWorkPackage() {}
-				
+
 				char const * getPackageName() const
 				{
 					return "PairReadEndsContainerFlushWorkPackage";

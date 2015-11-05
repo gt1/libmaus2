@@ -43,7 +43,7 @@ namespace libmaus2
                         typedef GenericOutput this_type;
                         //! unique pointer type
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-                
+
 			private:
 			//! buffer
                         ::libmaus2::autoarray::AutoArray<data_type> B;
@@ -63,14 +63,14 @@ namespace libmaus2
                          * @param A array to be written
                          * @param outputfilename name of output file
                          **/
-			static void writeArray(::libmaus2::autoarray::AutoArray<data_type> const & A, 
+			static void writeArray(::libmaus2::autoarray::AutoArray<data_type> const & A,
 				std::string const & outputfilename)
 			{
 				::libmaus2::aio::GenericOutput<data_type> out(outputfilename,64*1024);
-				
+
 				for ( uint64_t i = 0; i < A.getN(); ++i )
 					out.put(A[i]);
-				
+
 				out.flush();
 			}
 
@@ -100,7 +100,7 @@ namespace libmaus2
                          **/
                         void writeBuffer()
                         {
-                                W.write ( 
+                                W.write (
                                         reinterpret_cast<char const *>(pa),
                                         reinterpret_cast<char const *>(pc));
                                 pc = pa;

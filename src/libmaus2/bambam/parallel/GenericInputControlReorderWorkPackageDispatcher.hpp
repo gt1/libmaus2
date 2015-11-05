@@ -15,7 +15,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/			
+*/
 #if ! defined(LIBMAUS2_BAMBAM_PARALLEL_GENERICINPUTCONTROLREORDERWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS2_BAMBAM_PARALLEL_GENERICINPUTCONTROLREORDERWORKPACKAGEDISPATCHER_HPP
 
@@ -38,38 +38,38 @@ namespace libmaus2
 				typedef GenericInputControlReorderWorkPackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				GenericInputControlReorderWorkPackageReturnInterface & packageReturnInterface;
 				GenericInputControlReorderWorkPackageFinishedInterface & finishedInterface;
-				ChecksumsInterfaceGetInterface & checksumGetInterface; 
+				ChecksumsInterfaceGetInterface & checksumGetInterface;
 				ChecksumsInterfacePutInterface & checksumPutInterface;
 				libmaus2::bambam::BamAuxFilterVector filter;
 				libmaus2::bitio::BitVector * BV;
 				bool const gcomputerefidintervals;
-			
+
 				GenericInputControlReorderWorkPackageDispatcher(
 					GenericInputControlReorderWorkPackageReturnInterface & rpackageReturnInterface,
 					GenericInputControlReorderWorkPackageFinishedInterface & rfinishedInterface,
-					ChecksumsInterfaceGetInterface & rchecksumGetInterface, 
+					ChecksumsInterfaceGetInterface & rchecksumGetInterface,
 					ChecksumsInterfacePutInterface & rchecksumPutInterface,
 					libmaus2::bitio::BitVector * rBV,
 					bool rcomputerefidintervals
 				)
-				: packageReturnInterface(rpackageReturnInterface), finishedInterface(rfinishedInterface), 
+				: packageReturnInterface(rpackageReturnInterface), finishedInterface(rfinishedInterface),
 				  checksumGetInterface(rchecksumGetInterface),
 				  checksumPutInterface(rchecksumPutInterface),
 				  BV(rBV),
 				  gcomputerefidintervals(rcomputerefidintervals)
 				{
-					filter.set('Z','R');		
+					filter.set('Z','R');
 				}
-			
+
 				template<bool havedupvec, bool computerefidintervals>
 				void dispatchTemplate2(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					assert ( dynamic_cast<GenericInputControlReorderWorkPackage *>(P) != 0 );
 					GenericInputControlReorderWorkPackage * BP = dynamic_cast<GenericInputControlReorderWorkPackage *>(P);
-										
+
 					libmaus2::bambam::parallel::AlignmentBuffer::shared_ptr_type & in = BP->in;
 					libmaus2::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type & out = BP->out;
 					std::pair<uint64_t,uint64_t> const I = BP->I;
@@ -78,10 +78,10 @@ namespace libmaus2
 					uint32_t const dupflag = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FDUP;
 					uint32_t const dupmask = ~dupflag;
 					ChecksumsInterface::shared_ptr_type Schecksums = checksumGetInterface.getSeqChecksumsObject();
-					
+
 					int32_t prevrefid = std::numeric_limits<int32_t>::min();
 					std::vector<RefIdInterval> refidintervals;
-					
+
 					for ( uint64_t i = I.first; i < I.second; ++i )
 					{
 						// get alignment block data
@@ -89,24 +89,24 @@ namespace libmaus2
 
 						// get next offset in buffer
 						uint64_t const o = frag.getOffset();
-						
+
 						if ( computerefidintervals )
 						{
 							int32_t const refid = libmaus2::bambam::BamAlignmentDecoderBase::getRefID(P.first);
-							
+
 							if ( refid != prevrefid )
 							{
 								refidintervals.push_back(RefIdInterval(refid,i-I.first,o));
-								prevrefid = refid;	
+								prevrefid = refid;
 							}
 						}
-						
+
 						// put alignment
 						frag.pushAlignmentBlock(P.first,P.second);
 
-						// output data pointer						
+						// output data pointer
 						uint8_t * p = frag.getPointer(o);
-						
+
 						// mark as duplicate if in bit vector
 						if ( havedupvec )
 						{
@@ -114,7 +114,7 @@ namespace libmaus2
 							int64_t const rank = libmaus2::bambam::BamAlignmentDecoderBase::getRank(p+sizeof(uint32_t),P.second);
 
 							libmaus2::bambam::BamAlignmentEncoderBase::putFlags(p+sizeof(uint32_t),libmaus2::bambam::BamAlignmentDecoderBase::getFlags(p+sizeof(uint32_t)) & dupmask);
-							
+
 							if ( rank >= 0 && BV->get(rank) )
 								libmaus2::bambam::BamAlignmentEncoderBase::putFlags(
 									p+sizeof(uint32_t),libmaus2::bambam::BamAlignmentDecoderBase::getFlags(p+sizeof(uint32_t)) | dupflag
@@ -125,32 +125,32 @@ namespace libmaus2
 						uint32_t const fl = libmaus2::bambam::BamAlignmentDecoderBase::filterOutAux(p+sizeof(uint32_t),P.second,filter);
 						// replace length
 						frag.replaceLength(o,fl);
-						
+
 						assert ( P.second >= fl );
-						
+
 						frag.pullBack(P.second-fl);
-						
+
 						if ( Schecksums )
 							Schecksums->update(frag.getPointer(o)+sizeof(uint32_t),fl);
 					}
-					
+
 					if ( refidintervals.size() )
 					{
 						refidintervals.back().i_high = (I.second - I.first);
 						refidintervals.back().b_high = frag.getOffset();
-						
+
 						for ( std::vector<RefIdInterval>::size_type i = 0; (i+1) < refidintervals.size(); ++i )
 						{
 							refidintervals[i].i_high = refidintervals[i+1].i_low;
 							refidintervals[i].b_high = refidintervals[i+1].b_low;
 						}
-						
+
 						frag.refidintervals = refidintervals;
 					}
-					
+
 					if ( Schecksums )
 						checksumPutInterface.returnSeqChecksumsObject(Schecksums);
-					
+
 					finishedInterface.genericInputControlReorderWorkPackageFinished(BP->in,BP->out);
 					packageReturnInterface.genericInputControlReorderWorkPackageReturn(BP);
 				}

@@ -35,14 +35,14 @@ namespace libmaus2
 			libmaus2::network::FtpSocketInputStreamBuffer::unique_ptr_type ftpstreambuffer;
 			libmaus2::aio::PosixFdInput::unique_ptr_type fileinput;
 			libmaus2::aio::PosixFdInputStreamBuffer::unique_ptr_type filestreambuffer;
-			
+
 			public:
 			UrlInputStreamBufferWrapper(std::string const & url, uint64_t const bufsize, uint64_t const pushbacksize = 0)
 			{
 				if ( isAbsoluteUrl(url) )
 				{
 					std::string const prot = getProtocol(url);
-					
+
 					if ( prot == "http" || prot == "https" )
 					{
 						libmaus2::network::HttpSocketInputStreamBuffer::unique_ptr_type tptr(
@@ -71,7 +71,7 @@ namespace libmaus2
 					}
 					else
 					{
-						
+
 						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "UrlInputStreamBufferWrapper(): unsupported protocol " << url << "\n";
 						lme.finish();
@@ -93,7 +93,7 @@ namespace libmaus2
 				ftpstreambuffer.reset();
 				httpstreambuffer.reset();
 			}
-			
+
 			std::streambuf * getStreamBuf()
 			{
 				if ( httpstreambuffer.get() )
@@ -103,7 +103,7 @@ namespace libmaus2
 				else
 					return filestreambuffer.get();
 			}
-		};	
+		};
 	}
 }
 #endif

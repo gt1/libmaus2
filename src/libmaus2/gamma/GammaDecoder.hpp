@@ -36,15 +36,15 @@ namespace libmaus2
 			stream_type & stream;
 			uint64_t v;
 			uint64_t bav;
-			
+
 			GammaDecoder(stream_type & rstream) : stream(rstream), v(0), bav(0) {}
-			
+
 			void flush()
 			{
 				bav = 0;
 				v = 0;
 			}
-			
+
 			uint64_t decodeWord(unsigned int const bits)
 			{
 				if ( bits <= bav )
@@ -62,22 +62,22 @@ namespace libmaus2
 				{
 					unsigned int const restbits = bits-bav;
 					uint64_t code = (v >> (64-bav)) << restbits;
-					
+
 					v = stream.get();
 					bav = 64;
-					
+
 					code |= v >> (64-restbits);
 					v <<= restbits;
 					bav -= restbits;
-					
+
 					return code;
 				}
 			}
-			
+
 			uint64_t decode()
 			{
 				unsigned int cl;
-				
+
 				// decode code length
 				if ( v )
 				{
@@ -88,7 +88,7 @@ namespace libmaus2
 				else
 				{
 					cl = bav;
-					
+
 					// read next word
 					v = stream.get();
 					bav = 64;
@@ -98,7 +98,7 @@ namespace libmaus2
 					v <<= llz;
 					bav -= llz;
 				}
-				
+
 				uint64_t code;
 				unsigned int cl1 = cl+1;
 
@@ -115,7 +115,7 @@ namespace libmaus2
 					// take rest of current word
 					code = (v >> (64-(bav)));
 					cl1 -= bav;
-					
+
 					// read next word
 					v = stream.get();
 					bav = 64;
@@ -125,7 +125,7 @@ namespace libmaus2
 					v <<= cl1;
 					bav -= cl1;
 				}
-				
+
 				return code-1;
 			}
 		};

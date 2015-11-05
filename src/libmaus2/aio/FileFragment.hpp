@@ -43,14 +43,14 @@ namespace libmaus2
 		        typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		        //! pointer to a vector of this type
 		        typedef ::libmaus2::util::unique_ptr< std::vector<this_type> > vector_ptr_type;
-		
+
 		        //! name of file
 			std::string filename;
 			//! offset in file
 			uint64_t offset;
 			//! length of fragment
 			uint64_t len;
-			
+
 			/**
 			 * extract interval vector from vector of FileFragment objects
 			 *
@@ -60,18 +60,18 @@ namespace libmaus2
 			static libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > toIntervalVector(std::vector<FileFragment> const & V)
 			{
 				libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > H(V.size());
-				
+
 				if ( V.size() )
 				{
 					H[0] = std::pair<uint64_t,uint64_t>(0,V[0].len);
-					
+
 					for ( uint64_t i = 1; i < V.size(); ++i )
 						H[i] = std::pair<uint64_t,uint64_t>(H[i-1].second,H[i-1].second + V[i].len);
 				}
-					
+
 				return H;
 			}
-			
+
 			/**
 			 * extract interval tree from vector of FileFragment objects
 			 *
@@ -85,13 +85,13 @@ namespace libmaus2
 					libmaus2::util::IntervalTree::unique_ptr_type ptr;
 					return UNIQUE_PTR_MOVE(ptr);
 				}
-				
+
 				libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > H = toIntervalVector(V);
 				libmaus2::util::IntervalTree::unique_ptr_type PIT(new libmaus2::util::IntervalTree(H,0,H.size()));
-				
+
 				return UNIQUE_PTR_MOVE(PIT);
 			}
-			
+
 			/**
 			 * extract list of file names from a fragment vector
 			 *
@@ -105,7 +105,7 @@ namespace libmaus2
 			                S.insert(V[i].filename);
                                 return std::vector<std::string>(S.begin(),S.end());
 			}
-			
+
 			/**
 			 * remove/delete the files in V
 			 *
@@ -117,7 +117,7 @@ namespace libmaus2
 			        for ( uint64_t i = 0; i < S.size(); ++i )
 			                libmaus2::aio::FileRemoval::removeFile ( S[i] );
 			}
-			
+
 			/**
 			 * get total length of fragments in vector V
 			 *
@@ -141,7 +141,7 @@ namespace libmaus2
 			        ostr << "FileFragment(" << filename << "," << offset << "," << len << ")";
 			        return ostr.str();
 			}
-			
+
 			/**
 			 * load a serialised vector of FileFragments from file named filename
 			 *
@@ -166,7 +166,7 @@ namespace libmaus2
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,offset);
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,len);
 			}
-			
+
 			/**
 			 * serialise vector of file fragments to output stream out
 			 *
@@ -175,11 +175,11 @@ namespace libmaus2
 			 **/
 			static void serialiseVector(std::ostream & out, std::vector<FileFragment> const & V)
 			{
-				::libmaus2::util::NumberSerialisation::serialiseNumber(out,V.size());			
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,V.size());
 				for ( uint64_t i = 0; i < V.size(); ++i )
 				        V[i].serialise(out);
 			}
-			
+
 			/**
 			 * serialise vector of file fragments to a string
 			 *
@@ -192,7 +192,7 @@ namespace libmaus2
 			        serialiseVector(ostr,V);
 			        return ostr.str();
 			}
-			
+
 			/**
 			 * deserialise a vector of file fragments
 			 *
@@ -203,13 +203,13 @@ namespace libmaus2
 			{
 			        uint64_t const n = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 			        std::vector<FileFragment> V;
-			        
+
 			        for ( uint64_t i = 0; i < n; ++i )
 			                V.push_back( FileFragment(in) );
-			                
+
                                 return V;
 			}
-			
+
 			/**
 			 * construct empty file fragment
 			 **/
@@ -235,7 +235,7 @@ namespace libmaus2
 			        offset(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 			        len(::libmaus2::util::NumberSerialisation::deserialiseNumber(in))
 			{}
-		};        
+		};
         }
 }
 #endif

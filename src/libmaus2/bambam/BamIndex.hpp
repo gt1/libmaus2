@@ -34,40 +34,40 @@ namespace libmaus2
 			typedef BamIndex this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			private:
 			libmaus2::autoarray::AutoArray<libmaus2::bambam::BamIndexRef> refs;
-			
+
 			template<typename stream_type, typename value_type, unsigned int length>
 			static value_type getLEInteger(stream_type & stream)
 			{
 				value_type v = 0;
-				
+
 				for ( uint64_t i = 0; i < length; ++i )
 					if ( stream.peek() == stream_type::traits_type::eof() )
 					{
 						libmaus2::exception::LibMausException ex;
 						ex.getStream() << "Failed to little endian number of length " << length << " in BamIndex::getLEInteger." << std::endl;
 						ex.finish();
-						throw ex;		
+						throw ex;
 					}
 					else
 					{
 						v |= static_cast<value_type>(stream.get()) << (8*i);
 					}
-									
+
 				return v;
 			}
-			
+
 			template<typename stream_type>
 			void init(stream_type & stream)
 			{
 				char magic[4];
-				
+
 				stream.read(&magic[0],sizeof(magic));
-				
-				if ( 
-					! stream 
+
+				if (
+					! stream
 					||
 					stream.gcount() != 4
 					||
@@ -85,56 +85,56 @@ namespace libmaus2
 					ex.finish();
 					throw ex;
 				}
-				
+
 				uint32_t const numref = getLEInteger<stream_type,uint32_t,4>(stream);
-				
+
 				refs = libmaus2::autoarray::AutoArray<libmaus2::bambam::BamIndexRef>(numref);
-				
+
 				for ( uint64_t i = 0; i < numref; ++i )
 				{
 					uint32_t const distbins = getLEInteger<stream_type,uint32_t,4>(stream);
-					
+
 					#if 0
 					std::cerr << "chr " << i << " distbins " << distbins << std::endl;
 					#endif
-					
+
 					if ( distbins )
 					{
 						refs[i].bin = libmaus2::autoarray::AutoArray<libmaus2::bambam::BamIndexBin>(distbins,false);
-						
+
 						libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > pi(distbins,false);
 						libmaus2::autoarray::AutoArray<libmaus2::bambam::BamIndexBin> prebins(distbins,false);
-						
+
 						for ( uint64_t j = 0; j < distbins; ++j )
 						{
 							uint32_t const bin = getLEInteger<stream_type,uint32_t,4>(stream);
 							uint32_t const chunks = getLEInteger<stream_type,uint32_t,4>(stream);
-							
+
 							// std::cerr << "chr " << i << " bin " << bin << " chunks " << chunks << std::endl;
-							
+
 							prebins[j].bin = bin;
 							prebins[j].chunks = libmaus2::autoarray::AutoArray<libmaus2::bambam::BamIndexBin::Chunk>(chunks,false);
-							
+
 							// read chunks
 							for ( uint64_t k = 0; k < chunks; ++k )
 							{
 								prebins[j].chunks[k].first = getLEInteger<stream_type,uint64_t,8>(stream);
 								prebins[j].chunks[k].second = getLEInteger<stream_type,uint64_t,8>(stream);
 							}
-							
+
 							pi [ j ] = std::pair<uint64_t,uint64_t>(bin,j);
 						}
-						
+
 						// sort by bin
 						std::sort(pi.begin(),pi.end());
-					
+
 						// move
 						for ( uint64_t j = 0; j < distbins; ++j )
-							refs[i].bin[j] = prebins[pi[j].second];							
+							refs[i].bin[j] = prebins[pi[j].second];
 					}
-					
+
 					uint32_t const lins = getLEInteger<stream_type,uint32_t,4>(stream);
-					
+
 					if ( lins )
 					{
 						refs[i].lin.intervals = libmaus2::autoarray::AutoArray<uint64_t>(lins,false);
@@ -150,9 +150,9 @@ namespace libmaus2
 			BamIndex(std::istream & in) { init(in); }
 			BamIndex(std::string const & fn)
 			{
-				
+
 				std::string const clipped = libmaus2::util::OutputFileNameTools::clipOff(fn,".bam");
-				
+
 				if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(clipped + ".bai") )
 				{
 					libmaus2::aio::InputStream::unique_ptr_type Pin(
@@ -185,16 +185,16 @@ namespace libmaus2
 					throw se;
 				}
 			}
-			
+
 			BamIndexBin const * getBin(uint64_t const ref, uint64_t const i) const
 			{
 				if ( ref >= refs.size() )
 					return 0;
-				
+
 				BamIndexBin comp;
 				comp.bin = i;
 				BamIndexBin const * p = std::lower_bound(refs[ref].bin.begin(),refs[ref].bin.end(),comp);
-				
+
 				if ( p == refs[ref].bin.end() || p->bin != i )
 				{
 					return 0;
@@ -205,7 +205,7 @@ namespace libmaus2
 					return p;
 				}
 			}
-			
+
 			/**
 			 * return list of bins for interval [beg,end)
 			 *
@@ -218,7 +218,7 @@ namespace libmaus2
 			{
 				libmaus2::util::PushBuffer<uint16_t> PB;
 				PB.A = bins;
-				
+
 				end -= 1;
 
 				PB.push(0);
@@ -228,12 +228,12 @@ namespace libmaus2
 				for (uint64_t k = 73 + (beg>>20); k <= 73 + (end>>20); ++k) PB.push(k);
 				for (uint64_t k = 585 + (beg>>17); k <= 585 + (end>>17); ++k) PB.push(k);
 				for (uint64_t k = 4681 + (beg>>14); k <= 4681 + (end>>14); ++k) PB.push(k);
-				
+
 				bins = PB.A;
-				
+
 				return PB.f;
 			}
-			
+
 			/**
 			 * return list of bins for interval [beg,end)
 			 *
@@ -245,14 +245,14 @@ namespace libmaus2
 			 **/
 			uint64_t reg2bins(
 				uint64_t refid,
-				uint64_t beg, 
-				uint64_t end, 
+				uint64_t beg,
+				uint64_t end,
 				libmaus2::autoarray::AutoArray<BamIndexBin const *> & bins
 			) const
 			{
 				libmaus2::util::PushBuffer<BamIndexBin const *> PB;
 				PB.A = bins;
-				
+
 				end -= 1;
 
 				if ( getBin(refid,0) ) PB.push(getBin(refid,0));
@@ -262,13 +262,13 @@ namespace libmaus2
 				for (uint64_t k = 73 + (beg>>20); k <= 73 + (end>>20); ++k) if ( getBin(refid,k) ) PB.push(getBin(refid,k));
 				for (uint64_t k = 585 + (beg>>17); k <= 585 + (end>>17); ++k) if ( getBin(refid,k) ) PB.push(getBin(refid,k));
 				for (uint64_t k = 4681 + (beg>>14); k <= 4681 + (end>>14); ++k) if ( getBin(refid,k) ) PB.push(getBin(refid,k));
-				
+
 				bins = PB.A;
-				
+
 				return PB.f;
-			
+
 			}
-			
+
 			/**
 			 * return chunks for interval [beg,end)
 			 *
@@ -286,23 +286,23 @@ namespace libmaus2
 				libmaus2::autoarray::AutoArray<BamIndexBin const *> bins;
 				uint64_t const numbins = reg2bins(refid,beg,end,bins);
 				std::vector < std::pair<uint64_t,uint64_t> > C;
-				
+
 				// extract chunks
 				for ( uint64_t b = 0; b < numbins; ++b )
 				{
 					BamIndexBin const * bin = bins[b];
-					
+
 					for ( uint64_t i = 0; i < bin->chunks.size(); ++i )
 						C.push_back(bin->chunks[i]);
 				}
-				
+
 				// sort chunks
 				std::sort(C.begin(),C.end());
-				
+
 				// merge chunks
 				uint64_t low = 0;
 				uint64_t out = 0;
-								
+
 				while ( low != C.size() )
 				{
 					uint64_t high = low+1;
@@ -312,14 +312,14 @@ namespace libmaus2
 						C[low].second = std::max(C[low].second,C[high].second);
 						++high;
 					}
-										
+
 					C[out++] = C[low];
-					
+
 					low = high;
 				}
-				
+
 				C.resize(out);
-				
+
 				return C;
 			}
 

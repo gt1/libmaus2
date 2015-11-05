@@ -33,16 +33,16 @@ namespace libmaus2
 			{
 				if ( s.find("://") == std::string::npos )
 					return false;
-					
+
 				std::string const prot = s.substr(0,s.find("://"));
-				
+
 				for ( uint64_t i = 0; i < prot.size(); ++i )
 					if ( ! isalpha(prot[i]) )
 						return false;
-				
+
 				return true;
 			}
-			
+
 			static std::string getProtocol(std::string const & s)
 			{
 				if ( ! isAbsoluteUrl(s) )
@@ -52,9 +52,9 @@ namespace libmaus2
 					lme.finish();
 					throw lme;
 				}
-				
+
 				std::string const prot = s.substr(0,s.find("://"));
-				
+
 				return prot;
 			}
 		};

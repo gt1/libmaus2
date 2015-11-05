@@ -33,24 +33,24 @@ void libmaus2::digest::SHA2_384::copyFrom(libmaus2::digest::SHA2_384 const & O)
 #else
 #include <libmaus2/exception/LibMausException.hpp>
 
-libmaus2::digest::SHA2_384::SHA2_384() : ctx(0) 
-{ 
+libmaus2::digest::SHA2_384::SHA2_384() : ctx(0)
+{
 	libmaus2::exception::LibMausException lme;
 	lme.getStream() << "libmaus2::digest::SHA2_384::SHA2_384(): nettle library not present" << std::endl;
 	lme.finish();
 	throw lme;
 }
-libmaus2::digest::SHA2_384::~SHA2_384() 
-{ 
-}
-void libmaus2::digest::SHA2_384::init() 
-{ 
-}
-void libmaus2::digest::SHA2_384::update(uint8_t const *, size_t) 
+libmaus2::digest::SHA2_384::~SHA2_384()
 {
 }
-void libmaus2::digest::SHA2_384::digest(uint8_t *) 
-{ 
+void libmaus2::digest::SHA2_384::init()
+{
+}
+void libmaus2::digest::SHA2_384::update(uint8_t const *, size_t)
+{
+}
+void libmaus2::digest::SHA2_384::digest(uint8_t *)
+{
 }
 #endif
 

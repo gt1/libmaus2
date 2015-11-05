@@ -71,13 +71,13 @@ namespace libmaus2
 							case ::libmaus2::lcs::OverlapOrientation::overlap_b_covers_ar:
 								b_covers_a.push_back(all[i]);
 								break;
-							default: 
+							default:
 								other.push_back(all[i]);
 								break;
 						}
 					}
 				}
-				
+
 				::libmaus2::lcs::CheckOverlapScoreComparatorGreater scorecmp;
 				std::sort(left.begin(),left.end(),scorecmp);
 				std::sort(right.begin(),right.end(),scorecmp);

@@ -20,7 +20,7 @@
 #define LIBMAUS2_BAMBAM_PARALLEL_ALIGNMENTBUFFERRETURNINTERFACE_HPP
 
 #include <libmaus2/bambam/parallel/AlignmentBuffer.hpp>
-		
+
 namespace libmaus2
 {
 	namespace bambam

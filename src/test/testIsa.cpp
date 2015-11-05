@@ -27,7 +27,7 @@ template<typename SUF_TYPE>
 ::libmaus2::autoarray::AutoArray< typename SUF_TYPE::value_type > computeISA(SUF_TYPE & SUF, uint64_t const n)
 {
 	// compute shifted inverse of suffix array extended by one
-	::libmaus2::autoarray::AutoArray< typename SUF_TYPE::value_type > ISA(n,false); 
+	::libmaus2::autoarray::AutoArray< typename SUF_TYPE::value_type > ISA(n,false);
 	for ( size_t i = 0; i < n; ++i ) ISA[SUF[i]] = i;
 	return ISA;
 }
@@ -36,12 +36,12 @@ template<typename SUF_TYPE>
 ::libmaus2::autoarray::AutoArray< typename SUF_TYPE::value_type > computeISU(SUF_TYPE & SUF, uint64_t const n)
 {
 	// compute shifted inverse of suffix array extended by one
-	::libmaus2::autoarray::AutoArray< typename SUF_TYPE::value_type > ISU(n+1,false); 
+	::libmaus2::autoarray::AutoArray< typename SUF_TYPE::value_type > ISU(n+1,false);
 	for ( size_t i = 0; i < n; ++i ) ISU[SUF[i]] = i+1; ISU[n] = 0;
 	return ISU;
 }
 
-// see Bannai et alia "Inferring Strings from Graphs and Arrays" 
+// see Bannai et alia "Inferring Strings from Graphs and Arrays"
 template<typename SUF_TYPE>
 std::wstring sufToString(SUF_TYPE & SUF, size_t const n)
 {
@@ -73,7 +73,7 @@ int main(int argc, char * argv[])
 	typedef ::libmaus2::suffixsort::DivSufSort<bitwidth,wchar_t *,wchar_t const *,int64_t *,int64_t const *,4096> sort_type;
 	typedef sort_type::saidx_t saidx_t;
 
-	::libmaus2::autoarray::AutoArray<saidx_t> SAdiv0(n,false);	
+	::libmaus2::autoarray::AutoArray<saidx_t> SAdiv0(n,false);
 
 	std::cerr << "Running divsufsort...";
 	sort_type::divsufsort ( reinterpret_cast<wchar_t const *>(s.c_str()) , SAdiv0.get() , n );
@@ -84,22 +84,22 @@ int main(int argc, char * argv[])
 		{
 			std::wcerr << r << "\t" << SAdiv0[r] << "\t" << s.substr(SAdiv0[r]) << std::endl;
 		}
-	
+
 	std::wstring t = sufToString(SAdiv0,n);
-	
+
 	// std::wcerr << t << std::endl;
-	
+
 	// return 0;
-	
+
 	::libmaus2::autoarray::AutoArray < int64_t > ISA = computeISA(SAdiv0,n);
 
 	std::wstring x = sufToString(ISA,n);
-	
+
 	// std::wcerr << x << std::endl;
 
 	::libmaus2::autoarray::AutoArray<saidx_t> ISAdiv0(n,false);
 	sort_type::divsufsort ( reinterpret_cast<wchar_t const *>(x.c_str()) , ISAdiv0.get() , n );
-	
+
 	for ( uint64_t i = 0; i < n; ++i )
 		assert ( ISAdiv0[i] == ISA[i] );
 }

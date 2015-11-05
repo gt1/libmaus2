@@ -36,14 +36,14 @@ namespace libmaus2
 			hid_t error_stack;
 			H5E_auto2_t old_func;
 			void *old_client_data;
-		
+
 			HDF5MuteErrorHandler()
 			{
 				error_stack = H5E_DEFAULT;
 				H5Eget_auto2(error_stack, &old_func, &old_client_data);
 				H5Eset_auto2(error_stack, NULL, NULL);
 			}
-			
+
 			~HDF5MuteErrorHandler()
 			{
 				H5Eset_auto2(error_stack, old_func, old_client_data);

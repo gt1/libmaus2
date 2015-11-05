@@ -26,7 +26,7 @@ void testSimpleHash()
 	try
 	{
 		libmaus2::util::SimpleHashMapInsDel<uint64_t,uint64_t> SHMID(0);
-		
+
 		for ( uint64_t z = 0; z < 128; ++z )
 		{
 			for ( uint64_t i = 0; i < 64; ++i )
@@ -45,21 +45,21 @@ void testSimpleHash()
 				assert ( SHMID.get(i) == 3*i+5 );
 			for ( uint64_t i = 0; i < 64; ++i )
 				SHMID.erase(i);
-				
+
 			assert ( SHMID.size() == 0 );
 		}
-			
+
 		::libmaus2::util::ExtendingSimpleHashSet<uint64_t> HH(8);
 		HH.insert(5);
 		assert ( HH.contains(5) );
-	
+
 		::libmaus2::util::SimpleHashMap<uint64_t,uint64_t> H(16);
-	
+
 		H.insert(3,10);
 		H.insert(5,25);
 		H.insert(5,30);
 		H.insert(3,11);
-	
+
 		std::cerr << H.get(5) << std::endl;
 		std::cerr << H.get(3) << std::endl;
 		std::cerr << H.get(7) << std::endl;

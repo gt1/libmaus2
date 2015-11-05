@@ -84,7 +84,7 @@ std::ostream & libmaus2::autoarray::operator<<(std::ostream & out, libmaus2::aut
 		"maxmem=" << static_cast<double>(aamu.maxmem)/(1024.0*1024.0) << ")";
 	#if defined(_OPENMP)
 	libmaus2::autoarray::AutoArray_lock.unlock();
-	#endif			
+	#endif
 	return out;
 }
 
@@ -99,7 +99,7 @@ void libmaus2::autoarray::autoArrayPrintTraces(std::ostream & out)
 	libmaus2::parallel::ScopePosixSpinLock slock(tracelock);
 	std::sort(tracevector.begin(),tracevector.end());
 	std::reverse(tracevector.begin(),tracevector.end());
-	
+
 	std::vector< std::vector<std::string> > traces;
 
 	for ( uint64_t i = 0; i < tracevector.size(); ++i )
@@ -109,28 +109,28 @@ void libmaus2::autoarray::autoArrayPrintTraces(std::ostream & out)
 		std::vector<std::string> V;
 		for ( size_t j = 0; j < tracevector[i].tracelength; ++j )
 			V.push_back(std::string(strings[j]));
-			
+
 		traces.push_back(V);
 
 		free(strings);
 	}
-	
+
 	std::map<std::string,std::set<std::string> > exes;
 	for ( uint64_t i = 0; i < traces.size(); ++i )
 		for ( uint64_t j = 0; j < traces[i].size(); ++j )
 		{
 			std::string exe = traces[i][j];
-		
+
 			if ( exe.find('(') != std::string::npos )
 			{
 				exe = exe.substr(0,exe.find('('));
 
 				std::string adr = traces[i][j];
-			
+
 				if ( adr.find("[0x") != std::string::npos )
 				{
 					adr = adr.substr(adr.find("[0x")+1);
-				
+
 					if ( adr.size() && adr[adr.size()-1] == ']' )
 					{
 						adr = adr.substr(0,adr.size()-1);
@@ -139,8 +139,8 @@ void libmaus2::autoarray::autoArrayPrintTraces(std::ostream & out)
 				}
 			}
 		}
-	
-	std::map< std::string, std::map<std::string,std::string> > linenumbers;	
+
+	std::map< std::string, std::map<std::string,std::string> > linenumbers;
 	for ( std::map<std::string,std::set<std::string> >::const_iterator ita = exes.begin(); ita != exes.end(); ++ita )
 	{
 		std::string const exe = ita->first;
@@ -148,14 +148,14 @@ void libmaus2::autoarray::autoArrayPrintTraces(std::ostream & out)
 
 		std::ostringstream comlinestr;
 		comlinestr << "/usr/bin/addr2line" << " -e " << exe;
-		
+
 		for ( std::set<std::string>::const_iterator sita = adrs.begin(); sita != adrs.end(); ++sita )
 			comlinestr << " " << *sita;
 		std::string const comline = comlinestr.str();
-						
+
 		std::string addrout,addrerr;
 		::libmaus2::util::PosixExecute::execute(comline,addrout,addrerr,true /* do not throw exceptions */);
-		
+
 		std::vector<std::string> outputlines;
 		std::istringstream addristr(addrout);
 		while ( addristr )
@@ -165,7 +165,7 @@ void libmaus2::autoarray::autoArrayPrintTraces(std::ostream & out)
 			if ( line.size() )
 				outputlines.push_back(line);
 		}
-		
+
 		if ( outputlines.size() == adrs.size() )
 		{
 			uint64_t j = 0;
@@ -173,25 +173,25 @@ void libmaus2::autoarray::autoArrayPrintTraces(std::ostream & out)
 				linenumbers[exe][*sita /* adr */] = outputlines[j++];
 		}
 	}
-	
+
 	for ( uint64_t i = 0; i < tracevector.size(); ++i )
 	{
 		out << std::string(80,'-') << std::endl;
 		char ** strings = backtrace_symbols((void **)(&(tracevector[i].P[0])),tracevector[i].tracelength);
- 
+
 		for ( size_t j = 0; j < tracevector[i].tracelength; ++j )
 		{
 			std::string exe = strings[j];
-			
+
 			if ( exe.find('(') != std::string::npos )
 				exe = exe.substr(0,exe.find('('));
-			
+
 			std::string adr = strings[j];
-			
+
 			if ( adr.find("[0x") != std::string::npos )
 			{
 				adr = adr.substr(adr.find("[0x")+1);
-				
+
 				if ( adr.size() && adr[adr.size()-1] == ']' )
 					adr = adr.substr(0,adr.size()-1);
 			}
@@ -199,7 +199,7 @@ void libmaus2::autoarray::autoArrayPrintTraces(std::ostream & out)
 			{
 				adr = std::string();
 			}
-			
+
 			std::string mang = strings[j];
 			if ( mang.find("(") != std::string::npos )
 			{
@@ -207,7 +207,7 @@ void libmaus2::autoarray::autoArrayPrintTraces(std::ostream & out)
 				if ( mang.find(")") != std::string::npos )
 				{
 					mang = mang.substr(0,mang.find(")"));
-					
+
 					if ( mang.find("+0x") != std::string::npos )
 					{
 						mang = mang.substr(0,mang.find("+0x"));
@@ -216,7 +216,7 @@ void libmaus2::autoarray::autoArrayPrintTraces(std::ostream & out)
 					{
 						mang = std::string();
 					}
-					
+
 					mang = libmaus2::util::Demangle::demangleName(mang);
 				}
 				else
@@ -235,13 +235,13 @@ void libmaus2::autoarray::autoArrayPrintTraces(std::ostream & out)
 				linenumbers.find(exe)->second.find(adr) != linenumbers.find(exe)->second.end())
 				?
 				linenumbers.find(exe)->second.find(adr)->second : std::string();
-			
+
 			if ( mang.size() )
 			{
 				out << mang << "\t" << addrout << std::endl;
 			}
 			else
-			{		
+			{
 				out << strings[j] << "\t" << addrout;
 				if ( mang.size() )
 					out << "\t" << mang;
@@ -256,7 +256,7 @@ void libmaus2::autoarray::autoArrayPrintTraces(std::ostream & out)
 		out << "freecnt=" << tracevector[i].freecnt << std::endl;
 		out << "freebytes=" << tracevector[i].freebytes << std::endl;
 
-		free(strings);         			
-	}			
+		free(strings);
+	}
 }
 #endif

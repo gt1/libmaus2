@@ -25,13 +25,13 @@
 namespace libmaus2
 {
 	namespace suffixsort
-	{	
+	{
 		struct GapMergePacket
 		{
 			uint64_t hlow;
 			uint64_t hhigh;
 			uint64_t s;
-			
+
 			GapMergePacket() {}
 			GapMergePacket(uint64_t rhlow, uint64_t rhhigh, uint64_t rs) : hlow(rhlow), hhigh(rhhigh), s(rs) {}
 		};
@@ -44,4 +44,3 @@ namespace libmaus2
 	}
 }
 #endif
-

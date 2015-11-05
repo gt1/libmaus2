@@ -42,10 +42,10 @@ namespace libmaus2
 			static ::libmaus2::util::shared_ptr<HuffmanTreeNode>::type createTree( iterator a, iterator e )
 			{
 				::std::map<int64_t,uint64_t> probs;
-				
+
 				for ( ; a != e; ++a )
 					probs[*a]++;
-					
+
 				return createTree ( probs );
 			}
 
@@ -54,7 +54,7 @@ namespace libmaus2
 			{
 				if ( probs.begin() == probs.end() )
 					return HuffmanTreeNode::shared_ptr_type();
-			
+
 				::std::deque< HuffmanTreeLeaf * >	leafs;
 				::std::deque< HuffmanTreeInnerNode * > nodes;
 				HuffmanTreeNode * N0 = 0, * N1 = 0;
@@ -67,32 +67,32 @@ namespace libmaus2
 						leafs.push_back(zp);
 						leafs.back() = new HuffmanTreeLeaf(ita->first,ita->second);
 					}
-					
+
 					if ( leafs.size() == 1 )
 						return HuffmanTreeNode::shared_ptr_type(leafs[0]);
-					
+
 					::std::sort ( leafs.begin(), leafs.end(), HuffmanTreeLeafComparator() );
-					
+
 					::std::deque< HuffmanTreeLeaf * >::const_iterator Lita, Litb;
 					::std::deque< HuffmanTreeInnerNode *>::const_iterator Nita, Nitb;
 					uint64_t lpop = 0;
 					uint64_t npop = 0;
-					
+
 					while ( (leafs.size() + nodes.size()) > 1 )
-					{					
+					{
 						Lita = leafs.begin(), Litb = leafs.end(); Nita = nodes.begin(), Nitb = nodes.end();
 						lpop = npop = 0;
-						
+
 						if ( Lita == Litb ) { N0 = *(Nita++); npop += 1; }
 						else if ( Nita == Nitb ) { N0 = *(Lita++); lpop += 1; }
 						else if ( (*Lita)->getFrequency() < (*Nita)->getFrequency() ) { N0 = *(Lita++); lpop += 1; }
 						else { N0 = *(Nita++); npop += 1; }
-							
+
 						if ( Lita == Litb ) { N1 = *(Nita++); npop += 1; }
 						else if ( Nita == Nitb ) { N1 = *(Lita++); lpop += 1; }
 						else if ( (*Lita)->getFrequency() < (*Nita)->getFrequency() ) { N1 = *(Lita++); lpop += 1; }
 						else { N1 = *(Nita++); npop += 1; }
-						
+
 						for ( uint64_t i = 0; i < lpop; ++i ) leafs[i] = 0;
 						for ( uint64_t i = 0; i < npop; ++i ) nodes[i] = 0;
 
@@ -106,7 +106,7 @@ namespace libmaus2
 						for ( uint64_t i = 0; i < lpop; ++i ) leafs.pop_front();
 						for ( uint64_t i = 0; i < npop; ++i ) nodes.pop_front();
 					}
-					
+
 					return HuffmanTreeNode::shared_ptr_type(nodes[0]);
 				}
 				catch(...)

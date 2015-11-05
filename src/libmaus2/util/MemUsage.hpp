@@ -40,14 +40,14 @@ namespace libmaus2
 			uint64_t VmExe;
 			uint64_t VmLib;
 			uint64_t VmPTE;
-			
+
 			MemUsage();
 			MemUsage(MemUsage const & o);
 			MemUsage & operator=(MemUsage const & o);
 
 			bool operator==(MemUsage const & o) const;
 			bool operator!=(MemUsage const & o) const;
-			
+
 			static uint64_t getMemParam(std::map<std::string,std::string> const & M, std::string const key);
 			static uint64_t parseMemPair(std::string const & V);
 			static bool tokenise(std::string line, std::pair<std::string,std::string> & P);

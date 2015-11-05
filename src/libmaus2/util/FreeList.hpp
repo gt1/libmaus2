@@ -29,44 +29,44 @@ namespace libmaus2
 		struct FreeListDefaultAllocator
 		{
 			typedef _element_type element_type;
-			
+
 			FreeListDefaultAllocator()
 			{
 			}
 			~FreeListDefaultAllocator()
 			{
 			}
-			
+
 			element_type * operator()() const
 			{
 				return new element_type;
 			}
 		};
-		
+
 		template<typename _element_type>
 		struct FreeListDefaultTypeInfo
 		{
 			typedef _element_type element_type;
-			typedef element_type * pointer_type;			
-			
+			typedef element_type * pointer_type;
+
 			static pointer_type deallocate(pointer_type p)
 			{
 				delete p;
 				p = 0;
 				return p;
 			}
-			
+
 			static pointer_type getNullPointer()
 			{
 				pointer_type p = 0;
 				return p;
 			}
 		};
-	
+
 		template<
-			typename _element_type, 
+			typename _element_type,
 			typename _allocator_type = FreeListDefaultAllocator<_element_type>,
-			typename _type_info_type = FreeListDefaultTypeInfo<_element_type> 
+			typename _type_info_type = FreeListDefaultTypeInfo<_element_type>
 		>
 		struct FreeList
 		{
@@ -79,15 +79,15 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray< typename type_info_type::pointer_type > freelist;
 			uint64_t freecnt;
 			allocator_type allocator;
-			
+
 			void cleanup()
 			{
 				for ( uint64_t i = 0; i < freelist.size(); ++i )
 				{
 					freelist[i] = type_info_type::deallocate(freelist[i]);
-				}	
+				}
 			}
-			
+
 			FreeList(uint64_t const numel, allocator_type rallocator = allocator_type()) : freelist(numel), freecnt(numel), allocator(rallocator)
 			{
 				try
@@ -103,27 +103,27 @@ namespace libmaus2
 					throw;
 				}
 			}
-			
+
 			virtual ~FreeList()
 			{
 				cleanup();
 			}
-			
+
 			bool empty() const
 			{
 				return freecnt == 0;
 			}
-			
+
 			bool full() const
 			{
 				return freecnt == freelist.size();
 			}
-			
+
 			uint64_t free() const
 			{
 				return freecnt;
 			}
-			
+
 			typename type_info_type::pointer_type get()
 			{
 				typename type_info_type::pointer_type p = typename type_info_type::pointer_type();
@@ -134,7 +134,7 @@ namespace libmaus2
 
 				return p;
 			}
-			
+
 			std::vector<typename type_info_type::pointer_type> getAll()
 			{
 				std::vector<typename type_info_type::pointer_type> V;
@@ -142,13 +142,13 @@ namespace libmaus2
 					V.push_back(get());
 				return V;
 			}
-			
+
 			void put(std::vector<typename type_info_type::pointer_type> V)
 			{
 				for ( typename std::vector<typename type_info_type::pointer_type>::size_type i = 0; i < V.size(); ++i )
 					put(V[i]);
 			}
-			
+
 			void put(typename type_info_type::pointer_type ptr)
 			{
 				freelist[freecnt++] = ptr;
@@ -159,7 +159,7 @@ namespace libmaus2
 				freelist[freecnt++] = ptr;
 				return freecnt;
 			}
-			
+
 			uint64_t capacity() const
 			{
 				return freelist.size();
@@ -173,11 +173,11 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < V.size(); ++i )
 					s += V[i]->byteSize();
 				put(V);
-				
+
 				s += freelist.byteSize();
 				s += sizeof(freecnt);
 				s += sizeof(allocator);
-				
+
 				return s;
 			}
 		};

@@ -27,7 +27,7 @@ namespace libmaus2
 		template<typename T>
 		struct UnsignedCharVariant
 		{
-		
+
 		};
 
 		template<>

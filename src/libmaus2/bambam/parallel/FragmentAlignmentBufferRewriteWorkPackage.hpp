@@ -34,11 +34,11 @@ namespace libmaus2
 				typedef FragmentAlignmentBufferRewriteWorkPackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				AlignmentBuffer::shared_ptr_type algn;
 				FragmentAlignmentBuffer::shared_ptr_type FAB;
 				uint64_t j;
-			
+
 				FragmentAlignmentBufferRewriteWorkPackage()
 				:
 					libmaus2::parallel::SimpleThreadWorkPackage(),
@@ -47,22 +47,22 @@ namespace libmaus2
 				}
 
 				FragmentAlignmentBufferRewriteWorkPackage(
-					uint64_t const rpriority, 
+					uint64_t const rpriority,
 					AlignmentBuffer::shared_ptr_type ralgn,
 					FragmentAlignmentBuffer::shared_ptr_type rFAB,
 					uint64_t rj,
 					uint64_t const rreadDispatcherId
 				)
-				: 
-					libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rreadDispatcherId), 
+				:
+					libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rreadDispatcherId),
 					algn(ralgn), FAB(rFAB), j(rj)
 				{
 				}
-								
+
 				char const * getPackageName() const
 				{
 					return "FragmentAlignmentBufferRewriteWorkPackage";
-				}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+				}
 			};
 		}
 	}

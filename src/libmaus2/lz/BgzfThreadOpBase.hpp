@@ -27,15 +27,15 @@ namespace libmaus2
 	{
 		struct BgzfThreadOpBase
 		{
-			enum libmaus2_lz_bgzf_op_type { 
+			enum libmaus2_lz_bgzf_op_type {
 				libmaus2_lz_bgzf_op_write_block = 0,
-				libmaus2_lz_bgzf_op_compress_block = 1, 
-				libmaus2_lz_bgzf_op_decompress_block = 2, 
-				libmaus2_lz_bgzf_op_read_block = 3, 
+				libmaus2_lz_bgzf_op_compress_block = 1,
+				libmaus2_lz_bgzf_op_decompress_block = 2,
+				libmaus2_lz_bgzf_op_read_block = 3,
 				libmaus2_lz_bgzf_op_none = 4
 			};
 		};
-		
+
 		inline std::ostream & operator<<(std::ostream & out, BgzfThreadOpBase::libmaus2_lz_bgzf_op_type const op)
 		{
 			switch ( op )
@@ -51,39 +51,39 @@ namespace libmaus2
 				case BgzfThreadOpBase::libmaus2_lz_bgzf_op_none:
 					out << "libmaus2_lz_bgzf_op_none"; break;
 			}
-			
+
 			return out;
 		}
-				
+
 		struct BgzfThreadQueueElement
 		{
 			BgzfThreadOpBase::libmaus2_lz_bgzf_op_type op;
 			uint64_t objectid;
 			uint64_t blockid;
-				
+
 			BgzfThreadQueueElement(
-				BgzfThreadOpBase::libmaus2_lz_bgzf_op_type const rop = BgzfThreadOpBase::libmaus2_lz_bgzf_op_none, 
+				BgzfThreadOpBase::libmaus2_lz_bgzf_op_type const rop = BgzfThreadOpBase::libmaus2_lz_bgzf_op_none,
 				uint64_t const robjectid = 0,
 				uint64_t const rblockid = 0
 			)
 			: op(rop), objectid(robjectid), blockid(rblockid)
 			{
-			
+
 			}
-			
+
 			BgzfThreadQueueElement & operator++()
 			{
 				blockid++;
 				return *this;
 			}
-			
+
 			BgzfThreadQueueElement operator++(int)
 			{
 				BgzfThreadQueueElement copy = *this;
 				blockid++;
 				return copy;
 			}
-			
+
 			bool operator<=(BgzfThreadQueueElement const & o) const
 			{
 				return blockid <= o.blockid;
@@ -93,7 +93,7 @@ namespace libmaus2
 			{
 				return blockid < o.blockid;
 			}
-			
+
 			bool operator==(BgzfThreadQueueElement const & o) const
 			{
 				return blockid == o.blockid;

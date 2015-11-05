@@ -38,10 +38,10 @@ namespace libmaus2
 
 			N from;
 			N to;
-			
+
 			IntegerInterval() : from(0), to(0) {}
 			IntegerInterval(N const rfrom, N const rto) : from(rfrom), to(rto) {}
-			
+
 			bool operator<(IntegerInterval<N> const & O) const
 			{
 				if ( from != O.from )
@@ -54,7 +54,7 @@ namespace libmaus2
 			{
 				return to < from;
 			}
-			
+
 			static IntegerInterval<N> empty()
 			{
 				return IntegerInterval<N>(
@@ -62,7 +62,7 @@ namespace libmaus2
 					std::numeric_limits<N>::min()
 				);
 			}
-			
+
 			static N absdiff(N const a, N const b)
 			{
 				if ( a >= b )
@@ -70,7 +70,7 @@ namespace libmaus2
 				else
 					return b-a;
 			}
-			
+
 			static N hausdorffSlow(IntegerInterval<N> const & A, IntegerInterval<N> const & B)
 			{
 				if ( A.isEmpty() )
@@ -80,27 +80,27 @@ namespace libmaus2
 					else
 						return std::numeric_limits<N>::max();
 				}
-				
+
 				N maxdiff = 0;
-				
+
 				for ( N i = A.from; i <= A.to; ++i )
 				{
 					N mindiff = std::numeric_limits<N>::max();
 					for ( N j = B.from; j <= B.to; ++j )
 						mindiff = std::min(mindiff,absdiff(i,j));
-					maxdiff = std::max(maxdiff,mindiff);	
+					maxdiff = std::max(maxdiff,mindiff);
 				}
 				for ( N i = B.from; i <= B.to; ++i )
 				{
 					N mindiff = std::numeric_limits<N>::max();
 					for ( N j = A.from; j <= A.to; ++j )
 						mindiff = std::min(mindiff,absdiff(i,j));
-					maxdiff = std::max(maxdiff,mindiff);	
+					maxdiff = std::max(maxdiff,mindiff);
 				}
-				
+
 				return maxdiff;
 			}
-			
+
 			static N hausdorffDistance(IntegerInterval<N> const & A, IntegerInterval<N> const & B)
 			{
 				if ( A.isEmpty() )
@@ -130,15 +130,15 @@ namespace libmaus2
 					return empty();
 				if ( A.from > B.from )
 					return intersection(B,A);
-				
+
 				assert ( A.from <= B.from );
-				
+
 				if ( A.to < B.from )
 					return empty();
-					
+
 				return IntegerInterval<N>(B.from,std::min(B.to,A.to));
 			}
-			
+
 			static IntegerInterval<N> span(IntegerInterval<N> const & A, IntegerInterval<N> const & B)
 			{
 				if ( A.isEmpty() )
@@ -150,16 +150,16 @@ namespace libmaus2
 					if ( A.from > B.from )
 						return span(B,A);
 					assert ( A.from <= B.from );
-					
+
 					return IntegerInterval<N>(A.from, std::max(A.to,B.to));
 				}
 			}
-			
+
 			IntegerInterval<N> intersection(IntegerInterval<N> const & B) const
 			{
 				return intersection(*this,B);
 			}
-			
+
 			struct IntegerIntervalComparator
 			{
 				bool operator()(IntegerInterval<N> const & A, IntegerInterval<N> const & B)
@@ -170,30 +170,30 @@ namespace libmaus2
 						return A.to < B.to;
 				}
 			};
-			
+
 			static std::vector < IntegerInterval<N> > mergeOverlapping(std::vector< IntegerInterval<N> > IV)
 			{
 				std::sort(IV.begin(),IV.end(),IntegerIntervalComparator());
 				std::vector < IntegerInterval<N> > R;
-				
+
 				uint64_t low = 0;
 				while ( low != IV.size() )
 				{
 					uint64_t high = low+1;
 					IntegerInterval<N> merged = IV[low];
-					
+
 					while ( high != IV.size() && (!(merged.intersection(IV[high]).isEmpty())) )
 					{
 						// set new upper bound
 						merged.to = std::max(merged.to,IV[high].to);
 						++high;
 					}
-					
+
 					R.push_back(merged);
-					
+
 					low = high;
 				}
-				
+
 				return R;
 			}
 
@@ -201,28 +201,28 @@ namespace libmaus2
 			{
 				std::sort(IV.begin(),IV.end(),IntegerIntervalComparator());
 				std::vector < IntegerInterval<N> > R;
-				
+
 				uint64_t low = 0;
 				while ( low != IV.size() )
 				{
 					uint64_t high = low+1;
 					IntegerInterval<N> merged = IV[low];
-					
+
 					while ( high != IV.size() && (merged.to + fuzz >= IV[high].from) )
 					{
 						// set new upper bound
 						merged.to = std::max(merged.to,IV[high].to);
 						++high;
 					}
-					
+
 					R.push_back(merged);
-					
+
 					low = high;
 				}
-				
+
 				return R;
 			}
-			
+
 			bool contains(IntegerInterval<N> const & I) const
 			{
 				if ( I.isEmpty() )
@@ -238,7 +238,7 @@ namespace libmaus2
 					return from <= I.from && to >= I.to;
 				}
 			}
-			
+
 			bool operator==(IntegerInterval<N> const & I) const
 			{
 				if ( isEmpty() )

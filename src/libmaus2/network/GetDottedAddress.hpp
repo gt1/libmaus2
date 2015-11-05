@@ -41,43 +41,43 @@ namespace libmaus2
 			static std::string getDottedAdress(std::string const & hostname)
 			{
 				struct hostent * he = gethostbyname2(hostname.c_str(),AF_INET);
-					
+
 				if ( ! he )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "failed to get address for " << hostname << " via gethostbyname: " << hstrerror(h_errno);
 					se.finish();
-					throw se;		
+					throw se;
 				}
-					
+
 				if ( he->h_addr_list[0] == 0 )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "failed to get address for " << hostname << " via gethostbyname (no address returned)";
 					se.finish();
-					throw se;		
+					throw se;
 				}
-				
+
 				::libmaus2::autoarray::AutoArray<char> B(256);
 				std::string const dotted = inet_ntop(AF_INET,&(he->h_addr_list[0]),B.get(),B.size());
 
 				return dotted;
 			}
-			
+
 			static std::vector< std::vector <uint8_t> > getIP4Address(std::string const & hostname)
 			{
 				struct hostent * he = gethostbyname2(hostname.c_str(),AF_INET);
-					
+
 				if ( ! he )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "failed to get address for " << hostname << " via gethostbyname: " << hstrerror(h_errno);
 					se.finish();
-					throw se;		
+					throw se;
 				}
-			
+
 				std::vector< std::vector <uint8_t> > V;
-			
+
 				for ( uint64_t j = 0; he->h_addr_list[j]; ++j )
 				{
 					in_addr const * addr = reinterpret_cast< in_addr const * >(he->h_addr_list[j]);
@@ -88,12 +88,12 @@ namespace libmaus2
 					VV.push_back( (adr32 >>  8) & 0xFF );
 					VV.push_back( (adr32 >>  0) & 0xFF );
 					V.push_back(VV);
-					
+
 				}
-				
+
 				return V;
 			}
-			
+
 			static std::vector< std::vector <uint8_t> > getIP4Address()
 			{
 				return getIP4Address(::libmaus2::network::GetHostName::getHostName());
@@ -113,8 +113,8 @@ namespace libmaus2
 				V[3] = 0;
 				return V;
 			}
-			
-			static std::map < std::vector <uint8_t>, std::vector < std::string > > 
+
+			static std::map < std::vector <uint8_t>, std::vector < std::string > >
 				getClassC(std::vector < std::string > const & hostnames)
 			{
 				std::map < std::vector <uint8_t>, std::vector < std::string > > S;

@@ -30,13 +30,13 @@ namespace libmaus2
 		{
 			uint64_t s;
 			::libmaus2::autoarray::AutoArray<uint64_t> A;
-			
+
 			SlowCumFreq(uint64_t rs)
 			: s(rs), A(s,false)
 			{
 				std::fill(A.get(),A.get()+s,0);
 			}
-			
+
 			uint64_t operator[](uint64_t i) const
 			{
 				return A[i];
@@ -50,4 +50,3 @@ namespace libmaus2
 	}
 }
 #endif
-

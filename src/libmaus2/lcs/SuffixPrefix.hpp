@@ -55,14 +55,14 @@ namespace libmaus2
 					return (a==b)?gain_match:(-penalty_subst);
 			}
 		};
-	
+
 		template<typename _score_type>
 		struct SuffixPrefixTemplate : public TraceContainer
 		{
 			typedef _score_type score_type;
 			typedef SuffixPrefixTemplate<score_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			typedef int32_t similarity_type;
 			typedef std::pair < similarity_type, step_type > element_type;
 
@@ -78,30 +78,30 @@ namespace libmaus2
 			public:
 			// trace for best infix alignment
 			TraceContainer infixtrace;
-	
+
 			SuffixPrefixTemplate(uint64_t const rn, uint64_t const rm)
 			: TraceContainer(rn+rm), n(rn), m(rm), n1(n+1), m1(m+1), M( n1*m1, false ), infixtrace(rn+rm)
 			{
 				// std::cerr << "n=" << n << " m=" << m << " n1=" << n1 << " m1=" << m1 << std::endl;
 			}
-			
+
 			template<typename iterator_a, typename iterator_b>
 			SuffixPrefixResult process(iterator_a a, iterator_b b)
 			{
 				element_type * p = M.begin();
-				
+
 				// fill first column with zeroes
 				*(p++) = element_type(0,STEP_MATCH);
 				for ( uint64_t i = 1; i < n1; ++i )
 					*(p++) = element_type(0,STEP_INS);
-				
-				// p = current column	
+
+				// p = current column
 				// q = previous column
 				element_type * q = M.begin();
-				
+
 				similarity_type maxscore = 0;
 				uint32_t maxcol = 0;
-				
+
 				// fill dynamic programming matrix, rows a, columns b
 				// outer iteration over columns (b)
 				iterator_b const ba = b;
@@ -118,10 +118,10 @@ namespace libmaus2
 					while ( b != be1 )
 					{
 						typename std::iterator_traits<iterator_b>::value_type const bchar = *(b++);
-						
+
 						p->first = q->first;
 						p->second = STEP_DEL;
-						
+
 						// iterate over rows
 						for ( iterator_a aa = a; aa != ae; ++aa )
 						{
@@ -133,7 +133,7 @@ namespace libmaus2
 							similarity_type const diag = (q++)->first + d;
 							// left
 							similarity_type const left = q->first - penalty_del;
-							
+
 							if ( diag >= top )
 							{
 								if ( diag >= left )
@@ -158,19 +158,19 @@ namespace libmaus2
 							maxscore = p->first;
 							maxcol = (b-ba);
 						}
-						
+
 						p++;
 						q++;
 					}
-					
+
 					typename std::iterator_traits<iterator_b>::value_type const bchar = *(b++);
 					assert ( b == be );
-					
+
 					pl = p;
 					plmax = pl;
 					p->first = q->first;
 					p->second = STEP_DEL;
-					
+
 					// iterate over rows
 					for ( iterator_a aa = a; aa != ae; ++aa )
 					{
@@ -182,7 +182,7 @@ namespace libmaus2
 						similarity_type const diag = (q++)->first + d;
 						// left
 						similarity_type const left = q->first - penalty_del;
-						
+
 						if ( diag >= top )
 						{
 							if ( diag >= left )
@@ -198,7 +198,7 @@ namespace libmaus2
 							else
 								*p = element_type(top,STEP_INS);
 						}
-						
+
 						if ( p->first >= plmax->first )
 							plmax = p;
 					}
@@ -209,33 +209,33 @@ namespace libmaus2
 						maxscore = p->first;
 						maxcol = (b-ba);
 					}
-					
+
 					p++;
 					q++;
-				
-					// maxinfixscore = plmax->first;	
+
+					// maxinfixscore = plmax->first;
 				}
-				
+
 				// length of suffix of b we do not use
 				uint64_t const bclip = (m-maxcol);
-				
+
 				/* fill trace back array and build operation histogram */
 				uint64_t i = n;
 				uint64_t j = m1-bclip-1;
 				element_type * pq = M.get() + j*n1 + i;
 				element_type * pz = M.get() + n1;
-				
+
 				ta = te;
-				
+
 				uint64_t numdel = 0;
 				uint64_t numin = 0;
 				uint64_t nummat = 0;
 				uint64_t nummis = 0;
-				
+
 				while ( pq >= pz )
 				{
 					*(--ta) = pq->second;
-				
+
 					switch ( pq->second )
 					{
 						case STEP_DEL:
@@ -262,7 +262,7 @@ namespace libmaus2
 
 				// length of prefix of a we skip
 				uint64_t const aclip = pq-M.begin();
-				
+
 				infixtrace.ta = infixtrace.te;
 				element_type * ipq = plmax;
 				uint64_t infixnumdel = 0;
@@ -273,7 +273,7 @@ namespace libmaus2
 				while ( ipq >= pz )
 				{
 					*(--infixtrace.ta) = ipq->second;
-				
+
 					switch ( ipq->second )
 					{
 						case STEP_DEL:
@@ -304,14 +304,14 @@ namespace libmaus2
 				uint64_t const infixaclipsuff = n-(plmax-pl);
 				// score of infix alignment
 				uint64_t const infixscore = plmax->first;
-				
+
 				if ( m )
 				{
 					step_type * ic = infixtrace.te;
 					typename std::iterator_traits<iterator_b>::value_type const bchar = *(be-1);
 					iterator_b bc = be;
 					uint64_t itcnt = 0;
-					
+
 					#if 0
 					std::ostringstream ostr;
 					ostr << "\n\n ---- \n\n";
@@ -322,11 +322,11 @@ namespace libmaus2
 					{
 						--ic;
 						--bc;
-						
+
 						if ( (*ic != STEP_MATCH) || (*bc != bchar) )
 							break;
-						
-						#if 0							
+
+						#if 0
 						ostr << "iteration, step " << *ic << " char " << *bc << std::endl;
 						#endif
 						++itcnt;
@@ -352,12 +352,12 @@ namespace libmaus2
 								infixnummat,
 								infixnummis,
 								infixscore
-							)		
+							)
 							,ostr);
 						#endif
 
 						std::swap(*ic,*(infixtrace.te-1));
-						
+
 						#if 0
 						ostr << infixtrace.traceToString() << std::endl;
 
@@ -371,14 +371,14 @@ namespace libmaus2
 								infixnummat,
 								infixnummis,
 								infixscore
-							)		
+							)
 							,ostr);
 
 						std::cerr << ostr.str();
 						#endif
 					}
-				}			
-				
+				}
+
 				return SuffixPrefixResult(
 					aclip,bclip,numin,numdel,nummat,nummis,
 					infixaclippref,
@@ -403,9 +403,9 @@ namespace libmaus2
 					std::string(a+SPR.infix_aclip_left,a+(n-SPR.infix_aclip_right)),
 					std::string(b,b+m),
 					80,
-					infixtrace.ta,infixtrace.te);			
+					infixtrace.ta,infixtrace.te);
 			}
-			
+
 			std::ostream & printAlignment(
 				std::ostream & out, std::string const & a, std::string const & b,
 				SuffixPrefixResult const & SPR
@@ -423,7 +423,7 @@ namespace libmaus2
 				SuffixPrefixAlignmentPrint::printAlignmentLines(out,a,b,SPR,rlinewidth,ta,te);
 				return out;
 			}
-			
+
 			bool startsWithDeletion() const
 			{
 				return

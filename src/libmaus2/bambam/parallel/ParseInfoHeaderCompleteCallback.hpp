@@ -24,7 +24,7 @@
 namespace libmaus2
 {
 	namespace bambam
-	{		
+	{
 		namespace parallel
 		{
 			struct ParseInfoHeaderCompleteCallback

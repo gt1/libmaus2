@@ -29,14 +29,14 @@ namespace libmaus2
 		{
 			private:
 			libmaus2::network::HttpHeader object;
-			
+
 			public:
 			HttpHeaderWrapper() : object() {}
 			HttpHeaderWrapper(std::string method, std::string addreq, std::string url)
 			: object(method,addreq,url) {}
 			HttpHeaderWrapper(std::string method, std::string addreq, std::string host, std::string path, unsigned int port = 80, bool ssl = false)
 			: object(method,addreq,host,path,port,ssl) {}
-			
+
 			libmaus2::network::HttpHeader & getHttpHeader()
 			{
 				return object;

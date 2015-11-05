@@ -29,7 +29,7 @@ namespace libmaus2
 		{
 			//! digit table (digit_table[i] == true iff isdigit(i)==true)
 			static uint8_t const digit_table[256];
-		
+
 			/**
 			 * compare strings a and b as described in class description
 			 *
@@ -40,7 +40,7 @@ namespace libmaus2
 			 * @return -1 if a<b, 0 if a==b, 1 if a>b (names at a and b, not pointers)
 			 **/
 			static int strcmpnum(
-				uint8_t const * a, 
+				uint8_t const * a,
 				uint8_t const * ae,
 				uint8_t const * b,
 				uint8_t const * be
@@ -50,12 +50,12 @@ namespace libmaus2
 				{
 					uint8_t const ca = *a;
 					uint8_t const cb = *b;
-			
+
 					if ( digit_table[ca] && digit_table[cb] )
 					{
 						uint64_t na = ca - '0';
 						uint64_t nb = cb - '0';
-						
+
 						while ( (*(++a)) && digit_table[*a] )
 						{
 							na *= 10;
@@ -66,7 +66,7 @@ namespace libmaus2
 							nb *= 10;
 							nb += *b - '0';
 						}
-						
+
 						if ( na != nb )
 						{
 							if ( na < nb )
@@ -88,13 +88,13 @@ namespace libmaus2
 						++b;
 					}
 				}
-				
+
 				if ( a == ae && b == be )
 					return 0;
 				else if ( a == ae )
 					return -1;
 				else
-					return 1;				
+					return 1;
 			}
 
 			/**
@@ -105,7 +105,7 @@ namespace libmaus2
 			 * @return -1 if a<b, 0 if a==b, 1 if a>b (names at a and b, not pointers)
 			 **/
 			static int strcmpnum(
-				char const * a, 
+				char const * a,
 				char const * ae,
 				char const * b,
 				char const * be
@@ -116,7 +116,7 @@ namespace libmaus2
 					reinterpret_cast<uint8_t const *>(ae),
 					reinterpret_cast<uint8_t const *>(b),
 					reinterpret_cast<uint8_t const *>(be)
-				);	
+				);
 			}
 
 			/**
@@ -132,12 +132,12 @@ namespace libmaus2
 				{
 					uint8_t const ca = *a;
 					uint8_t const cb = *b;
-			
+
 					if ( digit_table[ca] && digit_table[cb] )
 					{
 						uint64_t na = ca - '0';
 						uint64_t nb = cb - '0';
-						
+
 						while ( (*(++a)) && digit_table[*a] )
 						{
 							na *= 10;
@@ -148,7 +148,7 @@ namespace libmaus2
 							nb *= 10;
 							nb += *b - '0';
 						}
-						
+
 						if ( na != nb )
 						{
 							if ( na < nb )
@@ -170,15 +170,15 @@ namespace libmaus2
 						++b;
 					}
 				}
-				
+
 				if ( (!*a) && (!*b) )
 					return 0;
 				else if ( !*a )
 					return -1;
-				else	
+				else
 					return 1;
 			}
-			
+
 			/**
 			 * compare strings a and b as described in class description
 			 *
@@ -191,7 +191,7 @@ namespace libmaus2
 				return strcmpnum(
 					reinterpret_cast<uint8_t const *>(a),
 					reinterpret_cast<uint8_t const *>(b)
-				);	
+				);
 			}
 		};
 	}

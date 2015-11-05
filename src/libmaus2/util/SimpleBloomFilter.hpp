@@ -37,11 +37,11 @@ namespace libmaus2
 
 			uint64_t const vectorsize;
 			::libmaus2::autoarray::AutoArray< uint64_t > lockvector;
-			
+
 			SimpleBloomFilterLockBase(uint64_t const rvectorsize)
 			: vectorsize(rvectorsize), lockvector((vectorsize+lockblocksize-1)/lockblocksize)
 			{
-				
+
 			}
 
 			void lockBlock(uint64_t const i)
@@ -51,23 +51,23 @@ namespace libmaus2
 				uint64_t const bitoff = i - (wordoff<<6);
 				uint64_t const mask = (1ull << bitoff);
 				volatile uint64_t * const word = lockvector.begin()+wordoff;
-				
+
 				bool locked = false;
 				while ( !locked )
 				{
 					volatile uint64_t v;
 					while ( (v=*word) & mask ) {}
-					
+
 					locked = __sync_bool_compare_and_swap(word,v,v | mask);
-				}			
+				}
 				#else
 				::libmaus2::exception::LibMausException se;
 				se.getStream() << "SimpleBloomFilter::lockWord() called, but binary does not support atomic/sync operations." << std::endl;
 				se.finish();
 				throw se;
-				#endif	
+				#endif
 			}
-			
+
 			void unlockBlock(uint64_t const i)
 			{
 				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
@@ -81,10 +81,10 @@ namespace libmaus2
 				::libmaus2::exception::LibMausException se;
 				se.getStream() << "SimpleBloomFilter::lockWord() called, but binary does not support atomic/sync operations." << std::endl;
 				se.finish();
-				throw se;				
+				throw se;
 				#endif
 			}
-			
+
 			void lockForIndex(uint64_t const i)
 			{
 				lockBlock(i/lockblocksize);
@@ -94,7 +94,7 @@ namespace libmaus2
 				unlockBlock(i/lockblocksize);
 			}
 		};
-	
+
 		struct SimpleBloomFilter
 		{
 			typedef SimpleBloomFilter this_type;
@@ -106,11 +106,11 @@ namespace libmaus2
 			unsigned int const vectorsizelog;
 			uint64_t const vectorsize;
 			uint64_t const hashmask;
-						
+
 			::libmaus2::autoarray::AutoArray< ::libmaus2::bitio::BitVector::unique_ptr_type > vectors;
 
 			SimpleBloomFilterLockBase<64> lockbase;
-			
+
 			SimpleBloomFilter(unsigned int const rnumvectors, unsigned int const rvectorsizelog)
 			: numvectors(rnumvectors), vectorsizelog(rvectorsizelog), vectorsize(1ull << vectorsizelog), hashmask(vectorsize-1ull), vectors(numvectors),
 			  lockbase(vectorsize)
@@ -121,44 +121,44 @@ namespace libmaus2
 					vectors[i] = UNIQUE_PTR_MOVE(tvectorsi);
 				}
 			}
-			
-			
+
+
 			uint64_t hash(uint64_t const v, unsigned int const i) const
 			{
 				return libmaus2::hashing::EvaHash::hash642(&v,1,baseseed+i) & hashmask;
 			}
-			
+
 			bool contains(uint64_t const v) const
 			{
 				bool present = true;
-				
+
 				for ( unsigned int i = 0; i < numvectors; ++i )
 					present = present && vectors[i]->get(hash(v,i));
-				
-				return present;	
+
+				return present;
 			}
 
 			bool containsNot(uint64_t const v) const
 			{
 				bool containsNot = true;
-				
+
 				for ( unsigned int i = 0; i < numvectors; ++i )
 					containsNot = containsNot && (!(vectors[i]->get(hash(v,i))));
-				
-				return containsNot;	
+
+				return containsNot;
 			}
-			
+
 			bool insert(uint64_t const v)
 			{
 				bool present = true;
-				
+
 				for ( unsigned int i = 0; i < numvectors; ++i )
 				{
 					uint64_t const h = hash(v,i);
 					present = present && vectors[i]->get(h);
 					vectors[i]->set(h,1);
 				}
-				
+
 				return present;
 			}
 
@@ -175,27 +175,27 @@ namespace libmaus2
 			bool insertSync(uint64_t const v)
 			{
 				bool present = true;
-				
+
 				for ( unsigned int i = 0; i < numvectors; ++i )
-					present = present && vectors[i]->setSync(hash(v,i)); 
-								
+					present = present && vectors[i]->setSync(hash(v,i));
+
 				return present;
 			}
 
 			bool insertSyncPrecise(uint64_t const v)
 			{
 				uint64_t const h0 = hash(v,0);
-				
+
 				lockbase.lockForIndex(h0);
-				
+
 				bool present = true;
-				
-				present = present && vectors[0]->setSync(h0); 
+
+				present = present && vectors[0]->setSync(h0);
 				for ( unsigned int i = 1; i < numvectors; ++i )
-					present = present && vectors[i]->setSync(hash(v,i)); 
-				
+					present = present && vectors[i]->setSync(hash(v,i));
+
 				lockbase.unlockForIndex(h0);
-				
+
 				return present;
 			}
 
@@ -216,7 +216,7 @@ namespace libmaus2
 				uint64_t const nexttwopow = ::libmaus2::math::nextTwoPow(roundm);
 				return std::max(nexttwopow,static_cast<uint64_t>(1u));
 			}
-			
+
 			static unique_ptr_type construct(uint64_t const n, double const p)
 			{
 				uint64_t const optm = optimalM(n,p);

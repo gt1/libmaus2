@@ -30,7 +30,7 @@ namespace libmaus2
 			typedef MemoryInputStream this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			MemoryInputStream(std::string const & filename, int64_t const bufsize = -1, uint64_t const pushbacksize = 0)
 			: MemoryInputStreamBuffer(filename,bufsize,pushbacksize),
 			  std::istream(this)

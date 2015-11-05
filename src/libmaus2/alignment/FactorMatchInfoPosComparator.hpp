@@ -30,7 +30,7 @@ namespace libmaus2
 			bool operator()(libmaus2::fm::FactorMatchInfo const & A, libmaus2::fm::FactorMatchInfo const & B)
 			{
 				return A.pos < B.pos;
-			}	
+			}
 		};
 	}
 }

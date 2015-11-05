@@ -18,7 +18,7 @@
 */
 
 #include <libmaus2/util/HistogramSet.hpp>
-			
+
 libmaus2::util::HistogramSet::HistogramSet(uint64_t const numhist, uint64_t const lowsize)
 : H(numhist)
 {
@@ -53,4 +53,3 @@ libmaus2::util::Histogram::unique_ptr_type libmaus2::util::HistogramSet::merge()
 		return UNIQUE_PTR_MOVE(thist);
 	}
 }
-

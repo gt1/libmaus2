@@ -34,7 +34,7 @@ namespace libmaus2
 		{
 			//! data block pointer
 			uint8_t const * D;
-			
+
 			/**
 			 * constructor
 			 *
@@ -42,9 +42,9 @@ namespace libmaus2
 			 **/
 			CompactReadEndsComparator(uint8_t const * rD) : D(rD)
 			{
-			
+
 			}
-			
+
 			/**
 			 * prepare all read ends in block for comparison
 			 *
@@ -52,12 +52,12 @@ namespace libmaus2
 			 * @param n block size
 			 **/
 			static void prepare(
-				uint8_t * 
+				uint8_t *
 					#if defined(LIBMAUS2_HAVE_x86_64)
 					pa
 					#endif
-					, 
-				uint64_t const 
+					,
+				uint64_t const
 					#if defined(LIBMAUS2_HAVE_x86_64)
 					n
 					#endif
@@ -70,12 +70,12 @@ namespace libmaus2
 					uint32_t const lena = decodeLength(pa);
 					unsigned int const awords = lena >> 3;
 					uint32_t const resta = lena-(awords<<3);
-					
+
 					uint64_t * wa = reinterpret_cast<uint64_t *>(pa);
 					uint64_t * we = wa + awords;
 					for ( ; wa != we; ++wa )
 						*wa = libmaus2::rank::BSwapBase::bswap8(*wa);
-						
+
 					pa = reinterpret_cast<uint8_t *>(wa);
 					pa += resta;
 				}
@@ -93,22 +93,22 @@ namespace libmaus2
 			{
 				uint8_t const * pa = D+a;
 				uint8_t const * pb = D+b;
-				
+
 				uint32_t const lena = decodeLength(pa);
 				uint32_t const lenb = decodeLength(pb);
 
 				uint8_t const * const pae = pa + lena;
 				uint8_t const * const pbe = pb + lenb;
-				
+
 				#if defined(LIBMAUS2_HAVE_x86_64)
 				unsigned int const awords = lena >> 3;
 				unsigned int const bwords = lenb >> 3;
 				unsigned int const ewords = std::min(awords,bwords);
-				
+
 				uint64_t const * wa = reinterpret_cast<uint64_t const *>(pa);
 				uint64_t const * const wae = wa + ewords;
 				uint64_t const * wb = reinterpret_cast<uint64_t const *>(pb);
-				
+
 				while ( wa != wae )
 					if ( *wa != *wb )
 						return *wa < *wb;
@@ -118,14 +118,14 @@ namespace libmaus2
 				pa = reinterpret_cast<uint8_t const *>(wa);
 				pb = reinterpret_cast<uint8_t const *>(wb);
 				#endif
-						
-				
+
+
 				while ( pa != pae && pb != pbe && *pa == *pb )
 					++pa, ++pb;
-				
+
 				if ( pa != pae && pb != pbe )
 					return *pa < *pb;
-				// equal	
+				// equal
 				else if ( pa == pae && pb == pbe )
 					return false;
 				// pa is shorter

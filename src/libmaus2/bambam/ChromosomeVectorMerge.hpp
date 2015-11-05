@@ -29,15 +29,15 @@ namespace libmaus2
 		{
 			typedef ChromosomeVectorMerge this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			struct ChromosomeIndexComparator : public libmaus2::bambam::StrCmpNum
 			{
 				std::vector < std::vector<Chromosome> const * > const & V;
 				bool const compareNonSNLN;
-				
+
 				ChromosomeIndexComparator(std::vector < std::vector<Chromosome> const * > const & rV, bool const rcompareNonSNLN = false)
 				: V(rV), compareNonSNLN(rcompareNonSNLN) {}
-				
+
 				bool operator()(Chromosome const & CA, Chromosome const & CB) const
 				{
 					std::pair<char const *, char const *> namea = CA.getName();
@@ -48,7 +48,7 @@ namespace libmaus2
 						nameb.first,
 						nameb.second
 					);
-				
+
 					if ( namecmpres )
 					{
 						return namecmpres < 0;
@@ -76,12 +76,12 @@ namespace libmaus2
 						return false;
 					}
 				}
-				
+
 				bool operator()(std::pair<uint64_t,uint64_t> const & A, std::pair<uint64_t,uint64_t> const & B) const
 				{
 					return (*this)(V[A.first]->at(A.second),V[B.first]->at(B.second));
 				}
-				
+
 				bool equal(Chromosome const & CA, Chromosome const & CB) const
 				{
 					if ( (*this)(CA,CB) )
@@ -103,11 +103,11 @@ namespace libmaus2
 					return equal(V[A.first]->at(A.second),V[B.first]->at(B.second));
 				}
 			};
-		
+
 			std::vector < Chromosome > chromosomes;
 			std::vector < std::vector< uint64_t > > chromosomesmap;
 			bool topological;
-		
+
 			ChromosomeVectorMerge(std::vector < std::vector<Chromosome> const * > const & V, bool const compareNonSNLN = false)
 			: chromosomes(), chromosomesmap(), topological(false)
 			{
@@ -123,7 +123,7 @@ namespace libmaus2
 					for ( uint64_t j = 0; samevecs && j < V[0]->size(); ++j )
 						if ( ! comp.equal(V[0]->at(j),V[i]->at(j)) )
 							samevecs = false;
-				
+
 				// simple case, all equal
 				if ( samevecs )
 				{
@@ -134,7 +134,7 @@ namespace libmaus2
 						cmap.push_back(i);
 					for ( uint64_t i = 0; i < V.size(); ++i )
 						chromosomesmap.push_back(cmap);
-						
+
 					topological = true;
 				}
 				// otherwise try to perform topological sorting
@@ -156,7 +156,7 @@ namespace libmaus2
 						{
 							Chromosome const & prev = V[i]->at(j-1);
 							Chromosome const & next = V[i]->at(j);
-							
+
 							std::pair<it,it> const prevp = std::equal_range(cvec.begin(),cvec.end(),prev,comp);
 							assert ( prevp.first != prevp.second );
 							uint64_t const prevr = prevp.first - cvec.begin();
@@ -164,50 +164,50 @@ namespace libmaus2
 							std::pair<it,it> const nextp = std::equal_range(cvec.begin(),cvec.end(),next,comp);
 							assert ( nextp.first != nextp.second );
 							uint64_t const nextr = nextp.first - cvec.begin();
-							
+
 							edges [ prevr ] .insert ( nextr );
 							redges [ nextr ] .insert (prevr );
-						}			
-					
+						}
+
 					// find start vertices with no incoming edges
 					std::vector<uint64_t> S;
 					for ( uint64_t i = 0; i < cvec.size(); ++i )
 						if ( redges.find(i) == redges.end() )
 							S.push_back(i);
-					
+
 					// try to construct topological sorting
-					std::vector<uint64_t> topsort;		
+					std::vector<uint64_t> topsort;
 					while ( S.size() )
 					{
 						uint64_t const n = S.back();
 						S.pop_back();
-						
+
 						topsort.push_back(n);
-						
+
 						if ( edges.find(n) != edges.end() )
 						{
 							// edge targets
 							std::set<uint64_t> const & T = edges.find(n)->second;
-							
+
 							std::vector < uint64_t > ltgt;
 							for ( std::set<uint64_t>::const_iterator ita = T.begin(); ita != T.end(); ++ita )
 								ltgt.push_back(*ita);
-								
+
 							for ( uint64_t i = 0; i < ltgt.size(); ++i )
 							{
 								// edge target
 								uint64_t const m = ltgt[i];
-								
+
 								// erase edge from graph
 								// forward
 								edges [ n ] . erase ( edges[n].find(m) );
 								// reverse
 								redges [ m ] . erase ( redges[m].find(n) );
-								
+
 								// push m if it has no more incoming edges
 								if ( redges.find(m)->second.size() == 0 )
 									S.push_back(m);
-									
+
 								// remove empty lists
 								if ( edges.find(n)->second.size() == 0 )
 									edges.erase(edges.find(n));
@@ -216,10 +216,10 @@ namespace libmaus2
 							}
 						}
 					}
-					
+
 					// we found a topological sorting iff all graph edges have been erased
 					topological = (edges.size() == 0);
-					
+
 					// if we have no valid sort order than choose lexicographical order
 					if ( ! topological )
 					{
@@ -229,15 +229,15 @@ namespace libmaus2
 					}
 
 					assert ( topsort.size() == cvec.size() );
-					
+
 					// compute inverse
 					std::vector<uint64_t> rtopsort(topsort.size());
 					for ( uint64_t i = 0; i < topsort.size(); ++i )
 						rtopsort[topsort[i]] = i;
-						
+
 					for ( uint64_t i = 0; i < topsort.size(); ++i )
 						chromosomes.push_back(cvec[topsort[i]]);
-					
+
 					for ( uint64_t i = 0; i < V.size(); ++i )
 					{
 						std::vector < uint64_t > lchromosomemap;
@@ -251,27 +251,27 @@ namespace libmaus2
 							uint64_t const inchrr = inchrp.first - cvec.begin();
 							// index on chromosomes
 							uint64_t const outchrr = rtopsort[inchrr];
-							
+
 							assert ( comp.equal(inchr,cvec[inchrr]) );
 							assert ( comp.equal(inchr,chromosomes[outchrr]) );
-							
+
 							lchromosomemap.push_back(outchrr);
 						}
-						
+
 						chromosomesmap.push_back(lchromosomemap);
 					}
-				
+
 					// make sure reference sequence ids are unique
-					std::set < std::string > seenids;	
+					std::set < std::string > seenids;
 					for ( uint64_t i = 0; i < chromosomes.size(); ++i )
 					{
 						Chromosome & chr = chromosomes[i];
-						
+
 						while ( seenids.find(chr.getNameString()) != seenids.end() )
 							chr.setName(chr.getNameString() + '\'');
-						
+
 						// std::cerr << chr.createLine() << std::endl;
-						
+
 						seenids.insert(chr.getNameString());
 					}
 				}
