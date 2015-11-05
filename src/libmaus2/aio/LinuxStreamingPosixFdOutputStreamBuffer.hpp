@@ -51,7 +51,7 @@ namespace libmaus2
 			static int64_t getOptimalIOBlockSize(int const fd, std::string const & fn)
 			{
 				int64_t const fsopt = libmaus2::aio::PosixFdInput::getOptimalIOBlockSize(fd,fn);
-				
+
 				if ( fsopt <= 0 )
 					return getDefaultBlockSize();
 				else
@@ -70,7 +70,7 @@ namespace libmaus2
 				while ( close(fd) < 0 )
 				{
 					int const error = errno;
-					
+
 					switch ( error )
 					{
 						case EINTR:
@@ -83,18 +83,18 @@ namespace libmaus2
 							se.finish();
 							throw se;
 						}
-					}					
+					}
 				}
 			}
 
 			int doOpen(std::string const & filename)
 			{
 				int fd = -1;
-				
+
 				while ( (fd = open(filename.c_str(),O_WRONLY | O_CREAT | O_TRUNC,0644)) < 0 )
 				{
 					int const error = errno;
-					
+
 					switch ( error )
 					{
 						case EINTR:
@@ -107,9 +107,9 @@ namespace libmaus2
 							se.finish();
 							throw se;
 						}
-					}					
+					}
 				}
-				
+
 				return fd;
 			}
 
@@ -118,7 +118,7 @@ namespace libmaus2
 				while ( fsync(fd) < 0 )
 				{
 					int const error = errno;
-					
+
 					switch ( error )
 					{
 						case EINTR:
@@ -135,10 +135,10 @@ namespace libmaus2
 							se.finish();
 							throw se;
 						}
-					}					
+					}
 				}
 			}
-			
+
 			void doSync()
 			{
 				uint64_t n = pptr()-pbase();
@@ -149,11 +149,11 @@ namespace libmaus2
 				while ( n )
 				{
 					ssize_t const w = ::write(fd,p,n);
-					
+
 					if ( w < 0 )
 					{
 						int const error = errno;
-						
+
 						switch ( error )
 						{
 							case EINTR:
@@ -171,14 +171,14 @@ namespace libmaus2
 					else
 					{
 						assert ( w <= static_cast<int64_t>(n) );
-						
+
 						#if defined(__GLIBC__)
 						#if __GLIBC_PREREQ(2,6)
 						// non block buffer cache flush request for range we have just written
 						if ( w )
 						{
 							::sync_file_range(fd, prevwrite.first+prevwrite.second, w, SYNC_FILE_RANGE_WRITE);
-						}		
+						}
 						if ( prevwrite.second )
 						{
 							// blocking buffer cache flush request for previous buffer
@@ -191,17 +191,17 @@ namespace libmaus2
 
 						prevwrite.first  = prevwrite.first + prevwrite.second;
 						prevwrite.second = w;
-						
+
 						n -= w;
 					}
 				}
-				
+
 				assert ( ! n );
 			}
 
 			public:
 			LinuxStreamingPosixFdOutputStreamBuffer(int const rfd, int64_t const rbuffersize)
-			: fd(rfd), closefd(false), 
+			: fd(rfd), closefd(false),
 			  optblocksize((rbuffersize < 0) ? getOptimalIOBlockSize(fd,std::string()) : rbuffersize),
 			  buffersize(optblocksize),
 			  buffer(buffersize,false), prevwrite(0,0)
@@ -210,7 +210,7 @@ namespace libmaus2
 			}
 
 			LinuxStreamingPosixFdOutputStreamBuffer(std::string const & fn, int64_t const rbuffersize)
-			: fd(doOpen(fn)), closefd(true), 
+			: fd(doOpen(fn)), closefd(true),
 			  optblocksize((rbuffersize < 0) ? getOptimalIOBlockSize(fd,std::string()) : rbuffersize),
 			  buffersize(optblocksize),
 			  buffer(buffersize,false), prevwrite(0,0)
@@ -224,7 +224,7 @@ namespace libmaus2
 				if ( closefd )
 					doClose();
 			}
-			
+
 			int_type overflow(int_type c = traits_type::eof())
 			{
 				if ( c != traits_type::eof() )
@@ -236,13 +236,13 @@ namespace libmaus2
 
 				return c;
 			}
-			
+
 			int sync()
 			{
 				doSync();
 				doFlush();
 				return 0; // no error, -1 for error
-			}			
+			}
 		};
 	}
 }

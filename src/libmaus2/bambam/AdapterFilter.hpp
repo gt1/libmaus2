@@ -35,7 +35,7 @@ namespace libmaus2
 			typedef AdapterFilter this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			private:
 			enum { seedk = 3 };
 
@@ -46,7 +46,7 @@ namespace libmaus2
 				uint16_t adpid; // adapter id
 				uint16_t adppos; // position on adapter
 				uint16_t adpstr; // strand
-				
+
 				AdapterFragment() : w(0), adpid(0), adppos(0), adpstr(0) {}
 				AdapterFragment(
 					uint64_t const rw,
@@ -54,7 +54,7 @@ namespace libmaus2
 					uint16_t const radppos,
 					uint16_t const radpstr)
 				: w(rw), adpid(radpid), adppos(radppos), adpstr(radpstr) {}
-				
+
 				bool operator<(AdapterFragment const & o) const
 				{
 					if ( w != o.w )
@@ -67,7 +67,7 @@ namespace libmaus2
 						return adpstr < o.adpstr;
 				}
 			};
-			
+
 			struct AdapterOffsetStrandFracComparator
 			{
 				bool operator()(libmaus2::bambam::AdapterOffsetStrand const & A, libmaus2::bambam::AdapterOffsetStrand const & B)
@@ -75,7 +75,7 @@ namespace libmaus2
 					return A.frac > B.frac;
 				}
 			};
-			
+
 			private:
 			unsigned int const seedlength;
 			std::vector<AdapterFragment> fragments;
@@ -86,10 +86,10 @@ namespace libmaus2
 			libmaus2::fastx::AutoArrayWordPutObject<uint64_t> A;
 			libmaus2::autoarray::AutoArray<uint8_t> S;
 			uint64_t const wmask;
-			
+
 			void addFragments(
 				uint8_t const * const R,
-				std::string const & s, 
+				std::string const & s,
 				uint16_t adpid, uint16_t adpstr
 			)
 			{
@@ -101,7 +101,7 @@ namespace libmaus2
 					w <<= seedk;
 					w |= R[*(u++)];
 				}
-				
+
 				// uint16_t adppos = adpstr ? s.size()-seedlength : 0;
 				uint16_t adppos = 0;
 				while ( u != ue )
@@ -109,14 +109,14 @@ namespace libmaus2
 					w <<= seedk;
 					w |= R[*(u++)];
 					w &= wmask;
-					
+
 					fragments.push_back(AdapterFragment(w,adpid,adppos,adpstr));
-				
+
 					// adppos = adpstr ? (adppos-1) : (adppos+1);
 					adppos++;
 				}
 			}
-			
+
 			void init(std::istream & in)
 			{
 				assert ( seedlength );
@@ -134,43 +134,43 @@ namespace libmaus2
 				S['c'] = S['C'] = 1;
 				S['g'] = S['G'] = 2;
 				S['t'] = S['T'] = 3;
-				
+
 				uint64_t r = 0;
 				while ( bamdec.readAlignment() )
 				{
 					std::string const readf = bamdec.getAlignment().getRead();
 					std::string const readr = bamdec.getAlignment().getReadRC();
 					uint64_t const rl = readf.size();
-					
+
 					if ( rl < seedlength )
 					{
 						std::cerr << "WARNING: adapter/primer sequence " << bamdec.getAlignment().getName()
 							<< " is too short for seed length." << std::endl;
 						continue;
 					}
-					
+
 					addFragments(R.begin(),readf,r,false);
 					addFragments(R.begin(),readr,r,true);
-					
+
 					adaptersf.push_back(readf);
 					adaptersr.push_back(libmaus2::fastx::reverseComplementUnmapped(readf));
 					badapters.push_back(bamdec.getAlignment().sclone());
-					
+
 					++r;
 				}
-				
+
 				std::sort(fragments.begin(),fragments.end());
 
 				std::vector<uint64_t> W;
 				for ( uint64_t i = 0; i < fragments.size(); ++i )
 					W.push_back(fragments[i].w);
-					
+
 				libmaus2::fastx::QReorder4Set<seedk,uint64_t>::unique_ptr_type rkmerfilter(
 						new libmaus2::fastx::QReorder4Set<seedk,uint64_t>(seedlength,W.begin(),W.end(),16)
 					);
-					
+
 				kmerfilter = UNIQUE_PTR_MOVE(rkmerfilter);
-			
+
 			}
 
 			libmaus2::fastx::AutoArrayWordPutObject<uint64_t> const & searchRanks(uint64_t const v, unsigned int const maxmis)
@@ -194,27 +194,27 @@ namespace libmaus2
 			{
 				init(adapterstream);
 			}
-			
+
 			uint64_t getMatchStart(libmaus2::bambam::AdapterOffsetStrand const & AOSentry) const
 			{
 				return AOSentry.getMatchStart();
 			}
-			
+
 			uint64_t getAdapterMatchLength(uint64_t const n, libmaus2::bambam::AdapterOffsetStrand const & AOSentry) const
 			{
 				std::string const & adp = AOSentry.adpstr ? adaptersr[AOSentry.adpid] : adaptersf[AOSentry.adpid];
-				
+
 				uint64_t const matchstart = AOSentry.getMatchStart();
 				uint64_t const adpstart   = AOSentry.getAdapterStart();
-				
+
 				uint64_t const matchlen = n - matchstart;
 				uint64_t const adplen = adp.size() - adpstart;
-				
+
 				uint64_t const comlen = std::min(matchlen,adplen);
-			
+
 				return comlen;
 			}
-			
+
 			char const * getAdapterName(uint64_t const id) const
 			{
 				return badapters[id]->getName();
@@ -224,7 +224,7 @@ namespace libmaus2
 			{
 				return getAdapterName(AOSentry.adpid);
 			}
-			
+
 			void getAdapterMatchFreqs(
 				uint64_t const n,
 				libmaus2::bambam::AdapterOffsetStrand const & AOSentry,
@@ -238,10 +238,10 @@ namespace libmaus2
 
 				uint64_t const matchstart = AOSentry.getMatchStart();
 				uint64_t const adpstart   = AOSentry.getAdapterStart();
-				
+
 				uint64_t const matchlen = n - matchstart;
 				uint64_t const adplen = adp.size() - adpstart;
-				
+
 				uint64_t const comlen = std::min(matchlen,adplen);
 
 				fA = fC = fG = fT = 0;
@@ -249,7 +249,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < comlen; ++i )
 				{
 					char const sym = adp[adpstart+i];
-					
+
 					switch ( sym )
 					{
 						case 'a': case 'A': fA++; break;
@@ -269,7 +269,7 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			void printAdapterMatch(
 				uint8_t const * const ua,
 				uint64_t const n,
@@ -280,16 +280,16 @@ namespace libmaus2
 
 				uint64_t const matchstart = AOSentry.getMatchStart();
 				uint64_t const adpstart   = AOSentry.getAdapterStart();
-				
+
 				uint64_t const matchlen = n - matchstart;
 				uint64_t const adplen = adp.size() - adpstart;
-				
+
 				uint64_t const comlen = std::min(matchlen,adplen);
-			
-				std::cerr 
-					<< "AdapterOffsetStrand(" 
-						<< "id=" << AOSentry.adpid << "(" << badapters[AOSentry.adpid]->getName() << ")" << "," 
-						<< "off=" << AOSentry.adpoff << "," 
+
+				std::cerr
+					<< "AdapterOffsetStrand("
+						<< "id=" << AOSentry.adpid << "(" << badapters[AOSentry.adpid]->getName() << ")" << ","
+						<< "off=" << AOSentry.adpoff << ","
 						<< "str=" << AOSentry.adpstr << ","
 						<< "sco=" << AOSentry.score << ","
 						<< "sta=" << AOSentry.maxstart << ","
@@ -321,9 +321,9 @@ namespace libmaus2
 					else
 						std::cerr << " ";
 				std::cerr << std::endl;
-			
+
 			}
-			
+
 			bool searchAdapters(
 				uint8_t const * const ua,
 				uint64_t const n,
@@ -336,37 +336,37 @@ namespace libmaus2
 			)
 			{
 				AOSPB.reset();
-				
+
 				uint8_t const * u = ua;
 				uint8_t const * const ue = u + n;
-				
+
 				if ( ue-u >= seedlength )
 				{
 					std::vector<libmaus2::bambam::AdapterOffsetStrand> AOS;
-				
+
 					uint64_t w = 0;
 					for ( uint64_t i = 0; i < seedlength-1; ++i )
 					{
 						w <<= seedk;
 						w |= S[ *(u++) ];
 					}
-					
+
 					uint64_t matchpos = 0;
 					while ( u != ue )
 					{
 						w <<= seedk;
 						w |= S[ *(u++) ];
 						w &= wmask;
-						
+
 						searchRanks(w,maxmis);
-						
+
 						if ( A.p )
 						{
 							for ( uint64_t i = 0; i < A.p; ++i )
 							{
 								uint64_t const rank = A.A[i];
 								AdapterFragment const & frag = fragments[rank];
-								
+
 								AOS.push_back(
 									libmaus2::bambam::AdapterOffsetStrand(
 										frag.adpid,
@@ -375,34 +375,34 @@ namespace libmaus2
 								);
 							}
 						}
-						
+
 						matchpos++;
 					}
-					
+
 					std::sort(AOS.begin(),AOS.end());
 					std::vector<libmaus2::bambam::AdapterOffsetStrand>::iterator it = std::unique(AOS.begin(),AOS.end());
 					AOS.resize(it-AOS.begin());
-					
+
 					for ( std::vector<libmaus2::bambam::AdapterOffsetStrand>::iterator itc = AOS.begin(); itc != AOS.end(); ++itc )
 					{
 						libmaus2::bambam::AdapterOffsetStrand & AOSentry = *itc;
-					
+
 						std::string const & adp = AOSentry.adpstr ? adaptersr[AOSentry.adpid] : adaptersf[AOSentry.adpid];
 
 						uint64_t const matchstart = (AOSentry.adpoff >= 0) ? 0 : -AOSentry.adpoff;
 						uint64_t const adpstart   = (AOSentry.adpoff >= 0) ? AOSentry.adpoff : 0;
-						
+
 						uint64_t const matchlen = n - matchstart;
 						uint64_t const adplen = adp.size() - adpstart;
-						
+
 						uint64_t const comlen = std::min(matchlen,adplen);
-						
+
 						uint64_t curstart = 0;
 						int64_t cursum = 0;
 						int64_t curmax = -1;
 						uint64_t maxstart = 0;
 						uint64_t maxend = 0;
-						
+
 						int64_t const SCORE_MATCH = 1;
 						int64_t const PEN_MISMATCH = -2;
 
@@ -412,13 +412,13 @@ namespace libmaus2
 								cursum += SCORE_MATCH;
 							else
 								cursum += PEN_MISMATCH;
-								
+
 							if ( cursum < 0 )
 							{
 								cursum = 0;
-								curstart = i+1;						
+								curstart = i+1;
 							}
-							
+
 							if ( cursum > curmax )
 							{
 								curmax = cursum;
@@ -426,7 +426,7 @@ namespace libmaus2
 								maxend = i+1;
 							}
 						}
-						
+
 						AOSentry.score = curmax;
 						AOSentry.frac = (maxend-maxstart) / static_cast<double>(adp.size());
 						AOSentry.pfrac = (maxend-maxstart) / static_cast<double>(comlen);
@@ -436,9 +436,9 @@ namespace libmaus2
 						if ( verbose > 2 )
 							printAdapterMatch(ua,n,AOSentry);
 					}
-					
+
 					std::sort(AOS.begin(),AOS.end(),AdapterOffsetStrandFracComparator());
-					
+
 					for ( uint64_t i = 0; i < AOS.size(); ++i )
 					{
 						if ( AOS[i].score >= minscore && (AOS[i].frac) >= minfrac && (AOS[i].pfrac) >= minpfrac )
@@ -447,14 +447,14 @@ namespace libmaus2
 
 							if ( verbose > 1 )
 								printAdapterMatch(ua,n,AOSentry);
-						
+
 							AOSPB.push(AOSentry);
 						}
 					}
-					
+
 					return ((AOSPB.end()-AOSPB.begin()) != 0);
 				}
-				
+
 				// no overlap found
 				return false;
 			}

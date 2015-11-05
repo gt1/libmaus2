@@ -39,14 +39,14 @@ namespace libmaus2
 			typedef BgzfInflateDeflateParallel this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-					
+
 			private:
 			libmaus2::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator> globlist;
 			BgzfInflateParallelContext inflatecontext;
 			BgzfDeflateParallelContext deflatecontext;
 
 			libmaus2::autoarray::AutoArray<BgzfInflateDeflateParallelThread::unique_ptr_type> T;
-			
+
 			bool inflateterminated;
 
 			void drain()
@@ -70,7 +70,7 @@ namespace libmaus2
 						deflatecontext.deflatefreelist.enque(deflatecontext.deflatecurobject);
 					}
 				}
-					
+
 				// wait until all threads are idle
 				while ( deflatecontext.deflatefreelist.getFillState() < deflatecontext.deflateB.size() )
 				{
@@ -78,10 +78,10 @@ namespace libmaus2
 					// struct timespec waittime = { 0, 10000000 };
 					struct timespec waittime = { 1,0 };
 					nanosleep(&waittime,0);
-				}			
+				}
 			}
 
-			
+
 			void init()
 			{
 
@@ -92,17 +92,17 @@ namespace libmaus2
 					);
 					T[i] = UNIQUE_PTR_MOVE(tTi);
 					T[i]->start();
-				}			
+				}
 			}
-			
+
 			public:
 			BgzfInflateDeflateParallel(
-				std::istream & rinflatein, 
+				std::istream & rinflatein,
 				std::ostream & rdeflateout,
 				int const level,
-				uint64_t const rnumthreads, 
+				uint64_t const rnumthreads,
 				uint64_t const rnumblocks)
-			: 
+			:
 				globlist(2),
 				inflatecontext(globlist,rinflatein,rnumblocks),
 				deflatecontext(globlist,rdeflateout,rnumblocks,level,BgzfDeflateParallelContext::getDefaultDeflateGetCur()),
@@ -113,13 +113,13 @@ namespace libmaus2
 			}
 
 			BgzfInflateDeflateParallel(
-				std::istream & rinflatein, 
-				std::ostream & rcopyostr, 
+				std::istream & rinflatein,
+				std::ostream & rcopyostr,
 				std::ostream & rdeflateout,
 				int const level,
-				uint64_t const rnumthreads, 
+				uint64_t const rnumthreads,
 				uint64_t const rnumblocks)
-			: 
+			:
 				globlist(2),
 				inflatecontext(globlist,rinflatein,rnumblocks,rcopyostr),
 				deflatecontext(globlist,rdeflateout,rnumblocks,level,BgzfDeflateParallelContext::getDefaultDeflateGetCur()),
@@ -130,14 +130,14 @@ namespace libmaus2
 			}
 
 			BgzfInflateDeflateParallel(
-				std::istream & rinflatein, 
+				std::istream & rinflatein,
 				std::ostream & rdeflateout,
 				int const level,
-				uint64_t const rnumthreads = 
+				uint64_t const rnumthreads =
 					std::max(std::max(libmaus2::parallel::OMPNumThreadsScope::getMaxThreads(),static_cast<uint64_t>(1))-1,
 						static_cast<uint64_t>(1))
 			)
-			: 
+			:
 				globlist(2),
 				inflatecontext(globlist,rinflatein,4*rnumthreads),
 				deflatecontext(globlist,rdeflateout,4*rnumthreads,level,BgzfDeflateParallelContext::getDefaultDeflateGetCur()),
@@ -148,15 +148,15 @@ namespace libmaus2
 			}
 
 			BgzfInflateDeflateParallel(
-				std::istream & rinflatein, 
+				std::istream & rinflatein,
 				std::ostream & rcopyostr,
 				std::ostream & rdeflateout,
 				int const level,
-				uint64_t const rnumthreads = 
+				uint64_t const rnumthreads =
 					std::max(std::max(libmaus2::parallel::OMPNumThreadsScope::getMaxThreads(),static_cast<uint64_t>(1))-1,
 						static_cast<uint64_t>(1))
 			)
-			: 
+			:
 				globlist(2),
 				inflatecontext(globlist,rinflatein,4*rnumthreads,rcopyostr),
 				deflatecontext(globlist,rdeflateout,4*rnumthreads,level,BgzfDeflateParallelContext::getDefaultDeflateGetCur()),
@@ -184,7 +184,7 @@ namespace libmaus2
 			BgzfInflateInfo readAndInfo(char * const data, uint64_t const n)
 			{
 				inflatecontext.inflategcnt = 0;
-					
+
 				if ( n < libmaus2::lz::BgzfInflateBlock::getBgzfMaxBlockSize() )
 				{
 					libmaus2::exception::LibMausException se;
@@ -197,11 +197,11 @@ namespace libmaus2
 				{
 					return BgzfInflateInfo(0,0,true);
 				}
-			
+
 				/* get object id */
 				BgzfThreadQueueElement const btqe = inflatecontext.inflatedecompressedlist.deque();
 				uint64_t objectid = btqe.objectid;
-				
+
 				/* we have an exception, terminate readers and throw it at caller */
 				if ( inflatecontext.inflateB[objectid]->failed() )
 				{
@@ -217,7 +217,7 @@ namespace libmaus2
 				}
 
 				BgzfInflateInfo const info = inflatecontext.inflateB[objectid]->blockinfo;
-				
+
 				/* empty block (EOF) */
 				if ( (! info.uncompressed) && info.streameof )
 				{
@@ -245,9 +245,9 @@ namespace libmaus2
 							0
 						)
 					);
-					
+
 					inflatecontext.inflategcnt = info.uncompressed;
-					
+
 					inflatecontext.inflatedecompressedlist.setReadyFor(
 						BgzfThreadQueueElement(
 							libmaus2::lz::BgzfThreadOpBase::libmaus2_lz_bgzf_op_none,
@@ -255,16 +255,16 @@ namespace libmaus2
 							blockid+1
 						)
 					);
-					
+
 					return info;
-				}				
+				}
 			}
-			
+
 			uint64_t read(char * const data, uint64_t const n)
 			{
 				return readAndInfo(data,n).uncompressed;
 			}
-			
+
 			void put(uint8_t const c)
 			{
 				write(reinterpret_cast<char const *>(&c),1);
@@ -292,7 +292,7 @@ namespace libmaus2
 							if ( deflatecontext.deflateexceptionid != std::numeric_limits<uint64_t>::max() )
 							{
 								deflatecontext.deflateexlock.unlock();
-								
+
 								drain();
 
 								libmaus2::parallel::ScopePosixMutex Q(deflatecontext.deflateexlock);
@@ -303,7 +303,7 @@ namespace libmaus2
 								deflatecontext.deflateexlock.unlock();
 							}
 						}
-					
+
 						// push data object id into deflate queue
 						{
 							libmaus2::parallel::ScopePosixMutex Q(deflatecontext.deflateqlock);
@@ -318,7 +318,7 @@ namespace libmaus2
 								0 /* block id */
 							)
 						);
-						
+
 						// get next object
 						deflatecontext.deflatecurobject = deflatecontext.deflatefreelist.deque();
 						// set block id of next object
@@ -326,8 +326,8 @@ namespace libmaus2
 					}
 				}
 			}
-			
-			
+
+
 			void flush()
 			{
 				if ( ! deflatecontext.deflateoutflushed )
@@ -342,7 +342,7 @@ namespace libmaus2
 						if ( deflatecontext.deflateexceptionid != std::numeric_limits<uint64_t>::max() )
 						{
 							deflatecontext.deflateexlock.unlock();
-								
+
 							libmaus2::parallel::ScopePosixMutex Q(deflatecontext.deflateexlock);
 							throw (*(deflatecontext.deflatepse));
 						}
@@ -357,7 +357,7 @@ namespace libmaus2
 					BgzfDeflateZStreamBaseFlushInfo const eofflushsize = eofBase.flush(true /* full flush */);
 					assert ( ! eofflushsize.movesize );
 					deflatecontext.streamWrite(eofBase.inbuf.begin(),eofBase.outbuf.begin(),eofflushsize);
-					
+
 					deflatecontext.deflateoutflushed = true;
 				}
 			}

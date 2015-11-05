@@ -46,7 +46,7 @@ namespace libmaus2
 
 			bool operator==(TripleEdge const & o) const
 			{
-				return 
+				return
 					(o.a == a)
 					&&
 					(o.b == b)
@@ -69,16 +69,16 @@ namespace libmaus2
 					return c < o.c;
 				return false;
 			}
-			
+
 			static TripleEdge random()
 			{
-				return TripleEdge ( 
+				return TripleEdge (
 					::libmaus2::random::Random::rand64() % 8,
 					::libmaus2::random::Random::rand64() % 8,
 					::libmaus2::random::Random::rand16() % 4
 				);
 			}
-			
+
 			static ::libmaus2::autoarray::AutoArray<this_type> randomArray(uint64_t const n)
 			{
 				::libmaus2::autoarray::AutoArray<this_type> A(n,false);
@@ -92,7 +92,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < n; ++i )
 				{
 					A[i] = random();
-					
+
 					if ( A[i].a > A[i].b )
 						std::swap( A[i].a, A[i].b );
 					if ( A[i].a == A[i].b )
@@ -101,7 +101,7 @@ namespace libmaus2
 				return A;
 			}
 		};
-		
+
 		inline ::std::ostream & operator<<(::std::ostream & out, TripleEdge const & TE)
 		{
 			out << "TripleEdge(" << TE.a << "," << TE.b << "," << TE.c << ")";

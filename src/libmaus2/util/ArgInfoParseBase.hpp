@@ -41,7 +41,7 @@ namespace libmaus2
 				std::istringstream istr(arg);
 				type v;
 				istr >> v;
-				
+
 				if ( ! istr )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -61,7 +61,7 @@ namespace libmaus2
 				uint64_t l = 0;
 				while ( l < sval.size() && isdigit(sval[l]) )
 					++l;
-				
+
 				if ( ! l )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -77,11 +77,11 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Value " << sval << " for key " << key << " has unknown suffix " << sval.substr(sval.size()-l) << std::endl;
 					se.finish();
-					throw se;					
+					throw se;
 				}
-				
+
 				uint64_t mult = 0;
-				
+
 				switch ( sval[sval.size()-1] )
 				{
 					case 'k': mult = 1024ull; break;
@@ -91,7 +91,7 @@ namespace libmaus2
 					case 'g': mult = 1024ull*1024ull*1024ull; break;
 					case 'G': mult = 1000ull*1000ull*1000ull; break;
 					case 't': mult = 1024ull*1024ull*1024ull*1024ull; break;
-					case 'T': mult = 1000ull*1000ull*1000ull*1000ull; break;						
+					case 'T': mult = 1000ull*1000ull*1000ull*1000ull; break;
 					case 'p': mult = 1024ull*1024ull*1024ull*1024ull*1024ull; break;
 					case 'P': mult = 1000ull*1000ull*1000ull*1000ull*1000ull; break;
 					case 'e': mult = 1024ull*1024ull*1024ull*1024ull*1024ull*1024ull; break;
@@ -101,12 +101,12 @@ namespace libmaus2
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Value " << sval << " for key " << key << " has unknown suffix " << sval.substr(sval.size()-l) << std::endl;
 						se.finish();
-						throw se;							
+						throw se;
 					}
 				}
-				
+
 				return parseArg<type>(sval.substr(0,l)) * mult;
-			}		
+			}
 		};
 	}
 }

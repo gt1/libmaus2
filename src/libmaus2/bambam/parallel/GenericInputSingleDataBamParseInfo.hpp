@@ -35,16 +35,16 @@ namespace libmaus2
 			{
 				libmaus2::autoarray::AutoArray<uint8_t,libmaus2::autoarray::alloc_type_c> parsestallarray;
 				size_t parsestallarrayused;
-			
+
 				libmaus2::bambam::BamHeaderParserState BHPS;
 				bool headercomplete;
 				libmaus2::bambam::BamHeaderLowMem::unique_ptr_type Pheader;
-			
+
 				GenericInputSingleDataBamParseInfo(bool const rheadercomplete = false)
 				: parsestallarray(), parsestallarrayused(0), BHPS(), headercomplete(rheadercomplete), Pheader()
 				{
 				}
-			
+
 				void setupHeader()
 				{
 					libmaus2::bambam::BamHeaderLowMem::unique_ptr_type tptr(
@@ -52,52 +52,52 @@ namespace libmaus2
 					);
 					Pheader = UNIQUE_PTR_MOVE(tptr);
 				}
-			
+
 				void parseStallArrayPush(uint8_t const * p, size_t c)
 				{
 					if ( parsestallarrayused + c > parsestallarray.size() )
 						parsestallarray.resize(parsestallarrayused + c);
-					
+
 					std::copy(p,p+c,parsestallarray.begin() + parsestallarrayused);
 					parsestallarrayused += c;
 				}
-			
+
 				void parseStallArrayPush(uint8_t const p)
 				{
 					if ( parsestallarrayused + 1 > parsestallarray.size() )
 						parsestallarray.resize(parsestallarrayused + 1);
-					
+
 					parsestallarray[parsestallarrayused++] = p;
 				}
-			
+
 				void parseBlock(libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type block)
 				{
 					uint8_t const * Da = reinterpret_cast<uint8_t const *>(block->D.begin());
 					uint8_t const * Dc = Da;
 					uint8_t const * De = Da + block->uncompdatasize;
-					
+
 					if ( ! this->headercomplete )
 					{
 						libmaus2::util::GetObject<uint8_t const *> G(reinterpret_cast<uint8_t const *>(Da));
 						std::pair<bool,uint64_t> const P = this->BHPS.parseHeader(G,De-Da);
-			
+
 						this->headercomplete = P.first;
 						Dc += P.second;
-					
+
 						if ( this->headercomplete )
 							this->setupHeader();
 					}
-					
+
 					// reset pointer array
 					block->resetParseArray();
-					
+
 					// anything in stall array?
 					if ( this->parsestallarrayused )
 					{
 						// extend until we have the length of the next record
 						while ( this->parsestallarrayused < sizeof(uint32_t) && Dc != De )
 							this->parseStallArrayPush(*(Dc++));
-						
+
 						// do we have at least the record length now?
 						if ( this->parsestallarrayused >= sizeof(uint32_t) )
 						{
@@ -109,29 +109,29 @@ namespace libmaus2
 							ptrdiff_t rest = De-Dc;
 							// number of bytes to copy
 							size_t const tocopy = std::min(static_cast<ptrdiff_t>(n-alcop),rest);
-							
+
 							// append data
 							this->parseStallArrayPush(Dc,tocopy);
 							// update block pointer
 							Dc += tocopy;
-							
+
 							// full record?
 							if ( this->parsestallarrayused == n + sizeof(uint32_t) )
 							{
 								// get current offset from start of data block
 								ptrdiff_t const o = Dc - Da;
-			
+
 								// push record
-								block->pushParsePointer(							
+								block->pushParsePointer(
 									block->appendData(
 										this->parsestallarray.begin(),
 										this->parsestallarrayused
 									)
 								);
-								
+
 								// mark stall buffer as empty
 								this->parsestallarrayused = 0;
-			
+
 								// set new block pointers (appendData may have reallocated the array)
 								Da = reinterpret_cast<uint8_t const *>(block->D.begin());
 								Dc = Da + o;
@@ -139,9 +139,9 @@ namespace libmaus2
 							}
 						}
 					}
-					
+
 					uint32_t n = 0;
-					while ( 
+					while (
 						De-Dc >= static_cast<ptrdiff_t>(sizeof(uint32_t)) &&
 						De-Dc >= static_cast<ptrdiff_t>(sizeof(uint32_t) + (n=libmaus2::bambam::DecoderBase::getLEInteger(Dc,4)))
 					)
@@ -150,18 +150,18 @@ namespace libmaus2
 						if ( block->final )
 							std::cerr << "n=" << n << std::endl;
 						#endif
-			
+
 						block->pushParsePointer(reinterpret_cast<char const *>(Dc));
 						Dc += n + sizeof(uint32_t);
 					}
-					
+
 					// overlap with next block?
 					if ( Dc != De )
 					{
 						this->parseStallArrayPush(Dc,De-Dc);
 						Dc += De-Dc;
 					}
-					
+
 					// file truncated?
 					if ( block->final && this->parsestallarrayused )
 					{
@@ -170,7 +170,7 @@ namespace libmaus2
 						lme.finish();
 						throw lme;
 					}
-					
+
 					#if 0
 					::libmaus2::bambam::BamFormatAuxiliary aux;
 					for ( size_t i = 0; i < block->getNumParsePointers(); ++i )
@@ -183,7 +183,7 @@ namespace libmaus2
 						std::cout.put('\n');
 					}
 					#endif
-				
+
 				}
 			};
 		}

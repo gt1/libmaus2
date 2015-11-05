@@ -45,7 +45,7 @@ namespace libmaus2
 		{
 			typedef CanonicalEncoder this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			typedef ::libmaus2::util::SimpleHashMap<int64_t,uint64_t> symtorank_type;
 			typedef symtorank_type::unique_ptr_type symtorank_ptr_type;
 
@@ -54,11 +54,11 @@ namespace libmaus2
 			::libmaus2::autoarray::AutoArray<uint64_t> base;
 			::libmaus2::autoarray::AutoArray<uint64_t> offset;
 			symtorank_ptr_type symtorank;
-			
+
 			// decode table
 			uint64_t llog;
 			::libmaus2::autoarray::AutoArray< uint8_t > L;
-			
+
 			// encode table
 			::libmaus2::autoarray::AutoArray< std::pair<uint64_t, unsigned int> > E;
 
@@ -68,16 +68,16 @@ namespace libmaus2
 				FWB.writeElias2(syms.size());
 				// std::cerr << "Written " << syms.size() << std::endl;
 				unsigned int lastsymlen = 0;
-				
+
 				for ( uint64_t i = 0; i < syms.size(); ++i )
 				{
 					unsigned int const len = syms[syms.size()-i-1].second;
 					FWB.writeUnary(len-lastsymlen);
 					lastsymlen = len;
 					FWB.writeElias2(syms[syms.size()-i-1].first);
-					
+
 					// std::cerr << "sym " << syms[syms.size()-i-1].first  << " len " << len << std::endl;
-				}				
+				}
 			}
 
 			template<typename reader_type>
@@ -87,21 +87,21 @@ namespace libmaus2
 				//std::cerr << "Read " << numsyms << std::endl;
 				::libmaus2::autoarray::AutoArray< std::pair<int64_t, uint64_t> > syms(numsyms);
 
-				uint64_t lastlen = 0;				
+				uint64_t lastlen = 0;
 				for ( uint64_t i = 0; i < syms.size(); ++i )
 				{
 					uint64_t const len = lastlen + ::libmaus2::bitio::readUnary(SBIS);
 					int64_t const sym = ::libmaus2::bitio::readElias2(SBIS);
 					syms[syms.size()-i-1] = std::pair<int64_t,uint64_t>(sym,len);
 					lastlen = len;
-					
+
 					// std::cerr << "sym " << sym << " len " << len << std::endl;
 				}
-				
-				return syms;			
+
+				return syms;
 			}
 
-			
+
 			uint64_t getMaxCodeLen() const
 			{
 				uint64_t maxlen = 0;
@@ -109,20 +109,20 @@ namespace libmaus2
 					maxlen = std::max(maxlen,syms[i].second);
 				return maxlen;
 			}
-			
+
 			std::string serialise()
 			{
 				std::ostringstream ostr;
 				std::ostream_iterator<uint8_t> ostrit(ostr);
 				::libmaus2::bitio::FastWriteBitWriterStream8 FWB(ostrit);
-				
+
 				serialise(FWB);
-				
-				FWB.flush();			
+
+				FWB.flush();
 				ostr.flush();
 				return ostr.str();
 			}
-			
+
 			static ::libmaus2::autoarray::AutoArray< std::pair<int64_t, uint64_t> > deserialise(std::string const & serial)
 			{
 				std::istringstream istr(serial);
@@ -132,7 +132,7 @@ namespace libmaus2
 
 			template<bool debug>
 			void setupDecodeTableTemplate(uint64_t const rlen)
-			{			
+			{
 				llog = std::min(rlen,static_cast<uint64_t>(getMaxCodeLen()));
 
 				if ( debug )
@@ -142,35 +142,35 @@ namespace libmaus2
 				}
 
 				L = ::libmaus2::autoarray::AutoArray< uint8_t > (1ull << llog);
-				
+
 				if ( debug )
 					std::cerr << "L.size()=" << L.size() << std::endl;
-				
+
 				for ( uint64_t i = 0; i < syms.size(); ++i )
 				{
 					uint64_t const codelen = syms[i].second;
 					if ( debug )
 						std::cerr << "symbol " << syms[i].first << " code length " <<  codelen << std::endl;
-					
+
 					if ( codelen <= llog )
 					{
 						if ( debug )
 							std::cerr << "code " << getCode(syms[i].first).first << std::endl;
-					
+
 						if ( (!debug) && getCode(syms[i].first).first >= (1ull<<codelen) )
 							setupDecodeTableTemplate<true>(rlen);
 						if ( (!debug) && getCode(syms[i].first).first >= (1ull<<llog) )
 							setupDecodeTableTemplate<true>(rlen);
-							
+
 						assert ( getCode(syms[i].first).first < (1ull<<codelen) );
 						assert ( getCode(syms[i].first).first < (1ull<<llog) );
-					
+
 						uint64_t const codebase = getCode(syms[i].first).first << (llog-codelen);
 						uint64_t const numinst = 1ull << (llog-codelen);
-						
+
 						if ( debug )
 							std::cerr << "codebase=" << codebase << " numinst=" << numinst << std::endl;
-						
+
 						for ( uint64_t j = 0; j < numinst; ++j )
 						{
 							if ( codebase + j >= L.size() )
@@ -191,23 +191,23 @@ namespace libmaus2
 			{
 				setupDecodeTableTemplate<false>(rlen);
 			}
-			
+
 			struct CodeToTreeQueueElement
 			{
 				std::pair<uint64_t,uint64_t> interval;
 				::libmaus2::huffman::HuffmanTreeNode * node;
 				uint64_t l;
-				
+
 				CodeToTreeQueueElement() : node(0) {}
 				CodeToTreeQueueElement(std::pair<uint64_t,uint64_t> const & rinterval,
 					::libmaus2::huffman::HuffmanTreeNode * rnode,
 					uint64_t const rl)
 				: interval(rinterval), node(rnode), l(rl)
 				{
-				
+
 				}
 			};
-			
+
 			::libmaus2::huffman::DecodeTable::unique_ptr_type generateDecodeTable(uint64_t const lookupbits) const
 			{
 				::libmaus2::huffman::HuffmanTreeNode::unique_ptr_type Ptree = codeToTree();
@@ -219,7 +219,7 @@ namespace libmaus2
 				::libmaus2::huffman::HuffmanTreeNode::unique_ptr_type Ptree = codeToTree();
 				return ::libmaus2::huffman::EncodeTable<1>::unique_ptr_type(new ::libmaus2::huffman::EncodeTable<1>(Ptree.get()));
 			}
-			
+
 			::libmaus2::huffman::HuffmanTreeNode::unique_ptr_type codeToTree() const
 			{
 				// compute maximal code length
@@ -231,9 +231,9 @@ namespace libmaus2
 					{
 						int64_t const sym = ita->first;
 						uint64_t const len = getCode(sym).second;
-						maxl = std::max(maxl,len);		
+						maxl = std::max(maxl,len);
 						numsyms += 1;
-					}				
+					}
 				assert ( maxl <= 64 );
 
 				std::vector < std::pair < uint64_t, int64_t > > cvec(numsyms);
@@ -247,10 +247,10 @@ namespace libmaus2
 						uint64_t const code = getCode(sym).first << (maxl-len);
 						cvec [ rank ] = std::pair < uint64_t, int64_t >(code,sym);
 					}
-				
+
 				::std::deque < CodeToTreeQueueElement > Q;
 				::libmaus2::huffman::HuffmanTreeNode::unique_ptr_type root;
-				
+
 				if ( cvec.size() == 1 )
 				{
 					::libmaus2::huffman::HuffmanTreeNode::unique_ptr_type troot(new ::libmaus2::huffman::HuffmanTreeLeaf(cvec[0].second,0));
@@ -261,23 +261,23 @@ namespace libmaus2
 					::libmaus2::huffman::HuffmanTreeNode::unique_ptr_type troot(new ::libmaus2::huffman::HuffmanTreeInnerNode(0,0,0));
 					root = UNIQUE_PTR_MOVE(troot);
 				}
-				
+
 				// build tree in breadth first order
 				if ( cvec.size() > 1 )
 				{
 					Q.push_back(CodeToTreeQueueElement ( std::pair<uint64_t,uint64_t>(0,cvec.size()), root.get(), maxl-1 ));
-					
+
 					while ( Q.size() )
 					{
 						CodeToTreeQueueElement const & C = Q.front();
-						
+
 						assert ( C.interval.second - C.interval.first );
 						// inner node
 						if ( C.interval.second - C.interval.first > 1 )
 						{
 							HuffmanTreeInnerNode * node = dynamic_cast<HuffmanTreeInnerNode *>(C.node);
 							assert ( node );
-						
+
 							uint64_t numlow = 0;
 							uint64_t numhigh = 0;
 							for ( uint64_t i = C.interval.first; i < C.interval.second; ++i )
@@ -285,15 +285,15 @@ namespace libmaus2
 									numhigh++;
 								else
 									numlow++;
-									
+
 							for ( uint64_t i = 0; i < numlow; ++i )
 								assert ( ! ((cvec[C.interval.first + i].first >> C.l) & 1) );
 							for ( uint64_t i = 0; i < numhigh; ++i )
 								assert ( ((cvec[C.interval.first + numlow + i].first >> C.l) & 1) );
-									
+
 							assert ( numlow );
 							assert ( numhigh );
-							
+
 							if ( numlow == 1 )
 							{
 								node->left = new HuffmanTreeLeaf(cvec[C.interval.first].second,0);
@@ -313,11 +313,11 @@ namespace libmaus2
 								Q.push_back(CodeToTreeQueueElement ( std::pair<uint64_t,uint64_t>(C.interval.second-numhigh,C.interval.second), node->right, C.l-1 ));
 							}
 						}
-						
+
 						Q.pop_front();
 					}
 				}
-				
+
 				return UNIQUE_PTR_MOVE(root);
 			}
 
@@ -356,15 +356,15 @@ namespace libmaus2
 			{
 				assert ( symtorank->contains(sym) );
 				uint64_t const rank = symtorank->get(sym);
-				uint64_t const len = syms[rank].second;		
+				uint64_t const len = syms[rank].second;
 				return std::pair<uint64_t,unsigned int>((base[len] + (rank-offset[len]) ), len);
 			}
-			
+
 			bool haveSymbol(int64_t const sym) const
 			{
 				return symtorank->contains(sym);
 			}
-			
+
 			template<typename writer_type>
 			inline void encode(writer_type & W, int64_t const sym) const
 			{
@@ -380,22 +380,22 @@ namespace libmaus2
 				else
 					encode(W,sym);
 			}
-			
+
 			template<typename reader_type>
 			int64_t slowDecode(reader_type & R) const
 			{
 				unsigned int length = 1;
 				uint64_t code = R.readBit();
-				
+
 				while ( code < base[length] )
 				{
 					code <<= 1;
 					code |= R.readBit();
 					length++;
 				}
-				
+
 				int64_t const rank = offset[length] + code - base[length];
-				
+
 				return syms[rank].first;
 			}
 
@@ -404,7 +404,7 @@ namespace libmaus2
 			{
 				uint64_t code = R.peek(llog);
 				unsigned int length = L [ code ];
-				
+
 				if ( length )
 				{
 					assert ( length <= llog );
@@ -417,30 +417,30 @@ namespace libmaus2
 				{
 					R.erase(llog);
 					length = llog;
-					
+
 					while ( code < base[length] )
 					{
 						code <<= 1;
 						code |= R.readBit();
 						length++;
 					}
-					
+
 					int64_t const rank = offset[length] + code-base[length];
-					
+
 					return syms[rank].first;
 				}
 			}
-			
+
 			static std::string bitPrint(int64_t v, int64_t b)
 			{
 				std::ostringstream ostr;
-				
+
 				for ( int64_t i = 0; i < b; ++i )
 					ostr << (v & (1 << (b-i-1))?"1":"0");
-				
+
 				return ostr.str();
 			}
-			
+
 			void print(std::ostream & out = std::cerr) const
 			{
 				for ( uint64_t i = 0; i < syms.size(); ++i )
@@ -448,7 +448,7 @@ namespace libmaus2
 					int64_t const sym = syms[i].first;
 
 					std::pair<uint64_t,unsigned int> const code = getCode(sym);
-					
+
 					out
 						<< static_cast<char>(sym)
 						<< " "
@@ -465,7 +465,7 @@ namespace libmaus2
 					int64_t const sym = syms[i].first;
 
 					std::pair<uint64_t,unsigned int> const code = getCode(sym);
-					
+
 					out
 						<< sym
 						<< " "
@@ -475,7 +475,7 @@ namespace libmaus2
 						<< std::endl;
 				}
 			}
-			
+
 			void init(uint64_t const decodebits)
 			{
 				if ( syms.size() )
@@ -483,7 +483,7 @@ namespace libmaus2
 					std::sort(syms.begin(),syms.end(),PairCompSec());
 					// longest code
 					uint64_t const L = syms[0].second;
-					
+
 					if ( L > 64 )
 					{
 						::libmaus2::exception::LibMausException se;
@@ -491,36 +491,36 @@ namespace libmaus2
 						se.finish();
 						throw se;
 					}
-					
+
 					base = ::libmaus2::autoarray::AutoArray<uint64_t>(L+1,false);
 					offset = ::libmaus2::autoarray::AutoArray<uint64_t>(L+1);
 					::libmaus2::autoarray::AutoArray<uint64_t> lfreq = ::libmaus2::autoarray::AutoArray<uint64_t>(L+1);
-					
+
 					// count symbols per length, set offset for each length
 					for ( uint64_t i = 0; i < syms.size(); ++i )
 					{
 						lfreq[syms[i].second]++;
 						offset [ syms[syms.size()-i-1].second ] = syms.size()-i-1;
 					}
-					
+
 					// compute base
 					for ( uint64_t l = 0; l <= L; ++l )
 					{
 						uint64_t t = 0;
-							
+
 						for ( uint64_t k = l+1; k <= L; ++k )
 							if ( lfreq[k] )
 							{
 								uint64_t const mk = lfreq[k];
 								t += mk * (1ull << (L-k));
 							}
-							
+
 						uint64_t const b = 1ull << (L-l);
 						uint64_t const v = (t + (b-1))/b;
-							
+
 						base[l] = v;
 					}
-					
+
 					unsigned int tablog = 0;
 					while ( (1ull << tablog) < syms.size() )
 						++tablog;
@@ -539,18 +539,18 @@ namespace libmaus2
 						assert ( symtorank->get(syms[i].first) == i );
 						// assert ( symtorank.find(syms[i].first)->second == i );
 					}
-				}	
-				
+				}
+
 				setupDecodeTable(decodebits);
 			}
-			
+
 			void init(::libmaus2::huffman::HuffmanTreeNode const * root, uint64_t const decodebits)
 			{
 				// pairs of symbols and depth (code length)
 				syms = root->symbolDepthArray();
 				init(decodebits);
 			}
-			
+
 			template<typename iterator>
 			CanonicalEncoder(
 				iterator a,
@@ -558,7 +558,7 @@ namespace libmaus2
 				uint64_t const decodebits = 8
 				)
 			{
-				::libmaus2::util::shared_ptr < ::libmaus2::huffman::HuffmanTreeNode >::type aroot = ::libmaus2::huffman::HuffmanBase::createTree(a,e);	
+				::libmaus2::util::shared_ptr < ::libmaus2::huffman::HuffmanTreeNode >::type aroot = ::libmaus2::huffman::HuffmanBase::createTree(a,e);
 				init(aroot.get(),decodebits);
 			}
 
@@ -571,7 +571,7 @@ namespace libmaus2
 				// std::cerr << "created huffman tree." << std::endl;
 				init(aroot.get(),decodebits);
 			}
-			
+
 			CanonicalEncoder(std::string const & s, uint64_t const decodebits = 8)
 			: syms(deserialise(s))
 			{
@@ -579,14 +579,14 @@ namespace libmaus2
 			}
 			CanonicalEncoder(
 				// symbol depth array
-				::libmaus2::autoarray::AutoArray< std::pair<int64_t, uint64_t> > & rsyms, 
+				::libmaus2::autoarray::AutoArray< std::pair<int64_t, uint64_t> > & rsyms,
 				uint64_t const decodebits = 8
 			)
 			: syms(rsyms)
 			{
 				init(decodebits);
 			}
-			
+
 		};
 
 		struct EscapeCanonicalEncoder : protected CanonicalEncoder
@@ -594,7 +594,7 @@ namespace libmaus2
 			typedef EscapeCanonicalEncoder this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef CanonicalEncoder base_type;
-			
+
 			static std::map < int64_t,uint64_t > computeFreqMap(
 				std::vector < std::pair < uint64_t,uint64_t > > const & freqsyms
 			)
@@ -608,7 +608,7 @@ namespace libmaus2
 					freqmap [ freqsyms[i].second ] = freqsyms[i].first;
 				if ( restfreq )
 					freqmap [ std::numeric_limits<int>::max() ] = restfreq;
-				
+
 				return freqmap;
 			}
 
@@ -616,13 +616,13 @@ namespace libmaus2
 			: CanonicalEncoder(computeFreqMap(freqsyms))
 			{
 			}
-			
+
 			EscapeCanonicalEncoder(::libmaus2::autoarray::AutoArray< std::pair<int64_t, uint64_t> > & rsyms)
 			: CanonicalEncoder(rsyms)
 			{
-			
+
 			}
-			
+
 			template<typename writer_type>
 			void encode(writer_type & W, int64_t c)
 			{
@@ -639,18 +639,18 @@ namespace libmaus2
 			int64_t slowDecode(reader_type & SBIS)
 			{
 				int64_t const hsym = base_type::slowDecode(SBIS);
-					
+
 				if ( hsym == std::numeric_limits<int>::max() )
 					return ::libmaus2::bitio::readElias2(SBIS);
 				else
 					return hsym;
 			}
-			
+
 			template<typename reader_type>
 			int64_t fastDecode(reader_type & SBIS)
 			{
 				int64_t const hsym = base_type::fastDecode(SBIS);
-					
+
 				if ( hsym == std::numeric_limits<int>::max() )
 					return ::libmaus2::bitio::readElias2(SBIS);
 				else
@@ -666,8 +666,8 @@ namespace libmaus2
 			template<typename iterator>
 			static bool needEscape(iterator a, iterator e)
 			{
-				::libmaus2::util::shared_ptr < ::libmaus2::huffman::HuffmanTreeNode >::type aroot = ::libmaus2::huffman::HuffmanBase::createTree(a,e);	
-				return aroot->depth() > 64;			
+				::libmaus2::util::shared_ptr < ::libmaus2::huffman::HuffmanTreeNode >::type aroot = ::libmaus2::huffman::HuffmanBase::createTree(a,e);
+				return aroot->depth() > 64;
 			}
 			static bool needEscape(std::map<int64_t,uint64_t> const & F)
 			{

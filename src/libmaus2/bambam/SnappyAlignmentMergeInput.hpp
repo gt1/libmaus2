@@ -55,7 +55,7 @@ namespace libmaus2
 			libmaus2::bambam::BamAlignmentHeapComparator < libmaus2::bambam::BamAlignmentNameComparator > const heapcomp;
 			//! heap
 			std::priority_queue<uint64_t,std::vector<uint64_t>,libmaus2::bambam::BamAlignmentHeapComparator < libmaus2::bambam::BamAlignmentNameComparator > > Q;
-			
+
 			public:
 			/**
 			 * construct decoder
@@ -69,7 +69,7 @@ namespace libmaus2
 				unique_ptr_type ptr(new this_type(rindex,fn));
 				return UNIQUE_PTR_MOVE(ptr);
 			}
-			
+
 			/**
 			 * constructor
 			 *
@@ -82,7 +82,7 @@ namespace libmaus2
 			: index(rindex), streams(index.size()), data(index.size()), namecomp(static_cast<uint8_t const *>(0)), heapcomp(namecomp,data.begin()), Q(heapcomp)
 			{
 				bool openok = true;
-			
+
 				try
 				{
 					for ( uint64_t i = 0; i < index.size(); ++i )
@@ -98,7 +98,7 @@ namespace libmaus2
 				{
 					openok = false;
 				}
-				
+
 				if ( ! openok )
 				{
 					std::cerr << "[V] failed to open a file handle for each single collation block, trying to merge through a single file handle" << std::endl;
@@ -106,7 +106,7 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < index.size(); ++i )
 						if ( index[i].second )
 							streams[i].reset();
-					
+
 					libmaus2::aio::InputStream::unique_ptr_type TCIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(fn));
 					Psingle	= UNIQUE_PTR_MOVE(TCIS);
 
@@ -120,25 +120,25 @@ namespace libmaus2
 							streams [ i ] = UNIQUE_PTR_MOVE(tstreamsi);
 						}
 				}
-					
+
 				for ( uint64_t i = 0; i < index.size(); ++i )
 					if ( index[i].second )
 					{
 						index[i].second -= 1;
 
 						#if !defined(NDEBUG)
-						bool const alok = 
+						bool const alok =
 						#endif
 						        libmaus2::bambam::BamDecoder::readAlignmentGz(*(streams[i]),data[i],0,false);
-						        
+
 						#if !defined(NDEBUG)
 						assert ( alok );
 						#endif
-						
+
 						Q.push(i);
 					}
 			}
-			
+
 			/**
 			 * decode next alignment
 			 *
@@ -149,32 +149,32 @@ namespace libmaus2
 			{
 				if ( Q.empty() )
 					return false;
-				
+
 				uint64_t const t = Q.top();
 				Q.pop();
-				
+
 				libmaus2::bambam::BamAlignment::D_array_type T = algn.D;
-				
+
 				algn.D = data[t].D;
 				algn.blocksize = data[t].blocksize;
-				
+
 				data[t].D = T;
 				data[t].blocksize = 0;
-				
+
 				if ( index[t].second-- )
 				{
 					#if !defined(NDEBUG)
-					bool const alok = 
+					bool const alok =
 					#endif
 					        libmaus2::bambam::BamDecoder::readAlignmentGz(*(streams[t]),data[t],0,false);
-					        
+
 					#if !defined(NDEBUG)
 					assert ( alok );
 					#endif
-					
+
 					Q.push(t);
 				}
-					
+
 				return true;
 			}
 		};

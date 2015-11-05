@@ -19,7 +19,7 @@
 #include <libmaus2/bambam/BamStreamingMarkDuplicatesSupport.hpp>
 
 std::ostream & libmaus2::bambam::operator<<(
-	std::ostream & out, 
+	std::ostream & out,
 	libmaus2::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType::pair_orientation_type const & ori
 )
 {
@@ -50,12 +50,12 @@ std::ostream & libmaus2::bambam::operator<<(std::ostream & ostr, libmaus2::bamba
 	ostr << ",";
 	ostr << "orientation=" << H.getOrientation();
 	ostr << ")";
-	
+
 	return ostr;
 }
 
 std::ostream & libmaus2::bambam::operator<<(
-	std::ostream & out, 
+	std::ostream & out,
 	libmaus2::bambam::BamStreamingMarkDuplicatesSupport::FragmentHashKeyType::fragment_orientation_type const & ori
 )
 {
@@ -79,16 +79,16 @@ std::ostream & libmaus2::bambam::operator<<(std::ostream & ostr, libmaus2::bamba
 	ostr << "orientation=" << H.getOrientation();
 	ostr << " v=" << H.key.A[0] << "," << H.key.A[1] << "," << H.key.A[2];
 	ostr << ")";
-	
+
 	return ostr;
 }
 
 std::ostream & libmaus2::bambam::operator<<(std::ostream & out, libmaus2::bambam::BamStreamingMarkDuplicatesSupport::OpticalInfoListNode const & O)
 {
 	out << "OpticalInfoListNode(";
-	
+
 	out << O.readgroup << "," << O.tile << "," << O.x << "," << O.y;
-	
+
 	out << ")";
 	return out;
 }
@@ -103,6 +103,6 @@ std::ostream & libmaus2::bambam::operator<<(std::ostream & out, libmaus2::bambam
 	out << O.x << ",";
 	out << O.y;
 	out << ")";
-	
+
 	return out;
 }

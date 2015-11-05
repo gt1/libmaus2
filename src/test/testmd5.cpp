@@ -25,7 +25,7 @@ int main(int argc, char * argv[])
 	try
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
-	
+
 		for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
 		{
 			::libmaus2::autoarray::AutoArray<uint8_t> const A = libmaus2::util::GetFileSize::readFile<uint8_t>(arginfo.restargs.at(i));

@@ -61,7 +61,7 @@ namespace libmaus2
 			static unsigned int const snappyoutputbufsize = 256*1024;
 			//! sort buffer
 			::libmaus2::autoarray::AutoArray<data_type> B;
-			
+
 			//! pointer/offset insert pointer descending from back of B
 			uint64_t * pp;
 			//! buffer start pointer
@@ -79,17 +79,17 @@ namespace libmaus2
 			::libmaus2::autoarray::AutoArray< compressed_stream_type::unique_ptr_type> Ptmpfilecompout;
 			//! intervals
 			std::vector < std::vector< ::libmaus2::lz::SimpleCompressedStreamInterval> > tmpfileintervals;
-						
+
 			//! uint64_t pair
 			typedef std::pair<uint64_t,uint64_t> upair;
 			//! file position intervals of temp file blocks
 			std::vector<upair> tmpoffsetintervals;
 			//! number of alignments in each block in temp file
 			std::vector<uint64_t> tmpoutcnts;
-			
+
 			//! comparator for alignments
 			comparator_type const BAPC;
-			
+
 			//! parallel processing (number of threads used for block sorting)
 			uint64_t const parallel;
 
@@ -102,13 +102,13 @@ namespace libmaus2
 				{
 					uint64_t * outpp = B.end();
 					uint64_t * inpp = B.end();
-				
+
 					while ( inpp != pp )
 					{
 						*(--outpp) = *(--inpp);
 						--inpp;
 					}
-				
+
 					pp = outpp;
 				}
 			}
@@ -126,7 +126,7 @@ namespace libmaus2
 					Ptmpfilecompout = ::libmaus2::autoarray::AutoArray< ::libmaus2::lz::SimpleCompressedOutputStream< ::libmaus2::aio::OutputStream >::unique_ptr_type>(numfiles);
 
 					tmpfileoutnames.resize(numfiles);
-					
+
 					libmaus2::lz::SnappyCompressorObjectFactory compfact;
 
 					for ( uint64_t i = 0; i < numfiles; ++i )
@@ -135,21 +135,21 @@ namespace libmaus2
 						fnostr << tmpfileoutnamebase << "_" << std::setw(6) << std::setfill('0') << i;
 						std::string const fn = fnostr.str();
 						tmpfileoutnames[i] = fn;
-						
+
 						libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
-					
+
 						::libmaus2::aio::OutputStream::unique_ptr_type t(::libmaus2::aio::OutputStreamFactoryContainer::constructUnique(fn));
 						Ptmpfileout[i] = UNIQUE_PTR_MOVE(t);
-						
+
 						::libmaus2::lz::SimpleCompressedOutputStream< ::libmaus2::aio::OutputStream >::unique_ptr_type tscos(
 							new ::libmaus2::lz::SimpleCompressedOutputStream< ::libmaus2::aio::OutputStream >(*(Ptmpfileout[i]),compfact,64*1024));
 						Ptmpfilecompout[i] = UNIQUE_PTR_MOVE(tscos);
 					}
 				}
-				
+
 				assert ( Ptmpfileout.size() );
 				assert ( j < Ptmpfileout.size() );
-				
+
 				return *(Ptmpfilecompout[j]);
 			}
 			/**
@@ -162,7 +162,7 @@ namespace libmaus2
 					Ptmpfilecompout[i]->flush();
 					Ptmpfilecompout[i].reset();
 					Ptmpfileout[i]->flush();
-					// Ptmpfileout[i]->close();						
+					// Ptmpfileout[i]->close();
 					Ptmpfileout[i].reset();
 				}
 			}
@@ -192,7 +192,7 @@ namespace libmaus2
 			{
 				assert ( B.size() ) ;
 			}
-			
+
 			/**
 			 * flush buffer
 			 **/
@@ -205,7 +205,7 @@ namespace libmaus2
 
 					// number of elements in buffer
 					uint64_t const numel = B.end()-pp;
-						
+
 					// construct comparator
 					comparator_type BAPC(pa);
 					// reverse pointer array (top to bottom)
@@ -220,14 +220,14 @@ namespace libmaus2
 							parallel
 						);
 					else
-						std::stable_sort(pp,B.end(),BAPC);		
-					
+						std::stable_sort(pp,B.end(),BAPC);
+
 					if ( parallel <= 1 )
 					{
 						compressed_stream_type & tempfile = getTmpFileOut(0);
-						
+
 						std::pair<uint64_t,uint64_t> const preoff = tempfile.getOffset();
-										
+
 						// write entries
 						for ( uint64_t i = 0; i < numel; ++i )
 						{
@@ -235,11 +235,11 @@ namespace libmaus2
 							char const * data = reinterpret_cast<char const *>(pa + off);
 							::libmaus2::util::CountGetObject<char const *> G(data);
 							uint64_t const blocksize = ::libmaus2::bambam::DecoderBase::getLEInteger(G,4);
-							tempfile.write(data,4+blocksize);						
+							tempfile.write(data,4+blocksize);
 						}
 
 						std::pair<uint64_t,uint64_t> const postoff = tempfile.getOffset();
-						
+
 						// file positions
 						tmpfileintervals.push_back(
 							std::vector< ::libmaus2::lz::SimpleCompressedStreamInterval >(
@@ -252,7 +252,7 @@ namespace libmaus2
 						if ( !tmpfileintervals.size() )
 							for ( int64_t t = 0; t < static_cast<int64_t>(parallel); ++t )
 								getTmpFileOut(t);
-					
+
 						assert ( parallel > 1 );
 						// target elements per thread
 						uint64_t const telperthread = (numel + parallel-1)/parallel;
@@ -267,7 +267,7 @@ namespace libmaus2
 								std::pair<uint64_t,uint64_t>(0,0),
 								std::pair<uint64_t,uint64_t>(0,0)
 							);
-							
+
 						#if defined(_OPENMP)
 						#pragma omp parallel for num_threads(parallel)
 						#endif
@@ -275,9 +275,9 @@ namespace libmaus2
 						{
 							uint64_t const low = t * elperthread;
 							uint64_t const high = std::min(low+elperthread,numel);
-		
+
 							compressed_stream_type & tempfile = getTmpFileOut(t);
-						
+
 							std::pair<uint64_t,uint64_t> const preoff = tempfile.getOffset();
 
 							// write entries
@@ -287,11 +287,11 @@ namespace libmaus2
 								char const * data = reinterpret_cast<char const *>(pa + off);
 								::libmaus2::util::CountGetObject<char const *> G(data);
 								uint64_t const blocksize = ::libmaus2::bambam::DecoderBase::getLEInteger(G,4);
-								tempfile.write(data,4+blocksize);						
+								tempfile.write(data,4+blocksize);
 							}
 
 							std::pair<uint64_t,uint64_t> const postoff = tempfile.getOffset();
-							
+
 							tmpintervalvec[t] = ::libmaus2::lz::SimpleCompressedStreamInterval(preoff,postoff);
 						}
 
@@ -304,7 +304,7 @@ namespace libmaus2
 					pp = B.end();
 				}
 			}
-			
+
 			/**
 			 * put an alignment in the buffer
 			 *
@@ -312,14 +312,14 @@ namespace libmaus2
 			 **/
 			void putAlignment(::libmaus2::bambam::BamAlignment const & algn)
 			{
-				uint64_t const reqsize = 
-					algn.serialisedByteSize() + 
+				uint64_t const reqsize =
+					algn.serialisedByteSize() +
 					((parallel > 1) ? 2 : 1) * sizeof(data_type);
-				
+
 				if ( reqsize > freeSpace() )
 				{
 					flush();
-					
+
 					if ( reqsize > freeSpace() )
 					{
 						libmaus2::exception::LibMausException se;
@@ -328,20 +328,20 @@ namespace libmaus2
 						throw se;
 					}
 				}
-				
+
 				// put pointer
 				*(--pp) = (pc-pa);
 
 				// reserve space for parallel processing
 				if ( parallel > 1 )
 					*(--pp) = 0;
-				
+
 				// put data
 				::libmaus2::util::PutObject<char *> P(reinterpret_cast<char *>(pc));
 				algn.serialise(P);
 				pc = reinterpret_cast<uint8_t *>(P.p);
 			}
-			
+
 			/**
 			 * base class for BAM alignments writer class
 			 **/
@@ -359,7 +359,7 @@ namespace libmaus2
 
 				/**
 				 * write alignment block starting at data
-				 * 
+				 *
 				 * @param data pointer to alignment block prefix with block length
 				 **/
 				virtual void writeData(char const * data)
@@ -370,7 +370,7 @@ namespace libmaus2
 					// write block
 					write(data+sizeof(uint32_t),blocksize);
 				}
-				
+
 				/**
 				 * write alignment object
 				 *
@@ -382,7 +382,7 @@ namespace libmaus2
 				}
 
 			};
-			
+
 			/**
 			 * specialisation of WriterWrapperBase for writing BAM files
 			 **/
@@ -390,17 +390,17 @@ namespace libmaus2
 			struct BamWriterWrapper : public WriterWrapperBase
 			{
 				typedef _writer_type writer_type;
-				
+
 				//! BAM writer object
 				writer_type & writer;
-				
+
 				/**
 				 * constructor
 				 *
 				 * @param rwriter BAM writer object
 				 **/
 				BamWriterWrapper(writer_type & rwriter) : writer(rwriter) {}
-				
+
 				/**
 				 * write alignment block of size blocksize
 				 *
@@ -422,7 +422,7 @@ namespace libmaus2
 			 **/
 			template<typename writer_type, bool computemdnm>
 			void createOutput(
-				writer_type & writer, 
+				writer_type & writer,
 				libmaus2::bambam::MdNmRecalculation * mdcalc = 0,
 				int const verbose = 0
 			)
@@ -431,7 +431,7 @@ namespace libmaus2
 				{
 					assert(mdcalc != 0);
 				}
-			
+
 				if ( verbose )
 					std::cerr << "[V] producing sorted output" << std::endl;
 
@@ -440,38 +440,38 @@ namespace libmaus2
 				{
 					// flush buffer
 					flush();
-					
+
 					// flush file
 					flushTmpFileOut();
 
 					// deallocate buffer
 					B.release();
-		
-					// number of input blocks to be merged			
+
+					// number of input blocks to be merged
 					uint64_t const nummerge = tmpoutcnts.size();
-					
+
 					::libmaus2::autoarray::AutoArray< ::libmaus2::bambam::BamAlignment > algns(nummerge);
 					::libmaus2::bambam::BamAlignmentHeapComparator<comparator_type> heapcmp(BAPC,algns.begin());
-					
+
 					::libmaus2::autoarray::AutoArray< ::libmaus2::aio::InputStream::unique_ptr_type > infiles(tmpfileoutnames.size());
 					for ( uint64_t i = 0; i < tmpfileoutnames.size(); ++i )
 					{
 						::libmaus2::aio::InputStream::unique_ptr_type tptr(::libmaus2::aio::InputStreamFactoryContainer::constructUnique(tmpfileoutnames[i]));
-						infiles[i] = UNIQUE_PTR_MOVE(tptr);						
+						infiles[i] = UNIQUE_PTR_MOVE(tptr);
 					}
 					libmaus2::lz::SnappyDecompressorObjectFactory decfact;
 					::libmaus2::autoarray::AutoArray< ::libmaus2::lz::SimpleCompressedConcatInputStream< ::libmaus2::aio::InputStream>::unique_ptr_type > instreams(nummerge);
-					
+
 					typedef ::libmaus2::lz::SimpleCompressedConcatInputStreamFragment< ::libmaus2::aio::InputStream > fragment_type;
-					
+
 					for ( uint64_t i = 0; i < tmpfileintervals.size(); ++i )
 					{
 						std::vector< ::libmaus2::lz::SimpleCompressedStreamInterval> const & subint = tmpfileintervals[i];
 						std::vector< fragment_type > frags;
-						
+
 						for ( uint64_t j = 0; j < subint.size(); ++j )
 							frags.push_back(fragment_type(subint[j].start,subint[j].end,infiles[j].get()));
-							
+
 						::libmaus2::lz::SimpleCompressedConcatInputStream< ::libmaus2::aio::InputStream>::unique_ptr_type tptr(
 							new ::libmaus2::lz::SimpleCompressedConcatInputStream< ::libmaus2::aio::InputStream>(
 								frags,decfact
@@ -488,21 +488,21 @@ namespace libmaus2
 							::libmaus2::bambam::BamDecoder::readAlignmentGz(*instreams[i],algns[i],0 /* no header for validation */,false /* no validation */);
 							Q.push(i);
 						}
-						
+
 					uint64_t outcnt = 0;
-						
+
 					while ( Q.size() )
 					{
-						uint64_t const t = Q.top(); Q.pop();				
-						
+						uint64_t const t = Q.top(); Q.pop();
+
 						if ( computemdnm )
 						{
 							if ( mdcalc->calmdnm(algns[t]) )
-								algns[t].fillMd(mdcalc->context);			
+								algns[t].fillMd(mdcalc->context);
 						}
-						
+
 						writer.writeAlgn(algns[t]);
-						
+
 						if ( verbose && (++outcnt % (1024*1024) == 0) )
 							std::cerr << "[V] " << outcnt/(1024*1024) << "M" << std::endl;
 
@@ -512,9 +512,9 @@ namespace libmaus2
 							Q.push(t);
 						}
 					}
-					
+
 					if ( verbose )
-						std::cerr << "[V] wrote " << outcnt << " alignments" << std::endl;			
+						std::cerr << "[V] wrote " << outcnt << " alignments" << std::endl;
 				}
 				// all alignments are still in memory
 				else
@@ -525,11 +525,11 @@ namespace libmaus2
 					uint64_t const numel = B.end()-pp;
 					// alignment block for recomputing md/nm
 					libmaus2::bambam::BamAlignment recompalgn;
-				
+
 					// sort entries
 					comparator_type BAPC(pa);
 					std::reverse(pp,B.end());
-					
+
 					if ( parallel > 1 )
 						libmaus2::sorting::ParallelStableSort::parallelSort(
 							pp,B.end(),
@@ -538,7 +538,7 @@ namespace libmaus2
 							parallel
 						);
 					else
-						std::stable_sort(pp,B.end(),BAPC);		
+						std::stable_sort(pp,B.end(),BAPC);
 
 					// write entries
 					uint64_t outcnt = 0;
@@ -546,25 +546,25 @@ namespace libmaus2
 					{
 						uint64_t const off = pp[i];
 						char const * data = reinterpret_cast<char const *>(pa + off);
-						
+
 						if ( computemdnm )
 						{
 							// decode blocksize
 							::libmaus2::util::CountGetObject<char const *> G(data);
 							uint64_t const blocksize = ::libmaus2::bambam::DecoderBase::getLEInteger(G,4);
-							
+
 							// extend block if necessary
 							if ( blocksize > recompalgn.D.size() )
 								recompalgn.D = libmaus2::bambam::BamAlignment::D_array_type(blocksize,false);
-							
+
 							// copy data
 							recompalgn.blocksize = blocksize;
 							std::copy(data + sizeof(uint32_t), data + sizeof(uint32_t) + blocksize, recompalgn.D.begin());
 
 							// calculate md/nm
 							if ( mdcalc->calmdnm(recompalgn) )
-								recompalgn.fillMd(mdcalc->context);			
-							
+								recompalgn.fillMd(mdcalc->context);
+
 							// write block
 							writer.writeAlgn(recompalgn);
 						}
@@ -572,20 +572,20 @@ namespace libmaus2
 						{
 							writer.writeData(data);
 						}
-						
+
 						if ( verbose && (++outcnt % (1024*1024) == 0) )
 							std::cerr << "[V]" << outcnt/(1024*1024) << std::endl;
 					}
 
 					if ( verbose )
-						std::cerr << "[V] wrote " << outcnt << " alignments" << std::endl;			
+						std::cerr << "[V] wrote " << outcnt << " alignments" << std::endl;
 
 					pc = pa;
 					pp = B.end();
 				}
 			}
 
-			public:			
+			public:
 			/**
 			 * create final sorted output
 			 *
@@ -596,9 +596,9 @@ namespace libmaus2
 			 **/
 			template<typename stream_type>
 			void createOutput(
-				stream_type & stream, 
-				::libmaus2::bambam::BamHeader const & bamheader, 
-				int const level = Z_DEFAULT_COMPRESSION, 
+				stream_type & stream,
+				::libmaus2::bambam::BamHeader const & bamheader,
+				int const level = Z_DEFAULT_COMPRESSION,
 				int const verbose = 0,
 				std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback *> const * blockoutputcallbacks = 0,
 				libmaus2::bambam::MdNmRecalculation * mdnmcalc = 0
@@ -606,7 +606,7 @@ namespace libmaus2
 			{
 				::libmaus2::bambam::BamWriter writer(stream,bamheader,level,blockoutputcallbacks);
 				BamWriterWrapper< ::libmaus2::bambam::BamWriter > BWW(writer);
-				
+
 				if ( mdnmcalc )
 					createOutput< BamWriterWrapper< ::libmaus2::bambam::BamWriter >, true >(BWW,mdnmcalc,verbose);
 				else
@@ -622,7 +622,7 @@ namespace libmaus2
 			 * @param verbose if true then progress information will be printed on std::cerr
 			 **/
 			void createOutput(
-				libmaus2::bambam::BamBlockWriterBase & writerbase, 
+				libmaus2::bambam::BamBlockWriterBase & writerbase,
 				int const verbose = 0,
 				libmaus2::bambam::MdNmRecalculation * mdnmcalc = 0
 			)

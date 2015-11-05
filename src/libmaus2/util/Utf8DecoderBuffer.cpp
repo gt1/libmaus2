@@ -20,10 +20,10 @@
 #include <libmaus2/util/Utf8DecoderBuffer.hpp>
 
 libmaus2::util::Utf8DecoderBuffer::Utf8DecoderBuffer(
-	std::string const & filename, 
+	std::string const & filename,
 	::std::size_t rbuffersize
 )
-: 
+:
   indexdecoder(filename+".idx"),
   blocksize(indexdecoder.blocksize),
   lastblocksize(indexdecoder.lastblocksize),
@@ -38,7 +38,7 @@ libmaus2::util::Utf8DecoderBuffer::Utf8DecoderBuffer(
   buffer(buffersize,false),
   symsread(0)
 {
-	setg(buffer.end(), buffer.end(), buffer.end());	
+	setg(buffer.end(), buffer.end(), buffer.end());
 }
 
 ::std::streampos libmaus2::util::Utf8DecoderBuffer::seekpos(::std::streampos sp, ::std::ios_base::openmode which)
@@ -48,14 +48,14 @@ libmaus2::util::Utf8DecoderBuffer::Utf8DecoderBuffer(
 		int64_t const cur = symsread-(egptr()-gptr());
 		int64_t const curlow = cur - static_cast<int64_t>(gptr()-eback());
 		int64_t const curhigh = cur + static_cast<int64_t>(egptr()-gptr());
-		
+
 		// call relative seek, if target is in range
 		if ( sp >= curlow && sp <= curhigh )
 			return seekoff(static_cast<int64_t>(sp) - cur, ::std::ios_base::cur, which);
 
 		// target is out of range, we really need to seek
 		uint64_t tsymsread = (sp / buffersize)*buffersize;
-		
+
 		symsread = tsymsread;
 		stream.clear();
 		assert ( tsymsread % blocksize == 0 );
@@ -63,10 +63,10 @@ libmaus2::util::Utf8DecoderBuffer::Utf8DecoderBuffer(
 		setg(buffer.end(),buffer.end(),buffer.end());
 		underflow();
 		setg(eback(),gptr() + (static_cast<int64_t>(sp)-static_cast<int64_t>(tsymsread)), egptr());
-	
+
 		return sp;
 	}
-	
+
 	return -1;
 }
 
@@ -76,14 +76,14 @@ libmaus2::util::Utf8DecoderBuffer::Utf8DecoderBuffer(
 	{
 		int64_t abstarget = 0;
 		int64_t const cur = symsread - (egptr()-gptr());
-		
+
 		if ( way == ::std::ios_base::cur )
 			abstarget = cur + off;
 		else if ( way == ::std::ios_base::beg )
 			abstarget = off;
 		else // if ( way == ::std::ios_base::end )
 			abstarget = n + off;
-			
+
 		if ( abstarget - cur == 0 )
 		{
 			return abstarget;
@@ -103,7 +103,7 @@ libmaus2::util::Utf8DecoderBuffer::Utf8DecoderBuffer(
 			return seekpos(abstarget,which);
 		}
 	}
-	
+
 	return -1;
 }
 
@@ -114,18 +114,18 @@ libmaus2::util::Utf8DecoderBuffer::int_type libmaus2::util::Utf8DecoderBuffer::u
 		return static_cast<int_type>(*gptr());
 
 	assert ( gptr() == egptr() );
-	
+
 	// we should be on a block size boundary or at the end
 	assert ( symsread == n || symsread % blocksize == 0 );
 
 	uint64_t const symsleft = (n-symsread);
-	
+
 	if ( symsleft == 0 )
 		return traits_type::eof();
-	
+
 	// number of symbols we want to read
 	uint64_t const symstoread = std::min(symsleft,buffersize);
-	
+
 	// block start in symbols
 	uint64_t const insyms = symsread;
 	uint64_t outsyms = symsread + symstoread;
@@ -133,12 +133,12 @@ libmaus2::util::Utf8DecoderBuffer::int_type libmaus2::util::Utf8DecoderBuffer::u
 	// round up to next block
 	if ( outsyms % blocksize )
 		outsyms += (blocksize - (outsyms % blocksize));
-		
+
 	assert ( outsyms % blocksize == 0 );
-	
+
 	// number of bytes we want to read from coded stream
 	uint64_t const bytestoread = indexdecoder[outsyms/blocksize] - indexdecoder[insyms/blocksize];
-	
+
 	// load packed data into memory
 	if ( inbuffer.size() < bytestoread )
 		inbuffer = ::libmaus2::autoarray::AutoArray<uint8_t>(bytestoread);
@@ -150,7 +150,7 @@ libmaus2::util::Utf8DecoderBuffer::int_type libmaus2::util::Utf8DecoderBuffer::u
 		se.finish();
 		throw se;
 	}
-	
+
 	// decode utf-8 coded data into byte buffer
 	::libmaus2::util::GetObject<uint8_t const *> G(inbuffer.begin());
 	for ( uint64_t i = 0; i < symstoread; ++i )
@@ -159,6 +159,6 @@ libmaus2::util::Utf8DecoderBuffer::int_type libmaus2::util::Utf8DecoderBuffer::u
 	setg(buffer.begin(),buffer.begin(),buffer.begin()+symstoread);
 
 	symsread += symstoread;
-	
+
 	return static_cast<int_type>(*gptr());
 }

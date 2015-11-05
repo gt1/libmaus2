@@ -23,7 +23,7 @@
 #if defined(LIBMAUS2_HAVE_UNISTD_H)
 #include <unistd.h>
 #endif
-						
+
 void libmaus2::util::LogPipeMultiplexGeneric::closeFds()
 {
 	if ( stdoutpipe[0] != -1 )
@@ -67,18 +67,18 @@ libmaus2::util::LogPipeMultiplexGeneric::LogPipeMultiplexGeneric(
                         )
                 );
 	sock = UNIQUE_PTR_MOVE(tsock);
-	
+
 	// no delay on socket
 	sock->setNoDelay();
 	// write session id
 	sock->writeString(0,sid);
-	
+
 	// id
 	sock->writeSingle<uint64_t>(id);
 	// connection type
 	sock->writeString("log");
-					
-	// create pipe for standard out	
+
+	// create pipe for standard out
 	if ( pipe(&stdoutpipe[0]) != 0 )
 	{
 		closeFds();
@@ -103,7 +103,7 @@ libmaus2::util::LogPipeMultiplexGeneric::LogPipeMultiplexGeneric(
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "close() failed: " << strerror(errno) << std::endl;
 		se.finish();
-		throw se;		
+		throw se;
 	}
 	if ( close(STDERR_FILENO) != 0 )
 	{
@@ -111,7 +111,7 @@ libmaus2::util::LogPipeMultiplexGeneric::LogPipeMultiplexGeneric(
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "close() failed: " << strerror(errno) << std::endl;
 		se.finish();
-		throw se;		
+		throw se;
 	}
 	if ( dup2(stdoutpipe[1],STDOUT_FILENO) == -1 )
 	{
@@ -119,7 +119,7 @@ libmaus2::util::LogPipeMultiplexGeneric::LogPipeMultiplexGeneric(
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "dup2() failed: " << strerror(errno) << std::endl;
 		se.finish();
-		throw se;				
+		throw se;
 	}
 	if ( dup2(stderrpipe[1],STDERR_FILENO) == -1 )
 	{
@@ -127,18 +127,18 @@ libmaus2::util::LogPipeMultiplexGeneric::LogPipeMultiplexGeneric(
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "dup2() failed: " << strerror(errno) << std::endl;
 		se.finish();
-		throw se;				
+		throw se;
 	}
 
 	pid = fork();
-	
+
 	if ( pid < 0 )
 	{
 		closeFds();
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "fork() failed: " << strerror(errno) << std::endl;
 		se.finish();
-		throw se;		
+		throw se;
 	}
 	else if ( pid == 0 )
 	{
@@ -148,9 +148,9 @@ libmaus2::util::LogPipeMultiplexGeneric::LogPipeMultiplexGeneric(
 		// close copies
 		close(STDOUT_FILENO);
 		close(STDERR_FILENO);
-		
+
 		bool running = true;
-		
+
 		try
 		{
 			while ( running )
@@ -159,7 +159,7 @@ libmaus2::util::LogPipeMultiplexGeneric::LogPipeMultiplexGeneric(
 				fd_set fds;
 				int maxfd = -1;
 				FD_ZERO(&fds);
-				
+
 				if ( stdoutpipe[0] != -1 )
 				{
 					FD_SET(stdoutpipe[0],&fds);
@@ -170,13 +170,13 @@ libmaus2::util::LogPipeMultiplexGeneric::LogPipeMultiplexGeneric(
 					FD_SET(stderrpipe[0],&fds);
 					maxfd = std::max(maxfd,stderrpipe[0]);
 				}
-				
+
 				running = (maxfd != -1);
-				
+
 				if ( running )
 				{
 					int r = ::select(maxfd+1,&fds,0,0,0);
-					
+
 					try
 					{
 						if ( r > 0 )
@@ -193,7 +193,7 @@ libmaus2::util::LogPipeMultiplexGeneric::LogPipeMultiplexGeneric(
 
 									close(stdoutpipe[0]);
 									stdoutpipe[0] = -1;
-									
+
 									sock->writeMessage<char>(STDERR_FILENO,errstring.c_str(),errstring.size());
 									sock->readSingle<uint64_t>();
 								}
@@ -215,7 +215,7 @@ libmaus2::util::LogPipeMultiplexGeneric::LogPipeMultiplexGeneric(
 
 									close(stderrpipe[0]);
 									stderrpipe[0] = -1;
-									
+
 									sock->writeMessage<char>(STDERR_FILENO,errstring.c_str(),errstring.size());
 									sock->readSingle<uint64_t>();
 								}
@@ -224,7 +224,7 @@ libmaus2::util::LogPipeMultiplexGeneric::LogPipeMultiplexGeneric(
 									sock->writeMessage<char>(STDERR_FILENO,B.get(),red);
 									sock->readSingle<uint64_t>();
 								}
-							}	
+							}
 						}
 					}
 					catch(std::exception const & ex)
@@ -247,15 +247,15 @@ libmaus2::util::LogPipeMultiplexGeneric::LogPipeMultiplexGeneric(
 			std::ostringstream quitmsgstr;
 			quitmsgstr << "\nLog process for id " << id << " is terminating." << std::endl;
 			std::string const quitmsg = quitmsgstr.str();
-			
+
 			sock->writeMessage<char>(std::max(STDOUT_FILENO,STDERR_FILENO)+1,quitmsg.c_str(),quitmsg.size());
 			sock->readSingle<uint64_t>();
 		}
 		catch(...)
 		{
-		
+
 		}
-		
+
 		_exit(0);
 	}
 	else

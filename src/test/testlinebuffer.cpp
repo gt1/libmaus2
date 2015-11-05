@@ -27,7 +27,7 @@ int main(int argc, char * argv[])
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		char const * a = 0;
 		char const * e = 0;
-		
+
 		if ( arginfo.restargs.size() )
 		{
 			for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
@@ -36,27 +36,27 @@ int main(int argc, char * argv[])
 				libmaus2::aio::InputStreamInstance CIS1(fn);
 				libmaus2::aio::InputStreamInstance CIS2(fn);
 				libmaus2::util::LineBuffer LB(CIS1);
-				
+
 				while ( LB.getline(&a,&e) )
 				{
 					std::string const line(a,e);
 					std::string refline;
 					std::getline(CIS2,refline);
-					
+
 					if ( line != refline )
 					{
 						std::cerr << line << "\n!=\n" << refline << "\n";
 						return EXIT_FAILURE;
 					}
 				}
-				
+
 				std::cerr << "check for " << fn << " ok" << std::endl;
 			}
 		}
 		else
 		{
 			libmaus2::util::LineBuffer LB(std::cin,64*1024);
-			
+
 			while ( LB.getline(&a,&e) )
 			{
 				std::cout.write(a,e-a);
@@ -67,6 +67,6 @@ int main(int argc, char * argv[])
 	catch(std::exception const & ex)
 	{
 		std::cerr << ex.what() << std::endl;
-		return EXIT_FAILURE;	
+		return EXIT_FAILURE;
 	}
 }

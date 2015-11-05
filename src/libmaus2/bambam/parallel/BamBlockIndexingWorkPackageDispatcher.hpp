@@ -28,7 +28,7 @@ namespace libmaus2
 	namespace bambam
 	{
 		namespace parallel
-		{						
+		{
 			struct BamBlockIndexingWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef BamBlockIndexingWorkPackageDispatcher this_type;
@@ -37,24 +37,24 @@ namespace libmaus2
 
 				BamBlockIndexingWorkPackageReturnInterface & returnInterface;
 				BamBlockIndexingBlockFinishedInterface & finishedInterface;
-			
+
 				BamBlockIndexingWorkPackageDispatcher(
 					BamBlockIndexingWorkPackageReturnInterface & rreturnInterface,
 					BamBlockIndexingBlockFinishedInterface & rfinishedInterface
 				) : returnInterface(rreturnInterface), finishedInterface(rfinishedInterface)
 				{}
-				
+
 				void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					BamBlockIndexingWorkPackage * BP = dynamic_cast<BamBlockIndexingWorkPackage *>(P);
 
 					if ( BP->bamindexgenerator )
-					{					
+					{
 						libmaus2::bambam::parallel::GenericInputControlCompressionPending & GICCP = BP->GICCP;
 						libmaus2::bambam::BamIndexGenerator & indexer = *(BP->bamindexgenerator);
 						libmaus2::lz::BgzfDeflateZStreamBaseFlushInfo const & flushinfo = GICCP.flushinfo;
-						std::pair<uint8_t *,uint8_t *> const & input = GICCP.P; 
-						
+						std::pair<uint8_t *,uint8_t *> const & input = GICCP.P;
+
 						if ( flushinfo.blocks == 1 )
 						{
 							indexer.addBlock(input.first,flushinfo.block_a_c,flushinfo.block_a_u);
@@ -65,11 +65,11 @@ namespace libmaus2
 							indexer.addBlock(input.first + flushinfo.block_a_u,flushinfo.block_b_c,flushinfo.block_b_u);
 						}
 					}
-					
+
 					finishedInterface.bamBlockIndexingBlockFinished(BP->GICCP);
 					returnInterface.bamBlockIndexingWorkPackageReturn(BP);
 				}
-			};		
+			};
 		}
 	}
 }

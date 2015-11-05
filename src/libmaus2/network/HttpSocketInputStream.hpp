@@ -30,17 +30,17 @@ namespace libmaus2
 			typedef HttpSocketInputStream this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			HttpSocketInputStream(
 				std::string const & url,
-				uint64_t const bufsize, 
+				uint64_t const bufsize,
 				uint64_t const pushbacksize = 0
-			) 
+			)
 			:
 				HttpSocketInputStreamBuffer(url,bufsize,pushbacksize),
 				std::istream(this)
 			{
-			
+
 			}
 		};
 	}

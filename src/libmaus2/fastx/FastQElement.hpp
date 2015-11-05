@@ -23,7 +23,7 @@
 #include <cassert>
 #include <libmaus2/fastx/FASTQEntry.hpp>
 #include <libmaus2/fastx/Phred.hpp>
-#include <libmaus2/util/unique_ptr.hpp>  
+#include <libmaus2/util/unique_ptr.hpp>
 #include <libmaus2/util/shared_ptr.hpp>
 #include <libmaus2/exception/LibMausException.hpp>
 
@@ -36,34 +36,34 @@ namespace libmaus2
 			typedef FastQElement this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			std::string name;
 			std::string query;
 			std::string plus;
 			std::string quality;
-			
+
 			FastQElement() : name(), query(), plus(), quality()
 			{
-			
+
 			}
-			
+
 			FastQElement(
-				std::string const & rname, 
-				std::string const & rquery, 
+				std::string const & rname,
+				std::string const & rquery,
 				std::string const & rplus,
 				std::string const & rquality
 			)
 			: name(rname), query(rquery), plus(rplus), quality(rquality)
 			{
-				
+
 			}
-			
+
 			FastQElement(FASTQEntry const & entry)
 			: name(entry.sid), query(entry.spattern), plus(entry.plus), quality(entry.quality)
 			{
-			
+
 			}
-			
+
 			unsigned int getBaseQuality(uint64_t const i, unsigned int const offset = 33) const
 			{
 				if ( ! (i < quality.size() ) )
@@ -76,7 +76,7 @@ namespace libmaus2
 				if ( ! (quality[i] >= static_cast<std::string::value_type>(offset) ) )
 				{
 					::libmaus2::exception::LibMausException se;
-					se.getStream() << "Quality " << static_cast<int>(quality[i]) << " at index " << i 
+					se.getStream() << "Quality " << static_cast<int>(quality[i]) << " at index " << i
 						<< " is smaller than offset " << offset << " in FastQElement::getBaseQuality()" << std::endl;
 					se.finish();
 					throw se;
@@ -84,7 +84,7 @@ namespace libmaus2
 
 				return quality[i] - offset;
 			}
-			
+
 			double getBaseErrorProbability(uint64_t const i, unsigned int const offset = 33) const
 			{
 				unsigned int const q = getBaseQuality(i,offset);
@@ -99,7 +99,7 @@ namespace libmaus2
 				return Phred::probCorrect(q);
 			}
 		};
-		
+
 		inline std::ostream & operator<<(std::ostream & out, FastQElement const & e)
 		{
 			out << "@" << e.name << '\n';

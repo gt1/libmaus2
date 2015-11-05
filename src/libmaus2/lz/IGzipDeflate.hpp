@@ -33,7 +33,7 @@ namespace libmaus2
 			{
 				return COMPRESSION_LEVEL;
 			}
-		
+
 			/**
 			 * run deflate algorithm on data
 			 *
@@ -48,7 +48,7 @@ namespace libmaus2
 				uint64_t const insize,
 				uint8_t * const out,
 				uint64_t const outsize
-			);	
+			);
 		};
 	}
 }

@@ -37,14 +37,14 @@ namespace libmaus2
 			static inline uint64_t bitsPerNum(uint64_t k)
 			{
 				uint64_t c = 0;
-				
+
 				while ( k & (~0xFFFF) ) { k >>= 16; c += 16; }
 				if    ( k & (~0x00FF) ) { k >>=  8; c +=  8; }
 				if    ( k & (~0x000F) ) { k >>=  4; c +=  4; }
 				if    ( k & (~0x0003) ) { k >>=  2; c +=  2; }
 				if    ( k & (~0x0001) ) { k >>=  1; c +=  1; }
 				if    ( k             ) { k >>=  1; c +=  1; }
-				
+
 				return c;
 			}
 		};

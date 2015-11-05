@@ -30,9 +30,9 @@ namespace libmaus2
 		{
 			typedef ZlibCompressorObjectFactory this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			int const level;
-			
+
 			ZlibCompressorObjectFactory(int const rlevel = Z_DEFAULT_COMPRESSION)
 			: level(rlevel) {}
 			virtual ~ZlibCompressorObjectFactory() {}

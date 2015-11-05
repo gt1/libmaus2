@@ -35,10 +35,10 @@ namespace libmaus2
 
 			std::vector<uint64_t> binoffsets;
 			std::vector<uint32_t> celloffsets;
-			
+
 			uint64_t blocksize;
 			uint64_t headerlength;
-						
+
 			static bool hasRazfHeader(std::istream & in, uint64_t & headerlength, uint64_t & blocksize)
 			{
 				in.clear();
@@ -47,24 +47,24 @@ namespace libmaus2
 				try
 				{
 					libmaus2::lz::GzipHeader firstHeader(in);
-					
-					if ( 
+
+					if (
 						firstHeader.extradata.size() != 7
 						||
 						firstHeader.extradata.substr(0,4) != "RAZF"
 					)
 						return false;
-					
+
 					uint8_t const * bp = reinterpret_cast<uint8_t const *>(firstHeader.extradata.c_str());
-					blocksize = 
+					blocksize =
 						(static_cast<uint64_t>(bp[5]) << 8) |
 						(static_cast<uint64_t>(bp[6]) << 0);
-						
+
 					headerlength = in.tellg();
 
 					in.clear();
 					in.seekg(0,std::ios::beg);
-					
+
 					return true;
 				}
 				catch(...)
@@ -81,13 +81,13 @@ namespace libmaus2
 				uint64_t headerlength, blocksize;
 				return hasRazfHeader(in,headerlength,blocksize);
 			}
-			
+
 			static bool hasRazfHeader(std::string const & filename)
 			{
 				libmaus2::aio::InputStreamInstance CIS(filename);
 				return hasRazfHeader(CIS);
 			}
-			
+
 			void init(std::istream & in)
 			{
 				if ( ! hasRazfHeader(in,headerlength,blocksize) )
@@ -95,24 +95,24 @@ namespace libmaus2
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "RAZFIndex::init(): file does not have a valid razf header" << std::endl;
 					lme.finish();
-					throw lme;				
+					throw lme;
 				}
 
 				in.clear();
 				in.seekg(-2*sizeof(uint64_t),std::ios::end);
-				
+
 				uint64_t const indexpos = in.tellg();
-				
+
 				uncompressed = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				compressed = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
-				
+
 				in.clear();
 				in.seekg(compressed,std::ios::beg);
-				
+
 				uint64_t const indexsize = libmaus2::util::NumberSerialisation::deserialiseNumber(in,sizeof(uint32_t));
-				
+
 				uint64_t const v32 = indexsize / razf_bin_size + 1;
-				
+
 				binoffsets.resize(v32);
 				for ( uint64_t i = 0; i < v32; ++i )
 					binoffsets[i] = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
@@ -121,17 +121,17 @@ namespace libmaus2
 					celloffsets[i] = libmaus2::util::NumberSerialisation::deserialiseNumber(in,sizeof(uint32_t));
 
 				assert ( static_cast<int64_t>(in.tellg()) == static_cast<int64_t>(indexpos) );
-	
+
 				in.clear();
 				in.seekg(0,std::ios::beg);
 			}
-			
+
 			RAZFIndex()
 			: uncompressed(0), compressed(0), headerlength(0)
 			{
-			
+
 			}
-			
+
 			RAZFIndex(std::istream & in)
 			: uncompressed(0), compressed(0), headerlength(0)
 			{
@@ -143,22 +143,22 @@ namespace libmaus2
 			{
 				libmaus2::aio::InputStreamInstance CIS(fn);
 				init(CIS);
-			}	
-			
+			}
+
 			std::pair<uint64_t,uint64_t> seekg(uint64_t const pos) const
 			{
 				int64_t const idx = static_cast<int64_t>(pos / razf_block_size) - 1;
-				
+
 				if ( idx < 0 )
 					return std::pair<uint64_t,uint64_t>(headerlength,pos);
 				else
 					return std::pair<uint64_t,uint64_t>(celloffsets[idx] + binoffsets[idx / razf_bin_size],pos-(idx+1)*razf_block_size);
 			}
-			
+
 			uint64_t operator[](int64_t const pidx) const
 			{
 				int64_t const idx = pidx-1;
-				
+
 				if ( idx < 0 )
 					return headerlength;
 				else

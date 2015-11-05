@@ -31,7 +31,7 @@ namespace libmaus2
 			typedef XzInputStreamBuffer this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			private:
 			std::istream & stream;
 			libmaus2::lz::XzDecoder xzdec;
@@ -42,34 +42,34 @@ namespace libmaus2
 
 			XzInputStreamBuffer(XzInputStreamBuffer const &);
 			XzInputStreamBuffer & operator=(XzInputStreamBuffer&);
-			
+
 			public:
 			XzInputStreamBuffer(std::istream & rstream, ::std::size_t rbuffersize, std::size_t rpushbackspace)
-			: stream(rstream), 
+			: stream(rstream),
 			  xzdec(stream),
 			  buffersize(rbuffersize),
 			  pushbackspace(rpushbackspace),
 			  buffer(buffersize+pushbackspace,false), streamreadpos(0)
 			{
-				setg(buffer.end(), buffer.end(), buffer.end());	
+				setg(buffer.end(), buffer.end(), buffer.end());
 			}
-			
+
 			private:
 			// gptr as unsigned pointer
 			uint8_t const * uptr() const
 			{
 				return reinterpret_cast<uint8_t const *>(gptr());
 			}
-			
+
 			int_type underflow()
 			{
 				if ( gptr() < egptr() )
 					return static_cast<int_type>(*uptr());
-					
+
 				assert ( gptr() == egptr() );
-					
+
 				char * midptr = buffer.begin() + pushbackspace;
-				uint64_t const copyavail = 
+				uint64_t const copyavail =
 					std::min(
 						// previously read
 						static_cast<uint64_t>(gptr()-eback()),
@@ -85,7 +85,7 @@ namespace libmaus2
 
 				if (!n)
 					return traits_type::eof();
-				
+
 				return static_cast<int_type>(*uptr());
 			}
 		};

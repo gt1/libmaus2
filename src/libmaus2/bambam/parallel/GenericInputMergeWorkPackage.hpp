@@ -38,24 +38,24 @@ namespace libmaus2
 				typedef GenericInputMergeWorkPackage<heap_element_type> this_type;
 				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				libmaus2::autoarray::AutoArray<GenericInputSingleData::unique_ptr_type> * data;
 				libmaus2::util::FiniteSizeHeap<heap_element_type> * mergeheap;
 				libmaus2::bambam::parallel::AlignmentBuffer::shared_ptr_type algn;
-			
+
 				GenericInputMergeWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), data(0), mergeheap(0) {}
 				GenericInputMergeWorkPackage(
-					uint64_t const rpriority, 
-					uint64_t const rdispatcherid, 
+					uint64_t const rpriority,
+					uint64_t const rdispatcherid,
 					libmaus2::autoarray::AutoArray<GenericInputSingleData::unique_ptr_type> * rdata,
 					libmaus2::util::FiniteSizeHeap<heap_element_type> * rmergeheap,
 					libmaus2::bambam::parallel::AlignmentBuffer::shared_ptr_type ralgn
 				)
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), data(rdata), mergeheap(rmergeheap), algn(ralgn)
 				{
-				
+
 				}
-			
+
 				char const * getPackageName() const
 				{
 					return "GenericInputMergeWorkPackage";

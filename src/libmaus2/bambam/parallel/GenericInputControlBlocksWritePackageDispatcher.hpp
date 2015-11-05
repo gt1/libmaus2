@@ -38,23 +38,23 @@ namespace libmaus2
 
 				GenericInputControlBlocksWritePackageReturnInterface & packageReturnInterface;
 				GenericInputControlBlockWritePackageBlockWrittenInterface & blockWrittenInterface;
-				
-				GenericInputControlBlocksWritePackageDispatcher(				
+
+				GenericInputControlBlocksWritePackageDispatcher(
 					GenericInputControlBlocksWritePackageReturnInterface & rpackageReturnInterface,
 					GenericInputControlBlockWritePackageBlockWrittenInterface & rblockWrittenInterface
 				) : packageReturnInterface(rpackageReturnInterface), blockWrittenInterface(rblockWrittenInterface) {}
-				
+
 				void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					assert ( dynamic_cast<GenericInputControlBlocksWritePackage *>(P) != 0 );
 					GenericInputControlBlocksWritePackage * BP = dynamic_cast<GenericInputControlBlocksWritePackage *>(P);
-					
+
 					std::vector<libmaus2::bambam::parallel::GenericInputControlCompressionPending> & V = BP->GICCPV;
 
 					for ( uint64_t z = 0; z < V.size() ; ++ z )
 					{
 						libmaus2::bambam::parallel::GenericInputControlCompressionPending & G = V[z];
-					
+
 						libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type outblock = G.outblock;
 						libmaus2::lz::BgzfDeflateZStreamBaseFlushInfo flushinfo = G.flushinfo;
 
@@ -62,7 +62,7 @@ namespace libmaus2
 						uint64_t n = 0;
 
 						assert ( flushinfo.blocks == 1 || flushinfo.blocks == 2 );
-							
+
 						if ( flushinfo.blocks == 1 )
 						{
 							/* write data to stream, one block */
@@ -75,7 +75,7 @@ namespace libmaus2
 							n = flushinfo.block_a_c + flushinfo.block_b_c;
 						}
 
-						BP->out->write(outp, n);                                
+						BP->out->write(outp, n);
 
 						blockWrittenInterface.genericInputControlBlockWritePackageBlockWritten(G);
 					}

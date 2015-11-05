@@ -34,21 +34,21 @@ namespace libmaus2
 			{
 				std::vector < std::string > tokens;
 				uint64_t i = 0;
-				
+
 				while ( i != s.size() )
 				{
 					while ( i != s.size() && ST.spacetable[s[i]] )
 						++i;
-						
+
 					uint64_t const p = i;
-					
+
 					while ( i != s.size() && ST.nospacetable[s[i]] )
 						++i;
-						
+
 					if ( i != p )
-						tokens.push_back(s.substr(p,i-p));		
+						tokens.push_back(s.substr(p,i-p));
 				}
-				
+
 				return tokens;
 			}
 
@@ -57,7 +57,7 @@ namespace libmaus2
 				libmaus2::fastx::SpaceTable const ST;
 				return splitSpace(s,ST);
 			}
-			
+
 			static libmaus2::autoarray::AutoArray<libmaus2::bambam::BamRange::unique_ptr_type> parse(std::string const & ranges, libmaus2::bambam::BamHeader const & header)
 			{
 				std::vector < std::string > const outertokens = splitSpace(ranges);
@@ -66,13 +66,13 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < outertokens.size(); ++i )
 				{
 					std::string const & outertoken = outertokens[i];
-					
+
 					uint64_t sempos = outertoken.size();
-					
+
 					for ( uint64_t j = 0; j < outertoken.size(); ++j )
 						if ( outertoken[j] == ':' )
 							sempos = j;
-							
+
 					if ( sempos == outertoken.size() )
 					{
 						libmaus2::bambam::BamRange::unique_ptr_type tAi(new libmaus2::bambam::BamRangeChromosome(outertoken,header));
@@ -82,15 +82,15 @@ namespace libmaus2
 					{
 						std::string const refname = outertoken.substr(0,sempos);
 						std::string const rest = outertoken.substr(sempos+1);
-						
+
 						// std::cerr << "refname=" << refname << " rest=" << rest << std::endl;
-						
+
 						uint64_t dashpos = rest.size();
-						
+
 						for ( uint64_t j = 0; j < rest.size(); ++j )
 							if ( rest[j] == '-' )
 								dashpos = j;
-								
+
 						if ( dashpos == rest.size() )
 						{
 							int64_t num = 0;
@@ -102,7 +102,7 @@ namespace libmaus2
 								}
 								else if ( rest[j] == ',' )
 								{
-								
+
 								}
 								else
 								{
@@ -111,7 +111,7 @@ namespace libmaus2
 									se.finish();
 									throw se;
 								}
-								
+
 							libmaus2::bambam::BamRange::unique_ptr_type tAi(new libmaus2::bambam::BamRangeHalfOpen(refname,num-1,header));
 							A[i] = UNIQUE_PTR_MOVE(tAi);
 						}
@@ -119,7 +119,7 @@ namespace libmaus2
 						{
 							std::string const sstart = rest.substr(0,dashpos);
 							std::string const send = rest.substr(dashpos+1);
-						
+
 							int64_t start = 0;
 							for ( uint64_t j = 0; j < sstart.size(); ++j )
 								if ( isdigit(sstart[j]) )
@@ -129,7 +129,7 @@ namespace libmaus2
 								}
 								else if ( sstart[j] == ',' )
 								{
-								
+
 								}
 								else
 								{
@@ -147,7 +147,7 @@ namespace libmaus2
 								}
 								else if ( send[j] == ',' )
 								{
-								
+
 								}
 								else
 								{
@@ -156,13 +156,13 @@ namespace libmaus2
 									se.finish();
 									throw se;
 								}
-								
+
 							libmaus2::bambam::BamRange::unique_ptr_type tAi(new libmaus2::bambam::BamRangeInterval(refname,start-1,end,header));
-							A[i] = UNIQUE_PTR_MOVE(tAi);						
+							A[i] = UNIQUE_PTR_MOVE(tAi);
 						}
 					}
 				}
-				
+
 				return A;
 			}
 		};

@@ -30,7 +30,7 @@ namespace libmaus2
 		{
 			typedef ZlibDecompressorObjectFactory this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			virtual ~ZlibDecompressorObjectFactory() {}
 			virtual DecompressorObject::unique_ptr_type operator()()
 			{

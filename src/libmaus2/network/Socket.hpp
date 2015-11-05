@@ -68,26 +68,26 @@ namespace libmaus2
 			static int multiPoll(std::vector<int> const & fds, int & pfd)
 			{
 				// std::cerr << "Multi poll " << fds.size() << std::endl;
-			
+
 				uint64_t const limit = RLIMIT_NOFILE;
 				uint64_t const numfd = fds.size();
 				::libmaus2::autoarray::AutoArray < struct pollfd > PFD(std::min(limit,numfd));
 				uint64_t const loops = (fds.size() + limit - 1 )/limit;
-				
+
 				for ( uint64_t l = 0; l < loops; ++l )
 				{
 					uint64_t const low = l*limit;
 					uint64_t const high = std::min(low+limit,numfd);
-					
+
 					for ( uint64_t i = 0; i < (high-low); ++i )
 					{
 						PFD[i].fd = fds[low+i];
 						PFD[i].events = POLLIN;
 						PFD[i].revents = 0;
 					}
-					
+
 					int const r = poll(PFD.begin(),high-low,0);
-					
+
 					// std::cerr << "l=" << (l+1) << "/" << loops << " r=" << r << std::endl;
 
 					if ( r > 0 )
@@ -99,7 +99,7 @@ namespace libmaus2
 								// std::cerr << "pfd=" << pfd << " events " << PFD[i].revents << std::endl;
 								return 1;
 							}
-						
+
 						std::cerr << "WARNING: poll returned " << r << " but no file descriptor has events" << std::endl;
 					}
 					else if ( r < 0 )
@@ -122,7 +122,7 @@ namespace libmaus2
 			protected:
 			struct sockaddr_in remaddr;
 			bool remaddrset;
-			
+
 
 			private:
 			void cleanup()
@@ -133,7 +133,7 @@ namespace libmaus2
 					fd = -1;
 				}
 			}
-			
+
 			std::string getStringAddr()
 			{
 				if ( remaddrset )
@@ -160,11 +160,11 @@ namespace libmaus2
 				{
 					pollfd pfd = { getFD(), POLLOUT, 0 };
 					int const ready = poll(&pfd, 1, checkinterval);
-					
+
 					if ( ready == 1 && (pfd.revents & POLLOUT) )
 					{
 						ssize_t wr = ::write ( fd, data, len );
-						
+
 						if ( wr < 0 )
 						{
 							if ( errno == EINTR )
@@ -176,20 +176,20 @@ namespace libmaus2
 								::libmaus2::exception::LibMausException se;
 								se.getStream() << "SocketBase::write() to " << getStringAddr() << " failed: " << strerror(errno);
 								se.finish();
-								throw se;	
+								throw se;
 							}
 						}
-						
+
 						data += wr;
 						len -= wr;
 					}
 					else
 					{
-						std::cerr << "Waiting for fd=" << getFD() << " to become ready for writing"; 
+						std::cerr << "Waiting for fd=" << getFD() << " to become ready for writing";
 						if ( remaddrset )
 						{
 							uint32_t const rem = ntohl(remaddr.sin_addr.s_addr);
-							std::cerr << " remote " 
+							std::cerr << " remote "
 								<< ((rem >> 24) & 0xFF) << "."
 								<< ((rem >> 16) & 0xFF) << "."
 								<< ((rem >>  8) & 0xFF) << "."
@@ -202,24 +202,24 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			public:
 			ssize_t read(char * data, size_t len)
 			{
 				// std::cerr << "read(.," << len << ")" << std::endl;
-			
+
 				ssize_t totalred = 0;
-				
+
 				while ( len )
 				{
 					#if ! defined(__APPLE__)
 					pollfd pfd = { getFD(), POLLIN, 0 };
 					int const ready = poll(&pfd, 1, checkinterval);
-					
+
 					if ( ready == 1 && (pfd.revents & POLLIN) )
 					{
 						ssize_t red = ::read(fd,data,len);
-					
+
 						if ( red > 0 )
 						{
 							totalred += red;
@@ -241,11 +241,11 @@ namespace libmaus2
 					}
 					else
 					{
-						std::cerr << "Waiting for fd=" << getFD() << " to become ready for reading, ready " << ready << " events " << pfd.revents; 
+						std::cerr << "Waiting for fd=" << getFD() << " to become ready for reading, ready " << ready << " events " << pfd.revents;
 						if ( remaddrset )
 						{
 							uint32_t const rem = ntohl(remaddr.sin_addr.s_addr);
-							std::cerr << " remote " 
+							std::cerr << " remote "
 								<< ((rem >> 24) & 0xFF) << "."
 								<< ((rem >> 16) & 0xFF) << "."
 								<< ((rem >>  8) & 0xFF) << "."
@@ -257,7 +257,7 @@ namespace libmaus2
 					}
 					#else // __APPLE__
 					ssize_t red = ::read(fd,data,len);
-					
+
 					if ( red > 0 )
 					{
 						totalred += red;
@@ -274,24 +274,24 @@ namespace libmaus2
 					}
 					#endif
 				}
-				
+
 				return totalred;
 			}
 
 			ssize_t readPart(char * data, size_t len)
 			{
 				ssize_t totalred = 0;
-				
+
 				while ( (! totalred) && len )
 				{
 					#if ! defined(__APPLE__)
 					pollfd pfd = { getFD(), POLLIN, 0 };
 					int const ready = poll(&pfd, 1, checkinterval);
-										
+
 					if ( ready == 1 && (pfd.revents & POLLIN) )
 					{
 						ssize_t red = ::read(fd,data,len);
-					
+
 						if ( red > 0 )
 						{
 							totalred += red;
@@ -313,11 +313,11 @@ namespace libmaus2
 					}
 					else
 					{
-						std::cerr << "Waiting for fd=" << getFD() << " to become ready for reading, ready " << ready << " events " << pfd.revents; 
+						std::cerr << "Waiting for fd=" << getFD() << " to become ready for reading, ready " << ready << " events " << pfd.revents;
 						if ( remaddrset )
 						{
 							uint32_t const rem = ntohl(remaddr.sin_addr.s_addr);
-							std::cerr << " remote " 
+							std::cerr << " remote "
 								<< ((rem >> 24) & 0xFF) << "."
 								<< ((rem >> 16) & 0xFF) << "."
 								<< ((rem >>  8) & 0xFF) << "."
@@ -329,7 +329,7 @@ namespace libmaus2
 					}
 					#else // __APPLE__
 					ssize_t red = ::read(fd,data,len);
-					
+
 					if ( red > 0 )
 					{
 						totalred += red;
@@ -346,7 +346,7 @@ namespace libmaus2
 					}
 					#endif
 				}
-				
+
 				return totalred;
 			}
 
@@ -356,23 +356,23 @@ namespace libmaus2
 				if ( hostname )
 				{
 					struct hostent * he = gethostbyname2(hostname,AF_INET);
-					
+
 					if ( ! he )
 					{
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "failed to get address for " << hostname << " via gethostbyname: " << hstrerror(h_errno);
 						se.finish();
-						throw se;		
+						throw se;
 					}
-					
+
 					recadr.sin_family = he->h_addrtype;
-					
+
 					if ( he->h_addr_list[0] == 0 )
 					{
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "failed to get address for " << hostname << " via gethostbyname (no address returned)";
 						se.finish();
-						throw se;		
+						throw se;
 					}
 					else
 					{
@@ -385,9 +385,9 @@ namespace libmaus2
 							::libmaus2::exception::LibMausException se;
 							se.getStream() << "only IPv4 supported";
 							se.finish();
-							throw se;					
+							throw se;
 						}
-						
+
 						#if 0
 						if ( recadr.sin_family == AF_INET )
 						{
@@ -399,7 +399,7 @@ namespace libmaus2
 				else
 				{
 					recadr.sin_family = AF_INET;
-					recadr.sin_addr.s_addr = INADDR_ANY;			
+					recadr.sin_addr.s_addr = INADDR_ANY;
 				}
 			}
 
@@ -408,7 +408,7 @@ namespace libmaus2
 			: fd(-1), remaddrset(false)
 			{
 				fd = socket(PF_INET,SOCK_STREAM,IPPROTO_TCP);
-				
+
 				if ( fd < 0 )
 				{
 					cleanup();
@@ -426,12 +426,12 @@ namespace libmaus2
 					memcpy ( &remaddr, aadr, sizeof(sockaddr_in) );
 				}
 			}
-			
+
 			~SocketBase()
 			{
 				cleanup();
 			}
-			
+
 			void setNoDelay()
 			{
 				int flag = 1;
@@ -445,21 +445,21 @@ namespace libmaus2
 					throw;
 				}
 			}
-			
+
 			void setNonBlocking()
 			{
 				#if 0
 				int const flags = ::ioctl(fd,F_GETFL);
-				
+
 				if ( flags == -1 )
 				{
 					int const error = errno;
-					
+
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "ioctl("<<fd<<"," << F_GETFL << ",0" <<") failed: " << strerror(error) << std::endl;
 					se.finish();
 					throw se;
-				}				
+				}
 				#else
 				int const flags = 0;
 				#endif
@@ -469,14 +469,14 @@ namespace libmaus2
 				if ( r == -1 )
 				{
 					int const error = errno;
-					
+
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "ioctl() failed: " << strerror(error);
 					se.finish();
-					throw se;				
+					throw se;
 				}
 			}
-			
+
 			bool hasData()
 			{
 				fd_set readfds;
@@ -484,9 +484,9 @@ namespace libmaus2
 				FD_SET(fd,&readfds);
 				struct timeval tv = { 0,0 };
 				int selok = ::select(fd+1,&readfds,0,0,&tv);
-				return selok > 0;                                              				
+				return selok > 0;
 			}
-			
+
 			int getFD() const
 			{
 				return fd;
@@ -498,7 +498,7 @@ namespace libmaus2
 				fd = -1;
 				return rfd;
 			}
-			
+
 			template<typename data_type>
 			void writeMessage(
 				uint64_t const tag,
@@ -517,7 +517,7 @@ namespace libmaus2
 					);
 				}
 			}
-			
+
 			template<typename data_type>
 			void writeSingle(
 				uint64_t const tag,
@@ -553,7 +553,7 @@ namespace libmaus2
 			{
 				writePair<type_a,type_b>(0,D);
 			}
-			
+
 			template<typename type_a, typename type_b>
 			void writePairArray(std::pair<type_a,type_b> const * P, uint64_t const n)
 			{
@@ -561,16 +561,16 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < n; ++i )
 					writePair(P[i]);
 			}
-			
+
 			void barrierR()
 			{
-				readSingle<uint64_t>();			
+				readSingle<uint64_t>();
 			}
 			void barrierW()
 			{
-				writeSingle<uint64_t>();			
+				writeSingle<uint64_t>();
 			}
-			
+
 			void barrierRw()
 			{
 				barrierR();
@@ -601,7 +601,7 @@ namespace libmaus2
 			{
 				writeSingle<uint64_t>(n);
 				writeSingle<uint64_t>( (n + b -1 ) / b );
-			
+
 				while ( n )
 				{
 					uint64_t const towrite = std::min(n,b);
@@ -623,7 +623,7 @@ namespace libmaus2
 				writeSingle<uint64_t>(n);
 				// number of blocks
 				writeSingle<uint64_t>( (n + b -1 ) / b );
-			
+
 				while ( n )
 				{
 					uint64_t const towrite = std::min(n,b);
@@ -634,31 +634,31 @@ namespace libmaus2
 			}
 
 			template<
-				typename data_type, 
+				typename data_type,
 				::libmaus2::autoarray::alloc_type atype /* = ::libmaus2::autoarray::alloc_type_cxx */
 			>
 			::libmaus2::autoarray::AutoArray<data_type,atype> readMessageInBlocks()
 			{
 				::libmaus2::timing::RealTimeClock rtc; rtc.start();
-			
+
 				uint64_t const n = readSingle<uint64_t>();
 				uint64_t const blocks = readSingle<uint64_t>();
 				::libmaus2::autoarray::AutoArray<data_type,atype> A(n,false);
 				data_type * p = A.begin();
-				
+
 				for ( uint64_t i = 0; i < blocks; ++i )
 				{
 					::libmaus2::autoarray::AutoArray<data_type> B = readMessage<data_type>();
 					std::copy(B.begin(),B.end(),p);
 					p += B.size();
 				}
-				
+
 				#if 0
 				std::cerr << "Received array of size " << n*sizeof(data_type) << " bytes in time " <<
-					rtc.getElapsedSeconds() << " rate " << 
+					rtc.getElapsedSeconds() << " rate " <<
 					((n*sizeof(data_type))/rtc.getElapsedSeconds()) / (1024.0*1024.0) << " MB/s." << std::endl;
 				#endif
-				
+
 				return A;
 			}
 
@@ -678,7 +678,7 @@ namespace libmaus2
 					D += towrite;
 				}
 			}
-			
+
 			void writeString(uint64_t const tag, std::string const & s)
 			{
 				char const * c = s.c_str();
@@ -691,7 +691,7 @@ namespace libmaus2
 			{
 				writeString(0,s);
 			}
-			
+
 			void writeStringVector(uint64_t const tag, std::vector<std::string> const & V)
 			{
 				uint64_t const n = V.size();
@@ -706,7 +706,7 @@ namespace libmaus2
 			{
 				writeStringVector(0,V);
 			}
-			
+
 			std::string readString(uint64_t & tag)
 			{
 				tag = readSingle<uint64_t>();
@@ -718,31 +718,31 @@ namespace libmaus2
 				uint64_t tag;
 				return readString(tag);
 			}
-			
+
 			std::vector<std::string> readStringVector(uint64_t & tag)
 			{
 				uint64_t n,nn;
 				readMessage<uint64_t>(tag,&n,nn);
-				
+
 				std::vector<std::string> V;
 				for ( uint64_t i = 0; i < n; ++i )
 					V.push_back( readString(tag) );
-				
+
 				return V;
 			}
-			
+
 			std::vector<std::string> readStringVector()
 			{
 				uint64_t tag;
 				return readStringVector(tag);
 			}
-			
+
 			template<typename data_type>
 			void readSingle(uint64_t & tag, data_type & D)
-			{			
+			{
 				tag = readNumber();
 				uint64_t const n = readNumber();
-				
+
 				if ( n != 1 )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -754,7 +754,7 @@ namespace libmaus2
 
 				uint64_t const toread = n * sizeof(data_type);
 				ssize_t const red = read ( reinterpret_cast<char *>(&D) , toread );
-				
+
 				if ( red != static_cast<ssize_t>(toread) )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -766,15 +766,15 @@ namespace libmaus2
 
 			template<typename data_type>
 			data_type readSingle(uint64_t & tag)
-			{	
+			{
 				data_type D;
-				readSingle(tag,D);		
+				readSingle(tag,D);
 				return D;
 			}
 
 			template<typename data_type>
 			data_type readSingle()
-			{		
+			{
 				uint64_t tag;
 				data_type D;
 				readSingle<data_type>(tag,D);
@@ -783,7 +783,7 @@ namespace libmaus2
 
 			template<typename type_a, typename type_b>
 			std::pair<type_a,type_b> readPair(uint64_t & tag)
-			{	
+			{
 				type_a a = readSingle<type_a>(tag);
 				type_b b = readSingle<type_b>(tag);
 				return std::pair<type_a,type_b>(a,b);
@@ -805,7 +805,7 @@ namespace libmaus2
 					A[i] = readPair<type_a,type_b>();
 				return A;
 			}
-			
+
 			template<typename data_type>
 			void readMessage(
 				uint64_t & tag,
@@ -818,10 +818,10 @@ namespace libmaus2
 				#if 0
 				std::cerr << "tag=" << tag << " n=" << n << std::endl;
 				#endif
-				
+
 				uint64_t const toread = n * sizeof(data_type);
 				ssize_t const red = read ( reinterpret_cast<char *>(D) , toread );
-				
+
 				if ( red != static_cast<ssize_t>(toread) )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -836,14 +836,14 @@ namespace libmaus2
 			{
 				tag = readNumber();
 				uint64_t const n = readNumber();
-				
+
 				#if defined(READMESSAGEDEBUG)
 				std::cerr << "tag=" << tag << " n=" << n << std::endl;
 				::libmaus2::timing::RealTimeClock rtc; rtc.start();
 				#endif
-				
+
 				::libmaus2::autoarray::AutoArray<data_type> D(n,false);
-				
+
 				uint64_t const toread = n * sizeof(data_type);
 				ssize_t const red = read ( reinterpret_cast<char *>(D.get()) , toread );
 
@@ -859,7 +859,7 @@ namespace libmaus2
 				std::cerr << "Got " << toread << " bytes in time " << rtc.getElapsedSeconds()
 					<< " rate " << (toread / rtc.getElapsedSeconds())/(1024.0*1024.0) << " MB/s." << std::endl;
 				#endif
-				
+
 				return D;
 			}
 
@@ -890,7 +890,7 @@ namespace libmaus2
 			{
 				uint8_t A[8];
 				uint64_t const red = read(reinterpret_cast<char *>(&A[0]),sizeof(A)/sizeof(A[0]));
-				
+
 				if ( red != sizeof(A)/sizeof(A[0]) )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -898,15 +898,15 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				uint64_t v = 0;
-				
+
 				for ( uint64_t i = 0; i < 8; ++i )
 				{
 					v <<= 8;
 					v |= A[i];
 				}
-				
+
 				return v;
 			}
 
@@ -916,30 +916,30 @@ namespace libmaus2
 		{
 			typedef ClientSocket this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
-			// sockaddr_in recadr;                     
+
+			// sockaddr_in recadr;
 
 			ClientSocket(unsigned short port, char const * hostname)
 			: SocketBase()
 			{
-				setAddress(hostname, remaddr);		
+				setAddress(hostname, remaddr);
 				remaddr.sin_port = htons(port);
 				remaddrset = true;
-				
+
 				if ( connect(getFD(),reinterpret_cast<const sockaddr *>(&remaddr),sizeof(remaddr)) != 0 )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "connect() failed: " << strerror(errno);
 					se.finish();
-					throw se;		
+					throw se;
 				}
 			}
-			
+
 			static SocketBase::unique_ptr_type baseCast(ClientSocket::unique_ptr_type & C)
 			{
 				int const fd = C->getFD();
 				C->releaseFD();
-				
+
 				try
 				{
 					SocketBase::unique_ptr_type ptr ( new SocketBase(fd) );
@@ -951,7 +951,7 @@ namespace libmaus2
 					throw;
 				}
 			}
-			
+
 			static SocketBase::unique_ptr_type baseAlloc(unsigned short const port, char const * const hostname)
 			{
 				ClientSocket::unique_ptr_type ptr ( new ClientSocket(port,hostname) );
@@ -970,17 +970,17 @@ namespace libmaus2
 		{
 			typedef ServerSocket this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			sockaddr_in recadr;
-			
+
 			unsigned short getPort() const
 			{
 				return ntohs(recadr.sin_port);
 			}
-			
+
 			static unique_ptr_type allocateServerSocket(
-				unsigned short & port, 
-				unsigned int const backlog, 
+				unsigned short & port,
+				unsigned int const backlog,
 				std::string const & hostname,
 				unsigned int tries)
 			{
@@ -989,8 +989,8 @@ namespace libmaus2
 			}
 
 			static unique_ptr_type allocateServerSocket(
-				unsigned short & port, 
-				unsigned int const backlog, 
+				unsigned short & port,
+				unsigned int const backlog,
 				char const * hostname,
 				unsigned int tries)
 			{
@@ -1006,33 +1006,33 @@ namespace libmaus2
 						port++;
 					}
 				}
-				
+
 				::libmaus2::exception::LibMausException ex;
 				ex.getStream() << "Failed to allocate ServerSocket (no ports available)";
 				ex.finish();
 				throw ex;
 			}
-			
+
 			ServerSocket(unsigned short rport, unsigned int backlog, char const * hostname)
 			: SocketBase()
 			{
 				memset(&recadr,0,sizeof(recadr));
 
-				setAddress(hostname, recadr);		
+				setAddress(hostname, recadr);
 				recadr.sin_port = htons(rport);
-				
+
 				if ( bind ( getFD(), reinterpret_cast<struct sockaddr *>(&recadr), sizeof(recadr) ) != 0 )
 				{
 					if ( errno == EADDRINUSE )
 						throw std::runtime_error("bind: address is already in use.");
-				
+
 					// cleanup();
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "bind() failed: " << strerror(errno);
 					se.finish();
-					throw se;		
+					throw se;
 				}
-				
+
 				if ( listen ( getFD(), backlog ) != 0 )
 				{
 					// cleanup();
@@ -1042,24 +1042,24 @@ namespace libmaus2
 					throw se;
 				}
 			}
-			
+
 			~ServerSocket()
 			{
 			}
-			
+
 			SocketBase::unique_ptr_type accept()
 			{
 				sockaddr_in aadr;
 				socklen_t len = sizeof(aadr);
-			
+
 				int afd = ::accept(getFD(),reinterpret_cast<struct sockaddr *>(&aadr),&len);
-				
+
 				if ( afd < 0 )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "accept() failed: " << strerror(errno);
 					se.finish();
-					throw se;		
+					throw se;
 				}
 				else
 				{
@@ -1074,19 +1074,19 @@ namespace libmaus2
 				SocketBase::shared_ptr_type sptr(ptr);
 				return sptr;
 			}
-			
+
 			bool waitForConnection(unsigned int const t)
 			{
 				fd_set fds;
 				FD_ZERO(&fds);
 				FD_SET(getFD(),&fds);
-				struct timeval timeout = { 
-					static_cast<long>(t), 
+				struct timeval timeout = {
+					static_cast<long>(t),
 					static_cast<long>(0)
 				};
-			
+
 				int const r = ::select(getFD()+1,&fds,0,0,&timeout);
-				
+
 				if ( r < 0 )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -1107,7 +1107,7 @@ namespace libmaus2
 			SocketBase::unique_ptr_type accept(std::string const & sid)
 			{
 				SocketBase::unique_ptr_type ptr;
-				
+
 				while ( ! ptr.get() )
 				{
 					try
@@ -1122,7 +1122,7 @@ namespace libmaus2
 						std::cerr << ex.what() << std::endl;
 					}
 				}
-				
+
 				return UNIQUE_PTR_MOVE(ptr);
 			}
 		};
@@ -1133,7 +1133,7 @@ namespace libmaus2
 			typedef _data_type data_type;
 			typedef SocketOutputBuffer<data_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			::libmaus2::network::SocketBase * const socket;
 			::libmaus2::autoarray::AutoArray< data_type > B;
 			data_type * const pa;
@@ -1142,30 +1142,30 @@ namespace libmaus2
 			::libmaus2::timing::RealTimeClock flushclock;
 			double flushtime;
 			uint64_t datatag;
-			
+
 			SocketOutputBuffer(
-				::libmaus2::network::SocketBase * const rsocket, 
+				::libmaus2::network::SocketBase * const rsocket,
 				uint64_t const bufsize,
 				uint64_t const rdatatag = 0
 			)
 			: socket(rsocket), B(bufsize), pa(B.begin()), pc(pa), pe(B.end()), datatag(rdatatag)
 			{
-			
+
 			}
-			
+
 			void flush()
 			{
 				if ( pc != pa )
 				{
 					uint64_t const n = pc-pa;
 					flushclock.start();
-					socket->writeSingle<uint64_t>(datatag,n);	
+					socket->writeSingle<uint64_t>(datatag,n);
 					socket->writeMessage<data_type>(datatag,pa,n);
 					flushtime = flushclock.getElapsedSeconds();
 				}
 				pc = pa;
 			}
-			
+
 			bool put(data_type const & v)
 			{
 				*(pc++) = v;
@@ -1187,13 +1187,13 @@ namespace libmaus2
 			typedef _data_type data_type;
 			typedef SocketOutputBufferIterator<data_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			SocketOutputBuffer<data_type> * SOB;
-			
+
 			SocketOutputBufferIterator(SocketOutputBuffer<data_type> * const rSOB)
 			: SOB(rSOB)
 			{}
-			
+
 			this_type & operator*() { return *this; }
 			this_type & operator++(int) { return *this; }
 			this_type & operator++() { return *this; }
@@ -1206,7 +1206,7 @@ namespace libmaus2
 			typedef _data_type data_type;
 			typedef SocketInputBuffer<data_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			::libmaus2::network::SocketBase * const socket;
 			uint64_t const limit;
 			uint64_t proc;
@@ -1217,7 +1217,7 @@ namespace libmaus2
 			uint64_t const termtag;
 			bool const requestblock;
 			bool termreceived;
-			
+
 			static uint64_t getDefaultLimit()
 			{
 				return std::numeric_limits<uint64_t>::max();
@@ -1227,12 +1227,12 @@ namespace libmaus2
 			{
 				return std::numeric_limits<uint64_t>::max();
 			}
-			
+
 			static bool getDefaultRequestBlock()
 			{
 				return false;
 			}
-			
+
 			SocketInputBuffer(
 				::libmaus2::network::SocketBase * const rsocket,
 				uint64_t const rlimit = getDefaultLimit(), // std::numeric_limits<uint64_t>::max(),
@@ -1242,9 +1242,9 @@ namespace libmaus2
 			: socket(rsocket), limit(rlimit), proc(0), B(), pa(0), pc(0), pe(0), termtag(rtermtag),
 			  requestblock(rrequestblock), termreceived(false)
 			{
-			
+
 			}
-			
+
 			void fill()
 			{
 				try
@@ -1253,10 +1253,10 @@ namespace libmaus2
 					{
 						socket->writeSingle<uint64_t>(0);
 					}
-					
+
 					uint64_t tag, n, nn;
 					socket->readMessage < uint64_t > (tag,&n,nn);
-					
+
 					if ( tag == termtag )
 					{
 						proc = limit;
@@ -1273,7 +1273,7 @@ namespace libmaus2
 						uint64_t const toadd = std::min(n,limit-proc);
 						pe = pa+toadd;
 						proc += toadd;
-						
+
 						// std::cerr << "Received " << toadd << " elements of data." << std::endl;
 					}
 				}
@@ -1282,7 +1282,7 @@ namespace libmaus2
 					std::cerr << ex.what() << std::endl;
 				}
 			}
-			
+
 			bool get(data_type & v)
 			{
 				if ( pc == pe )
@@ -1301,7 +1301,7 @@ namespace libmaus2
 					return false;
 				}
 			}
-			
+
 			int get()
 			{
 				data_type v;
@@ -1319,7 +1319,7 @@ namespace libmaus2
 			typedef _data_type data_type;
 			typedef AsynchronousSocketInputBuffer<data_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			::libmaus2::network::SocketBase * const socket;
  			::libmaus2::autoarray::AutoArray< data_type > B;
 			data_type * pa;
@@ -1330,39 +1330,39 @@ namespace libmaus2
  			::libmaus2::autoarray::AutoArray< data_type > D;
 			::libmaus2::parallel::SynchronousQueue<uint64_t> fullqueue;
 			::libmaus2::parallel::SynchronousQueue<uint64_t> emptyqueue;
-			
+
 			static uint64_t getDefaultTermTag()
 			{
 				return std::numeric_limits<uint64_t>::max();
 			}
-			
+
 			AsynchronousSocketInputBuffer(
 				::libmaus2::network::SocketBase * const rsocket,
 				uint64_t const rtermtag = getDefaultTermTag()
 			)
 			: socket(rsocket),
-			  B(), pa(0), pc(0), pe(0), 
+			  B(), pa(0), pc(0), pe(0),
 			  termtag(rtermtag)
 			{
 				emptyqueue.enque(0);
 				start();
 			}
-			
+
 			virtual void * run()
 			{
 				try
 				{
 					bool termreceived = false;
-					
+
 					while ( ! termreceived )
 					{
 						emptyqueue.deque();
-						
+
 						socket->writeSingle<uint64_t>(0);
-						
+
 						uint64_t tag, n, nn;
 						socket->readMessage < uint64_t > (tag,&n,nn);
-						
+
 						if ( tag == termtag )
 						{
 							termreceived = true;
@@ -1384,13 +1384,13 @@ namespace libmaus2
 				}
 				return 0;
 			}
-			
+
 			bool fill()
 			{
 				try
 				{
 					uint64_t const tag = fullqueue.deque();
-					
+
 					if ( tag == termtag )
 					{
 						return false;
@@ -1403,7 +1403,7 @@ namespace libmaus2
 						pe = B.end();
 						emptyqueue.enque(0);
 						return true;
-					}					
+					}
 				}
 				catch(::std::exception const & ex)
 				{
@@ -1411,7 +1411,7 @@ namespace libmaus2
 					return false;
 				}
 			}
-			
+
 			bool get(data_type & v)
 			{
 				if ( pc == pe )
@@ -1428,7 +1428,7 @@ namespace libmaus2
 					return false;
 				}
 			}
-			
+
 			int get()
 			{
 				data_type v;

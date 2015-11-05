@@ -35,10 +35,10 @@ namespace libmaus2
 			typedef HistogramSet this_type;
 			//! unique pointer type
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			//! histograms array
 			::libmaus2::autoarray::AutoArray < Histogram::unique_ptr_type > H;
-			
+
 			/**
 			 * constructor
 			 *
@@ -46,7 +46,7 @@ namespace libmaus2
 			 * @param lowsize lower size of histograms to be constructed
 			 **/
 			HistogramSet(uint64_t const numhist, uint64_t const lowsize);
-			
+
 			/**
 			 * get histogram for i
 			 *
@@ -57,7 +57,7 @@ namespace libmaus2
 			{
 				return *(H[i]);
 			}
-			
+
 			/**
 			 * print histogram set to out
 			 *

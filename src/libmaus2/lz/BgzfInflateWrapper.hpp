@@ -28,7 +28,7 @@ namespace libmaus2
 		struct BgzfInflateWrapper
 		{
 			::libmaus2::lz::BgzfInflate<std::istream> bgzf;
-			
+
 			BgzfInflateWrapper(std::istream & in) : bgzf(in) {}
 			BgzfInflateWrapper(std::istream & in, std::ostream & out) : bgzf(in,out) {}
 			BgzfInflateWrapper(std::istream & in, libmaus2::lz::BgzfVirtualOffset const & start, libmaus2::lz::BgzfVirtualOffset const & end) : bgzf(in,start,end) {}

@@ -34,10 +34,10 @@ namespace libmaus2
 			uint64_t const numreads;
 			uint64_t const readsperlist;
 			uint64_t const numlists;
-			
+
 			::libmaus2::autoarray::AutoArray < EdgeList::unique_ptr_type > edgelists;
 			::libmaus2::autoarray::AutoArray < EdgeBufferLocal::unique_ptr_type > edgebuffers;
-			
+
 			LocalEdgeSet(
 				uint64_t const rsrclow,
 				uint64_t const rsrchigh,
@@ -45,8 +45,8 @@ namespace libmaus2
 				uint64_t const maxedges,
 				uint64_t const bufsize
 			)
-			: srclow(rsrclow), srchigh(rsrchigh), numreads(srchigh-srclow), 
-			  readsperlist(rreadsperlist), 
+			: srclow(rsrclow), srchigh(rsrchigh), numreads(srchigh-srclow),
+			  readsperlist(rreadsperlist),
 			  numlists( (numreads+readsperlist-1)/readsperlist ),
 			  edgelists(numlists),
 			  edgebuffers(numlists)
@@ -55,27 +55,27 @@ namespace libmaus2
 				{
 					uint64_t const low = srclow + i*readsperlist;
 					uint64_t const high = std::min(low+readsperlist,srchigh);
-					
+
 					edgelists[i] =  EdgeList::unique_ptr_type ( new EdgeList(low,high,maxedges) );
-					
-					edgebuffers[i] =  EdgeBufferLocal::unique_ptr_type( 
-						new EdgeBufferLocal(*edgelists[i], bufsize) 
+
+					edgebuffers[i] =  EdgeBufferLocal::unique_ptr_type(
+						new EdgeBufferLocal(*edgelists[i], bufsize)
 					);
 				}
 			}
-			
+
 			void operator()(::libmaus2::graph::TripleEdge const & T)
 			{
 				if ( T.a >= srclow && T.a < srchigh )
 					edgebuffers [ (T.a-srclow) / readsperlist ]->put(T);
 			}
-			
+
 			void flush()
 			{
 				for ( uint64_t i = 0; i < edgebuffers.size(); ++i )
 					edgebuffers[i]->flush();
 			}
-			
+
 			void print(std::ostream & out) const
 			{
 				for ( uint64_t i = 0; i < numlists; ++i )

@@ -44,11 +44,11 @@ namespace libmaus2
 			static libmaus2::bambam::SamPrintableTable const SPT;
 			static libmaus2::bambam::SamZPrintableTable const SZPT;
 			static libmaus2::math::DecimalNumberParser const DNP;
-			
+
 			typedef char const * c_ptr_type;
 			typedef c_ptr_type c_ptr_type_pair[2];
-			
-			enum sam_info_base_field_status 
+
+			enum sam_info_base_field_status
 			{
 				sam_info_base_field_undefined,
 				sam_info_base_field_defined
@@ -73,16 +73,16 @@ namespace libmaus2
 			)
 			{
 				size_t const fieldlen = field[1]-field[0];
-				
+
 				/* undefined by default */
 				defined = sam_info_base_field_undefined;
-				
+
 				/* extend space if necessary */
 				if ( !((fieldlen+1) < str.size()) )
 					str = libmaus2::autoarray::AutoArray<char>(fieldlen+1,false);
-				
+
 				if ( fieldlen == 1 && field[0][0] == '*' )
-				{				
+				{
 					str[0] = '*';
 					str[1] = 0;
 				}
@@ -91,28 +91,28 @@ namespace libmaus2
 					memcpy(str.begin(),field[0],fieldlen);
 					str[fieldlen] = 0;
 					defined = sam_info_base_field_defined;
-				}				
+				}
 			}
 			#endif
-			
+
 			static int32_t parseNumberField(c_ptr_type_pair field, char const * fieldname)
 			{
 				char const * p = field[0];
 				bool neg = false;
 				uint32_t const fieldlen = field[1]-field[0];
-				
-				if ( fieldlen > 0 && p[0] == '-' )				
+
+				if ( fieldlen > 0 && p[0] == '-' )
 				{
 					neg = true;
 					p += 1;
 				}
-				
+
 				if ( p == field[1] )
 				{
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "libmaus2::bambam::SamInfoBase: unable to parse " << std::string(field[0],field[1]) << " as number for " << fieldname << "\n";
 					lme.finish();
-					throw lme;				
+					throw lme;
 				}
 
 				int32_t num = 0;
@@ -131,7 +131,7 @@ namespace libmaus2
 						lme.finish();
 						throw lme;
 					}
-										
+
 				return neg ? -num : num;
 			}
 		};

@@ -27,7 +27,7 @@
 struct SerialisableUint64
 {
 	uint64_t i;
-	
+
 	SerialisableUint64(uint64_t const ri = 0) : i(ri) {}
 
 	template<typename stream_type>
@@ -41,17 +41,17 @@ struct SerialisableUint64
 	{
 		i = libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
 	}
-	
+
 	static uint64_t getSerialisedObjectSize()
 	{
 		return sizeof(uint64_t);
 	}
-	
+
 	bool operator<(SerialisableUint64 const & U) const
 	{
 		return i < U.i;
 	}
-	
+
 	bool operator==(SerialisableUint64 const & U) const
 	{
 		return i == U.i;
@@ -75,7 +75,7 @@ int main()
 		std::stringstream indexiostr;
 		index_type::unique_ptr_type index(new index_type(indexiostr));
 		uint64_t ipos = 0;
-		
+
 		for ( int z = 0; z < 4; ++z )
 		{
 			indexiostr.seekp(ipos,std::ios::beg);
@@ -97,7 +97,7 @@ int main()
 			ipos = index->flush();
 
 			// index.reset();
-			
+
 			std::cerr << std::string(80,'-') << std::endl;
 
 			indexiostr.clear();
@@ -108,10 +108,10 @@ int main()
 			indexiostr.seekg(indexpos);
 			libmaus2::index::ExternalMemoryIndexDecoder<SerialisableUint64,base_index_log,inner_index_log> indexdec0(indexiostr,0);
 			#endif
-			
+
 			uint64_t maxc;
 
-			#if 0			
+			#if 0
 			maxc = 0;
 			for ( uint64_t i = 0; i < n; ++i )
 			{
@@ -120,25 +120,25 @@ int main()
 				libmaus2::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<SerialisableUint64> P0 = indexdec0.findLargestSmaller(i);
 				assert ( P == P0 );
 				#endif
-				
+
 				dataiostr.clear();
 				dataiostr.seekg(P.P.first);
 				libmaus2::lz::SnappyInputStream sis(dataiostr);
 				sis.ignore(P.P.second);
-				
-				uint64_t c = 0;			
+
+				uint64_t c = 0;
 				while ( sis.peek() >= 0 )
 				{
 					SerialisableUint64 U;
 					U.deserialise(sis);
 					// std::cerr << U.i << std::endl;
-					
+
 					if ( U.i >= i )
 						break;
-						
+
 					++c;
 				}
-				
+
 				maxc = std::max(c,maxc);
 
 				if ( (i & ((1ull<<16)-1)) == 0 )
@@ -151,31 +151,31 @@ int main()
 			for ( uint64_t i = 0; i < n; ++i )
 			{
 				libmaus2::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<SerialisableUint64> P = indexdec.findLargestSmaller(i,true /* cache only */);
-				
+
 				dataiostr.clear();
 				dataiostr.seekg(P.P.first);
 				libmaus2::lz::SnappyInputStream sis(dataiostr);
 				sis.ignore(P.P.second);
-				
-				uint64_t c = 0;			
+
+				uint64_t c = 0;
 				while ( sis.peek() >= 0 )
 				{
 					SerialisableUint64 U;
 					U.deserialise(sis);
 					// std::cerr << U.i << std::endl;
-					
+
 					if ( U.i >= i )
 						break;
-						
+
 					++c;
 				}
-				
+
 				maxc = std::max(c,maxc);
 
 				if ( (i & ((1ull<<16)-1)) == 0 )
 					std::cerr << "i=" << i << " c=" << c << " P=" << P.P.first << "," << P.P.second << " blockid=" << P.blockid << std::endl;
 			}
-			
+
 			std::cerr << "maxc=" << maxc << std::endl;
 		}
 	}

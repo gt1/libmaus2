@@ -35,7 +35,7 @@ namespace libmaus2
 			private:
 			//! limiot
 			uint64_t const limit;
-		
+
 			public:
 			/**
 			 * constructor
@@ -46,14 +46,14 @@ namespace libmaus2
 			 * @param roffset in file offset
 			 **/
 			LimitedGenericInput(
-				std::string const & filename, 
-				uint64_t const rbufsize, 
+				std::string const & filename,
+				uint64_t const rbufsize,
 				uint64_t const rlimit,
 				uint64_t const roffset = 0
 			)
 			: GenericInput<input_type>(filename,rbufsize,roffset), limit(rlimit)
 			{
-			
+
 			}
 
 			/**

@@ -18,7 +18,7 @@
 */
 
 #include <libmaus2/util/PositiveDifferenceArray64.hpp>
-			
+
 void libmaus2::util::PositiveDifferenceArray64::serialise(std::ostream & out) const
 {
 	A->serialise(out);

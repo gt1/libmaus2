@@ -42,7 +42,7 @@ void printCRC(uint8_t const * s, uint64_t const n, std::ostream & out)
 	dig.init();
 	dig.update(s,n);
 	out << libmaus2::util::Demangle::demangle<crc>() << "\t" << std::hex << dig.digestui() << std::dec;
-	out << "\t" << rtc.getElapsedSeconds();	
+	out << "\t" << rtc.getElapsedSeconds();
 	out << std::endl;
 }
 
@@ -55,7 +55,7 @@ void printCRCSingleByteUpdate(uint8_t const * s, uint64_t const n, std::ostream 
 	for ( uint64_t i = 0; i < n; ++i )
 		dig.update(s+i,1);
 	out << libmaus2::util::Demangle::demangle<crc>() << "\t" << std::hex << dig.digestui() << std::dec;
-	out << "\t" << rtc.getElapsedSeconds();	
+	out << "\t" << rtc.getElapsedSeconds();
 	out << std::endl;
 }
 
@@ -96,7 +96,7 @@ typedef void (*sha2_func)(uint8_t const * text, uint32_t digest[8], uint64_t con
 void printCRCASM(uint8_t const * pa, size_t n, sha2_func const func, char const * name, std::ostream & out)
 {
 	libmaus2::timing::RealTimeClock rtc; rtc.start();
-	
+
 	// block size for sha256
 	uint64_t const sha256_blocksize = 64;
 	// number of blocks necessary to store data
@@ -116,30 +116,30 @@ void printCRCASM(uint8_t const * pa, size_t n, sha2_func const func, char const 
 	std::fill(B.begin()+n+1,B.end()-8,0);
 	// put number of bits stored in last 8 bytes as big endian 64 bit number
 	putBE64(B.end()-8,n << 3);
-	
+
 	// initial state for sha256
-	uint32_t digest[8] = 
+	uint32_t digest[8] =
 	{
-		0x6a09e667ul, 0xbb67ae85ul, 0x3c6ef372ul, 0xa54ff53aul, 
+		0x6a09e667ul, 0xbb67ae85ul, 0x3c6ef372ul, 0xa54ff53aul,
 		0x510e527ful, 0x9b05688cul, 0x1f83d9abul, 0x5be0cd19ul
 	};
-	
+
 	func(B.begin(), &digest[0], numblocks);
 	// sha256_avx(B.begin(), &digest[0], numblocks);
-	
+
 	out << name << "\t";
 	for ( uint64_t i = 0; i < 8; ++i )
 		out << std::hex << std::setw(8) << std::setfill('0') << (digest[i]) << std::dec;
-	
+
 	out << "\t" << rtc.getElapsedSeconds();
-	
+
 	out << std::endl;
 }
 
 void printCRCASMNoCopy(uint8_t const * A, size_t const n, sha2_func const func, char const * name, std::ostream & out)
 {
 	libmaus2::timing::RealTimeClock rtc; rtc.start();
-	
+
 	uint64_t const sha2_blocksize = 64;
 	// full blocks
 	uint64_t const fullblocks = n / sha2_blocksize;
@@ -147,15 +147,15 @@ void printCRCASMNoCopy(uint8_t const * A, size_t const n, sha2_func const func, 
 	uint64_t const rest = n - fullblocks * sha2_blocksize;
 
 	// initial state for sha256
-	uint32_t digest[8] = 
+	uint32_t digest[8] =
 	{
-		0x6a09e667ul, 0xbb67ae85ul, 0x3c6ef372ul, 0xa54ff53aul, 
+		0x6a09e667ul, 0xbb67ae85ul, 0x3c6ef372ul, 0xa54ff53aul,
 		0x510e527ful, 0x9b05688cul, 0x1f83d9abul, 0x5be0cd19ul
 	};
-	
+
 	// process full blocks
 	func(A, &digest[0], fullblocks);
-	
+
 	// temporary space (two input blocks)
 	uint8_t temp[2*sha2_blocksize];
 
@@ -170,10 +170,10 @@ void printCRCASMNoCopy(uint8_t const * A, size_t const n, sha2_func const func, 
 	std::copy(pa,pe,&temp[0]);
 	// put padding marker
 	temp[rest] = 0x80;
-	
+
 	// space in first block
 	uint64_t const firstblockspace = sha2_blocksize - rest;
-	
+
 	if ( firstblockspace >= 9 )
 	{
 		std::fill(&temp[rest]+1,&temp[sha2_blocksize-sizeof(uint64_t)],0);
@@ -183,16 +183,16 @@ void printCRCASMNoCopy(uint8_t const * A, size_t const n, sha2_func const func, 
 	else
 	{
 		std::fill(&temp[rest]+1,&temp[(2*sha2_blocksize)-sizeof(uint64_t)],0);
-		putBE64(&temp[2*sha2_blocksize-sizeof(uint64_t)],n<<3);		
+		putBE64(&temp[2*sha2_blocksize-sizeof(uint64_t)],n<<3);
 		func(&temp[0], &digest[0], 2);
 	}
 
 	out << name << "\t";
 	for ( uint64_t i = 0; i < 8; ++i )
 		out << std::hex << std::setw(8) << std::setfill('0') << (digest[i]) << std::dec;
-	
+
 	out << "\t" << rtc.getElapsedSeconds();
-	
+
 	out << std::endl;
 }
 
@@ -201,7 +201,7 @@ typedef void (*sha2_512_func)(uint8_t const * text, uint64_t digest[8], uint64_t
 void printCRCASM512NoCopy(uint8_t const * A, size_t const n, sha2_512_func const func, char const * name, std::ostream & out)
 {
 	libmaus2::timing::RealTimeClock rtc; rtc.start();
-	
+
 	uint64_t const sha2_blocksize = 128;
 	// full blocks
 	uint64_t const fullblocks = n / sha2_blocksize;
@@ -209,17 +209,17 @@ void printCRCASM512NoCopy(uint8_t const * A, size_t const n, sha2_512_func const
 	uint64_t const rest = n - fullblocks * sha2_blocksize;
 
 	// initial state for sha256
-	uint64_t digest[8] = 
+	uint64_t digest[8] =
 	{
 		0x6A09E667F3BCC908ULL,0xBB67AE8584CAA73BULL,
 		0x3C6EF372FE94F82BULL,0xA54FF53A5F1D36F1ULL,
 		0x510E527FADE682D1ULL,0x9B05688C2B3E6C1FULL,
 		0x1F83D9ABFB41BD6BULL,0x5BE0CD19137E2179ULL,
 	};
-	
+
 	// process full blocks
 	func(A, &digest[0], fullblocks);
-	
+
 	// temporary space (two input blocks)
 	uint8_t temp[2*sha2_blocksize];
 
@@ -234,10 +234,10 @@ void printCRCASM512NoCopy(uint8_t const * A, size_t const n, sha2_512_func const
 	std::copy(pa,pe,&temp[0]);
 	// put padding marker
 	temp[rest] = 0x80;
-	
+
 	// space in first block
 	uint64_t const firstblockspace = sha2_blocksize - rest;
-	
+
 	if ( firstblockspace >= 1+2*sizeof(uint64_t) )
 	{
 		std::fill(&temp[rest]+1,&temp[sha2_blocksize-2*sizeof(uint64_t)],0);
@@ -247,34 +247,34 @@ void printCRCASM512NoCopy(uint8_t const * A, size_t const n, sha2_512_func const
 	else
 	{
 		std::fill(&temp[rest]+1,&temp[(2*sha2_blocksize)-2*sizeof(uint64_t)],0);
-		putBE128(&temp[2*sha2_blocksize-2*sizeof(uint64_t)],n<<3);		
+		putBE128(&temp[2*sha2_blocksize-2*sizeof(uint64_t)],n<<3);
 		func(&temp[0], &digest[0], 2);
 	}
 
 	out << name << "\t";
 	for ( uint64_t i = 0; i < 8; ++i )
 		out << std::hex << std::setw(16) << std::setfill('0') << (digest[i]) << std::dec;
-	
+
 	out << "\t" << rtc.getElapsedSeconds();
-	
+
 	out << std::endl;
 }
 
 std::string secondColumn(std::string const & s)
 {
 	uint64_t i = 0;
-	
+
 	while ( i != s.size() && s[i] != '\t' )
 		++i;
-	
+
 	if ( i == s.size() )
 		return std::string();
-	
+
 	++i;
 	uint64_t const start = i;
 	while ( i != s.size() && s[i] != '\t' )
 		++i;
-	
+
 	return s.substr(start,i-start);
 }
 
@@ -300,38 +300,38 @@ int main(int argc, char * argv[])
 		#endif
 
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
-		
+
 		{
 			std::cerr << "digests " << libmaus2::digest::DigestFactoryContainer::getSupportedDigestsList() << std::endl;
-		
+
 			std::string const hash = arginfo.restargs.at(0);
 			std::string const fn = arginfo.restargs.at(1);
-		
+
 			::libmaus2::autoarray::AutoArray<uint8_t> A = libmaus2::util::GetFileSize::readFile<uint8_t>(fn);
-			
+
 			libmaus2::digest::DigestInterface::unique_ptr_type Pdigest(libmaus2::digest::DigestFactoryContainer::construct(hash));
-			
+
 			Pdigest->vinit();
 			Pdigest->vupdate(A.begin(),A.size());
 			std::cout << Pdigest->vdigestAsString() << "\n";
 		}
-		
+
 		return 0;
-	
-		
+
+
 		#if defined(LIBMAUS2_HAVE_NETTLE) && defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		std::string ast(1024,'a');
 		libmaus2::random::Random::setup(42);
 		for ( uint64_t i = 0; i < ast.size(); ++i )
 			ast[i] = libmaus2::random::Random::rand8();
-		
+
 		// test prefixes up to length of ast(1024)
 		for ( uint64_t i = 0; i <= ast.size(); ++i )
 		{
 			std::string const s = ast.substr(0,i);
 			::libmaus2::autoarray::AutoArray<uint8_t> A(s.size(),false);
 			std::copy(s.begin(),s.end(),A.begin());
-			
+
 			std::ostringstream ostr0;
 			printCRC<libmaus2::digest::SHA2_256>(A.begin(),A.size(),ostr0);
 			std::string const s0 = secondColumn(ostr0.str());
@@ -352,9 +352,9 @@ int main(int argc, char * argv[])
 				std::ostringstream ostr4;
 				printCRCSingleByteUpdate<libmaus2::digest::SHA2_256_sse4>(A.begin(),A.size(),ostr4);
 				std::string const s4 = secondColumn(ostr4.str());
-				
+
 				bool ok = s0 == s1 && s0 == s2 && s0 == s3 && s0 == s4;
-				
+
 				if ( ! ok )
 				{
 					std::cerr << "failed for " << i << std::endl;
@@ -362,7 +362,7 @@ int main(int argc, char * argv[])
 					std::cerr << s1 << std::endl;
 					std::cerr << s2 << std::endl;
 					std::cerr << s3 << std::endl;
-				
+
 					assert ( s0 == s1 );
 					assert ( s0 == s2 );
 					assert ( s0 == s3 );
@@ -376,7 +376,7 @@ int main(int argc, char * argv[])
 			std::string const s = ast.substr(0,i);
 			::libmaus2::autoarray::AutoArray<uint8_t> A(s.size(),false);
 			std::copy(s.begin(),s.end(),A.begin());
-			
+
 			std::ostringstream ostr0;
 			printCRC<libmaus2::digest::SHA2_512>(A.begin(),A.size(),ostr0);
 			std::string const s0 = secondColumn(ostr0.str());
@@ -396,7 +396,7 @@ int main(int argc, char * argv[])
 				std::string const s4 = secondColumn(ostr4.str());
 
 				bool ok = s0 == s2 && s0 == s3 && s0 == s4;
-				
+
 				if ( ! ok )
 				{
 					std::cerr << "failed for " << i << std::endl;
@@ -404,7 +404,7 @@ int main(int argc, char * argv[])
 					std::cerr << s2 << std::endl;
 					std::cerr << s3 << std::endl;
 					std::cerr << s4 << std::endl;
-				
+
 					assert ( s0 == s2 );
 					assert ( s0 == s3 );
 					assert ( s0 == s4 );
@@ -412,7 +412,7 @@ int main(int argc, char * argv[])
 			}
 		}
 		#endif
-			
+
 		for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
 		{
 			::libmaus2::autoarray::AutoArray<uint8_t> const A = libmaus2::util::GetFileSize::readFile<uint8_t>(arginfo.restargs.at(i));
@@ -436,7 +436,7 @@ int main(int argc, char * argv[])
 			#if defined(LIBMAUS2_HAVE_SMMINTRIN_H) && defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_x86_64) && defined(LIBMAUS2_HAVE_i386)
 			if ( libmaus2::util::I386CacheLineSize::hasSSE42() )
 			{
-				printCRC<libmaus2::digest::CRC32C_sse42>(A.begin(),A.size(),out);		
+				printCRC<libmaus2::digest::CRC32C_sse42>(A.begin(),A.size(),out);
 			}
 			#endif
 
@@ -444,7 +444,7 @@ int main(int argc, char * argv[])
 			if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 			{
 				printCRC<libmaus2::digest::SHA2_256_sse4>(A.begin(),A.size(),out);
-			
+
 				printCRCASM(A.begin(),A.size(), sha256_sse4, "sha256_sse4",out);
 				printCRCASMNoCopy(A.begin(), A.size(), sha256_sse4, "sha256_sse4_nocopy",out);
 

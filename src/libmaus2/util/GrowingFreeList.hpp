@@ -27,9 +27,9 @@ namespace libmaus2
 	namespace util
 	{
 		template<
-			typename _element_type, 
+			typename _element_type,
 			typename _allocator_type = libmaus2::util::FreeListDefaultAllocator<_element_type>,
-			typename _type_info_type = libmaus2::util::FreeListDefaultTypeInfo<_element_type> 
+			typename _type_info_type = libmaus2::util::FreeListDefaultTypeInfo<_element_type>
 		>
 		struct GrowingFreeList
 		{
@@ -43,43 +43,43 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray<typename type_info_type::pointer_type> freelist;
 			uint64_t freelistfill;
 			allocator_type allocator;
-			
+
 			void cleanup()
 			{
 				for ( uint64_t i = 0; i < alloclist.size(); ++i )
 					alloclist[i] = type_info_type::deallocate(alloclist[i]);
-				alloclist = libmaus2::autoarray::AutoArray<typename type_info_type::pointer_type>(0);	
-				freelist = libmaus2::autoarray::AutoArray<typename type_info_type::pointer_type>(0);	
+				alloclist = libmaus2::autoarray::AutoArray<typename type_info_type::pointer_type>(0);
+				freelist = libmaus2::autoarray::AutoArray<typename type_info_type::pointer_type>(0);
 				freelistfill = 0;
 			}
-			
+
 			public:
 			GrowingFreeList(allocator_type rallocator = allocator_type())
 			: alloclist(0), freelist(0), freelistfill(0), allocator(rallocator)
 			{
-				
+
 			}
-			
+
 			size_t capacity()
 			{
 				return alloclist.size();
 			}
-			
+
 			size_t free()
 			{
 				return freelistfill;
 			}
-				
+
 			~GrowingFreeList()
 			{
 				cleanup();
 			}
-			
+
 			size_t getAllSize() const
 			{
 				return freelistfill;
 			}
-			
+
 			std::vector < typename type_info_type::pointer_type > getAll()
 			{
 				std::vector < typename type_info_type::pointer_type > V;
@@ -87,13 +87,13 @@ namespace libmaus2
 					V.push_back(freelist[--freelistfill]);
 				return V;
 			}
-			
+
 			void put(std::vector < typename type_info_type::pointer_type > V)
 			{
 				for ( uint64_t i = 0; i < V.size(); ++i )
 					put(V[i]);
 			}
-			
+
 			typename type_info_type::pointer_type get()
 			{
 				if ( ! freelistfill )
@@ -110,34 +110,34 @@ namespace libmaus2
 					std::copy(alloclist.begin(),alloclist.end(),nalloclist.begin());
 					typename type_info_type::pointer_type nullp = type_info_type::getNullPointer();
 					std::fill(nalloclist.begin()+alloclist.size(),nalloclist.end(),nullp);
-					
+
 					for ( typename type_info_type::pointer_type* p = nalloclist.begin()+alloclist.size();
 						p != nalloclist.end(); ++p )
 						*p = allocator();
-					
+
 					libmaus2::autoarray::AutoArray<typename type_info_type::pointer_type> nfreelist(
 						std::max(
 							static_cast<uint64_t>(1),
 							static_cast<uint64_t>(2*freelist.size())
 						)
-						,false			
+						,false
 					);
-					
+
 					std::copy(freelist.begin(),freelist.end(),nfreelist.begin());
 					std::fill(nfreelist.begin()+freelist.size(),nfreelist.end(),nullp);
-				
+
 					freelist = nfreelist;
-					
+
 					for ( typename type_info_type::pointer_type* p = nalloclist.begin()+alloclist.size();
 						p != nalloclist.end(); ++p )
-						freelist[freelistfill++] = *p;			
-					
+						freelist[freelistfill++] = *p;
+
 					alloclist = nalloclist;
 				}
-				
+
 				return freelist[--freelistfill];
 			}
-			
+
 			void put(typename type_info_type::pointer_type p)
 			{
 				freelist[freelistfill++] = p;
@@ -151,12 +151,12 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < V.size(); ++i )
 					s += V[i]->byteSize();
 				put(V);
-				
+
 				s += alloclist.byteSize();
 				s += freelist.byteSize();
 				s += sizeof(freelistfill);
 				s += sizeof(allocator);
-				
+
 				return s;
 			}
 

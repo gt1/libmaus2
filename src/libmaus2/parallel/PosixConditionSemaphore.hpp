@@ -34,9 +34,9 @@ namespace libmaus2
 		struct PosixConditionSemaphore : public SimpleSemaphoreInterface
 		{
 			pthread_cond_t cond;
-			pthread_mutex_t mutex;			
+			pthread_mutex_t mutex;
 			int volatile sigcnt;
-			
+
 			void initCond()
 			{
 				if ( pthread_cond_init(&cond,NULL) != 0 )
@@ -46,7 +46,7 @@ namespace libmaus2
 					lme.getStream() << "PosixConditionSemaphore::initCond(): failed pthread_cond_init " << strerror(error) << std::endl;
 					lme.finish();
 					throw lme;
-				}			
+				}
 			}
 
 			void initMutex()
@@ -60,7 +60,7 @@ namespace libmaus2
 					throw lme;
 				}
 			}
-			
+
 			PosixConditionSemaphore() : sigcnt(0)
 			{
 				initCond();
@@ -79,11 +79,11 @@ namespace libmaus2
 				pthread_mutex_destroy(&mutex);
 				pthread_cond_destroy(&cond);
 			}
-			
+
 			struct ScopeMutexLock
 			{
 				pthread_mutex_t * mutex;
-			
+
 				ScopeMutexLock(pthread_mutex_t & rmutex) : mutex(&rmutex)
 				{
 					if ( pthread_mutex_lock(mutex) != 0 )
@@ -93,9 +93,9 @@ namespace libmaus2
 						lme.getStream() << "PosixConditionSemaphore::ScopeMutexLock failed pthread_mutex_lock " << strerror(error) << std::endl;
 						lme.finish();
 						throw lme;
-					}					
+					}
 				}
-				
+
 				~ScopeMutexLock()
 				{
 					if ( pthread_mutex_unlock(mutex) != 0 )
@@ -105,25 +105,25 @@ namespace libmaus2
 						lme.getStream() << "PosixConditionSemaphore::ScopeMutexLock failed pthread_mutex_unlock " << strerror(error) << std::endl;
 						lme.finish();
 						throw lme;
-					}		
+					}
 				}
 			};
 
 			bool trywait()
 			{
 				ScopeMutexLock slock(mutex);
-			
+
 				bool r = false;
-								
+
 				if ( sigcnt )
 				{
 					sigcnt -= 1;
 					r = true;
 				}
-								
-				return r;	
+
+				return r;
 			}
-			
+
 			void wait()
 			{
 				ScopeMutexLock slock(mutex);
@@ -142,13 +142,13 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			void post()
 			{
 				ScopeMutexLock slock(mutex);
 
 				sigcnt += 1;
-				
+
 				pthread_cond_signal(&cond);
 			}
 		};

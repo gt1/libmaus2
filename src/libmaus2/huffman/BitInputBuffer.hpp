@@ -50,32 +50,32 @@ namespace libmaus2
 			typedef _buffer_data_type buffer_data_type;
 			typedef BitInputBufferTemplate<buffer_data_type,raw_input_ptr_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			typedef typename raw_input_ptr_type::element_type raw_input_type;
 
 			raw_input_ptr_type in;
 
 			enum { buffer_data_type_bits = 8*sizeof(buffer_data_type) };
 			enum { buffer_data_type_shift = ::libmaus2::math::MetaLog2< buffer_data_type_bits >::log };
-			
+
 			::libmaus2::autoarray::AutoArray<buffer_data_type> B;
 			buffer_data_type * const pa;
 			buffer_data_type * const pe;
 			buffer_data_type * const pm;
 			buffer_data_type * pc;
-			
+
 			uint64_t word;
 			unsigned int wordfill;
 			uint64_t bitsread;
-			
+
 			BitInputBufferTemplate(raw_input_ptr_type & rin, uint64_t const bufsize)
-			: 
+			:
 			  in(UNIQUE_PTR_MOVE(rin)),
-			  B(bufsize,false), pa(B.begin()), pe(B.end()), pm(pa+bufsize/2), pc(pe), 
+			  B(bufsize,false), pa(B.begin()), pe(B.end()), pm(pa+bufsize/2), pc(pe),
 			  word(0), wordfill(0), bitsread(0)
 			{
 				shift();
-				
+
 			}
 
 			void fillWord(unsigned int const thres)
@@ -87,16 +87,16 @@ namespace libmaus2
 					if ( pc > pm )
 						shift();
 					wordfill += buffer_data_type_bits;
-				}				
+				}
 			}
-			
+
 			void flush()
 			{
 				while ( bitsread & 7 )
 					readBit();
 				// std::cerr << "Fill after flush is " << wordfill << std::endl;
 			}
-									
+
 			bool readBit()
 			{
 				fillWord(1);
@@ -108,11 +108,11 @@ namespace libmaus2
 				return bit;
 			}
 
-			
+
 			uint64_t read(unsigned int bits)
 			{
 				bitsread += bits;
-				
+
 				if ( bits <= wordfill || bits <= buffer_data_type_bits )
 				{
 					fillWord(bits);
@@ -136,7 +136,7 @@ namespace libmaus2
 					return val;
 				}
 			}
-			
+
 			uint64_t peek(unsigned int const bits)
 			{
 				fillWord(bits);
@@ -144,14 +144,14 @@ namespace libmaus2
 				uint64_t const val = (word & mask) >> (wordfill-bits);
 				return val;
 			}
-			
+
 			void erase(unsigned int const bits)
 			{
 				assert ( bits <= wordfill );
 				uint64_t const mask = ::libmaus2::math::lowbits(bits) << (wordfill-bits);
 				word &= ~mask;
 				wordfill -= bits;
-				bitsread += bits;				
+				bitsread += bits;
 			}
 
 			void shift()
@@ -163,17 +163,17 @@ namespace libmaus2
 				{
 					buffer_data_type * s = B.begin() + shiftout;
 					buffer_data_type * t = B.begin();
-					
+
 					while ( s != B.end() )
-						*(t++) = *(s++);						
+						*(t++) = *(s++);
 				}
-				
+
 				// load new data at the back
 				uint64_t const wordoffset = B.size() - shiftout;
 				uint64_t const bytelen = shiftout * sizeof(buffer_data_type);
-				
+
 				in->read ( reinterpret_cast<char *>(B.begin() + wordoffset) , bytelen );
-				
+
 				#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 				for ( uint64_t i =  wordoffset; i < B.size(); ++i )
 					switch ( sizeof(buffer_data_type) )
@@ -191,7 +191,7 @@ namespace libmaus2
 							break;
 						case 4:
 							#if defined(_WIN32)
-							B [ i ] = 
+							B [ i ] =
 								_byteswap_ushort( (B[i]>>16) & 0xFFFFUL )
 								|
 								(static_cast<uint32_t>(_byteswap_ushort( B[i] & 0xFFFFUL )) << 16)
@@ -220,7 +220,7 @@ namespace libmaus2
 							break;
 					}
 				#endif
-				
+
 				pc = pa;
 			}
 		};

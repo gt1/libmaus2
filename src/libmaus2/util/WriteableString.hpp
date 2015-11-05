@@ -33,12 +33,12 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			::libmaus2::autoarray::AutoArray<char> A;
-			
+
 			WriteableString()
 			{
-			
+
 			}
-			
+
 			WriteableString(std::string const & s)
 			: A(s.size()+1)
 			{

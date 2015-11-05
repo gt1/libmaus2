@@ -28,78 +28,78 @@ namespace libmaus2
 		struct SparseGammaGapConcatDecoder
 		{
 			typedef SparseGammaGapConcatDecoder this_type;
-			
+
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			typedef libmaus2::aio::SynchronousGenericInput<uint64_t> stream_type;
 
 			SparseGammaGapFileIndexMultiDecoder::unique_ptr_type Pindex;
 			SparseGammaGapFileIndexMultiDecoder & index;
-			
+
 			std::vector<std::string> const filenames;
 			uint64_t fileptr;
 			libmaus2::aio::InputStreamInstance::unique_ptr_type CIS;
 			libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type SGI;
 			libmaus2::gamma::GammaDecoder<stream_type>::unique_ptr_type gdec;
 			std::pair<uint64_t,uint64_t> p;
-			
+
 			struct iterator
 			{
 				SparseGammaGapConcatDecoder * owner;
 				uint64_t v;
-				
+
 				iterator()
 				: owner(0), v(0)
 				{
-				
+
 				}
 				iterator(SparseGammaGapConcatDecoder * rowner)
 				: owner(rowner), v(owner->decode())
 				{
-				
+
 				}
-				
+
 				uint64_t operator*() const
 				{
 					return v;
 				}
-				
+
 				iterator operator++(int)
 				{
 					iterator copy = *this;
 					v = owner->decode();
 					return copy;
 				}
-				
+
 				iterator operator++()
 				{
 					v = owner->decode();
 					return *this;
 				}
 			};
-		
+
 			void openNextFile()
-			{			
+			{
 				if ( fileptr < filenames.size() )
 				{
 					// std::cerr << "opening file " << fileptr << std::endl;
-				
+
 					gdec.reset();
 					SGI.reset();
 					CIS.reset();
-					
+
 					libmaus2::aio::InputStreamInstance::unique_ptr_type tCIS(new libmaus2::aio::InputStreamInstance(filenames[fileptr++]));
 					CIS = UNIQUE_PTR_MOVE(tCIS);
-					
+
 					libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(new libmaus2::aio::SynchronousGenericInput<uint64_t>(*CIS,8*1024));
 					SGI = UNIQUE_PTR_MOVE(tSGI);
-					
+
 					libmaus2::gamma::GammaDecoder<stream_type>::unique_ptr_type tgdec(new libmaus2::gamma::GammaDecoder<stream_type>(*SGI));
 					gdec = UNIQUE_PTR_MOVE(tgdec);
 
 					p.first = gdec->decode();
-					p.second = gdec->decode();				
+					p.second = gdec->decode();
 				}
 				else
 				{
@@ -107,7 +107,7 @@ namespace libmaus2
 					p.second = 0;
 				}
 			}
-				
+
 			SparseGammaGapConcatDecoder(std::vector<std::string> const & rfilenames, uint64_t const ikey = 0)
 			: Pindex(new SparseGammaGapFileIndexMultiDecoder(rfilenames)), index(*Pindex), filenames(index.getFileNames())
 			{
@@ -119,26 +119,26 @@ namespace libmaus2
 			{
 				seek(ikey);
 			}
-						
+
 
 			bool hasNextKey() const
 			{
 				return p.second != 0;
 			}
 
-			
+
 			void seek(uint64_t const ikey)
 			{
 				p.first = 0;
 				p.second = 0;
-				
+
 				// std::cerr << "seeking to " << ikey << std::endl;
-				
+
 				std::pair<uint64_t,uint64_t> const P = index.getBlockIndex(ikey);
 				fileptr = P.first;
-				
+
 				// std::cerr << "fileptr=" << fileptr << " blockptr=" << P.second << std::endl;
-				
+
 				if ( fileptr < filenames.size() )
 				{
 					uint64_t const curfileid = fileptr++;
@@ -146,31 +146,31 @@ namespace libmaus2
 
 					libmaus2::aio::InputStreamInstance::unique_ptr_type tCIS(new libmaus2::aio::InputStreamInstance(fn));
 					CIS = UNIQUE_PTR_MOVE(tCIS);
-					
+
 					SparseGammaGapFileIndexDecoder & indexdec = index.getSingleDecoder(curfileid); // (*CIS);
 					uint64_t const minkey = indexdec.getMinKey();
-					
+
 					// std::cerr << "minkey=" << minkey << std::endl;
-					
+
 					if ( ikey < minkey )
 					{
 						// this should only happen for the first file
 						assert ( curfileid == 0 ); // value has been incremented above
 						assert ( indexdec.getBlockIndex(ikey) == 0 );
 						assert ( indexdec.get(indexdec.getBlockIndex(ikey)).ibitoff == 0 );
-						
+
 						// seek to front of file
 						CIS->clear();
 						CIS->seekg(0);
 
 						libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(new libmaus2::aio::SynchronousGenericInput<uint64_t>(*CIS,8*1024));
 						SGI = UNIQUE_PTR_MOVE(tSGI);
-						
+
 						libmaus2::gamma::GammaDecoder<stream_type>::unique_ptr_type tgdec(new libmaus2::gamma::GammaDecoder<stream_type>(*SGI));
 						gdec = UNIQUE_PTR_MOVE(tgdec);
 
 						p.first = gdec->decode() - ikey;
-						p.second = gdec->decode();						
+						p.second = gdec->decode();
 					}
 					else
 					{
@@ -179,7 +179,7 @@ namespace libmaus2
 						uint64_t offset = ikey-indexdec.get(block).ikey;
 						uint64_t const word = ibitoff / 64;
 						uint64_t const wbitoff = ibitoff - word*64;
-						
+
 						// seek to word where we start
 						CIS->clear();
 						CIS->seekg(word * 8);
@@ -199,23 +199,23 @@ namespace libmaus2
 						p.first = gdec->decode();
 						p.first = 0;
 						p.second = gdec->decode();
-						
+
 						// we seeked to a block start, this should not be zero
 						assert ( p.second );
-						
+
 						// std::cerr << "offset " << offset << std::endl;
-						
+
 						// skip value if we do not stay on the start of the block
 						if ( offset )
 						{
 							// skip one value
 							offset -= 1;
-						
+
 							// read next pair
 							p.first = gdec->decode();
 							p.second = gdec->decode();
 						}
-						
+
 						// std::cerr << "p=" << p.first << "," << p.second << std::endl;
 
 						while ( offset >= p.first+1 )
@@ -235,22 +235,22 @@ namespace libmaus2
 								p.second = gdec->decode();
 							}
 						}
-						
+
 						assert ( p.second == 0 || offset <= p.first );
 
 						for ( ; offset; --offset )
 							decode();
-						
+
 						// make sure p.second is not 0 if there is still more data
-						// (not necessary for decode(), but confusing for others)	
+						// (not necessary for decode(), but confusing for others)
 						while ( p.second == 0 && fileptr != filenames.size() )
 							openNextFile();
 					}
-				}			
-			
+				}
+
 			}
 
-			
+
 			uint64_t decode()
 			{
 				// no more non zero values
@@ -261,7 +261,7 @@ namespace libmaus2
 				{
 					return 0;
 				}
-				
+
 				// zero value
 				if ( p.first )
 				{
@@ -276,34 +276,34 @@ namespace libmaus2
 					// get information about next non zero value
 					p.first = gdec->decode();
 					p.second = gdec->decode();
-					
+
 					return retval;
 				}
-			}			
-			
+			}
+
 			std::pair<uint64_t,uint64_t> nextPair()
 			{
 				p.first = gdec->decode();
 				p.second = gdec->decode();
-				
+
 				// no more non zero values
 				while ( (!p.second) && fileptr < filenames.size() )
 					openNextFile();
 
 				return p;
 			}
-			
+
 			uint64_t nextFirst()
 			{
 				nextPair();
 				return p.first;
 			}
-			
+
 			uint64_t nextSecond()
 			{
 				return p.second;
 			}
-			
+
 			iterator begin()
 			{
 				return iterator(this);
@@ -319,7 +319,7 @@ namespace libmaus2
 			{
 				return this_type(index,ikey).hasNextKey();
 			}
-			
+
 			private:
 			static uint64_t getPrevKeyBlockStart(libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder & index, uint64_t const ikey)
 			{
@@ -329,40 +329,40 @@ namespace libmaus2
 				libmaus2::gamma::SparseGammaGapFileIndexDecoder const & index1 = index.getSingleDecoder(p.first); // (filenames[p.first]);
 				return index1.get(p.second).ikey;
 			}
-			
+
 			public:
 			// get highest non-zero key before ikey or -1 if there is no such key
 			static int64_t getPrevKey(libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder & index, /* std::vector<std::string> const & filenames, */ uint64_t const ikey)
 			{
 				// libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder index(filenames);
-			
+
 				if ( ! index.hasPrevKey(ikey) )
 					return -1;
-					
+
 				uint64_t const prevblockstart = getPrevKeyBlockStart(index,ikey);
-				
+
 				this_type dec(index,prevblockstart);
-				
+
 				assert ( dec.p.first == 0 );
 
 				uint64_t curkey = prevblockstart;
-				
+
 				while ( true )
 				{
 					std::pair<uint64_t,uint64_t> const p = dec.nextPair();
-					
+
 					if ( ! p.second )
 						return curkey;
-					
+
 					uint64_t const nextkey = curkey + (1 + p.first);
-					
+
 					if ( nextkey >= ikey )
 						return curkey;
 					else
 						curkey = nextkey;
 				}
 			}
-		};	
+		};
 	}
 }
 #endif

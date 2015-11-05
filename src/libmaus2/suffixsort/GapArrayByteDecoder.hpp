@@ -40,17 +40,17 @@ namespace libmaus2
 			libmaus2::aio::InputStreamInstance::unique_ptr_type pCIS;
 
 			uint64_t sparsecnt;
-			
+
 			libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type pSGI;
-				
+
 			uint64_t offset;
-				
+
 			static libmaus2::aio::InputStreamInstance::unique_ptr_type openSparseFile(std::string const & filename)
 			{
 				libmaus2::aio::InputStreamInstance::unique_ptr_type tCIS(
 					new libmaus2::aio::InputStreamInstance(filename)
 				);
-				
+
 				return UNIQUE_PTR_MOVE(tCIS);
 			}
 
@@ -61,7 +61,7 @@ namespace libmaus2
 				uint64_t const n = CIS.tellg() / (2*sizeof(uint64_t));
 				return n;
 			}
-			
+
 			static libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type openWordPairFile(
 				std::istream & CIS, uint64_t const n, uint64_t const offset
 			)
@@ -69,19 +69,19 @@ namespace libmaus2
 				libmaus2::suffixsort::GapArrayByteOverflowKeyAccessor acc(CIS);
 				libmaus2::util::ConstIterator<libmaus2::suffixsort::GapArrayByteOverflowKeyAccessor,uint64_t> ita(&acc,0);
 				libmaus2::util::ConstIterator<libmaus2::suffixsort::GapArrayByteOverflowKeyAccessor,uint64_t> ite(&acc,n);
-			
+
 				libmaus2::util::ConstIterator<libmaus2::suffixsort::GapArrayByteOverflowKeyAccessor,uint64_t> itc = std::lower_bound(ita,ite,offset);
-				
+
 				uint64_t const el = itc-ita;
 				uint64_t const restel = n - el;
-				
+
 				CIS.clear();
 				CIS.seekg( el * 2 * sizeof(uint64_t), std::ios::beg );
-				
+
 				libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(
 					new libmaus2::aio::SynchronousGenericInput<uint64_t>(CIS,1024,2*restel)
 				);
-				
+
 				return UNIQUE_PTR_MOVE(tSGI);
 			}
 
@@ -90,49 +90,49 @@ namespace libmaus2
 				std::string const & tmpfilename,
 				uint64_t const roffset
 			)
-			: 
-			  G(rG), gsize(rgsize), 
-			  pCIS(openSparseFile(tmpfilename)), 
-			  sparsecnt(getSparseCount(*pCIS)), 
+			:
+			  G(rG), gsize(rgsize),
+			  pCIS(openSparseFile(tmpfilename)),
+			  sparsecnt(getSparseCount(*pCIS)),
 			  pSGI(openWordPairFile(*pCIS,sparsecnt,roffset)),
 			  offset(roffset)
 			{
 				assert ( offset <= gsize );
 			}
-			
+
 			template<typename iterator>
 			void decode(iterator it, uint64_t n)
 			{
 				assert ( offset + n <= gsize );
-				
+
 				while ( n )
 				{
 					uint64_t nextsparse;
-					
+
 					// no next sparse or next sparse out of range
 					if ( (! pSGI->peekNext(nextsparse)) || (nextsparse >= offset + n) )
 					{
 						uint64_t const tocopy = n;
-					
+
 						std::copy(G+offset,G+offset+tocopy,it);
 						it += tocopy;
 						offset += tocopy;
-						n -= tocopy;				
+						n -= tocopy;
 					}
 					else
 					{
 						uint64_t const tocopy = nextsparse-offset;
-						
+
 						std::copy(G+offset,G+offset+tocopy,it);
 						it += tocopy;
 						offset += tocopy;
 						n -= tocopy;
 
 						assert ( offset == nextsparse );
-						
+
 						pSGI->getNext(nextsparse);
 						pSGI->getNext(nextsparse);
-						
+
 						*(it++) = G[offset++] + 256 * nextsparse;
 						n -= 1;
 					}

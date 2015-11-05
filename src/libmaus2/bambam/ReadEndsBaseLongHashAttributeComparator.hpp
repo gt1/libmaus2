@@ -24,13 +24,13 @@
 namespace libmaus2
 {
 	namespace bambam
-	{		
+	{
 		struct ReadEndsBaseLongHashAttributeComparator
 		{
 			bool operator()(ReadEndsBase const & A, ReadEndsBase const & B) const
 			{
 				return A.compareLongHashAttributesSmaller(B);
-			}			
+			}
 		};
 	}
 }

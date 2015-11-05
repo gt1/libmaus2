@@ -30,7 +30,7 @@ namespace libmaus2
                         pattern_type * patterns;
                         unsigned int blockid;
                         unsigned int blocksize;
-                        
+
                         pattern_type const & getPattern(uint64_t i) const
                         {
                                 patterns[i].computeMapped();

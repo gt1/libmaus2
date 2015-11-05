@@ -34,14 +34,14 @@ namespace libmaus2
 			typedef ConcatInputStreamBuffer this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			private:
 			std::vector<std::string> const filenames;
 			std::vector<std::string>::const_iterator filenames_ita;
 			uint64_t const blocksize;
 			uint64_t const putbackspace;
 			::libmaus2::autoarray::AutoArray<char> buffer;
-			libmaus2::aio::InputStreamInstance::unique_ptr_type Pin;			
+			libmaus2::aio::InputStreamInstance::unique_ptr_type Pin;
 			uint64_t symsread;
 			int64_t filesize;
 			bool filesizecomputed;
@@ -49,11 +49,11 @@ namespace libmaus2
 
 			ConcatInputStreamBuffer(ConcatInputStreamBuffer const &);
 			ConcatInputStreamBuffer & operator=(ConcatInputStreamBuffer &);
-			
+
 			std::streamsize readblock(char * p, std::streamsize s)
 			{
 				std::streamsize r = 0;
-				
+
 				while ( s )
 				{
 					// no stream open?
@@ -85,17 +85,17 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				return r;
 			}
-									
+
 			public:
 			ConcatInputStreamBuffer(
 				std::vector<std::string> const & rfilenames,
 				int64_t const rblocksize,
 				uint64_t const rputbackspace = 0
 			)
-			: 
+			:
 			  filenames(rfilenames),
 			  filenames_ita(filenames.begin()),
 			  blocksize(rblocksize),
@@ -116,20 +116,20 @@ namespace libmaus2
 			{
 				return reinterpret_cast<uint8_t const *>(gptr());
 			}
-			
+
 			int64_t getFileSize()
 			{
 				if ( !filesizecomputed )
 				{
 					bool ok = true;
-					
+
 					uint64_t fs = 0;
 					for ( uint64_t i = 0; i < filenames.size(); ++i )
 					{
 						InputStreamInstance I(filenames[i]);
 						I.seekg(0,std::ios::end);
 						std::streampos const p = I.tellg();
-						
+
 						if ( p >= 0 )
 						{
 							fs += p;
@@ -138,21 +138,21 @@ namespace libmaus2
 						else
 							ok = false;
 					}
-					
+
 					filesizes[filenames.size()] = 0;
-					
+
 					if ( ok )
 					{
 						filesize = fs;
 						filesizes.prefixSums();
 					}
-					
+
 					filesizecomputed = true;
 				}
-				
+
 				return filesize;
 			}
-			
+
 			/**
 			 * seek to absolute position
 			 **/
@@ -166,7 +166,7 @@ namespace libmaus2
 					int64_t const curlow = cur - static_cast<int64_t>(gptr()-eback());
 					// current end of buffer (relative)
 					int64_t const curhigh = cur + static_cast<int64_t>(egptr()-gptr());
-					
+
 					// call relative seek, if target is in range
 					if ( sp >= curlow && sp <= curhigh )
 						return seekoff(static_cast<int64_t>(sp) - cur, ::std::ios_base::cur, which);
@@ -174,13 +174,13 @@ namespace libmaus2
 					// target is out of range, we really need to seek
 					uint64_t tsymsread = (sp / blocksize)*blocksize;
 
-					// set symsread					
+					// set symsread
 					symsread = tsymsread;
-					
+
 					int64_t const fs = getFileSize();
 					if ( fs < 0 )
 						return -1;
-						
+
 					if ( static_cast<int64_t>(symsread) >= fs )
 					{
 						filenames_ita = filenames.end();
@@ -190,50 +190,50 @@ namespace libmaus2
 					{
 						assert ( fs >= 0 );
 						assert ( static_cast<int64_t>(symsread) < fs );
-						
+
 						uint64_t const * p = std::lower_bound(filesizes.begin(),filesizes.end(),symsread);
-						
+
 						assert ( p >= filesizes.begin() );
 						assert ( p < filesizes.end() );
-						
+
 						if ( *p != symsread )
 							--p;
 
 						assert ( p >= filesizes.begin() );
 						assert ( p < filesizes.end() );
 						assert ( symsread >= *p );
-						
+
 						filenames_ita = filenames.begin() + (p-filesizes.begin());
 						uint64_t const off = symsread - (*p);
 
 						libmaus2::aio::InputStreamInstance::unique_ptr_type Tin(new libmaus2::aio::InputStreamInstance(*(filenames_ita++)));
 						Pin = UNIQUE_PTR_MOVE(Tin);
-						Pin->seekg(off);	
+						Pin->seekg(off);
 					}
-					
+
 					// read next block
 					underflow();
-					
+
 					// skip bytes in block to get to final position
 					setg(
 						eback(),
-						gptr() + (static_cast<int64_t>(sp)-static_cast<int64_t>(tsymsread)), 
+						gptr() + (static_cast<int64_t>(sp)-static_cast<int64_t>(tsymsread)),
 						egptr()
 					);
-				
+
 					return sp;
 				}
-				
+
 				return -1;
 			}
-			
+
 			::std::streampos seekoff(::std::streamoff off, ::std::ios_base::seekdir way, ::std::ios_base::openmode which = ::std::ios_base::in | ::std::ios_base::out)
 			{
 				if ( which & ::std::ios_base::in )
 				{
 					int64_t abstarget = 0;
 					int64_t const cur = symsread - (egptr()-gptr());
-					
+
 					if ( way == ::std::ios_base::cur )
 						abstarget = cur + off;
 					else if ( way == ::std::ios_base::beg )
@@ -241,13 +241,13 @@ namespace libmaus2
 					else // if ( way == ::std::ios_base::end )
 					{
 						int64_t const fs = getFileSize();
-						
+
 						if ( fs < 0 )
 							return -1;
-							
+
 						abstarget = fs + off;
 					}
-					
+
 					// no movement
 					if ( abstarget - cur == 0 )
 					{
@@ -280,10 +280,10 @@ namespace libmaus2
 						return seekpos(abstarget,which);
 					}
 				}
-				
+
 				return -1;
 			}
-			
+
 			int_type underflow()
 			{
 				// if there is still data, then return it
@@ -303,10 +303,10 @@ namespace libmaus2
 					gptr(),
 					buffer.begin() + putbackspace - putbackcopy
 				);
-				
+
 				// load data
 				uint64_t const uncompressedsize = readblock(buffer.begin()+putbackspace,buffer.size()-putbackspace);
-				
+
 				// set buffer pointers
 				setg(
 					buffer.begin()+putbackspace-putbackcopy,
@@ -314,7 +314,7 @@ namespace libmaus2
 					buffer.begin()+putbackspace+uncompressedsize);
 
 				symsread += uncompressedsize;
-				
+
 				if ( uncompressedsize )
 					return static_cast<int_type>(*uptr());
 				else

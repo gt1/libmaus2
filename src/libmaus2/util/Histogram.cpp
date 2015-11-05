@@ -34,18 +34,18 @@ uint64_t libmaus2::util::Histogram::median() const
 	for ( std::map<uint64_t,uint64_t>::const_iterator ita = M.begin(); ita != M.end(); ++ita )
 		sum += ita->second;
 	uint64_t const sum2 = sum/2;
-	
+
 	if ( ! M.size() )
 		return 0;
 
-	sum = 0;				
+	sum = 0;
 	for ( std::map<uint64_t,uint64_t>::const_iterator ita = M.begin(); ita != M.end(); ++ita )
 	{
 		if ( sum2 >= sum && sum2 < sum+ita->second )
 			return ita->first;
 		sum += ita->second;
 	}
-	
+
 	return M.rbegin()->first;
 }
 
@@ -59,7 +59,7 @@ double libmaus2::util::Histogram::avg() const
 		sum += ita->first * ita->second;
 		div += ita->second;
 	}
-	
+
 	if ( sum )
 		return static_cast<double>(sum)/div;
 	else
@@ -69,7 +69,7 @@ double libmaus2::util::Histogram::avg() const
 std::map<uint64_t,uint64_t> libmaus2::util::Histogram::get() const
 {
 	std::map<uint64_t,uint64_t> R = all;
-	
+
 	for ( uint64_t i = 0; i < low.size(); ++i )
 		if ( low[i] )
 			R[i] += low[i];
@@ -87,7 +87,7 @@ std::vector<uint64_t> libmaus2::util::Histogram::getKeyVector()
 }
 
 uint64_t libmaus2::util::Histogram::getTotal() const
-{		
+{
 	std::map<uint64_t,uint64_t> const M = get();
 	uint64_t total = 0;
 	for ( std::map<uint64_t,uint64_t>::const_iterator ita = M.begin(); ita != M.end(); ++ita )
@@ -96,7 +96,7 @@ uint64_t libmaus2::util::Histogram::getTotal() const
 }
 
 uint64_t libmaus2::util::Histogram::getNumPoints() const
-{		
+{
 	std::map<uint64_t,uint64_t> const M = get();
 	uint64_t total = 0;
 	for ( std::map<uint64_t,uint64_t>::const_iterator ita = M.begin(); ita != M.end(); ++ita )
@@ -107,7 +107,7 @@ uint64_t libmaus2::util::Histogram::getNumPoints() const
 std::ostream & libmaus2::util::Histogram::print(std::ostream & out) const
 {
 	std::map<uint64_t,uint64_t> const F = get();
-	
+
 	for ( std::map<uint64_t,uint64_t>::const_iterator ita = F.begin(); ita != F.end();
 		++ita )
 		out << ita->first << "\t" << ita->second << std::endl;
@@ -117,7 +117,7 @@ std::ostream & libmaus2::util::Histogram::print(std::ostream & out) const
 std::ostream & libmaus2::util::Histogram::printFrac(std::ostream & out, double const frac) const
 {
 	std::map<uint64_t,uint64_t> const F = get();
-	
+
 	double total = 0;
 	for ( std::map<uint64_t,uint64_t>::const_iterator ita = F.begin(); ita != F.end();
 		++ita )
@@ -144,7 +144,7 @@ std::vector < std::pair<uint64_t,uint64_t > > libmaus2::util::Histogram::getFreq
 	}
 	std::sort ( freqsyms.begin(), freqsyms.end() );
 	std::reverse ( freqsyms.begin(), freqsyms.end() );
-	
+
 	return freqsyms;
 }
 

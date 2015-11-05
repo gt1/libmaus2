@@ -27,7 +27,7 @@ namespace libmaus2
 	{
 		namespace parallel
 		{
-			
+
 			struct CramOutputBlockWritePackageFinishedInterface
 			{
 				virtual ~CramOutputBlockWritePackageFinishedInterface() {}

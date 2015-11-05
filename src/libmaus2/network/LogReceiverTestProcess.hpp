@@ -34,20 +34,20 @@ namespace libmaus2
 			typedef LogReceiverTestProcess this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
-			
+
+
 			std::string const sid;
 			std::string const loghostname;
 			unsigned short const port;
 			uint64_t const id;
 			std::vector<int> const closeFds;
 			DispatchCallback * dc;
-			
+
 			static unique_ptr_type construct(
-				std::string const & rsid, 
-				std::string const & rloghostname, 
-				unsigned short const rport, 
-				uint64_t const rid, 
+				std::string const & rsid,
+				std::string const & rloghostname,
+				unsigned short const rport,
+				uint64_t const rid,
 				std::vector<int> const & rcloseFds,
 				DispatchCallback * dc)
 			{
@@ -56,9 +56,9 @@ namespace libmaus2
 			}
 
 			LogReceiverTestProcess(
-				std::string const & rsid, 
-				std::string const & rloghostname, 
-				unsigned short const rport, 
+				std::string const & rsid,
+				std::string const & rloghostname,
+				unsigned short const rport,
 				uint64_t const rid,
 				std::vector<int> const & rcloseFds,
 				DispatchCallback * rdc = 0
@@ -67,8 +67,8 @@ namespace libmaus2
 			{
 				start();
 			}
-			
-			
+
+
 			virtual int run()
 			{
 				for ( uint64_t i = 0; i < closeFds.size(); ++i )

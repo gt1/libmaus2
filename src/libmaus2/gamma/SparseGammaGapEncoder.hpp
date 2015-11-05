@@ -33,20 +33,20 @@ namespace libmaus2
 		struct SparseGammaGapEncoder
 		{
 			typedef SparseGammaGapEncoder this_type;
-			
+
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			typedef libmaus2::aio::SynchronousGenericOutput<uint64_t> stream_type;
-			
+
 			libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO;
 			int64_t prevkey;
 			libmaus2::gamma::GammaEncoder<stream_type> genc;
-		
+
 			SparseGammaGapEncoder(std::ostream & out, int64_t const rprevkey = -1) : SGO(out,64*1024), prevkey(rprevkey), genc(SGO)
 			{
 			}
-			
+
 			void encode(uint64_t const key, uint64_t const val)
 			{
 				int64_t const dif = (static_cast<int64_t>(key)-prevkey)-1;
@@ -55,7 +55,7 @@ namespace libmaus2
 				assert ( val );
 				genc.encode(val);
 			}
-			
+
 			void term()
 			{
 				genc.encode(0);
@@ -63,47 +63,47 @@ namespace libmaus2
 				genc.flush();
 				SGO.flush();
 			}
-			
+
 			template<typename it>
 			static void encodeArray(
-				it const ita, 
-				it const ite, 
+				it const ita,
+				it const ite,
 				std::ostream & out
 			)
 			{
 				std::sort(ita,ite);
-				
+
 				this_type enc(out);
-				
+
 				it itl = ita;
-				
+
 				while ( itl != ite )
 				{
 					it ith = itl;
-					
+
 					while ( ith != ite && *ith == *itl )
 						++ith;
-					
+
 					enc.encode(*itl,ith-itl);
-					
+
 					itl = ith;
 				}
-				
+
 				enc.term();
 				out.flush();
 			}
 
 			template<typename it>
 			static void encodeArray(
-				it const ita, 
-				it const ite, 
+				it const ita,
+				it const ite,
 				std::string const & fn
 			)
 			{
 				libmaus2::aio::OutputStreamInstance COS(fn);
 				encodeArray(ita,ite,COS);
 			}
-		};	
+		};
 	}
 }
 #endif

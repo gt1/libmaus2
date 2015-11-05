@@ -34,7 +34,7 @@ namespace libmaus2
 		struct VarBitList
 		{
 			std::list< bool > B;
-			
+
 			VarBitList();
 			uint64_t select1(uint64_t rank) const;
 			uint64_t select0(uint64_t rank) const;

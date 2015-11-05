@@ -36,7 +36,7 @@ void testOutputLow32()
 		ostru << N;
 		std::ostringstream ostri;
 		ostri << i;
-		
+
 		assert ( ostru.str() == ostri.str() );
 	}
 	std::cerr << "done." << std::endl;
@@ -55,9 +55,9 @@ void testOutputLow64()
 		ostru << N;
 		std::ostringstream ostri;
 		ostri << i;
-		
+
 		// std::cerr << ostru.str() << '\n';
-		
+
 		assert ( ostru.str() == ostri.str() );
 	}
 	std::cerr << "done." << std::endl;
@@ -71,9 +71,9 @@ void compare(libmaus2::math::UnsignedInteger<k> A, libmaus2::uint128_t vA)
 	{
 		unsigned int const dvA = vA % 10;
 		unsigned int const dA = (A % libmaus2::math::UnsignedInteger<4>(10))[0];
-		
+
 		assert ( dvA == dA );
-		
+
 		vA /= 10;
 		A /= libmaus2::math::UnsignedInteger<4>(10);
 	}
@@ -85,15 +85,15 @@ void testrandconst128()
 	{
 		uint64_t const lowa  = libmaus2::random::Random::rand64();
 		uint64_t const higha = libmaus2::random::Random::rand64();
-		
+
 		libmaus2::math::UnsignedInteger<4> A =
 			libmaus2::math::UnsignedInteger<4>(lowa) | (libmaus2::math::UnsignedInteger<4>(higha) << 64);
-		libmaus2::uint128_t vA = 
+		libmaus2::uint128_t vA =
 			static_cast<libmaus2::uint128_t>(lowa) | (static_cast<libmaus2::uint128_t>(higha)<<64);
-			
+
 		// std::cerr << A << std::endl;
-		compare(A,vA);	
-	}	
+		compare(A,vA);
+	}
 }
 
 void testrandadd128()
@@ -105,23 +105,23 @@ void testrandadd128()
 		uint64_t const higha = libmaus2::random::Random::rand64();
 		uint64_t const lowb  = libmaus2::random::Random::rand64();
 		uint64_t const highb = libmaus2::random::Random::rand64();
-		
+
 		libmaus2::math::UnsignedInteger<4> A = libmaus2::math::UnsignedInteger<4>(lowa) | (libmaus2::math::UnsignedInteger<4>(higha) << 64);
 		libmaus2::uint128_t vA = static_cast<libmaus2::uint128_t>(lowa) | (static_cast<libmaus2::uint128_t>(higha)<<64);
 
 		libmaus2::math::UnsignedInteger<4> B = libmaus2::math::UnsignedInteger<4>(lowb) | (libmaus2::math::UnsignedInteger<4>(highb) << 64);
 		libmaus2::uint128_t vB = static_cast<libmaus2::uint128_t>(lowb) | (static_cast<libmaus2::uint128_t>(highb)<<64);
-			
+
 		compare(A+B,vA+vB);
-		
+
 		libmaus2::math::UnsignedInteger<4> C = A+B;
-		
-		libmaus2::uint128_t tV = 
+
+		libmaus2::uint128_t tV =
 			(static_cast<libmaus2::uint128_t>(C[0]) << 0) |
 			(static_cast<libmaus2::uint128_t>(C[1]) << 32) |
 			(static_cast<libmaus2::uint128_t>(C[2]) << 64) |
 			(static_cast<libmaus2::uint128_t>(C[3]) << 96);
-		
+
 		assert ( tV == vA + vB );
 	}
 	std::cerr << "done." << std::endl;
@@ -136,28 +136,28 @@ void testrandmult128()
 		uint64_t const higha = libmaus2::random::Random::rand64();
 		uint64_t const lowb  = libmaus2::random::Random::rand64();
 		uint64_t const highb = libmaus2::random::Random::rand64();
-		
+
 		libmaus2::math::UnsignedInteger<4> A = libmaus2::math::UnsignedInteger<4>(lowa) | (libmaus2::math::UnsignedInteger<4>(higha) << 64);
 		libmaus2::uint128_t vA = static_cast<libmaus2::uint128_t>(lowa) | (static_cast<libmaus2::uint128_t>(higha)<<64);
 
 		libmaus2::math::UnsignedInteger<4> B = libmaus2::math::UnsignedInteger<4>(lowb) | (libmaus2::math::UnsignedInteger<4>(highb) << 64);
 		libmaus2::uint128_t vB = static_cast<libmaus2::uint128_t>(lowb) | (static_cast<libmaus2::uint128_t>(highb)<<64);
-		
+
 		compare(A,vA);
 		compare(B,vB);
-		
+
 		compare(A*B,vA*vB);
-		
+
 		libmaus2::math::UnsignedInteger<4> C = A*B;
-		
-		libmaus2::uint128_t tV = 
+
+		libmaus2::uint128_t tV =
 			(static_cast<libmaus2::uint128_t>(C[0]) << 0) |
 			(static_cast<libmaus2::uint128_t>(C[1]) << 32) |
 			(static_cast<libmaus2::uint128_t>(C[2]) << 64) |
 			(static_cast<libmaus2::uint128_t>(C[3]) << 96);
-		
+
 		assert ( tV == vA * vB );
-	}	
+	}
 	std::cerr << "done." << std::endl;
 }
 
@@ -170,32 +170,32 @@ void testrandsub128()
 		uint64_t const higha = libmaus2::random::Random::rand64();
 		uint64_t const lowb  = libmaus2::random::Random::rand64();
 		uint64_t const highb = libmaus2::random::Random::rand64();
-		
+
 		libmaus2::math::UnsignedInteger<4> A = libmaus2::math::UnsignedInteger<4>(lowa) | (libmaus2::math::UnsignedInteger<4>(higha) << 64);
 		libmaus2::uint128_t vA = static_cast<libmaus2::uint128_t>(lowa) | (static_cast<libmaus2::uint128_t>(higha)<<64);
 
 		libmaus2::math::UnsignedInteger<4> B = libmaus2::math::UnsignedInteger<4>(lowb) | (libmaus2::math::UnsignedInteger<4>(highb) << 64);
 		libmaus2::uint128_t vB = static_cast<libmaus2::uint128_t>(lowb) | (static_cast<libmaus2::uint128_t>(highb)<<64);
-		
+
 		if ( vA < vB )
 		{
 			std::swap(vA,vB);
 			std::swap(A,B);
 		}
-		
+
 		compare(A,vA);
 		compare(B,vB);
-		
+
 		compare(A-B,vA-vB);
-		
+
 		libmaus2::math::UnsignedInteger<4> C = A-B;
-		
-		libmaus2::uint128_t tV = 
+
+		libmaus2::uint128_t tV =
 			(static_cast<libmaus2::uint128_t>(C[0]) << 0) |
 			(static_cast<libmaus2::uint128_t>(C[1]) << 32) |
 			(static_cast<libmaus2::uint128_t>(C[2]) << 64) |
 			(static_cast<libmaus2::uint128_t>(C[3]) << 96);
-		
+
 		assert ( tV == vA - vB );
 	}
 	std::cerr << "done." << std::endl;
@@ -210,32 +210,32 @@ void testranddiv128()
 		uint64_t const higha = libmaus2::random::Random::rand64();
 		uint64_t const lowb  = libmaus2::random::Random::rand64();
 		uint64_t const highb = libmaus2::random::Random::rand64();
-		
+
 		libmaus2::math::UnsignedInteger<4> A = libmaus2::math::UnsignedInteger<4>(lowa) | (libmaus2::math::UnsignedInteger<4>(higha) << 64);
 		libmaus2::uint128_t vA = static_cast<libmaus2::uint128_t>(lowa) | (static_cast<libmaus2::uint128_t>(higha)<<64);
 
 		libmaus2::math::UnsignedInteger<4> B = libmaus2::math::UnsignedInteger<4>(lowb) | (libmaus2::math::UnsignedInteger<4>(highb) << 64);
 		libmaus2::uint128_t vB = static_cast<libmaus2::uint128_t>(lowb) | (static_cast<libmaus2::uint128_t>(highb)<<64);
-		
+
 		if ( vA < vB )
 		{
 			std::swap(vA,vB);
 			std::swap(A,B);
 		}
-		
+
 		compare(A,vA);
 		compare(B,vB);
-		
+
 		compare(A/B,vA/vB);
-		
+
 		libmaus2::math::UnsignedInteger<4> C = A/B;
-		
-		libmaus2::uint128_t tV = 
+
+		libmaus2::uint128_t tV =
 			(static_cast<libmaus2::uint128_t>(C[0]) << 0) |
 			(static_cast<libmaus2::uint128_t>(C[1]) << 32) |
 			(static_cast<libmaus2::uint128_t>(C[2]) << 64) |
 			(static_cast<libmaus2::uint128_t>(C[3]) << 96);
-		
+
 		assert ( tV == vA / vB );
 	}
 	std::cerr << "done." << std::endl;
@@ -244,7 +244,7 @@ void testranddiv128()
 
 int main(
 	#if 0
-	int argc, 
+	int argc,
 	char * argv[]
 	#endif
 )
@@ -260,5 +260,5 @@ int main(
 	#endif
 
 	testOutputLow32();
-	testOutputLow64();	
+	testOutputLow64();
 }

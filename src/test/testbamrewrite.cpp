@@ -37,7 +37,7 @@ int main(int argc, char * argv[])
 		{
 			if ( cnt % (1024*1024) == 0 )
 				std::cerr << "[V] " << cnt << std::endl;
-			algn.serialise(writer.getStream());	
+			algn.serialise(writer.getStream());
 		}
 
 		std::cerr << "[V] " << cnt << std::endl;

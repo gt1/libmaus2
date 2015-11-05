@@ -32,7 +32,7 @@ namespace libmaus2
 		{
 			typedef SocketOutputBuffer8Set this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			typedef ::libmaus2::network::SocketOutputBuffer8 buffer_type;
 			typedef buffer_type::unique_ptr_type buffer_ptr_type;
 
@@ -42,7 +42,7 @@ namespace libmaus2
 			::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & HI;
 			::libmaus2::autoarray::AutoArray < buffer_ptr_type > buffers;
 			::libmaus2::util::GenericIntervalTree::unique_ptr_type IT;
-			
+
 			SocketOutputBuffer8Set(
 				::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & rHI,
 				int const tag, uint64_t const bufsize,

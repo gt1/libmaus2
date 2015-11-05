@@ -26,11 +26,11 @@ int main(int argc, char * argv[])
 	{
 		::libmaus2::util::ArgInfo const arginfo(argc,argv);
 		std::string const fn = arginfo.getRestArg<std::string>(0);
-		
+
 		#if 0
 		::libmaus2::bitio::PacDecoderWrapper PDW(fn);
 		::libmaus2::autoarray::AutoArray<char> C(64*1024);
-		
+
 		while ( PDW )
 		{
 			PDW.read(C.begin(),C.size());

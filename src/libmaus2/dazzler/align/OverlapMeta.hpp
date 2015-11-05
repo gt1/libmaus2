@@ -67,7 +67,7 @@ namespace libmaus2
 				{
 					return !(*this!=O);
 				}
-				
+
 				OverlapMeta() {}
 				OverlapMeta(
 					int64_t const raread,
@@ -76,23 +76,23 @@ namespace libmaus2
 					int64_t const rabpos,
 					int64_t const raepos,
 					int64_t const rbbpos,
-					int64_t const rbepos		
+					int64_t const rbepos
 				) : aread(raread), bread(rbread), inv(rinv), abpos(rabpos), aepos(raepos), bbpos(rbbpos), bepos(rbepos) {}
 				OverlapMeta(Overlap const & OVL)
 				: aread(OVL.aread), bread(OVL.bread), inv(OVL.isInverse()), abpos(OVL.path.abpos), aepos(OVL.path.aepos), bbpos(OVL.path.bbpos), bepos(OVL.path.bepos)
 				{
-				
+
 				}
 				OverlapMeta(std::istream & in)
 				{
 					deserialise(in);
 				}
-				
+
 				static uint64_t getSerialisedObjectSize()
 				{
 					return 7 * sizeof(uint64_t);
 				}
-				
+
 				uint64_t serialise(std::ostream & out) const
 				{
 					uint64_t offset = 0;
@@ -105,7 +105,7 @@ namespace libmaus2
 					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(out,bepos,offset);
 					return offset;
 				}
-				
+
 				uint64_t deserialise(std::istream & in)
 				{
 					uint64_t offset = 0;
@@ -119,7 +119,7 @@ namespace libmaus2
 					return offset;
 				}
 			};
-			
+
 			std::ostream & operator<<(std::ostream & out, OverlapMeta const & OM);
 		}
 	}

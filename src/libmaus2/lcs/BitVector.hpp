@@ -29,7 +29,7 @@ namespace libmaus2
 		struct BitVector
 		{
 			typedef _word_type word_type;
-			
+
 			static word_type lowbits(unsigned int m)
 			{
 				if ( ! m )
@@ -75,20 +75,20 @@ namespace libmaus2
 				#else
 				word_type * const B = reinterpret_cast<uint64_t *>(alloca( alphabetsize * sizeof(word_type) ));
 				#endif
-				
+
 				std::fill(B,B+alphabetsize,0);
-								
+
 				static word_type const one = static_cast<word_type>(1);
 				for ( size_t i = 0; i < m; ++i )
 					B[ static_cast<int>(q[i]) ] |= one << i;
-					
+
 				word_type VP = lowbits(m);
 				word_type VN = 0;
-				
+
 				int64_t score = m;
-				
+
 				word_type const topbit = one << (m-1);
-				
+
 				for ( size_t i = 0; i < n; ++i )
 				{
 					word_type const X = B[static_cast<int>(t[i])] | VN;
@@ -98,12 +98,12 @@ namespace libmaus2
 					word_type const Y = HP << 1;
 					VN = Y & D0;
 					VP = (HN << 1) | ~(Y|D0);
-					
+
 					if ( HP & topbit )
 						score += 1;
 					else if ( HN & topbit )
 						score -= 1;
-					
+
 					if ( score <= maxk )
 						callback(i,score);
 				}

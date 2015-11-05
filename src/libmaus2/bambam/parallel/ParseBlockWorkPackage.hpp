@@ -35,32 +35,32 @@ namespace libmaus2
 				typedef ParseBlockWorkPackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				DecompressedBlock::shared_ptr_type decompressedblock;
 				AlignmentBuffer::shared_ptr_type parseBlock;
 				ParseInfo * parseInfo;
-	
+
 				ParseBlockWorkPackage()
-				: 
-					libmaus2::parallel::SimpleThreadWorkPackage(), 
+				:
+					libmaus2::parallel::SimpleThreadWorkPackage(),
 					decompressedblock(),
 					parseBlock(),
 					parseInfo(0)
 				{
 				}
-				
+
 				ParseBlockWorkPackage(
-					uint64_t const rpriority, 
+					uint64_t const rpriority,
 					DecompressedBlock::shared_ptr_type rdecompressedblock,
 					AlignmentBuffer::shared_ptr_type rparseBlock,
 					ParseInfo * rparseInfo,
 					uint64_t const rparseDispatcherId
 				)
-				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rparseDispatcherId), 
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rparseDispatcherId),
 				  decompressedblock(rdecompressedblock), parseBlock(rparseBlock), parseInfo(rparseInfo)
 				{
 				}
-			
+
 				char const * getPackageName() const
 				{
 					return "ParseBlockWorkPackage";

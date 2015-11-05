@@ -18,7 +18,7 @@
 */
 #if ! defined(LIBMAUS2_BAMBAM_COLLATINGBAMDECODER_HPP)
 #define LIBMAUS2_BAMBAM_COLLATINGBAMDECODER_HPP
-				
+
 #include <libmaus2/bambam/MergeQueueElement.hpp>
 #include <libmaus2/bambam/BamAlignmentComparator.hpp>
 #include <libmaus2/bambam/BamDecoder.hpp>
@@ -35,7 +35,7 @@
 namespace libmaus2
 {
 	namespace bambam
-	{	
+	{
 		/**
 		 * collating bam decoder class, now deprecated; please use the circular hash based collating bam decoder
 		 **/
@@ -53,11 +53,11 @@ namespace libmaus2
 			typedef ::libmaus2::bambam::BamAlignment alignment_type;
 			//! alignment pointer type
 			typedef alignment_type::shared_ptr_type alignment_ptr_type;
-			
+
 			private:
 			//! collator state values
 			enum decoder_state { reading, merging, done };
-		
+
 			//! bam decoder
 			BamDecoder bamdecoder;
 			//! temporary file name
@@ -70,8 +70,8 @@ namespace libmaus2
 			::libmaus2::lz::SnappyInputStreamArrayFile::unique_ptr_type temparrayin;
 			//! collator state
 			decoder_state state;
-			
-			//! hash: hash value -> alignment	
+
+			//! hash: hash value -> alignment
 			::libmaus2::autoarray::AutoArray < std::pair<uint64_t,alignment_ptr_type> > hash;
 			//! output list for passing alignment back to the caller
 			::std::deque < alignment_ptr_type > outputlist;
@@ -85,7 +85,7 @@ namespace libmaus2
 			std::vector < uint64_t > readbackcnt;
 			std::priority_queue < MergeQueueElement > mergequeue;
 			std::deque < alignment_ptr_type > pairbuffer;
-			
+
 			//! default number of hash bits (log_2 of size of hash table)
 			static unsigned int const defaulthashbits;
 			//! 2^defaulthashbits
@@ -94,7 +94,7 @@ namespace libmaus2
 			static unsigned int const defaulthashmask;
 			//! default maximal size of write out list
 			static unsigned int const defaultwriteoutlistmax;
-			
+
 			//! log_2 of size of hash table
 			unsigned int const hashbits;
 			//! 2^hashsize
@@ -103,12 +103,12 @@ namespace libmaus2
 			unsigned int const hashmask;
 			//! maximal size of write out list
 			unsigned int const writeoutlistmax;
-			
+
 			//! callback called on alignment input (for observing alignments in file order)
 			CollatingBamDecoderAlignmentInputCallback * inputcallback;
 			//! histogram of alignments written back to disk for sorting (ref id is key)
 			std::map<int64_t,uint64_t> writeOutHist;
-			
+
 			/**
 			 * @return pointer to temporary file stream
 			 **/
@@ -121,7 +121,7 @@ namespace libmaus2
 				}
 				return tempfileout.get();
 			}
-			
+
 			/**
 			 * close and flush temporary file
 			 *
@@ -141,7 +141,7 @@ namespace libmaus2
 					return false;
 				}
 			}
-			
+
 			/**
 			 * initialize hash table and collator state
 			 **/
@@ -150,7 +150,7 @@ namespace libmaus2
 				hash = ::libmaus2::autoarray::AutoArray < std::pair<uint64_t, alignment_ptr_type> >(hashsize);
 				state = reading;
 			}
-			
+
 			/**
 			 * sort write out list and flush entries to disk
 			 **/
@@ -158,7 +158,7 @@ namespace libmaus2
 			{
 				std::sort(writeoutlist.begin(),writeoutlist.end(),BamAlignmentComparator());
 
-				uint64_t j = 0;							
+				uint64_t j = 0;
 				for ( uint64_t i = 0; i < writeoutlist.size(); )
 					if ( i+1 >= writeoutlist.size() )
 						writeoutlist[j++] = writeoutlist[i++];
@@ -175,18 +175,18 @@ namespace libmaus2
 						outputlist.push_back(writeoutlist[i++]);
 						outputlist.push_back(writeoutlist[i++]);
 					}
-					
+
 				// std::cerr << "Reducing size from " << writeoutlist.size() << " to " << j << std::endl;
-				
+
 				writeoutlist.resize(j);
-				
+
 				// if there is anything left, then write it out to file/disk
 				if ( writeoutlist.size() )
 				{
 					::libmaus2::aio::OutputStream & tmpfile = *getTempFile();
 
 					uint64_t const prepos = tmpfile.tellp();
-					
+
 					#if defined(LIBMAUS2_BAMBAM_COLLATION_USE_SNAPPY)
 					::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::OutputStream > SOS(tmpfile);
 					for ( uint64_t i = 0; i < writeoutlist.size(); ++i )
@@ -196,27 +196,27 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < writeoutlist.size(); ++i )
 						writeoutlist[i]->serialise(tmpfile);
 					#endif
-					
+
 					uint64_t const postpos = tmpfile.tellp();
 					writeoutindex.push_back(std::pair<uint64_t,uint64_t>(prepos,postpos));
 					writeoutcnt.push_back(writeoutlist.size());
 					readbackcnt.push_back(0);
-					
+
 					#if defined(LIBMAUS2_BAMBAM_COLLATION_USE_SNAPPY) && defined(LIBMAUS2_BAMBAM_COLLATION_USE_SNAPPY_DEBUG)
 					tmpfile.flush();
-					
+
 					::libmaus2::lz::SnappyOffsetFileInputStream SOFIS(tempfilename,prepos);
 					for ( uint64_t i = 0; i < writeoutlist.size(); ++i )
 					{
-						::libmaus2::bambam::BamAlignment::shared_ptr_type ptr = 
+						::libmaus2::bambam::BamAlignment::shared_ptr_type ptr =
 							::libmaus2::bambam::BamAlignment::load(SOFIS);
-							
+
 						// std::cerr << "Expecting " << writeoutlist[i]->getName() << std::endl;
-						// std::cerr << "Got       " << ptr->getName() << std::endl;	
-							
+						// std::cerr << "Got       " << ptr->getName() << std::endl;
+
 						assert ( std::string(ptr->getName()) == std::string(writeoutlist[i]->getName()) );
 						assert ( ptr->blocksize == writeoutlist[i]->blocksize );
-						assert ( 
+						assert (
 							std::string(ptr->D.get(),ptr->D.get()+ptr->blocksize)
 							==
 							std::string(writeoutlist[i]->D.get(),writeoutlist[i]->D.get()+writeoutlist[i]->blocksize)
@@ -225,7 +225,7 @@ namespace libmaus2
 
 					std::cerr << "Snappy block " << readbackcnt.size() << " written, size of tmp file is now " << postpos << std::endl;
 					#endif
-					
+
 					// std::cerr << "[" << readbackcnt.size()-1 << "]: " << "index [" << prepos << "," << postpos << ")" << std::endl;
 					for ( uint64_t z = 0; z < writeoutlist.size(); ++z )
 					{
@@ -234,9 +234,9 @@ namespace libmaus2
 					}
 
 					writeoutlist.resize(0);
-				}			
+				}
 			}
-			
+
 			/**
 			 * print the write out histogram to out
 			 *
@@ -249,17 +249,17 @@ namespace libmaus2
 				if ( writeOutHist.size() )
 				{
 					out << prefix << " " << "Overflow histogram:" << std::endl;
-					
+
 					for ( std::map<int64_t,uint64_t>::const_iterator ita = writeOutHist.begin();
 						ita != writeOutHist.end(); ++ita )
 					{
 						std::string const name = bamdecoder.getHeader().getRefIDName(ita->first);
 						uint64_t const cnt = ita->second;
-						
+
 						out << prefix << "\t" << name << "\t" << cnt << std::endl;
 					}
 				}
-				
+
 				return out;
 			}
 
@@ -271,20 +271,20 @@ namespace libmaus2
 			void pushWriteOut(alignment_ptr_type oldalgn)
 			{
 				// std::cerr << "Pushing out." << std::endl;
-			
+
 				writeoutlist.push_back(oldalgn);
-				
+
 				if ( writeoutlist.size() == writeoutlistmax )
 					flushWriteOutList();
 			}
-			
+
 			/**
 			 * try to fill the output list with at least one alignment, a pair if possible
 			 **/
 			void fillOutputList()
 			{
 				assert ( outputlist.size() == 0 );
-				
+
 				while ( (state == reading) && (! outputlist.size()) )
 				{
 					// read alignment
@@ -295,13 +295,13 @@ namespace libmaus2
 						for ( uint64_t i = 0; i < hash.size(); ++i )
 							if ( hash[i].second )
 								pushWriteOut(hash[i].second);
-					
-						// release memory for hash			
+
+						// release memory for hash
 						hash.release();
 
 						// write remaining entries to disk
 						flushWriteOutList();
-								
+
 						if ( closeTempFile() )
 						{
 							// std::cerr << "switching to merging." << std::endl;
@@ -314,49 +314,49 @@ namespace libmaus2
 						}
 					}
 					else
-					{	
+					{
 						if ( inputcallback )
 							(*inputcallback)(bamdecoder.getAlignment());
-							
+
 						// put rank
 						bamdecoder.putRank();
-							
+
 						// get copy of the alignment as shared ptr
 						alignment_ptr_type algn = bamdecoder.salignment();
 
 						if ( algn->isSecondary() )
-							continue;							
-						
+							continue;
+
 						uint64_t const hv = algn->hash();
-						
+
 						if ( ! hash[hv & hashmask].second.get() )
 						{
 							hash[hv & hashmask] = std::pair<uint64_t,alignment_ptr_type>(hv,algn);
 						}
-						else if ( 
+						else if (
 							(hash[hv & hashmask].first != hv) ||
 							(! alignment_type::isPair(*(hash[hv & hashmask].second),*algn))
 						)
 						{
 							alignment_ptr_type oldalgn = hash[hv&hashmask].second;
 							assert ( oldalgn.get() );
-					
-							pushWriteOut(oldalgn);		
-							
+
+							pushWriteOut(oldalgn);
+
 							// replace old alignment by new one
-							hash[hv & hashmask] = std::pair<uint64_t,alignment_ptr_type>(hv,algn);						
+							hash[hv & hashmask] = std::pair<uint64_t,alignment_ptr_type>(hv,algn);
 						}
 						else
 						{
 							assert ( hash[hv & hashmask].second.get() );
 							assert ( hash[hv & hashmask].first == hv );
 							assert ( alignment_type::isPair(*(hash[hv & hashmask].second),*algn) );
-							
+
 							alignment_ptr_type oldalgn = hash[hv&hashmask].second;
 							assert ( oldalgn.get() );
-							
+
 							hash[hv&hashmask].second.reset();
-							
+
 							if ( oldalgn->isRead1() )
 							{
 								outputlist.push_back(oldalgn);
@@ -365,26 +365,26 @@ namespace libmaus2
 							else
 							{
 								outputlist.push_back(algn);
-								outputlist.push_back(oldalgn);							
+								outputlist.push_back(oldalgn);
 							}
 						}
 					}
 				}
-				
+
 				while ( (state == merging) && (! outputlist.size()) )
 				{
-					if ( 
+					if (
 						#if defined(LIBMAUS2_BAMBAM_COLLATION_USE_SNAPPY)
 						(! temparrayin)
 						#else
-						(! tempfilein) 
+						(! tempfilein)
 						#endif
-						&& 
-						writeoutindex.size() 
+						&&
+						writeoutindex.size()
 					)
 					{
 						// std::cerr << "Setting up merging." << std::endl;
-					
+
 						#if defined(LIBMAUS2_BAMBAM_COLLATION_USE_SNAPPY)
 						// construct interval vector
 						std::vector<uint64_t> writeoutints;
@@ -400,7 +400,7 @@ namespace libmaus2
 						::libmaus2::aio::InputStream::unique_ptr_type rtmpfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(tempfilename));
 						tempfilein = UNIQUE_PTR_MOVE(rtmpfile);
 						#endif
-						
+
 						for ( uint64_t i = 0; i < writeoutindex.size(); ++i )
 							readbackindex.push_back(writeoutindex[i].first);
 
@@ -414,38 +414,38 @@ namespace libmaus2
 								#else
 								tempfilein->clear();
 								tempfilein->seekg(readbackindex[i],std::ios::beg);
-								
+
 								alignment_ptr_type ptr = alignment_type::load(*tempfilein);
 								mergequeue.push(MergeQueueElement(ptr,i));
-								
+
 								readbackindex[i] = tempfilein->tellg();
 								readbackcnt[i]++;
 								#endif
 							}
 					}
-				
+
 					if ( mergequeue.size() )
 					{
 						MergeQueueElement MQE = mergequeue.top();
 						mergequeue.pop();
-						
+
 						outputlist.push_back(MQE.algn);
-						
+
 						uint64_t const i = MQE.index;
-						
+
 						if ( readbackcnt[i] != writeoutcnt[i] )
 						{
 							#if defined(LIBMAUS2_BAMBAM_COLLATION_USE_SNAPPY)
 							alignment_ptr_type ptr = alignment_type::load((*temparrayin)[i]);
 							mergequeue.push(MergeQueueElement(ptr,i));
-							readbackcnt[i]++;							
+							readbackcnt[i]++;
 							#else
 							tempfilein->clear();
 							tempfilein->seekg(readbackindex[i],std::ios::beg);
-							
+
 							alignment_ptr_type ptr = alignment_type::load(*tempfilein);
 							mergequeue.push(MergeQueueElement(ptr,i));
-							
+
 							readbackindex[i] = tempfilein->tellg();
 							readbackcnt[i]++;
 							#endif
@@ -482,17 +482,17 @@ namespace libmaus2
 			 * @param rwriteoutlistmax write out list in number of alignments for writing alignment out to disk
 			 **/
 			CollatingBamDecoder(
-				std::string const & filename, 
+				std::string const & filename,
 				std::string const & rtempfilename,
 				bool const rputrank = false,
 				unsigned int const rhashbits = defaulthashbits,
 				unsigned int const rwriteoutlistmax = defaultwriteoutlistmax
 			)
 			: bamdecoder(filename,rputrank), tempfilename(rtempfilename),
-			  hashbits(rhashbits), hashsize(1u << hashbits), hashmask(hashsize-1), 
+			  hashbits(rhashbits), hashsize(1u << hashbits), hashmask(hashsize-1),
 			  writeoutlistmax(rwriteoutlistmax), inputcallback(0)
 			{ init(); }
-			
+
 			/**
 			 * constructor by input stream
 			 *
@@ -503,17 +503,17 @@ namespace libmaus2
 			 * @param rwriteoutlistmax write out list in number of alignments for writing alignment out to disk
 			 **/
 			CollatingBamDecoder(
-				std::istream & in, 
+				std::istream & in,
 				std::string const & rtempfilename,
 				bool const rputrank = false,
 				unsigned int const rhashbits = defaulthashbits,
 				unsigned int const rwriteoutlistmax = defaultwriteoutlistmax
 			)
 			: bamdecoder(in,rputrank), tempfilename(rtempfilename),
-			  hashbits(rhashbits), hashsize(1u << hashbits), hashmask(hashsize-1), 
+			  hashbits(rhashbits), hashsize(1u << hashbits), hashmask(hashsize-1),
 			  writeoutlistmax(rwriteoutlistmax), inputcallback(0)
 			{ init(); }
-			
+
 			/**
 			 * get next alignment from output list
 			 *
@@ -523,7 +523,7 @@ namespace libmaus2
 			{
 				if ( ! outputlist.size() )
 					fillOutputList();
-			
+
 				if ( outputlist.size() )
 				{
 					alignment_ptr_type algn = outputlist.front();
@@ -535,10 +535,10 @@ namespace libmaus2
 					return alignment_ptr_type();
 				}
 			}
-			
+
 			/**
 			 * try to get a pair; if no more alignments are avaible, then both alignment pointers
-			 * in the return pair are null pointers; if only an orphan was available, then one of the 
+			 * in the return pair are null pointers; if only an orphan was available, then one of the
 			 * two pointers returned is a null pointer; if a pair was available, then read 1 is
 			 * passed as the first pointer and read 2 as the second
 			 *
@@ -549,7 +549,7 @@ namespace libmaus2
 				alignment_ptr_type algn_a, algn_b;
 				algn_a = get();
 				algn_b = get();
-				
+
 				// no more reads
 				if ( ! algn_a )
 				{
@@ -590,7 +590,7 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			/**
 			 * try to get a pair (see argument free tryPair method)
 			 *
@@ -632,7 +632,7 @@ namespace libmaus2
 						outputlist.push_front(algn_b);
 					}
 				}
-				
+
 				if ( pairbuffer.size() )
 				{
 					alignment_ptr_type algn = pairbuffer.front();
@@ -663,7 +663,7 @@ namespace libmaus2
 				return bamdecoder.getHeader();
 			}
 		};
-		
+
 		/**
 		 * FastQ type input class from BAM files; it yields pairs only; single and orphan reads are dropped
 		 **/
@@ -677,10 +677,10 @@ namespace libmaus2
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			//! pattern type
 			typedef ::libmaus2::fastx::FASTQEntry pattern_type;
-			
+
 			//! next pattern id
 			uint64_t id;
-		
+
 			/**
 			 * constructor by file name
 			 *
@@ -695,7 +695,7 @@ namespace libmaus2
 			 * @param rtempfilename temporary file name
 			 **/
 			CollatingBamDecoderNoOrphans(std::istream & in, std::string const & rtempfilename) : CollatingBamDecoder(in,rtempfilename), id(0) {}
-			
+
 			/**
 			 * fill next FastQ entry
 			 *
@@ -705,11 +705,11 @@ namespace libmaus2
 			bool getNextPatternUnlocked(pattern_type & pattern)
 			{
 				CollatingBamDecoder::alignment_ptr_type algn = CollatingBamDecoder::getPair();
-				
+
 				if ( algn )
 				{
 					algn->toPattern(pattern,id++);
-					return true;	
+					return true;
 				}
 				else
 				{
@@ -717,6 +717,6 @@ namespace libmaus2
 				}
 			}
 		};
-	}	
+	}
 }
 #endif

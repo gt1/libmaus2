@@ -46,7 +46,7 @@ namespace libmaus2
 					d.pop_back();
 				return std::string(d.begin(),d.end());
 			}
-			
+
 			static std::string tolower(std::string s)
 			{
 				for ( uint64_t i = 0; i < s.size(); ++i )
@@ -67,41 +67,41 @@ namespace libmaus2
 			{
 				if ( fields.find("content-length") == fields.end() )
 					return -1;
-				
+
 				std::string const scontentlength = fields.find("content-length")->second;
-				
+
 				std::istringstream scontentlengthistr(scontentlength);
-				
+
 				int64_t contentlength;
 				scontentlengthistr >> contentlength;
-				
+
 				if ( ! scontentlengthistr )
 				{
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HttpHeader: cannot parse content length field value " << scontentlength << std::endl;
 					lme.finish();
-					throw lme;		
+					throw lme;
 				}
-				
+
 				return contentlength;
 			}
-			
+
 			std::istream & getStream()
 			{
 				return *SIS;
 			}
-			
+
 			static bool hasHttpProxy()
 			{
 				char const * proxystring = getenv("http_proxy");
-				
+
 				if ( ! proxystring )
 					return false;
 
 				if ( ! strlen(proxystring) )
 					return false;
-					
-				if ( 
+
+				if (
 					!
 						(
 							libmaus2::network::HttpAbsoluteUrl::isHttpAbsoluteUrl(proxystring)
@@ -113,23 +113,23 @@ namespace libmaus2
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HttpHeader: unknown http_proxy setting " << proxystring << std::endl;
 					lme.finish();
-					throw lme;				
+					throw lme;
 				}
-				
+
 				return true;
 			}
 
 			static bool hasHttpsProxy()
 			{
 				char const * proxystring = getenv("https_proxy");
-				
+
 				if ( ! proxystring )
 					return false;
-					
+
 				if ( ! strlen(proxystring) )
 					return false;
-					
-				if ( 
+
+				if (
 					!
 						(
 							libmaus2::network::HttpAbsoluteUrl::isHttpAbsoluteUrl(proxystring)
@@ -141,12 +141,12 @@ namespace libmaus2
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HttpHeader: unknown https_proxy setting " << proxystring << std::endl;
 					lme.finish();
-					throw lme;				
+					throw lme;
 				}
-				
+
 				return true;
 			}
-			
+
 			struct InitParameters
 			{
 				std::string method;
@@ -155,7 +155,7 @@ namespace libmaus2
 				std::string path;
 				unsigned int port;
 				bool ssl;
-				
+
 				InitParameters() : port(0), ssl(false) {}
 				InitParameters(
 					std::string rmethod,
@@ -163,13 +163,13 @@ namespace libmaus2
 					std::string rhost,
 					std::string rpath,
 					unsigned int rport,
-					bool rssl			
+					bool rssl
 				)
 				: method(rmethod), addreq(raddreq), host(rhost), path(rpath), port(rport), ssl(rssl)
 				{
-				
+
 				}
-				
+
 				bool operator==(InitParameters const & o) const
 				{
 					return
@@ -191,58 +191,58 @@ namespace libmaus2
 					return false;
 				}
 			};
-			
+
 			void init(
-				std::string method, 
-				std::string addreq, 
-				std::string host, 
+				std::string method,
+				std::string addreq,
+				std::string host,
 				std::string path, unsigned int port = 80, bool ssl = false
 			)
 			{
 				bool headercomplete = false;
-				
+
 				std::set<InitParameters> seen;
 
 				while ( ! headercomplete )
 				{
 					InitParameters const initparams(method,addreq,host,path,port,ssl);
-					
+
 					if ( seen.find(initparams) != seen.end() )
 					{
 						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "HttpHeader: redirect loop detected, method=" << method << " host=" << host << " path=" << path << " port=" << port << " ssl=" << ssl << std::endl;
 						lme.finish();
-						throw lme;	
+						throw lme;
 					}
-					
+
 					seen.insert(initparams);
-				
+
 					fields.clear();
-					
+
 					CS.reset();
 					SIS.reset();
 					GTLSIOS.reset();
 					SIOS = 0;
-					
+
 					bool const hasproxy =
 						(ssl && hasHttpsProxy())
 						||
 						((!ssl) && hasHttpProxy());
-						
+
 					if ( hasproxy )
 					{
 						HttpAbsoluteUrl proxyurl =
 							ssl ? HttpAbsoluteUrl(getenv("https_proxy")) : HttpAbsoluteUrl(getenv("http_proxy"));
-						
+
 						// std::cerr << "[D] using proxy " << proxyurl << std::endl;
-							
+
 						if ( proxyurl.ssl )
 						{
 							#if defined(LIBMAUS2_HAVE_GNUTLS)
 							libmaus2::network::GnuTLSSocket::unique_ptr_type tGTLSIOS(new libmaus2::network::GnuTLSSocket(proxyurl.host,proxyurl.port,"/etc/ssl/certs/ca-certificates.crt","/etc/ssl/certs",true));
 							GTLSIOS = UNIQUE_PTR_MOVE(tGTLSIOS);
 							SIOS = GTLSIOS.get();
-							#else	
+							#else
 							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "HttpHeader::init(): proxy url requires SSL but libmaus2 is compiled without support for GNUTLS" << std::endl;
 							lme.finish();
@@ -258,10 +258,10 @@ namespace libmaus2
 							CS = UNIQUE_PTR_MOVE(tCS);
 
 							SIOS = CS.get();
-						
+
 							libmaus2::network::SocketInputStream::unique_ptr_type tSIS(new libmaus2::network::SocketInputStream(*CS,64*1024));
 							SIS = UNIQUE_PTR_MOVE(tSIS);
-						}						
+						}
 					}
 					else
 					{
@@ -270,7 +270,7 @@ namespace libmaus2
 							#if defined(LIBMAUS2_HAVE_GNUTLS)
 							libmaus2::network::GnuTLSSocket::unique_ptr_type tGTLSIOS(new libmaus2::network::GnuTLSSocket(host,port,"/etc/ssl/certs/ca-certificates.crt","/etc/ssl/certs",true));
 							GTLSIOS = UNIQUE_PTR_MOVE(tGTLSIOS);
-							
+
 							SIOS = GTLSIOS.get();
 							#else
 							libmaus2::exception::LibMausException lme;
@@ -288,23 +288,23 @@ namespace libmaus2
 							CS = UNIQUE_PTR_MOVE(tCS);
 
 							SIOS = CS.get();
-						
+
 							libmaus2::network::SocketInputStream::unique_ptr_type tSIS(new libmaus2::network::SocketInputStream(*CS,64*1024));
 							SIS = UNIQUE_PTR_MOVE(tSIS);
 						}
 					}
-					
+
 					std::ostringstream reqastr;
 
 					if ( hasproxy )
 					{
-						reqastr << method << " " 
+						reqastr << method << " "
 							<< (ssl ? "https" : "http")
 							<< "://"
 							<< host
 							<< ":"
 							<< port
-							<< path 
+							<< path
 							<< " HTTP/1.1\r\n";
 						reqastr << "Connection: close\r\n";
 					}
@@ -324,26 +324,26 @@ namespace libmaus2
 					libmaus2::autoarray::AutoArray<char> c(128,false);
 					char last4[4] = {0,0,0,0};
 					bool done = false;
-					
+
 					std::ostringstream headstr;
-					
+
 					while ( !done )
 					{
 						SIS->readsome(c.begin(),c.size());
 						ssize_t r = SIS->gcount();
-						
+
 						// buffer is empty, try to fill it
 						if ( ! r )
 						{
 							SIS->read(c.begin(),1);
 							r = SIS->gcount();
-							
+
 							if ( ! r )
 							{
 								libmaus2::exception::LibMausException lme;
 								lme.getStream() << "HttpHeader: unexpected EOF/error while reading header" << std::endl;
 								lme.finish();
-								throw lme;	
+								throw lme;
 							}
 							else
 							{
@@ -351,20 +351,20 @@ namespace libmaus2
 								continue;
 							}
 						}
-						
+
 						for ( ssize_t i = 0; (!done) && i < r; ++i )
 						{
 							headstr.put(c[i]);
-							
+
 							last4[0] = last4[1];
 							last4[1] = last4[2];
 							last4[2] = last4[3];
 							last4[3] = c[i];
-						
-							if ( 
-								last4[0] == '\r' && 
-								last4[1] == '\n' && 
-								last4[2] == '\r' && 
+
+							if (
+								last4[0] == '\r' &&
+								last4[1] == '\n' &&
+								last4[2] == '\r' &&
 								last4[3] == '\n'
 							)
 							{
@@ -374,25 +374,25 @@ namespace libmaus2
 								// SIS->clear();
 								done = true;
 							}
-						}			
+						}
 					}
-					
+
 					std::istringstream linestr(headstr.str());
 					std::vector<std::string> lines;
 					while ( linestr )
 					{
 						std::string line;
 						std::getline(linestr,line);
-						
+
 						while ( line.size() && isspace(line[line.size()-1]) )
 						{
 							line = line.substr(0,line.size()-1);
 						}
-						
+
 						if ( line.size() )
 							lines.push_back(line);
 					}
-					
+
 					if ( ! lines.size() )
 					{
 						libmaus2::exception::LibMausException lme;
@@ -400,7 +400,7 @@ namespace libmaus2
 						lme.finish();
 						throw lme;
 					}
-					
+
 					statusline = lines[0];
 					std::vector<std::string> statustokens;
 					for ( uint64_t i = 0; i < statusline.size(); )
@@ -408,38 +408,38 @@ namespace libmaus2
 						while ( i < statusline.size() && isspace(statusline[i]) )
 							++i;
 
-						uint64_t j = i;					
+						uint64_t j = i;
 						while ( j < statusline.size() && (!isspace(statusline[j])) )
 							++j;
-							
+
 						std::string const token = statusline.substr(i,j-i);
-						
+
 						i = j;
-						
+
 						statustokens.push_back(token);
 					}
-					
+
 					if ( statustokens.size() < 2 )
-					{			
+					{
 						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "HttpHeader: status line " << statusline << " invalid" << std::endl;
 						lme.finish();
 						throw lme;
 					}
-				
-					std::string const replyformat = statustokens[0];	
+
+					std::string const replyformat = statustokens[0];
 					std::istringstream statuscodeistr(statustokens[1]);
 					uint64_t statuscode;
 					statuscodeistr >> statuscode;
-					
+
 					if ( ! statuscodeistr )
 					{
 						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "HttpHeader: invalid status code " << statustokens[1] << std::endl;
 						lme.finish();
-						throw lme;			
+						throw lme;
 					}
-					
+
 					if (
 						replyformat != "HTTP/1.0"
 						&&
@@ -449,63 +449,63 @@ namespace libmaus2
 						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "HttpHeader: unknown reply format " << replyformat << std::endl;
 						lme.finish();
-						throw lme;						
+						throw lme;
 					}
-					
+
 					// std::cerr << "status code " << statuscode << std::endl;
-					
+
 					for ( uint64_t i = 1; i < lines.size(); ++i )
 					{
 						std::string const line = lines[i];
-						
+
 						uint64_t col = 0;
 						while ( col < line.size() && line[col] != ':' )
 							++col;
-						
+
 						if ( ! col || col == line.size() )
 						{
 							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "HttpHeader: invalid key value pair " << line << std::endl;
 							lme.finish();
-							throw lme;						
+							throw lme;
 						}
-						
+
 						std::string const key = tolower(despace(line.substr(0,col)));
 						std::string const val = despace(line.substr(col+1));
-						
+
 						fields[key] = val;
 					}
-					
+
 					switch ( statuscode )
 					{
 						case 301:
 						case 302:
 						case 307:
 						case 308:
-						{				
+						{
 							std::map<std::string,std::string>::const_iterator it = fields.end();
-							
+
 							if ( it == fields.end() )
 								it = fields.find("Location");
 							if ( it == fields.end() )
 								it = fields.find("location");
-							
+
 							if ( it == fields.end() )
-							{	
+							{
 								libmaus2::exception::LibMausException lme;
 								lme.getStream() << "HttpHeader: redirect status code " << statuscode << " but no location given" << std::endl;
 								lme.finish();
-								throw lme;						
+								throw lme;
 							}
-							
+
 							std::string location = it->second;
 
 							// std::cerr << "redirecting " << statuscode << " to " << location << std::endl;
-							
-							if ( 
-								::libmaus2::network::HttpAbsoluteUrl::isHttpAbsoluteUrl(location) 
+
+							if (
+								::libmaus2::network::HttpAbsoluteUrl::isHttpAbsoluteUrl(location)
 								||
-								::libmaus2::network::HttpAbsoluteUrl::isHttpsAbsoluteUrl(location) 
+								::libmaus2::network::HttpAbsoluteUrl::isHttpsAbsoluteUrl(location)
 							)
 							{
 								::libmaus2::network::HttpAbsoluteUrl url(location);
@@ -519,13 +519,13 @@ namespace libmaus2
 								libmaus2::exception::LibMausException lme;
 								lme.getStream() << "HttpHeader: unsupported protocol in location " << location << std::endl;
 								lme.finish();
-								throw lme;						
+								throw lme;
 							}
 							else
 							{
 								path = location;
 							}
-							
+
 							break;
 						}
 						default:
@@ -533,9 +533,9 @@ namespace libmaus2
 							headercomplete = true;
 							break;
 						}
-					}	
-				}	
-				
+					}
+				}
+
 				#if 0
 				std::cerr << statusline << std::endl;
 				for ( std::map<std::string,std::string>::const_iterator ita = fields.begin(); ita != fields.end(); ++ita )
@@ -543,11 +543,11 @@ namespace libmaus2
 					std::cerr << ita->first << ": " << ita->second << std::endl;
 				}
 				#endif
-				
+
 				url.host = host;
 				url.port = port;
 				url.path = path;
-				url.ssl = ssl;		
+				url.ssl = ssl;
 			}
 
 			HttpHeader() {}
@@ -560,12 +560,12 @@ namespace libmaus2
 			{
 				init(method,addreq,host,path,port,ssl);
 			}
-			
+
 			bool isChunked() const
 			{
 				return (fields.find("transfer-encoding") != fields.end()) && (fields.find("transfer-encoding")->second == "chunked");
 			}
-			
+
 			static int64_t getContentLength(std::string method, std::string addreq, std::string url)
 			{
 				try
@@ -592,7 +592,7 @@ namespace libmaus2
 					if ( s.size() )
 						V.insert(s);
 				}
-				
+
 				return V;
 			}
 
@@ -609,15 +609,15 @@ namespace libmaus2
 					if ( s.size() )
 						V.insert(s);
 				}
-				
+
 				return V;
 			}
-			
+
 			bool hasRanges() const
 			{
 				std::set<std::string> acah = getAccessControlAllowHeaders();
 				std::set<std::string> ar = getAcceptRanges();
-				
+
 				return
 					acah.find("range") != acah.end()
 					&&

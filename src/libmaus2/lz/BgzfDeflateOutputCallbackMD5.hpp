@@ -38,14 +38,14 @@ namespace libmaus2
 			md5_state_t pms;
 			md5_byte_t digest[16];
 			std::string sdigest;
-			
+
 			BgzfDeflateOutputCallbackMD5()
 			{
-				md5_init(&pms);	
+				md5_init(&pms);
 			}
-			
+
 			void operator()(
-				uint8_t const * /* in */, 
+				uint8_t const * /* in */,
 				uint64_t const /* incnt */,
 				uint8_t const * out,
 				uint64_t const outcnt
@@ -63,19 +63,19 @@ namespace libmaus2
 					std::ostringstream ostr;
 					for ( uint64_t i = 0; i < sizeof(digest)/sizeof(digest[0]); ++i )
 						ostr << std::hex << std::setfill('0') << std::setw(2) << static_cast<unsigned int>(digest[i]);
-				
+
 					sdigest = ostr.str();
 				}
-				
+
 				return sdigest;
 			}
-			
+
 			template<typename stream_type>
 			void saveDigest(stream_type & stream)
 			{
 				stream << getDigest();
 			}
-			
+
 			void saveDigestAsFile(std::string const & filename)
 			{
 				libmaus2::aio::OutputStreamInstance COS(filename);

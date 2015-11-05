@@ -24,11 +24,11 @@
 namespace libmaus2
 {
 	namespace parallel
-	{		
+	{
 		struct ThreadPoolInterfaceEnqueTermInterface
 		{
 			virtual ~ThreadPoolInterfaceEnqueTermInterface() {}
-			virtual void enque(ThreadWorkPackage const & P) = 0;		
+			virtual void enque(ThreadWorkPackage const & P) = 0;
 			virtual void terminate() = 0;
 		};
 	}

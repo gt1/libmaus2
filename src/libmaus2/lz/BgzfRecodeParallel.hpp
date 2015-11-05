@@ -39,9 +39,9 @@ namespace libmaus2
 				uint64_t const numbuffers
 			) : BIDP(in,out,level,numthreads,numbuffers), deflatebase(), P(0,0)
 			{
-			
+
 			}
-			
+
 			~BgzfRecodeParallel()
 			{
 				BIDP.flush();
@@ -52,22 +52,22 @@ namespace libmaus2
 				BIDP.registerBlockOutputCallback(cb);
 			}
 
-			
+
 			bool getBlock()
 			{
-				BgzfInflateInfo const info = 
+				BgzfInflateInfo const info =
 					BIDP.readAndInfo(reinterpret_cast<char *>(deflatebase.B.begin()),deflatebase.B.size());
 				P.second = info.uncompressed;
 				deflatebase.pc = deflatebase.pa + P.second;
-				
+
 				return !((info.uncompressed==0) && info.streameof);
 			}
-			
+
 			void putBlock()
 			{
 				BIDP.write(reinterpret_cast<char const *>(deflatebase.B.begin()),P.second);
 			}
-			
+
 			void addEOFBlock()
 			{
 				BIDP.flush();

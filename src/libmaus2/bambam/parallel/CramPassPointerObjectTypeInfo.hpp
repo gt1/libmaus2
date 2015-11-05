@@ -31,15 +31,15 @@ namespace libmaus2
 			struct CramPassPointerObjectTypeInfo
 			{
 				typedef CramPassPointerObjectTypeInfo this_type;
-				
+
 				typedef CramPassPointerObject::shared_ptr_type pointer_type;
-				
+
 				static pointer_type getNullPointer()
 				{
 					pointer_type p;
 					return p;
 				}
-				
+
 				static pointer_type deallocate(pointer_type /* p */)
 				{
 					return getNullPointer();

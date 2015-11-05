@@ -24,7 +24,7 @@
 void testBlockSwapDifferent()
 {
 	uint8_t p[256];
-	
+
 	for ( uint64_t s = 0; s <= sizeof(p); ++s )
 	{
 		uint8_t *pp = &p[0];
@@ -33,9 +33,9 @@ void testBlockSwapDifferent()
 			*(pp++) = 1;
 		for ( uint64_t i = s; i < (s+t); ++i )
 			*(pp++) = 0;
-		
+
 		libmaus2::sorting::InPlaceParallelSort::blockswap<uint64_t>(&p[0],s,t);
-	
+
 		for ( uint64_t i = 0; i < t; ++i )
 			assert ( p[i] == 0 );
 		for ( uint64_t i = 0; i < s; ++i )
@@ -47,7 +47,7 @@ void testBlockSwap()
 {
 	uint8_t p[2*89];
 	uint8_t q[2*89];
-	
+
 	for ( uint64_t i = 0; i < 89; ++i )
 	{
 		p[i] = i;
@@ -56,9 +56,9 @@ void testBlockSwap()
 		q[i+89] = i;
 		q[i   ] = (89-i-1);
 	}
-		
+
 	libmaus2::sorting::InPlaceParallelSort::blockswap<uint64_t>(&p[0],&p[0]+89,89);
-	
+
 	for ( uint64_t i = 0; i < 2*89; ++i )
 	{
 		//std::cerr << "p[" << i << "]=" << static_cast<int64_t>(p[i]) << std::endl;
@@ -69,17 +69,17 @@ void testBlockSwap()
 void testblockmerge()
 {
 	uint32_t A[256];
-	
+
 	for ( uint64_t i = 0; i < 128; ++i )
 	{
 		A[i] = i;
 		A[i+128] = 3*i+1;
 	}
-	
+
 	// TrivialBaseSort TBS;
 	libmaus2::sorting::InPlaceParallelSort::FixedSizeBaseSort TBS(4);
 	libmaus2::sorting::InPlaceParallelSort::mergestep(&A[0],128,128,TBS);
-		
+
 	for ( uint64_t i = 1; i < sizeof(A)/sizeof(A[0]); ++i )
 		assert ( A[i-1] <= A[i] );
 
@@ -88,7 +88,7 @@ void testblockmerge()
 		A[i] = i;
 		A[i+128] = 3*i+1;
 	}
-	
+
 	std::reverse(&A[0],&A[128]);
 	std::reverse(&A[128],&A[256]);
 
@@ -96,8 +96,8 @@ void testblockmerge()
 
 	for ( uint64_t i = 1; i < sizeof(A)/sizeof(A[0]); ++i )
 		assert ( A[i-1] >= A[i] );
-	
-	#if 0	
+
+	#if 0
 	for ( uint64_t i = 0; i < 256; ++i )
 		std::cerr << "A[" << i << "]=" << A[i] << std::endl;
 	#endif
@@ -107,7 +107,7 @@ void testinplacesort()
 {
 	uint64_t const n = 8ull*1024ull*1024ull*1024ull;
 	libmaus2::autoarray::AutoArray<uint32_t> A(n,false);
-	
+
 	#if defined(_OPENMP)
 	#pragma omp parallel for
 	#endif
@@ -119,7 +119,7 @@ void testinplacesort()
 	// TrivialBaseSort TBS;
 	// libmaus2::sorting::InPlaceParallelSort::inplacesort(&A[0],&A[n],std::less<uint32_t>(),TBS);
 	libmaus2::sorting::InPlaceParallelSort::inplacesort(&A[0],&A[n]);
-	
+
 	#if 0
 	for ( uint64_t i = 0; i < n; ++i )
 		std::cerr << "A[" << i << "]=" << A[i] << std::endl;
@@ -133,7 +133,7 @@ void testinplacesort2()
 {
 	uint64_t const n = 8ull*1024ull*1024ull*1024ull;
 	libmaus2::autoarray::AutoArray<uint32_t> A(n,false);
-	
+
 	#if defined(_OPENMP)
 	#pragma omp parallel for
 	#endif
@@ -145,7 +145,7 @@ void testinplacesort2()
 	// TrivialBaseSort TBS;
 	// libmaus2::sorting::InPlaceParallelSort::inplacesort(&A[0],&A[n],std::less<uint32_t>(),TBS);
 	libmaus2::sorting::InPlaceParallelSort::inplacesort2(&A[0],&A[n]);
-	
+
 	#if 0
 	for ( uint64_t i = 0; i < n; ++i )
 		std::cerr << "A[" << i << "]=" << A[i] << std::endl;
@@ -159,25 +159,25 @@ void testinplacesort2()
 void testMultiMerge()
 {
 	libmaus2::random::Random::setup();
-	
+
 	uint64_t n = 105812;
 	libmaus2::autoarray::AutoArray<uint64_t> V(n,false);
 	libmaus2::autoarray::AutoArray<uint64_t> W(n,false);
 	for ( uint64_t i = 0; i < n; ++i )
 		V[i] = ((i*29)%(31));
 		// V[i] = libmaus2::random::Random::rand8() % 2;
-	
+
 	uint64_t const l = n/2;
 	uint64_t const r = n-l;
 	// uint64_t const l0 = l/2;
 	// uint64_t const l1 = l-l0;
 	// uint64_t const r0 = r/2;
 	// uint64_t const r1 = r-r0;
-	
+
 	std::sort(V.begin(),V.begin()+l);
 	std::sort(V.begin()+l,V.begin()+l+r);
 
-	#if 0	
+	#if 0
 	for ( uint64_t i = 0; i < l; ++i )
 		std::cerr << V[i] << ";";
 	std::cerr << std::endl;
@@ -187,7 +187,7 @@ void testMultiMerge()
 	#endif
 
 	libmaus2::sorting::ParallelStableSort::parallelMerge(V.begin(),V.begin()+l,V.begin()+l,V.begin()+l+r,W.begin(),std::less<uint64_t>());
-	
+
 	std::cerr << std::string(80,'-') << std::endl;
 	for ( uint64_t i = 0; i < W.size(); ++i )
 	{
@@ -200,7 +200,7 @@ void testMultiMerge()
 void testMultiSort()
 {
 	libmaus2::random::Random::setup();
-	
+
 	uint64_t rn = 16384;
 	libmaus2::autoarray::AutoArray<uint64_t> V(rn,false);
 	libmaus2::autoarray::AutoArray<uint64_t> W(rn,false);
@@ -211,7 +211,7 @@ void testMultiSort()
 
 	std::less<uint64_t> order;
 	uint64_t const * in = libmaus2::sorting::ParallelStableSort::parallelSort(V.begin(),V.end(),W.begin(),W.end(),order);
-	
+
 	for ( uint64_t i = 0; i < V.size(); ++i )
 	{
 		// std::cerr << in[i] << ";";
@@ -238,12 +238,12 @@ void testParallelSortState(uint64_t const rn = (1ull << 14) )
 		V.begin(),V.end(),W.begin(),W.end(),order,numcpus,true /* copy back */
 	);
 	libmaus2::sorting::ParallelStableSort::ParallelSortControlState<iterator,order_type> sortstate = PSC.getSortState();
-	
+
 	while ( ! sortstate.serialStep() )
 	{
-	
+
 	}
-	
+
 	for ( uint64_t i = 1; i < V.size(); ++i )
 		assert ( V[i-1] <= V[i] );
 }
@@ -254,7 +254,7 @@ int main()
 	testParallelSortState(1u<<15);
 	testParallelSortState(1u<<16);
 	testParallelSortState(195911);
-	
+
 	return 0;
 
 	testMultiMerge();

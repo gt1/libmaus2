@@ -35,22 +35,22 @@ namespace libmaus2
 	{
 		struct BamHeaderLowMem;
 		std::ostream & operator<<(::std::ostream & out, ::libmaus2::bambam::BamHeaderLowMem const & BHLM);
-			
+
 		struct BamHeaderLowMem :
-			public ::libmaus2::bambam::EncoderBase, 
+			public ::libmaus2::bambam::EncoderBase,
 			public ::libmaus2::bambam::DecoderBase
 		{
 			public:
 			typedef BamHeaderLowMem this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			private:
 			friend std::ostream & operator<<(::std::ostream & out, ::libmaus2::bambam::BamHeaderLowMem const & BHLM);
-			
+
 			typedef uint32_t offset_type;
-			
-			
+
+
 			libmaus2::autoarray::AutoArray<char> Atext;
 			char * text;
 			libmaus2::util::LineAccessor::unique_ptr_type PLA;
@@ -58,33 +58,33 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray<char> SQtext;
 			libmaus2::autoarray::AutoArray<int32_t> LNvec;
 			libmaus2::autoarray::AutoArray<offset_type> SQoffsets;
-			
+
 			libmaus2::bitio::IndexedBitVector::unique_ptr_type Psqbitvec;
-			
+
 			int64_t HDid;
-			
+
 			struct IdSortInfo
 			{
 				uint32_t idid;
 				offset_type idtextoffset;
 				uint32_t lineid;
-				
+
 				IdSortInfo() : idid(0), idtextoffset(0), lineid(0) {}
 				IdSortInfo(
 					uint32_t const ridid,
 					offset_type const ridtextoffset,
-					uint32_t const rlineid		
+					uint32_t const rlineid
 				) : idid(ridid), idtextoffset(ridtextoffset), lineid(rlineid) {}
 			};
-			
+
 			libmaus2::autoarray::AutoArray<char> PGidtext;
 			libmaus2::autoarray::AutoArray< IdSortInfo > PGidsort;
 
 			libmaus2::autoarray::AutoArray<char> RGidtext;
 			libmaus2::autoarray::AutoArray< IdSortInfo > RGidsort;
-			
+
 			char const * noparidstring;
-			
+
 			std::vector<uint32_t> rglines;
 			std::vector<std::string> libs;
 			std::vector<uint32_t> rgtolib;
@@ -93,36 +93,36 @@ namespace libmaus2
 			::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type RGTrie;
 			//! hash for read names
 			libmaus2::hashing::ConstantStringHash::unique_ptr_type RGCSH;
-			
+
 			struct IdSortComparator
 			{
 				char const * text;
-				
+
 				IdSortComparator(char const * rtext)
 				: text(rtext)
 				{
-				
+
 				}
-				
+
 				bool operator()(IdSortInfo const & A, IdSortInfo const & B) const
 				{
 					return strcmp(text + A.idtextoffset, text + B.idtextoffset) < 0;
 				}
 			};
-			
+
 			struct ReadGroupHashProxy
 			{
 				BamHeaderLowMem const * owner;
 				uint64_t id;
-				
+
 				ReadGroupHashProxy()
 				{
-				
+
 				}
-				
+
 				ReadGroupHashProxy(BamHeaderLowMem const * const rowner, uint64_t const rid)
 				: owner(rowner), id(rid) {}
-				
+
 				/**
 				 * compute 32 bit hash value from iterator range
 				 *
@@ -147,33 +147,33 @@ namespace libmaus2
 					uint8_t const * ita = reinterpret_cast<uint8_t const *>(P.first);
 					return hash(ita,ita+P.second);
 				}
-				
+
 			};
-			
+
 			struct IdArrayAccessor
 			{
 				typedef IdArrayAccessor this_type;
-			
+
 				libmaus2::autoarray::AutoArray<char> const & text;
 				libmaus2::autoarray::AutoArray< IdSortInfo > const & offsets;
-				
+
 				typedef libmaus2::util::ConstIterator<this_type,char const *> const_iterator;
-				
+
 				IdArrayAccessor(
 					libmaus2::autoarray::AutoArray<char> const & rtext,
 					libmaus2::autoarray::AutoArray< IdSortInfo > const & roffsets
-				
+
 				)
 				: text(rtext), offsets(roffsets)
 				{
-				
+
 				}
-				
+
 				char const * get(uint64_t const i) const
 				{
 					return text.begin() + offsets[i].idtextoffset;
 				}
-				
+
 				const_iterator begin() const
 				{
 					return const_iterator(this);
@@ -183,7 +183,7 @@ namespace libmaus2
 					return begin() + offsets.size();
 				}
 			};
-			
+
 			struct StringComparator
 			{
 				bool operator()(char const * A, char const * B)
@@ -191,12 +191,12 @@ namespace libmaus2
 					return strcmp(A,B) < 0;
 				}
 			};
-			
+
 			IdSortInfo const * findPG(char const * c) const
 			{
 				IdArrayAccessor acc(PGidtext,PGidsort);
 				IdArrayAccessor::const_iterator it = std::lower_bound(acc.begin(),acc.end(),c,StringComparator());
-				
+
 				if ( it == acc.end() )
 					return 0;
 				else
@@ -215,16 +215,16 @@ namespace libmaus2
 			{
 				IdArrayAccessor acc(RGidtext,RGidsort);
 				IdArrayAccessor::const_iterator it = std::lower_bound(acc.begin(),acc.end(),c,StringComparator());
-				
+
 				if ( it == acc.end() )
 					return 0;
 				else
 					return &(RGidsort [ it-acc.begin() ]);
 			}
-			
+
 			BamHeaderLowMem() : text(0), HDid(-1), noparidstring(0)
 			{
-			
+
 			}
 
 			/**
@@ -240,57 +240,57 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < getNumReadGroups(); ++i )
 					dict.push_back(getReadGroupIdentifierAsString(i));
 				trienofailure.insertContainer(dict);
-				::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure 
+				::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure
 					(trienofailure.toLinearHashTrie<uint32_t>());
 
 				return UNIQUE_PTR_MOVE(LHTnofailure);
 			}
-			
+
 			void setupFromText()
 			{
 				#if 0
 				for ( uint64_t i = 0; i < PLA->size(); ++i )
 					std::cerr << "[" << i << "]=" << PLA->getLine(text,i) << "\n";
 				#endif
-				
+
 				libmaus2::util::DigitTable digtab;
-				
+
 				uint64_t sqtextlen = 0;
 				uint64_t numsq = 0;
 
 				uint64_t numrg = 0;
 				uint64_t rgidtextlen = 0;
-				
+
 				uint64_t numpg = 0;
 				uint64_t pgidtextlen = 0;
-				
+
 				for ( uint64_t i = 0; i < PLA->size(); ++i )
 				{
 					std::pair<uint64_t,uint64_t> P = PLA->lineInterval(i);
 					if ( P.second != P.first && text[P.second-1] == '\r' )
 						--P.second;
-						
+
 					bool const isSQ =
-						P.second-P.first >= 3 && 
+						P.second-P.first >= 3 &&
 						text[P.first+0] == '@' &&
 						text[P.first+1] == 'S' &&
 						text[P.first+2] == 'Q';
 					bool const isHD =
-						P.second-P.first >= 3 && 
+						P.second-P.first >= 3 &&
 						text[P.first+0] == '@' &&
 						text[P.first+1] == 'H' &&
 						text[P.first+2] == 'D';
 					bool const isPG =
-						P.second-P.first >= 3 && 
+						P.second-P.first >= 3 &&
 						text[P.first+0] == '@' &&
 						text[P.first+1] == 'P' &&
 						text[P.first+2] == 'G';
 					bool const isRG =
-						P.second-P.first >= 3 && 
+						P.second-P.first >= 3 &&
 						text[P.first+0] == '@' &&
 						text[P.first+1] == 'R' &&
 						text[P.first+2] == 'G';
-					
+
 					if ( isHD )
 					{
 						if ( HDid != -1 )
@@ -298,15 +298,15 @@ namespace libmaus2
 							::libmaus2::exception::LibMausException se;
 							se.getStream() << "BamHeaderLowMem: second HD line " << PLA->getLine(text,i) << std::endl;
 							se.finish();
-							throw se;																			
+							throw se;
 						}
-						
+
 						HDid = i;
 					}
 					else if ( isSQ )
 					{
 						uint64_t j = P.first;
-						while ( 
+						while (
 							j+2 < P.second &&
 							(
 								text[j] != 'S' ||
@@ -315,22 +315,22 @@ namespace libmaus2
 							)
 						)
 							++j;
-							
+
 						if ( j+2 >= P.second )
 						{
 							::libmaus2::exception::LibMausException se;
 							se.getStream() << "BamHeaderLowMem: defect @SQ line " << PLA->getLine(text,i) << std::endl;
 							se.finish();
-							throw se;													
+							throw se;
 						}
-						
+
 						uint64_t snstart = j+3;
 						uint64_t snend = snstart;
 						while ( snend < P.second && text[snend] != '\t' )
 							++snend;
 
 						j = P.first;
-						while ( 
+						while (
 							j+2 < P.second &&
 							(
 								text[j] != 'L' ||
@@ -345,7 +345,7 @@ namespace libmaus2
 							::libmaus2::exception::LibMausException se;
 							se.getStream() << "BamHeaderLowMem: defect @SQ line " << PLA->getLine(text,i) << std::endl;
 							se.finish();
-							throw se;													
+							throw se;
 						}
 
 						uint64_t lnstart = j+3;
@@ -358,14 +358,14 @@ namespace libmaus2
 							::libmaus2::exception::LibMausException se;
 							se.getStream() << "BamHeaderLowMem: defect @SQ line " << PLA->getLine(text,i) << std::endl;
 							se.finish();
-							throw se;													
+							throw se;
 						}
-						
+
 						uint64_t ln = 0;
 						for ( uint64_t k = lnstart; k < lnend; ++k )
 						{
 							ln *= 10;
-							
+
 							if ( ! digtab[static_cast<unsigned char>(text[k])] )
 							{
 								::libmaus2::exception::LibMausException se;
@@ -373,25 +373,25 @@ namespace libmaus2
 								se.finish();
 								throw se;
 							}
-							
-							ln += text[k]-'0';						
+
+							ln += text[k]-'0';
 						}
 
 						#if 0
-						std::cerr << "[" << i << "]=" << PLA->getLine(text,i) 
+						std::cerr << "[" << i << "]=" << PLA->getLine(text,i)
 							<< "\t" << std::string(text+snstart,text+snend)
 							<< "\t" << std::string(text+lnstart,text+lnend)
 							<< "\t" << ln
 							<< "\n";
 						#endif
-						
+
 						numsq++;
 						sqtextlen += (snend-snstart);
 					}
 					else if ( isPG )
 					{
 						uint64_t j = P.first;
-						while ( 
+						while (
 							j+2 < P.second &&
 							(
 								text[j] != 'I' ||
@@ -400,18 +400,18 @@ namespace libmaus2
 							)
 						)
 							++j;
-					
+
 						if ( j+2 >= P.second )
 						{
 							::libmaus2::exception::LibMausException se;
 							se.getStream() << "BamHeaderLowMem: defect @PG line with no ID field:\n" << PLA->getLine(text,i) << std::endl;
 							se.finish();
-							throw se;													
+							throw se;
 						}
-						
+
 						uint64_t idstart = j+3;
 						uint64_t idend = idstart;
-						
+
 						while ( idend != P.second && text[idend] != '\t' )
 							++idend;
 
@@ -420,7 +420,7 @@ namespace libmaus2
 							::libmaus2::exception::LibMausException se;
 							se.getStream() << "BamHeaderLowMem: defect @PG line with empty ID field:\n" << PLA->getLine(text,i) << std::endl;
 							se.finish();
-							throw se;													
+							throw se;
 						}
 
 						// std::cerr << "[" << i << "]=" << std::string(text+idstart,text+idend) << "\t" << PLA->getLine(text,i) << "\n";
@@ -431,7 +431,7 @@ namespace libmaus2
 					else if ( isRG )
 					{
 						uint64_t j = P.first;
-						while ( 
+						while (
 							j+2 < P.second &&
 							(
 								text[j] != 'I' ||
@@ -440,18 +440,18 @@ namespace libmaus2
 							)
 						)
 							++j;
-					
+
 						if ( j+2 >= P.second )
 						{
 							::libmaus2::exception::LibMausException se;
 							se.getStream() << "BamHeaderLowMem: defect @RG line with no ID field:\n" << PLA->getLine(text,i) << std::endl;
 							se.finish();
-							throw se;													
+							throw se;
 						}
-						
+
 						uint64_t idstart = j+3;
 						uint64_t idend = idstart;
-						
+
 						while ( idend != P.second && text[idend] != '\t' )
 							++idend;
 
@@ -460,7 +460,7 @@ namespace libmaus2
 							::libmaus2::exception::LibMausException se;
 							se.getStream() << "BamHeaderLowMem: defect @RG line with empty ID field:\n" << PLA->getLine(text,i) << std::endl;
 							se.finish();
-							throw se;													
+							throw se;
 						}
 
 						// std::cerr << "[" << i << "]=" << std::string(text+idstart,text+idend) << "\t" << PLA->getLine(text,i) << "\n";
@@ -469,21 +469,21 @@ namespace libmaus2
 						rgidtextlen += idend-idstart;
 					}
 				}
-				
+
 				SQtext = libmaus2::autoarray::AutoArray<char>(sqtextlen + numsq,false);
 				char * SQtextc = SQtext.begin();
 				LNvec = libmaus2::autoarray::AutoArray<int32_t>(numsq,false);
 				SQoffsets = libmaus2::autoarray::AutoArray<offset_type>(numsq+1,false);
 				libmaus2::bitio::IndexedBitVector::unique_ptr_type Tsqbitvec(new libmaus2::bitio::IndexedBitVector(PLA->size()));
 				Psqbitvec = UNIQUE_PTR_MOVE(Tsqbitvec);
-				
+
 				rglines.resize(numrg);
 				rgtolib.resize(numrg);
 				RGidtext = libmaus2::autoarray::AutoArray<char>(rgidtextlen + numrg,false);
 				RGidsort = libmaus2::autoarray::AutoArray< IdSortInfo >(numrg,false);
 				char * RGtextc = RGidtext.begin();
 				numrg = 0;
-				
+
 				PGidtext = libmaus2::autoarray::AutoArray<char>(pgidtextlen + numpg,false);
 				PGidsort = libmaus2::autoarray::AutoArray< IdSortInfo >(numpg,false);
 				char * PGtextc = PGidtext.begin();
@@ -495,29 +495,29 @@ namespace libmaus2
 					std::pair<uint64_t,uint64_t> P = PLA->lineInterval(i);
 					if ( P.second != P.first && text[P.second-1] == '\r' )
 						--P.second;
-						
-					bool const isSQ = 
-						P.second-P.first >= 3 && 
+
+					bool const isSQ =
+						P.second-P.first >= 3 &&
 						text[P.first+0] == '@' &&
 						text[P.first+1] == 'S' &&
 						text[P.first+2] == 'Q';
 					bool const isPG =
-						P.second-P.first >= 3 && 
+						P.second-P.first >= 3 &&
 						text[P.first+0] == '@' &&
 						text[P.first+1] == 'P' &&
 						text[P.first+2] == 'G';
 					bool const isRG =
-						P.second-P.first >= 3 && 
+						P.second-P.first >= 3 &&
 						text[P.first+0] == '@' &&
 						text[P.first+1] == 'R' &&
 						text[P.first+2] == 'G';
-						
+
 					Psqbitvec->set(i,isSQ);
-					
+
 					if ( isSQ )
 					{
 						uint64_t j = P.first;
-						while ( 
+						while (
 							j+2 < P.second &&
 							(
 								text[j] != 'S' ||
@@ -526,14 +526,14 @@ namespace libmaus2
 							)
 						)
 							++j;
-							
+
 						uint64_t snstart = j+3;
 						uint64_t snend = snstart;
 						while ( snend < P.second && text[snend] != '\t' )
 							++snend;
 
 						j = P.first;
-						while ( 
+						while (
 							j+2 < P.second &&
 							(
 								text[j] != 'L' ||
@@ -552,11 +552,11 @@ namespace libmaus2
 						for ( uint64_t k = lnstart; k < lnend; ++k )
 						{
 							ln *= 10;
-							ln += text[k]-'0';						
+							ln += text[k]-'0';
 						}
-						
+
 						SQoffsets[numsq] = SQtextc - SQtext.begin();
-						
+
 						std::copy(
 							text + snstart,
 							text + snend,
@@ -564,11 +564,11 @@ namespace libmaus2
 						);
 						SQtextc += snend-snstart;
 						*(SQtextc++) = 0;
-						
+
 						LNvec[numsq++] = ln;
-						
+
 						#if 0
-						std::cerr << "[" << i << "]=" << PLA->getLine(text,i) 
+						std::cerr << "[" << i << "]=" << PLA->getLine(text,i)
 							<< "\t" << std::string(text+snstart,text+snend)
 							<< "\t" << std::string(text+lnstart,text+lnend)
 							<< "\t" << ln
@@ -578,7 +578,7 @@ namespace libmaus2
 					else if ( isPG )
 					{
 						uint64_t j = P.first;
-						while ( 
+						while (
 							j+2 < P.second &&
 							(
 								text[j] != 'I' ||
@@ -587,13 +587,13 @@ namespace libmaus2
 							)
 						)
 							++j;
-					
+
 						uint64_t idstart = j+3;
 						uint64_t idend = idstart;
-						
+
 						while ( idend != P.second && text[idend] != '\t' )
 							++idend;
-							
+
 						PGidsort[numpg] = IdSortInfo(numpg,PGtextc-PGidtext.begin(),i);
 						std::copy ( text + idstart, text+idend, PGtextc);
 						PGtextc += (idend-idstart);
@@ -603,7 +603,7 @@ namespace libmaus2
 					else if ( isRG )
 					{
 						uint64_t j = P.first;
-						while ( 
+						while (
 							j+2 < P.second &&
 							(
 								text[j] != 'I' ||
@@ -612,10 +612,10 @@ namespace libmaus2
 							)
 						)
 							++j;
-					
+
 						uint64_t idstart = j+3;
 						uint64_t idend = idstart;
-						
+
 						while ( idend != P.second && text[idend] != '\t' )
 							++idend;
 
@@ -627,7 +627,7 @@ namespace libmaus2
 						numrg++;
 					}
 				}
-				
+
 				std::sort(
 					PGidsort.begin(),
 					PGidsort.end(),
@@ -638,31 +638,31 @@ namespace libmaus2
 					RGidsort.end(),
 					IdSortComparator(RGidtext.begin())
 				);
-			
-				std::vector<bool> PGparvec(PGidsort.size(),false);	
+
+				std::vector<bool> PGparvec(PGidsort.size(),false);
 				for ( uint64_t i = 0; i < PGidsort.size(); ++i )
 				{
 					#if 0
-					std::cerr << "PG\t" 
-						<< PGidsort[i].idid << "\t" 
+					std::cerr << "PG\t"
+						<< PGidsort[i].idid << "\t"
 						<< PGidtext.begin() + PGidsort[i].idtextoffset << "\t"
 						<< PGidsort[i].lineid
 						<< std::endl;
 					#endif
-					
+
 					assert (
 						( findPG(PGidtext.begin() + PGidsort[i].idtextoffset) != 0 )
-						&& 
+						&&
 						( findPG(PGidtext.begin() + PGidsort[i].idtextoffset)->idid == PGidsort[i].idid )
 					);
-					
+
 					uint64_t const lineid = PGidsort[i].lineid;
 					std::pair<uint64_t,uint64_t> P = PLA->lineInterval(lineid);
 					if ( P.second != P.first && text[P.second-1] == '\r' )
 						--P.second;
 
 					uint64_t j = P.first;
-					while ( 
+					while (
 						j+2 < P.second &&
 						(
 							text[j]   != 'P' ||
@@ -671,7 +671,7 @@ namespace libmaus2
 						)
 					)
 						++j;
-						
+
 					if ( j+2 >= P.second )
 					{
 						// no parent
@@ -688,7 +688,7 @@ namespace libmaus2
 							::libmaus2::exception::LibMausException se;
 							se.getStream() << "BamHeaderLowMem: defect @PG line with empty PP field:\n" << PLA->getLine(text,lineid) << std::endl;
 							se.finish();
-							throw se;						
+							throw se;
 						}
 
 						// find it
@@ -699,15 +699,15 @@ namespace libmaus2
 							::libmaus2::exception::LibMausException se;
 							se.getStream() << "BamHeaderLowMem: defect @PG line with non-existant parent " << std::string(text+parstart,text+parend) << ":\n" << PLA->getLine(text,lineid) << std::endl;
 							se.finish();
-							throw se;													
+							throw se;
 						}
-						
+
 						assert ( isi->idid < PGparvec.size() );
 						// mark parent
 						PGparvec[isi->idid] = true;
 					}
 				}
-				
+
 				// if we have any PG lines
 				if ( PGparvec.size() )
 				{
@@ -716,14 +716,14 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < PGparvec.size(); ++i )
 						if ( ! PGparvec[i] )
 							noparids.push_back(i);
-					
+
 					uint64_t noparid;
 					if ( noparids.size() == 0 )
 					{
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "BamHeaderLowMem: there is no PG line which is not a parent of another (PG chain is circular)" << "\n";
 						se.finish();
-						throw se;													
+						throw se;
 					}
 					else if ( noparids.size() == 1 )
 					{
@@ -735,11 +735,11 @@ namespace libmaus2
 						std::sort(noparids.begin(),noparids.end());
 						noparid = noparids[noparids.size()-1];
 					}
-					
+
 					for ( uint64_t i = 0; i < PGidsort.size(); ++i )
 						if ( PGidsort[i].idid == noparid )
 							noparidstring = PGidtext.begin() + PGidsort[i].idtextoffset;
-					
+
 					assert ( noparidstring != 0 );
 				}
 				// std::cerr << "noparidstring=" << noparidstring << std::endl;
@@ -748,23 +748,23 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < RGidsort.size(); ++i )
 				{
 					#if 0
-					std::cerr << "RG\t" 
-						<< RGidsort[i].idid << "\t" 
+					std::cerr << "RG\t"
+						<< RGidsort[i].idid << "\t"
 						<< RGidtext.begin() + RGidsort[i].idtextoffset << "\t"
 						<< RGidsort[i].lineid
 						<< std::endl;
 					#endif
-					
+
 					assert (
 						( findRG(RGidtext.begin() + RGidsort[i].idtextoffset) != 0 )
-						&& 
+						&&
 						( findRG(RGidtext.begin() + RGidsort[i].idtextoffset)->idid == RGidsort[i].idid )
-					);					
+					);
 				}
-				
+
 				SQoffsets[numsq] = SQtextc - SQtext.begin();
 				Psqbitvec->setupIndex();
-				
+
 				// get list of libraries
 				libs = getLibrarySet();
 
@@ -774,10 +774,10 @@ namespace libmaus2
 					std::pair<char const *, uint64_t> const P = getLibraryIdentifier(i);
 					rgtolib[i] = P.first ? (std::lower_bound(libs.begin(),libs.end(),std::string(P.first,P.first+P.second)) - libs.begin()) : libs.size();
 				}
-				
+
 				::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type TRGTrie ( computeRgTrie() );
 				RGTrie = UNIQUE_PTR_MOVE(TRGTrie);
-				
+
 				std::vector<ReadGroupHashProxy> RGproxies(getNumReadGroups());
 				for ( uint64_t i = 0; i < getNumReadGroups(); ++i )
 					RGproxies[i] = ReadGroupHashProxy(this,i);
@@ -804,11 +804,11 @@ namespace libmaus2
 			void readTextFromBAM(std::istream & in)
 			{
 				uint8_t fmagic[4];
-				
+
 				for ( unsigned int i = 0; i < sizeof(fmagic)/sizeof(fmagic[0]); ++i )
 					fmagic[i] = getByte(in);
 
-				if ( 
+				if (
 					fmagic[0] != 'B' ||
 					fmagic[1] != 'A' ||
 					fmagic[2] != 'M' ||
@@ -817,34 +817,34 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Wrong magic in BamHeaderLowMem constructor" << std::endl;
 					se.finish();
-					throw se;					
+					throw se;
 				}
 
 				uint64_t l_text = getLEInteger(in,4);
 				Atext = libmaus2::autoarray::AutoArray<char>(l_text,false);
 				text = Atext.begin();
-				
+
 				in.read(text,l_text);
 				if ( static_cast<int64_t>(in.gcount()) != static_cast<int64_t>(l_text) )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to read header text in BamHeaderLowMem constructor" << std::endl;
 					se.finish();
-					throw se;									
+					throw se;
 				}
-				
+
 				// remove null bytes at end of header (if any)
 				while ( l_text && !text[l_text-1] )
 					--l_text;
-				
+
 				libmaus2::util::LineAccessor::unique_ptr_type TLA(new libmaus2::util::LineAccessor(text,text+l_text));
 				PLA = UNIQUE_PTR_MOVE(TLA);
 			}
-			
+
 
 			template<typename iterator>
 			void constructFromTextInternal(iterator ita, iterator ite)
-			{			
+			{
 				Atext = libmaus2::autoarray::AutoArray<char>(ite-ita,false);
 				text = Atext.begin();
 				std::copy(ita,ite,text);
@@ -856,13 +856,13 @@ namespace libmaus2
 			}
 
 			void constructFromBAMInternal(std::istream & in)
-			{			
+			{
 				readTextFromBAM(in);
 				setupFromText();
-				
+
 				uint64_t const n_ref = getLEInteger(in,4);
 				libmaus2::autoarray::AutoArray<char> name;
-				
+
 				if ( n_ref != getNumRef() )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -870,9 +870,9 @@ namespace libmaus2
 					se.getStream() << "Number of sequences in text is " << getNumRef() << "\n";
 					se.getStream() << "Number of sequences in binary is " << n_ref << "\n";
 					se.finish();
-					throw se;					
+					throw se;
 				}
-						
+
 				for ( uint64_t i = 0; i < n_ref; ++i )
 				{
 					uint64_t l_name = getLEInteger(in,4);
@@ -882,7 +882,7 @@ namespace libmaus2
 					for ( uint64_t j = 0 ; j < l_name; ++j )
 						name[j] = getByte(in);
 					assert ( name[l_name-1] == 0 );
-					uint64_t l_ref = getLEInteger(in,4);	
+					uint64_t l_ref = getLEInteger(in,4);
 
 					if ( strcmp(name.begin(),SQtext.begin()+SQoffsets[i]) )
 					{
@@ -891,7 +891,7 @@ namespace libmaus2
 						se.getStream() << "Sequence name in text: " << SQtext.begin()+SQoffsets[i] << "\n";
 						se.getStream() << "Sequence name in binary: " << name.begin() << "\n";
 						se.finish();
-						throw se;					
+						throw se;
 					}
 					if ( static_cast<int64_t>(l_ref) != static_cast<int64_t>(LNvec[i]) )
 					{
@@ -900,7 +900,7 @@ namespace libmaus2
 						se.getStream() << "Sequence length in text: " << LNvec[i] << "\n";
 						se.getStream() << "Sequence length in binary: " << l_ref << "\n";
 						se.finish();
-						throw se;										
+						throw se;
 					}
 				}
 			}
@@ -916,11 +916,11 @@ namespace libmaus2
 			{
 				// number of sequences to be kept
 				uint64_t const keep = IBV.size() ? IBV.rank1(IBV.size()-1) : 0;
-				
+
 				// std::cerr << "IBV.size()=" << IBV.size() << " SQoffsets.size()=" << SQoffsets.size() << std::endl;
-				
+
 				assert ( (IBV.size()+1) == SQoffsets.size() );
-			
+
 				::libmaus2::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,keep);
 
 				for ( uint64_t i = 0; i < SQoffsets.size(); ++i )
@@ -931,32 +931,32 @@ namespace libmaus2
 						::libmaus2::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,namesize+1);
 						ostr.write(name,namesize);
 						ostr.put(0);
-						::libmaus2::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,getRefIDLength(i));	
+						::libmaus2::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,getRefIDLength(i));
 					}
 			}
-			
+
 			std::string getUniquePGId(std::string pgID) const
 			{
 				std::string prefix = pgID;
 				uint64_t add = 0;
-				
+
 				while ( findPG(pgID.c_str()) )
 				{
 					std::ostringstream ostr;
 					ostr << prefix << "_" << std::setw(4) << std::setfill('0') << (add++);
 					pgID = ostr.str();
 				}
-				
+
 				return pgID;
 			}
-			
+
 			template<typename stream_type>
 			void writeTextSubset(
 				stream_type & ostr, ::libmaus2::bitio::IndexedBitVector const & IBV,
 				std::string const & pgID,
 				std::string const & pgPN,
 				std::string const & pgCL,
-				std::string const & pgVN			
+				std::string const & pgVN
 			) const
 			{
 				if (  HDid == -1 )
@@ -964,31 +964,31 @@ namespace libmaus2
 					char const * hdtext = "@HD\tVN:1.5\tSO:unknown\n";
 					ostr.write(hdtext,strlen(hdtext));
 				}
-				
+
 				uint64_t seqid = 0;
-				
+
 				for ( uint64_t i = 0; i < PLA->size(); ++i )
-				{				
+				{
 					std::pair<uint64_t,uint64_t> P = PLA->lineInterval(i);
 					if ( P.second != P.first && text[P.second-1] == '\r' )
 						--P.second;
-						
-					bool const isSQ = 
-						P.second-P.first >= 3 && 
+
+					bool const isSQ =
+						P.second-P.first >= 3 &&
 						text[P.first+0] == '@' &&
 						text[P.first+1] == 'S' &&
 						text[P.first+2] == 'Q';
 					bool const isPG =
-						P.second-P.first >= 3 && 
+						P.second-P.first >= 3 &&
 						text[P.first+0] == '@' &&
 						text[P.first+1] == 'P' &&
 						text[P.first+2] == 'G';
 					bool const isRG =
-						P.second-P.first >= 3 && 
+						P.second-P.first >= 3 &&
 						text[P.first+0] == '@' &&
 						text[P.first+1] == 'R' &&
 						text[P.first+2] == 'G';
-				
+
 					if ( isSQ )
 					{
 						if ( IBV.get(seqid) )
@@ -997,10 +997,10 @@ namespace libmaus2
 								text+P.first,
 								P.second-P.first
 							);
-							ostr.put('\n');				
+							ostr.put('\n');
 						}
 						seqid++;
-						
+
 						if ( seqid == IBV.size() && !noparidstring )
 						{
 							std::ostringstream pgostr;
@@ -1013,15 +1013,15 @@ namespace libmaus2
 								pgostr << "\tVN:" << pgVN;
 							pgostr << "\n";
 
-							std::string const pgline = pgostr.str();							
-							
+							std::string const pgline = pgostr.str();
+
 							ostr.write(pgline.c_str(),pgline.size());
 						}
 					}
 					else if ( isPG )
 					{
 						uint64_t j = P.first;
-						while ( 
+						while (
 							j+2 < P.second &&
 							(
 								(text[j] != 'I') ||
@@ -1030,30 +1030,30 @@ namespace libmaus2
 							)
 						)
 							++j;
-					
+
 						assert ( j+2 < P.second );
-					
-						uint64_t idstart = j+3;						
+
+						uint64_t idstart = j+3;
 						uint64_t idend = idstart;
-						
+
 						while ( idend < P.second && text[idend] != '\t' )
 							++idend;
-							
+
 						assert ( idstart != idend );
-						
+
 						IdSortInfo const * idinfo = findPG(std::string(text+idstart,text+idend).c_str());
-												
+
 						assert ( idinfo );
-						
+
 						ostr.write(
 							text+P.first,
 							P.second-P.first
 						);
 						ostr.put('\n');
-						
-						if ( 
-							noparidstring && 
-							(strcmp(PGidtext.begin() + idinfo->idtextoffset,noparidstring) == 0) 
+
+						if (
+							noparidstring &&
+							(strcmp(PGidtext.begin() + idinfo->idtextoffset,noparidstring) == 0)
 						)
 						{
 							std::ostringstream pgostr;
@@ -1068,13 +1068,13 @@ namespace libmaus2
 								pgostr << "\tVN:" << pgVN;
 							pgostr << "\n";
 
-							std::string const pgline = pgostr.str();							
-							
+							std::string const pgline = pgostr.str();
+
 							ostr.write(pgline.c_str(),pgline.size());
 						}
 					}
 					else if ( isRG )
-					{					
+					{
 						ostr.write(
 							text+P.first,
 							P.second-P.first
@@ -1089,7 +1089,7 @@ namespace libmaus2
 						);
 						ostr.put('\n');
 					}
-				}				
+				}
 			}
 
 			public:
@@ -1126,7 +1126,7 @@ namespace libmaus2
 				else
 					return SQtext.begin() + SQoffsets[refid];
 			}
-			
+
 			/**
 			 * get reference id length
 			 **/
@@ -1137,7 +1137,7 @@ namespace libmaus2
 				else
 					return LNvec[refid];
 			}
-			
+
 			/**
 			 * get number of reference sequences
 			 **/
@@ -1145,7 +1145,7 @@ namespace libmaus2
 			{
 				return LNvec.size();
 			}
-			
+
 			/**
 			 * get reference id for name
 			 **/
@@ -1156,7 +1156,7 @@ namespace libmaus2
 						return i;
 				return -1;
 			}
-			
+
 			/**
 			 * get number of read groups
 			 **/
@@ -1164,11 +1164,11 @@ namespace libmaus2
 			{
 				return rglines.size();
 			}
-			
+
 			std::string getReadGroupIdentifierAsString(int64_t const i) const
 			{
 				std::pair<char const *, uint64_t> const P = getReadGroupIdentifier(i);
-				
+
 				if ( ! P.first )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -1176,10 +1176,10 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				return std::string(P.first,P.first+P.second);
 			}
-			
+
 			/**
 			 * get read group identifier string for read group with numerical id
 			 **/
@@ -1190,23 +1190,23 @@ namespace libmaus2
 					char const * null = 0;
 					return std::pair<char const *, uint64_t>(null,0);
 				}
-				
+
 				uint64_t const lineid = rglines.at(i);
-				
+
 				std::pair<uint64_t,uint64_t> P = PLA->lineInterval(lineid);
 				if ( P.second != P.first && text[P.second-1] == '\r' )
 					--P.second;
-						
+
 				bool const isRG =
-					P.second-P.first >= 3 && 
+					P.second-P.first >= 3 &&
 					text[P.first+0] == '@' &&
 					text[P.first+1] == 'R' &&
 					text[P.first+2] == 'G';
-				
+
 				assert ( isRG );
 
 				uint64_t j = P.first;
-				while ( 
+				while (
 					j+2 < P.second &&
 					(
 						text[j] != 'I' ||
@@ -1215,34 +1215,34 @@ namespace libmaus2
 					)
 				)
 					++j;
-			
+
 				assert ( j+2 < P.second );
-				
+
 				uint64_t idstart = j+3;
 				uint64_t idend = idstart;
-				
+
 				while ( idend != P.second && text[idend] != '\t' )
 					++idend;
 
 				assert ( idstart != idend );
-				
+
 				return std::pair<char const *, uint64_t>(text+idstart,idend-idstart);
 			}
-			
+
 			std::vector<std::string> getLibrarySet() const
 			{
 				std::set<std::string> S;
-				
+
 				for ( uint64_t i = 0; i < getNumReadGroups(); ++i )
 				{
 					std::pair<char const *, uint64_t> const P = getLibraryIdentifier(i);
-					
+
 					if ( P.first )
 						S.insert(
 							std::string(P.first,P.first+P.second)
 						);
 				}
-				
+
 				return std::vector<std::string>(S.begin(),S.end());
 			}
 
@@ -1256,23 +1256,23 @@ namespace libmaus2
 					char const * null = 0;
 					return std::pair<char const *, uint64_t>(null,0);
 				}
-				
+
 				uint64_t const lineid = rglines.at(i);
-				
+
 				std::pair<uint64_t,uint64_t> P = PLA->lineInterval(lineid);
 				if ( P.second != P.first && text[P.second-1] == '\r' )
 					--P.second;
-						
+
 				bool const isRG =
-					P.second-P.first >= 3 && 
+					P.second-P.first >= 3 &&
 					text[P.first+0] == '@' &&
 					text[P.first+1] == 'R' &&
 					text[P.first+2] == 'G';
-				
+
 				assert ( isRG );
 
 				uint64_t j = P.first;
-				while ( 
+				while (
 					j+2 < P.second &&
 					(
 						text[j]   != 'L' ||
@@ -1281,29 +1281,29 @@ namespace libmaus2
 					)
 				)
 					++j;
-			
+
 				if ( j+2 >= P.second )
 				{
 					char const * null = 0;
 					return std::pair<char const *, uint64_t>(null,0);
 				}
-				
+
 				uint64_t idstart = j+3;
 				uint64_t idend = idstart;
-				
+
 				while ( idend != P.second && text[idend] != '\t' )
 					++idend;
 
 				if ( idend == idstart )
 				{
 					::libmaus2::exception::LibMausException se;
-					se.getStream() << "Invalid empty library identifier in read group " 
-						<< getReadGroupIdentifierAsString(i) 
+					se.getStream() << "Invalid empty library identifier in read group "
+						<< getReadGroupIdentifierAsString(i)
 						<< "\n";
 					se.finish();
-					throw se;			
+					throw se;
 				}
-				
+
 				return std::pair<char const *, uint64_t>(text+idstart,idend-idstart);
 			}
 
@@ -1323,7 +1323,7 @@ namespace libmaus2
 				if ( ID )
 				{
 					unsigned int const idlen = strlen(ID);
-					
+
 					if ( RGCSH )
 					{
 						return (*RGCSH)[ ReadGroupHashProxy::hash(ID,ID+idlen) ];
@@ -1336,7 +1336,7 @@ namespace libmaus2
 				else
 					return -1;
 			}
-			
+
 			/**
 			 * get library name for library id
 			 *
@@ -1345,16 +1345,16 @@ namespace libmaus2
 			 **/
 			std::string getLibraryName(int64_t const libid) const
 			{
-				if ( 
+				if (
 					(libid < 0)
 					||
 					(libid >= static_cast<int64_t>(libs.size()))
 				)
 					return "Unknown Library";
 				else
-					return libs[libid];			
+					return libs[libid];
 			}
-			
+
 			/**
 			 * get library name for read group id
 			 *
@@ -1365,7 +1365,7 @@ namespace libmaus2
 			{
 				return getLibraryName(getLibraryId(ID));
 			}
-			
+
 			/**
 			 * get library id for read group id
 			 *
@@ -1386,7 +1386,7 @@ namespace libmaus2
 			 *
 			 * @param rgid numerical read group id
 			 * @return library id
-			 **/ 
+			 **/
 			int64_t getLibraryId(int64_t const rgid) const
 			{
 				if ( rgid < 0 )
@@ -1419,13 +1419,13 @@ namespace libmaus2
 				// compute length of header text
 				libmaus2::util::CountPutObject CPO;
 				writeTextSubset(CPO,IBV,pgID,pgPN,pgCL,pgVN);
-				
+
 				// write length of text
 				::libmaus2::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,CPO.c);
 				// write text
 				writeTextSubset(ostr,IBV,pgID,pgPN,pgCL,pgVN);
-				
-				// write binary 
+
+				// write binary
 				encodeFilteredChromosomeVector(ostr,IBV);
 			}
 
@@ -1453,14 +1453,14 @@ namespace libmaus2
 					RGTrie->byteSize() +
 					RGCSH->byteSize();
 			}		};
-		
+
 		inline std::ostream & operator<<(::std::ostream & out, ::libmaus2::bambam::BamHeaderLowMem const & BHLM)
 		{
 			if ( BHLM.HDid != -1 )
 				out << BHLM.PLA->getLine(BHLM.text,BHLM.HDid) << "\n";
 			for ( uint64_t i = 0; i < BHLM.getNumRef(); ++i )
 				out << "@SQ\tSN:" << BHLM.getRefIDName(i) << "\tLN:" << BHLM.getRefIDLength(i) << "\n";
-				
+
 			std::vector<uint64_t> pgidlines;
 			for ( uint64_t i = 0; i < BHLM.PGidsort.size(); ++i )
 				pgidlines.push_back(BHLM.PGidsort[i].lineid);
@@ -1476,7 +1476,7 @@ namespace libmaus2
 				out << BHLM.PLA->getLine(BHLM.text,rgidlines[i]) << "\n";
 			return out;
 		}
-		
+
 	}
 }
 #endif

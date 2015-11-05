@@ -29,14 +29,14 @@ namespace libmaus2
 		{
 			private:
 			libmaus2::network::HttpBody object;
-			
+
 			public:
 			HttpBodyWrapper(std::istream & rin, bool const rischunked, int64_t const rlength)
 			: object(rin,rischunked,rlength)
 			{
-			
+
 			}
-			
+
 			libmaus2::network::HttpBody & getHttpBody()
 			{
 				return object;

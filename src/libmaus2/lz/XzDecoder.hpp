@@ -43,7 +43,7 @@ namespace libmaus2
 			lzma_stream lstr;
 			lzma_ret lastret;
 			#endif
-			
+
 			void initDecoder();
 			size_t fillInputBuffer();
 

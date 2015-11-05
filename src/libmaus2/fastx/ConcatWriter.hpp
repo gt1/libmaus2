@@ -43,20 +43,20 @@ namespace libmaus2
 				uint64_t numreads;
 				uint64_t numsyms;
 				uint64_t maxlen;
-			
+
 				ReadFileInfo() : numreads(0), numsyms(0), maxlen(0) {}
 				ReadFileInfo(uint64_t const rnumreads, uint64_t const rnumsyms, uint64_t const rmaxlen)
 				: numreads(rnumreads), numsyms(rnumsyms), maxlen(rmaxlen) {}
 				~ReadFileInfo() {}
-				
+
 				ReadFileInfo(std::istream & in)
 				: numreads(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 				  numsyms(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 				  maxlen(::libmaus2::util::NumberSerialisation::deserialiseNumber(in))
 				{
-				
+
 				}
-				
+
 				void serialize(std::ostream & out) const
 				{
 					::libmaus2::util::NumberSerialisation::serialiseNumber(out,numreads);
@@ -129,31 +129,31 @@ namespace libmaus2
 				longexpo(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 				bytearraysize(::libmaus2::util::NumberSerialisation::deserialiseNumber(in))
 			{}
-				
+
 			uint64_t getByteSymbolCount() const
 			{
 				return numreadsyms + numreads * longexpo + 1;
 			}
 
 			ConcatWriter(
-				std::vector < std::string > const & rfilenames, 
+				std::vector < std::string > const & rfilenames,
 				uint64_t const rmaxtotalmem
 			)
-			: 
+			:
 			  // input file names
-			  filenames(rfilenames), 
+			  filenames(rfilenames),
 			  // count reads and symbols
-			  rfi(countSwitch(filenames)), 
+			  rfi(countSwitch(filenames)),
 			  // number of reads
-			  numreads(rfi.numreads), 
+			  numreads(rfi.numreads),
 			  // number of read symbols
-			  numreadsyms(rfi.numsyms), 
+			  numreadsyms(rfi.numsyms),
 			  // maximum read length
 			  maxlen(rfi.maxlen),
 			  // exponent \lceil \log_2 numreads \rceil
 			  expo(computeTermExponent(numreads)),
 			  // total number of reads
-			  totalreads(numreads), 
+			  totalreads(numreads),
 			  // total number of symbols (compact version)
 			  totalsyms(1 + numreadsyms + numreads*(expo+2) + 1),
 			  // number of symbol bits (3 bits per symbol in compact version)
@@ -170,9 +170,9 @@ namespace libmaus2
 			  longexpo(computeLongTermExponent(numreads)),
 			  bytearraysize ( numreadsyms + numreads * longexpo + 1 + maxlen )
 			{
-				std::cerr << "numreads " << numreads 
-					<< " base " << base << " expo " << expo 
-					<< " longbase " << longbase << " longexpo " << longexpo 
+				std::cerr << "numreads " << numreads
+					<< " base " << base << " expo " << expo
+					<< " longbase " << longbase << " longexpo " << longexpo
 					<< std::endl;
 
 		#define COMPACTCONCAT
@@ -199,7 +199,7 @@ namespace libmaus2
 			{
 				unsigned int expo = 0;
 				uint64_t p = 1;
-			
+
 				while ( !(numreads < p) )
 				{
 					p *= base;
@@ -213,7 +213,7 @@ namespace libmaus2
 			{
 				unsigned int expo = 0;
 				uint64_t p = 1;
-			
+
 				while ( !(numreads < p) )
 				{
 					p *= longbase;
@@ -233,22 +233,22 @@ namespace libmaus2
 				typedef typename reader_type::pattern_type pattern_type;
 				reader_type reader(filenames);
 				pattern_type pattern;
-			
+
 				while ( reader.getNextPatternUnlocked(pattern) )
 				{
 					if ( (numreads & (1024*1024-1)) == 0 )
 						std::cerr << numreads << std::endl;
-			
+
 					numreads += 1;
 					numsyms += pattern.getPatternLength();
 					maxlen = std::max(maxlen,static_cast<uint64_t>(pattern.getPatternLength()));
 				}
-			
+
 				return ReadFileInfo(numreads,numsyms,maxlen);
 			}
 
 			template<typename reader_type> void doConcatCompact(
-				std::vector<std::string> const & filenames, 
+				std::vector<std::string> const & filenames,
 				::libmaus2::bitio::FastWriteBitWriter8 & W,
 				::libmaus2::autoarray::AutoArray<uint64_t> & B)
 			{
@@ -261,7 +261,7 @@ namespace libmaus2
 				uint64_t totalsyms = 0;
 				::libmaus2::autoarray::AutoArray<uint8_t> termbuf(expo);
 				uint64_t idcnt = numreads;
-				
+
 				W.write ( 1, 3 );
 				totalsyms += 1;
 
@@ -271,15 +271,15 @@ namespace libmaus2
 						std::cerr << pattern.getPatID() << std::endl;
 
 					::libmaus2::bitio::putBit(B.get(), totalsyms, 1);
-			
+
 					pattern.computeMapped();
 					uint64_t const l = pattern.getPatternLength();
-			
+
 					for ( uint64_t i = 0; i < l; ++i )
 						W.write ( pattern.mapped[i] + 3, 3);
 
 					W.write ( 1, 3 );
-			
+
 					uint64_t id = --idcnt;
 
 					uint8_t * t = termbuf.get() + termbuf.getN();
@@ -291,20 +291,20 @@ namespace libmaus2
 					assert ( t == termbuf.get() );
 					for ( unsigned int i = 0; i < expo; ++i )
 						W.write ( (*(t++)), 3 );
-					
+
 					W.write ( 1, 3 );
 
 					totalsyms += (l + expo + 2);
 				}
 				W.write ( 0, 3 );
 				totalsyms += 1;
-			
+
 				std::cerr << "this->totalsyms " << this->totalsyms << " totalsyms " << totalsyms << std::endl;
 				assert ( totalsyms == this->totalsyms );
 			}
 
 			template<typename reader_type> void doConcatByte(
-				std::vector<std::string> const & filenames, 
+				std::vector<std::string> const & filenames,
 				uint8_t * T)
 			{
 				reader_type reader(filenames);
@@ -318,13 +318,13 @@ namespace libmaus2
 				{
 					if ( (pattern.getPatID() & (1024*1024-1)) == 0 )
 						std::cerr << pattern.getPatID() << std::endl;
-			
+
 					pattern.computeMapped();
 					uint64_t const l = pattern.getPatternLength();
-			
+
 					for ( uint64_t i = 0; i < l; ++i )
 						*(T++) = pattern.mapped[i] + longbase;
-			
+
 					uint64_t id = --idcnt;
 
 					uint8_t * t = termbuf.get() + termbuf.getN();
@@ -336,7 +336,7 @@ namespace libmaus2
 					assert ( t == termbuf.get() );
 					for ( unsigned int i = 0; i < longexpo; ++i )
 						*(T++) = pattern.mapped[i] + *(t++);
-					
+
 					totalsyms += (l + longexpo);
 				}
 				*(T++) = 0;
@@ -347,20 +347,20 @@ namespace libmaus2
 					*(T++) = 0;
 					totalsyms += 1;
 				}
-			
+
 				std::cerr << "bytearraysize " << this->bytearraysize << " totalsyms " << totalsyms << std::endl;
 				assert ( totalsyms == this->bytearraysize );
 			}
 
 			void writeSwitchCompact(
-				std::vector<std::string> const & filenames, 
+				std::vector<std::string> const & filenames,
 				::libmaus2::bitio::FastWriteBitWriter8 & W,
 				::libmaus2::autoarray::AutoArray<uint64_t> & B)
 			{
 				if ( filenames.size() )
 				{
 					std::string const firstfilename = filenames.front();
-			
+
 					if ( ::libmaus2::fastx::IsFastQ::isFastQ(firstfilename) )
 					{
 						doConcatCompact<libmaus2::fastx::FastQReaderSplit>(filenames,W,B);
@@ -373,13 +373,13 @@ namespace libmaus2
 			}
 
 			void writeSwitchByte(
-				std::vector<std::string> const & filenames, 
+				std::vector<std::string> const & filenames,
 				uint8_t * const T)
 			{
 				if ( filenames.size() )
 				{
 					std::string const firstfilename = filenames.front();
-			
+
 					if ( ::libmaus2::fastx::IsFastQ::isFastQ(firstfilename) )
 					{
 						doConcatByte<libmaus2::fastx::FastQReaderSplit>(filenames,T);
@@ -402,14 +402,14 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < this->numpadwords; ++i )
 					FWBW.write(0,64);
 				FWBW.flush();
-			
+
 				return T;
 			}
 
 			::libmaus2::autoarray::AutoArray<uint8_t> processByte()
 			{
 				::libmaus2::autoarray::AutoArray<uint8_t> T(bytearraysize);
-				writeSwitchByte(filenames,T.get());	
+				writeSwitchByte(filenames,T.get());
 				return T;
 			}
 
@@ -418,7 +418,7 @@ namespace libmaus2
 				if ( filenames.size() )
 				{
 					std::string const firstfilename = filenames.front();
-			
+
 					if ( ::libmaus2::fastx::IsFastQ::isFastQ(firstfilename) )
 					{
 						return countPatterns<libmaus2::fastx::FastQReaderSplit>(filenames);

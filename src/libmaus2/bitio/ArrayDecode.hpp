@@ -39,7 +39,7 @@ namespace libmaus2
 				while ( n >= 8 )
 				{
 					uint8_t const inp = in.get();
-					
+
 					out.put ( (inp >> 7) & 1 );
 					out.put ( (inp >> 6) & 1 );
 					out.put ( (inp >> 5) & 1 );
@@ -48,14 +48,14 @@ namespace libmaus2
 					out.put ( (inp >> 2) & 1 );
 					out.put ( (inp >> 1) & 1 );
 					out.put ( (inp >> 0) & 1 );
-					
+
 					n -= 8;
 				}
-				
+
 				if ( n )
 				{
 					uint8_t const inp = in.get();
-					
+
 					for ( int shift = 7; n--; shift -= 1 )
 						out.put ( (inp >> shift) & 0x1 );
 				}
@@ -70,19 +70,19 @@ namespace libmaus2
 				while ( n >= 4 )
 				{
 					uint8_t const inp = in.get();
-					
+
 					out.put ( (inp >> 6) & 3 );
-					out.put ( (inp >> 4) & 3 ); 
+					out.put ( (inp >> 4) & 3 );
 					out.put ( (inp >> 2) & 3 );
 					out.put ( (inp >> 0) & 3 );
-					
+
 					n -= 4;
 				}
-				
+
 				if ( n )
 				{
 					uint8_t const inp = in.get();
-					
+
 					switch ( n )
 					{
 						case 1: out.put ( (inp>>6) & 0x3 );                                                         break;
@@ -115,17 +115,17 @@ namespace libmaus2
 					out.put ( (inp >> 0) & 0x7 );
 					n -= 8;
 				}
-				
+
 				if ( n )
 				{
 					assert ( n < 8 );
 
-					uint32_t inp  = static_cast<uint32_t>(in.get()) << 16;		
+					uint32_t inp  = static_cast<uint32_t>(in.get()) << 16;
 					if ( n >= 3 )
 						 inp |= static_cast<uint32_t>(in.get()) << 8;
 					if ( n >= 6 )
 						 inp |= static_cast<uint32_t>(in.get());
-					
+
 					for ( int shift = 21; n--; shift -= 3 )
 						out.put( (inp >> shift) & 0x7 );
 				}
@@ -143,10 +143,10 @@ namespace libmaus2
 
 					out.put ( (inp >> 4) & 0xF );
 					out.put ( (inp >> 0) & 0xF );
-					
+
 					n -= 2;
 				}
-				
+
 				if ( n )
 				{
 					out.put ( (in.get() >> 4) & 0xF );
@@ -162,7 +162,7 @@ namespace libmaus2
 				while ( n >= 8 )
 				{
 					uint64_t inp  = 0;
-					
+
 					inp |= static_cast<uint64_t>(in.get()) << 32;
 					inp |= static_cast<uint64_t>(in.get()) << 24;
 					inp |= static_cast<uint64_t>(in.get()) << 16;
@@ -179,12 +179,12 @@ namespace libmaus2
 					out.put ( (inp >> 0) & 0x1F );
 					n -= 8;
 				}
-				
+
 				if ( n )
 				{
 					assert ( n < 8 );
 
-					uint64_t inp  = static_cast<uint64_t>(in.get()) << 32;		
+					uint64_t inp  = static_cast<uint64_t>(in.get()) << 32;
 					if ( n >= 2 )
 						 inp |= static_cast<uint64_t>(in.get()) << 24;
 					if ( n >= 4 )
@@ -193,7 +193,7 @@ namespace libmaus2
 						 inp |= static_cast<uint64_t>(in.get()) <<  8;
 					if ( n >= 7 )
 						 inp |= static_cast<uint64_t>(in.get()) <<  0;
-					
+
 					for ( int shift = 35 ; n--; shift -= 5 )
 						out.put ( (inp >> shift) & 0x1F );
 				}
@@ -208,7 +208,7 @@ namespace libmaus2
 				while ( n >= 4 )
 				{
 					uint32_t inp  = 0;
-					
+
 					inp |= (static_cast<uint32_t>(in.get()) << 16);
 					inp |= (static_cast<uint32_t>(in.get()) <<  8);
 					inp |= (static_cast<uint32_t>(in.get())      );
@@ -219,11 +219,11 @@ namespace libmaus2
 					out.put ( (inp >>  0) & 0x3F );
 					n -= 4;
 				}
-				
+
 				if ( n )
 				{
 					assert ( n < 4 );
-					
+
 					#if 0
 					[0,6) 5/8 = 0 : 1
 					[6,12) 11/8 = 1 : 2
@@ -236,7 +236,7 @@ namespace libmaus2
 						 inp |= static_cast<uint32_t>(in.get()) << 8;
 					if ( n >= 3 )
 						 inp |= static_cast<uint32_t>(in.get()) << 0;
-					
+
 					for ( int shift = 18; n--; shift -= 6 )
 						out.put ( (inp >> shift) & 0x3F );
 				}
@@ -251,7 +251,7 @@ namespace libmaus2
 				while ( n >= 8 )
 				{
 					uint64_t inp  = 0;
-					
+
 					inp |= (static_cast<uint64_t>(in.get()) << 48);
 					inp |= (static_cast<uint64_t>(in.get()) << 40);
 					inp |= (static_cast<uint64_t>(in.get()) << 32);
@@ -259,7 +259,7 @@ namespace libmaus2
 					inp |= (static_cast<uint64_t>(in.get()) << 16);
 					inp |= (static_cast<uint64_t>(in.get()) <<  8);
 					inp |= (static_cast<uint64_t>(in.get())      );
-					
+
 					out.put ( (inp >> 49) & 0x7F );
 					out.put ( (inp >> 42) & 0x7F );
 					out.put ( (inp >> 35) & 0x7F );
@@ -270,7 +270,7 @@ namespace libmaus2
 					out.put ( (inp >> 0) & 0x7F );
 					n -= 8;
 				}
-				
+
 				if ( n )
 				{
 					assert ( n < 8 );
@@ -299,7 +299,7 @@ namespace libmaus2
 						 inp |= static_cast<uint64_t>(in.get()) <<  8;
 					if ( n >= 7 )
 						 inp |= static_cast<uint64_t>(in.get()) <<  0;
-					
+
 					for ( int shift = 49 ; n--; shift -= 7 )
 						out.put ( (inp >> shift) & 0x7F );
 				}
@@ -330,7 +330,7 @@ namespace libmaus2
 					case 6: decodeArray6(in,out,n); break;
 					case 7: decodeArray7(in,out,n); break;
 					case 8: decodeArray8(in,out,n); break;
-					default: 
+					default:
 					{
 						::libmaus2::bitio::StreamBitInputStreamTemplate<stream_type> SBIS(in);
 						for ( uint64_t i = 0; i < n; ++i )

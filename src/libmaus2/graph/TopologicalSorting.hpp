@@ -29,16 +29,16 @@ namespace libmaus2
 		{
 			template<typename edge_type, typename projector_type>
 			static std::pair<bool,std::map<uint64_t,uint64_t> > topologicalSorting(
-				std::map< uint64_t,std::vector<edge_type> > const & edges, 
-				uint64_t rv, 
+				std::map< uint64_t,std::vector<edge_type> > const & edges,
+				uint64_t rv,
 				projector_type projector = projector_type()
 			)
 			{
 				std::set<uint64_t> vertexSet = libmaus2::graph::ReachableVertices::reachableVertices(edges,rv,projector);
-				
+
 				std::map< uint64_t,std::set<uint64_t> > fedges;
 				std::map< uint64_t,std::set<uint64_t> > redges;
-				
+
 				// extract forward and reverse edges
 				for ( std::set<uint64_t>::const_iterator ita = vertexSet.begin(); ita != vertexSet.end(); ++ita )
 					if ( edges.find(*ita) != edges.end() )
@@ -52,19 +52,19 @@ namespace libmaus2
 							redges[t].insert(s);
 						}
 					}
-					
+
 				// vertices with no incoming edges
 				std::deque<uint64_t> S;
 				for ( std::set<uint64_t>::const_iterator ita = vertexSet.begin(); ita != vertexSet.end(); ++ita )
 					if ( redges.find(*ita) == redges.end() )
 						S.push_back(*ita);
-				
-				std::vector<uint64_t> L;		
+
+				std::vector<uint64_t> L;
 				while ( S.size() )
 				{
 					uint64_t const s = S.front(); S.pop_front();
 					L.push_back(s);
-					
+
 					if ( fedges.find(s) != fedges.end() )
 					{
 						std::set<uint64_t> const & fS = fedges.find(s)->second;
@@ -72,7 +72,7 @@ namespace libmaus2
 						for ( uint64_t i = 0; i < V.size(); ++i )
 						{
 							uint64_t const t = V[i];
-							
+
 							// erase edge (s->t) and its reverse
 							fedges[s].erase(fedges[s].find(t));
 							if ( fedges.find(s)->second.size() == 0 )
@@ -80,13 +80,13 @@ namespace libmaus2
 							redges[t].erase(redges[t].find(s));
 							if ( redges.find(t)->second.size() == 0 )
 								redges.erase(redges.find(t));
-								
+
 							if ( redges.find(t) == redges.end() )
 								S.push_back(t);
 						}
 					}
 				}
-				
+
 				if ( fedges.size() )
 				{
 					return std::pair<bool,std::map<uint64_t,uint64_t> >(false,std::map<uint64_t,uint64_t>());
@@ -96,7 +96,7 @@ namespace libmaus2
 					std::map<uint64_t,uint64_t> M;
 					for ( uint64_t i = 0; i < L.size(); ++i )
 						M[L[i]] = i;
-						
+
 					return std::pair<bool,std::map<uint64_t,uint64_t> >(true,M);
 				}
 			}

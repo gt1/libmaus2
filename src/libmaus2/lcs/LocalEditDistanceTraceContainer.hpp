@@ -27,12 +27,12 @@ namespace libmaus2
 	namespace lcs
 	{
 		struct LocalEditDistanceTraceContainer : public LocalAlignmentTraceContainer, public LocalAlignmentPrint
-		{	
+		{
 			LocalEditDistanceTraceContainer(uint64_t const tracelen = 0) : LocalAlignmentTraceContainer(tracelen) {}
 
 			template<typename iterator>
 			std::ostream & printAlignment(
-				std::ostream & out, 
+				std::ostream & out,
 				iterator ita,
 				iterator itb
 			) const
@@ -41,8 +41,8 @@ namespace libmaus2
 				return out;
 			}
 			std::ostream & printAlignmentLines(
-				std::ostream & out, 
-				std::string const & a, 
+				std::ostream & out,
+				std::string const & a,
 				std::string const & b,
 				uint64_t const rlinewidth
 			) const
@@ -50,7 +50,7 @@ namespace libmaus2
 				LocalAlignmentPrint::printAlignmentLines(out,a.begin(),a.end(),b.begin(),b.end(),rlinewidth,ta,te);
 				return out;
 			}
-			
+
 			void resize(uint64_t const tracelen)
 			{
 				LocalAlignmentTraceContainer::resize(tracelen);
@@ -59,7 +59,7 @@ namespace libmaus2
 			{
 				return LocalAlignmentTraceContainer::capacity();
 			}
-			
+
 			LocalAlignmentTraceContainer const & getTrace() const
 			{
 				return static_cast<LocalAlignmentTraceContainer const &>(*this);

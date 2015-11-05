@@ -23,12 +23,12 @@ std::ostream & libmaus2::util::operator<<(std::ostream & out, libmaus2::util::Lo
 	{
 		out << "LISS[" << i << "]{"<<R.getLength(i)<<"}=";
 		uint64_t p = i;
-				
+
 		out << p << ";";
 		while ( R.hasNext(p) )
 		{
 			p = R.getNext(p);
-			out << p << ";";				
+			out << p << ";";
 		}
 		out << "\n";
 	}

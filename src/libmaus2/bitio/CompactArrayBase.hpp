@@ -34,7 +34,7 @@ namespace libmaus2
 			static unsigned int const bcnt = 8 * sizeof(uint64_t);
 			static unsigned int const bshf = ::libmaus2::math::MetaLog2<bcnt>::log;
 			static unsigned int const bmsk = (1ul<<bshf)-1ul;
-			
+
 			static unsigned int globalBitsInFirstWord[4160];
 			static unsigned int globalFirstShift[4160];
 			static uint64_t globalFirstKeepMask[4160];
@@ -44,13 +44,13 @@ namespace libmaus2
 			static uint64_t globalGetFirstMask[4160];
 			static uint64_t globalvmask[65];
 			static bool globalinit;
-			
+
 			static void printglobaltables()
 			{
 				initGlobalTables();
-				
+
 				std::cerr << "bcnt=" << bcnt << " bshf=" << bshf << " bmsk=" << bmsk << " globalinit=" << globalinit << std::endl;
-				
+
 				std::cerr << "globalBitsInFirstWord={";
 				for ( uint64_t i = 0; i < sizeof(globalBitsInFirstWord)/sizeof(globalBitsInFirstWord[0]); ++i )
 					std::cerr << globalBitsInFirstWord[i] << ";";
@@ -60,7 +60,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < sizeof(globalFirstShift)/sizeof(globalFirstShift[0]); ++i )
 					std::cerr << globalFirstShift[i] << ";";
 				std::cerr << "}" << std::endl;
-				
+
 				std::cerr << "globalFirstKeepMask={";
 				std::cerr << std::hex;
 				for ( uint64_t i = 0; i < sizeof(globalFirstKeepMask)/sizeof(globalFirstKeepMask[0]); ++i )
@@ -101,7 +101,7 @@ namespace libmaus2
 				std::cerr << std::dec;
 				std::cerr << "}" << std::endl;
 			}
-			
+
 			static uint64_t lowbits(uint64_t i)
 			{
 				if ( i < 64 )
@@ -109,7 +109,7 @@ namespace libmaus2
 				else
 					return 0xFFFFFFFFFFFFFFFFULL;
 			}
-			
+
 			static void initGlobalTables(uint64_t const b)
 			{
 				assert ( b <= 64 );
@@ -133,9 +133,9 @@ namespace libmaus2
 					lastMask[bitSkip] = ~(lowbits(b - bitsInFirstWord[bitSkip]) << lastShift[bitSkip]);
 					getFirstMask[bitSkip] = b ? (lowbits(64) >> (bcnt - (bcnt-bitSkip))) : 0;
 				}
-				
+
 				vmask = lowbits(b);
-			
+
 			}
 			static void initGlobalTables()
 			{
@@ -155,10 +155,10 @@ namespace libmaus2
 			uint64_t const * lastMask;
 			uint64_t const * getFirstMask;
 			uint64_t vmask;
-			
+
 			protected:
 			uint64_t const b;
-			
+
 			public:
 			void initTables()
 			{
@@ -174,12 +174,12 @@ namespace libmaus2
 				getFirstMask = (&globalGetFirstMask[0]) + b*64;
 				vmask = globalvmask[b];
 			}
-			
+
 			CompactArrayBase(uint64_t const rb) : b(rb)
 			{
 				initTables();
 			}
-			
+
 			uint64_t getB() const
 			{
 				return b;

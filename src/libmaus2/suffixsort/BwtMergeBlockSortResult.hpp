@@ -31,25 +31,25 @@ namespace libmaus2
 			private:
 			uint64_t blockp0rank;
 			libmaus2::autoarray::AutoArray < ::libmaus2::suffixsort::BwtMergeZBlock > zblocks;
-			
+
 			uint64_t blockstart;
 			uint64_t cblocksize;
-			
+
 			::libmaus2::suffixsort::BwtMergeTempFileNameSet files;
 
 			public:
 			BwtMergeBlockSortResult()
 			: blockp0rank(0), zblocks(), blockstart(0), cblocksize(0), files()
 			{
-			
+
 			}
-			
+
 			BwtMergeBlockSortResult(BwtMergeBlockSortResult const & o)
 			: blockp0rank(o.blockp0rank), zblocks(o.zblocks.clone()), blockstart(o.blockstart), cblocksize(o.cblocksize), files(o.files)
 			{
-			
+
 			}
-			
+
 			BwtMergeBlockSortResult & operator=(BwtMergeBlockSortResult const & o)
 			{
 				if ( this != &o )
@@ -62,7 +62,7 @@ namespace libmaus2
 				}
 				return *this;
 			}
-			
+
 			uint64_t getBlockP0Rank() const { return blockp0rank; }
 			uint64_t getBlockStart() const { return blockstart; }
 			uint64_t getCBlockSize() const { return cblocksize; }
@@ -75,33 +75,33 @@ namespace libmaus2
 			void removeFiles() const { files.removeFiles(); }
 			void removeFilesButBwt() const { files.removeFilesButBwt(); }
 			void removeFilesButBwtAndGt() const { files.removeFilesButBwtAndGt(); }
-			void setTempPrefixAndRegisterAsTemp(std::string const & prefix, uint64_t const numbwt, uint64_t const numgt) 
+			void setTempPrefixAndRegisterAsTemp(std::string const & prefix, uint64_t const numbwt, uint64_t const numgt)
 			{ files.setPrefixAndRegisterAsTemp(prefix,numbwt,numgt); }
 			libmaus2::autoarray::AutoArray < ::libmaus2::suffixsort::BwtMergeZBlock > const & getZBlocks() const { return zblocks; }
 			void resizeZBlocks(uint64_t const n) { zblocks.resize(n); }
 			void setZBlock(uint64_t const i, ::libmaus2::suffixsort::BwtMergeZBlock const & z) { zblocks.at(i) = z; }
 			void setTempFileSet(::libmaus2::suffixsort::BwtMergeTempFileNameSet const & rfiles) { files = rfiles; }
-			
+
 			BwtMergeBlockSortResult(std::istream & stream)
 			{
 				blockp0rank = ::libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
-				
+
 				zblocks.resize(::libmaus2::util::NumberSerialisation::deserialiseNumber(stream));
 				for ( uint64_t i = 0; i < zblocks.size(); ++i )
 					zblocks[i] = ::libmaus2::suffixsort::BwtMergeZBlock(stream);
 
 				blockstart = ::libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
 				cblocksize = ::libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
-				
+
 				files = ::libmaus2::suffixsort::BwtMergeTempFileNameSet(stream);
 			}
-			
+
 			static BwtMergeBlockSortResult load(std::string const & s)
 			{
 				std::istringstream istr(s);
 				return BwtMergeBlockSortResult(istr);
 			}
-			
+
 			template<typename stream_type>
 			void serialise(stream_type & stream) const
 			{
@@ -112,7 +112,7 @@ namespace libmaus2
 
 				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,blockstart);
 				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,cblocksize);
-				
+
 				files.serialise(stream);
 			}
 			std::string serialise() const
@@ -125,4 +125,3 @@ namespace libmaus2
 	}
 }
 #endif
-

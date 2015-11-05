@@ -33,7 +33,7 @@ namespace libmaus2
 			::libmaus2::graph::FilteredGraphTypes::filtered_graph_target_type t;
 			::libmaus2::graph::FilteredGraphTypes::filtered_graph_weight_type w;
 			::libmaus2::graph::FilteredGraphTypes::filtered_graph_orientation_type o;
-			
+
 			GraphEdge() : s(0), t(0), w(0), o(0) {}
 			GraphEdge(
 				::libmaus2::graph::FilteredGraphTypes::filtered_graph_target_type const rs,
@@ -43,9 +43,9 @@ namespace libmaus2
 			)
 			: s(rs), t(rt), w(rw), o(ro)
 			{
-			
+
 			}
-			
+
 			bool operator<(GraphEdge const & o) const
 			{
 				if ( s != o.s )
@@ -53,7 +53,7 @@ namespace libmaus2
 				else
 					return t < o.t;
 			}
-			
+
 			bool operator>(GraphEdge const & o) const
 			{
 				if ( s != o.s )
@@ -61,18 +61,18 @@ namespace libmaus2
 				else
 					return t > o.t;
 			}
-			
+
 			bool operator==(GraphEdge const & o) const
 			{
 				return
 					s == o.s && t == o.t;
 			}
-			
+
 			bool operator!=(GraphEdge const & o) const
 			{
 				return !(*this == o);
 			}
-			
+
 			static bool isCover(::libmaus2::graph::FilteredGraphTypes::filtered_graph_orientation_type o)
 			{
 				switch ( o )
@@ -89,21 +89,21 @@ namespace libmaus2
 						return false;
 				}
 			}
-			
+
 			void fixCoverWeight()
 			{
 				if ( isCover(o) )
 					w = 0;
 			}
-			
+
 			GraphEdge inverse(uint16_t const * patlen) const
 			{
 				uint64_t const slen = patlen[s];
 				uint64_t const tlen = patlen[t];
 				uint64_t const overlap = tlen-w;
 				uint64_t const revoverhang = isCover(o) ? 0 : slen-overlap;
-				
-				return 
+
+				return
 					GraphEdge(
 						t,s,
 						revoverhang,
@@ -114,8 +114,8 @@ namespace libmaus2
 			{
 				uint64_t const overlap = tlen-w;
 				uint64_t const revoverhang = isCover(o) ? 0 : slen-overlap;
-				
-				return 
+
+				return
 					GraphEdge(
 						t,s,
 						revoverhang,
@@ -123,18 +123,18 @@ namespace libmaus2
 					);
 			}
 		};
-		
+
 		struct GraphEdgeTransitiveDecoverOrder
 		{
 			GraphEdgeTransitiveDecoverOrder() {}
-		
+
 			bool operator()(libmaus2::graph::GraphEdge const & A, libmaus2::graph::GraphEdge const & B) const
 			{
-				int const da = 
+				int const da =
 					libmaus2::lcs::OverlapOrientation::isDovetail(static_cast<libmaus2::lcs::OverlapOrientation::overlap_orientation>(A.o)) ? 1 : 0;
-				int const db = 
+				int const db =
 					libmaus2::lcs::OverlapOrientation::isDovetail(static_cast<libmaus2::lcs::OverlapOrientation::overlap_orientation>(B.o)) ? 1 : 0;
-				
+
 				if ( da ^ db )
 				{
 					return da != 0;

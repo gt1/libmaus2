@@ -34,31 +34,31 @@ namespace libmaus2
 				typedef ValidateBlockFragmentWorkPackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				AlignmentBuffer::shared_ptr_type parseBlock;
 				ValidationFragment fragment;
-	
+
 				ValidateBlockFragmentWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), parseBlock() {}
-				
+
 				ValidateBlockFragmentWorkPackage(
-					uint64_t const rpriority, 
+					uint64_t const rpriority,
 					ValidationFragment const & rfragment,
 					uint64_t const rparseDispatcherId
 				)
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rparseDispatcherId), fragment(rfragment)
 				{
 				}
-			
+
 				char const * getPackageName() const
 				{
 					return "ValidateBlockFragmentWorkPackage";
 				}
-				
+
 				bool dispatch()
 				{
 					return fragment.dispatch();
 				}
-				
+
 				void updateChecksums(libmaus2::bambam::ChecksumsInterface & chksums)
 				{
 					fragment.updateChecksums(chksums);

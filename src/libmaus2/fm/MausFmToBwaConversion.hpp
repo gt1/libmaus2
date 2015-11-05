@@ -48,7 +48,7 @@ namespace libmaus2
 
 			static void rewriteBwt(std::string const & infn, std::ostream & out);
 			static void rewriteSa(std::string const & infn, std::ostream & out);
-			
+
 			public:
 			static void rewrite(std::string const & inbwt, std::string const & outbwt, std::string const & outsa);
 		};

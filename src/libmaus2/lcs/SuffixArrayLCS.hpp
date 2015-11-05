@@ -50,7 +50,7 @@ namespace libmaus2
 				QNode() {}
 				QNode(int32_t const rleft, int32_t const rright, int32_t const rdepth, int const rsymmask, int32_t const rfill)
 				: left(rleft), right(rright), depth(rdepth), symmask(rsymmask), fill(rfill) {}
-				
+
 				inline bool operator==(QNode const & o) const
 				{
 					return left == o.left && right == o.right;
@@ -59,12 +59,12 @@ namespace libmaus2
 				{
 					return left != o.left || right != o.right;
 				}
-				
+
 				bool isFull() const
 				{
 					return fill == (right-left+1);
 				}
-				
+
 				std::string toString() const
 				{
 					std::ostringstream ostr;
@@ -88,18 +88,18 @@ namespace libmaus2
 				int32_t const k = ( (I.right+1 >= n) || (LCP[I.left] > LCP[I.right+1]) ) ? I.left : (I.right+1);
 				return QNode(prev[k],next[k]-1,LCP[k],I.symmask,I.right-I.left+1);
 			}
-			
+
 			struct LCSResult
 			{
 				uint32_t maxlcp;
 				uint32_t maxpos_a;
 				uint32_t maxpos_b;
-				
+
 				LCSResult() : maxlcp(0), maxpos_a(0), maxpos_b(0) {}
 				LCSResult(
 					uint32_t const rmaxlcp,
 					uint32_t const rmaxpos_a,
-					uint32_t const rmaxpos_b	
+					uint32_t const rmaxpos_b
 				) : maxlcp(rmaxlcp), maxpos_a(rmaxpos_a), maxpos_b(rmaxpos_b) {}
 			};
 
@@ -114,10 +114,10 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < b.size(); ++i )
 					c[a.size()+1+i] = b[i]+2;
 				c[c.size()-1] = 1;
-				
+
 				// allocate suffix sorting
 				::libmaus2::autoarray::AutoArray<int32_t> SA(c.size(),false);
-				
+
 				// perform suffix sorting
 				typedef ::libmaus2::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int32_t *,int32_t const *,alphabet_size+2> sort_type;
 				sort_type::divsufsort(reinterpret_cast<uint8_t const *>(c.c_str()), SA.get(), c.size());
@@ -129,7 +129,7 @@ namespace libmaus2
 				// compute psv and nsv arrays for simulating parent operation on suffix tree
 				::libmaus2::autoarray::AutoArray<int32_t> const prev = ::libmaus2::sv::PSV::psv(LCP.get(),LCP.size());
 				::libmaus2::autoarray::AutoArray<int32_t> const next = ::libmaus2::sv::NSV::nsv(LCP.get(),LCP.size());
-				
+
 				#if defined(LCS_DEBUG)
 				for ( uint64_t i = 0; i < c.size(); ++i )
 				{
@@ -141,7 +141,7 @@ namespace libmaus2
 							std::cerr << "<" << static_cast<int>(*ita) << ">" ;
 					std::cerr << std::endl;
 				}
-				
+
 				std::cerr << "---" << std::endl;
 				#endif
 
@@ -156,7 +156,7 @@ namespace libmaus2
 				typedef hash_type::iterator hash_iterator_type;
 				typedef hash_type::const_iterator hash_const_iterator_type;
 				hash_type H(n);
-				
+
 				// we simulate a bottom up traversal of the generalised suffix tree for a and b
 				while ( Q.size() )
 				{
@@ -178,34 +178,34 @@ namespace libmaus2
 						it->symmask |= I.symmask;
 						it->fill += (I.right-I.left+1);
 					}
-					
-					// if this is not the root and the node is full (we have seen all its children), 
+
+					// if this is not the root and the node is full (we have seen all its children),
 					// then put it in the queue
 					if ( P.right-P.left + 1 < n && it->isFull() )
 						Q.push_back(P);
 				}
-				
+
 				// maximum lcp value
 				int32_t maxlcp = 0;
 				uint32_t maxpos_a = 0;
 				uint32_t maxpos_b = 0;
-				
+
 				// consider all finished nodes
 				for ( hash_const_iterator_type it = H.begin(); it != H.end(); ++it )
 				{
 					#if defined(LCS_DEBUG)
 					std::cerr << *it << std::endl;
 					#endif
-					
+
 					// we need to have nodes from both strings a and b under this
-					// node (sym mask has bits for 1 and 2 set) and the lcp value must be 
+					// node (sym mask has bits for 1 and 2 set) and the lcp value must be
 					// larger than what we already have
-					if ( 
-						it->symmask == 3 && it->depth > maxlcp 
+					if (
+						it->symmask == 3 && it->depth > maxlcp
 					)
 					{
 						maxlcp = it->depth;
-						
+
 						for ( int32_t q = it->left; q <= it->right; ++q )
 						{
 							if ( SA[q] < static_cast<int32_t>(a.size()) )
@@ -215,7 +215,7 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				return LCSResult(maxlcp,maxpos_a,maxpos_b);
 			}
 		};

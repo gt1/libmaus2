@@ -36,23 +36,23 @@ namespace libmaus2
 			typedef SimpleCompressedInputBlockConcat this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			std::vector<libmaus2::lz::SimpleCompressedStreamNamedInterval> const intervals;
 			std::vector<libmaus2::lz::SimpleCompressedStreamNamedInterval>::const_iterator intervalsIt;
 			libmaus2::lz::SimpleCompressedStreamNamedInterval const * currentInterval;
-			
+
 			uint64_t streampos;
-			
+
 			libmaus2::aio::InputStreamInstance::unique_ptr_type Pcis;
-						
+
 			SimpleCompressedInputBlockConcat(
 				std::vector<libmaus2::lz::SimpleCompressedStreamNamedInterval> const & rintervals
 			)
 			: intervals(rintervals), intervalsIt(intervals.begin()), streampos(0)
 			{
-			
+
 			}
-			
+
 			bool readBlock(SimpleCompressedInputBlockConcatBlock & block)
 			{
 				block.compsize = 0;
@@ -66,46 +66,46 @@ namespace libmaus2
 					// skip over empty intervals
 					while ( intervalsIt != intervals.end() && intervalsIt->empty() )
 						++intervalsIt;
-					
+
 					// check whether we are done
 					if ( intervalsIt == intervals.end() )
 					{
 						block.eof = true;
 						return true;
 					}
-					
-					// get interval	
+
+					// get interval
 					currentInterval = &(*(intervalsIt++));
 					block.currentInterval = currentInterval;
 					// open file
 					libmaus2::aio::InputStreamInstance::unique_ptr_type Tcis(new libmaus2::aio::InputStreamInstance(currentInterval->name));
 					Pcis = UNIQUE_PTR_MOVE(Tcis);
-					
+
 					// seek
 					Pcis->seekg(currentInterval->start.first);
 					streampos = currentInterval->start.first;
 				}
-				
+
 				block.blockstreampos = streampos;
-			
+
 				libmaus2::util::CountPutObject CPO;
 				block.uncompsize = libmaus2::util::UTF8::decodeUTF8(*Pcis);
 				::libmaus2::util::UTF8::encodeUTF8(block.uncompsize,CPO);
-				
+
 				block.compsize = ::libmaus2::util::NumberSerialisation::deserialiseNumber(*Pcis);
 				::libmaus2::util::NumberSerialisation::serialiseNumber(CPO,block.compsize);
-				
+
 				block.metasize = CPO.c;
-				
+
 				if ( block.compsize > block.I.size() )
 					block.I = libmaus2::autoarray::AutoArray<uint8_t>(block.compsize,false);
-				
+
 				Pcis->read(reinterpret_cast<char *>(block.I.begin()),block.compsize);
-				
+
 				streampos += (block.metasize+block.compsize);
-				
+
 				bool const gcountok = Pcis->gcount() == static_cast<int64_t>(block.compsize);
-				
+
 				if ( block.blockstreampos == currentInterval->end.first )
 				{
 					Pcis.reset();
@@ -113,16 +113,16 @@ namespace libmaus2
 					// skip over empty intervals
 					while ( intervalsIt != intervals.end() && intervalsIt->empty() )
 						++intervalsIt;
-						
+
 					if ( intervalsIt == intervals.end() )
 						block.eof = true;
 				}
-					
+
 				if ( gcountok )
 					return true;
 				else
 					return false;
-			}	
+			}
 		};
 	}
 }

@@ -53,9 +53,9 @@ namespace libmaus2
 			struct ReadEndsBlockDecoderBaseCollectionCountSmallerShortAccessor
 			{
 				ReadEndsBlockDecoderBaseCollection<proxy> const * object;
-				
+
 				ReadEndsBlockDecoderBaseCollectionCountSmallerShortAccessor(ReadEndsBlockDecoderBaseCollection<proxy> * robject = 0) : object(robject) {}
-				
+
 				uint64_t get(libmaus2::bambam::ReadEndsBase::hash_value_type const & H) const
 				{
 					return object->countSmallerThanShort(H);
@@ -65,46 +65,46 @@ namespace libmaus2
 			struct ReadEndsBlockDecoderBaseCollectionCountSmallerLongAccessor
 			{
 				ReadEndsBlockDecoderBaseCollection<proxy> const * object;
-				
+
 				ReadEndsBlockDecoderBaseCollectionCountSmallerLongAccessor(ReadEndsBlockDecoderBaseCollection<proxy> * robject = 0) : object(robject) {}
-				
+
 				uint64_t get(libmaus2::bambam::ReadEndsBase::hash_value_type const & H) const
 				{
 					return object->countSmallerThanLong(H);
 				}
 			};
-			
+
 			std::vector<ReadEndsBlockDecoderBaseCollectionInfo> info;
 			uint64_t const numblocks;
-			
+
 			libmaus2::autoarray::AutoArray< typename ::libmaus2::bambam::ReadEndsBlockDecoderBase<proxy>::unique_ptr_type> Adecoders;
-			
+
 			ReadEndsBlockDecoderBaseCollectionCountSmallerShortAccessor const countShortAccessor;
 			ReadEndsBlockDecoderBaseCollectionCountSmallerLongAccessor const countLongAccessor;
-			
+
 			static std::vector<ReadEndsBlockDecoderBaseCollectionInfo> constructInfo(
 				std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase> const & rinfo, bool const parallelSetup
 			)
 			{
 				std::vector<ReadEndsBlockDecoderBaseCollectionInfo> info(rinfo.size());
-			
+
 				if ( parallelSetup )
 				{
 					#if defined(_OPENMP)
 					#pragma omp parallel for
 					#endif
 					for ( uint64_t i = 0; i < rinfo.size(); ++i )
-						info[i] = ReadEndsBlockDecoderBaseCollectionInfo(rinfo[i]);					
+						info[i] = ReadEndsBlockDecoderBaseCollectionInfo(rinfo[i]);
 				}
 				else
 				{
 					for ( uint64_t i = 0; i < rinfo.size(); ++i )
-						info[i] = ReadEndsBlockDecoderBaseCollectionInfo(rinfo[i]);				
+						info[i] = ReadEndsBlockDecoderBaseCollectionInfo(rinfo[i]);
 				}
 
 				return info;
 			}
-			
+
 			ReadEndsBlockDecoderBaseCollection(
 				std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase> const & rinfo,
 				bool const parallelSetup = false
@@ -118,7 +118,7 @@ namespace libmaus2
 				for ( uint64_t k = 0; k < info.size(); ++k )
 				{
 					ReadEndsBlockDecoderBaseCollectionInfo & subinfo = info[k];
-					
+
 					for ( uint64_t i = 0; i < subinfo.indexoffset.size(); ++i )
 					{
 						typename libmaus2::bambam::ReadEndsBlockDecoderBase<proxy>::unique_ptr_type tptr(
@@ -131,7 +131,7 @@ namespace libmaus2
 								subinfo.blockelcnt.at(i)
 							)
 						);
-						
+
 						Adecoders.at(j++) = UNIQUE_PTR_MOVE(tptr);
 					}
 				}
@@ -144,17 +144,17 @@ namespace libmaus2
 					s += info[i].indexoffset.size();
 				return s;
 			}
-			
+
 			uint64_t size() const
 			{
 				return numblocks;
 			}
-			
+
 			::libmaus2::bambam::ReadEndsBlockDecoderBase<proxy> const * getBlock(uint64_t const i) const
 			{
 				return Adecoders[i].get();
 			}
-			
+
 			uint64_t totalEntries() const
 			{
 				uint64_t sum = 0;
@@ -162,7 +162,7 @@ namespace libmaus2
 					sum += getBlock(i)->size();
 				return sum;
 			}
-			
+
 			ReadEnds max() const
 			{
 				ReadEnds RE;
@@ -187,7 +187,7 @@ namespace libmaus2
 					sum += getBlock(i)->countSmallerThanLong(A);
 				return sum;
 			}
-			
+
 			uint64_t countSmallerThanShort(libmaus2::bambam::ReadEndsBase::hash_value_type const & H) const
 			{
 				ReadEndsBase B;
@@ -201,12 +201,12 @@ namespace libmaus2
 				B.decodeLongHash(H);
 				return countSmallerThanLong(B);
 			}
-			
+
 			static libmaus2::bambam::ReadEndsBase::hash_value_type hashLowerBound()
 			{
 				return libmaus2::bambam::ReadEndsBase::hash_value_type(0);
 			}
-			
+
 			libmaus2::bambam::ReadEndsBase::hash_value_type hashUpperBoundShort() const
 			{
 				return max().encodeShortHash() + libmaus2::bambam::ReadEndsBase::hash_value_type(1);
@@ -221,7 +221,7 @@ namespace libmaus2
 				outer_short_iterator;
 			typedef libmaus2::util::UnsignedIntegerIndexIterator<ReadEndsBlockDecoderBaseCollectionCountSmallerLongAccessor,uint64_t,libmaus2::bambam::ReadEndsBase::hash_value_words>
 				outer_long_iterator;
-				
+
 			outer_short_iterator outerShortBegin() const
 			{
 				return outer_short_iterator(&countShortAccessor,hashLowerBound());
@@ -254,7 +254,7 @@ namespace libmaus2
 					splitPoints[i] = std::lower_bound(outerShortBegin(),outerShortEnd(),i * targetfrac).i;
 					::libmaus2::bambam::ReadEnds RA;
 					RA.decodeShortHash(splitPoints[i]);
-					
+
 					for ( uint64_t j = 0; j < size(); ++j )
 						R[i][j].first = getBlock(j)->countSmallerThanShort(RA);
 				}
@@ -262,22 +262,22 @@ namespace libmaus2
 				for ( uint64_t i = 0; (i+1) < numthreads; ++i )
 					for ( uint64_t j = 0; j < size(); ++j )
 						R[i][j].second = R[i+1][j].first;
-				
+
 				if ( numthreads )
 					for ( uint64_t j = 0; j < size(); ++j )
 						R[numthreads-1][j].second = getBlock(j)->size();
-				
+
 				if ( check )
 				{
 					for ( uint64_t i = 0; (i+1) < numthreads; ++i )
 					{
 						::libmaus2::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[i];
 						::libmaus2::bambam::ReadEnds::hash_value_type const splithigh = splitPoints[i+1];
-						
+
 						for ( uint64_t j = 0; j < size(); ++j )
 						{
 							std::pair<uint64_t,uint64_t> ind = R[i][j];
-							
+
 							for ( uint64_t k = ind.first; k < ind.second; ++k )
 							{
 								assert ( getBlock(j)->get(k).encodeShortHash() >= splitlow );
@@ -285,15 +285,15 @@ namespace libmaus2
 							}
 						}
 					}
-					
+
 					if ( numthreads )
-					{					
+					{
 						::libmaus2::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[numthreads-1];
 
 						for ( uint64_t j = 0; j < size(); ++j )
 						{
 							std::pair<uint64_t,uint64_t> ind = R[numthreads-1][j];
-							
+
 							for ( uint64_t k = ind.first; k < ind.second; ++k )
 							{
 								assert ( getBlock(j)->get(k).encodeShortHash() >= splitlow );
@@ -301,7 +301,7 @@ namespace libmaus2
 						}
 					}
 				}
-								
+
 				return R;
 			}
 
@@ -311,11 +311,11 @@ namespace libmaus2
 				for ( uint64_t k = 0; k < info.size(); ++k )
 				{
 					ReadEndsBlockDecoderBaseCollectionInfo const & subinfo = info[k];
-					
+
 					for ( uint64_t i = 0; i < subinfo.blockelcnt.size(); ++i )
 						s += subinfo.blockelcnt.at(i);
 				}
-				
+
 				return s;
 			}
 
@@ -348,13 +348,13 @@ namespace libmaus2
 				typedef ExternalMemoryIndexDecoderShortCountAccessor this_type;
 				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				libmaus2::autoarray::AutoArray<short_index_decoder_pointer_type> & Pdecoders;
-				
+
 				ExternalMemoryIndexDecoderShortCountAccessor(
 					libmaus2::autoarray::AutoArray<short_index_decoder_pointer_type> & Rdecoders
 				) : Pdecoders(Rdecoders) {}
-				
+
 				/**
 				 * get maximum block start element
 				 **/
@@ -362,22 +362,22 @@ namespace libmaus2
 				{
 					libmaus2::bambam::ReadEndsBase R;
 					R.reset();
-					
+
 					for ( uint64_t i = 0; i < Pdecoders.size(); ++i )
 						if ( Pdecoders[i]->maxelvalid && R.encodeShortHash() < Pdecoders[i]->maxel.encodeShortHash() )
 						{
 							R = Pdecoders[i]->maxel;
 							R.decodeShortHash(R.encodeShortHash());
 						}
-							
+
 					return R;
 				}
-				
+
 				uint64_t get(libmaus2::bambam::ReadEndsBase::hash_value_type const & H) const
 				{
 					libmaus2::bambam::ReadEndsBase R;
 					R.decodeShortHash(H);
-					
+
 					uint64_t c = 0;
 					for ( uint64_t i = 0; i < Pdecoders.size(); ++i )
 						c += Pdecoders[i]->findLargestSmaller(R,true /* cache only */).blockid;
@@ -402,35 +402,35 @@ namespace libmaus2
 			struct UVal
 			{
 				uint64_t volatile v;
-					
+
 				UVal() : v(0) {}
 				UVal(uint64_t const rv) : v(rv) {}
 			};
 
 			static std::vector < std::vector< std::pair<uint64_t,uint64_t> > > getShortMergeIntervals(
 				std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase> const & rinfo,
-				uint64_t const numthreads, 
+				uint64_t const numthreads,
 				bool const check = false
 			)
 			{
 				#if defined(READENDSBLOCKTIMING)
-				libmaus2::timing::RealTimeClock decodersetuprtc; 
+				libmaus2::timing::RealTimeClock decodersetuprtc;
 				#endif
 				uint64_t const memory = 256ull*1024ull*1024ull;
 				uint64_t const numblocks = computeNumBlocks(rinfo);
 				uint64_t const minmem = 16*1024;
 				uint64_t const cacheperdec = std::max(minmem,numblocks ? ((memory + numblocks-1)/numblocks) : 0);
-				
+
 				// offset array
 				std::vector<uint64_t> O(rinfo.size(),0);
 				for ( uint64_t i = 1; i < rinfo.size(); ++i )
 					O[i] = O[i-1] + rinfo[i-1].indexoffset.size();
-				
+
 				libmaus2::autoarray::AutoArray<libmaus2::aio::InputStream::unique_ptr_type> Pindexstreams(rinfo.size());
 				libmaus2::autoarray::AutoArray<libmaus2::aio::InputStream::unique_ptr_type> Pdatastreams(rinfo.size());
 				libmaus2::autoarray::AutoArray<short_index_decoder_pointer_type> Pdecoders(numblocks);
-				
-				// open index and data streams	
+
+				// open index and data streams
 				#if defined(READENDSBLOCKTIMING)
 				decodersetuprtc.start();
 				#endif
@@ -468,13 +468,13 @@ namespace libmaus2
 				#if defined(READENDSBLOCKTIMING)
 				std::cerr << "index setup: " << decodersetuprtc.getElapsedSeconds() << std::endl;
 				#endif
-				
+
 				// compute total number of blocks
 				uint64_t const totalbaseblocks = getTotalShortBlocks(Pdecoders);
 				#if defined(READENDSBLOCKDEBUG)
 				std::cerr << "total number of base blocks is " << totalbaseblocks << std::endl;
 				#endif
-				
+
 				// compute split point values
 				#if defined(READENDSBLOCKTIMING)
 				decodersetuprtc.start();
@@ -496,23 +496,23 @@ namespace libmaus2
 					#if 0
 					libmaus2::bambam::ReadEnds H;
 					H.decodeShortHash(splitPoints[i]);
-					std::cerr 
-						<< "split point " 
+					std::cerr
+						<< "split point "
 						<< i << "/" << split
 						<< ": ";
 					std::cerr << H;
 					std::cerr << std::endl;
 					#endif
 				}
-				
+
 				for ( uint64_t i = 1; i < splitPoints.size(); ++i )
 					assert ( splitPoints[i-1] <= splitPoints[i] );
-								
+
 				libmaus2::autoarray::AutoArray< UVal > RR(numthreads * numblocks);
 				std::fill(RR.begin(),RR.end(),UVal(std::numeric_limits<uint64_t>::max()));
 
 				// compute split points
-				std::vector< 
+				std::vector<
 					std::vector< std::pair<uint64_t,uint64_t> >
 				> R(numthreads,std::vector<std::pair<uint64_t,uint64_t> >(numblocks));
 				#if defined(_OPENMP)
@@ -525,13 +525,13 @@ namespace libmaus2
 					{
 						// part of block of file on disk
 						for ( uint64_t i = 0; i < numthreads; ++i )
-						{						
+						{
 							libmaus2::bambam::ReadEnds H;
 							H.decodeShortHash(splitPoints[i]);
-														
+
 							libmaus2::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<libmaus2::bambam::ReadEndsBase> const
 								FLS = Pdecoders[O[f] + k]->findLargestSmaller(H,false /* cache only */);
-								
+
 							uint64_t o = FLS.blockid << libmaus2::bambam::ReadEndsContainerBase::baseIndexShift;
 							Pdatastreams[f]->clear();
 							Pdatastreams[f]->seekg(FLS.P.first);
@@ -539,7 +539,7 @@ namespace libmaus2
 							SIS.ignore(FLS.P.second);
 							libmaus2::bambam::ReadEnds T;
 							uint64_t const blockelcnt = rinfo[f].blockelcnt[k];
-							
+
 							bool first = true;
 							libmaus2::bambam::ReadEndsBase prev;
 
@@ -548,7 +548,7 @@ namespace libmaus2
 								assert ( SIS.peek() >= 0 );
 								// std::cerr << ".";
 								T.get(SIS);
-									
+
 								if ( first )
 								{
 									assert ( T == FLS.D );
@@ -558,20 +558,20 @@ namespace libmaus2
 								{
 									assert( prev < T );
 								}
-								
+
 								// std::cerr << "H=" << H << " T=" << T << std::endl;
 								// break if T is not smaller than H
 								if ( ! comp(T,H) )
 									break;
 								else
 									++o;
-									
+
 								prev = T;
 							}
 							// R.at(i).at(O[f] + k).first = o;
 
 							assert ( RR [ i * numblocks + O[f] + k ].v == std::numeric_limits<uint64_t>::max() );
-							RR [ i * numblocks + O[f] + k ].v = o;							
+							RR [ i * numblocks + O[f] + k ].v = o;
 						}
 					}
 
@@ -579,8 +579,8 @@ namespace libmaus2
 					for ( uint64_t j = 0; j < numblocks ; ++j )
 						R.at(i).at(j).first = RR[i*numblocks+j].v;
 
-				#if 0				
-				{	
+				#if 0
+				{
 					bool gok = true;
 					for ( uint64_t j = 0; j < numblocks ; ++j )
 						for ( uint64_t i = 1; i < numthreads; ++i )
@@ -596,7 +596,7 @@ namespace libmaus2
 							std::cerr << "block " << j << std::endl;
 							for ( uint64_t i = 0; i < numthreads; ++i )
 							{
-								bool const lok = 
+								bool const lok =
 									(i == 0) || (R[i-1][j] <= R[i][j]);
 								std::cerr << "\tthread " << i << " " << R[i][j].first << " " << (lok?"":"broken") << std::endl;
 							}
@@ -605,7 +605,7 @@ namespace libmaus2
 					}
 				}
 				#endif
-				
+
 				// set upper bounds
 				for ( uint64_t i = 0; (i+1) < numthreads; ++i )
 					for ( uint64_t j = 0; j < R[i].size(); ++j )
@@ -617,13 +617,13 @@ namespace libmaus2
 					for ( uint64_t k = 0; k < rinfo.size(); ++k )
 					{
 						ReadEndsBlockDecoderBaseCollectionInfo const & subinfo = rinfo[k];
-					
+
 						for ( uint64_t i = 0; i < subinfo.blockelcnt.size(); ++i )
 							R[numthreads-1][j++].second = subinfo.blockelcnt[i];
 					}
 				}
 				#if defined(READENDSBLOCKTIMING)
-				std::cerr << "split point search: " << decodersetuprtc.getElapsedSeconds() << std::endl;			
+				std::cerr << "split point search: " << decodersetuprtc.getElapsedSeconds() << std::endl;
 				#endif
 
 				#if defined(READENDSBLOCKDEBUG)
@@ -644,11 +644,11 @@ namespace libmaus2
 					{
 						::libmaus2::bambam::ReadEnds RA;
 						RA.decodeShortHash(splitPoints[i]);
-						
+
 						for ( uint64_t j = 0; j < col.size(); ++j )
 							VR[i].push_back(std::pair<uint64_t,uint64_t>(col.getBlock(j)->countSmallerThanShort(RA),0));
 					}
-					
+
 					for ( uint64_t i = 0; (i+1) < numthreads; ++i )
 						for ( uint64_t j = 0; j < VR[i].size(); ++j )
 							VR[i][j].second = VR[i+1][j].first;
@@ -659,12 +659,12 @@ namespace libmaus2
 						for ( uint64_t k = 0; k < rinfo.size(); ++k )
 						{
 							ReadEndsBlockDecoderBaseCollectionInfo const & subinfo = rinfo[k];
-						
+
 							for ( uint64_t i = 0; i < subinfo.blockelcnt.size(); ++i )
 								VR[numthreads-1][j++].second = subinfo.blockelcnt[i];
 						}
 					}
-					
+
 					#if defined(READENDSBLOCKTIMING)
 					std::cerr << "searching for exact split points " << decodersetuprtc.getElapsedSeconds() << std::endl;
 					#endif
@@ -678,7 +678,7 @@ namespace libmaus2
 						}
 				}
 				#endif
-						
+
 				if ( check )
 				{
 					std::cerr << "checking...";
@@ -688,11 +688,11 @@ namespace libmaus2
 
 						::libmaus2::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[i];
 						::libmaus2::bambam::ReadEnds::hash_value_type const splithigh = splitPoints[i+1];
-						
+
 						for ( uint64_t j = 0; j < col.size(); ++j )
 						{
 							std::pair<uint64_t,uint64_t> ind = R[i][j];
-							
+
 							for ( uint64_t k = ind.first; k < ind.second; ++k )
 							{
 								assert ( col.getBlock(j)->get(k).encodeShortHash() >= splitlow );
@@ -700,17 +700,17 @@ namespace libmaus2
 							}
 						}
 					}
-					
+
 					if ( numthreads )
-					{					
+					{
 						this_type col(rinfo);
-						
+
 						::libmaus2::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[numthreads-1];
 
 						for ( uint64_t j = 0; j < col.size(); ++j )
 						{
 							std::pair<uint64_t,uint64_t> ind = R[numthreads-1][j];
-							
+
 							for ( uint64_t k = ind.first; k < ind.second; ++k )
 							{
 								assert ( col.getBlock(j)->get(k).encodeShortHash() >= splitlow );
@@ -719,7 +719,7 @@ namespace libmaus2
 					}
 					std::cerr << "done." << std::endl;
 				}
-				
+
 				#if 0
 				bool gok = true;
 				// counter over merge packages (threads)
@@ -743,10 +743,10 @@ namespace libmaus2
 							gok = false;
 						}
 					}
-					
+
 				assert ( gok );
 				#endif
-					
+
 				#if 0
 				if ( ! gok )
 				{
@@ -759,7 +759,7 @@ namespace libmaus2
 							std::cerr << "block " << j << std::endl;
 							for ( uint64_t i = 0; i < numthreads; ++i )
 							{
-								bool const lok = 
+								bool const lok =
 									(i == 0) || (R[i-1][j] <= R[i][j]);
 								std::cerr << "\tthread " << i << " " << R[i][j].first << " " << (lok?"":"broken") << std::endl;
 							}
@@ -767,10 +767,10 @@ namespace libmaus2
 						assert ( gok );
 					}
 				}
-					
+
 				assert ( gok );
 				#endif
-								
+
 				return R;
 			}
 
@@ -781,7 +781,7 @@ namespace libmaus2
 				libmaus2::bambam::ReadEndsBaseLongHashAttributeComparator
 			> long_index_decoder_type;
 			typedef long_index_decoder_type::unique_ptr_type long_index_decoder_pointer_type;
-			
+
 			static uint64_t getTotalLongBlocks(libmaus2::autoarray::AutoArray<long_index_decoder_pointer_type> const & A)
 			{
 				uint64_t s = 0;
@@ -795,13 +795,13 @@ namespace libmaus2
 				typedef ExternalMemoryIndexDecoderLongCountAccessor this_type;
 				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				libmaus2::autoarray::AutoArray<long_index_decoder_pointer_type> & Pdecoders;
-				
+
 				ExternalMemoryIndexDecoderLongCountAccessor(
 					libmaus2::autoarray::AutoArray<long_index_decoder_pointer_type> & Rdecoders
 				) : Pdecoders(Rdecoders) {}
-				
+
 				/**
 				 * get maximum block start element
 				 **/
@@ -809,28 +809,28 @@ namespace libmaus2
 				{
 					libmaus2::bambam::ReadEndsBase R;
 					R.reset();
-					
+
 					for ( uint64_t i = 0; i < Pdecoders.size(); ++i )
 						if ( Pdecoders[i]->maxelvalid && R.encodeLongHash() < Pdecoders[i]->maxel.encodeLongHash() )
 						{
 							R = Pdecoders[i]->maxel;
 							R.decodeLongHash(R.encodeLongHash());
 						}
-							
+
 					return R;
 				}
-				
+
 				uint64_t get(libmaus2::bambam::ReadEndsBase::hash_value_type const & H) const
 				{
 					libmaus2::bambam::ReadEndsBase R;
 					R.decodeLongHash(H);
-					
+
 					uint64_t c = 0;
 					for ( uint64_t i = 0; i < Pdecoders.size(); ++i )
 						c += Pdecoders[i]->findLargestSmaller(R,true /* cache only */).blockid;
-						
+
 					// std::cerr << "access " << H << " c=" << c << std::endl;
-					
+
 					return c;
 				}
 			};
@@ -847,31 +847,31 @@ namespace libmaus2
 			{
 				return long_index_iterator(&raccessor,raccessor.max().encodeLongHash()+libmaus2::bambam::ReadEndsBase::hash_value_type(1));
 			}
-			
+
 			static std::vector < std::vector< std::pair<uint64_t,uint64_t> > > getLongMergeIntervals(
 				std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase> const & rinfo,
-				uint64_t const numthreads, 
+				uint64_t const numthreads,
 				bool const check = false
 			)
 			{
 				#if defined(READENDSBLOCKTIMING)
-				libmaus2::timing::RealTimeClock decodersetuprtc; 
+				libmaus2::timing::RealTimeClock decodersetuprtc;
 				#endif
 				uint64_t const memory = 256ull*1024ull*1024ull;
 				uint64_t const numblocks = computeNumBlocks(rinfo);
 				uint64_t const minmem = 16*1024;
 				uint64_t const cacheperdec = std::max(minmem,numblocks ? ((memory + numblocks-1)/numblocks) : 0);
-				
+
 				// offset array
 				std::vector<uint64_t> O(rinfo.size(),0);
 				for ( uint64_t i = 1; i < rinfo.size(); ++i )
 					O[i] = O[i-1] + rinfo[i-1].indexoffset.size();
-				
+
 				libmaus2::autoarray::AutoArray<libmaus2::aio::InputStream::unique_ptr_type> Pindexstreams(rinfo.size());
 				libmaus2::autoarray::AutoArray<libmaus2::aio::InputStream::unique_ptr_type> Pdatastreams(rinfo.size());
 				libmaus2::autoarray::AutoArray<long_index_decoder_pointer_type> Pdecoders(numblocks);
-				
-				// open index and data streams	
+
+				// open index and data streams
 				#if defined(READENDSBLOCKTIMING)
 				decodersetuprtc.start();
 				#endif
@@ -907,13 +907,13 @@ namespace libmaus2
 				#if defined(READENDSBLOCKTIMING)
 				std::cerr << "index setup: " << decodersetuprtc.getElapsedSeconds() << std::endl;
 				#endif
-				
+
 				// compute total number of blocks
 				uint64_t const totalbaseblocks = getTotalLongBlocks(Pdecoders);
 				#if defined(READENDSBLOCKDEBUG)
 				std::cerr << "total number of base blocks is " << totalbaseblocks << std::endl;
 				#endif
-				
+
 				// compute split point values
 				#if defined(READENDSBLOCKTIMING)
 				decodersetuprtc.start();
@@ -934,8 +934,8 @@ namespace libmaus2
 					#if 0
 					libmaus2::bambam::ReadEnds H;
 					H.decodeLongHash(splitPoints[i]);
-					std::cerr 
-						<< "split point " 
+					std::cerr
+						<< "split point "
 						<< i << "/" << split
 						<< ": ";
 					std::cerr << H;
@@ -950,7 +950,7 @@ namespace libmaus2
 				std::fill(RR.begin(),RR.end(),UVal(std::numeric_limits<uint64_t>::max()));
 
 				// compute split points
-				std::vector< 
+				std::vector<
 					std::vector< std::pair<uint64_t,uint64_t> >
 				> R(numthreads,std::vector<std::pair<uint64_t,uint64_t> >(numblocks));
 				#if defined(_OPENMP)
@@ -962,7 +962,7 @@ namespace libmaus2
 						{
 							libmaus2::bambam::ReadEnds H;
 							H.decodeLongHash(splitPoints[i]);
-							
+
 							libmaus2::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<libmaus2::bambam::ReadEndsBase> const
 								FLS = Pdecoders[O[f] + k]->findLargestSmaller(H,false /* cache only */);
 
@@ -973,7 +973,7 @@ namespace libmaus2
 							SIS.ignore(FLS.P.second);
 							libmaus2::bambam::ReadEnds T;
 							uint64_t const blockelcnt = rinfo[f].blockelcnt[k];
-							
+
 							while ( o < blockelcnt )
 							{
 								assert ( SIS.peek() >= 0 );
@@ -993,7 +993,7 @@ namespace libmaus2
 						R.at(i).at(j).first = RR[i*numblocks+j].v;
 
 				#if 0
-				{	
+				{
 					bool gok = true;
 					for ( uint64_t j = 0; j < numblocks ; ++j )
 						for ( uint64_t i = 1; i < numthreads; ++i )
@@ -1009,7 +1009,7 @@ namespace libmaus2
 							std::cerr << "block " << j << std::endl;
 							for ( uint64_t i = 0; i < numthreads; ++i )
 							{
-								bool const lok = 
+								bool const lok =
 									(i == 0) || (R[i-1][j] <= R[i][j]);
 								std::cerr << "\tthread " << i << " " << R[i][j].first << " " << (lok?"":"broken") << std::endl;
 							}
@@ -1018,7 +1018,7 @@ namespace libmaus2
 					}
 				}
 				#endif
-				
+
 				// set upper bounds
 				for ( uint64_t i = 0; (i+1) < numthreads; ++i )
 					for ( uint64_t j = 0; j < R[i].size(); ++j )
@@ -1030,13 +1030,13 @@ namespace libmaus2
 					for ( uint64_t k = 0; k < rinfo.size(); ++k )
 					{
 						ReadEndsBlockDecoderBaseCollectionInfo const & subinfo = rinfo[k];
-					
+
 						for ( uint64_t i = 0; i < subinfo.blockelcnt.size(); ++i )
 							R[numthreads-1][j++].second = subinfo.blockelcnt[i];
 					}
 				}
 				#if defined(READENDSBLOCKTIMING)
-				std::cerr << "split point search: " << decodersetuprtc.getElapsedSeconds() << std::endl;			
+				std::cerr << "split point search: " << decodersetuprtc.getElapsedSeconds() << std::endl;
 				#endif
 
 				#if defined(READENDSBLOCKDEBUG)
@@ -1057,11 +1057,11 @@ namespace libmaus2
 					{
 						::libmaus2::bambam::ReadEnds RA;
 						RA.decodeLongHash(splitPoints[i]);
-						
+
 						for ( uint64_t j = 0; j < col.size(); ++j )
 							VR[i].push_back(std::pair<uint64_t,uint64_t>(col.getBlock(j)->countSmallerThanLong(RA),0));
 					}
-					
+
 					for ( uint64_t i = 0; (i+1) < numthreads; ++i )
 						for ( uint64_t j = 0; j < VR[i].size(); ++j )
 							VR[i][j].second = VR[i+1][j].first;
@@ -1072,12 +1072,12 @@ namespace libmaus2
 						for ( uint64_t k = 0; k < rinfo.size(); ++k )
 						{
 							ReadEndsBlockDecoderBaseCollectionInfo const & subinfo = rinfo[k];
-						
+
 							for ( uint64_t i = 0; i < subinfo.blockelcnt.size(); ++i )
 								VR[numthreads-1][j++].second = subinfo.blockelcnt[i];
 						}
 					}
-					
+
 					#if defined(READENDSBLOCKTIMING)
 					std::cerr << "searching for exact split points " << decodersetuprtc.getElapsedSeconds() << std::endl;
 					#endif
@@ -1091,7 +1091,7 @@ namespace libmaus2
 						}
 				}
 				#endif
-						
+
 				if ( check )
 				{
 					std::cerr << "checking...";
@@ -1101,11 +1101,11 @@ namespace libmaus2
 
 						::libmaus2::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[i];
 						::libmaus2::bambam::ReadEnds::hash_value_type const splithigh = splitPoints[i+1];
-						
+
 						for ( uint64_t j = 0; j < col.size(); ++j )
 						{
 							std::pair<uint64_t,uint64_t> ind = R[i][j];
-							
+
 							for ( uint64_t k = ind.first; k < ind.second; ++k )
 							{
 								assert ( col.getBlock(j)->get(k).encodeLongHash() >= splitlow );
@@ -1113,17 +1113,17 @@ namespace libmaus2
 							}
 						}
 					}
-					
+
 					if ( numthreads )
-					{					
+					{
 						this_type col(rinfo);
-						
+
 						::libmaus2::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[numthreads-1];
 
 						for ( uint64_t j = 0; j < col.size(); ++j )
 						{
 							std::pair<uint64_t,uint64_t> ind = R[numthreads-1][j];
-							
+
 							for ( uint64_t k = ind.first; k < ind.second; ++k )
 							{
 								assert ( col.getBlock(j)->get(k).encodeLongHash() >= splitlow );
@@ -1146,10 +1146,10 @@ namespace libmaus2
 						}
 					}
 				#endif
-								
+
 				return R;
 			}
-			
+
 			void merge(
 				std::vector< std::pair<uint64_t,uint64_t> > V,
 				std::ostream & out, std::iostream & indexout
@@ -1160,14 +1160,14 @@ namespace libmaus2
 					libmaus2::bambam::ReadEndsContainerBase::baseIndexShift,
 					libmaus2::bambam::ReadEndsContainerBase::innerIndexShift
 				> generator(indexout);
-				
-				/* uint64_t indexpos = */ generator.setup();		
-			
+
+				/* uint64_t indexpos = */ generator.setup();
+
 				//! pair of list index and ReadEnds object
 				typedef std::pair<uint64_t,::libmaus2::bambam::ReadEnds> qtype;
 				//! merge heap
 				std::priority_queue<qtype,std::vector<qtype>,::libmaus2::bambam::ReadEndsHeapPairComparator> Q;
-				
+
 				for ( uint64_t i = 0; i < V.size(); ++i )
 					if ( V[i].first < V[i].second )
 						Q.push(
@@ -1176,18 +1176,18 @@ namespace libmaus2
 								getBlock(i)->get(V[i].first++)
 							)
 						);
-				
+
 				uint64_t ind = 0;
 				libmaus2::lz::SnappyOutputStream<std::ostream> SOS(out);
 				while ( Q.size() )
 				{
 					qtype const P = Q.top();
 					Q.pop();
-					
+
 					P.second.put(SOS);
 					if ( ((ind++) & ReadEndsContainerBase::baseIndexMask) == 0 )
 						generator.put(P.second,SOS.getOffset());
-					
+
 					if ( V[P.first].first < V[P.first].second )
 						Q.push(
 							qtype(
@@ -1196,10 +1196,10 @@ namespace libmaus2
 							)
 						);
 				}
-				
+
 				SOS.flush();
 				generator.flush();
-				
+
 				out.flush();
 				indexout.flush();
 			}

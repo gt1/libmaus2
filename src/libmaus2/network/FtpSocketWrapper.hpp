@@ -29,14 +29,14 @@ namespace libmaus2
 		{
 			private:
 			libmaus2::network::FtpSocket object;
-			
+
 			public:
 			FtpSocketWrapper(
 				std::string const & url,
 				uint64_t restartpoint = 0,
 				bool const rverbose = false
 			) : object(url,restartpoint,rverbose) {}
-			
+
 			libmaus2::network::FtpSocket & getFtpSocket()
 			{
 				return object;

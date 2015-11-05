@@ -29,33 +29,33 @@ namespace libmaus2
 	namespace bambam
 	{
 		namespace parallel
-		{		
+		{
 			struct FragmentAlignmentBufferReorderWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef FragmentAlignmentBufferReorderWorkPackageDispatcher this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				libmaus2::bambam::parallel::FragmentAlignmentBufferReorderWorkPackageReturnInterface & workPackageReturnInterface;
 				libmaus2::bambam::parallel::FragmentAlignmentBufferReorderWorkPackageFinishedInterface & workPackageFinishedInterface;
-				
+
 				FragmentAlignmentBufferReorderWorkPackageDispatcher(
 					libmaus2::bambam::parallel::FragmentAlignmentBufferReorderWorkPackageReturnInterface & rworkPackageReturnInterface,
 					libmaus2::bambam::parallel::FragmentAlignmentBufferReorderWorkPackageFinishedInterface & rworkPackageFinishedInterface
 				) : workPackageReturnInterface(rworkPackageReturnInterface), workPackageFinishedInterface(rworkPackageFinishedInterface)
 				{
-				
+
 				}
-						
+
 				void dispatch(
-					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadWorkPackage * P,
 					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					libmaus2::bambam::parallel::FragmentAlignmentBufferReorderWorkPackage * BP =
 						dynamic_cast<libmaus2::bambam::parallel::FragmentAlignmentBufferReorderWorkPackage *>(P);
-						
+
 					BP->copyReq.dispatch();
-					
+
 					workPackageFinishedInterface.fragmentAlignmentBufferReorderWorkPackageFinished(BP);
 					workPackageReturnInterface.returnFragmentAlignmentBufferReorderWorkPackage(BP);
 				}

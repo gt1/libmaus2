@@ -29,11 +29,11 @@ int main(int argc, char * argv[])
 		int const controlfd = arginfo.getValue<int>("controlfd",-1);
 		uint64_t const mem = arginfo.getValue<int>("mem",0);
 		::libmaus2::network::SocketBase controlsock(controlfd);
-		
+
 		std::cout << "Hello world." << std::endl;
 		std::cout << "controlfd=" << controlfd << std::endl;
 		std::cout << "mem=" << mem << std::endl;
-		
+
 		controlsock.writeString(::libmaus2::network::GetHostName::getHostName());
 		controlsock.barrierRw();
 	}

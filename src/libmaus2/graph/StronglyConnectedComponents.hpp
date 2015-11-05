@@ -40,7 +40,7 @@ namespace libmaus2
 			{
 				uint64_t index;
 				uint64_t lowlink;
-				
+
 				StrongConnectInfo() : index(0), lowlink(0) {}
 				StrongConnectInfo(uint64_t rv) : index(rv), lowlink(rv) {}
 				StrongConnectInfo(
@@ -48,28 +48,28 @@ namespace libmaus2
 					uint64_t const rlowlink
 				) : index(rindex), lowlink(rlowlink)
 				{
-				
+
 				}
 			};
-			
+
 			struct StrongConnectStackElement
 			{
 				enum algorithm_stage_type { stage_initial, stage_enum_edges_call, stage_enum_edges_return, stage_stack_pop };
-				
+
 				uint64_t v;
 				algorithm_stage_type algorithm_stage;
 				uint64_t edgeid;
-				
+
 				StrongConnectStackElement()
 				: v(0), algorithm_stage(stage_initial), edgeid(0)
 				{
-				
+
 				}
-				
+
 				StrongConnectStackElement(uint64_t const rv, algorithm_stage_type const & ralgorithm_stage, uint64_t const redgeid = 0)
 				: v(rv), algorithm_stage(ralgorithm_stage), edgeid(redgeid)
 				{
-				
+
 				}
 			};
 
@@ -79,7 +79,7 @@ namespace libmaus2
 			)
 			{
 				std::pair< std::vector< uint64_t >, std::vector< uint64_t > > C;
-				
+
 				// generate forward and reverse edges
 				std::map<uint64_t, std::vector< uint64_t > > F;
 				std::map<uint64_t, std::vector< uint64_t > > R;
@@ -94,37 +94,37 @@ namespace libmaus2
 						R[t].push_back(s);
 					}
 				}
-				
+
 				std::set<uint64_t> seen;
 				seen.insert(rv);
 				std::stack<uint64_t> P;
-				
+
 				enum visit_type { visit_first, visit_second };
 				typedef std::pair<uint64_t,visit_type> stack_element_type;
 				std::stack<stack_element_type> S;
 				S.push(stack_element_type(rv,visit_second));
 				S.push(stack_element_type(rv,visit_first));
-				
+
 				while ( ! S.empty() )
 				{
 					stack_element_type se = S.top(); S.pop();
-					
+
 					if ( se.second == visit_first && F.find(se.first) != F.end() )
 					{
 						std::vector< uint64_t > const & V = F.find(se.first)->second;
-							
+
 						for ( uint64_t i = 0; i < V.size(); ++i )
 							if ( seen.find(V[i]) == seen.end() )
 							{
 								S.push(stack_element_type(V[i],visit_second));
-								S.push(stack_element_type(V[i],visit_first));			
+								S.push(stack_element_type(V[i],visit_first));
 								seen.insert(V[i]);
 							}
 					}
 					else if ( se.second == visit_second )
 						P.push(se.first);
 				}
-				
+
 				seen.clear();
 				while ( P.size() )
 				{
@@ -132,17 +132,17 @@ namespace libmaus2
 					T.push(P.top());
 					seen.insert(P.top());
 					uint64_t c = 0;
-					
+
 					while ( ! T.empty() )
 					{
 						++c;
 						uint64_t const node = T.top(); T.pop();
 						C.first.push_back(node);
-						
+
 						if ( R.find(node) != R.end() )
 						{
 							std::vector<uint64_t> const & V = R.find(node)->second;
-							
+
 							for ( uint64_t i = 0; i < V.size(); ++i )
 								if ( seen.find(V[i]) == seen.end() )
 								{
@@ -151,15 +151,15 @@ namespace libmaus2
 								}
 						}
 					}
-					
+
 					std::sort(C.first.end()-c,C.first.end());
-					
+
 					C.second.push_back(c);
-					
+
 					while( P.size() && (seen.find(P.top()) != seen.end()) )
 						P.pop();
 				}
-				
+
 				uint64_t acc = 0;
 				for ( uint64_t i = 0; i < C.second.size(); ++i )
 				{
@@ -168,7 +168,7 @@ namespace libmaus2
 					acc += t;
 				}
 				C.second.push_back(acc);
-				
+
 				return C;
 			}
 
@@ -177,16 +177,16 @@ namespace libmaus2
 			{
 				uint64_t index = 0;
 				uint64_t compid = 0;
-						
+
 				std::stack< StrongConnectStackElement > T;
 				T.push(StrongConnectStackElement(rv,StrongConnectStackElement::stage_initial));
 
 				std::stack<uint64_t> S;
 				std::map<uint64_t,StrongConnectInfo> info;
-				
+
 				std::vector< uint64_t > components;
 				std::vector< uint64_t > componentsizes;
-					
+
 				while ( ! T.empty() )
 				{
 					StrongConnectStackElement const el = T.top(); T.pop();
@@ -197,7 +197,7 @@ namespace libmaus2
 						{
 							info[el.v] = StrongConnectInfo(index++);
 							S.push(el.v);
-							
+
 							if ( edges.find(el.v) != edges.end() && edges.find(el.v)->second.size() )
 								T.push(StrongConnectStackElement(el.v,StrongConnectStackElement::stage_enum_edges_call,0));
 							else
@@ -219,11 +219,11 @@ namespace libmaus2
 							else
 							{
 								info[el.v].lowlink = std::min(info[el.v].lowlink,info[projector(edge)].index);
-								
+
 								if ( el.edgeid+1 < V.size() )
 									T.push(StrongConnectStackElement(el.v,StrongConnectStackElement::stage_enum_edges_call,el.edgeid+1));
 								else
-									T.push(StrongConnectStackElement(el.v,StrongConnectStackElement::stage_stack_pop));					
+									T.push(StrongConnectStackElement(el.v,StrongConnectStackElement::stage_stack_pop));
 							}
 						}
 						break;
@@ -233,9 +233,9 @@ namespace libmaus2
 							std::vector<edge_type> const & V = edges.find(el.v)->second;
 							assert ( el.edgeid < V.size() );
 							edge_type const & edge = V[el.edgeid];
-							
+
 							info[el.v].lowlink = std::min(info[el.v].lowlink,info[projector(edge)].lowlink);
-							
+
 							if ( el.edgeid + 1 < V.size() )
 								T.push(StrongConnectStackElement(el.v,StrongConnectStackElement::stage_enum_edges_call,el.edgeid+1));
 							else
@@ -247,29 +247,29 @@ namespace libmaus2
 							if ( info[el.v].index == info[el.v].lowlink )
 							{
 								// std::cerr << "pop for " << el.v << std::endl;
-							
+
 								uint64_t v = el.v+1;
 								uint64_t s = 0;
-								
+
 								while ( v != el.v )
 								{
 									v = S.top();
 									components.push_back(v);
 									s += 1;
 									// std::cerr << "add " << v << std::endl;
-									S.pop();							
+									S.pop();
 								}
-								
+
 								std::sort(components.end()-s,components.end());
 								componentsizes.push_back(s);
-								
+
 								compid += 1;
 							}
 						}
 						break;
 					}
 				}
-				
+
 				// compute prefix sums over componentsizes
 				uint64_t acc = 0;
 				for ( uint64_t i = 0; i < componentsizes.size(); ++i )
@@ -289,7 +289,7 @@ namespace libmaus2
 
 			template<typename edge_type, typename projector_type>
 			static std::pair< std::vector< uint64_t >, std::vector< uint64_t > > strongConnectContract(
-				std::map< uint64_t,std::vector<edge_type> > const & inedges, 
+				std::map< uint64_t,std::vector<edge_type> > const & inedges,
 				uint64_t rv, projector_type projector = projector_type()
 			)
 			{
@@ -299,27 +299,27 @@ namespace libmaus2
 				for ( typename std::map< uint64_t,std::vector<edge_type> >::const_iterator ita = inedges.begin(); ita != inedges.end(); ++ita )
 				{
 					std::vector<edge_type> const & V = ita->second;
-					
+
 					for ( uint64_t i = 0; i < V.size(); ++i )
 						edges[ita->first].push_back(projector(V[i]));
 				}
 
 				bool changed = true;
 				std::map<uint64_t,uint64_t> vertmap;
-				
+
 				// while we have not determined that graph is loop free
 				while ( changed )
-				{	
+				{
 					#if 0
 					std::cerr << "digraph {\n";
-				
+
 					for ( std::map< uint64_t,std::vector<uint64_t> >::const_iterator ita = edges.begin(); ita != edges.end(); ++ita )
 					{
 						std::vector<uint64_t> const & V = ita->second;
 						for ( uint64_t i = 0; i < V.size(); ++i )
 							std::cerr << ita->first << " -> " << V[i] << "\n";
 					}
-				
+
 					std::cerr << "}\n";
 					#endif
 
@@ -334,11 +334,11 @@ namespace libmaus2
 					std::stack<uint64_t> PS;
 					PS.push(rv);
 					unused.insert(rv);
-					
+
 					while ( !PS.empty() )
 					{
 						uint64_t const v = PS.top(); PS.pop();
-						
+
 						if ( edges.find(v) != edges.end() )
 						{
 							std::vector<uint64_t> const & V = edges.find(v)->second;
@@ -350,11 +350,11 @@ namespace libmaus2
 								}
 						}
 					}
-					
+
 					// mark all vertices as unused
 					for ( std::map< uint64_t,std::vector<uint64_t> >::const_iterator ita = edges.begin(); ita != edges.end(); ++ita )
 						unused.insert(ita->first);
-					
+
 					while ( (!changed) && unused.size() )
 					{
 						// get unused node
@@ -365,11 +365,11 @@ namespace libmaus2
 						std::set<uint64_t> onstack;
 						bool foundloop = false;
 						uint64_t onstackrec = 0;
-						
+
 						while ( (!foundloop) && (! S.empty()) )
 						{
 							st const el = S.top(); S.pop();
-							
+
 							switch ( el.second )
 							{
 								// first visit
@@ -378,7 +378,7 @@ namespace libmaus2
 									onstack.insert(el.first);
 									// push second visit
 									S.push(st(el.first,visit_second));
-									
+
 									// erase from unused list
 									if ( unused.find(el.first) != unused.end() )
 										unused.erase(unused.find(el.first));
@@ -387,23 +387,23 @@ namespace libmaus2
 									if ( edges.find(el.first) != edges.end() )
 									{
 										std::vector<uint64_t> const & V = edges.find(el.first)->second;
-									
-										// check for loop	
+
+										// check for loop
 										for ( uint64_t i = 0; i < V.size(); ++i )
 											if ( onstack.find(V[i]) != onstack.end() )
 											{
 												foundloop = true;
 												onstackrec = V[i];
 											}
-										
+
 										// if no loop was found then push edge targets
 										if ( ! foundloop )
 										{
 											for ( uint64_t i = 0; i < V.size(); ++i )
-												S.push(st(V[i],visit_first));						
+												S.push(st(V[i],visit_first));
 										}
 									}
-									
+
 									break;
 								case visit_second:
 									assert ( onstack.find(el.first) != onstack.end() );
@@ -411,7 +411,7 @@ namespace libmaus2
 									break;
 							}
 						}
-						
+
 						if ( foundloop )
 						{
 							// collect vertices on loop
@@ -422,12 +422,12 @@ namespace libmaus2
 									L.insert(S.top().first);
 								S.pop();
 							}
-							
+
 							assert ( S.size() && S.top() == st(onstackrec,visit_second) );
-							
+
 							// insert loop start
 							L.insert(onstackrec);
-							
+
 							// if we found a non trivial loop
 							if ( L.size() > 1 )
 							{
@@ -436,7 +436,7 @@ namespace libmaus2
 								for ( std::set<uint64_t>::const_iterator ita = L.begin(); ita != L.end(); ++ita )
 									if ( *ita != mini )
 										vertmap[*ita] = mini;
-								
+
 								// collect all targets
 								std::set<uint64_t> alltargets;
 								for ( std::map< uint64_t,std::vector<uint64_t> >::iterator ita = edges.begin(); ita != edges.end(); ++ita )
@@ -457,9 +457,9 @@ namespace libmaus2
 										for ( uint64_t i = 0; i < V.size(); ++i )
 											if ( L.find(V[i]) != L.end() )
 												V[i] = mini;
-										
+
 										// remove multiple targets
-										std::sort(V.begin(),V.end());							
+										std::sort(V.begin(),V.end());
 										V.resize(std::unique(V.begin(),V.end())-V.begin());
 									}
 
@@ -467,21 +467,21 @@ namespace libmaus2
 								for ( std::set<uint64_t>::const_iterator ita = L.begin(); ita != L.end(); ++ita )
 									if ( edges.find(*ita) != edges.end() )
 										edges.erase(edges.find(*ita));
-								
+
 								for ( std::set<uint64_t>::const_iterator ita = alltargets.begin(); ita != alltargets.end(); ++ita )
 									edges[mini].push_back(*ita);
-								
+
 								changed = true;
 							}
 						}
 					}
 				}
-				
+
 				changed = true;
 				while ( changed )
 				{
 					changed = false;
-					
+
 					for ( std::map<uint64_t,uint64_t>::iterator ita = vertmap.begin(); ita != vertmap.end(); ++ita )
 						if ( vertmap.find(ita->second) != vertmap.end() )
 						{
@@ -501,7 +501,7 @@ namespace libmaus2
 				std::map< uint64_t,std::vector<uint64_t> > RM;
 				for ( std::map<uint64_t,uint64_t>::const_iterator ita = vertmap.begin(); ita != vertmap.end(); ++ita )
 					RM[ita->second].push_back(ita->first);
-					
+
 				std::vector<uint64_t> RV;
 				std::vector<uint64_t> RA;
 				for ( std::map< uint64_t,std::vector<uint64_t> >::const_iterator ita = RM.begin(); ita != RM.end(); ++ita )
@@ -513,7 +513,7 @@ namespace libmaus2
 					RA.push_back(V.size()+1);
 					std::sort(RV.end()-(RA.back()),RV.end());
 				}
-				
+
 				uint64_t acc = 0;
 				for ( uint64_t i = 0; i < RA.size(); ++i )
 				{
@@ -522,7 +522,7 @@ namespace libmaus2
 					acc += t;
 				}
 				RA.push_back(acc);
-				
+
 				return std::pair< std::vector<uint64_t>, std::vector<uint64_t> >(RV,RA);
 			}
 		};

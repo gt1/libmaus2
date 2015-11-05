@@ -33,56 +33,56 @@ namespace libmaus2
 		{
 			uint64_t curtime;
 			uint64_t maxactive;
-			
+
 			libmaus2::util::unordered_map<uint64_t,uint64_t>::type objectToTime;
 			std::map<uint64_t,uint64_t> timeToObject;
-			
+
 			SparseLRU(uint64_t const rmaxactive) : curtime(0), maxactive(rmaxactive) {}
-			
+
 			void update(uint64_t const objectid)
 			{
 				libmaus2::util::unordered_map<uint64_t,uint64_t>::type::iterator it = objectToTime.find(objectid);
 				assert ( it != objectToTime.end() );
-				
+
 				uint64_t const otime = it->second;
 
 				std::map<uint64_t,uint64_t>::iterator mit = timeToObject.find(otime);
 				assert ( mit != timeToObject.end() );
-				
+
 				objectToTime.erase(it);
 				timeToObject.erase(mit);
-				
+
 				uint64_t const ntime = curtime++;
-				
+
 				objectToTime[objectid] = ntime;
 				timeToObject[ntime] = objectid;
 			}
-			
+
 			void erase(uint64_t const objectid)
 			{
 				libmaus2::util::unordered_map<uint64_t,uint64_t>::type::iterator it = objectToTime.find(objectid);
 				assert ( it != objectToTime.end() );
 				uint64_t otime = it->second;
-				
+
 				objectToTime.erase(it);
-				
+
 				std::map<uint64_t,uint64_t>::iterator oit = timeToObject.find(otime);
 				assert ( oit != timeToObject.end() );
-				
+
 				timeToObject.erase(oit);
 			}
-			
+
 			int64_t get(uint64_t const objectid)
 			{
 				libmaus2::util::unordered_map<uint64_t,uint64_t>::type::iterator it = objectToTime.find(objectid);
-				
+
 				// object is present, update access time
 				if ( it != objectToTime.end() )
 				{
 					update(objectid);
 					return -1;
 				}
-				
+
 				// object is not present but there is more space
 				if ( objectToTime.size() < maxactive )
 				{
@@ -91,19 +91,19 @@ namespace libmaus2
 					timeToObject[ntime] = objectid;
 					return -1;
 				}
-				
+
 				// object is not present and we need to remove an element
 				std::map<uint64_t,uint64_t>::iterator otimeit = timeToObject.begin();
 				uint64_t const oobject = otimeit->second;
 				libmaus2::util::unordered_map<uint64_t,uint64_t>::type::iterator oobjectit = objectToTime.find(oobject);
-				
+
 				timeToObject.erase(otimeit);
 				objectToTime.erase(oobjectit);
-				
+
 				uint64_t const ntime = curtime++;
 				objectToTime[objectid] = ntime;
 				timeToObject[ntime] = objectid;
-				
+
 				return static_cast<int64_t>(oobject);
 			}
 		};

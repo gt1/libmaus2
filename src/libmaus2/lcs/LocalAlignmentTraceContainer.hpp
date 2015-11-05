@@ -32,10 +32,10 @@ namespace libmaus2
 			private:
 			LocalAlignmentTraceContainer & operator=(LocalAlignmentTraceContainer const &);
 			LocalAlignmentTraceContainer(LocalAlignmentTraceContainer const &);
-		
+
 			public:
 			virtual ~LocalAlignmentTraceContainer() {}
-		
+
 			// trace
 			::libmaus2::autoarray::AutoArray<step_type> trace;
 			//
@@ -45,26 +45,26 @@ namespace libmaus2
 			LocalAlignmentTraceContainer(uint64_t const tracelen = 0)
 			: trace(tracelen), te(trace.end()), ta(te)
 			{
-			
+
 			}
-			
+
 			void resize(uint64_t const tracelen)
 			{
 				trace = ::libmaus2::autoarray::AutoArray<step_type>(tracelen,false);
 				te = trace.end();
 				ta = te;
 			}
-			
+
 			uint64_t capacity() const
 			{
 				return trace.size();
 			}
-			
+
 			uint64_t getTraceLength() const
 			{
 				return te-ta;
 			}
-			
+
 			template<typename it>
 			static int32_t getTraceScore(it ta, it te)
 			{
@@ -92,7 +92,7 @@ namespace libmaus2
 				}
 				return score;
 			}
-			
+
 			template<typename it>
 			static std::string traceToString(it ta, it te)
 			{
@@ -119,35 +119,35 @@ namespace libmaus2
 							break;
 					}
 				}
-				
+
 				return ostr.str();
 			}
-			
+
 			std::string traceToString() const
 			{
 				return traceToString(ta,te);
 			}
-			
+
 			int32_t getTraceScore() const
 			{
 				return getTraceScore(ta,te);
 			}
-			
+
 			bool operator==(LocalAlignmentTraceContainer const & o) const
 			{
 				if ( getTraceLength() != o.getTraceLength() )
 					return false;
-				
+
 				step_type *  tc =   ta;
 				step_type * otc = o.ta;
-				
+
 				while ( tc != te )
 					if ( *(tc++) != *(otc++) )
 						return false;
-						
+
 				return true;
 			}
-			
+
 			bool operator!=(LocalAlignmentTraceContainer const & o) const
 			{
 				return ! operator==(o);

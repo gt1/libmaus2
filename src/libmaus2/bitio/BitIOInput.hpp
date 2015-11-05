@@ -37,7 +37,7 @@ namespace libmaus2
 		template< typename iterator, bool eof_silent = false >
 		class IteratorBitInputStream
 		{
-			private:		
+			private:
 			// start iterator
 			iterator begin;
 			// current iterator
@@ -68,17 +68,17 @@ namespace libmaus2
 			inline void skipBytesNoFlush(uint64_t len) throw() {
 				assert(static_cast<long>(len) <= (end-in));
 				bitsRead += 8*static_cast<uint64_t>(len);
-				in += len;		
+				in += len;
 			}
 
 			inline void skipBytes(uint64_t len) throw() {
 				flush();
 				skipBytesNoFlush(len);
 			}
-			
+
 			inline void seekToByte(uint64_t offset) {
 				flush();
-				
+
 				if ( static_cast<long>(offset) > (end-begin) ) {
 					in = end;
 					bitsRead = 8*static_cast<uint64_t>(end-begin);
@@ -112,7 +112,7 @@ namespace libmaus2
 							throw se;
 						}
 					}
-				
+
 					curByte = *(in++);
 					curByteMask = 0x80;
 				}
@@ -142,11 +142,11 @@ namespace libmaus2
 				bitsRead <<= 3;
 				curByteMask = 0;
 			}
-			
+
 			// roll back by number of bits
 			inline void rollback(uint64_t numbits) throw() {
 				assert(numbits <= bitsRead);
-				
+
 				bitsRead -= static_cast<uint64_t>(numbits);
 				in = begin + (bitsRead >> 3);
 				unsigned int modul = bitsRead & 0x7;
@@ -158,12 +158,12 @@ namespace libmaus2
 					curByteMask = 0x0;
 				}
 			}
-			
+
 			inline uint8_t readNextRealByte() throw() {
 				bitsRead += 8;
 				return *(in++);
 			}
-			
+
 			inline uint8_t getNextRealByte() throw() {
 				return *(in++);
 			}
@@ -209,10 +209,10 @@ namespace libmaus2
 
 			inline uint64_t readElias() {
 				uint64_t numbits = 0;
-				
+
 				while ( readBit() == 0 )
 					numbits++;
-					
+
 				return read(numbits);
 			}
 		};
@@ -226,8 +226,8 @@ namespace libmaus2
 			typedef StreamBitInputStreamTemplate<stream_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
-			private:	
+
+			private:
 			// input stream
 			stream_type & in;
 			// current byte
@@ -262,7 +262,7 @@ namespace libmaus2
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "EOF in StreamBitInputStream::readBit()." << std::endl;
 						se.finish();
-						throw se;					
+						throw se;
 					}
 
 					curByte = ncurByte;
@@ -287,11 +287,11 @@ namespace libmaus2
 					curByteMask = 0;
 				}
 			}
-			
+
 			inline uint8_t getNextByte()
 			{
 				int c = in.get();
-				
+
 				if ( c < 0 )
 					return 0;
 				else
@@ -314,19 +314,19 @@ namespace libmaus2
 				numbits -= bitsleft;
 				uint64_t result = (::libmaus2::math::lowbits(bitsleft) /* ((1<<bitsleft)-1) */ & static_cast<uint64_t>(curByte)) << (numbits);
 
-				while ( numbits >= 8 ) 
+				while ( numbits >= 8 )
 				{
 					numbits -= 8;
 					result |= (static_cast<uint64_t>(getNextByte()) << numbits);
 				}
 
-				if ( numbits ) 
+				if ( numbits )
 				{
 					curByte = getNextByte();
 					curByteMask = static_cast<uint8_t>(0x80) >> numbits;
 					result |= (static_cast<uint64_t>(curByte) >> (8-numbits));
-				} 
-				else 
+				}
+				else
 				{
 					curByteMask = 0;
 				}
@@ -336,22 +336,22 @@ namespace libmaus2
 
 			inline uint64_t readElias() {
 				unsigned int numbits = 0;
-				
+
 				while ( readBit() == 0 )
 					numbits++;
-					
+
 				return read(numbits);
 			}
 		};
 
 		typedef StreamBitInputStreamTemplate<std::istream> StreamBitInputStream;
-		
+
 		template<typename N, unsigned int k>
 		struct FullMask
 		{
 			static N const v = (FullMask<N,k-1>::v << 1) | static_cast<N>(1);
 		};
-		
+
 		template<typename N>
 		struct FullMask<N,1>
 		{
@@ -363,14 +363,14 @@ namespace libmaus2
 		{
 			static N const v = 0;
 		};
-		
+
 		template<typename stream_type, typename entity_type>
 		struct StreamGetAdapter
 		{
 			static bool getNext(stream_type & stream, entity_type & v)
 			{
 				int const rv = stream.get();
-				
+
 				if ( rv < 0 )
 					return false;
 				else
@@ -391,13 +391,13 @@ namespace libmaus2
 			typedef MarkerStreamBitInputStreamTemplate<stream_type,entity_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			static entity_type const top_bit = static_cast<entity_type>(1) << (8*sizeof(entity_type)-1);
 			static entity_type const sub_top_bit = (top_bit >> 1);
 			static entity_type const full_mask = FullMask<entity_type,8*sizeof(entity_type)>::v;
 			static entity_type const sub_full_mask = (full_mask - 1);
-		
-			private:	
+
+			private:
 			// input stream
 			stream_type & in;
 			// current byte
@@ -419,7 +419,7 @@ namespace libmaus2
 			{
 				return bitsRead;
 			}
-			
+
 			void fillByteChecked()
 			{
 				int const ncurByte = in.get();
@@ -429,9 +429,9 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "EOF in MarkerStreamBitInputStream::fillByteChecked()." << std::endl;
 					se.finish();
-					throw se;					
+					throw se;
 				}
-				
+
 				if ( ncurByte == sub_full_mask )
 				{
 					curByteMask = sub_top_bit;
@@ -485,18 +485,18 @@ namespace libmaus2
 			{
 				bitsRead += static_cast<uint64_t>(numbits);
 				uint64_t result = 0;
-			
+
 				while ( numbits )
 				{
 					// check how many bits are left in the buffer
 					unsigned int const bitsleft = curByteMask ? (__builtin_ctz(curByteMask)+1) : 0;
-					
+
 					// we have sufficient bits in the current word to finish
-					if ( numbits <= bitsleft ) 
+					if ( numbits <= bitsleft )
 					{
 						unsigned int const shift = (bitsleft - numbits);
 						entity_type const shifted = static_cast<entity_type>(curByte >> shift);
-						
+
 						result <<= numbits;
 						result |= ::libmaus2::math::lowbits(numbits) & shifted;
 						// all requested bits read
@@ -512,16 +512,16 @@ namespace libmaus2
 						numbits -= bitsleft;
 					}
 				}
-				
+
 				return result;
 			}
 
 			inline uint64_t readElias() {
 				unsigned int numbits = 0;
-				
+
 				while ( readBit() == 0 )
 					numbits++;
-					
+
 				return read(numbits);
 			}
 		};

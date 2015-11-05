@@ -30,7 +30,7 @@ namespace libmaus2
 			typedef OutputStream this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			OutputStream(OutputStreamWrapper::shared_stream_ptr_type & Tstream) : OutputStreamWrapper(Tstream), std::ostream(OutputStreamWrapper::getStream().rdbuf()) {}
 			OutputStream(OutputStreamWrapper::stream_type & rstream)            : OutputStreamWrapper(rstream), std::ostream(OutputStreamWrapper::getStream().rdbuf()) {}
 			virtual ~OutputStream() {}

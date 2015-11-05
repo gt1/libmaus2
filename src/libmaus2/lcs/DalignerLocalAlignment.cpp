@@ -34,7 +34,7 @@ struct DalignerData
 	Overlap OVL;
 	libmaus2::lcs::DalignerNP NP;
 	#endif
-	
+
 	DalignerData(
 		#if defined(LIBMAUS2_HAVE_DALIGNER)
 		double const correlation,
@@ -50,7 +50,7 @@ struct DalignerData
 		float const,
 		float const,
 		float const
-		#endif	
+		#endif
 	)
 	#if defined(LIBMAUS2_HAVE_DALIGNER)
 	: spec(0), workdata(0)
@@ -59,7 +59,7 @@ struct DalignerData
 		#if defined(LIBMAUS2_HAVE_DALIGNER)
 		float freq[] = { afreq, cfreq, gfreq, tfreq };
 		spec = ::New_Align_Spec(correlation,tspace,&freq[0]);
-		
+
 		if ( ! spec )
 		{
 			cleanup();
@@ -82,10 +82,10 @@ struct DalignerData
 		libmaus2::exception::LibMausException lme;
 		lme.getStream() << "DalignerLocalAlignment: libmaus2 is compiled without DALIGNER support" << std::endl;
 		lme.finish();
-		throw lme;			        
-		#endif	
+		throw lme;
+		#endif
 	}
-	
+
 	void cleanup()
 	{
 		#if defined(LIBMAUS2_HAVE_DALIGNER)
@@ -100,15 +100,15 @@ struct DalignerData
 			spec = 0;
 		}
 		#endif
-	
+
 	}
-	
+
 	~DalignerData()
 	{
 		cleanup();
 	}
 };
-		
+
 libmaus2::lcs::DalignerLocalAlignment::DalignerLocalAlignment(
 	#if defined(LIBMAUS2_HAVE_DALIGNER)
 	double const correlation,
@@ -123,7 +123,7 @@ libmaus2::lcs::DalignerLocalAlignment::DalignerLocalAlignment(
 	float const,
 	float const,
 	float const,
-	float const	
+	float const
 	#endif
 )
 {
@@ -133,7 +133,7 @@ libmaus2::lcs::DalignerLocalAlignment::DalignerLocalAlignment(
 	libmaus2::exception::LibMausException lme;
 	lme.getStream() << "DalignerLocalAlignment: libmaus2 is compiled without DALIGNER support" << std::endl;
 	lme.finish();
-	throw lme;	
+	throw lme;
 	#endif
 }
 
@@ -201,7 +201,7 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 		seedposb+seedposa /* anti diagonal */,-1,-1);
 
 	// compute dense dataobject->alignment
-	Compute_Trace_PTS(&(dataobject->align),dataobject->workdata,Trace_Spacing(dataobject->spec));
+	Compute_Trace_PTS(&(dataobject->align),dataobject->workdata,Trace_Spacing(dataobject->spec),LOWERMOST);
 
 	// check for output size
 	if ( EditDistanceTraceContainer::capacity() < n + m )

@@ -38,14 +38,14 @@ namespace libmaus2
 		{
 			//! wrapped object
 			std::istream & in;
-			
+
 			/**
 			 * constructor
 			 *
 			 * @param rin object to e wrapped
 			 **/
 			IStreamWrapper(std::istream & rin) : in(rin) {}
-			
+
 			/**
 			 * call wrapped object's read function
 			 *
@@ -56,7 +56,7 @@ namespace libmaus2
 			ssize_t read(char * p, size_t c)
 			{
 				in.read(p,c);
-				
+
 				if ( ! in )
 				{
 					libmaus2::exception::LibMausException lme;
@@ -64,7 +64,7 @@ namespace libmaus2
 					lme.finish();
 					throw lme;
 				}
-				
+
 				return in.gcount();
 			}
 		};

@@ -27,7 +27,7 @@ namespace libmaus2
 		struct NDextendACGTPass
 		{
 			static bool const passtable[256];
-		
+
 			static bool check(uint8_t const a)
 			{
 				return passtable[a];

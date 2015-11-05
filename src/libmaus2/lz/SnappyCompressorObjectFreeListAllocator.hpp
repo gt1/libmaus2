@@ -27,12 +27,12 @@ namespace libmaus2
 {
 	namespace lz
 	{
-		struct SnappyCompressorObjectFreeListAllocator : 
-			public libmaus2::lz::SnappyCompressorObjectFactoryWrapper, 
+		struct SnappyCompressorObjectFreeListAllocator :
+			public libmaus2::lz::SnappyCompressorObjectFactoryWrapper,
 			public libmaus2::lz::CompressorObjectFreeListAllocator
 		{
 			SnappyCompressorObjectFreeListAllocator()
-			: libmaus2::lz::SnappyCompressorObjectFactoryWrapper(libmaus2::lz::SnappyCompressorObjectFactory::shared_ptr_type(new SnappyCompressorObjectFactory)), 
+			: libmaus2::lz::SnappyCompressorObjectFactoryWrapper(libmaus2::lz::SnappyCompressorObjectFactory::shared_ptr_type(new SnappyCompressorObjectFactory)),
 			  libmaus2::lz::CompressorObjectFreeListAllocator(libmaus2::lz::SnappyCompressorObjectFactoryWrapper::factory) {}
 		};
 	}

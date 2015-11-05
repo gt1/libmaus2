@@ -33,36 +33,36 @@ namespace libmaus2
 			element_type * const pa;
 			element_type * pc;
 			element_type * const pe;
-			
+
 			Buffer(uint64_t const bufsize = 8*1024)
 			: A(bufsize,false), pa(A.begin()), pc(pa), pe(A.end())
 			{
 
 			}
-			
+
 			bool put(element_type const & B)
 			{
 				*(pc++) = B;
 				return pc == pe;
 			}
-			
+
 			template<typename stream_type>
 			std::pair<uint64_t,uint64_t> flush(stream_type & out)
 			{
 				uint64_t const start = out.tellp();
-				
+
 				if ( pc != pa )
 				{
 					std::sort(pa,pc);
 					out.write(reinterpret_cast<char const *>(pa),(pc-pa)*sizeof(element_type));
 					pc = pa;
 				}
-				
+
 				uint64_t const end = out.tellp();
-						
+
 				return std::pair<uint64_t,uint64_t>(start,end);
 			}
-			
+
 			bool empty() const
 			{
 				return pc == pa;

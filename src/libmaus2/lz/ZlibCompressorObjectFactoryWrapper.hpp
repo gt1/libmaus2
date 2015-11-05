@@ -29,7 +29,7 @@ namespace libmaus2
 		struct ZlibCompressorObjectFactoryWrapper
 		{
 			libmaus2::lz::ZlibCompressorObjectFactory::shared_ptr_type factory;
-			
+
 			ZlibCompressorObjectFactoryWrapper(libmaus2::lz::ZlibCompressorObjectFactory::shared_ptr_type rfactory)
 			: factory(rfactory)
 			{

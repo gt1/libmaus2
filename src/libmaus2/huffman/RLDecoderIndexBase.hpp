@@ -37,13 +37,13 @@ namespace libmaus2
 		{
 			typedef RLDecoderIndexBase this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			std::vector<std::string> filenames;
 			// (blockpos,kcnt,numsyms in block)
 			::libmaus2::autoarray::AutoArray < libmaus2::autoarray::AutoArray< IndexEntry > > const index;
 			// total symbols in file
 			uint64_t const n;
-			
+
 			::libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > const symaccu;
 			::libmaus2::util::GenericIntervalTree const symtree;
 			::libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > const segaccu;
@@ -73,7 +73,7 @@ namespace libmaus2
 				::libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > symaccu(numint);
 				for ( uint64_t i = 1; i < preaccu.size(); ++i )
 					symaccu[i-1] = std::pair<uint64_t,uint64_t>(preaccu[i-1],preaccu[i]);
-	
+
 				#if 0
 				std::cerr << "presymaccu:" << std::endl;
 				for ( uint64_t i = 0; i < preaccu.size(); ++i )
@@ -83,10 +83,10 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < symaccu.size(); ++i )
 					std::cerr << "[" << i << "]=[" << symaccu[i].first << "," << symaccu[i].second << ")" << std::endl;
 				#endif
-					
+
 				return symaccu;
 			}
-			
+
 			::libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > computeSegAccu() const
 			{
 				::libmaus2::autoarray::AutoArray<uint64_t> preaccu(index.size()+1);
@@ -98,7 +98,7 @@ namespace libmaus2
 					accu[i-1] = std::pair<uint64_t,uint64_t>(preaccu[i-1],preaccu[i]);
 				return accu;
 			}
-		
+
 			static uint64_t getLength(std::vector<std::string> const & filenames)
 			{
 				uint64_t n = 0;
@@ -109,12 +109,12 @@ namespace libmaus2
 			static uint64_t getLength(std::string const & filename)
 			{
 				libmaus2::aio::InputStreamInstance istr(filename);
-				::libmaus2::bitio::StreamBitInputStream SBIS(istr);	
+				::libmaus2::bitio::StreamBitInputStream SBIS(istr);
 				return ::libmaus2::bitio::readElias2(SBIS);
 			}
 
 			RLDecoderIndexBase(std::vector<std::string> const & rfilenames)
-			: 
+			:
 			  filenames(rfilenames),
 			  index(loadIndex(filenames)),
 			  n( getLength(filenames) ),

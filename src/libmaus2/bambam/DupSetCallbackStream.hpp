@@ -40,12 +40,12 @@ namespace libmaus2
 				std::string const & rfilename,
 				std::map<uint64_t,::libmaus2::bambam::DuplicationMetrics> & rmetrics
 			) : filename(rfilename), SGO(new libmaus2::aio::SynchronousGenericOutput<uint64_t>(filename,8*1024)), metrics(rmetrics), numdup(0) /* unpairedreadduplicates(), readpairduplicates(), metrics(rmetrics) */ {}
-			
+
 			void operator()(::libmaus2::bambam::ReadEnds const & A)
 			{
 				SGO->put(A.getRead1IndexInFile());
 				numdup++;
-				
+
 				if ( A.isPaired() )
 				{
 					SGO->put(A.getRead2IndexInFile());
@@ -56,7 +56,7 @@ namespace libmaus2
 				{
 					metrics[A.getLibraryId()].unpairedreadduplicates++;
 				}
-			}	
+			}
 
 			uint64_t getNumDups() const
 			{
@@ -71,17 +71,17 @@ namespace libmaus2
 			{
 				return (*B)[i];
 			}
-			
+
 			void flush(uint64_t const n)
 			{
 				SGO->flush();
 				SGO.reset();
-				
+
 				::libmaus2::bitio::BitVector::unique_ptr_type tB(new ::libmaus2::bitio::BitVector(n));
 				B = UNIQUE_PTR_MOVE(tB);
 				for ( uint64_t i = 0; i < n; ++i )
 					B->set(i,false);
-					
+
 				libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(filename,8*1024);
 				uint64_t v;
 				numdup = 0;
@@ -89,7 +89,7 @@ namespace libmaus2
 				{
 					if ( ! B->get(v) )
 						numdup++;
-					B->set(v,true);			
+					B->set(v,true);
 				}
 			}
 		};

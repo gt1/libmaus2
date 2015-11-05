@@ -26,10 +26,10 @@ void testRegex()
 	std::vector<uint64_t> POS = PR.findAllMatches("abababab");
 	for ( uint64_t i = 0; i < POS.size(); ++i )
 		std::cerr << "[" << i << "]=" << POS[i] << " len " << strlen("eeeeeeee") << std::endl;
-			
+
 	std::string const R = PR.replaceFirstMatch("zzzabyyyy","huhc");
 	std::cerr << R << std::endl;
-		
+
 	std::cerr << PR.replaceAllMatches("ababababcabababd","xy") << std::endl;
 }
 
@@ -43,6 +43,6 @@ int main(/* int argc, char * argv[] */)
 	{
 		std::cerr << ex.what() << std::endl;
 	}
-	
+
 	return 0;
 }

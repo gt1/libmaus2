@@ -36,14 +36,14 @@
 namespace libmaus2
 {
 	namespace util
-	{		
+	{
 		struct Utf8String
 		{
 			typedef Utf8String this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			typedef ::libmaus2::util::ConstIterator<this_type,wchar_t> const_iterator;
-			
+
 			const_iterator begin() const
 			{
 				return const_iterator(this);
@@ -64,22 +64,22 @@ namespace libmaus2
 				stream_type stream(fn);
 				return computeOctetLength(stream,len);
 			}
-			
+
 			static uint64_t computeOctetLength(std::wistream & stream, uint64_t const len);
 			static shared_ptr_type constructRaw(
-				std::string const & filename, 
-				uint64_t const offset = 0, 
+				std::string const & filename,
+				uint64_t const offset = 0,
 				uint64_t const blength = std::numeric_limits<uint64_t>::max()
 			);
 			void setup();
-			
+
 			Utf8String(
-				std::string const & filename, 
-				uint64_t offset = 0, 
+				std::string const & filename,
+				uint64_t offset = 0,
 				uint64_t blength = std::numeric_limits<uint64_t>::max());
 			Utf8String(std::istream & CIS, uint64_t blength);
 			Utf8String(std::wistream & CIS, uint64_t const octetlength, uint64_t const symlength);
-			
+
 			uint64_t size() const
 			{
 				if ( A.size() )
@@ -87,7 +87,7 @@ namespace libmaus2
 				else
 					return 0;
 			}
-			
+
 			wchar_t operator[](uint64_t const i) const
 			{
 				uint64_t const p = I->select1(i);
@@ -98,7 +98,7 @@ namespace libmaus2
 			{
 				return (*this)[i];
 			}
-			
+
 			static ::libmaus2::autoarray::AutoArray<uint64_t> computePartStarts(
 				::libmaus2::autoarray::AutoArray<uint8_t> const & A, uint64_t const tnumparts
 			);
@@ -114,8 +114,8 @@ namespace libmaus2
 			typedef ::libmaus2::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int32_t *,int32_t const *,256,true> sort_type_parallel;
 			typedef ::libmaus2::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int32_t *,int32_t const *,256,false> sort_type_serial;
 			typedef sort_type_serial::saidx_t saidx_t;
-		
-			::libmaus2::autoarray::AutoArray<saidx_t,::libmaus2::autoarray::alloc_type_c> 
+
+			::libmaus2::autoarray::AutoArray<saidx_t,::libmaus2::autoarray::alloc_type_c>
 				computeSuffixArray32(bool const parallel = false) const;
 		};
 	}

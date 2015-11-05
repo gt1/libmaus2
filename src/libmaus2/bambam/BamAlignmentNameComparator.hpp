@@ -35,19 +35,19 @@ namespace libmaus2
 		{
 			//! data pointer
 			uint8_t const * data;
-			
+
 			/**
 			 * constructor from data pointer
 			 *
-			 * @param rdata container data 
+			 * @param rdata container data
 			 **/
 			BamAlignmentNameComparator(uint8_t const * rdata)
 			: data(rdata)
 			{
-			
+
 			}
-			
-			
+
+
 			/**
 			 * compare alignment blocks da and db by name as described in class description. if names are equal then
 			 * da < db iff da is read 1
@@ -63,7 +63,7 @@ namespace libmaus2
 
 				int const r = strcmpnum(namea,nameb);
 				bool res;
-				
+
 				if ( r < 0 )
 				{
 					res = true;
@@ -73,22 +73,22 @@ namespace libmaus2
 					// read 1 before read 2
 					uint32_t const flagsa = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(da);
 					uint32_t const flagsb = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(db);
-					
+
 					int const r1a = (flagsa & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1) != 0;
 					int const r1b = (flagsb & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1) != 0;
 					int const r2a = (flagsa & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD2) != 0;
 					int const r2b = (flagsb & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD2) != 0;
-					
+
 					int const r1 = ((1-r1a) << 1) | (1-r2a);
 					int const r2 = ((1-r1b) << 1) | (1-r2b);
-					
-					return (r1-r2) < 0;					
+
+					return (r1-r2) < 0;
 				}
 				else
 				{
 					res = false;
 				}
-				
+
 				return res;
 			}
 
@@ -118,14 +118,14 @@ namespace libmaus2
 				char const * nameb = ::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(db);
 
 				int const r = strcmpnum(namea,nameb);
-				
+
 				if ( r != 0 )
 					return r;
 
 				// read 1 before read 2
 				int const r1 = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(da) & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1;
 				int const r2 = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(db) & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1;
-				
+
 				if ( r1 == r2 )
 					return 0;
 				else if ( r1 )
@@ -161,7 +161,7 @@ namespace libmaus2
 
 				return strcmpnum(namea,nameb);
 			}
-			
+
 			/**
 			 * compare alignments at offsets a and b in the data block
 			 *
@@ -173,7 +173,7 @@ namespace libmaus2
 			{
 				uint8_t const * da = data + a + sizeof(uint32_t);
 				uint8_t const * db = data + b + sizeof(uint32_t);
-				
+
 				return compare(da,db);
 			}
 
@@ -205,14 +205,14 @@ namespace libmaus2
 				return compareIntNameOnly(da,db);
 			}
 		};
-		
+
 		struct BamAlignmentNameObject
 		{
 			uint8_t const * D;
 			uint64_t * P;
-			
+
 			BamAlignmentNameObject(uint8_t const * rD, uint64_t * rP) : D(rD), P(rP) {}
-			
+
 			uint8_t const * operator[](uint64_t const i) const
 			{
 				return D + P[i] + sizeof(uint32_t);
@@ -222,14 +222,14 @@ namespace libmaus2
 		struct BamAlignmentNameProjector
 		{
 			typedef uint8_t const * value_type;
-			
+
 			#if defined(QUICKSORT_DEBUG)
 			static value_type proj(BamAlignmentNameObject const & A, unsigned int i)
 			{
 				return A[i];
 			}
 			#endif
-			
+
 			static void swap(BamAlignmentNameObject & A, unsigned int i, unsigned int j)
 			{
 				std::swap(A.P[i],A.P[j]);

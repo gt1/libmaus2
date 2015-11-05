@@ -50,33 +50,33 @@ namespace libmaus2
 			static int64_t getOptimalIOBlockSize(int const fd, std::string const & fn)
 			{
 				int64_t const fsopt = libmaus2::aio::PosixFdInput::getOptimalIOBlockSize(fd,fn);
-				
+
 				if ( fsopt <= 0 )
 					return getDefaultBlockSize();
 				else
 					return fsopt;
 			}
-			
+
 			std::string fn;
 			uint64_t linemod;
 			uint64_t linecnt;
 			uint64_t fileno;
 			uint64_t written;
 			std::string openfilename;
-			
+
 			int fd;
 			int64_t const optblocksize;
 			uint64_t const buffersize;
 			::libmaus2::autoarray::AutoArray<char> buffer;
-			
+
 			bool reopenpending;
-			
+
 			void doFlush()
 			{
 				while ( fsync(fd) < 0 )
 				{
 					int const error = errno;
-					
+
 					switch ( error )
 					{
 						case EINTR:
@@ -93,7 +93,7 @@ namespace libmaus2
 							se.finish();
 							throw se;
 						}
-					}					
+					}
 				}
 			}
 
@@ -102,7 +102,7 @@ namespace libmaus2
 				while ( close(fd) < 0 )
 				{
 					int const error = errno;
-					
+
 					switch ( error )
 					{
 						case EINTR:
@@ -115,9 +115,9 @@ namespace libmaus2
 							se.finish();
 							throw se;
 						}
-					}					
+					}
 				}
-				
+
 				openfilename = std::string();
 				written = 0;
 			}
@@ -125,17 +125,17 @@ namespace libmaus2
 			int doOpen()
 			{
 				std::ostringstream fnostr;
-				
+
 				fnostr << fn << "_" << std::setw(6) << std::setfill('0') << (fileno++) << std::setw(0);
-				
+
 				std::string const filename = fnostr.str();
-			
+
 				int fd = -1;
-				
+
 				while ( (fd = open(filename.c_str(),O_WRONLY | O_CREAT | O_TRUNC,0644)) < 0 )
 				{
 					int const error = errno;
-					
+
 					switch ( error )
 					{
 						case EINTR:
@@ -148,12 +148,12 @@ namespace libmaus2
 							se.finish();
 							throw se;
 						}
-					}					
+					}
 				}
-				
+
 				written = 0;
 				openfilename = filename;
-				
+
 				return fd;
 			}
 
@@ -162,11 +162,11 @@ namespace libmaus2
 				while ( n )
 				{
 					ssize_t const w = ::write(fd,p,n);
-					
+
 					if ( w < 0 )
 					{
 						int const error = errno;
-						
+
 						switch ( error )
 						{
 							case EINTR:
@@ -187,17 +187,17 @@ namespace libmaus2
 						n -= w;
 					}
 				}
-				
-				assert ( ! n );			
+
+				assert ( ! n );
 			}
-			
+
 			void doSync()
 			{
 				// number of bytes in buffer
 				uint64_t n = pptr()-pbase();
 				pbump(-n);
 				char * p = pbase();
-				
+
 				while ( n )
 				{
 					if ( reopenpending )
@@ -205,39 +205,39 @@ namespace libmaus2
 						doFlush();
 						doClose();
 						fd = doOpen();
-						reopenpending = false;					
+						reopenpending = false;
 					}
-				
+
 					char * pe = p + n;
 					char * pc = p;
-					
+
 					while ( pc != pe )
 						if ( *(pc++) == '\n' && ((++linecnt) % linemod) == 0 )
 						{
 							reopenpending = true;
 							break;
 						}
-							
+
 					uint64_t const t = pc - p;
-				
+
 					doSync(p,t);
-					
+
 					p += t;
 					n -= t;
 				}
 			}
-			
+
 			public:
 			LineSplittingPosixFdOutputStreamBuffer(std::string const & rfn, uint64_t const rlinemod, int64_t const rbuffersize)
-			: 
+			:
 			  fn(rfn),
 			  linemod(rlinemod),
 			  linecnt(0),
 			  fileno(0),
 			  written(0),
-			  fd(doOpen()), 
+			  fd(doOpen()),
 			  optblocksize((rbuffersize < 0) ? getOptimalIOBlockSize(fd,fn) : rbuffersize),
-			  buffersize(optblocksize), 
+			  buffersize(optblocksize),
 			  buffer(buffersize,false),
 			  reopenpending(false)
 			{
@@ -247,17 +247,17 @@ namespace libmaus2
 			~LineSplittingPosixFdOutputStreamBuffer()
 			{
 				sync();
-				
+
 				std::string deletefilename = openfilename;
 				bool const deletefile = ( (written == 0) && fileno == 1 );
-				
+
 				doClose();
 
-				// delete empty file if no data was written				
+				// delete empty file if no data was written
 				if ( deletefile )
 					libmaus2::aio::FileRemoval::removeFile(deletefilename);
 			}
-			
+
 			int_type overflow(int_type c = traits_type::eof())
 			{
 				if ( c != traits_type::eof() )
@@ -269,13 +269,13 @@ namespace libmaus2
 
 				return c;
 			}
-			
+
 			int sync()
 			{
 				doSync();
 				doFlush();
 				return 0; // no error, -1 for error
-			}			
+			}
 		};
 	}
 }

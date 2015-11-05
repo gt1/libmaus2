@@ -94,9 +94,9 @@ namespace libmaus2
 						return A.b < B.b;
 					else
 						return A.a < B.a;
-				} 
+				}
 			};
-			
+
 			/* overlap parameters */
 			/* minimum overlap */
 			static unsigned long const defaultmintracelength;
@@ -106,10 +106,10 @@ namespace libmaus2
 			static double const defaultmaxsubstfrac;
 			/* minimum overlap */
 			static int64_t const defaultminscore;
-			
+
 			public:
 			static int64_t showOverlapSingle(
-				std::ostream & out, 
+				std::ostream & out,
 				std::string const & a, std::string const & b,
 				double const /* maxindelfrac */ = getDefaultMaxIndelFrac()
 			)
@@ -134,12 +134,12 @@ namespace libmaus2
 				#endif
 
 				out << SPR << std::endl;
-			
+
 				return SP.getTraceScore();
 			}
 
 			static void showOverlap(
-				std::ostream & out, 
+				std::ostream & out,
 				std::string const & a, std::string const & b,
 				double const maxindelfrac = getDefaultMaxIndelFrac()
 			)
@@ -147,15 +147,15 @@ namespace libmaus2
 				std::ostringstream sstr, rstr;
 				int64_t const scores = showOverlapSingle(sstr,a,b,maxindelfrac);
 				int64_t const scorer = showOverlapSingle(rstr,::libmaus2::fastx::reverseComplementUnmapped(b),::libmaus2::fastx::reverseComplementUnmapped(a),maxindelfrac);
-				
+
 				if ( scores >= scorer )
 					out << sstr.str();
 				else
-					out << rstr.str();			
+					out << rstr.str();
 			}
 
 			static int64_t showOverlapCoverSingle(
-				std::ostream & out, 
+				std::ostream & out,
 				std::string const & a, std::string const & b,
 				double const /* maxindelfrac */ = getDefaultMaxIndelFrac()
 			)
@@ -172,11 +172,11 @@ namespace libmaus2
 				HC.printInfixAlignment(a.begin(),b.begin(),SPR,out);
 				// uint64_t const tracelength = HC.trace.size();
 				#endif
-				
+
 				out << SPR << std::endl;
-				
-				if ( 
-					SP.infixtrace.ta != SP.infixtrace.te && 
+
+				if (
+					SP.infixtrace.ta != SP.infixtrace.te &&
 					(
 						(*(SP.infixtrace.ta  ) == SP.STEP_DEL)
 						||
@@ -189,7 +189,7 @@ namespace libmaus2
 			}
 
 			static void showOverlapCover(
-				std::ostream & out, 
+				std::ostream & out,
 				std::string const & a, std::string const & b,
 				double const maxindelfrac = getDefaultMaxIndelFrac()
 			)
@@ -198,13 +198,13 @@ namespace libmaus2
 				int64_t const scores = showOverlapCoverSingle(sstr,a,b,maxindelfrac);
 				int64_t const scorer = showOverlapCoverSingle(rstr,::libmaus2::fastx::reverseComplementUnmapped(b),::libmaus2::fastx::reverseComplementUnmapped(a),maxindelfrac);
 
-				#if 0				
+				#if 0
 				out << "scores=" << scores << " scorer=" << scorer << std::endl;
 
 				out << sstr.str();
 				out << rstr.str();
 				#endif
-				
+
 				#if 1
 				if ( scores >= scorer )
 					out << sstr.str();
@@ -227,7 +227,7 @@ namespace libmaus2
 				);
 				return std::max(0, SP.getTraceScore() ); // ::libmaus2::lcs::TraceContainer::getTraceScore(SP.trace.begin(),SP.trace.end()));
 			}
-			
+
 			enum single_check_type {
 				single_check_both,
 				single_check_infix,
@@ -263,16 +263,16 @@ namespace libmaus2
 				int64_t const windowscore = HC.getWindowMinScore(scorewindowsize);
 				// int64_t const infixscore = HC.infixtrace.getTraceScore();
 				int64_t const infixwindowscore = HC.infixtrace.getWindowMinScore(scorewindowsize);
-				
+
 				#if 0
 				if ( score >= minscore )
 				{
 					std::cerr << "windowscore=" << windowscore << " windowminscore=" << windowminscore << std::endl;
 				}
 				#endif
-				
+
 				// test for containment
-				if ( 
+				if (
 					infixwindowscore >= windowminscore
 					&&
 					(SPR.infix_numins + SPR.infix_numdel) <= (maxindelfrac * b.size())
@@ -308,7 +308,7 @@ namespace libmaus2
 						containment_orientation,
 						HC.infixtrace.traceToString()
 						);
-					
+
 					#if 0
 					std::cerr << "Found containment " << COR << std::endl;
 					HC.printInfixAlignment(a.begin(),b.begin(),SPR,std::cerr);
@@ -317,7 +317,7 @@ namespace libmaus2
 
 					return COR;
 				}
-				else if ( 
+				else if (
 					windowscore >= windowminscore
 					&&
 					score >= minscore
@@ -356,7 +356,7 @@ namespace libmaus2
 					assert ( SPR.nummis + SPR.nummat + SPR.numdel <= b.size() );
 					assert ( SPR.nummis + SPR.nummat + SPR.numins + SPR.aclip_left  == a.size() );
 					assert ( SPR.nummis + SPR.nummat + SPR.numdel + SPR.bclip_right == b.size() );
-				
+
 					CheckOverlapResult const COR (
 						true,
 						ia,
@@ -376,8 +376,8 @@ namespace libmaus2
 					assert ( COR.nummis + COR.nummat + COR.numins <= a.size() );
 					assert ( COR.nummis + COR.nummat + COR.numdel <= b.size() );
 					assert ( COR.nummis + COR.nummat + COR.numins + COR.clipa == a.size() );
-					assert ( COR.nummis + COR.nummat + COR.numdel + COR.clipb == b.size() );					
-						
+					assert ( COR.nummis + COR.nummat + COR.numdel + COR.clipb == b.size() );
+
 					return COR;
 				}
 				else
@@ -389,7 +389,7 @@ namespace libmaus2
 						0,0,0,0,0,0,dovetail_orientation,"");
 				}
 			}
-			
+
 			static CheckOverlapResult checkOverlap(
 				uint64_t const ia, uint64_t const ib,
 				std::string const & a, std::string const & b,
@@ -414,15 +414,15 @@ namespace libmaus2
 					dovetail_orientation,containment_orientation,
 					singlechecktype
 				);
-				
+
 				if ( CORs.valid && CORs.orientation == dovetail_orientation )
 				{
 					assert ( CORs.nummis + CORs.nummat + CORs.numins <= a.size() );
 					assert ( CORs.nummis + CORs.nummat + CORs.numdel <= b.size() );
 					assert ( CORs.nummis + CORs.nummat + CORs.numins + CORs.clipa == a.size() );
-					assert ( CORs.nummis + CORs.nummat + CORs.numdel + CORs.clipb == b.size() );					
+					assert ( CORs.nummis + CORs.nummat + CORs.numdel + CORs.clipb == b.size() );
 				}
-	
+
 				return CORs;
 			}
 
@@ -441,24 +441,24 @@ namespace libmaus2
 				double const maxsubstfrac,
 				CheckOverlapResult ** const CORVa
 				)
-			{	
+			{
 				#if 0
 				std::cerr << "scorewindowsize=" << scorewindowsize << std::endl;
 				std::cerr << "windowminscore=" << windowminscore << std::endl;
 				#endif
-				
-				CheckOverlapResult CORab = 
+
+				CheckOverlapResult CORab =
 					checkOverlap(ia,ib,a,b,mintracelength,minscore,
-						scorewindowsize, windowminscore,						
+						scorewindowsize, windowminscore,
 						maxindelfrac,maxsubstfrac,
 						overlap_a_back_dovetail_b_front,overlap_a_covers_b);
-				CheckOverlapResult CORba = 
+				CheckOverlapResult CORba =
 					checkOverlap(ib,ia,b,a,mintracelength,minscore,
 						scorewindowsize, windowminscore,
 						maxindelfrac,maxsubstfrac,
 						overlap_a_front_dovetail_b_back,overlap_b_covers_a).invert();
-						
-				if ( 
+
+				if (
 					CORab.valid && CORba.valid &&
 					CORab.orientation == overlap_a_covers_b &&
 					CORba.orientation == overlap_b_covers_a )
@@ -466,18 +466,18 @@ namespace libmaus2
 					CORab.orientation = CORba.orientation = overlap_cover_complete;
 				}
 
-				CheckOverlapResult CORarb = 
+				CheckOverlapResult CORarb =
 					checkOverlap(ia,ib,ar,b,mintracelength,minscore,
 						scorewindowsize, windowminscore,
 						maxindelfrac,maxsubstfrac,
 						overlap_a_front_dovetail_b_front,overlap_ar_covers_b);
-				CheckOverlapResult CORbar = 
+				CheckOverlapResult CORbar =
 					checkOverlap(ib,ia,b,ar,mintracelength,minscore,
 						scorewindowsize, windowminscore,
 						maxindelfrac,maxsubstfrac,
 						overlap_a_back_dovetail_b_back,overlap_b_covers_ar).invert();
 
-				if ( 
+				if (
 					CORarb.valid && CORbar.valid &&
 					CORarb.orientation == overlap_ar_covers_b &&
 					CORbar.orientation == overlap_b_covers_ar )
@@ -493,14 +493,14 @@ namespace libmaus2
 				if ( CORarb.valid ) *(CORVc++) = & CORarb;
 				if ( CORbar.valid ) *(CORVc++) = & CORbar;
 				*(CORVc++) = 0;
-				
+
 				CheckOverlapResult * pbestoverlap = 0;
 				for ( CheckOverlapResult ** CORVi = CORVa; *CORVi; ++CORVi )
 				{
 					assert ( (*CORVi)->valid );
 					assert ( (*CORVi)->ia == ia );
 					assert ( (*CORVi)->ib == ib );
-				
+
 					if ( (!pbestoverlap) || (*CORVi)->score > pbestoverlap->score )
 						pbestoverlap = *CORVi;
 				}
@@ -510,7 +510,7 @@ namespace libmaus2
 					CheckOverlapResult & bestoverlap = *pbestoverlap;
 					assert ( bestoverlap.valid );
 
-					if ( 
+					if (
 						isLeftEdge(bestoverlap.orientation)
 						||
 						isRightEdge(bestoverlap.orientation)
@@ -519,7 +519,7 @@ namespace libmaus2
 						assert ( bestoverlap.nummis + bestoverlap.nummat + bestoverlap.numins <= a.size() );
 						assert ( bestoverlap.nummis + bestoverlap.nummat + bestoverlap.numdel <= b.size() );
 						assert ( bestoverlap.nummis + bestoverlap.nummat + bestoverlap.numins + bestoverlap.clipa == a.size() );
-						assert ( bestoverlap.nummis + bestoverlap.nummat + bestoverlap.numdel + bestoverlap.clipb == b.size() );					
+						assert ( bestoverlap.nummis + bestoverlap.nummat + bestoverlap.numdel + bestoverlap.clipb == b.size() );
 					}
 
 					#if defined(OCSHOW)
@@ -540,11 +540,11 @@ namespace libmaus2
 							break;
 						default:
 							break;
-					}	
+					}
 					std::cerr << "Orientation " << bestoverlap.orientation << std::endl;
 					std::cerr << "---\n\n";
 					#endif
-	
+
 					return bestoverlap;
 				}
 				else
@@ -566,7 +566,7 @@ namespace libmaus2
 			{
 				// typedef typename reader_type::unique_ptr_type reader_ptr_type;
 				typedef typename reader_type::pattern_type pattern_type;
-				
+
 				unsigned int const mintracelength = OCBR.mintracelength;
 				int64_t const minscore = OCBR.minscore;
 				double const maxindelfrac = OCBR.maxindelfrac;
@@ -576,12 +576,12 @@ namespace libmaus2
 
 				std::cerr << "scorewindowsize=" << scorewindowsize << std::endl;
 				std::cerr << "windowminscore=" << windowminscore << std::endl;
-								
+
 				pattern_type pattern;
-				
+
 				edge_type const * edgeit = edges.begin();
 				edge_type * edgeoutit = edges.begin();
-				
+
 				uint64_t edgeok = 0;
 				uint64_t edgedel = 0;
 				uint64_t patproc = 0;
@@ -595,7 +595,7 @@ namespace libmaus2
 
 					std::string const & b = pattern.spattern;
 					std::string const br = ::libmaus2::fastx::reverseComplementUnmapped(b);
-					
+
 					CheckOverlapResult * ACORV[5];
 					CheckOverlapResult ** const CORVa = &ACORV[0];
 
@@ -607,7 +607,7 @@ namespace libmaus2
 						std::string const ar = ::libmaus2::fastx::reverseComplementUnmapped(a);
 
 						edge_type edge;
-						CheckOverlapResult const COR = 
+						CheckOverlapResult const COR =
 							(edgeit->a <= edgeit->b)
 							?
 								bestOverlap(
@@ -629,9 +629,9 @@ namespace libmaus2
 
 						if ( COR.valid )
 						{
-							edgeok ++;							
+							edgeok ++;
 							*(edgeoutit++) = COR.toEdge();
-							
+
 							if ( sock )
 							{
 								sock->writeString(
@@ -646,26 +646,26 @@ namespace libmaus2
 							edgedel ++;
 						}
 					}
-					
+
 					if ( (100*(edgeit-edges.begin()))/edges.size() != edgeperc )
 					{
 						lock.lock();
 						edgeperc = (100*(edgeit-edges.begin()))/edges.size();
 						double const bf = (OCBR.blockid+1.0)/static_cast<double>(OCBR.numblocks);
-						std::cerr << bf << "," << OCBR.subblockid << "/" << OCBR.numsubblocks << ":" << "Processed " << edgeperc 
+						std::cerr << bf << "," << OCBR.subblockid << "/" << OCBR.numsubblocks << ":" << "Processed " << edgeperc
 							<< "(" << (1.0-(edges.size() ? ((edges.end()-edgeit)/static_cast<double>(edges.size())) : 0.0)) << ")" << std::endl;
 						lock.unlock();
-					
+
 					}
-					
+
 					patproc++;
-				}	
+				}
 
 				lock.lock();
 				double const bf = (OCBR.blockid+1.0)/static_cast<double>(OCBR.numblocks);
 				std::cerr << bf << "," << OCBR.subblockid << "/" << OCBR.numsubblocks << ":" << "Processed " << 100 << "(" << 1.0 << ")" << std::endl;
 				lock.unlock();
-				
+
 				return edgeok;
 			}
 
@@ -681,26 +681,26 @@ namespace libmaus2
 			{
 				// typedef typename reader_type::unique_ptr_type reader_ptr_type;
 				typedef typename reader_type::pattern_type pattern_type;
-				
+
 				libmaus2::lcs::HammingOverlapDetection HOD;
-				
+
 				unsigned int const mintracelength = OCBR.mintracelength;
 				int64_t const minscore = OCBR.minscore;
 				// double const maxindelfrac = OCBR.maxindelfrac;
 				double const maxsubstfrac = OCBR.maxsubstfrac;
 				uint64_t const scorewindowsize = OCBR.scorewindowsize;
 				int64_t const windowminscore = OCBR.windowminscore;
-				
+
 				uint64_t const maxsubstperc = std::ceil(maxsubstfrac * 100.0);
 
 				std::cerr << "scorewindowsize=" << scorewindowsize << std::endl;
 				std::cerr << "windowminscore=" << windowminscore << std::endl;
-								
+
 				pattern_type pattern;
-				
+
 				edge_type const * edgeit = edges.begin();
 				edge_type * edgeoutit = edges.begin();
-				
+
 				uint64_t edgeok = 0;
 				uint64_t edgedel = 0;
 				uint64_t patproc = 0;
@@ -721,9 +721,9 @@ namespace libmaus2
 						libmaus2::lcs::OverlapOrientation::overlap_orientation orientation;
 						uint64_t overhang;
 						int64_t maxscore;
-						
-						if ( 
-							HOD.detect(a,b,maxsubstperc,orientation,overhang,maxscore) 
+
+						if (
+							HOD.detect(a,b,maxsubstperc,orientation,overhang,maxscore)
 							&&
 							// check length of trace
 							((b.size() - overhang) >= mintracelength)
@@ -732,7 +732,7 @@ namespace libmaus2
 							(maxscore >= minscore)
 						)
 						{
-							edgeok ++;							
+							edgeok ++;
 							*(edgeoutit++) = edge_type(edgeit->a,edgeit->b,addOrientation(overhang,orientation));
 
 							if ( sock )
@@ -746,29 +746,29 @@ namespace libmaus2
 							edgedel ++;
 						}
 					}
-					
+
 					if ( (100*(edgeit-edges.begin()))/edges.size() != edgeperc )
 					{
 						lock.lock();
 						edgeperc = (100*(edgeit-edges.begin()))/edges.size();
 						double const bf = (OCBR.blockid+1.0)/static_cast<double>(OCBR.numblocks);
-						std::cerr << bf << "," << OCBR.subblockid << "/" << OCBR.numsubblocks << ":" << "Processed " << edgeperc 
+						std::cerr << bf << "," << OCBR.subblockid << "/" << OCBR.numsubblocks << ":" << "Processed " << edgeperc
 							<< "(" << (1.0-(edges.size() ? ((edges.end()-edgeit)/static_cast<double>(edges.size())) : 0.0)) << ")" << std::endl;
 						lock.unlock();
-					
+
 					}
-					
+
 					patproc++;
-				}	
+				}
 
 				lock.lock();
 				double const bf = (OCBR.blockid+1.0)/static_cast<double>(OCBR.numblocks);
 				std::cerr << bf << "," << OCBR.subblockid << "/" << OCBR.numsubblocks << ":" << "Processed " << 100 << "(" << 1.0 << ")" << std::endl;
 				lock.unlock();
-				
+
 				return edgeok;
 			}
-			
+
 			#if ! defined(_WIN32)
 			template<typename edges_array_type>
 			static uint64_t handleBlock(
@@ -798,7 +798,7 @@ namespace libmaus2
 				std::cerr << OCBR.blockid << "," << OCBR.subblockid << ":" << "Sorted edge vector for " << OCBR.FI << "," << OCBR.SUBFI << std::endl;
 				lock.unlock();
 				#endif
-				
+
 				uint64_t edgeok;
 				if ( OCBR.serverport == 0 )
 				{
@@ -816,15 +816,15 @@ namespace libmaus2
 						typedef ::libmaus2::fastx::FastAReader reader_type;
 						typedef reader_type::unique_ptr_type reader_ptr_type;
 						reader_ptr_type blockreader ( new reader_type (OCBR.inputfiles,OCBR.SUBFI) );
-						// edgeok = processReads<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);					
-						edgeok = processReadsHamming<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);					
+						// edgeok = processReads<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);
+						edgeok = processReadsHamming<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);
 					}
 					#else
 					typedef ::libmaus2::fastx::CompactFastConcatDecoder reader_type;
 					typedef reader_type::unique_ptr_type reader_ptr_type;
 					reader_ptr_type blockreader ( new reader_type (OCBR.inputfiles,OCBR.SUBFI) );
-					// edgeok = processReads<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);					
-					edgeok = processReadsHamming<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);					
+					// edgeok = processReads<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);
+					edgeok = processReadsHamming<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);
 					#endif
 				}
 				else
@@ -869,7 +869,7 @@ namespace libmaus2
 					edgeok = processReadsHamming<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);
 					#endif
 				}
-				
+
 				#if 1
 				lock.lock();
 				std::cerr << OCBR.blockid << "," << OCBR.subblockid << ":" << "Resorting edge vector for " << OCBR.FI << "," << OCBR.SUBFI << std::endl;
@@ -881,7 +881,7 @@ namespace libmaus2
 				std::cerr << OCBR.blockid << "," << OCBR.subblockid << ":" << "Resorted edge vector for " << OCBR.FI << "," << OCBR.SUBFI << std::endl;
 				lock.unlock();
 				#endif
-				
+
 				return edgeok;
 			}
 			#endif

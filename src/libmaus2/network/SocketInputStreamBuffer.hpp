@@ -34,15 +34,15 @@ namespace libmaus2
 
 			uint64_t const blocksize;
 			uint64_t const putbackspace;
-			
+
 			::libmaus2::autoarray::AutoArray<char> buffer;
 
 			SocketInputStreamBuffer(SocketInputStreamBuffer const &);
 			SocketInputStreamBuffer & operator=(SocketInputStreamBuffer &);
-						
+
 			public:
 			SocketInputStreamBuffer(::libmaus2::network::SocketInputInterface & rstream, uint64_t const rblocksize, uint64_t const rputbackspace = 0)
-			: 
+			:
 			  stream(rstream),
 			  blocksize(rblocksize),
 			  putbackspace(rputbackspace),
@@ -66,7 +66,7 @@ namespace libmaus2
 					static_cast<uint64_t>(gptr() - eback()),
 					putbackspace
 				);
-				
+
 				// copy bytes
 				#if 0
 				std::copy(
@@ -80,7 +80,7 @@ namespace libmaus2
 					gptr()-putbackcopy,
 					putbackcopy
 				);
-				
+
 				// load data
 				uint64_t const uncompressedsize = stream.readPart(
 						buffer.begin()+putbackspace,

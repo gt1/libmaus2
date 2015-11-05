@@ -44,20 +44,20 @@ namespace libmaus2
 				cram_compression_work_package_finished_t workfinishedfunction;
 
 				SamEncodingWorkPackage() {}
-				
+
 				void dispatch()
 				{
 					SamEncoderObject * encoder = reinterpret_cast<SamEncoderObject *>(context);
 					::libmaus2::bambam::BamFormatAuxiliary auxdata;
-					
+
 					for ( size_t b = 0; b < numblocks; ++b )
 					{
 						std::ostringstream ostr;
-						
+
 						char const * A = block[b];
 						size_t const n = blocksize[b];
 						char const * const Ae = A+n;
-						
+
 						while ( A != Ae )
 						{
 							uint32_t const len = libmaus2::bambam::DecoderBase::getLEInteger(
@@ -67,7 +67,7 @@ namespace libmaus2
 							libmaus2::bambam::BamAlignmentDecoderBase::formatAlignment(ostr,
 								reinterpret_cast<uint8_t const *>(A),len,*(encoder->Pheader),auxdata);
 							ostr.put('\n');
-							
+
 							A += len;
 						}
 
@@ -81,16 +81,16 @@ namespace libmaus2
 							inblockid,
 							b,
 							data.c_str(),
-							data.size(),							
+							data.size(),
 							filefinal ? cram_data_write_block_type_file_final : (blockfinal ? cram_data_write_block_type_block_final : cram_data_write_block_type_internal)
 						);
 					}
-					
+
 					if ( ! numblocks )
 						writefunction(userdata,inblockid,0,NULL,0,
 							final ? cram_data_write_block_type_file_final : cram_data_write_block_type_block_final
 						);
-										
+
 					workfinishedfunction(userdata,inblockid,final);
 				}
 			};

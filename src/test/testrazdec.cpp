@@ -25,17 +25,17 @@ int main(int argc, char * argv[])
 	try
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
-		
+
 		std::string const fn = arginfo.getRestArg<std::string>(0);
 		std::string const fnu = arginfo.getRestArg<std::string>(1);
-	
+
 		#if 0
-		libmaus2::lz::RAZFIndex index(fn);		
+		libmaus2::lz::RAZFIndex index(fn);
 		std::cerr << index;
 		#endif
-		
+
 		libmaus2::lz::RAZFDecoder dec(fn);
-		
+
 		libmaus2::autoarray::AutoArray<char> A = libmaus2::autoarray::AutoArray<char>::readFile(fnu);
 
 		for ( uint64_t i = 0; i <= A.size(); i += 1024 )
@@ -43,14 +43,14 @@ int main(int argc, char * argv[])
 			if ( i % 1024 == 0 )
 				std::cerr << "i=" << i << std::endl;
 
-			dec.clear();				
+			dec.clear();
 			dec.seekg(i);
 			int c;
 			uint64_t j = i;
 			while ( (c=dec.get()) != std::istream::traits_type::eof() )
 				assert ( c == static_cast<uint8_t>(A[j++]) );
 		}
-	
+
 		return EXIT_SUCCESS;
 	}
 	catch(std::exception const & ex)

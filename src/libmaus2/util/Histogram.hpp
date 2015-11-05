@@ -42,13 +42,13 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			private:
 			//! complete histogram
 			std::map<uint64_t,uint64_t> all;
 			//! low part
 			::libmaus2::autoarray::AutoArray<uint64_t> low;
-			
+
 			public:
 			/**
 			 * constructor with initial histogram
@@ -71,19 +71,19 @@ namespace libmaus2
 			{
 				std::copy(o.low.begin(),o.low.end(),low.begin());
 			}
-			
+
 			unique_ptr_type uclone() const
 			{
 				unique_ptr_type tptr(new this_type(*this));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
-			
+
 			shared_ptr_type sclone() const
 			{
 				shared_ptr_type sptr(new this_type(*this));
 				return sptr;
 			}
-			
+
 			Histogram & operator=(Histogram const & o)
 			{
 				if ( this != &o )
@@ -93,10 +93,10 @@ namespace libmaus2
 						low = ::libmaus2::autoarray::AutoArray<uint64_t>(o.low.size(),false);
 					std::copy(o.low.begin(),o.low.end(),low.begin());
 				}
-				
+
 				return *this;
 			}
-			
+
 			/**
 			 * @return get size of low part
 			 **/
@@ -109,7 +109,7 @@ namespace libmaus2
 			 * @return weighted average
 			 **/
 			double avg() const;
-			
+
 			/**
 			 * add v to frequency of i
 			 *
@@ -117,7 +117,7 @@ namespace libmaus2
 			 * @param v value to add
 			 **/
 			void add(uint64_t const i, uint64_t const v)
-			{			
+			{
 				if ( i < low.size() )
 					low[i] += v;
 				else
@@ -136,7 +136,7 @@ namespace libmaus2
 				else
 					all[i]++;
 			}
-			
+
 			/**
 			 * get histogram as map
 			 *
@@ -170,7 +170,7 @@ namespace libmaus2
 			std::ostream & printType(std::ostream & out) const
 			{
 				std::map<uint64_t,uint64_t> const F = get();
-				
+
 				for ( std::map<uint64_t,uint64_t>::const_iterator ita = F.begin(); ita != F.end();
 					++ita )
 					out << static_cast<type>(ita->first) << "\t" << ita->second << std::endl;
@@ -192,7 +192,7 @@ namespace libmaus2
 			 * @return out
 			 **/
 			std::ostream & printFrac(std::ostream & out, double const frac = 1) const;
-			
+
 			/**
 			 * fill given map M with histogram
 			 *
@@ -208,7 +208,7 @@ namespace libmaus2
 					M [ ita->first ] = ita->second;
 				}
 			}
-			
+
 			/**
 			 * return histogram as map with key_type as key type
 			 *
@@ -220,7 +220,7 @@ namespace libmaus2
 				std::map<key_type,uint64_t> M;
 				fill < key_type >(M);
 				return M;
-			}			
+			}
 
 			/**
 			 * @return vector with (freq,key) pairs

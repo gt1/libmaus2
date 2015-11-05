@@ -34,7 +34,7 @@ int main(int argc, char * argv[])
 		::libmaus2::util::TempFileRemovalContainer::setup();
 		::std::vector<std::string> const & inputfilenames = arginfo.restargs;
 		char const * fasuffixes[] = { ".fa", ".fasta", 0 };
-		
+
 		std::string deftmpname = libmaus2::util::OutputFileNameTools::endClipLcp(inputfilenames,&fasuffixes[0]) + ".fa.tmp";
 		while ( ::libmaus2::util::GetFileSize::fileExists(deftmpname) )
 			deftmpname += "_";
@@ -50,14 +50,14 @@ int main(int argc, char * argv[])
 
 		::libmaus2::util::TempFileRemovalContainer::addTempFile(tempfilename);
 		::libmaus2::util::TempFileRemovalContainer::addTempFile(indexfilename);
-		
+
 		std::cerr << "temp file name " << tempfilename << std::endl;
 		std::cerr << "output file name " << outfilename << std::endl;
-		
+
 		/* uint64_t const numseq = */ ::libmaus2::fastx::FastAReader::rewriteFiles(inputfilenames,tempfilename,indexfilename);
 		uint64_t curpos = 0;
 		::libmaus2::aio::OutputStreamInstance COS(outfilename);
-		
+
 		// 0,A,C,G,T,N
 		// map forward
 		::libmaus2::autoarray::AutoArray<char> cmap(256,false);
@@ -92,18 +92,18 @@ int main(int argc, char * argv[])
 		::libmaus2::autoarray::AutoArray<char> imap(256,false);
 		for ( uint64_t i = 0; i < imap.size(); ++i )
 			imap[i] = static_cast<char>(i);
-		
+
 		::libmaus2::fastx::FastAReader::RewriteInfoDecoder::unique_ptr_type infodec(new ::libmaus2::fastx::FastAReader::RewriteInfoDecoder(indexfilename));
 		::libmaus2::fastx::FastAReader::RewriteInfo info;
 		uint64_t maxseqlen = 0;
 		while ( infodec->get(info) )
 			maxseqlen = std::max(maxseqlen,info.seqlen);
-			
+
 		std::cerr << "[V] max seq len " << maxseqlen << std::endl;
 
 		::libmaus2::fastx::FastAReader::RewriteInfoDecoder::unique_ptr_type tinfodec(new ::libmaus2::fastx::FastAReader::RewriteInfoDecoder(indexfilename));
 		infodec = UNIQUE_PTR_MOVE(tinfodec);
-		
+
 		if ( maxseqlen <= 256*1024 )
 		{
 			::libmaus2::aio::InputStreamInstance CIS(tempfilename);
@@ -136,17 +136,17 @@ int main(int argc, char * argv[])
 				// std::cerr << info.valid << "\t" << info.idlen << "\t" << info.seqlen << "\t" << info.getIdPrefix() << std::endl;
 				uint64_t const seqbeg = curpos + (info.idlen+2);
 				uint64_t const seqend = seqbeg + info.seqlen;
-				
+
 				::libmaus2::aio::InputStreamInstance CIS(tempfilename); CIS.seekg(seqbeg);
 				::libmaus2::util::GetFileSize::copyMap(CIS,COS,cmap.begin(),seqend-seqbeg+1);
-				
+
 				::libmaus2::aio::CircularReverseWrapper CRW(tempfilename,seqend);
 				::libmaus2::util::GetFileSize::copyMap(CRW,COS,rmap.begin(),seqend-seqbeg+1);
-				
+
 				curpos += (info.idlen+2) + (info.seqlen+1);
-			}		
+			}
 		}
-		
+
 		if ( addterm )
 			COS.put(0);
 
@@ -158,4 +158,3 @@ int main(int argc, char * argv[])
 		return EXIT_FAILURE;
 	}
 }
-

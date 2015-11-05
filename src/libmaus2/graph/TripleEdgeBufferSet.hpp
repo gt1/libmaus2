@@ -51,7 +51,7 @@ namespace libmaus2
 				// std::cerr << "Registering " << filename << " for part " << part << std::endl;
 				buffers [ part ] -> registerFileName(filename);
 			}
-			
+
 			std::vector < std::string > flush()
 			{
 				std::vector < std::string > filenames;

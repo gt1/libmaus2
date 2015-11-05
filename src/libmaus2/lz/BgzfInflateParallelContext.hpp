@@ -39,11 +39,11 @@ namespace libmaus2
 			std::istream & inflatein;
 			uint64_t inflateinid;
 			libmaus2::parallel::PosixMutex inflateinlock;
-			
+
 			libmaus2::parallel::PosixMutex inflateqlock;
 
 			libmaus2::autoarray::AutoArray<libmaus2::lz::BgzfInflateBlock::unique_ptr_type> inflateB;
-			
+
 			std::deque<uint64_t> inflatefreelist;
 			std::deque<uint64_t> inflatereadlist;
 			BgzfInflateBlockIdComparator inflateheapcomp;
@@ -54,12 +54,12 @@ namespace libmaus2
 				BgzfInflateBlockIdComparator
 			>
 				inflatedecompressedlist;
-			
+
 			uint64_t inflateeb;
 			uint64_t inflategcnt;
-			
+
 			std::ostream * copyostr;
-			
+
 			void init()
 			{
 				for ( uint64_t i = 0; i < inflateB.size(); ++i )
@@ -67,7 +67,7 @@ namespace libmaus2
 					libmaus2::lz::BgzfInflateBlock::unique_ptr_type tinflateB(new libmaus2::lz::BgzfInflateBlock(i));
 					inflateB[i] = UNIQUE_PTR_MOVE(tinflateB);
 					inflatefreelist.push_back(i);
-				}			
+				}
 
 				for ( uint64_t i = 0; i < inflateB.size(); ++i )
 					inflategloblist.enque(
@@ -78,7 +78,7 @@ namespace libmaus2
 						)
 					);
 			}
-		
+
 			BgzfInflateParallelContext(
 				libmaus2::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator>
 					& rinflategloblist,
@@ -86,8 +86,8 @@ namespace libmaus2
 			)
 			:
 				inflategloblist(rinflategloblist),
-				inflatein(rinflatein), inflateinid(0), inflateB(rnumblocks), 
-				inflateheapcomp(inflateB), inflateheapinfo(inflateB), 
+				inflatein(rinflatein), inflateinid(0), inflateB(rnumblocks),
+				inflateheapcomp(inflateB), inflateheapinfo(inflateB),
 				inflatedecompressedlist(inflateheapcomp,inflateheapinfo),
 				inflateeb(0), inflategcnt(0), copyostr(0)
 			{
@@ -101,8 +101,8 @@ namespace libmaus2
 			)
 			:
 				inflategloblist(rinflategloblist),
-				inflatein(rinflatein), inflateinid(0), inflateB(rnumblocks), 
-				inflateheapcomp(inflateB), inflateheapinfo(inflateB), 
+				inflatein(rinflatein), inflateinid(0), inflateB(rnumblocks),
+				inflateheapcomp(inflateB), inflateheapinfo(inflateB),
 				inflatedecompressedlist(inflateheapcomp,inflateheapinfo),
 				inflateeb(0), inflategcnt(0), copyostr(&rcopyostr)
 			{

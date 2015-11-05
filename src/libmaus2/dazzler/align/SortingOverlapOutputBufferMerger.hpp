@@ -31,7 +31,7 @@ namespace libmaus2
 			{
 				typedef SortingOverlapOutputBufferMerger this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-				
+
 				libmaus2::aio::InputStreamInstance ISI;
 				bool const small;
 				std::vector< std::pair<uint64_t,uint64_t> > const blocks;
@@ -41,7 +41,7 @@ namespace libmaus2
 					OverlapHeapComparator
 				> Q;
 				libmaus2::autoarray::AutoArray < SortingOverlapBlockInput::unique_ptr_type > B;
-				
+
 				SortingOverlapOutputBufferMerger(std::string const & filename, bool const rsmall, std::vector< std::pair<uint64_t,uint64_t> > const & rblocks, uint64_t const inbufsize = 1024)
 				: ISI(filename), small(rsmall), blocks(rblocks), B(blocks.size())
 				{
@@ -54,10 +54,10 @@ namespace libmaus2
 					{
 						libmaus2::dazzler::align::Overlap NOVL;
 						if ( B[id]->getNext(NOVL) )
-							Q.push(std::pair<uint64_t,libmaus2::dazzler::align::Overlap>(id,NOVL));									
+							Q.push(std::pair<uint64_t,libmaus2::dazzler::align::Overlap>(id,NOVL));
 					}
 				}
-				
+
 				bool getNext(libmaus2::dazzler::align::Overlap & OVL)
 				{
 					if ( Q.size() )
@@ -66,11 +66,11 @@ namespace libmaus2
 						Q.pop();
 						uint64_t const id = P.first;
 						OVL = P.second;
-						
+
 						libmaus2::dazzler::align::Overlap NOVL;
 						if ( B[id]->getNext(NOVL) )
 							Q.push(std::pair<uint64_t,libmaus2::dazzler::align::Overlap>(id,NOVL));
-							
+
 						return true;
 					}
 					else

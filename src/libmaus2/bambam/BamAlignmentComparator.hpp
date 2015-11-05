@@ -43,7 +43,7 @@ namespace libmaus2
 				::libmaus2::bambam::BamAlignment::shared_ptr_type const & B) const
 			{
 				int r = strcmp(A->getName(),B->getName());
-				
+
 				if ( r )
 					return r < 0;
 

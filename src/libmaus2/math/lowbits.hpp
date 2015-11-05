@@ -33,7 +33,7 @@ namespace libmaus2
 			else
 				return 0xFFFFFFFFFFFFFFFFULL;
 		}
-	
+
 	}
 }
 #endif

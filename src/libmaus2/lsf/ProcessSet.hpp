@@ -39,7 +39,7 @@ namespace libmaus2
                         typedef ::libmaus2::network::SocketBase socket_type;
                         typedef socket_type::unique_ptr_type socket_ptr_type;
                         typedef ::libmaus2::util::MoveStack<socket_type> socket_container_type;
-                        
+
                         process_container_type P;
                         socket_container_type S;
                         std::vector < std::string > hosts;
@@ -51,17 +51,17 @@ namespace libmaus2
                         : logsocket(logfilenameprefix), arginfo(rarginfo)
                         {
                         }
-                        
+
                         ~ProcessSet()
                         {
 				for ( uint64_t i = 0; i < size(); ++i )
 					if ( P[i] )
 					{
 						P[i]->kill(SIGTERM);
-						P.reset(i);	
+						P.reset(i);
 					}
                         }
-                        
+
                         void barrierRw()
                         {
                                 for ( uint64_t i = 0; i < size(); ++i ) socket(i)->barrierR();
@@ -72,43 +72,43 @@ namespace libmaus2
                                 for ( uint64_t i = 0; i < size(); ++i ) socket(i)->barrierW();
                                 for ( uint64_t i = 0; i < size(); ++i ) socket(i)->barrierR();
                         }
-                        
+
                         // compact process list by killing processes on machines running multiple
                         void compact(uint64_t const thres = std::numeric_limits<uint64_t>::max())
                         {
                                 #if defined(COMPACTION_DEBUG)
                                 std::cerr << "Running compaction." << std::endl;
                                 #endif
-                                
+
                                 std::set<std::string> lhosts;
-                                
+
                                 ::libmaus2::util::MoveStack<process_type> killlist;
-                                
+
                                 uint64_t j = 0;
                                 for ( uint64_t i = 0; i < size(); ++i )
                                 {
                                         #if defined(COMPACTION_DEBUG)
-                                        std::cerr << "Checking process " << i << " id " 
-                                                << process(i)->id << " on host ::" << process(i)->getSingleHost() 
-                                                << "::" 
+                                        std::cerr << "Checking process " << i << " id "
+                                                << process(i)->id << " on host ::" << process(i)->getSingleHost()
+                                                << "::"
                                                 << " stored " << hosts[i]
                                                 << "...";
                                         #endif
-                                        
+
                                         if ( lhosts.find(hosts[i]) == lhosts.end() )
                                         {
                                                 #if defined(COMPACTION_DEBUG)
                                                 std::cerr << "keeping." << std::endl;
                                                 #endif
                                                 lhosts.insert(hosts[i]);
-                                                
+
                                                 if ( i != j )
                                                 {
                                                         (*(P.array))[j] = UNIQUE_PTR_MOVE((*(P.array))[i]);
                                                         (*(S.array))[j] = UNIQUE_PTR_MOVE((*(S.array))[i]);
                                                         hosts[j] = hosts[i];
                                                 }
-                                                ++j;                        
+                                                ++j;
                                         }
                                         else
                                         {
@@ -119,14 +119,14 @@ namespace libmaus2
                                                 S.reset(i);
                                         }
                                 }
-                                
+
                                 #if defined(COMPACTION_DEBUG)
                                 std::cerr << P.fill << "->" << j << std::endl;
                                 #endif
-                                
+
                                 P.fill = j;
                                 S.fill = j;
-                                
+
                                 while ( P.fill > thres )
                                 {
                                         P.fill--;
@@ -134,7 +134,7 @@ namespace libmaus2
                                         killlist.push_back((*(P.array))[P.fill]);
                                         S.reset(S.fill);
                                 }
-                                
+
                                 for ( uint64_t i = 0; i < killlist.fill; ++i )
                                         killlist[i]->kill();
                                 for ( uint64_t i = 0; i < killlist.fill; ++i )
@@ -143,12 +143,12 @@ namespace libmaus2
                                         killlist.reset(i);
                                 }
                         }
-                        
+
                         uint64_t size() const
                         {
                                 return P.fill;
                         }
-                        
+
                         process_type * process(uint64_t i)
                         {
                                 return P[i];
@@ -157,12 +157,12 @@ namespace libmaus2
                         {
                                 return S[i];
                         }
-                        
+
                         void resetSocket(uint64_t const i)
                         {
                                 S.reset(i);
                         }
-                        
+
                         bool select(uint64_t & id)
                         {
                                 int maxfd = -1;
@@ -174,12 +174,12 @@ namespace libmaus2
                                                 maxfd = std::max(maxfd,socket(i)->getFD());
                                                 FD_SET(socket(i)->getFD(),&fds);
                                         }
-                                        
+
                                 if ( maxfd == -1 )
                                         return false;
-                                
+
                                 int const r = ::select(maxfd+1,&fds,0,0,0);
-                                
+
                                 if ( r <= 0 )
                                         return false;
                                 else
@@ -203,12 +203,12 @@ namespace libmaus2
                                                 maxfd = std::max(maxfd,socket(i)->getFD());
                                                 FD_SET(socket(i)->getFD(),&fds);
                                         }
-                                        
+
                                 if ( maxfd == -1 )
                                         return false;
-                                
+
                                 int r;
-                                
+
                                 if ( timeout )
                                 {
                                 	struct timeval tv = { static_cast<long>(timeout), 0 };
@@ -216,7 +216,7 @@ namespace libmaus2
 				}
 				else
                                 	r = ::select(maxfd+1,&fds,0,0,0);
-                                
+
                                 if ( r <= 0 )
                                         return false;
                                 else
@@ -230,7 +230,7 @@ namespace libmaus2
                         }
 
                         bool selectRandom(
-                        	uint64_t & id, 
+                        	uint64_t & id,
                         	std::vector<bool> const & active,
                         	unsigned int * seed,
                         	unsigned int const timeout = 0)
@@ -244,12 +244,12 @@ namespace libmaus2
                                                 maxfd = std::max(maxfd,socket(i)->getFD());
                                                 FD_SET(socket(i)->getFD(),&fds);
                                         }
-                                        
+
                                 if ( maxfd == -1 )
                                         return false;
-                                
+
                                 int r;
-                                
+
                                 if ( timeout )
                                 {
                                 	struct timeval tv = { static_cast<long>(timeout), 0 };
@@ -257,13 +257,13 @@ namespace libmaus2
 				}
 				else
                                 	r = ::select(maxfd+1,&fds,0,0,0);
-                                
+
                                 if ( r <= 0 )
                                         return false;
                                 else
                                 {
                                 	uint64_t numready = 0;
-                                	
+
                                         for ( uint64_t i = 0; i < size(); ++i )
                                                 if ( active[i] && socket(i) )
                                                         if ( FD_ISSET(socket(i)->getFD(),&fds) )
@@ -272,24 +272,24 @@ namespace libmaus2
 					assert ( numready );
 					uint64_t selrank = rand_r(seed) % numready;
 					id = size();
-					
+
                                         for ( uint64_t i = 0; i < size(); ++i )
                                                 if ( active[i] && socket(i) )
                                                         if ( FD_ISSET(socket(i)->getFD(),&fds) )
                                                         	if ( ! selrank-- )
                                                         		id = i;
-                                                        		
+
 					assert ( id != size() );
 
                                         return true;
                                 }
                         }
-                        
+
                         struct AsynchronousWaiter : public ::libmaus2::parallel::PosixThread
                         {
                         	typedef AsynchronousWaiter this_type;
                         	typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-                        
+
                         	ProcessSet * owner;
                                 ::libmaus2::autoarray::AutoArray< ::libmaus2::network::LogSocket::server_socket_ptr_type >::unique_ptr_type logsocks;
                                 ::libmaus2::autoarray::AutoArray< process_ptr_type >::unique_ptr_type procs;
@@ -302,7 +302,7 @@ namespace libmaus2
                                 ::libmaus2::parallel::PosixMutex idsmutex;
                                 std::vector <uint64_t> ids;
                                 bool running;
-                        	
+
                         	AsynchronousWaiter(
                         		ProcessSet * rowner,
                         		::libmaus2::autoarray::AutoArray< ::libmaus2::network::LogSocket::server_socket_ptr_type >::unique_ptr_type & rlogsocks,
@@ -316,7 +316,7 @@ namespace libmaus2
                         	  shostlimit(rshostlimit), progdirname(rprogdirname), scommand(rscommand), active(numinst,false),
                         	  idsmutex(), ids(), running(true)
                         	{
-                        		start();	
+                        		start();
                         	}
 
 	                        bool select(uint64_t & id, unsigned int timeout = 0)
@@ -336,9 +336,9 @@ namespace libmaus2
 	        	                	::libmaus2::parallel::ScopePosixMutex mutex(idsmutex);
         		                	activeCopy = active;
 					}
-        	                	return owner->selectRandom(id,activeCopy,seed,timeout);	                        	
+        	                	return owner->selectRandom(id,activeCopy,seed,timeout);
 	                        }
-        	                
+
         	                void add(uint64_t p, uint64_t id)
         	                {
         	                	::libmaus2::parallel::ScopePosixMutex mutex(idsmutex);
@@ -351,33 +351,33 @@ namespace libmaus2
         	                	::libmaus2::parallel::ScopePosixMutex mutex(idsmutex);
         	                	active[p] = false;
         	                }
-        	                
+
         	                void stop()
         	                {
         	                	::libmaus2::parallel::ScopePosixMutex mutex(idsmutex);
         	                	running = false;
         	                }
-        	                
+
         	                bool getRunning()
         	                {
         	                	::libmaus2::parallel::ScopePosixMutex mutex(idsmutex);
-					return running;        	                
+					return running;
         	                }
-                        	
+
                         	virtual void * run()
-                        	{	
+                        	{
                         		try
                         		{
 						uint64_t lastprinted = numinst;
 						uint64_t p = 0;
-						
+
 						while ( getRunning() && (p < numinst) && (owner->shosts.size() < shostlimit) )
 						{
 							uint64_t const id = (owner->P).push_back((*procs)[p]);
-							
+
 							std::ostringstream scommandostr;
 							scommandostr << progdirname << "/" << scommand;
-							
+
 							if ( lastprinted != p )
 							{
 								std::cerr << "Waiting for process " << p+1 << "/" << numinst << " unique so far " << owner->shosts.size() << "...";
@@ -386,7 +386,7 @@ namespace libmaus2
 
 							::libmaus2::network::LogSocket::server_socket_ptr_type & logsock = (*logsocks)[p];
 							socket_ptr_type sock;
-							
+
 							while ( getRunning() && (! sock.get()) )
 							{
 								try
@@ -403,12 +403,12 @@ namespace libmaus2
 							}
 							if ( ! getRunning() )
 								break;
-								
+
 							//std::cerr << "(resetting logsocket and pushing accepted...";
-								
+
 							logsock.reset();
 							(owner->S).push_back(sock);
-							
+
 							//std::cerr << ")";
 
 							//std::cerr << "(Getting hostname...";
@@ -416,7 +416,7 @@ namespace libmaus2
 							while ( ! owner->process(id)->getHost(hostnames) )
 								sleep(1);
 							//std::cerr << ")";
-								
+
 							if ( hostnames.size() )
 							{
 								std::cerr << hostnames[0] << std::endl;
@@ -430,13 +430,13 @@ namespace libmaus2
 								se.finish();
 								throw se;
 							}
-						
+
 							add(p,id);
 
 							p += 1;
 						}
 
-						#if 0					
+						#if 0
 						for ( ; p < numinst; ++p )
 						{
 							(*procs)[p]->kill();
@@ -450,11 +450,11 @@ namespace libmaus2
 					}
 
 					std::cerr << "Leaving AsynchronousWaiter::run()" << std::endl;
-					
-					return 0;                        	
+
+					return 0;
                         	}
                         };
-                        
+
                         /* */
 			AsynchronousWaiter::unique_ptr_type startAsynchronous(
                                 uint64_t const numinst,
@@ -467,7 +467,7 @@ namespace libmaus2
                                 unsigned int const maxmem, // requested memory in megabytes
                                 std::string const & sinfilename = "/dev/null",
                                 std::string const & soutfilename = "/dev/null",
-                                std::string const & serrfilename = "/dev/null", 
+                                std::string const & serrfilename = "/dev/null",
                                 std::vector < std::string > const * hosts = 0, // host list (empty for any)
                                 char const * cwd = 0, // working directory
                                 uint64_t const tmpspace = 0, // tmp space
@@ -480,7 +480,7 @@ namespace libmaus2
                                 std::string const absprogname = arginfo.getAbsProgName();
                                 std::string const progdirname = ::libmaus2::util::ArgInfo::getDirName(absprogname);
                                 std::string const dispatcherpath = progdirname + "/" + dispatchername;
-                                
+
                                 P.reserve(numinst);
                                 S.reserve(numinst);
 
@@ -496,9 +496,9 @@ namespace libmaus2
                                         std::ostringstream jobnamestr;
                                         jobnamestr << rsjobname << "_" << jobnamebase+p;
                                         std::string const sjobname = jobnamestr.str();
-                                
+
                                         (*logsocks)[p] = UNIQUE_PTR_MOVE(logsocket.getLogSocket());
-                                        
+
                                         std::ostringstream dispostr;
                                         dispostr << dispatcherpath
                                                 << " sid=" << logsocket.sid
@@ -527,9 +527,9 @@ namespace libmaus2
                                                 ));
                                         std::cerr << "done." << std::endl;
                                 }
-                                
+
                                 AsynchronousWaiter::unique_ptr_type waiter(new AsynchronousWaiter(this,logsocks,procs,numinst,shostlimit,progdirname,scommand));
-                                
+
                                 return UNIQUE_PTR_MOVE(waiter);
 			}
 
@@ -544,7 +544,7 @@ namespace libmaus2
                                 unsigned int const maxmem, // requested memory in megabytes
                                 std::string const & sinfilename = "/dev/null",
                                 std::string const & soutfilename = "/dev/null",
-                                std::string const & serrfilename = "/dev/null", 
+                                std::string const & serrfilename = "/dev/null",
                                 std::vector < std::string > const * hosts = 0, // host list (empty for any)
                                 char const * cwd = 0, // working directory
                                 uint64_t const tmpspace = 0, // tmp space
@@ -567,9 +567,9 @@ namespace libmaus2
                                         std::ostringstream jobnamestr;
                                         jobnamestr << rsjobname << "_" << jobnamebase+p;
                                         std::string const sjobname = jobnamestr.str();
-                                
+
                                         logsocks[p] = UNIQUE_PTR_MOVE(logsocket.getLogSocket());
-                                        
+
                                         std::ostringstream dispostr;
                                         dispostr << dispatcherpath
                                                 << " sid=" << logsocket.sid
@@ -598,17 +598,17 @@ namespace libmaus2
                                                 ));
                                         std::cerr << "done." << std::endl;
                                 }
-                                
+
                                 std::vector <uint64_t> ids;
-                                
+
                                 uint64_t p = 0;
                                 for ( ; (p < numinst) && (shosts.size() < shostlimit); ++p )
                                 {
                                         uint64_t const id = P.push_back(procs[p]);
-                                        
+
                                         std::ostringstream scommandostr;
                                         scommandostr << progdirname << "/" << scommand;
-                                        
+
                                         std::cerr << "Waiting for process " << p+1 << "/" << numinst << " unique so far " << shosts.size() << "...";
                                         socket_ptr_type sock = logsocket.accept(scommandostr.str(),UNIQUE_PTR_MOVE(logsocks[p]));
                                         S.push_back(sock);
@@ -616,7 +616,7 @@ namespace libmaus2
                                         std::vector<std::string> hostnames;
                                         while ( ! process(id)->getHost(hostnames) )
                                                 sleep(1);
-                                                
+
                                         if ( hostnames.size() )
                                         {
                                                 std::cerr << hostnames[0] << std::endl;
@@ -630,16 +630,16 @@ namespace libmaus2
                                         	se.finish();
                                         	throw se;
                                         }
-                                                                                
+
                                         ids.push_back(id);
                                 }
-                                
+
                                 for ( ; p < numinst; ++p )
                                 {
                                         procs[p]->kill();
                                         logsocks[p].reset();
                                 }
-                                
+
                                 return ids;
                         }
 
@@ -664,7 +664,7 @@ namespace libmaus2
                                 )
                         {
                                  assert ( size() == 0 );
-                                 
+
                                  uint64_t base = jobnamebase;
 
                                  if ( process_type::distributeUnique() )
@@ -683,7 +683,7 @@ namespace libmaus2
                                         start(numinst,base,scommand,rsjobname,sproject,queuename,numcpu,maxmem,
                                                 sinfilename,soutfilename,serrfilename,hosts,cwd,tmpspace);
                                  }
-                                 
+
                                  std::vector<uint64_t> ids;
                                  for ( uint64_t i = 0; i < numinst; ++i )
                                          ids.push_back(i);

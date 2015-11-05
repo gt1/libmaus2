@@ -31,7 +31,7 @@ namespace libmaus2
 			StreamWrapper(stream_type & stream, uint64_t const buffersize, uint64_t const pushbackspace)
 			: StreamWrapperBuffer<stream_type>(stream,buffersize,pushbackspace), ::std::istream(this)
 			{
-				
+
 			}
 			uint64_t tellg() const
 			{

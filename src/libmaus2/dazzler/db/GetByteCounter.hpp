@@ -29,19 +29,19 @@ namespace libmaus2
 			struct GetByteCounter
 			{
 				uint64_t c;
-				
+
 				GetByteCounter()
 				: c(0)
 				{
-				
+
 				}
-				
+
 				int get()
 				{
 					++c;
 					return 0;
 				}
-				
+
 				bool operator()() const
 				{
 					return true;

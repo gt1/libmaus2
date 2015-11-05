@@ -34,21 +34,21 @@ namespace libmaus2
 			uint64_t offset;
 			uint64_t basesperline;
 			uint64_t bytesperline;
-			
+
 			FastAIndexEntry() : name(), length(0), offset(0), basesperline(0), bytesperline(0)
 			{
-			
+
 			}
-			
+
 			FastAIndexEntry(
 				std::string const & rname,
 				uint64_t const rlength,
 				uint64_t const roffset,
 				uint64_t const rbasesperline,
-				uint64_t const rbytesperline			
+				uint64_t const rbytesperline
 			) : name(rname), length(rlength), offset(roffset), basesperline(rbasesperline), bytesperline(rbytesperline) {}
 		};
-		
+
 		std::ostream & operator<<(std::ostream & out, FastAIndexEntry const & entry);
 	}
 }

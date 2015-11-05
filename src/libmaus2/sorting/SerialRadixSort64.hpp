@@ -43,14 +43,14 @@ namespace libmaus2
 			static inline uint64_t u8_5(data_type const & v, projector_type const & p) { return (((p(v)) >> 55) & 0x7FFULL); }
 
 			static inline void radixSort(
-				::libmaus2::autoarray::AutoArray < data_type > & Areader, 
+				::libmaus2::autoarray::AutoArray < data_type > & Areader,
 				uint64_t const n,
 				projector_type const & p
 			)
 			{
 				radixSort(Areader.get(),n,p);
 			}
-			
+
 			static inline void radixSort(
 				data_type * const Areader,
 				uint64_t const n,
@@ -61,7 +61,7 @@ namespace libmaus2
 
 				data_type * reader = Areader;
 				// if (n < HIST_SIZE) { std::sort(reader,reader+n); return; }
-				
+
 				/* allocate 6 lists of HIST_SIZE elements */
 				::libmaus2::autoarray::AutoArray< uint64_t > Ab0(6 * HIST_SIZE, false);
 				uint64_t * const b0   = Ab0.get();
@@ -120,7 +120,7 @@ namespace libmaus2
 
 				data_type * reader = Areader;
 				// if (n < HIST_SIZE) { std::sort(reader,reader+n); return; }
-				
+
 				/* allocate 6 lists of HIST_SIZE elements */
 				::libmaus2::autoarray::AutoArray< uint64_t > Ab0(6 * HIST_SIZE, false);
 				uint64_t * const b0   = Ab0.get();

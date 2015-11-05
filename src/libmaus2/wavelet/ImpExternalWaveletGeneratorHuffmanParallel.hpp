@@ -43,25 +43,25 @@ namespace libmaus2
 			::libmaus2::autoarray::AutoArray< ::libmaus2::autoarray::AutoArray< std::pair<uint64_t,bool> > > bv;
 			typedef ::libmaus2::util::unordered_map<int64_t,uint64_t>::type leafToIdType;
 			leafToIdType leafToId;
-			
+
 			struct BufferTypeSet
 			{
 				typedef BufferTypeSet this_type;
 				typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 				typedef ::libmaus2::bitio::BufferIterator8 buffer_type;
 				typedef buffer_type::unique_ptr_type buffer_ptr_type;
-				
+
 				::libmaus2::autoarray::AutoArray<buffer_ptr_type> B;
 				std::vector<std::string> outputfilenames;
 
 				::libmaus2::autoarray::AutoArray< ::libmaus2::autoarray::AutoArray< std::pair<uint64_t,bool> > > const & bv;
 				leafToIdType const & leafToId;
 				uint64_t symbols;
-				
+
 				BufferTypeSet(
-					uint64_t const numbuffers, 
-					::libmaus2::util::TempFileNameGenerator & tmpgen, 
+					uint64_t const numbuffers,
+					::libmaus2::util::TempFileNameGenerator & tmpgen,
 					::libmaus2::autoarray::AutoArray< ::libmaus2::autoarray::AutoArray< std::pair<uint64_t,bool> > > const & rbv,
 					leafToIdType const & rleafToId,
 					uint64_t const bufsize = 64*1024
@@ -80,10 +80,10 @@ namespace libmaus2
 				{
 					assert ( leafToId.find(s) != leafToId.end() );
 					::libmaus2::autoarray::AutoArray< std::pair<uint64_t,bool> > const & b = bv [ leafToId.find(s)->second ];
-					
+
 					for ( uint64_t i = 0; i < b.size(); ++i )
 						B [ b [ i ] . first ] -> writeBit( b[i].second );
-	
+
 					symbols += 1;
 				}
 
@@ -96,36 +96,36 @@ namespace libmaus2
 						B[i]->flush();
 					}
 				}
-				
+
 				std::vector < std::pair< std::string, uint64_t >  > getOutputVector() const
 				{
 					std::vector < std::pair< std::string, uint64_t >  > V;
 					for ( uint64_t i = 0; i < B.size(); ++i )
-						V.push_back ( 
+						V.push_back (
 							std::pair< std::string, uint64_t >(outputfilenames[i],B[i]->bits)
 							);
 					return V;
 				}
-				
+
 				void addConcatElement(uint64_t const nodeid, std::vector < std::pair< std::string, uint64_t >  > & V)
 				{
 					V.push_back( std::pair< std::string, uint64_t >(outputfilenames[nodeid],B[nodeid]->bits) );
 				}
-				
+
 				void removeFiles()
 				{
 					for ( uint64_t i = 0; i < outputfilenames.size(); ++i )
 						libmaus2::aio::FileRemoval::removeFile ( outputfilenames[i] );
 				}
 			};
-			
+
 			::libmaus2::autoarray::AutoArray < BufferTypeSet::unique_ptr_type > B;
-			
+
 			BufferTypeSet & operator[](uint64_t const thread)
 			{
 				return *(B [ thread ]);
 			}
-			
+
 			std::vector < std::pair< std::string, uint64_t >  > getIdConcatVector(uint64_t const nodeid) const
 			{
 				std::vector < std::pair< std::string, uint64_t >  > V;
@@ -135,15 +135,15 @@ namespace libmaus2
 				}
 				return V;
 			}
-			
+
 			void removeFiles()
 			{
 				for ( uint64_t i = 0; i < B.size(); ++i )
 					B[i]->removeFiles();
 			}
-			
+
 			ImpExternalWaveletGeneratorHuffmanParallel(
-				::libmaus2::huffman::HuffmanTreeNode const * rroot, 
+				::libmaus2::huffman::HuffmanTreeNode const * rroot,
 				::libmaus2::util::TempFileNameGenerator & rtmpgen,
 				uint64_t const threads
 			)
@@ -152,10 +152,10 @@ namespace libmaus2
 				std::map < ::libmaus2::huffman::HuffmanTreeNode const * , ::libmaus2::huffman::HuffmanTreeInnerNode const * > parentMap;
 				std::map < ::libmaus2::huffman::HuffmanTreeInnerNode const *, uint64_t > nodeToId;
 				std::map < int64_t, ::libmaus2::huffman::HuffmanTreeLeaf const * > leafMap;
-				
+
 				std::stack < ::libmaus2::huffman::HuffmanTreeNode const * > S;
 				S.push(root);
-				
+
 				while ( ! S.empty() )
 				{
 					::libmaus2::huffman::HuffmanTreeNode const * cur = S.top();
@@ -176,7 +176,7 @@ namespace libmaus2
 						// assert ( id == outputfilenames.size() );
 						nodeToId [ node ] = id;
 						// outputfilenames.push_back(tmpgen.getFileName());
-						
+
 						parentMap [ node->left ] = node;
 						parentMap [ node->right ] = node;
 
@@ -195,20 +195,20 @@ namespace libmaus2
 					uint64_t d = 0;
 					::libmaus2::huffman::HuffmanTreeLeaf const * const leaf = ita->second;
 					::libmaus2::huffman::HuffmanTreeNode const * cur = leaf;
-					
+
 					// compute code length
 					while ( parentMap.find(cur) != parentMap.end() )
 					{
 						cur = parentMap.find(cur)->second;
 						++d;
 					}
-					
+
 					bv [ lid ] = ::libmaus2::autoarray::AutoArray< std::pair<uint64_t,bool> >(d);
 					leafToId[leaf->symbol] = lid;
-					
+
 					cur = leaf;
 					d = 0;
-					
+
 					// store code vector and adjoint contexts
 					while ( parentMap.find(cur) != parentMap.end() )
 					{
@@ -231,10 +231,10 @@ namespace libmaus2
 
 			template<typename ostream_type>
 			uint64_t createFinalStreamTemplate(ostream_type & out)
-			{	
+			{
 				for ( uint64_t i = 0; i < B.size(); ++i )
 					B[i]->flush(i+1==B.size());
-				
+
 				uint64_t symbols = 0;
 				for ( uint64_t i = 0; i < B.size(); ++i )
 				{
@@ -252,7 +252,7 @@ namespace libmaus2
 				::libmaus2::autoarray::AutoArray<uint64_t> wordsv(numnodes);
 				for ( uint64_t i = 0; i < numnodes; ++i )
 					concatTempFileNames.push_back(tmpgen.getFileName());
-				
+
 				/*
 				 * concatenate partial bit streams for each tree node
 				 */
@@ -269,34 +269,34 @@ namespace libmaus2
 					assert ( ostr );
 					ostr.flush();
 				}
-				
-				std::vector<uint64_t> nodeposvec;	
+
+				std::vector<uint64_t> nodeposvec;
 				/*
 				 * concatenate nodes in final output stream
 				 */
 				for ( int64_t i = 0; i < static_cast<int64_t>(numnodes); ++i )
 				{
 					nodeposvec.push_back(p);
-				
+
 					std::string const tmpfilename = concatTempFileNames[i];
 					libmaus2::aio::InputStreamInstance istr(tmpfilename);
 					uint64_t inwords;
 					::libmaus2::serialize::Serialize<uint64_t>::deserialize(istr,&inwords);
 					assert ( inwords == wordsv[i] );
 					assert ( inwords % 6 == 0 );
-					
+
 					uint64_t const bufblocks = 4096;
 					uint64_t const bufpaywords = bufblocks*6;
 					uint64_t const buftotalwords = bufblocks*8;
 					uint64_t const numblocks = (inwords + bufpaywords - 1) / bufpaywords;
-					
+
 					::libmaus2::autoarray::AutoArray<uint64_t> inbuf(bufpaywords);
 					::libmaus2::autoarray::AutoArray<uint64_t> outbuf(buftotalwords);
 					uint64_t s = 0;
 
 					p += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,inwords*64); // number of bits
 					p += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,(inwords/6)*8); // number of words
-					
+
 					for ( uint64_t j = 0; j < numblocks; ++j )
 					{
 						uint64_t const low = std::min(j * bufpaywords,inwords);
@@ -304,11 +304,11 @@ namespace libmaus2
 						uint64_t const size = high-low;
 						assert ( size % 6 == 0 );
 						uint64_t const bufs = size/6;
-						
+
 						uint64_t const readbytes = bufs * 6 * sizeof(uint64_t);
 						istr.read(reinterpret_cast<char *>(inbuf.get()), readbytes);
 						assert ( istr.gcount() == static_cast<int64_t>(readbytes) );
-						
+
 						uint64_t const * inptr = inbuf.begin();
 						uint64_t * outptr = outbuf.begin();
 						for ( uint64_t k = 0; k < bufs; ++k )
@@ -317,7 +317,7 @@ namespace libmaus2
 							uint64_t * subptr = outptr++;
 							*subptr = 0;
 							unsigned int shift = 0;
-							
+
 							uint64_t m = 0;
 							for ( uint64_t l = 0; l < 6; ++l, shift+=9 )
 							{
@@ -330,7 +330,7 @@ namespace libmaus2
 
 							s += m;
 						}
-						
+
 						assert ( inptr == inbuf.begin() + 6 * bufs );
 						assert ( outptr == outbuf.begin() + 8 * bufs );
 
@@ -339,21 +339,21 @@ namespace libmaus2
 						assert ( out );
 						p += writebytes;
 					}
-					
+
 					// libmaus2::aio::FileRemoval::removeFile ( tmpfilename );
 				}
 
 				uint64_t const indexpos = p;
 				p += ::libmaus2::util::NumberSerialisation::serialiseNumberVector(out,nodeposvec);
 				p += ::libmaus2::util::NumberSerialisation::serialiseNumber(out,indexpos);
-		
+
 				out.flush();
 
 				for ( uint64_t i = 0; i < numnodes; ++i )
 					libmaus2::aio::FileRemoval::removeFile ( concatTempFileNames[i] );
-				
+
 				removeFiles();
-				
+
 				return p;
 			}
 

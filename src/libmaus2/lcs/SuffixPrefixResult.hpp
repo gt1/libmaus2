@@ -35,7 +35,7 @@ namespace libmaus2
 			uint64_t numdel;
 			uint64_t nummat;
 			uint64_t nummis;
-			
+
 			uint32_t infix_aclip_left;
 			uint32_t infix_aclip_right;
 			uint64_t infix_numins;
@@ -43,7 +43,7 @@ namespace libmaus2
 			uint64_t infix_nummat;
 			uint64_t infix_nummis;
 			int64_t  infix_score;
-			
+
 			SuffixPrefixResult()
 			: aclip_left(0), bclip_right(0), numins(0), numdel(0), nummat(0), nummis(0),
 			  infix_aclip_left(0),
@@ -54,7 +54,7 @@ namespace libmaus2
 			  infix_nummis(0),
 			  infix_score(-std::numeric_limits<int64_t>::min())
 			{}
-			
+
 			SuffixPrefixResult(uint32_t const raclip_left, uint32_t const rbclip_right,
 			uint64_t rnumins, uint64_t rnumdel, uint64_t rnummat, uint64_t rnummis)
 			: aclip_left(raclip_left), bclip_right(rbclip_right),
@@ -92,7 +92,7 @@ namespace libmaus2
 			  infix_score(rinfix_score)
 			{}
 		};
-		
+
 		inline std::ostream & operator<<(std::ostream & out, SuffixPrefixResult const & SPR)
 		{
 		        out << "SuffixPrefixResult("

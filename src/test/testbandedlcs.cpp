@@ -29,19 +29,19 @@ int main(int argc, char * argv[])
 	try
 	{
 		::libmaus2::util::ArgInfo arginfo(argc,argv);
-		
+
 		std::string const fna = arginfo.getRestArg<std::string>(0);
 		std::string const fnb = arginfo.getRestArg<std::string>(1);
-		
+
 		typedef ::libmaus2::fastx::FastAReader reader_type;
 		typedef reader_type::pattern_type pattern_type;
-		
+
 		reader_type ra(fna);
 		reader_type rb(fnb);
-		
+
 		pattern_type pa;
 		pattern_type pb;
-		
+
 		while (
 			ra.getNextPatternUnlocked(pa)
 			&&
@@ -50,9 +50,9 @@ int main(int argc, char * argv[])
 		{
 			pa.computeMapped();
 			pb.computeMapped();
-			
+
 			uint64_t na = pa.getPatternLength();
-			uint64_t nb = pb.getPatternLength();			
+			uint64_t nb = pb.getPatternLength();
 			uint64_t const dif = (na>=nb) ? (na-nb) : (nb-na);
 
 			::libmaus2::lcs::BandedEditDistance BED(na,nb,2*dif);
@@ -63,6 +63,6 @@ int main(int argc, char * argv[])
 	}
 	catch(std::exception const & ex)
 	{
-		std::cerr << ex.what() << std::endl;	
+		std::cerr << ex.what() << std::endl;
 	}
 }

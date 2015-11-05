@@ -35,7 +35,7 @@ namespace libmaus2
 		 * class for parsing cigar strings to cigar operation vectors
 		 **/
 		struct CigarStringParser
-		{	
+		{
 			/**
 			 * parse cigar string
 			 *

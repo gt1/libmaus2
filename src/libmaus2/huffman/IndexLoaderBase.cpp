@@ -19,8 +19,8 @@
 #include <libmaus2/huffman/IndexLoaderBase.hpp>
 #include <libmaus2/util/ReverseByteOrder.hpp>
 
-/* 
- * read position of index, which is stored in the last 8 bytes of the file 
+/*
+ * read position of index, which is stored in the last 8 bytes of the file
  * byte order of the number is big endian
  */
 uint64_t libmaus2::huffman::IndexLoaderBase::getIndexPos(std::string const & filename)
@@ -33,7 +33,7 @@ uint64_t libmaus2::huffman::IndexLoaderBase::getIndexPos(std::string const & fil
 	indexistr.seekg(-8,std::ios::end);
 	uint64_t v;
 	indexistr.read( reinterpret_cast<char *>(&v) , 8 );
-	
+
 	#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 	#if defined(_WIN32)
 	uint64_t const indexpos = _byteswap_uint64(v);

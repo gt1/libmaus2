@@ -29,15 +29,15 @@ namespace libmaus2
 		{
 			typedef FileBunchLRU this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			uint64_t const lrusize;
 			std::vector < std::string > filenames;
-			
+
 			// file id -> lru id
 			::libmaus2::autoarray::AutoArray < uint64_t > mapping;
 			// lru id -> file id
 			::libmaus2::autoarray::AutoArray < uint64_t > rmapping;
-			
+
 			// file pointers
 			typedef ::libmaus2::util::unique_ptr< std::ofstream  >::type file_ptr_type;
 			::libmaus2::autoarray::AutoArray < file_ptr_type > files;
@@ -47,7 +47,7 @@ namespace libmaus2
 			{
 				std::fill ( mapping.get(), mapping.get() + mapping.getN(), lrusize );
 			}
-			
+
 			~FileBunchLRU()
 			{
 				for ( uint64_t i = 0; i < files.size(); ++i )
@@ -58,7 +58,7 @@ namespace libmaus2
 						files[i].reset();
 					}
 			}
-			
+
 			std::ofstream & getFile(uint64_t const fileid)
 			{
 				if ( mapping[fileid] != lrusize )
@@ -66,9 +66,9 @@ namespace libmaus2
 					update(mapping[fileid]);
 					return *(files[mapping[fileid]]);
 				}
-				
+
 				std::pair < std::pair < uint64_t, uint64_t >, bool > P = add();
-				
+
 				if ( ! P.second )
 				{
 					uint64_t const kickedlruid = P.first.first;
@@ -79,12 +79,12 @@ namespace libmaus2
 					mapping [ kickedfileid ] = lrusize;
 					rmapping [ kickedlruid ] = 0;
 				}
-				
+
 				mapping [ fileid ] = P.first.first;
 				rmapping [ P.first.first ] = fileid;
 				file_ptr_type tptr(new std::ofstream( filenames[fileid].c_str(), std::ios::binary | std::ios::app ) );
 				files [ mapping [ fileid] ] = UNIQUE_PTR_MOVE(tptr);
-				
+
 				return *(files[mapping[fileid]]);
 			}
 		};

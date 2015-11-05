@@ -69,7 +69,7 @@ namespace libmaus2
 					<< " valgrind=" << valgrind;
 				return ostr.str();
 			}
-			
+
 			static std::string getAdaptedPath(::libmaus2::util::ArgInfo const & arginfo, std::string const & payloadexe)
 			{
 				if ( ! payloadexe.size() )
@@ -79,7 +79,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				if ( payloadexe[0] == '/' )
 				{
 					// std::cerr << "q=" << payloadexe << std::endl;
@@ -95,7 +95,7 @@ namespace libmaus2
 
 			::libmaus2::network::SocketBase::shared_ptr_type controlsocket;
 			std::string hostname;
-																							
+
 			DispatchedLsfProcess(
 				::libmaus2::util::ArgInfo const & arginfo,
 				std::string const & sid,
@@ -127,15 +127,15 @@ namespace libmaus2
 					tmpspace
 				)
 			{
-			
+
 			}
-			
+
 			void waitKnown()
 			{
 				while ( ! isKnown() )
 					sleep(1);
 			}
-			
+
 			void join()
 			{
 				while ( isUnfinished() )
@@ -167,9 +167,9 @@ namespace libmaus2
 				}
 				// wait until the new processes are visible in LSF
 				for ( uint64_t i = 0; i < n; ++i )
-					procs[procs.size()-n+i]->waitKnown();			
+					procs[procs.size()-n+i]->waitKnown();
 			}
-			
+
 			static std::vector < shared_ptr_type > start(
 				::libmaus2::util::ArgInfo const & arginfo,
 				std::string const & sid,

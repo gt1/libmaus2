@@ -34,12 +34,12 @@ namespace libmaus2
 
                         HuffmanTreeLeaf(int64_t rsymbol, uint64_t rfrequency) : symbol(rsymbol), frequency(rfrequency) {}
                         ~HuffmanTreeLeaf() {}
-                        
+
                         uint64_t byteSize() const
                         {
                         	return sizeof(int64_t)+sizeof(uint64_t);
                         }
-                                
+
                         bool isLeaf() const { return true; }
                         uint64_t getFrequency() const {
                                 return frequency;
@@ -75,10 +75,10 @@ namespace libmaus2
                         {
                                 return new HuffmanTreeLeaf(symbol,frequency);
                         }
-                        void addPrefix(uint64_t prefix, uint64_t shift) 
+                        void addPrefix(uint64_t prefix, uint64_t shift)
                         {
                                 symbol |= (prefix << shift);
-                        }                
+                        }
                         void square(HuffmanTreeNode *, uint64_t)
                         {
                                 throw ::std::runtime_error("Cannot square unary alphabet tree.");
@@ -88,24 +88,24 @@ namespace libmaus2
                                 out << "digraph vcsn {\n";
                                 out << "graph[rankdir=LR];\n";
                                 out << "node [shape=circle];\n";
-                                
+
                                 out << "state"<<0<<" [label=\""<<symbol<<"\"];\n";
 
                                 out << "}\n";
-                        }                
+                        }
                         void  fillIdMap(::std::map<  HuffmanTreeNode const *, uint64_t > & idmap, uint64_t & cur) const
                         {
                                 idmap[this] = cur++;
                         }
-                        void lineSerialise(::std::ostream & out, ::std::map<  HuffmanTreeNode const *, uint64_t > const & idmap) const 
+                        void lineSerialise(::std::ostream & out, ::std::map<  HuffmanTreeNode const *, uint64_t > const & idmap) const
                         {
-                                out 
+                                out
                                         << idmap.find(this)->second << "\t"
                                         << "leaf" << "\t"
                                         << symbol << "\t"
                                         << frequency << "\n";
                         }
-                        
+
                         uint64_t depth() const
                         {
                                 return 0;

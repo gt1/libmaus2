@@ -43,7 +43,7 @@ namespace libmaus2
 			typedef SynchronousGenericInput<input_type> this_type;
 			//! unique pointer type
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			//! buffer size
 			uint64_t const bufsize;
 			//! input buffer
@@ -64,7 +64,7 @@ namespace libmaus2
 			uint64_t const totalwords;
 			//! total words read yet
 			uint64_t totalwordsread;
-			
+
 			//! check whether bytes read are a multiple of sizeof(value_type)
 			bool checkmod;
 
@@ -78,10 +78,10 @@ namespace libmaus2
 				assert ( totalwordsread <= totalwords );
 				uint64_t const remwords = totalwords-totalwordsread;
 				uint64_t const toreadwords = std::min(remwords,bufsize);
-				
+
 				istr.read ( reinterpret_cast<char *>(buffer.get()), toreadwords * sizeof(input_type));
 				uint64_t const bytesread = istr.gcount();
-				
+
 				if ( checkmod && (bytesread % sizeof(input_type) != 0) )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -89,9 +89,9 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				uint64_t const wordsread = bytesread / sizeof(input_type);
-					
+
 				if ( wordsread == 0 )
 				{
 					if ( totalwordsread != totalwords )
@@ -99,13 +99,13 @@ namespace libmaus2
 						std::cerr << "SynchronousGenericInput<>::getNext(): WARNING: read 0 words but there should be " <<
 							remwords << " left." << std::endl;
 					}
-				
+
 					return false;
 				}
-					
+
 				pc = pa;
 				pe = pa + wordsread;
-			
+
 				return true;
 			}
 
@@ -120,14 +120,14 @@ namespace libmaus2
 			static ::libmaus2::autoarray::AutoArray<input_type,atype> readArrayTemplate(std::string const & inputfilename)
 			{
 				::libmaus2::aio::SynchronousGenericInput<input_type> in(inputfilename,64*1024);
-				
+
 				uint64_t const fs =
 					::libmaus2::util::GetFileSize::getFileSize(inputfilename);
 				assert ( fs % sizeof(input_type) == 0 );
 				uint64_t const n = fs/sizeof(input_type);
 
 				::libmaus2::autoarray::AutoArray<input_type,atype> A(n,false);
-			
+
 				for ( uint64_t i = 0; i < n; ++i )
 				{
 					input_type v;
@@ -135,7 +135,7 @@ namespace libmaus2
 					assert ( ok );
 					A[i] = v;
 				}
-				
+
 				return A;
 			}
 
@@ -147,7 +147,7 @@ namespace libmaus2
 			 **/
 			static ::libmaus2::autoarray::AutoArray<input_type,::libmaus2::autoarray::alloc_type_cxx> readArray(std::string const & inputfilename)
 			{
-				return readArrayTemplate< ::libmaus2::autoarray::alloc_type_cxx>(inputfilename);			
+				return readArrayTemplate< ::libmaus2::autoarray::alloc_type_cxx>(inputfilename);
 			}
 
 			/**
@@ -158,11 +158,11 @@ namespace libmaus2
 			 * @param rtotalwords maximum number of words to read
 			 * @param rcheckmod check whether number of bytes read is a multiple of sizeof(value_type)
 			 */
-			SynchronousGenericInput(std::istream & ristr, uint64_t const rbufsize, 
+			SynchronousGenericInput(std::istream & ristr, uint64_t const rbufsize,
 				uint64_t const rtotalwords = std::numeric_limits<uint64_t>::max(),
 				bool const rcheckmod = true
 			)
-			: bufsize(rbufsize), buffer(bufsize,false), 
+			: bufsize(rbufsize), buffer(bufsize,false),
 			  pa(buffer.get()), pc(pa), pe(pa),
 			  Pistr(),
 			  istr(ristr),
@@ -170,7 +170,7 @@ namespace libmaus2
 			  totalwordsread(0),
 			  checkmod(rcheckmod)
 			{
-			
+
 			}
 
 			/**
@@ -182,12 +182,12 @@ namespace libmaus2
 			 * @param rtotalwords maximum number of words to read
 			 */
 			SynchronousGenericInput(
-				std::string const & filename, 
-				uint64_t const rbufsize, 
+				std::string const & filename,
+				uint64_t const rbufsize,
 				uint64_t const roffset = 0,
 				uint64_t const rtotalwords = std::numeric_limits<uint64_t>::max()
 			)
-			: bufsize(rbufsize), buffer(bufsize,false), 
+			: bufsize(rbufsize), buffer(bufsize,false),
 			  pa(buffer.get()), pc(pa), pe(pa),
 			  Pistr(new input_stream_type(filename)),
 			  istr(*Pistr),
@@ -215,7 +215,7 @@ namespace libmaus2
 					Pistr.reset();
 				}
 			}
-			
+
 			/**
 			 * read next word
 			 *
@@ -254,7 +254,7 @@ namespace libmaus2
 
 				return true;
 			}
-			
+
 			/**
 			 * read the next word
 			 *
@@ -268,7 +268,7 @@ namespace libmaus2
 				else
 					return -1;
 			}
-			
+
 			/**
 			 * read the next word but do not remove it from the input buffer
 			 *

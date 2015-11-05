@@ -29,11 +29,11 @@ namespace libmaus2
 	{
 		struct stringFunctions {
 			template<typename string_type>
-			static std::deque<string_type> tokenize(string_type input, string_type br) 
+			static std::deque<string_type> tokenize(string_type input, string_type br)
 			{
 				typename string_type::iterator a,b,c;
 				std::deque<string_type> tokens;
-				
+
 				// std::cerr << "Tokenising string=" << input << " break=" << br << std::endl;
 
 				while ( input.length() )
@@ -61,10 +61,10 @@ namespace libmaus2
 			}
 
 			template<typename string_type>
-			static std::pair<string_type,string_type> tokenizePair(string_type input, string_type br) 
+			static std::pair<string_type,string_type> tokenizePair(string_type input, string_type br)
 			{
 				std::deque<string_type> tokens = tokenize<string_type>(input,br);
-				
+
 				if ( tokens.size() == 0 )
 					return std::pair<string_type,string_type>(
 						string_type(),
@@ -80,17 +80,17 @@ namespace libmaus2
 				else
 				{
 					string_type val;
-					
+
 					for ( uint64_t i = 1; i < tokens.size(); ++i )
 					{
 						val += tokens[i];
 						if ( i+1 < tokens.size() )
 							val += br;
 					}
-					
+
 					return std::pair<string_type,string_type>(
 						string_type(tokens[0]),
-						string_type(val));	
+						string_type(val));
 				}
 			}
 
@@ -110,4 +110,3 @@ namespace libmaus2
 	}
 }
 #endif
-

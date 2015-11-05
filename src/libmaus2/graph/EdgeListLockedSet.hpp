@@ -30,13 +30,13 @@ namespace libmaus2
 		{
 			typedef EdgeListLockedSet this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			uint64_t const lowsrc;
 			uint64_t const highsrc;
 			uint64_t const numreads;
 			uint64_t const readsperlist;
 			uint64_t const numlists;
-		
+
 			typedef EdgeListLocked list_type;
 			typedef list_type::unique_ptr_type list_ptr_type;
 			::libmaus2::autoarray::AutoArray<list_ptr_type> edgelists;
@@ -47,7 +47,7 @@ namespace libmaus2
 				uint64_t const rreadsperlist,
 				uint64_t const maxedges
 			)
-			: lowsrc(rlowsrc), highsrc(rhighsrc), numreads(highsrc-lowsrc), readsperlist(rreadsperlist), 
+			: lowsrc(rlowsrc), highsrc(rhighsrc), numreads(highsrc-lowsrc), readsperlist(rreadsperlist),
 			  numlists( (numreads+readsperlist-1)/readsperlist ),
 			  edgelists(numlists)
 			{

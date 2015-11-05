@@ -29,23 +29,23 @@ namespace libmaus2
 		{
 			typedef GzipStream this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			::libmaus2::lz::StreamWrapper< ::std::istream > in;
 			GzipSingleStream singlestream;
 			uint64_t gcnt;
 			uint64_t gpos;
 			bool garbage;
-			
+
 			bool openNextStream()
 			{
 				// std::cerr << "opening new stream." << std::endl;
-			
+
 				if ( in.peek() < 0 )
 				{
 					// std::cerr << "peek() returned -1" << std::endl;
 					return false;
 				}
-				
+
 				if ( singlestream.startNewBlock() )
 				{
 					return true;
@@ -56,23 +56,23 @@ namespace libmaus2
 					return false;
 				}
 			}
-			
+
 			GzipStream(std::istream & rin)
-			: 
+			:
 			  in(rin,::libmaus2::lz::Inflate::input_buffer_size,::libmaus2::lz::Inflate::input_buffer_size),
 			  singlestream(in),
 			  gcnt(0),
 			  gpos(0),
 			  garbage(false)
 			{
-				
+
 			}
-			
+
 			uint64_t tellg()
 			{
 				return gpos;
 			}
-			
+
 			uint64_t read(char * buffer, uint64_t n)
 			{
 				uint64_t red = 0;
@@ -80,7 +80,7 @@ namespace libmaus2
 				while ( n )
 				{
 					uint64_t subred = singlestream.read(buffer,n);
-					
+
 					if ( subred )
 					{
 						buffer += subred;
@@ -96,13 +96,13 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				gcnt = red;
 				gpos += red;
-								
+
 				return red;
 			}
-			
+
 			int get()
 			{
 				uint8_t c;
@@ -112,13 +112,13 @@ namespace libmaus2
 				else
 					return -1;
 			}
-			
+
 			uint64_t gcount() const
 			{
 				// std::cerr << "gcnt " << gcnt << std::endl;
-			
+
 				return gcnt;
-			}			
+			}
 		};
 	}
 }

@@ -29,11 +29,11 @@ namespace libmaus2
 		struct FastALineParserLineInfo
 		{
 			enum line_type_type { libmaus2_fastx_fasta_id_line, libmaus2_fastx_fasta_base_line, libmaus2_fastx_fasta_id_line_eof };
-				
+
 			uint8_t const * line;
 			line_type_type linetype;
 			uint64_t linelen;
-			
+
 			FastALineParserLineInfo()
 			: line(0), linetype(libmaus2_fastx_fasta_id_line_eof), linelen(0) {}
 		};

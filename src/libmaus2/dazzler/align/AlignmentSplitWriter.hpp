@@ -33,32 +33,32 @@ namespace libmaus2
 				bool const small;
 				std::string const prefix;
 				int64_t const idsperfile;
-				
+
 				uint64_t fid;
 				int64_t previd;
 				int64_t numids;
 				int64_t novl;
-				
+
 				libmaus2::aio::OutputStreamInstance::unique_ptr_type Pstream;
-				
+
 				std::vector<std::string> outputfilenames;
-				
+
 				bool const tmp;
-				
+
 				AlignmentSplitWriter(
 					int64_t const rtspace,
 					std::string const rprefix,
 					int64_t const ridsperfile,
 					bool const rtmp
-				) 
+				)
 				: tspace(rtspace), small(libmaus2::dazzler::align::AlignmentFile::tspaceToSmall(tspace)), prefix(rprefix), idsperfile(ridsperfile),
 				  fid(1), previd(-1), numids(idsperfile), novl(0), tmp(rtmp) {}
-				
+
 				~AlignmentSplitWriter()
 				{
 					flush();
 				}
-				
+
 				void flush()
 				{
 					if ( Pstream )
@@ -69,53 +69,53 @@ namespace libmaus2
 
 						Pstream->flush();
 						Pstream.reset();
-					}	
+					}
 				}
-				
+
 				void openNextFile()
 				{
 					flush();
-					
+
 					std::ostringstream fnostr;
 					fnostr << prefix << "." << (fid++) << ".las";
 					std::string const fn = fnostr.str();
-					
+
 					outputfilenames.push_back(fn);
-					
+
 					if ( tmp )
 						libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
-					
+
 					// std::cerr << "[V] opening new output file " << fn << std::endl;
-					
+
 					libmaus2::aio::OutputStreamInstance::unique_ptr_type Tstream(new libmaus2::aio::OutputStreamInstance(fn));
 					Pstream = UNIQUE_PTR_MOVE(Tstream);
 
 					uint64_t offset = 0;
 					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(*Pstream,0 /* novl */,offset);
-					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger4(*Pstream,tspace,offset);                                                                             
-					
+					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger4(*Pstream,tspace,offset);
+
 					novl = 0;
 				}
-				
+
 				void push(libmaus2::dazzler::align::Overlap const & OVL)
 				{
 					if ( OVL.aread != previd )
 					{
 						numids += 1;
-						
+
 						if ( numids > idsperfile )
 						{
 							openNextFile();
-							numids = 1;	
+							numids = 1;
 						}
-						
+
 					}
 
 					OVL.serialiseWithPath(*Pstream,small);
 					novl += 1;
 					previd = OVL.aread;
 				}
-				
+
 				static std::vector<std::string> splitFile(std::string const & aligns, std::string const & prefix, uint64_t const n, bool const tmp)
 				{
 					libmaus2::aio::InputStreamInstance algnfile(aligns);
@@ -124,10 +124,10 @@ namespace libmaus2
 
 					AlignmentSplitWriter AW(algn.tspace,prefix,n,tmp);
 
-					// get next overlap                                                                                                                                                                                                                                
+					// get next overlap
 					while ( algn.getNextOverlap(algnfile,OVL) )
 						AW.push(OVL);
-						
+
 					return AW.outputfilenames;
 				}
 			};

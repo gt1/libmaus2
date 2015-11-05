@@ -41,23 +41,23 @@ static uint64_t getMaxMem()
       else
       {
             std::string const smem = mem;
-            
+
             std::istringstream istr(smem);
             uint64_t maxmeg;
             istr >> maxmeg;
-            
+
             if ( ! istr )
             {
                   std::cerr << "Unable to parse AUTOARRAYMAXMEM=" << smem << " as integer number." << std::endl;
                   exit(EXIT_FAILURE);
             }
-            
+
             uint64_t const maxmem = maxmeg * (1024*1024);
-            
+
             std::cerr << "AutoArray_maxmem will be set to " << maxmeg << " MB = " << maxmem << " bytes." << std::endl;
-            
+
             return maxmem;
-      }      
+      }
 }
 
 uint64_t volatile libmaus2::autoarray::AutoArray_memusage = 0;
@@ -81,7 +81,7 @@ typedef ::libmaus2::rank::EncodeCache<16,uint16_t> encode_cache_type;
 encode_cache_type libmaus2::rank::ERankBase::EC16;
 
 typedef ::libmaus2::rank::DecodeCache<16,uint16_t> decode_cache_type;
-decode_cache_type libmaus2::rank::ERankBase::DC16; 
+decode_cache_type libmaus2::rank::ERankBase::DC16;
 
 #include <libmaus2/rank/RankTable.hpp>
 
@@ -90,7 +90,7 @@ typedef ::libmaus2::rank::RankTable rank_table_type;
 typedef ::libmaus2::rank::SimpleRankTable simple_rank_table_type;
 const rank_table_type libmaus2::rank::ERankBase::R;
 const simple_rank_table_type libmaus2::rank::ERankBase::S;
-#endif  
+#endif
 
 #include <libmaus2/lcs/HashContainer.hpp>
 
@@ -105,7 +105,7 @@ const simple_rank_table_type libmaus2::rank::ERankBase::S;
 #include <libmaus2/util/SaturatingCounter.hpp>
 
 unsigned int const ::libmaus2::util::SaturatingCounter::shift[4] = { 6,4,2,0 };
-unsigned char const ::libmaus2::util::SaturatingCounter::mask[4] = { 
+unsigned char const ::libmaus2::util::SaturatingCounter::mask[4] = {
 		static_cast<uint8_t>(~(3 << 6)),
 		static_cast<uint8_t>(~(3 << 4)),
 		static_cast<uint8_t>(~(3 << 2)),
@@ -123,7 +123,7 @@ uint64_t const libmaus2::lz::RAZFConstants::razf_bin_size = (1ull << 32) / razf_
 libmaus2::util::AlphaDigitTable::AlphaDigitTable()
 {
 	memset(&A[0],0,sizeof(A));
-	
+
 	A[static_cast<int>('0')] = 1;
 	A[static_cast<int>('1')] = 1;
 	A[static_cast<int>('2')] = 1;
@@ -134,7 +134,7 @@ libmaus2::util::AlphaDigitTable::AlphaDigitTable()
 	A[static_cast<int>('7')] = 1;
 	A[static_cast<int>('8')] = 1;
 	A[static_cast<int>('9')] = 1;
-	
+
 	for ( int i = 'a'; i <= 'z'; ++i )
 		A[i] = 1;
 	for ( int i = 'A'; i <= 'Z'; ++i )
@@ -146,7 +146,7 @@ libmaus2::util::AlphaDigitTable::AlphaDigitTable()
 libmaus2::util::AlphaTable::AlphaTable()
 {
 	memset(&A[0],0,sizeof(A));
-	
+
 	for ( int i = 'a'; i <= 'z'; ++i )
 		A[i] = 1;
 	for ( int i = 'A'; i <= 'Z'; ++i )
@@ -175,7 +175,7 @@ libmaus2::util::DigitTable::DigitTable()
 libmaus2::bambam::SamPrintableTable::SamPrintableTable()
 {
 	memset(&A[0],0,sizeof(A));
-	
+
 	for ( int i = '!'; i <= '~'; ++i )
 		A[i] = 1;
 }
@@ -186,7 +186,7 @@ libmaus2::bambam::SamZPrintableTable::SamZPrintableTable()
 {
 	memset(&A[0],0,sizeof(A));
 	A[static_cast<int>(' ')] = 1;
-	
+
 	for ( int i = '!'; i <= '~'; ++i )
 		A[i] = 1;
 }
@@ -217,14 +217,14 @@ std::map<std::string,libmaus2::aio::InputOutputStreamFactory::shared_ptr_type> l
 
 #include <libmaus2/bambam/ScramInputContainer.hpp>
 
-std::map<void *, libmaus2::util::shared_ptr<scram_cram_io_input_t>::type > libmaus2::bambam::ScramInputContainer::Mcontrol;	
+std::map<void *, libmaus2::util::shared_ptr<scram_cram_io_input_t>::type > libmaus2::bambam::ScramInputContainer::Mcontrol;
 std::map<void *, libmaus2::aio::InputStream::shared_ptr_type> libmaus2::bambam::ScramInputContainer::Mstream;
 std::map<void *, libmaus2::aio::InputStream::shared_ptr_type> libmaus2::bambam::ScramInputContainer::Mcompstream;
 libmaus2::parallel::PosixMutex libmaus2::bambam::ScramInputContainer::Mlock;
 
 #include <libmaus2/digest/DigestFactoryContainer.hpp>
 
-std::map< std::string, libmaus2::digest::DigestFactoryInterface::shared_ptr_type > libmaus2::digest::DigestFactoryContainer::factories = 
+std::map< std::string, libmaus2::digest::DigestFactoryInterface::shared_ptr_type > libmaus2::digest::DigestFactoryContainer::factories =
 	libmaus2::digest::DigestFactoryContainer::setupFactories();
 
 #include <libmaus2/util/NotDigitOrTermTable.hpp>
@@ -263,9 +263,9 @@ static uint64_t getMemoryFileMaxBlockSize()
 	else
 	{
 		uint64_t const v = libmaus2::util::ArgInfoParseBase::parseValueUnsignedNumeric<uint64_t>("MEMORYFILEMAXBLOCKSIZE",mem);
-		
+
 		std::cerr << "[D] using value " << v << " (parsed from " << mem << ") for MEMORYFILEMAXBLOCKSIZE" << std::endl;
-		
+
 		return v;
 	}
 }

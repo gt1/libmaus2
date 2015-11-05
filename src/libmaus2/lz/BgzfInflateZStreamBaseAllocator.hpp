@@ -28,7 +28,7 @@ namespace libmaus2
 		struct BgzfInflateZStreamBaseAllocator
 		{
 			BgzfInflateZStreamBaseAllocator() {}
-			
+
 			BgzfInflateZStreamBase::shared_ptr_type operator()()
 			{
 				BgzfInflateZStreamBase::shared_ptr_type tptr(new BgzfInflateZStreamBase);

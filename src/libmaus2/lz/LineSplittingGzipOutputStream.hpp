@@ -26,11 +26,11 @@ namespace libmaus2
 	namespace lz
 	{
 		struct LineSplittingGzipOutputStream : public LineSplittingGzipOutputStreamBuffer, public std::ostream
-		{	
+		{
 			typedef LineSplittingGzipOutputStream this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			LineSplittingGzipOutputStream(std::string const & rfn, uint64_t const rlinemod, uint64_t const rbuffersize = 64*1024, int const level = Z_DEFAULT_COMPRESSION)
 			: LineSplittingGzipOutputStreamBuffer(rfn,rlinemod,rbuffersize,level), std::ostream(this)
 			{

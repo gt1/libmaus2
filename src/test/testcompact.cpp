@@ -37,7 +37,7 @@ void testcompact()
 
 	::libmaus2::util::TempFileRemovalContainer::setup();
 	::libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
-	
+
 	uint64_t n = 1024*1024;
 	unsigned int const b = 3;
 	::libmaus2::bitio::CompactArray CA(n,b);
@@ -55,23 +55,23 @@ void testcompact()
 	COS.flush();
 	COS.close();
 	#endif
-	
+
 	::libmaus2::aio::InputStreamInstance CIS(fn);
 	std::cerr << "compact file size is " << ::libmaus2::util::GetFileSize::getFileSize(CIS) << std::endl;
 	assert ( static_cast< ::std::streampos > (CIS.tellg()) == static_cast< ::std::streampos >(0) );
 	assert ( CIS.get() >= 0 );
-	
+
 	::libmaus2::bitio::CompactDecoderWrapper W(fn,4096);
-	
+
 	W.seekg(0,std::ios::end);
 	int64_t const fs = W.tellg();
 	W.seekg(0,std::ios::beg);
 	W.clear();
-	
+
 	assert ( fs == static_cast<int64_t>(n) );
-	
+
 	std::cerr << "n=" << n << " fs=" << fs << std::endl;
-	
+
 	for ( uint64_t i = 0; i < n; ++i )
 	{
 		assert ( W.tellg() == static_cast< ::std::streampos >(i) );
@@ -79,21 +79,21 @@ void testcompact()
 		assert ( v == static_cast<int>(CA[i]) );
 		// std::cerr << static_cast<int>(W.get()) << " " << CA[i] << std::endl;
 	}
-	
+
 	for ( uint64_t i = 0; i < n; i += (rand() % 256) )
 	{
 		W.clear();
 		W.seekg(i);
-		
+
 		std::cerr << "seek to " << W.tellg() << std::endl;
-		
+
 		for ( uint64_t j = i; j < n; ++j )
 		{
 			assert ( W.tellg() == static_cast< ::std::streampos >(j) );
 			int const v = W.get();
 			assert ( v == static_cast<int>(CA[j]) );
 		}
-		
+
 		uint64_t ii = n-i;
 		W.clear();
 		W.seekg(ii);

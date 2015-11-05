@@ -30,7 +30,7 @@ namespace libmaus2
 	namespace util
 	{
 		struct Array864Generator;
-		
+
 		/**
 		 * array class storing a sequence of variable length numbers such that
 		 * - numbers  < 256 are stored using 8 bits
@@ -65,7 +65,7 @@ namespace libmaus2
 			::libmaus2::autoarray::AutoArray<uint8_t> A8;
 			//! subsequence stored using 64 bits per number
 			::libmaus2::autoarray::AutoArray<uint64_t> A64;
-			
+
 			/**
 			 * @return estimated size of object in bytes
 			 **/
@@ -78,7 +78,7 @@ namespace libmaus2
 					A8.byteSize()+
 					A64.byteSize();
 			}
-			
+
 			/**
 			 * @return const start iterator (inclusive)
 			 **/
@@ -93,7 +93,7 @@ namespace libmaus2
 			{
 				return const_iterator(this,n);
 			}
-			
+
 			/**
 			 * serialise this object to an output stream
 			 *
@@ -117,7 +117,7 @@ namespace libmaus2
 			 * @param in input stream
 			 **/
 			Array864(std::istream & in);
-			
+
 			/**
 			 * load object from file fs and return it encapsulated in a unique pointer
 			 *
@@ -142,7 +142,7 @@ namespace libmaus2
 				unique_ptr_type u(new this_type(CIS));
 				return UNIQUE_PTR_MOVE(u);
 			}
-			
+
 			/**
 			 * constructor from random access sequence
 			 *
@@ -153,23 +153,23 @@ namespace libmaus2
 			Array864(iterator a, iterator e)
 			{
 				n = e-a;
-				
+
 				if ( n )
 				{
 					B = ::libmaus2::autoarray::AutoArray<data_type>((n+63)/64);
 					writer_type W(B.get());
-				
+
 					for ( iterator i = a; i != e; ++i )
 						W.writeBit( *i < 256 );
-					
+
 					W.flush();
-				
+
 					::libmaus2::rank::ERank222B::unique_ptr_type tR(new ::libmaus2::rank::ERank222B(B.get(), B.size()*64));
 					R = UNIQUE_PTR_MOVE(tR);
-					
+
 					uint64_t const n8 = R->rank1(n-1);
 					uint64_t const n64 = R->rank0(n-1);
-					
+
 					A8 = ::libmaus2::autoarray::AutoArray<uint8_t>(n8,false);
 					A64 = ::libmaus2::autoarray::AutoArray<uint64_t>(n64,false);
 
@@ -179,24 +179,24 @@ namespace libmaus2
 							A8[ R->rank1(j)-1 ] = *i;
 						else
 							A64[ R->rank0(j)-1 ] = *i;
-					
-					#if 0		
+
+					#if 0
 					j = 0;
 					for ( iterator i = a; i != e; ++i, ++j )
 						assert ( (*this)[j] == *i );
 					#endif
-				
+
 					#if defined(ARRAY864DEBUG)
 					#if defined(_OPENMP)
 					#pragma omp parallel for
-					#endif	
+					#endif
 					for ( int64_t i = 0; i < static_cast<int64_t>(n); ++i )
 						assert ( (*this)[i] == a[i] );
 					#endif
 				}
-				
+
 			}
-			
+
 			/**
 			 * access operator
 			 *
@@ -212,13 +212,13 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-			
+
 				if ( ::libmaus2::bitio::getBit(B.get(),i) )
 					return A8[R->rank1(i)-1];
 				else
 					return A64[R->rank0(i)-1];
 			}
-			
+
 			/**
 			 * get i'th element
 			 *
@@ -230,7 +230,7 @@ namespace libmaus2
 				return (*this)[i];
 			}
 		};
-		
+
 		/**
 		 * generator class for Array864
 		 **/
@@ -247,7 +247,7 @@ namespace libmaus2
 			typedef Array864::writer_type writer_type;
 			//! bit array data type
 			typedef Array864::data_type data_type;
-			
+
 			/**
 			 * get number of occurences not exceeding thres in histogram hist
 			 *
@@ -258,16 +258,16 @@ namespace libmaus2
 			static uint64_t getSmallerEqual(libmaus2::util::Histogram & hist, int64_t const thres)
 			{
 				std::map<int64_t,uint64_t> const H = hist.getByType<int64_t>();
-				
+
 				uint64_t c = 0;
-				
+
 				for ( std::map<int64_t,uint64_t>::const_iterator ita = H.begin(); ita != H.end(); ++ita )
 					if ( ita->first <= thres )
 						c += ita->second;
-				
+
 				return c;
 			}
-			
+
 			//! generated array
 			Array864::unique_ptr_type P;
 			//! writer for bit vector
@@ -279,12 +279,12 @@ namespace libmaus2
 
 			/**
 			 * constructor from bit length histogram
-			 * 
+			 *
 			 * @param hist bit length histogram storing the number of bits necessary
 			 *        to store each number in the sequence to be written by this generator
 			 **/
-			Array864Generator(libmaus2::util::Histogram & hist) 
-			: 
+			Array864Generator(libmaus2::util::Histogram & hist)
+			:
 				n8(getSmallerEqual(hist,8)), n64(getSmallerEqual(hist,64)-n8), n(n8+n64),
 				P(Array864::unique_ptr_type(new Array864)),
 				p8(0), p64(0)
@@ -296,7 +296,7 @@ namespace libmaus2
 				P->A64 = ::libmaus2::autoarray::AutoArray<uint64_t>(n64);
 				P->n = n;
 			}
-			
+
 			/**
 			 * add number v to the end of the stored sequence
 			 *
@@ -315,7 +315,7 @@ namespace libmaus2
 					P->A64[p64++] = v;
 				}
 			}
-			
+
 			/**
 			 * @return final array object
 			 **/

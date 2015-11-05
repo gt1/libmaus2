@@ -42,16 +42,16 @@ namespace libmaus2
 				uint64_t const len = ::libmaus2::util::GetFileSize::getFileSize(filename);
 				assert ( len % sizeof(::libmaus2::graph::TripleEdge) == 0 );
 				uint64_t const numtriples = len / sizeof(::libmaus2::graph::TripleEdge);
-				
+
 				::libmaus2::autoarray::AutoArray< ::libmaus2::graph::TripleEdge> T(numtriples);
-				
+
 				{
 				libmaus2::aio::InputStreamInstance istr(filename);
 				istr.read ( reinterpret_cast<char *>(T.get()), len);
 				assert ( istr );
 				assert ( istr.gcount() == static_cast<int64_t>(len) );
 				}
-				
+
 				std::sort ( T.get(), T.get() + numtriples );
 
 				std::ofstream ostr(filename.c_str(), std::ios::binary);
@@ -103,7 +103,7 @@ namespace libmaus2
 					okb = inputb.getNextTriple(tripleb);
 				}
 			}
-			
+
 			static inline bool anyTrue(::libmaus2::autoarray::AutoArray < bool > const & ok)
 			{
 				bool t = false;
@@ -118,26 +118,26 @@ namespace libmaus2
 				)
 			{
 				assert ( anyTrue ( ok ) );
-				
+
 				bool foundok = false;
 				uint64_t minidx = 0;
-				
+
 				while ( ! foundok )
 					if ( ok[minidx] )
 						foundok = true;
 					else
 						minidx++;
-						
+
 				assert ( ok[minidx] );
 				::libmaus2::graph::TripleEdge mintrip = triples[minidx];
-				
+
 				for ( uint64_t i = 0; i < triples.getN(); ++i )
 					if ( ok[i] && triples[i] < mintrip )
 					{
 						mintrip = triples[i];
 						minidx = i;
 					}
-					
+
 				return minidx;
 			}
 
@@ -149,7 +149,7 @@ namespace libmaus2
 				typedef ::libmaus2::graph::TripleEdgeInput input_type;
 				typedef input_type::unique_ptr_type input_ptr_type;
 				::libmaus2::autoarray::AutoArray<input_ptr_type> inputs(inputfilenames.size());
-				
+
 				for ( uint64_t i = 0; i < inputfilenames.size(); ++i )
 				{
 					input_ptr_type tinputsi (
@@ -157,10 +157,10 @@ namespace libmaus2
                                                 );
 					inputs[i] = UNIQUE_PTR_MOVE(tinputsi);
 				}
-						
+
 				::libmaus2::autoarray::AutoArray < ::libmaus2::graph::TripleEdge > triples(inputfilenames.size());
 				::libmaus2::autoarray::AutoArray < bool > ok(inputfilenames.size());
-			
+
 				::libmaus2::graph::TripleEdgeOutputMerge output(outputfilename, 32*1024);
 
 				for ( uint64_t i = 0; i < inputfilenames.size(); ++i )

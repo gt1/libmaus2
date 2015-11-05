@@ -36,7 +36,7 @@ namespace libmaus2
 		{
 			typedef BgzfDeflateParallelContext this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			libmaus2::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator>
 				& deflategloblist;
 
@@ -69,7 +69,7 @@ namespace libmaus2
 				BgzfDeflateBlockIdInfo,
 				BgzfDeflateBlockIdComparator
 			> deflatewritequeue;
-			
+
 			// exception data
 			uint64_t deflateexceptionid;
 			libmaus2::exception::LibMausException::unique_ptr_type deflatepse;
@@ -77,7 +77,7 @@ namespace libmaus2
 
 			//! queues lock
 			libmaus2::parallel::PosixMutex deflateqlock;
-			
+
 			//! index stream
 			std::ostream * deflateindexstr;
 
@@ -94,19 +94,19 @@ namespace libmaus2
 					BgzfThreadQueueElement,
 					BgzfThreadQueueElementHeapComparator
 				>
-				& rdeflategloblist,		
-				std::ostream & rdeflateout, 
+				& rdeflategloblist,
+				std::ostream & rdeflateout,
 				uint64_t const rnumbuffers,
 				int level,
 				bool const deflategetcur = getDefaultDeflateGetCur(),
 				std::ostream * rdeflateindexstr = 0
 			)
-			: deflategloblist(rdeflategloblist), 
-			  deflateoutid(0), deflatenextwriteid(0), deflateout(rdeflateout), deflateoutflushed(false), 
+			: deflategloblist(rdeflategloblist),
+			  deflateoutid(0), deflatenextwriteid(0), deflateout(rdeflateout), deflateoutflushed(false),
 			  deflateoutbytes(0),
 			  deflateB(rnumbuffers),
 			  deflatecurobject(-1),
-			  deflateheapcomp(deflateB), 
+			  deflateheapcomp(deflateB),
 			  deflateheapinfo(deflateB),
 			  deflatewritequeue(deflateheapcomp,deflateheapinfo),
 			  deflateexceptionid(std::numeric_limits<uint64_t>::max()),
@@ -124,7 +124,7 @@ namespace libmaus2
 					deflateB[i]->objectid = i;
 					deflatefreelist.enque(i);
 				}
-				
+
 				if ( deflategetcur )
 				{
 					deflatecurobject = deflatefreelist.deque();
@@ -158,23 +158,23 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "failed to write compressed data to bgzf stream." << std::endl;
 					se.finish();
-					throw se;				
+					throw se;
 				}
-				
+
 				for ( uint64_t i = 0; i < blockoutputcallbacks.size(); ++i )
 					(*(blockoutputcallbacks[i]))(in,incnt,out,outcnt);
 			}
 			void streamWrite(
-				uint8_t const * in, 
-				uint8_t const * out, 
+				uint8_t const * in,
+				uint8_t const * out,
 				BgzfDeflateZStreamBaseFlushInfo const & FI
 			)
 			{
 				assert ( FI.blocks == 0 || FI.blocks == 1 || FI.blocks == 2 );
-				
+
 				if ( FI.blocks == 0 )
 				{
-				
+
 				}
 				else if ( FI.blocks == 1 )
 				{
@@ -184,7 +184,7 @@ namespace libmaus2
 				{
 					assert ( FI.blocks == 2 );
 					streamWrite(in             ,FI.block_a_u,out             ,FI.block_a_c);
-					streamWrite(in+FI.block_a_u,FI.block_b_u,out+FI.block_a_c,FI.block_b_c);					
+					streamWrite(in+FI.block_a_u,FI.block_b_u,out+FI.block_a_c,FI.block_b_c);
 				}
 			}
 		};

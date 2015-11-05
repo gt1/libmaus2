@@ -122,7 +122,7 @@ namespace libmaus2
                 	for ( ; ita != ite; ++ita )
                 		if ( *ita == mapChar('N') )
                 			return true;
-			
+
 			return false;
                 }
                 inline bool hasIndeterminate(std::string const & s)

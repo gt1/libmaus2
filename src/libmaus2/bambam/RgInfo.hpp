@@ -39,7 +39,7 @@ namespace libmaus2
 			std::string PL;
 			std::string PU;
 			std::string SM;
-			
+
 			RgInfo() {}
 			RgInfo(libmaus2::util::ArgInfo const & arginfo)
 			:
@@ -56,17 +56,17 @@ namespace libmaus2
 				PU(arginfo.getUnparsedValue("RGPU","")),
 				SM(arginfo.getUnparsedValue("RGSM",""))
 			{
-				
+
 			}
-			
+
 			std::string toString() const
 			{
 				std::ostringstream ostr;
-				
+
 				if ( ID.size() )
 				{
 					ostr << "@RG\tID:" << ID;
-					
+
 					if ( CN.size() ) ostr << "\tCN:" << CN;
 					if ( DS.size() ) ostr << "\tDS:" << DS;
 					if ( DT.size() ) ostr << "\tDT:" << DT;
@@ -78,10 +78,10 @@ namespace libmaus2
 					if ( PL.size() ) ostr << "\tPL:" << PL;
 					if ( PU.size() ) ostr << "\tPU:" << PU;
 					if ( SM.size() ) ostr << "\tSM:" << SM;
-					
+
 					ostr << "\n";
 				}
-				
+
 				return ostr.str();
 			}
 		};

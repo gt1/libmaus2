@@ -31,7 +31,7 @@ uint64_t libmaus2::select::ESelectBase<sym>::select1Slow(uint16_t v, unsigned in
 	for ( ; mask; mask >>= 1, j++ )
 		if ( (v & mask) && ( ! (--i) ) )
 			return j;
-	
+
 	return j;
 }
 
@@ -39,11 +39,11 @@ template<bool sym>
 libmaus2::autoarray::AutoArray<uint8_t> libmaus2::select::ESelectBase<sym>::computeRussians()
 {
 	::libmaus2::autoarray::AutoArray<uint8_t> R( (1ull<<16) * (16) );
-	
+
 	for ( uint32_t v = 0; v < (1u<<16); ++v )
 		for ( unsigned int i = 0; i < 16; ++i )
 			R [ (v << 4) | i ] = select1Slow(v,i);
-	
+
 	return R;
 }
 

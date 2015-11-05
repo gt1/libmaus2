@@ -26,13 +26,13 @@ int testBitBTreeShort()
 {
 	::libmaus2::bitbtree::BitBTree<k,w> B;
 	::libmaus2::util::VarBitList L;
-	
+
 	for ( uint64_t i = 0; i < B.getN(); ++i )
 		std::cerr << B[i] << std::endl;
-		
+
 	B.insertBit(/*pos*/0,1);
 	L.insertBit(/*pos*/0,1);
-	
+
 	for ( unsigned int i = 0; i < 62; ++i )
 	{
 		B.insertBit(/*pos*/0,0);
@@ -47,31 +47,31 @@ int testBitBTreeShort()
 	L.insertBit(/*pos*/15,1);
 	B.insertBit(/*pos*/40,1);
 	L.insertBit(/*pos*/40,1);
-	
+
 	for ( unsigned int i = 0; i < 300; ++i )
 	{
 		B.insertBit(15,1);
 		L.insertBit(15,1);
 	}
-	
+
 	for ( uint64_t i = 0; i < 5000; ++i )
 	{
 		typename ::libmaus2::bitbtree::BitBTree<k,w>::unique_ptr_type cloned(B.clone());
-		
+
 		uint64_t const pos = rand() % (B.getN()+1);
 		// uint64_t const pos = B.getN();
 		bool const b = rand() % 2;
-		
+
 		std::cerr << "n=" << B.getN() << " bitsize=" << B.bitSize() << " pos=" << pos << std::endl;
-		
-		#if 0	
+
+		#if 0
 		for ( unsigned int j = 0; j < B.getN(); ++j )
 		{
 			// std::cerr << B.rank1(j) << " " << L.rank1(j) << std::endl;
 			assert ( B.rank1(j) == L.rank1(j) );
 		}
 		#endif
-		
+
 		try
 		{
 			B.insertBit(pos,b);
@@ -85,16 +85,16 @@ int testBitBTreeShort()
 		{
 			cloned->toString(std::cerr);
 			std::cerr << std::endl;
-			
+
 			std::cerr << "----" << std::endl;
-			
+
 			B.toString(std::cerr);
 			std::cerr << std::endl;
-			
+
 			return EXIT_FAILURE;
 		}
 	}
-	
+
 	std::cerr << "B " << B << std::endl;
 	std::cerr << "L " << L << std::endl;
 
@@ -114,12 +114,12 @@ int testBitBTreeFunctionalityInsertDelete()
 	#if defined(BITTREE_DEBUG)
 	::libmaus2::util::VarBitList L;
 	#endif
-	
+
 	// srand(time(0));
 	srand(5);
-	
+
 	uint64_t c = 0;
-	
+
 	for ( unsigned int z = 0; z < 100000; ++z )
 	{
 		// B.toString(std::cerr);
@@ -143,22 +143,22 @@ int testBitBTreeFunctionalityInsertDelete()
 		for ( int j = 0; j < static_cast<int>(B.root_bcnt); ++j )
 		{
 			bool const ok = B.select1(j) == L.select1(j);
-			
+
 			if ( ! ok )
 			{
-				std::cerr << "j=" << j 
+				std::cerr << "j=" << j
 					<< " B.select="
 					<< B.select1(j)
 					<< " L.select="
 					<< L.select1(j)
 					<< std::endl;
-				
+
 				#if 0
 				for ( unsigned int z = 0; z <= L.select1(j); ++z )
 					std::cerr << B[z];
 				std::cerr << std::endl;
 				#endif
-				
+
 				// std::cerr << B.select1(j) << " " << L.select1(j) << std::endl;
 				assert ( ok );
 			}
@@ -177,14 +177,14 @@ int testBitBTreeFunctionalityInsertDelete()
 		}
 		// std::cerr << ".";
 #endif
-		
+
 #if defined(BITTREE_DEBUG)
 		if ( (++c & (1024-1)) == 0 )
 #else
 		if ( (++c & (16*1024-1)) == 0 )
 #endif
 			std::cerr << "\r                               \r" << B.getN() << "\t" << B.bitSize();
-		
+
 		typename ::libmaus2::bitbtree::BitBTree<k,w>::unique_ptr_type clone(B.clone());
 
 		bool b = rand() % 2;
@@ -194,10 +194,10 @@ int testBitBTreeFunctionalityInsertDelete()
 		{
 			// if ( B.innernodes->allocatedNodes-B.innernodes->nodeFreeList.size() < 30 )
 			if ( B.innernodes->blocks.size()*B.innernodes->blocksize-B.innernodes->nodeFreeList.size() < 30 )
-			{	
+			{
 				switch ( rand() % 4 )
 				{
-				
+
 					case 0:
 					case 1:
 						{
@@ -211,7 +211,7 @@ int testBitBTreeFunctionalityInsertDelete()
 						if ( B.getN() )
 						{
 							p = rand() % (B.getN());
-							B.deleteBit(p);			
+							B.deleteBit(p);
 #if defined(BITTREE_DEBUG)
 							L.deleteBit(p);
 #endif
@@ -224,7 +224,7 @@ int testBitBTreeFunctionalityInsertDelete()
 				if ( B.getN() )
 				{
 					uint64_t p = rand() % (B.getN());
-					B.deleteBit(p);			
+					B.deleteBit(p);
 #if defined(BITTREE_DEBUG)
 					L.deleteBit(p);
 #endif
@@ -236,7 +236,7 @@ int testBitBTreeFunctionalityInsertDelete()
 			std::ostringstream Lostr; Lostr << L;
 			assert ( Bostr.str() == Lostr.str() );
 #endif
-			
+
 			// std::cerr << "---" << std::endl;
 		}
 		catch(std::exception const & ex)
@@ -249,7 +249,7 @@ int testBitBTreeFunctionalityInsertDelete()
 			return EXIT_FAILURE;
 		}
 	}
-	
+
 	return EXIT_SUCCESS;
 }
 
@@ -267,14 +267,14 @@ int main()
 		assert ( U.select1(0) == i );
 		std::cerr << U << std::endl;
 	}
-	
+
 	std::cerr << "---" << std::endl;
 
 	uint64_t n = 128;
 	::libmaus2::bitbtree::BitBTree<k,w> B(n,false);
-	
+
 	std::cerr << B << std::endl;
-	
+
 	B.setBitQuick(5,true);
 	B.setBitQuick(8,true);
 	B.setBitQuick(9,true);
@@ -288,7 +288,7 @@ int main()
 	std::cerr << std::endl;
 	std::cerr << B.count1() << std::endl;
 	B.toString(std::cerr);
-	
+
 	testBitBTreeShort<k,w>();
 	testBitBTreeFunctionalityInsertDelete<k,w>();
 }

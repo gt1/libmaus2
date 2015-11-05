@@ -26,7 +26,7 @@ namespace libmaus2
 {
 	namespace bambam
 	{
-		
+
 		struct GeneFlatFileEntry
 		{
 			std::pair<char const *, char const *> geneName;
@@ -38,59 +38,59 @@ namespace libmaus2
 			uint64_t cdsStart;
 			uint64_t cdsEnd;
 			std::vector < std::pair<uint64_t,uint64_t> > exons;
-			
+
 			template<typename iterator>
 			static uint64_t parseNumberUnsigned(iterator ita, iterator ite)
-			{				
+			{
 				if ( ! (ite-ita) )
 				{
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "GeneFlatFileEntry: cannot parse " << std::string(ita,ite) << " as number (empty field)\n";
 					lme.finish();
-					throw lme;				
+					throw lme;
 				}
 
 				uint64_t v = 0;
-				
+
 				iterator its = ita;
 				while ( ita != ite )
 				{
 					unsigned char const c = *(ita++);
-					
+
 					if ( ! isdigit(c) )
 					{
 						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "GeneFlatFileEntry: cannot parse " << std::string(its,ite) << " as number\n";
 						lme.finish();
-						throw lme;		
+						throw lme;
 					}
-					
+
 					v *= 10;
 					v += c-'0';
 				}
-				
+
 				return v;
 			}
-			
+
 			static int64_t parseNumber(std::string const & s)
 			{
 				uint64_t i = 0;
-				
+
 				bool const neg = s.size() && s[0] == '-';
-				
+
 				if ( neg )
 					++i;
-					
+
 				if ( i == s.size() )
 				{
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "GeneFlatFileEntry: cannot parse " << s << " as number\n";
 					lme.finish();
-					throw lme;					
+					throw lme;
 				}
-				
+
 				int64_t v = 0;
-				
+
 				while ( i < s.size() )
 				{
 					if ( ! isdigit(static_cast<unsigned char>(s[i])) )
@@ -98,16 +98,16 @@ namespace libmaus2
 						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "GeneFlatFileEntry: cannot parse " << s << " as number\n";
 						lme.finish();
-						throw lme;		
+						throw lme;
 					}
 
 					v *= 10;
 					v += s[i++] - '0';
 				}
-				
+
 				return neg ? -v : v;
 			}
-			
+
 			static std::string checkStringNotEmpty(std::string const & s)
 			{
 				if ( s.size() )
@@ -119,7 +119,7 @@ namespace libmaus2
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "GeneFlatFileEntry: empty field" << std::endl;
 					lme.finish();
-					throw lme;						
+					throw lme;
 				}
 			}
 
@@ -134,14 +134,14 @@ namespace libmaus2
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "GeneFlatFileEntry: field " << s << " is not a single character" << std::endl;
 					lme.finish();
-					throw lme;						
+					throw lme;
 				}
 			}
-			
+
 			static char checkStrand(std::string const & s)
 			{
 				char const c = checkChar(s);
-				
+
 				switch ( c )
 				{
 					case '+': case '-': return c;
@@ -150,25 +150,25 @@ namespace libmaus2
 						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "GeneFlatFileEntry: string " << s << " is not valid for the strand column" << std::endl;
 						lme.finish();
-						throw lme;							
+						throw lme;
 					}
 				}
 			}
-						
-			GeneFlatFileEntry() 
+
+			GeneFlatFileEntry()
 			: geneName(), name(), chrom(), strand('?'), txStart(-1), txEnd(-1), cdsStart(-1), cdsEnd(-1), exons() {}
-			
+
 			void reset(char const * s, char const * se)
 			{
 				char const * const sa = s;
 				unsigned int col = 0;
-				
+
 				while ( s != se )
 				{
 					char const * sc = s;
 					while ( sc != se && *sc != '\t' )
 						++sc;
-					
+
 					switch ( col++ )
 					{
 						case 0:
@@ -187,9 +187,9 @@ namespace libmaus2
 								libmaus2::exception::LibMausException lme;
 								lme.getStream() << "GeneFlatFileEntry: column is not a valid strand: " << std::string(s,sc) << "\n";
 								lme.finish();
-								throw lme;	
+								throw lme;
 							}
-							
+
 							strand = *s;
 							break;
 						}
@@ -213,14 +213,14 @@ namespace libmaus2
 							char const * nc = s;
 							char const * ne = sc;
 							uint64_t ncols = 0;
-							
+
 							while ( ncols < exons.size() && nc != ne )
 							{
 								char const * nt = nc;
 								while ( nt != ne && *nt != ',' )
 									++nt;
 								exons[ncols++].first = parseNumberUnsigned(nc,nt);
-								
+
 								if ( nt == ne )
 									nc = nt;
 								else
@@ -229,13 +229,13 @@ namespace libmaus2
 									nc = nt+1;
 								}
 							}
-							
+
 							if ( ncols != exons.size() )
 							{
 								libmaus2::exception::LibMausException lme;
 								lme.getStream() << "GeneFlatFileEntry: column does not contains sufficient number of fields: " << std::string(s,sc) << "\n";
 								lme.finish();
-								throw lme;								
+								throw lme;
 							}
 							break;
 						}
@@ -244,14 +244,14 @@ namespace libmaus2
 							char const * nc = s;
 							char const * ne = sc;
 							uint64_t ncols = 0;
-							
+
 							while ( ncols < exons.size() && nc != ne )
 							{
 								char const * nt = nc;
 								while ( nt != ne && *nt != ',' )
 									++nt;
 								exons[ncols++].second = parseNumberUnsigned(nc,nt);
-								
+
 								if ( nt == ne )
 									nc = nt;
 								else
@@ -260,27 +260,27 @@ namespace libmaus2
 									nc = nt+1;
 								}
 							}
-							
+
 							if ( ncols != exons.size() )
 							{
 								libmaus2::exception::LibMausException lme;
 								lme.getStream() << "GeneFlatFileEntry: column does not contains sufficient number of fields: " << std::string(s,sc) << "\n";
 								lme.finish();
-								throw lme;								
+								throw lme;
 							}
 							break;
 						}
-					}	
-					
+					}
+
 					if ( sc != se )
 					{
 						assert ( *sc == '\t' );
 						++sc;
 					}
-						
+
 					s = sc;
 				}
-				
+
 				if ( col < 11 )
 				{
 					libmaus2::exception::LibMausException lme;
@@ -289,7 +289,7 @@ namespace libmaus2
 					throw lme;
 				}
 			}
-			
+
 			GeneFlatFileEntry(char const * s, char const * se)
 			{
 				reset(s,se);

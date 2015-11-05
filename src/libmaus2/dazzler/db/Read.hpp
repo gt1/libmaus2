@@ -24,7 +24,7 @@
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/fastx/acgtnMap.hpp>
 
-		
+
 namespace libmaus2
 {
 	namespace dazzler
@@ -37,23 +37,23 @@ namespace libmaus2
 				static int32_t const DB_CSS = 0x400;
 				static int32_t const DB_BEST = 0x800;
 				static size_t const serialisedSize;
-			
+
 				int32_t origin;
 				int32_t rlen;
 				int32_t fpulse;
 				int64_t boff;
 				int64_t coff;
 				int32_t flags;
-				
+
 				static size_t computeSerialisedSize()
 				{
 					GetByteCounter GBC;
 					Read R;
 					R.deserialise(GBC);
-					return GBC.c;	
+					return GBC.c;
 				}
-				
-				template<typename stream_type>				
+
+				template<typename stream_type>
 				void deserialise(stream_type & in)
 				{
 					uint64_t offset = 0;
@@ -78,12 +78,12 @@ namespace libmaus2
 					libmaus2::dazzler::db::OutputBase::align(out,sizeof(int64_t),offset);
 					return offset;
 				}
-				
+
 				Read()
 				{
-				
+
 				}
-				
+
 				Read(std::istream & in)
 				{
 					deserialise(in);
@@ -133,7 +133,7 @@ namespace libmaus2
 					for ( int32_t i = 0; i < (rlen>>2); ++i )
 					{
 						unsigned char v = *(p++);
-						
+
 						*(o++) = libmaus2::fastx::remapChar((v >> 6)&3);
 						*(o++) = libmaus2::fastx::remapChar((v >> 4)&3);
 						*(o++) = libmaus2::fastx::remapChar((v >> 2)&3);
@@ -160,11 +160,11 @@ namespace libmaus2
 							rest--;
 						}
 					}
-					
+
 					return rlen;
 				}
 			};
-			
+
 			std::ostream & operator<<(std::ostream & out, Read const & R);
 		}
 	}

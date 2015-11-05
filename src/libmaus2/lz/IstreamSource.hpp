@@ -66,25 +66,25 @@ namespace libmaus2
 			}
 
 			IstreamSource(
-				in_type & rin, 
+				in_type & rin,
 				uint64_t const ravail,
 				uint64_t const bufsize = 64*1024
-			) : in(rin), avail(ravail), A(bufsize,false), pa(A.begin()), pc(pa), pe(pc) 
+			) : in(rin), avail(ravail), A(bufsize,false), pa(A.begin()), pc(pa), pe(pc)
 			{
-				fillBuffer();	
+				fillBuffer();
 			}
-			
+
 			size_t Available() const
 			{
 				return avail;
 			}
-			
+
 			char const * Peek(size_t * len)
 			{
 				*len = (pe-pc);
 				return pc;
 			}
-			
+
 			int get()
 			{
 				size_t av = 0;
@@ -99,11 +99,11 @@ namespace libmaus2
 					return d;
 				}
 			}
-			
+
 			void Skip(size_t rn)
 			{
 				uint64_t n = std::min(static_cast<uint64_t>(rn),avail);
-			
+
 				while ( n )
 				{
 					// bytes available in buffer
@@ -114,10 +114,10 @@ namespace libmaus2
 					pc += lskip;
 					avail -= lskip;
 					n -= lskip;
-					
+
 					if ( pc == pe )
 						fillBuffer();
-				} 
+				}
 
 				// reached EOF or buffer is non empty
 				assert ( (!avail) || (pe != pc) );

@@ -35,7 +35,7 @@ namespace libmaus2
 			std::map< uint64_t,std::vector<element_type> > bins;
 
 			int const k;
-			
+
 			static int length(uint64_t rlen)
 			{
 				int k = 0;
@@ -44,7 +44,7 @@ namespace libmaus2
 					rlen >>= 1;
 					k++;
 				}
-				
+
 				return k-1;
 			}
 
@@ -52,28 +52,28 @@ namespace libmaus2
 			: k(length(rlen))
 			{
 			}
-			
+
 			void insert(element_type const & elem)
 			{
 				typedef std::pair<uint64_t,uint64_t> upair;
 				typedef std::pair<int,upair> q_element;
-				
-				std::deque< q_element > todo; 
-				
+
+				std::deque< q_element > todo;
+
 				if ( elem.getTo() > elem.getFrom() )
 				{
 					todo.push_back(q_element(k,upair(elem.getFrom(),elem.getTo())));
-			
+
 					while ( todo.size() )
 					{
 						q_element q = todo.front();
 						todo.pop_front();
-						
+
 						int const level = k-q.first;
 
 						uint64_t const basebin = (1ull << level)-1;
 						uint64_t const div = (1ull<<(q.first+1));
-						
+
 						uint64_t const mask = (q.first >= 0) ? (1<<q.first) : 0;
 
 						uint64_t const low = q.second.first;
@@ -81,11 +81,11 @@ namespace libmaus2
 						uint64_t const bin = basebin + low/div;
 
 						// std::cerr << level << "," << q.first << "," << q.second.first << "," << q.second.second << "," << basebin << "," << div << "," << bin << std::endl;
-						
+
 						assert ( high > low );
-						
+
 						bool const cross = ((high-1)&mask) != (low & mask);
-						
+
 						if ( cross || q.first < 0 )
 						{
 							bins[bin].push_back(elem);
@@ -104,23 +104,23 @@ namespace libmaus2
 			{
 				typedef std::pair<uint64_t,uint64_t> upair;
 				typedef std::pair<int,upair> q_element;
-				
-				std::deque< q_element > todo; 
-				
+
+				std::deque< q_element > todo;
+
 				if ( elem.getTo() > elem.getFrom() )
 				{
 					todo.push_back(q_element(k,upair(elem.getFrom(),elem.getTo())));
-			
+
 					while ( todo.size() )
 					{
 						q_element q = todo.front();
 						todo.pop_front();
-						
+
 						int const level = k-q.first;
 
 						uint64_t const basebin = (1ull << level)-1;
 						uint64_t const div = (1ull<<(q.first+1));
-						
+
 						uint64_t const mask = (q.first >= 0) ? (1<<q.first) : 0;
 
 						uint64_t const low = q.second.first;
@@ -128,22 +128,22 @@ namespace libmaus2
 						uint64_t const bin = basebin + low/div;
 
 						// std::cerr << level << "," << q.first << "," << q.second.first << "," << q.second.second << "," << basebin << "," << div << "," << bin << std::endl;
-						
+
 						assert ( high > low );
-						
+
 						bool const cross = ((high-1)&mask) != (low & mask);
-						
+
 						if ( cross || q.first < 0 )
 						{
 							if ( bins.find(bin) != bins.end() )
 							{
 								std::vector<element_type> & V = bins.find(bin)->second;
-								
+
 								uint64_t o = 0;
 								for ( uint64_t i = 0; i < V.size(); ++i )
 									if ( !(V[i] == elem) )
 										V[o++] = V[i];
-								
+
 								V.resize(o);
 							}
 							break;
@@ -160,31 +160,31 @@ namespace libmaus2
 			std::vector<element_type const *> search(element_type const & elem) const
 			{
 				std::vector<element_type const *> R;
-			
+
 				typedef std::pair<uint64_t,uint64_t> upair;
 				typedef std::pair<int,upair> q_element;
-				
-				std::deque< q_element > todo; 
-				
+
+				std::deque< q_element > todo;
+
 				if ( elem.getTo() > elem.getFrom() )
 					todo.push_back(q_element(k,upair(elem.getFrom(),elem.getTo())));
-			
+
 				while ( todo.size() )
 				{
 					q_element q = todo.front();
 					todo.pop_front();
-					
+
 					int const level = k-q.first;
 
 					uint64_t const basebin = (1ull << level)-1;
 					uint64_t const div = (1ull<<(q.first+1));
-					
+
 					uint64_t const mask = (q.first >= 0) ? (1<<q.first) : 0;
 
 					uint64_t const low = q.second.first;
 					uint64_t const high = q.second.second;
 					uint64_t const bin = basebin + low/div;
-					
+
 					if ( bins.find(bin) != bins.end() )
 					{
 						std::vector<element_type> const & V = bins.find(bin)->second;
@@ -198,20 +198,20 @@ namespace libmaus2
 					}
 
 					// std::cerr << level << "," << q.first << "," << q.second.first << "," << q.second.second << "," << basebin << "," << div << "," << bin << std::endl;
-					
+
 					assert ( high > low );
-					
+
 					bool const cross = ((high-1)&mask) != (low & mask);
-					
+
 					if ( cross )
 					{
 						uint64_t const mid = ((low >> q.first)+1)<<q.first;
-						
+
 						// std::cerr << "low=" << low << ",mid=" << mid << ",high=" << high << std::endl;
-						
+
 						assert ( mid > low );
 						assert ( high > mid );
-						
+
 						todo.push_back(q_element(q.first-1,upair(low,mid)));
 						todo.push_back(q_element(q.first-1,upair(mid,high)));
 					}
@@ -224,7 +224,7 @@ namespace libmaus2
 						// std::cerr << "base " << low << "," << high << " bin " << bin << std::endl;
 					}
 				}
-				
+
 				#if defined(LIBMAUS2_GEOMETRY_RANGESET_DEBUG)
 				std::vector<element_type const *> RR;
 				for ( typename std::map< uint64_t,std::vector<element_type> >::const_iterator ita = bins.begin(); ita != bins.end(); ++ita )

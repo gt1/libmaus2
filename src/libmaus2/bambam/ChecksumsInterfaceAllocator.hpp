@@ -29,13 +29,13 @@ namespace libmaus2
 		{
 			std::string hash;
 			libmaus2::bambam::BamHeaderLowMem * header;
-			
+
 			ChecksumsInterfaceAllocator(std::string rhash = std::string(), libmaus2::bambam::BamHeaderLowMem * rheader = 0)
 			: hash(rhash), header(rheader)
 			{
-			
+
 			}
-		
+
 			libmaus2::bambam::ChecksumsInterface::shared_ptr_type operator()()
 			{
 				libmaus2::bambam::ChecksumsInterface::shared_ptr_type sptr(ChecksumsFactory::constructShared(hash,*header));

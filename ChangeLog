@@ -1,3 +1,18 @@
+libmaus2 (2.0.102-1) unstable; urgency=medium
+
+  * fix daligner indexing
+  * update kmer extraction functions 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 05 Nov 2015 15:15:42 +0100
+
+libmaus2 (2.0.101-1) unstable; urgency=medium
+
+  * change suffix for our index to avoid collision with daligner
+  * add generation of daligner indexing type indexing in OverlapIndxer::constructIndex
+  * update to new daligner API
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 04 Nov 2015 11:31:18 +0100
+
 libmaus2 (2.0.100-1) unstable; urgency=medium
 
   * add getKMatchOffsets variants in AlignmentTraceContainer class

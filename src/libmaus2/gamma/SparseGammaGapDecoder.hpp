@@ -31,63 +31,63 @@ namespace libmaus2
 		struct SparseGammaGapDecoder
 		{
 			typedef SparseGammaGapDecoder this_type;
-			
+
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			typedef libmaus2::aio::SynchronousGenericInput<uint64_t> stream_type;
-			
+
 			libmaus2::aio::SynchronousGenericInput<uint64_t> SGI;
 			libmaus2::gamma::GammaDecoder<stream_type> gdec;
 			std::pair<uint64_t,uint64_t> p;
-			
+
 			struct iterator
 			{
 				SparseGammaGapDecoder * owner;
 				uint64_t v;
-				
+
 				iterator()
 				: owner(0), v(0)
 				{
-				
+
 				}
 				iterator(SparseGammaGapDecoder * rowner)
 				: owner(rowner), v(owner->decode())
 				{
-				
+
 				}
-				
+
 				uint64_t operator*() const
 				{
 					return v;
 				}
-				
+
 				iterator operator++(int)
 				{
 					iterator copy = *this;
 					v = owner->decode();
 					return copy;
 				}
-				
+
 				iterator operator++()
 				{
 					v = owner->decode();
 					return *this;
 				}
 			};
-		
+
 			SparseGammaGapDecoder(std::istream & rstream) : SGI(rstream,64*1024), gdec(SGI), p(0,0)
 			{
 				p.first = gdec.decode();
-				p.second = gdec.decode();				
+				p.second = gdec.decode();
 			}
-			
+
 			uint64_t decode()
 			{
 				// no more non zero values
 				if ( !p.second )
 					return 0;
-				
+
 				// zero value
 				if ( p.first )
 				{
@@ -102,16 +102,16 @@ namespace libmaus2
 					// get information about next non zero value
 					p.first = gdec.decode();
 					p.second = gdec.decode();
-					
+
 					return retval;
 				}
-			}			
-			
+			}
+
 			iterator begin()
 			{
 				return iterator(this);
 			}
-		};	
+		};
 	}
 }
 #endif

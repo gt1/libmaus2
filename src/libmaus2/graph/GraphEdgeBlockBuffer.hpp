@@ -33,18 +33,18 @@ namespace libmaus2
 			GraphEdge * pc;
 			GraphEdge * const pe;
 			std::vector<uint64_t> blocksizes;
-			
+
 			GraphEdgeBlockBuffer(std::string const & filename, uint64_t const bufsize)
-			: 
+			:
 				COS(filename),
 				B(bufsize,false),
 				pa(B.begin()),
 				pc(pa),
 				pe(B.end())
 			{
-			
+
 			}
-			
+
 			void internalflush()
 			{
 				if ( pc != pa )
@@ -58,15 +58,15 @@ namespace libmaus2
 					pc = pa;
 				}
 			}
-			
+
 			void put(GraphEdge const & ge)
 			{
 				*(pc++) = ge;
-				
+
 				if ( pc == pe )
 					internalflush();
 			}
-			
+
 			void flush()
 			{
 				internalflush();

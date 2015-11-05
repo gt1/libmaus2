@@ -30,7 +30,7 @@
 namespace libmaus2
 {
 	namespace bambam
-	{		
+	{
 		namespace parallel
 		{
 			struct ParseInfo
@@ -38,26 +38,26 @@ namespace libmaus2
 				typedef ParseInfo this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				PushBackSpace BPDPBS;
-				
+
 				libmaus2::bambam::BamHeaderParserState BHPS;
 				bool volatile headerComplete;
 				libmaus2::bambam::BamHeaderLowMem::unique_ptr_type Pheader;
-	
+
 				libmaus2::autoarray::AutoArray<char> concatBuffer;
 				unsigned int volatile concatBufferFill;
-				
+
 				enum parser_state_type {
 					parser_state_read_blocklength,
 					parser_state_read_block
 				};
-				
+
 				parser_state_type volatile parser_state;
 				unsigned int volatile blocklengthread;
 				uint32_t volatile blocklen;
 				uint64_t volatile parseacc;
-				
+
 				size_t byteSize()
 				{
 					return
@@ -72,72 +72,72 @@ namespace libmaus2
 						sizeof(blocklen) +
 						sizeof(parseacc);
 				}
-				
+
 				void setHeaderFromText(char const * c, size_t const s)
 				{
 					libmaus2::bambam::BamHeaderLowMem::unique_ptr_type Theader(libmaus2::bambam::BamHeaderLowMem::constructFromText(c,c+s));
 					Pheader = UNIQUE_PTR_MOVE(Theader);
 					headerComplete = true;
-					
+
 					// produce BAM header
 					std::string const text(c,c+s);
 					libmaus2::bambam::BamHeader header(text);
 					std::ostringstream ostr;
 					header.serialise(ostr);
-					
+
 					// fill header parser state
 					std::istringstream istr(ostr.str());
 					std::pair<bool,uint64_t> const P = BHPS.parseHeader(istr);
 					assert ( P.first );
 				}
-				
+
 				ParseInfoHeaderCompleteCallback * headerCompleteCallback;
-				
+
 				ParseInfo()
 				: BPDPBS(), BHPS(), headerComplete(false),
-				  concatBuffer(), concatBufferFill(0), 
+				  concatBuffer(), concatBufferFill(0),
 				  parser_state(parser_state_read_blocklength),
 				  blocklengthread(0), blocklen(0), parseacc(0), headerCompleteCallback(0)
 				{
-				
+
 				}
 
 				ParseInfo(ParseInfoHeaderCompleteCallback * rheaderCompleteCallback)
 				: BPDPBS(), BHPS(), headerComplete(false),
-				  concatBuffer(), concatBufferFill(0), 
+				  concatBuffer(), concatBufferFill(0),
 				  parser_state(parser_state_read_blocklength),
 				  blocklengthread(0), blocklen(0), parseacc(0), headerCompleteCallback(rheaderCompleteCallback)
 				{
-				
+
 				}
-				
+
 				static uint32_t getLE4(char const * A)
 				{
 					unsigned char const * B = reinterpret_cast<unsigned char const *>(A);
-					
+
 					return
 						(static_cast<uint32_t>(B[0]) << 0)  |
 						(static_cast<uint32_t>(B[1]) << 8)  |
 						(static_cast<uint32_t>(B[2]) << 16) |
 						(static_cast<uint32_t>(B[3]) << 24) ;
 				}
-				
+
 				void putBackLastName(AlignmentBuffer & algnbuf)
 				{
 					algnbuf.removeLastName(BPDPBS);
 				}
-				
+
 				bool putBackBufferEmpty() const
 				{
 					return BPDPBS.empty();
 				}
-				
+
 				libmaus2::bambam::BamHeader::unique_ptr_type getHeader()
 				{
 					libmaus2::bambam::BamHeader::unique_ptr_type ptr(new libmaus2::bambam::BamHeader(BHPS));
 					return UNIQUE_PTR_MOVE(ptr);
 				}
-	
+
 				/**
 				 * parsed decompressed bam block into algnbuf
 				 *
@@ -154,10 +154,10 @@ namespace libmaus2
 					{
 						libmaus2::util::GetObject<uint8_t const *> G(reinterpret_cast<uint8_t const *>(block.P));
 						std::pair<bool,uint64_t> Q = BHPS.parseHeader(G,block.uncompdatasize);
-						
+
 						block.P += Q.second;
 						block.uncompdatasize -= Q.second;
-						
+
 						if ( Q.first )
 						{
 							headerComplete = true;
@@ -168,7 +168,7 @@ namespace libmaus2
 								)
 							);
 							Pheader = UNIQUE_PTR_MOVE(Theader);
-							
+
 							if ( headerCompleteCallback )
 								headerCompleteCallback->bamHeaderComplete(BHPS);
 						}
@@ -182,67 +182,67 @@ namespace libmaus2
 								lme.finish();
 								throw lme;
 							}
-						
+
 							return true;
 						}
 					}
-	
+
 					// check put back buffer
 					while ( ! BPDPBS.empty() )
 					{
 						libmaus2::bambam::BamAlignment * talgn = BPDPBS.top();
-						
+
 						if ( ! (algnbuf.put(reinterpret_cast<char const *>(talgn->D.begin()),talgn->blocksize)) )
 							// block needs to be processed again
 							return false;
-							
+
 						BPDPBS.pop();
 					}
-					
+
 					// concat buffer contains data
 					if ( concatBufferFill )
 					{
 						// parser state should be reading block
 						assert ( parser_state == parser_state_read_block );
-						
+
 						// number of bytes to copy
 						uint64_t const tocopy = std::min(
 							static_cast<uint64_t>(blocklen - concatBufferFill),
 							static_cast<uint64_t>(block.uncompdatasize)
 						);
-						
+
 						// make sure there is sufficient space
 						if ( concatBufferFill + tocopy > concatBuffer.size() )
 							concatBuffer.resize(concatBufferFill + tocopy);
-	
+
 						// copy bytes
 						std::copy(block.P,block.P+tocopy,concatBuffer.begin()+concatBufferFill);
-						
+
 						// adjust pointers
 						concatBufferFill += tocopy;
 						block.uncompdatasize -= tocopy;
 						block.P += tocopy;
-						
+
 						if ( concatBufferFill == blocklen )
 						{
 							if ( ! (algnbuf.put(concatBuffer.begin(),concatBufferFill)) )
 								return false;
-	
+
 							concatBufferFill = 0;
 							parser_state = parser_state_read_blocklength;
 							blocklengthread = 0;
 							blocklen = 0;
 						}
 					}
-					
+
 					while ( block.uncompdatasize )
 					{
 						switch ( parser_state )
 						{
 							case parser_state_read_blocklength:
 							{
-								while ( 
-									(!blocklengthread) && 
+								while (
+									(!blocklengthread) &&
 									(block.uncompdatasize >= 4) &&
 									(
 										block.uncompdatasize >= 4 + (blocklen = getLE4(block.P))
@@ -251,14 +251,14 @@ namespace libmaus2
 								{
 									if ( ! (algnbuf.put(block.P+4,blocklen)) )
 										return false;
-	
+
 									// skip
 									blocklengthread = 0;
 									block.uncompdatasize -= (blocklen+4);
 									block.P += blocklen+4;
 									blocklen = 0;
 								}
-								
+
 								if ( block.uncompdatasize )
 								{
 									while ( blocklengthread < 4 && block.uncompdatasize )
@@ -268,13 +268,13 @@ namespace libmaus2
 										block.uncompdatasize--;
 										blocklengthread++;
 									}
-									
+
 									if ( blocklengthread == 4 )
 									{
 										parser_state = parser_state_read_block;
 									}
 								}
-	
+
 								break;
 							}
 							case parser_state_read_block:
@@ -286,36 +286,36 @@ namespace libmaus2
 								);
 								if ( concatBufferFill + tocopy > concatBuffer.size() )
 									concatBuffer.resize(concatBufferFill + tocopy);
-								
+
 								std::copy(
 									block.P,
 									block.P+tocopy,
 									concatBuffer.begin()+concatBufferFill
 								);
-								
+
 								concatBufferFill += tocopy;
 								block.P += tocopy;
 								block.uncompdatasize -= tocopy;
-								
+
 								// handle alignment if complete
 								if ( concatBufferFill == blocklen )
 								{
 									if ( ! (algnbuf.put(concatBuffer.begin(),concatBufferFill)) )
 										return false;
-					
+
 									blocklen = 0;
 									blocklengthread = 0;
 									parser_state = parser_state_read_blocklength;
 									concatBufferFill = 0;
 								}
-							
+
 								break;
 							}
 						}
 					}
-					
-					if ( 
-						block.final && 
+
+					if (
+						block.final &&
 						(
 							(parser_state != parser_state_read_blocklength)
 							||
@@ -335,14 +335,14 @@ namespace libmaus2
 								lme.getStream() << "parser_state_read_block";
 								break;
 						}
-						
-						lme.getStream() << " blocklengthread=" << blocklengthread 
+
+						lme.getStream() << " blocklengthread=" << blocklengthread
 							<< " headerComplete=" << headerComplete
 							<< '\n';
 						lme.finish();
 						throw lme;
 					}
-					
+
 					return true;
 				}
 			};

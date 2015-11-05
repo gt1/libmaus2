@@ -29,7 +29,7 @@ namespace libmaus2
 		{
 			::libmaus2::autoarray::AutoArray<SnappyInputStream::unique_ptr_type> A;
 
-			template<typename iterator>			
+			template<typename iterator>
 			SnappyInputStreamArray(std::istream & in, iterator offa, iterator offe)
 			: A( (offe-offa) ? ((offe-offa)-1) : 0 )
 			{
@@ -43,7 +43,7 @@ namespace libmaus2
 					A [ i ] = UNIQUE_PTR_MOVE(ptr);
 				}
 			}
-			
+
 			SnappyInputStream & operator[](uint64_t const i)
 			{
 				return *(A[i]);
@@ -59,7 +59,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < A.size(); ++i )
 					A[i]->setEofThrow(v);
 			}
-		};		
+		};
 	}
 }
 #endif

@@ -26,7 +26,7 @@ namespace libmaus2
 	namespace bambam
 	{
 		namespace parallel
-		{			
+		{
 			struct SmallLinearBlockCompressionPendingObjectHeapComparator
 			{
 				bool operator()(SmallLinearBlockCompressionPendingObject const & A, SmallLinearBlockCompressionPendingObject const & B) const

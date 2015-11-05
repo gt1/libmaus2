@@ -38,10 +38,10 @@ namespace libmaus2
 			uint64_t lastblocksize;
 			uint64_t maxblockbytes;
 			::libmaus2::autoarray::AutoArray<uint64_t> blockstarts;
-			
+
 			private:
 			Utf8BlockIndex();
-			
+
 			public:
 			template<typename stream_type>
 			void serialise(stream_type & stream) const
@@ -51,10 +51,10 @@ namespace libmaus2
 				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,maxblockbytes);
 				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,blockstarts.size()-1);
 				for ( uint64_t i = 0; i < blockstarts.size(); ++i )
-					::libmaus2::util::NumberSerialisation::serialiseNumber(stream,blockstarts[i]);	
+					::libmaus2::util::NumberSerialisation::serialiseNumber(stream,blockstarts[i]);
 			}
 			std::string serialise() const;
-			
+
 			static unique_ptr_type constructFromSerialised(std::string const & fn);
 			static unique_ptr_type constructFromUtf8File(std::string const & fn, uint64_t const rblocksize = 16ull*1024ull);
 		};

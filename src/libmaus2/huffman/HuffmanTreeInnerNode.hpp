@@ -36,10 +36,10 @@ namespace libmaus2
                         HuffmanTreeNode * left;
                         HuffmanTreeNode * right;
                         uint64_t const frequency;
-                        
+
                         HuffmanTreeInnerNode(
-                                HuffmanTreeNode * const rleft, 
-                                HuffmanTreeNode * const rright, 
+                                HuffmanTreeNode * const rleft,
+                                HuffmanTreeNode * const rright,
                                 uint64_t const rfrequency
                         )
                         : left(rleft), right(rright), frequency(rfrequency) {}
@@ -49,20 +49,20 @@ namespace libmaus2
                         uint64_t getFrequency() const {
                                 return frequency;
                         }
-                        
+
                         uint64_t byteSize() const
                         {
                         	uint64_t s = 0;
-                        	
+
                         	s += 2*sizeof(HuffmanTreeNode *) + sizeof(uint64_t);
                         	if ( left )
                         		s += left->byteSize();
                         	if ( right )
                         		s += right->byteSize();
-                        		
+
 				return s;
                         }
-                        
+
                         void fillParentMap(::std::map < HuffmanTreeNode *, HuffmanTreeInnerNode * > & M)
                         {
                                 if ( left )
@@ -88,7 +88,7 @@ namespace libmaus2
                         virtual void structureVector(::std::vector < bool > & B) const
                         {
                                 B.push_back ( 0 );
-                                
+
                                 if ( left )
                                         left->structureVector(B);
                                 if ( right )
@@ -115,14 +115,14 @@ namespace libmaus2
                                 if ( left )
                                         left->symbolDepthVector(B,depth+1);
                                 if ( right )
-                                        right->symbolDepthVector(B,depth+1);                        
+                                        right->symbolDepthVector(B,depth+1);
                         }
-                        
+
                         HuffmanTreeNode * clone() const
                         {
                                 return new HuffmanTreeInnerNode(left->clone(), right->clone(), frequency);
                         }
-                        
+
                         void addPrefix(uint64_t prefix, uint64_t shift)
                         {
                                 left->addPrefix(prefix,shift);
@@ -153,9 +153,9 @@ namespace libmaus2
                                         delete leaf;
                                 }
                         }
-                        
+
                         enum Visit { First, Second, Third };
-                        
+
                         virtual void toDot(::std::ostream & out) const
                         {
                                 out << "digraph vcsn {\n";
@@ -164,35 +164,35 @@ namespace libmaus2
 
                                 ::std::stack < ::std::pair < HuffmanTreeNode const *, Visit > > S;
                                 S.push( ::std::pair < HuffmanTreeNode const *, Visit > (this,First) );
-                                
+
                                 ::std::map < HuffmanTreeInnerNode const *, uint64_t > nodeToId;
                                 ::std::map < HuffmanTreeLeaf const *, uint64_t > leafToId;
                                 ::std::vector < HuffmanTreeInnerNode const * > idToNode;
-                                
+
                                 uint64_t leafid = 0;
 
                                 while ( ! S.empty() )
                                 {
-                                        HuffmanTreeNode const * node = S.top().first; 
+                                        HuffmanTreeNode const * node = S.top().first;
                                         Visit const firstvisit = S.top().second;
                                         S.pop();
-                                        
+
                                         if ( node->isLeaf() )
                                         {
                                                 HuffmanTreeLeaf const * leaf = dynamic_cast<HuffmanTreeLeaf const *>(node);
                                                 out << "leaf"<<leafid<<" [label=\""<<static_cast<char>(leaf->symbol)<< ":" << leaf->frequency <<"\"];\n";
                                                 leafToId[leaf] = leafid++;
                                         }
-                                        else 
+                                        else
                                         {
                                                 HuffmanTreeInnerNode const * inode = dynamic_cast<HuffmanTreeInnerNode const *>(node);
-                                                
+
                                                 if ( firstvisit == First )
                                                 {
                                                         uint64_t const id = idToNode.size();
                                                         nodeToId[inode] = id;
                                                         idToNode.push_back(inode);
-                                                        
+
                                                         S.push( ::std::pair < HuffmanTreeNode const *, Visit > (node,Second) );
                                                         S.push( ::std::pair < HuffmanTreeNode const *, Visit > (inode->left,First) );
 
@@ -213,22 +213,22 @@ namespace libmaus2
 
                                 while ( ! S.empty() )
                                 {
-                                        HuffmanTreeNode const * node = S.top().first; 
+                                        HuffmanTreeNode const * node = S.top().first;
                                         Visit const firstvisit = S.top().second;
                                         S.pop();
-                                        
+
                                         if ( node->isLeaf() )
                                         {
                                         }
-                                        else 
+                                        else
                                         {
                                                 HuffmanTreeInnerNode const * inode = dynamic_cast<HuffmanTreeInnerNode const *>(node);
-                                                
+
                                                 if ( firstvisit == First )
                                                 {
                                                         HuffmanTreeNode const * lleft = inode->left;
                                                         HuffmanTreeNode const * lright = inode->right;
-                                                        
+
                                                         if ( lleft->isLeaf() )
                                                                 out << "inner" << nodeToId.find(inode)->second << " -> leaf" << leafToId.find(dynamic_cast<HuffmanTreeLeaf const *>(lleft))->second << " [label=\"0\"]\n";
                                                         else
@@ -238,7 +238,7 @@ namespace libmaus2
                                                                 out << "inner" << nodeToId.find(inode)->second << " -> leaf" << leafToId.find(dynamic_cast<HuffmanTreeLeaf const *>(lright))->second << " [label=\"1\"]\n";
                                                         else
                                                                 out << "inner" << nodeToId.find(inode)->second << " -> inner" << nodeToId.find(dynamic_cast<HuffmanTreeInnerNode const *>(lright))->second << " [label=\"1\"]\n";
-                                                
+
                                                         S.push( ::std::pair < HuffmanTreeNode const *, Visit > (node,Second) );
                                                         S.push( ::std::pair < HuffmanTreeNode const *, Visit > (inode->left,First) );
                                                 }
@@ -259,7 +259,7 @@ namespace libmaus2
                                 ::std::deque < HuffmanTreeNode const * > Q;
                                 Q.push_back(this);
                                 uint64_t inode = 0;
-                                
+
                                 // assign node ids
                                 while ( ! Q.empty() )
                                 {
@@ -268,46 +268,46 @@ namespace libmaus2
 
                                         uint64_t const id = nodeIds.size();
                                         nodeIds[cur] = id;
-                                        
+
                                         if ( cur->isLeaf() )
                                         {
                                                 HuffmanTreeLeaf const * leaf = dynamic_cast<HuffmanTreeLeaf const *>(cur);
-                                                out << "state"<<id<<" [label=\""<<static_cast<char>(leaf->symbol)<< ":" << leaf->frequency <<"\"];\n";			
+                                                out << "state"<<id<<" [label=\""<<static_cast<char>(leaf->symbol)<< ":" << leaf->frequency <<"\"];\n";
                                         }
                                         else
                                         {
                                                 HuffmanTreeInnerNode const * inner = dynamic_cast<HuffmanTreeInnerNode const *>(cur);
                                                 Q.push_back(inner->left);
                                                 Q.push_back(inner->right);
-                                                out << "state"<<id<<" [label=\""<< (inode++)  <<"\"];\n";			
+                                                out << "state"<<id<<" [label=\""<< (inode++)  <<"\"];\n";
                                         }
                                 }
 
                                 Q.push_back(this);
-                                
+
                                 // assign node ids
                                 while ( ! Q.empty() )
                                 {
                                         HuffmanTreeNode const * cur = Q.front();
                                         Q.pop_front();
-                                        
+
                                         if ( !cur->isLeaf() )
                                         {
                                                 HuffmanTreeInnerNode const * inner = dynamic_cast<HuffmanTreeInnerNode const *>(cur);
                                                 Q.push_back(inner->left);
                                                 Q.push_back(inner->right);
-                                                
+
                                                 assert ( nodeIds.find(cur) != nodeIds.end() );
                                                 assert ( nodeIds.find(inner->left) != nodeIds.end() );
                                                 assert ( nodeIds.find(inner->right) != nodeIds.end() );
-                                                
+
                                                 out << "state" << nodeIds.find(cur)->second << " -> state" << nodeIds.find(inner->left)->second << " [label=\"0\"]\n";
                                                 out << "state" << nodeIds.find(cur)->second << " -> state" << nodeIds.find(inner->right)->second << " [label=\"1\"]\n";
                                         }
                                 }
                                 #endif
 
-                                out << "}\n";                
+                                out << "}\n";
                         }
 
                         void  fillIdMap(::std::map<  HuffmanTreeNode const *, uint64_t > & idmap, uint64_t & cur) const
@@ -325,14 +325,14 @@ namespace libmaus2
                                         left->lineSerialise(out,idmap);
                                 if ( right )
                                         right->lineSerialise(out,idmap);
-                                
-                                out 
+
+                                out
                                         << idmap.find(this)->second << "\t"
                                         << "inner" << "\t"
                                         << (left ? idmap.find(left)->second : 0) << "\t"
                                         << (right ? idmap.find(right)->second : 0) << "\n";
                         }
-                        
+
                         uint64_t depth() const
                         {
                                 return 1ull + std::max(left->depth(),right->depth());

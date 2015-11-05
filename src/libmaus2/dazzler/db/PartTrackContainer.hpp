@@ -30,7 +30,7 @@ namespace libmaus2
 			{
 				::libmaus2::dazzler::db::DatabaseFile const & DB;
 				libmaus2::autoarray::AutoArray<libmaus2::dazzler::db::Track::unique_ptr_type> Atracks;
-				
+
 				PartTrackContainer(libmaus2::dazzler::db::DatabaseFile const & rDB, std::string const trackname, int64_t const block = -1 /* block id, 1 based */)
 				: DB(rDB), Atracks(DB.numblocks)
 				{
@@ -41,21 +41,21 @@ namespace libmaus2
 							try
 							{
 								libmaus2::dazzler::db::Track::unique_ptr_type Ttrack(DB.readTrack(trackname,i+1));
-								Atracks[i] = UNIQUE_PTR_MOVE(Ttrack);							
+								Atracks[i] = UNIQUE_PTR_MOVE(Ttrack);
 							}
 							catch(...)
 							{
-							
+
 							}
 						}
 					}
 				}
-			
+
 				bool haveBlock(uint64_t const blockid) const
 				{
 					return blockid >= 1 && blockid <= Atracks.size() && Atracks[blockid-1];
 				}
-				
+
 				libmaus2::dazzler::db::Track const & getTrack(uint64_t const blockid) const
 				{
 					if ( haveBlock(blockid) )

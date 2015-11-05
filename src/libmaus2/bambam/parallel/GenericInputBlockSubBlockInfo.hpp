@@ -34,13 +34,13 @@ namespace libmaus2
 				typedef GenericInputBlockSubBlockInfo this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				std::vector< std::pair<uint8_t *,uint8_t *> > blocks;
 				libmaus2::parallel::LockedCounter returnedBlocks;
 				uint64_t streamid;
 				uint64_t blockid;
 				bool eof;
-				
+
 				size_t byteSize() const
 				{
 					return
@@ -50,17 +50,17 @@ namespace libmaus2
 						sizeof(blockid) +
 						sizeof(eof);
 				}
-				
+
 				GenericInputBlockSubBlockInfo() : returnedBlocks(0), streamid(0), blockid(0), eof(false)
 				{
-				
+
 				}
 
 				void addBlock(std::pair<uint8_t *,uint8_t *> const & P)
 				{
 					blocks.push_back(P);
 				}
-				
+
 				bool returnBlock()
 				{
 					return returnedBlocks.increment() == blocks.size();

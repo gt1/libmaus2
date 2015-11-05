@@ -29,7 +29,7 @@ namespace libmaus2
 		struct Lz4CompressWrapper
 		{
 			Lz4Compress wrapped;
-			
+
 			Lz4CompressWrapper(std::ostream & rout, uint64_t const inputblocksize)
 			: wrapped(rout,inputblocksize) {}
 			~Lz4CompressWrapper() {}

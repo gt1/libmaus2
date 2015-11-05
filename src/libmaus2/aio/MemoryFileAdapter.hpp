@@ -35,30 +35,30 @@ namespace libmaus2
 			typedef MemoryFileAdapter this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			MemoryFile::shared_ptr_type memfile;
 			uint64_t p;
-			
+
 			MemoryFileAdapter() : p(0)
 			{
-			
+
 			}
-			
+
 			MemoryFileAdapter(MemoryFile::shared_ptr_type rmemfile) : memfile(rmemfile), p(0)
 			{
-			
+
 			}
-			
+
 			void truncate()
 			{
 				p = 0;
 				memfile->truncatep();
 			}
-			
+
 			ssize_t read(char * buffer, size_t len)
 			{
 				ssize_t const r = memfile->readp(p,buffer,len);
-				
+
 				if ( r < 0 )
 				{
 					std::cerr << "MemoryFileAdapter::read failed readp on file " << getName() << std::endl;
@@ -70,11 +70,11 @@ namespace libmaus2
 					return r;
 				}
 			}
-			
+
 			ssize_t write(char const * buffer, size_t len)
 			{
 				ssize_t const w = memfile->writep(p, buffer, len);
-				
+
 				if ( w < 0 )
 				{
 					std::cerr << "MemoryFileAdapter::write failed writep on file " << getName() << std::endl;
@@ -86,13 +86,13 @@ namespace libmaus2
 					return w;
 				}
 			}
-			
+
 			off_t lseek(off_t offset, int whence)
 			{
 				// std::cerr << "seek(" << offset << "," << whence << ")";
 
 				off_t abs = 0;
-				
+
 				switch ( whence )
 				{
 					case SEEK_SET:
@@ -110,7 +110,7 @@ namespace libmaus2
 						return static_cast<off_t>(-1);
 					}
 				}
-				
+
 				if ( abs < 0 )
 				{
 					std::cerr << "MemoryFileAdapter::lseek failed lseek absolute position abs=" << abs << " < 0 on file" << getName()
@@ -125,17 +125,17 @@ namespace libmaus2
 					std::cerr << "MemoryFileAdapter::lseek failed lseek absolute position abs=" << abs << " > size = " << memfile->size() << " on file " << getName() << std::endl;
 					return static_cast<off_t>(-1);
 				}
-				
+
 				p = static_cast<uint64_t>(abs);
-				
+
 				return p;
 			}
-			
+
 			off_t getFileSize()
 			{
 				return memfile->size();
 			}
-			
+
 			std::string const & getName() const
 			{
 				return memfile->name;

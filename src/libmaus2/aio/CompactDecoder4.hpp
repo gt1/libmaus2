@@ -39,13 +39,13 @@ namespace libmaus2
 			typedef CompactDecoder4<filename_container_type> this_type;
 			//! unique pointer type
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			private:
 			//! input stream type
 			typedef libmaus2::aio::InputStreamInstance input_stream_type;
 			//! input stream unique pointer type
 			typedef ::libmaus2::util::unique_ptr<input_stream_type>::type input_stream_pointer_type;
-			
+
 			//! buffer for undecoded input data
 			::libmaus2::autoarray::AutoArray<uint8_t> decodeBuffer;
 			//! buffer for decoded input data
@@ -54,7 +54,7 @@ namespace libmaus2
 			uint8_t * pc;
 			//! end pointer for decoded data
 			uint8_t * pe;
-			
+
 			//! local filename vector
 			filename_container_type const localfilenames;
 			//! reference to list of filenames
@@ -64,14 +64,14 @@ namespace libmaus2
 
 			//! total length of decoded sequence
 			uint64_t const n;
-			
+
 			//! current input file
 			input_stream_pointer_type istr;
 			//! number of symbols to be skipped
 			uint64_t skip;
 			//! number of unread symbols in current file
 			uint64_t fileunread;
-				
+
 			/**
 			 * open next file in list
 			 *
@@ -87,15 +87,15 @@ namespace libmaus2
 
 				if ( fita == filenames.end() )
 					return false;
-					
+
 				assert ( fita != filenames.end() );
 				assert ( skip < getLength(*fita) );
-				
+
 				istr = input_stream_pointer_type(new input_stream_type(*fita));
 				fita++;
 				fileunread = ::libmaus2::util::NumberSerialisation::deserialiseNumber(*istr);
 				assert ( istr->is_open() );
-				
+
 				if ( skip/2 )
 				{
 					istr->seekg(skip/2, std::ios::cur);
@@ -105,7 +105,7 @@ namespace libmaus2
 
 				assert ( fileunread );
 				assert ( skip < 2 );
-				
+
 				return true;
 			}
 
@@ -128,7 +128,7 @@ namespace libmaus2
 					uint64_t const toreadbytes = std::min(decodeBuffer.size(), (fileunread+1) / 2 );
 					uint64_t const toreadsyms  = std::min( 2*toreadbytes, fileunread );
 					istr->read(reinterpret_cast<char *>(decodeBuffer.get()), toreadbytes);
-					
+
 					if ( istr->gcount() != static_cast<int64_t>(toreadbytes) )
 					{
 						::libmaus2::exception::LibMausException se;
@@ -136,19 +136,19 @@ namespace libmaus2
 						se.finish();
 						throw se;
 					}
-					
+
 					for ( uint64_t i = 0; i < toreadbytes; ++i )
 					{
 						buffer[2*i+0] = decodeBuffer[i] & ((1u<<4)-1);
 						buffer[2*i+1] = decodeBuffer[i] >> 4;
 					}
-					
+
 					pc = buffer.begin();
 					pe = pc + toreadsyms;
 					fileunread -= toreadsyms;
-					
+
 					assert ( pc != pe );
-					
+
 					if ( skip )
 					{
 						assert ( skip == 1 );
@@ -156,11 +156,11 @@ namespace libmaus2
 						pc++;
 					}
 				}
-				
+
 				return true;
 			}
 
-			
+
 			public:
 			/**
 			 * constructor from single filename
@@ -169,7 +169,7 @@ namespace libmaus2
 			 * @param roffset initial reading offset
 			 **/
 			CompactDecoder4(std::string const & filename, uint64_t const roffset = 0)
-			: 
+			:
 			  decodeBuffer(4096,false), buffer(2*decodeBuffer.size(),false), pc(buffer.begin()), pe(buffer.begin()),
 			  localfilenames(1,filename),
 			  filenames(localfilenames),
@@ -178,7 +178,7 @@ namespace libmaus2
 			  skip(roffset),
 			  fileunread(0)
 			{
-			
+
 			}
 
 			/**
@@ -188,7 +188,7 @@ namespace libmaus2
 			 * @param roffset initial reading offset
 			 **/
 			CompactDecoder4(filename_container_type const & rfilenames, uint64_t const roffset = 0)
-			: 
+			:
 			  decodeBuffer(4096,false), buffer(2*decodeBuffer.size(),false), pc(buffer.begin()), pe(buffer.begin()),
 			  localfilenames(),
 			  filenames(rfilenames),
@@ -197,9 +197,9 @@ namespace libmaus2
 			  skip(roffset),
 			  fileunread(0)
 			{
-			
+
 			}
-			
+
 			/**
 			 * @return next symbol or -1 for eof
 			 **/
@@ -229,7 +229,7 @@ namespace libmaus2
 					D[i] = CD.get();
 				return D;
 			}
-			
+
 			/**
 			 * compute a list of segments split points (points where the file has value 0)
 			 *
@@ -252,16 +252,16 @@ namespace libmaus2
 					points.push_back(scanstart + offset);
 					// std::cerr << "offset " << offset << std::endl;
 				}
-				
+
 				for ( uint64_t i = 0; i < points.size(); ++i )
 					if ( points[i] != n )
 					{
 						this_type CD(V,points[i]);
 						assert ( CD.get() == 0 );
 					}
-					
+
 				points.push_back(n);
-					
+
 				return points;
 			}
 

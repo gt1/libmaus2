@@ -33,13 +33,13 @@ namespace libmaus2
 				uint64_t blocksize;
 				std::string filenamebase;
 				libmaus2::parallel::LockedCounter nextid;
-				
+
 				ReadEndsContainerAllocator() : blocksize(0), filenamebase(), nextid(0) {}
 				ReadEndsContainerAllocator(
 					uint64_t const & rblocksize,
 					std::string const & rfilenamebase
 				) : blocksize(rblocksize), filenamebase(rfilenamebase), nextid(0) {}
-				
+
 				libmaus2::bambam::ReadEndsContainer::shared_ptr_type operator()()
 				{
 					uint64_t const id = nextid.increment();

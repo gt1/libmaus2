@@ -37,10 +37,10 @@ namespace libmaus2
 			::std::ostream & out;
 			::libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO;
 			::libmaus2::bitio::FastWriteBitWriterBuffer64Sync::unique_ptr_type FWBW;
-			
+
 			uint64_t const n;
 			uint64_t const b;
-			
+
 			void setup()
 			{
 				SGO.put(b);
@@ -54,7 +54,7 @@ namespace libmaus2
                                         );
 				FWBW = UNIQUE_PTR_MOVE(tFWBW);
 			}
-			
+
 			CompactArrayWriter(
 				std::string const & filename,
 				uint64_t const rn,
@@ -87,19 +87,19 @@ namespace libmaus2
 			{
 				flush();
 			}
-			
+
 			void put(uint64_t const v)
 			{
 				FWBW->write(v,b);
 			}
-			
+
 			template<typename iterator>
 			void write(iterator it, uint64_t n)
 			{
 				while ( n-- )
 					put(*(it++));
 			}
-			
+
 			void flush()
 			{
 				FWBW->flush();

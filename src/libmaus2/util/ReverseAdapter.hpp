@@ -34,18 +34,18 @@ namespace libmaus2
 		{
 			iterator ita;
 			iterator ite;
-			
+
 			ReverseAdapter()
 			{
-			
+
 			}
-			
+
 			ReverseAdapter(iterator rita, iterator rite)
 			: ita(rita), ite(rite)
 			{
-			
+
 			}
-			
+
 			typename ::std::iterator_traits<iterator>::value_type get(ssize_t i) const
 			{
 				return *(ite-i-1);

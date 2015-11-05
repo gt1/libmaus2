@@ -39,16 +39,16 @@ namespace libmaus2
 			uint64_t const s;
 			uint64_t const n1;
 			::libmaus2::autoarray::AutoArray<uint64_t> const sdict;
-			
+
 			::libmaus2::autoarray::AutoArray<uint64_t> constructSdict() const
 			{
 				::libmaus2::autoarray::AutoArray<uint64_t> sdict((n1 + s-1)/s);
-			
+
 				assert ( ICLR.A.size() % 8 == 0 );
 				uint64_t const numblocks = ICLR.A.size()/8;
 				uint64_t const * p = ICLR.A.begin();
 				uint64_t const smask = s-1;
-				
+
 				uint64_t q = 0;
 				for ( uint64_t b = 0; b < numblocks; ++b )
 				{
@@ -67,16 +67,16 @@ namespace libmaus2
 							}
 					}
 				}
-			
+
 				return sdict;
 			}
-			
+
 			ImpCacheLineSelectSupport(::libmaus2::rank::ImpCacheLineRank const & rICLR, unsigned int const rslog)
 			: ICLR(rICLR), slog(rslog), s(1ull << slog),
 			  n1(ICLR.n ? ICLR.rank1(ICLR.n-1) : 0), sdict(constructSdict())
 			{
 			}
-			
+
 			uint64_t next1(uint64_t r) const
 			{
 				assert ( ICLR[r] );
@@ -84,7 +84,7 @@ namespace libmaus2
 				assert ( ICLR[r] );
 				return r;
 			}
-			
+
 			uint64_t next1NotAdjacent(uint64_t r) const
 			{
 				assert ( ICLR[r] );
@@ -93,7 +93,7 @@ namespace libmaus2
 					r++;
 				return r;
 			}
-			
+
 			uint64_t select1(uint64_t const r) const
 			{
 				// find lower bound block by lookup
@@ -104,19 +104,19 @@ namespace libmaus2
 				#if 0
 				assert ( ICLR.A [ bb ] <= r );
 				#endif
-				
+
 				// go to next block until we have reached the correct one
 				while ( r >= ICLR.A[bb] + (ICLR.A[bb+1] >> (9*6)) )
 					bb += 8;
-				
+
 				#if 0
 				assert ( ICLR.A [ bb ] <= r );
 				assert ( ICLR.A[bb] + (ICLR.A[bb+1] >> (9*6)) > r );
 				#endif
-				
+
 				// rest of rank in block
 				uint64_t const rb = r - ICLR.A[bb];
-				
+
 				// now find correct mini block (word in block)
 				uint64_t subwordp = 1;
 				uint64_t const subblockpc = ICLR.A[bb+1];
@@ -124,22 +124,22 @@ namespace libmaus2
 				static uint64_t const submask = (1ull<<9)-1;
 				while ( rb >= ((subblockpc >> (subwordp*9))&submask) )
 					subwordp++;
-					
+
 				uint64_t const subword = subwordp-1;
-				
+
 				#if 0
 				assert ( rb >= ((subblockpc >> (subword*9))&submask) );
 				assert ( rb  < ((subblockpc >> ((subword+1)*9))&submask) );
 				#endif
-				
+
 				// std::cerr << "r=" << r << " block= " << (bb/8) << " subblock=" << subword << std::endl;
-				
+
 				// rest rank in word
 				uint64_t rbb = rb - ((subblockpc >> (subword*9))&submask);
-				
+
 				// word
 				uint64_t v = ICLR.A[bb+subword+2];
-				
+
 				// now find correct position in word
 				uint64_t woff = 0;
 				uint64_t lpcnt;

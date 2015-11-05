@@ -32,27 +32,27 @@
 #include <semaphore.h>
 #include <sys/time.h>
 #include <unistd.h>
-	
+
 namespace libmaus2
 {
 	namespace parallel
-	{		
+	{
                 struct PosixSemaphore : public TimedSemaphoreInterface
                 {
                 	typedef PosixSemaphore this_type;
                 	typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
                 	typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-                
+
 			#if defined(__APPLE__)
 			std::string semname;
 			#endif
 		        sem_t semaphore;
 			sem_t * psemaphore;
-			
+
 			private:
 			PosixSemaphore(PosixSemaphore const &);
 			PosixSemaphore operator=(PosixSemaphore const &);
-			
+
 			public:
                         PosixSemaphore() : semaphore(), psemaphore(0)
                         {
@@ -62,7 +62,7 @@ namespace libmaus2
 				semname = semnamestr.str();
 				#endif
 
-				memset ( & semaphore, 0, sizeof(sem_t) );        
+				memset ( & semaphore, 0, sizeof(sem_t) );
 
 				#if defined(__APPLE__)
 				psemaphore = sem_open(semname.c_str(), O_CREAT | O_EXCL, 0777, 0);
@@ -90,7 +90,7 @@ namespace libmaus2
 				sem_close(psemaphore);
 				sem_unlink(semname.c_str());
 				#else
-				sem_destroy(psemaphore);        
+				sem_destroy(psemaphore);
 				#endif
                         }
 
@@ -99,7 +99,7 @@ namespace libmaus2
                         	while ( sem_post ( psemaphore ) != 0 )
                         	{
                         		int const lerrno = errno;
-                        		
+
                         		switch ( lerrno )
                         		{
                         			case EINTR:
@@ -120,7 +120,7 @@ namespace libmaus2
                         	while ( sem_wait ( psemaphore ) != 0 )
                         	{
                         		int const lerrno = errno;
-                        		
+
                         		switch ( lerrno )
                         		{
                         			case EINTR:
@@ -133,7 +133,7 @@ namespace libmaus2
 							throw se;
 						}
                         		}
-                        	
+
                         	}
 			}
 
@@ -142,7 +142,7 @@ namespace libmaus2
                         	while ( sem_trywait ( psemaphore ) != 0 )
                         	{
                         		int const lerrno = errno;
-                        		
+
                         		switch ( lerrno )
                         		{
                         			case EAGAIN:
@@ -159,10 +159,10 @@ namespace libmaus2
 						}
                         		}
                         	}
-                        	
+
                         	return true;
 			}
-                        
+
                         bool timedWait()
                         {
                         	#if defined(LIBMAUS2_HAVE_SEM_TIMEDWAIT)
@@ -173,13 +173,13 @@ namespace libmaus2
 
                                 // get time of day
                                 gettimeofday(&tv,&tz);
-                                
+
                                 // set wait time to 1 second
                                 waittime.tv_sec = tv.tv_sec + 1;
                                 waittime.tv_nsec = static_cast<u_int64_t>(tv.tv_usec)*1000;
 
                                 int const v = sem_timedwait(psemaphore,&waittime);
-                                
+
                                 if ( v < 0 )
                                 {
                                         if ( errno == ETIMEDOUT )
@@ -207,7 +207,7 @@ namespace libmaus2
 						#endif
 						throw std::runtime_error("sem_trywait failed on semaphore.");
 					}
-				}   
+				}
 				else
 				{
 					return true;

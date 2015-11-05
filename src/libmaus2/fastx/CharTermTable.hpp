@@ -31,16 +31,16 @@ namespace libmaus2
 			private:
 			::libmaus2::autoarray::AutoArray<bool> atable;
 			bool * table;
-			
+
 			CharTermTable & operator=(CharTermTable const &);
 			CharTermTable(CharTermTable const &);
-			
+
 			public:
 			bool operator[](int i) const
 			{
 				return table[i];
 			}
-			
+
 			CharTermTable(uint8_t c)
 			: atable(257), table(atable.get()+1)
 			{

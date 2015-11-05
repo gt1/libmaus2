@@ -94,18 +94,18 @@ void maskBamDuplicateFlag(std::istream & in, std::ostream & out, bool const verb
 	libmaus2::timing::RealTimeClock rtc; rtc.start();
 	libmaus2::timing::RealTimeClock lrtc; lrtc.start();
 	libmaus2::lz::BgzfRecode rec(in,out);
-	
+
 	bool haveheader = false;
 	uint64_t blockskip = 0;
 	std::vector<uint8_t> headerstr;
 	uint64_t preblocksizes = 0;
-	
+
 	/* read and copy blocks until we have reached the end of the BAM header */
 	while ( (!haveheader) && rec.getBlock() )
 	{
 		std::copy ( rec.deflatebase.pa, rec.deflatebase.pa + rec.P.second,
 			std::back_insert_iterator < std::vector<uint8_t> > (headerstr) );
-		
+
 		try
 		{
 			libmaus2::util::ContainerGetObject< std::vector<uint8_t> > CGO(headerstr);
@@ -118,7 +118,7 @@ void maskBamDuplicateFlag(std::istream & in, std::ostream & out, bool const verb
 		{
 			std::cerr << "[D] " << ex.what() << std::endl;
 		}
-	
+
 		if ( ! haveheader )
 		{
 			preblocksizes += rec.P.second;
@@ -135,7 +135,7 @@ void maskBamDuplicateFlag(std::istream & in, std::ostream & out, bool const verb
 	uint64_t alcnt = 0;
 	unsigned int const dupflagskip = 15;
 	uint8_t const dupflagmask = static_cast<uint8_t>(~(4u));
-			
+
 	/* while we have alignment data blocks */
 	while ( rec.P.second )
 	{
@@ -154,7 +154,7 @@ void maskBamDuplicateFlag(std::istream & in, std::ostream & out, bool const verb
 						blocklen = *(reinterpret_cast<uint32_t const *>(pa));
 						blocklenred = sizeof(uint32_t);
 						pa += sizeof(uint32_t);
-						
+
 						state = state_pre_skip;
 						preskip = dupflagskip;
 					}
@@ -178,7 +178,7 @@ void maskBamDuplicateFlag(std::istream & in, std::ostream & out, bool const verb
 						pa += skip;
 						preskip -= skip;
 						blocklen -= skip;
-						
+
 						if ( ! skip )
 							state = state_marking;
 					}
@@ -202,11 +202,11 @@ void maskBamDuplicateFlag(std::istream & in, std::ostream & out, bool const verb
 						blocklenred = 0;
 						blocklen = 0;
 						alcnt++;
-						
+
 						if ( verbose && ((alcnt & (1024*1024-1)) == 0) )
 						{
-							std::cerr 
-								<< "[V] " << alcnt 
+							std::cerr
+								<< "[V] " << alcnt
 								<< " "
 								<< (alcnt / rtc.getElapsedSeconds())
 								<< " "
@@ -214,7 +214,7 @@ void maskBamDuplicateFlag(std::istream & in, std::ostream & out, bool const verb
 								<< " "
 								<< lrtc.getElapsedSeconds()
 								<< std::endl;
-							
+
 							lrtc.start();
 						}
 					}
@@ -223,14 +223,14 @@ void maskBamDuplicateFlag(std::istream & in, std::ostream & out, bool const verb
 			}
 
 		blockskip = 0;
-		
-		rec.putBlock();			
+
+		rec.putBlock();
 		rec.getBlock();
 	}
-			
+
 	rec.addEOFBlock();
 	std::cout.flush();
-	
+
 	if ( verbose )
 		std::cerr << "[V] Time " << rtc.getElapsedSeconds() << " alcnt " << alcnt << std::endl;
 }
@@ -242,7 +242,7 @@ void maskBamDuplicateFlag(std::istream & in, std::ostream & out, bool const verb
 void testlz4()
 {
 	std::ostringstream ostr;
-	
+
 	{
 		libmaus2::lz::Lz4CompressStream compressor(ostr,16*1024);
 		libmaus2::aio::InputStreamInstance CIS("configure");
@@ -256,14 +256,14 @@ void testlz4()
 
 	std::istringstream istr(ostr.str());
 	libmaus2::lz::Lz4Decoder dec(istr);
-	
+
 	{
 
 		for ( uint64_t i = 0; i < C.size(); i += 100 )
 		{
 			if ( i % 16 == 0 )
 				std::cerr << "i=" <<i << std::endl;
-		
+
 			int c;
 			dec.clear();
 			dec.seekg(i);
@@ -273,7 +273,7 @@ void testlz4()
 				assert ( c == static_cast<uint8_t>(C[j++]) );
 			}
 		}
-			
+
 		uint64_t i = C.size()-1;
 		int c;
 		dec.clear();
@@ -284,15 +284,15 @@ void testlz4()
 			assert ( c == static_cast<uint8_t>(C[j++]) );
 		}
 	}
-	
+
 	libmaus2::random::Random::setup(time(0));
-	
+
 	dec.clear();
 	for ( uint64_t j = 0; j < 16384; ++j )
 	{
 		uint64_t const r = 10;
 		uint64_t const p = libmaus2::random::Random::rand64() % ( C.size()-r );
-		
+
 		dec.seekg(p);
 		for ( uint64_t i = 0; i < r; ++i )
 		{
@@ -313,18 +313,18 @@ void testGzip()
 		int c = -1;
 		while ( ( c = CIS.get() ) >= 0 )
 			GZOS.put(c);
-			
-		t = GZOS.terminate();		
+
+		t = GZOS.terminate();
 	}
-	
+
 	CIS.clear();
 	CIS.seekg(0);
-	
+
 	assert ( t == ostr.str().size() );
-	
+
 	std::istringstream istr(ostr.str());
 	libmaus2::lz::BufferedGzipStream BGS(istr);
-	
+
 	int c = -1;
 	while ( (c=CIS.get()) >= 0 )
 	{
@@ -338,13 +338,13 @@ int main(int argc, char *argv[])
 {
 	{
 		libmaus2::lz::LineSplittingGzipOutputStream LSG("gzsplit",4,17);
-		
+
 		for ( uint64_t i = 0; i < 17; ++i )
-			LSG << "line_" << i << "\n";		
+			LSG << "line_" << i << "\n";
 	}
 
 	{
-		libmaus2::lz::LineSplittingGzipOutputStream LSG("nogzsplit",4,17);		
+		libmaus2::lz::LineSplittingGzipOutputStream LSG("nogzsplit",4,17);
 	}
 
 	testGzip();
@@ -370,24 +370,24 @@ int main(int argc, char *argv[])
 		while ( (r = BIDP.read(B.begin(),B.size())) )
 		{
 			BIDP.write(B.begin(),r);
-			
+
 			lcnt += r;
 			t += r;
-			
+
 			if ( t/mod != last/mod )
 			{
 				if ( isatty(STDERR_FILENO) )
-					std::cerr 
+					std::cerr
 						<< "\r" << std::string(60,' ') << "\r";
 
 				std::cerr
 						<< rtc.formatTime(rtc.getElapsedSeconds()) << " " << t/(1024*1024) << "MB, " << (lcnt/lrtc.getElapsedSeconds())/(1024.0*1024.0) << "MB/s";
-				
+
 				if ( isatty(STDERR_FILENO) )
 					std::cerr << std::flush;
 				else
 					std::cerr << std::endl;
-				
+
 				lrtc.start();
 				last = t;
 				lcnt = 0;
@@ -395,36 +395,36 @@ int main(int argc, char *argv[])
 		}
 
 		if ( isatty(STDERR_FILENO) )
-			std::cerr 
+			std::cerr
 				<< "\r" << std::string(60,' ') << "\r";
 
 		std::cerr
 				<< rtc.formatTime(rtc.getElapsedSeconds()) << " " << t/(1024*1024) << "MB, " << (t/rtc.getElapsedSeconds())/(1024.0*1024.0) << "MB/s";
-				
+
 		std::cerr << std::endl;
 
-			
+
 		return 0;
 	}
-	#endif                                                                                                                                                                            
+	#endif
 
 	#if 0
 	{
 		::libmaus2::lz::BgzfDeflateParallel BDP(std::cout,32,128,Z_DEFAULT_COMPRESSION);
-		
+
 		while ( std::cin )
 		{
 			libmaus2::autoarray::AutoArray<char> B(16384);
 			std::cin.read(B.begin(),B.size());
 			int64_t const r = std::cin.gcount();
-			
+
 			BDP.write(B.begin(),r);
 		}
-		
+
 		BDP.flush();
 		std::cout.flush();
 	}
-	
+
 	return 0;
 	#endif
 
@@ -438,7 +438,7 @@ int main(int argc, char *argv[])
 			uint64_t d = 0;
 			libmaus2::timing::RealTimeClock rtc; rtc.start();
 			libmaus2::autoarray::AutoArray<uint8_t> adata(64*1024,false);
-		
+
 			while ( (d=BIP.read(reinterpret_cast<char *>(adata.begin()),adata.size())) != 0 )
 			{
 				b += d;
@@ -447,7 +447,7 @@ int main(int argc, char *argv[])
 					std::cerr << c << "\t" << b/(1024.0*1024.0*1024.0) << "\t" << static_cast<double>(b)/(1024.0*1024.0*rtc.getElapsedSeconds()) << " MB/s" << std::endl;
 				}
 			}
-		
+
 			std::cerr << c << "\t" << b/(1024.0*1024.0*1024.0) << "\t" << static_cast<double>(b)/(1024.0*1024.0*rtc.getElapsedSeconds()) << " MB/s" << std::endl;
 			std::cerr << "decoded " << b << " bytes in " << rtc.getElapsedSeconds() << " seconds." << std::endl;
 		}
@@ -465,7 +465,7 @@ int main(int argc, char *argv[])
 	testBgzfRandom();
 	std::cerr << "done." << std::endl;
 
-	std::cerr << "Testing mono...";	
+	std::cerr << "Testing mono...";
 	testBgzfMono();
 	std::cerr << "done." << std::endl;
 
@@ -477,21 +477,21 @@ int main(int argc, char *argv[])
 	bdefl.flush();
 	bdefl.addEOFBlock();
 	return 0;
-	
+
 	::libmaus2::lz::BgzfInflateStream SW(std::cin);
 
-	::libmaus2::autoarray::AutoArray<char> BB(200,false);	
+	::libmaus2::autoarray::AutoArray<char> BB(200,false);
 	while ( SW.read(BB.begin(),BB.size()) )
 	{
-	
+
 	}
 
 	if ( argc < 2 )
 		return EXIT_FAILURE;
-	
-	
+
+
 	return 0;
-	
+
 	#if 0
 	::libmaus2::lz::GzipHeader GZH(argv[1]);
 	return 0;
@@ -499,13 +499,13 @@ int main(int argc, char *argv[])
 
 	std::ostringstream ostr;
 	::libmaus2::autoarray::AutoArray<uint8_t> message = ::libmaus2::util::GetFileSize::readFile(argv[1]);
-	
+
 	std::cerr << "Deflating message of length " << message.size() << "...";
 	::libmaus2::lz::Deflate DEFL(ostr);
 	DEFL.write ( reinterpret_cast<char const *>(message.begin()), message.size() );
 	DEFL.flush();
 	std::cerr << "done." << std::endl;
-	
+
 	std::cerr << "Checking output...";
 	std::istringstream istr(ostr.str());
 	::libmaus2::lz::Inflate INFL(istr);
@@ -517,35 +517,35 @@ int main(int argc, char *argv[])
 		i++;
 	}
 	std::cerr << "done." << std::endl;
-	
+
 	// std::cerr << "Message size " << message.size() << std::endl;
-	
+
 	std::string testfilename = "test";
 	::libmaus2::lz::BlockDeflate BD(testfilename);
 	BD.write ( message.begin(), message.size() );
 	BD.flush();
-	
+
 	uint64_t const decpos = message.size() / 3;
 	::libmaus2::lz::BlockInflate BI(testfilename,decpos);
 	::libmaus2::autoarray::AutoArray<uint8_t> dmessage (message.size(),false);
 	uint64_t const red = BI.read(dmessage.begin()+decpos,dmessage.size());
 	assert ( red == dmessage.size()-decpos );
-	
+
 	std::cerr << "(";
 	for ( uint64_t i = decpos; i < message.size(); ++i )
 		assert ( message[i] == dmessage[i] );
 	std::cerr << ")\n";
-	
+
 	std::string shortmes1("123456789");
 	std::string shortmes2("AA");
 	std::string shortmes3("BB");
 	std::string shortmes4("CC");
-	
+
 	std::string textfile1("test1");
 	std::string textfile2("test2");
 	std::string textfile3("test3");
 	std::string textfile4("test4");
-	
+
 	::libmaus2::lz::BlockDeflate BD1(textfile1);
 	BD1.write ( reinterpret_cast<uint8_t const *>(shortmes1.c_str()), shortmes1.size() );
 	BD1.flush();
@@ -561,13 +561,13 @@ int main(int argc, char *argv[])
 	::libmaus2::lz::BlockDeflate BD4(textfile4);
 	BD4.write ( reinterpret_cast<uint8_t const *>(shortmes4.c_str()), shortmes4.size() );
 	BD4.flush();
-	
+
 	std::vector < std::string > filenames;
 	filenames.push_back(textfile1);
 	filenames.push_back(textfile2);
 	filenames.push_back(textfile3);
 	filenames.push_back(textfile4);
-	
+
 	for ( uint64_t j = 0; j <= 15; ++j )
 	{
 		::libmaus2::lz::ConcatBlockInflate CBI(filenames,j);
@@ -578,6 +578,6 @@ int main(int argc, char *argv[])
 			std::cerr << (char)CBI.get();
 		std::cerr << std::endl;
 	}
-		
+
 	return 0;
 }

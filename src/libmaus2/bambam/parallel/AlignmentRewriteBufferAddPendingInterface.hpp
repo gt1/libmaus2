@@ -20,14 +20,14 @@
 #define LIBMAUS2_BAMBAM_PARALLEL_ALIGNMENTREWRITEBUFFERADDPENDINGINTERFACE_HPP
 
 #include <libmaus2/bambam/parallel/AlignmentRewriteBuffer.hpp>
-		
+
 namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			
+
 			// add a completed rewrite buffer to the pending list
 			struct AlignmentRewriteBufferAddPendingInterface
 			{

@@ -26,14 +26,14 @@ namespace libmaus2
 	namespace bambam
 	{
 		namespace parallel
-		{			
+		{
 			struct SmallLinearBlockCompressionPendingObject
 			{
 				int64_t blockid;
 				uint64_t subid;
 				uint8_t * pa;
 				uint8_t * pe;
-				
+
 				SmallLinearBlockCompressionPendingObject() : blockid(0), subid(0), pa(0), pe(0) {}
 				SmallLinearBlockCompressionPendingObject(
 					int64_t const rblockid,

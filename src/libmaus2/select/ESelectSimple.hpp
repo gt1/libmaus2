@@ -36,20 +36,20 @@ namespace libmaus2
 		{
 			typedef ESelectSimple<sym,stepbitslog> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			typedef ::libmaus2::bitio::BitWriter8 writer_type;
-			
+
 			private:
 			uint64_t const * UUUUUUUU;
 			uint64_t const n;
 			uint64_t const n64;
 			uint64_t const n1;
-			
+
 			static unsigned int const stepbits  = (1u << stepbitslog);
 			static unsigned int const stepbits1 = (stepbits-1);
-			
+
 			::libmaus2::autoarray::AutoArray<uint64_t> L64;
-			
+
 			uint64_t computeNum1(uint64_t const * UUUUUUUU) const
 			{
 				uint64_t n1 = 0;
@@ -60,8 +60,8 @@ namespace libmaus2
 
 			public:
 			ESelectSimple(uint64_t const * rUUUUUUUU, uint64_t const rn)
-			: ESelectBase<sym>(), UUUUUUUU(rUUUUUUUU), n(rn), n64(n/64), 
-			  n1(computeNum1(UUUUUUUU)), 
+			: ESelectBase<sym>(), UUUUUUUU(rUUUUUUUU), n(rn), n64(n/64),
+			  n1(computeNum1(UUUUUUUU)),
 			  L64( (n1+stepbits1)/stepbits, false )
 			{
 				if ( n % 64 )
@@ -71,7 +71,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-		
+
 				// set up dictionary for mod stepbits = 0 ranks
 				uint64_t c = 0;
 				for ( uint64_t const * U = UUUUUUUU; U != UUUUUUUU+n64; ++U )
@@ -87,22 +87,22 @@ namespace libmaus2
 							}
 							++c;
 						}
-								
+
 				}
-				
+
 				for ( uint64_t i = 0; i < L64.size(); ++i )
 					assert ( ::libmaus2::bitio::getBit(UUUUUUUU,L64[i]) );
 			}
-			
+
 			uint64_t select1(uint64_t i) const
 			{
 				uint64_t const ii = (i >> stepbitslog);
 				i -= (ii << stepbitslog);
 				uint64_t j = L64 [ ii ];
-				
+
 				if ( ! i )
 					return j;
-				
+
 				if ( (j + 1) & 0x3F )
 				{
 					uint64_t const v = ESelectBase<sym>::process(UUUUUUUU[ (j+1) >> 6 ]);
@@ -117,10 +117,10 @@ namespace libmaus2
 					else
 						return 1 + (j + ESelectBase<sym>::select1(((v&restmask) << (64-restbits)),i-1));
 				}
-				
+
 				uint64_t w = (j+1) >> 6;
 				unsigned int p;
-					
+
 				while ( (p=::libmaus2::rank::ERankBase::popcount8(ESelectBase<sym>::process(UUUUUUUU[w]))) < i )
 				{
 					j += 64;

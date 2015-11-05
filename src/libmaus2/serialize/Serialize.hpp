@@ -36,7 +36,7 @@ namespace libmaus2
 			private:
 			static uint64_t serialize(std::ostream & out, N const & c);
 			static uint64_t serializeArray(std::ostream & out, N const * A, uint64_t const n);
-			
+
 			static uint64_t deserialize(std::istream & in, N * p);
 			static uint64_t deserializeArray(std::istream & in, N * p, uint64_t const n);
 
@@ -67,15 +67,15 @@ namespace libmaus2
 			)
 			{
 				static uint64_t const bs = (64*1024 + sizeof(N) - 1) / sizeof(N);
-			
+
 				uint64_t const full = n / bs;
 				uint64_t const rest = n - full*bs;
-			
+
 				for ( uint64_t i = 0; i < full; ++i )
-					in.read ( reinterpret_cast<char *>(p+i*bs) , bs * sizeof(N) ); 
+					in.read ( reinterpret_cast<char *>(p+i*bs) , bs * sizeof(N) );
 				if ( rest )
-					in.read ( reinterpret_cast<char *>(p+full*bs) , rest * sizeof(N) ); 
-				
+					in.read ( reinterpret_cast<char *>(p+full*bs) , rest * sizeof(N) );
+
 				return n*sizeof(N);
 			}
 			static uint64_t ignore(std::istream & in)

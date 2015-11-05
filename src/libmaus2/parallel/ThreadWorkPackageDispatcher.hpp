@@ -24,13 +24,13 @@
 namespace libmaus2
 {
 	namespace parallel
-	{		
+	{
 		struct ThreadWorkPackageDispatcher
 		{
 			typedef ThreadWorkPackageDispatcher this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-					
+
 			virtual ~ThreadWorkPackageDispatcher() {}
 			virtual void dispatch(ThreadWorkPackage * P, ThreadPoolInterfaceEnqueTermInterface & tpi) = 0;
 		};

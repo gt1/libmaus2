@@ -33,7 +33,7 @@ namespace libmaus2
 			typedef CheckOverlapResult this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			bool valid;
 			uint64_t ia;
 			uint64_t ib;
@@ -47,51 +47,51 @@ namespace libmaus2
 			uint64_t numdel;
 			overlap_orientation orientation;
 			std::string trace;
-			
+
 			template<typename iterator>
 			static void rlEncodeTrace(iterator ita, iterator ite, std::ostream & out)
 			{
 				while ( ita != ite )
 				{
 					iterator itc = ita;
-					
+
 					while ( itc != ite && *itc == *ita )
 						++itc;
-					
+
 					uint64_t const rl = itc-ita;
 					assert ( rl != 0 );
 					::libmaus2::util::UTF8::encodeUTF8(rl,out);
 					out.put(*ita);
-					
+
 					ita = itc;
 				}
-				
+
 				out.put(0);
 			}
-			
+
 			static void rlEncodeTrace(std::string const & trace, std::ostream & out)
 			{
 				rlEncodeTrace(trace.begin(),trace.end(),out);
 			}
-			
+
 			static std::string rlEncodeTrace(std::string const & trace)
 			{
 				std::ostringstream ostr;
 				rlEncodeTrace(trace,ostr);
 				return ostr.str();
 			}
-			
+
 			static std::string rlDecodeTrace(std::string const & rl)
 			{
 				std::istringstream in(rl);
 				std::ostringstream out;
-				
+
 				bool decoding = true;
-				
+
 				while ( decoding )
 				{
 					uint32_t const runlen = ::libmaus2::util::UTF8::decodeUTF8(in);
-					
+
 					if ( runlen )
 					{
 						uint8_t const sym = in.get();
@@ -105,10 +105,10 @@ namespace libmaus2
 						decoding = false;
 					}
 				}
-				
+
 				return out.str();
 			}
-			
+
 			static bool checkRlEncoding(std::string const & s)
 			{
 				std::string const rlencoding = rlEncodeTrace(s);
@@ -118,12 +118,12 @@ namespace libmaus2
 				#endif
 				return s == rlDecodeTrace(rlencoding);
 			}
-			
+
 			bool checkRlEncoding()
 			{
 				return checkRlEncoding(trace);
 			}
-			
+
 			static shared_ptr_type load(std::istream & in)
 			{
 				if ( in.peek() < 0 )
@@ -134,7 +134,7 @@ namespace libmaus2
 					return shared_ptr_type(ptr);
 				}
 			}
-			
+
 			CheckOverlapResult(std::istream & in)
 			:
 				#if 0
@@ -170,20 +170,20 @@ namespace libmaus2
 				#endif
 			{
 			}
-			
+
 			void serialise(std::ostream & out) const
 			{
 				#if 0
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,valid);
-				#else				
+				#else
 				out.put(valid ? 1 : 0);
 				#endif
-				
+
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,ia);
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,ib);
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,score);
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,windowminscore);
-				
+
 				#if 0
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,clipa);
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,clipb);
@@ -192,7 +192,7 @@ namespace libmaus2
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,numins);
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,numdel);
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,static_cast<unsigned int>(orientation));
-				#else				
+				#else
 				::libmaus2::util::UTF8::encodeUTF8(clipa,out);
 				::libmaus2::util::UTF8::encodeUTF8(clipb,out);
 				::libmaus2::util::UTF8::encodeUTF8(nummat,out);
@@ -201,28 +201,28 @@ namespace libmaus2
 				::libmaus2::util::UTF8::encodeUTF8(numdel,out);
 				::libmaus2::util::UTF8::encodeUTF8(static_cast<unsigned int>(orientation),out);
 				#endif
-				
+
 				#if 0
 				::libmaus2::util::StringSerialisation::serialiseString(out,trace);
 				#else
 				::libmaus2::util::StringSerialisation::serialiseString(out,rlEncodeTrace(trace));
 				#endif
 			}
-			
+
 			static void serialiseVector(std::ostream & out, std::vector<CheckOverlapResult> const & V)
 			{
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,V.size());
 				for ( uint64_t i = 0; i < V.size(); ++i )
 					V[i].serialise(out);
 			}
-			
+
 			static std::string serialiseVector(std::vector<CheckOverlapResult> const & V)
 			{
 				std::ostringstream ostr;
 				serialiseVector(ostr,V);
 				return ostr.str();
 			}
-			
+
 			static std::vector<CheckOverlapResult::shared_ptr_type> deserialiseVectorShared(std::istream & in)
 			{
 				uint64_t const n = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
@@ -240,19 +240,19 @@ namespace libmaus2
 					V[i] = CheckOverlapResult(in);
 				return V;
 			}
-			
+
 			static std::vector<CheckOverlapResult> deserialiseVector(std::string const & in)
 			{
 				std::istringstream istr(in);
 				return deserialiseVector(istr);
 			}
-			
+
 			static std::vector<CheckOverlapResult::shared_ptr_type> deserialiseVectorShared(std::string const & in)
 			{
 				std::istringstream istr(in);
 				return deserialiseVectorShared(istr);
 			}
-			
+
 			static void serialiseVector(std::ostream & out, std::vector<CheckOverlapResult::shared_ptr_type> const & V)
 			{
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,V.size());
@@ -273,7 +273,7 @@ namespace libmaus2
 				return ostr.str();
 			}
 
-			CheckOverlapResult() : valid(false), ia(0), ib(0), score(0), windowminscore(0), clipa(0), clipb(0), 
+			CheckOverlapResult() : valid(false), ia(0), ib(0), score(0), windowminscore(0), clipa(0), clipb(0),
 				nummat(0), nummis(0), numins(0), numdel(0), orientation(overlap_cover_complete),
 				trace() {}
 			CheckOverlapResult(
@@ -291,10 +291,10 @@ namespace libmaus2
 				overlap_orientation const rorientation,
 				std::string const & rtrace
 				)
-			: valid(rvalid), ia(ria), ib(rib), score(rscore), windowminscore(rwindowminscore), clipa(rclipa), clipb(rclipb), 
-			  nummat(rnummat), nummis(rnummis), numins(rnumins), numdel(rnumdel), 
+			: valid(rvalid), ia(ria), ib(rib), score(rscore), windowminscore(rwindowminscore), clipa(rclipa), clipb(rclipb),
+			  nummat(rnummat), nummis(rnummis), numins(rnumins), numdel(rnumdel),
 			  orientation(rorientation),trace(rtrace) {}
-			  
+
 			CheckOverlapResult(CheckOverlapResult const & o)
 			: valid(o.valid),
 			  ia(o.ia),
@@ -310,9 +310,9 @@ namespace libmaus2
 			  orientation(o.orientation),
 			  trace(o.trace)
 			{
-				
+
 			}
-			
+
 			uint64_t getUsedA() const
 			{
 				return nummat + nummis + numins;
@@ -322,27 +322,27 @@ namespace libmaus2
 			{
 				return nummat + nummis + numdel;
 			}
-			
+
 			bool operator<(CheckOverlapResult const & o) const
 			{
 				return this->score < o.score;
 			}
-			
+
 			CheckOverlapResult invert() const
 			{
 				CheckOverlapResult o = *this;
-				
-				if ( 
+
+				if (
 					isLeftEdge(o.orientation)
 					||
 					isRightEdge(o.orientation)
 				)
 					std::swap(o.clipa,o.clipb);
-					
+
 				std::swap(o.numins,o.numdel);
 				std::swap(o.ia,o.ib);
-				
-				std::reverse(o.trace.begin(),o.trace.end());				
+
+				std::reverse(o.trace.begin(),o.trace.end());
 				for ( uint64_t i = 0; i < o.trace.size(); ++i )
 					switch ( o.trace[i] )
 					{
@@ -350,27 +350,27 @@ namespace libmaus2
 						case 'D': o.trace[i] = 'I'; break;
 						default: break;
 					}
-				
+
 				return o;
 			}
 
 			CheckOverlapResult invertIncludingOrientation() const
 			{
 				CheckOverlapResult o = *this;
-				
-				if ( 
+
+				if (
 					isLeftEdge(o.orientation)
 					||
 					isRightEdge(o.orientation)
 				)
 					std::swap(o.clipa,o.clipb);
-					
+
 				std::swap(o.numins,o.numdel);
 				std::swap(o.ia,o.ib);
-				
+
 				o.orientation = getInverse(o.orientation);
-				
-				std::reverse(o.trace.begin(),o.trace.end());				
+
+				std::reverse(o.trace.begin(),o.trace.end());
 				for ( uint64_t i = 0; i < o.trace.size(); ++i )
 					switch ( o.trace[i] )
 					{
@@ -378,10 +378,10 @@ namespace libmaus2
 						case 'D': o.trace[i] = 'I'; break;
 						default: break;
 					}
-				
+
 				return o;
 			}
-			
+
 			static CheckOverlapResult const & max(
 				CheckOverlapResult const & A, CheckOverlapResult const & B
 				)
@@ -395,20 +395,20 @@ namespace libmaus2
 				else
 					return B;
 			}
-			
+
 			edge_type toEdge() const
 			{
 				return edge_type(
 					ia,ib,
 					addOrientation(clipb,orientation)
 				);
-			
+
 			}
 		};
 
 		inline std::ostream & operator<<(std::ostream & out, CheckOverlapResult const & C)
 		{
-			out 
+			out
 				<< "CheckOverlapResult("
 				<< "valid=" << (C.valid?"true":"false")
 				<< ",ia=" << C.ia

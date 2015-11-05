@@ -20,24 +20,24 @@
 
 std::ostream & libmaus2::parallel::operator<<(std::ostream & out, libmaus2::parallel::SimpleThreadWorkPackage const & T)
 {
-	out << "SimpleThreadWorkPackage(" 
-		<< "priority=" << T.priority 
+	out << "SimpleThreadWorkPackage("
+		<< "priority=" << T.priority
 		<< ","
-		<< "dispatcherid=" << T.dispatcherid 
+		<< "dispatcherid=" << T.dispatcherid
 		<< ","
-		<< "packageid=" << T.packageid 
+		<< "packageid=" << T.packageid
 		<< ")";
 	return out;
 }
 
 std::ostream & libmaus2::parallel::operator<<(std::ostream & out, libmaus2::parallel::SimpleThreadWorkPackage const * T)
 {
-	out << "SimpleThreadWorkPackage(" 
-		<< "priority=" << T->priority 
+	out << "SimpleThreadWorkPackage("
+		<< "priority=" << T->priority
 		<< ","
-		<< "dispatcherid=" << T->dispatcherid 
+		<< "dispatcherid=" << T->dispatcherid
 		<< ","
-		<< "packageid=" << T->packageid 
+		<< "packageid=" << T->packageid
 		<< ")";
 	return out;
 }

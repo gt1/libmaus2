@@ -41,7 +41,7 @@ namespace libmaus2
 		template<size_t k> std::ostream & operator<<(std::ostream & out, UnsignedInteger<k> const & A);
 		template<size_t k> UnsignedInteger<k> operator<<(UnsignedInteger<k> const & A, unsigned int const s);
 		template<size_t k> UnsignedInteger<k> operator>>(UnsignedInteger<k> const & A, unsigned int const s);
-		
+
 		template<typename T, size_t k>
 		struct ArrayErase
 		{
@@ -51,14 +51,14 @@ namespace libmaus2
 					A[i] = 0;
 			}
 		};
-		
+
 		template<typename T>
 		struct ArrayErase<T,0>
 		{
 			static void erase(T *)
 			{
-			
-			}		
+
+			}
 		};
 
 		template<typename T, size_t k>
@@ -77,27 +77,27 @@ namespace libmaus2
 			{
 			}
 		};
-		
+
 		template<size_t k>
 		struct UnsignedInteger
 		{
 			private:
 			uint32_t A[k];
-			
+
 			void erase()
 			{
-				ArrayErase<uint32_t,k>::erase(&A[0]);	
+				ArrayErase<uint32_t,k>::erase(&A[0]);
 			}
-			
+
 			public:
 			template<size_t l>
 			friend struct UnsignedInteger;
-			
+
 			UnsignedInteger()
 			{
 				erase();
 			}
-			
+
 			uint32_t operator[](size_t i) const
 			{
 				return A[i];
@@ -107,12 +107,12 @@ namespace libmaus2
 			{
 				return A[i];
 			}
-			
+
 			uint32_t const * getWords() const
 			{
 				return &A[0];
 			}
-			
+
 			template<size_t l>
 			UnsignedInteger(UnsignedInteger<l> const & O)
 			{
@@ -133,22 +133,22 @@ namespace libmaus2
 				}
 				else if ( k == 1 )
 				{
-					A[0] = static_cast<uint32_t>((a >>  0) & 0xFFFFFFFFull);					
+					A[0] = static_cast<uint32_t>((a >>  0) & 0xFFFFFFFFull);
 				}
 				else
 				{
-				
+
 				}
 			}
-			
+
 			UnsignedInteger<k> & operator=(UnsignedInteger<k> const & O)
 			{
 				ArrayCopy<uint32_t,k>::copy(&A[0],&O.A[0]);
 				return *this;
 			}
-			
+
 			bool isNull() const;
-						
+
 			bool operator==(UnsignedInteger<k> const & O) const
 			{
 				bool eq = true;
@@ -161,18 +161,18 @@ namespace libmaus2
 			{
 				return !(operator==(O));
 			}
-			
+
 			bool operator<(UnsignedInteger<k> const & O) const
 			{
 				for ( size_t i = 0; i < k; ++i )
 					if ( A[k-i-1] != O.A[k-i-1] )
 					{
-						if ( A[k-i-1] < O.A[k-i-1] )					
+						if ( A[k-i-1] < O.A[k-i-1] )
 							return true;
 						else
 							return false;
 					}
-					
+
 				return false;
 			}
 
@@ -181,12 +181,12 @@ namespace libmaus2
 				for ( size_t i = 0; i < k; ++i )
 					if ( A[k-i-1] != O.A[k-i-1] )
 					{
-						if ( A[k-i-1] < O.A[k-i-1] )					
+						if ( A[k-i-1] < O.A[k-i-1] )
 							return false;
 						else
 							return true;
 					}
-					
+
 				return false;
 			}
 
@@ -195,12 +195,12 @@ namespace libmaus2
 				for ( size_t i = 0; i < k; ++i )
 					if ( A[k-i-1] != O.A[k-i-1] )
 					{
-						if ( A[k-i-1] < O.A[k-i-1] )					
+						if ( A[k-i-1] < O.A[k-i-1] )
 							return false;
 						else
 							return true;
 					}
-					
+
 				return true;
 			}
 
@@ -209,15 +209,15 @@ namespace libmaus2
 				for ( size_t i = 0; i < k; ++i )
 					if ( A[k-i-1] != O.A[k-i-1] )
 					{
-						if ( A[k-i-1] < O.A[k-i-1] )					
+						if ( A[k-i-1] < O.A[k-i-1] )
 							return true;
 						else
 							return false;
 					}
-					
+
 				return true;
 			}
-			
+
 			/**
 			 * left shift by s bits (multiply by 2^s)
 			 **/
@@ -240,7 +240,7 @@ namespace libmaus2
 				{
 					erase();
 				}
-				
+
 				// bit shift
 				size_t const q = s & 31;
 
@@ -251,10 +251,10 @@ namespace libmaus2
 						A[k-i] <<= q;
 						A[k-i] |= A[k-i-1] >> (32-q);
 					}
-					
+
 					A[0] <<= q;
 				}
-								
+
 				return *this;
 			}
 
@@ -280,7 +280,7 @@ namespace libmaus2
 				{
 					erase();
 				}
-				
+
 				// bit shift
 				size_t const q = s & 31;
 
@@ -291,13 +291,13 @@ namespace libmaus2
 						A[i] >>= q;
 						A[i] |= A[i+1] << (32-q);
 					}
-					
+
 					A[k-1] >>= q;
 				}
-								
+
 				return *this;
 			}
-			
+
 			template<size_t l>
 			UnsignedInteger<k> & operator+=(UnsignedInteger<l> const & O);
 
@@ -307,17 +307,17 @@ namespace libmaus2
 				{
 					int64_t dif = static_cast<int64_t>(A[0]) - static_cast<int64_t>(O.A[0]);
 					A[0] = static_cast<uint32_t>((dif + 0x100000000ll) & 0xFFFFFFFF);
-										
+
 					if ( k > 1 )
 					{
 						for ( size_t i = 1; i < k; ++i )
 						{
 							dif = static_cast<int64_t>(A[i]) - ( static_cast<int64_t>(O.A[i]) + ((static_cast<uint64_t>(dif) >> 63)&1) );
-							A[i] = static_cast<uint32_t>((dif + 0x100000000ll) & 0xFFFFFFFF);							
+							A[i] = static_cast<uint32_t>((dif + 0x100000000ll) & 0xFFFFFFFF);
 						}
 					}
 				}
-				
+
 				return *this;
 			}
 
@@ -332,7 +332,7 @@ namespace libmaus2
 			friend UnsignedInteger<k> operator/<>(UnsignedInteger<k> const & A, UnsignedInteger<k> const & B);
 			friend std::pair< UnsignedInteger<k>,UnsignedInteger<k> > divmod<>(UnsignedInteger<k> const & A, UnsignedInteger<k> const & B);
 			friend std::ostream & operator<< <>(std::ostream & out, UnsignedInteger<k> const & A);
-			
+
 			UnsignedInteger<k> & operator/=(UnsignedInteger<k> const & A)
 			{
 				UnsignedInteger<k> R = *this / A;
@@ -360,7 +360,7 @@ namespace libmaus2
 					A[i] &= O.A[i];
 				return *this;
 			}
-			
+
 			UnsignedInteger<k> operator~() const
 			{
 				UnsignedInteger<k> A;
@@ -369,7 +369,7 @@ namespace libmaus2
 				return A;
 			}
 		};
-		
+
 		template<size_t i, size_t j, size_t k, size_t ko>
 		struct UnsignedInteger_multiply_level2
 		{
@@ -377,7 +377,7 @@ namespace libmaus2
 			{
 				uint64_t prod = static_cast<uint64_t>(A[i]) * static_cast<uint64_t>(B[j]);
 				size_t t = i+j;
-				
+
 				do {
 					prod   += R[t];
 					R[t]  = static_cast<uint32_t>(prod & 0xFFFFFFFFULL);
@@ -385,15 +385,15 @@ namespace libmaus2
 				} while ( prod && ++t < ko );
 
 				UnsignedInteger_multiply_level2<i,j+1,k,ko>::multiply(A,B,R);
-			}		
+			}
 		};
-		
+
 		template<size_t i, size_t k, size_t ko>
 		struct UnsignedInteger_multiply_level2<i,k,k,ko>
 		{
 			static void multiply(uint32_t const * const, uint32_t const * const, uint32_t * const)
 			{
-			}			
+			}
 		};
 
 		template<size_t i, size_t k>
@@ -414,11 +414,11 @@ namespace libmaus2
 			{
 			}
 		};
-		
+
 		template<size_t k>
 		UnsignedInteger<k> operator*(UnsignedInteger<k> const & A, UnsignedInteger<k> const & B)
 		{
-			UnsignedInteger<k> R;			
+			UnsignedInteger<k> R;
 			UnsignedInteger_multiply_level1<0,k>::multiply(&(A.A[0]),&(B.A[0]),&(R.A[0]));
 			return R;
 		}
@@ -426,7 +426,7 @@ namespace libmaus2
 		template<size_t k>
 		UnsignedInteger<k> operator+(UnsignedInteger<k> const & A, UnsignedInteger<k> const & B)
 		{
-			UnsignedInteger<k> R = A;			
+			UnsignedInteger<k> R = A;
 			R += B;
 			return R;
 		}
@@ -440,7 +440,7 @@ namespace libmaus2
 		template<size_t k>
 		UnsignedInteger<k> operator-(UnsignedInteger<k> const & A, UnsignedInteger<k> const & B)
 		{
-			UnsignedInteger<k> R = A;			
+			UnsignedInteger<k> R = A;
 			R -= B;
 			return R;
 		}
@@ -466,39 +466,39 @@ namespace libmaus2
 		{
 			if ( rB > rA )
 				return UnsignedInteger<k>(0);
-		
+
 			UnsignedInteger<k+1> A(rA);
 			UnsignedInteger<k+1> B(rB);
-			
+
 			std::vector< UnsignedInteger<k+1> > div;
 			std::vector< UnsignedInteger<k+1> > sub;
-			
+
 			UnsignedInteger<k+1> M(B);
 			UnsignedInteger<k+1> D(1);
-			
+
 			// generate B * 2^k as long as it does not exceed A
 			while ( M <= A )
 			{
 				div.push_back(M);
 				sub.push_back(D);
-								
+
 				D <<= 1;
 				M <<= 1;
 			}
-			
+
 			UnsignedInteger<k+1> R;
 			while ( div.size() )
 			{
 				if ( div.back() <= A )
 				{
 					R += sub.back();
-					A -= div.back();					
+					A -= div.back();
 				}
-				
+
 				div.pop_back();
 				sub.pop_back();
 			}
-			
+
 			return UnsignedInteger<k>(R);
 		}
 
@@ -514,80 +514,80 @@ namespace libmaus2
 		{
 			if ( rB > rA )
 				return rA;
-		
+
 			UnsignedInteger<k+1> A(rA);
 			UnsignedInteger<k+1> B(rB);
-			
+
 			std::vector< UnsignedInteger<k+1> > div;
-			
+
 			UnsignedInteger<k+1> M(B);
-			
+
 			while ( M <= A )
 			{
 				div.push_back(M);
 				M <<= 1;
 			}
-			
+
 			while ( div.size() )
 			{
 				if ( div.back() <= A )
 					A -= div.back();
-				
+
 				div.pop_back();
 			}
-			
+
 			return UnsignedInteger<k>(A);
 		}
 
 		/**
 		 * simultaneously compute result of division and rest of division
 		 **/
-		template<size_t k> 
+		template<size_t k>
 		std::pair< UnsignedInteger<k>,UnsignedInteger<k> > divmod(UnsignedInteger<k> const & rA, UnsignedInteger<k> const & rB)
 		{
 			if ( rB > rA )
 				return std::pair< UnsignedInteger<k>,UnsignedInteger<k> > ( UnsignedInteger<k>(0), rA );
-		
+
 			UnsignedInteger<k+1> A(rA);
 			UnsignedInteger<k+1> B(rB);
-			
+
 			std::vector< UnsignedInteger<k+1> > div;
 			std::vector< UnsignedInteger<k+1> > sub;
-			
+
 			UnsignedInteger<k+1> M(B);
 			UnsignedInteger<k+1> D(1);
-			
+
 			// generate B * 2^k as long as it does not exceed A
 			while ( M <= A )
 			{
 				div.push_back(M);
 				sub.push_back(D);
-								
+
 				D <<= 1;
 				M <<= 1;
 			}
-			
+
 			UnsignedInteger<k+1> R;
 			while ( div.size() )
 			{
 				if ( div.back() <= A )
 				{
 					R += sub.back();
-					A -= div.back();					
+					A -= div.back();
 				}
-				
+
 				div.pop_back();
 				sub.pop_back();
 			}
-			
+
 			return std::pair< UnsignedInteger<k>,UnsignedInteger<k> >(
 				UnsignedInteger<k>(R),
 				UnsignedInteger<k>(A)
 			);
-		
+
 		}
 
-		template<size_t k> 
+		template<size_t k>
 		UnsignedInteger<k> operator<<(UnsignedInteger<k> const & A, unsigned int const s)
 		{
 			UnsignedInteger<k> R = A;
@@ -595,20 +595,20 @@ namespace libmaus2
 			return R;
 		}
 
-		template<size_t k> 
+		template<size_t k>
 		UnsignedInteger<k> operator|(UnsignedInteger<k> const & A, UnsignedInteger<k> const & B)
 		{
 			UnsignedInteger<k> R = A;
 			R |= B;
-			return R;		
+			return R;
 		}
 
-		template<size_t k> 
+		template<size_t k>
 		UnsignedInteger<k> operator&(UnsignedInteger<k> const & A, UnsignedInteger<k> const & B)
 		{
 			UnsignedInteger<k> R = A;
 			R &= B;
-			return R;		
+			return R;
 		}
 
 		template<size_t i, size_t k>
@@ -619,16 +619,16 @@ namespace libmaus2
 				return A[k-i] | UnsignedIntegerMaskOr<i+1,k>::maskor(A);
 			}
 		};
-		
+
 		template<size_t k>
 		struct UnsignedIntegerMaskOr<k,k>
 		{
 			static uint32_t maskor(UnsignedInteger<k> const & A)
 			{
 				return A[0];
-			}			
+			}
 		};
-		
+
 		template<size_t k>
 		bool UnsignedInteger<k>::isNull() const
 		{
@@ -646,7 +646,7 @@ namespace libmaus2
 				// most significant to least significant
 				for ( unsigned int i = 0; i < k; ++i )
 					out << std::setw(0) << std::setfill('0') << std::setw(8) << A.A[k-i-1];
-				
+
 				out.width(w);
 				out.fill(f);
 			}
@@ -656,27 +656,27 @@ namespace libmaus2
 				UnsignedInteger<k> V(A);
 				UnsignedInteger<k> T(10);
 				std::vector<int> D;
-				
+
 				while ( V != UnsignedInteger<k>(0) )
 				{
 					std::pair< UnsignedInteger<k>,UnsignedInteger<k> > M = divmod( V, T );
 					D.push_back(M.second.A[0]);
 					V = M.first;
 				}
-				
+
 				if ( ! D.size() )
 					D.push_back(0);
-				
+
 				while ( D.size() )
 				{
 					out << D.back();
 					D.pop_back();
 				}
 			}
-			
+
 			return out;
 		}
-		
+
 		template<size_t k, size_t l>
 		struct TemplateMin
 		{
@@ -689,9 +689,9 @@ namespace libmaus2
 		{
 			if ( TemplateMin<k,l>::m )
 			{
-				uint64_t sum = static_cast<uint64_t>(A[0]) + static_cast<uint64_t>(O.A[0]);	
+				uint64_t sum = static_cast<uint64_t>(A[0]) + static_cast<uint64_t>(O.A[0]);
 				A[0] = static_cast<uint32_t>(sum & 0xFFFFFFFFULL);
-				
+
 				for ( size_t i = 1; i < TemplateMin<k,l>::m; ++i )
 				{
 					sum = static_cast<uint64_t>(A[i]) + static_cast<uint64_t>(O.A[i]) + ((sum >> 32) & 0xFFFFFFFFULL);
@@ -703,7 +703,7 @@ namespace libmaus2
 					A[i] = static_cast<uint32_t>(sum & 0xFFFFFFFFULL);
 				}
 			}
-			
+
 			return *this;
 		}
 	}

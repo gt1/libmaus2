@@ -31,10 +31,10 @@ namespace libmaus2
 			private:
 			TraceContainer & operator=(TraceContainer const &);
 			TraceContainer(TraceContainer const &);
-		
+
 			public:
 			virtual ~TraceContainer() {}
-		
+
 			// trace
 			::libmaus2::autoarray::AutoArray<step_type> trace;
 			//
@@ -44,9 +44,9 @@ namespace libmaus2
 			TraceContainer(uint64_t const tracelen)
 			: trace(tracelen), te(trace.end()), ta(te)
 			{
-			
+
 			}
-			
+
 			int64_t getWindowMinScore(uint64_t const windowsize) const
 			{
 				step_type const * cl = ta;
@@ -54,7 +54,7 @@ namespace libmaus2
 				// end of first window
 				step_type const * const cw = cl + std::min(static_cast<ptrdiff_t>(windowsize),te-ta);
 				int64_t score = 0;
-				
+
 				while ( cr != cw )
 					switch ( *(cr++) )
 					{
@@ -73,9 +73,9 @@ namespace libmaus2
 						case STEP_RESET:
 							break;
 					}
-					
+
 				int64_t minscore = score;
-				
+
 				while ( cr != te )
 				{
 					switch ( *(cl++) )
@@ -112,18 +112,18 @@ namespace libmaus2
 						case STEP_RESET:
 							break;
 					}
-					
+
 					#if 0
 					int64_t const expected = getTraceScore(cl,cl+windowsize);
 					std::cerr << "expected " << expected << " computed " << score << std::endl;
 					#endif
 
 					minscore = std::min(minscore,score);
-				}	
-				
+				}
+
 				return minscore;
 			}
-			
+
 			void invert()
 			{
 				std::reverse(ta,te);
@@ -133,25 +133,25 @@ namespace libmaus2
 					else if ( *tc == STEP_DEL )
 						*tc = STEP_INS;
 			}
-			
+
 			static void invertUnmappedInPlace(std::string & t)
 			{
 				std::reverse(t.begin(),t.end());
-				
+
 				for ( uint64_t i = 0; i < t.size(); ++i )
 					if ( t[i] == 'D' )
 						t[i] = 'I';
 					else if ( t[i] == 'I' )
 						t[i] = 'D';
 			}
-			
+
 			static std::string invertUnmapped(std::string const & s)
 			{
 				std::string t = s;
 				invertUnmappedInPlace(t);
 				return t;
 			}
-			
+
 			template<typename iterator>
 			void appendTrace(iterator i) const
 			{
@@ -163,7 +163,7 @@ namespace libmaus2
 			{
 				return te-ta;
 			}
-			
+
 			template<typename it>
 			static int32_t getTraceScore(it ta, it te)
 			{
@@ -191,7 +191,7 @@ namespace libmaus2
 				}
 				return score;
 			}
-			
+
 			template<typename it>
 			static std::string traceToString(it ta, it te)
 			{
@@ -218,15 +218,15 @@ namespace libmaus2
 							break;
 					}
 				}
-				
+
 				return ostr.str();
 			}
-			
+
 			std::string traceToString()
 			{
 				return traceToString(ta,te);
 			}
-			
+
 			int32_t getTraceScore() const
 			{
 				return getTraceScore(ta,te);
@@ -249,22 +249,22 @@ namespace libmaus2
 			uint64_t getBackDeletes() const
 			{
 				uint64_t i = 0;
-				
+
 				step_type const * tc = te;
-				
+
 				while ( tc != ta )
 				{
 					--tc;
-					
+
 					if ( *tc == STEP_DEL )
 						i++;
 					else
 						break;
 				}
-				
+
 				return i;
 			}
-			
+
 			uint64_t removeBackDeletes()
 			{
 				uint64_t const d = getBackDeletes();
@@ -276,7 +276,7 @@ namespace libmaus2
 			uint64_t getConsecutiveMatches() const
 			{
 				uint64_t maxmat = 0, mat = 0;
-				
+
 				for ( step_type const * ta = this->ta; ta != this->te; ++ta )
 					switch ( *ta )
 					{
@@ -291,10 +291,10 @@ namespace libmaus2
 							maxmat = std::max(maxmat,mat);
 							break;
 					}
-					
+
 				return maxmat;
 			}
-			
+
 		};
 	}
 }

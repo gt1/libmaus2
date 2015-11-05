@@ -34,7 +34,7 @@ namespace libmaus2
 		struct MultiWordDNABitBuffer
 		{
 			static unsigned int const bases_per_word = _bases_per_word;
-		
+
 			typedef uint64_t data_type;
 
 			static unsigned int getMaxBasesPerWord()
@@ -118,7 +118,7 @@ namespace libmaus2
 			}
 
 			MultiWordDNABitBuffer(unsigned int const rwidth)
-			: width(rwidth), width2(2*width), 
+			: width(rwidth), width2(2*width),
 			  singlewordbuffers( getNumberOfWords(width) ),
 			  fullshift(singlewordbuffers?singlewordbuffers-1:0),
 			  basewidth(generateBaseWidth()),
@@ -167,13 +167,13 @@ namespace libmaus2
 
 				for ( unsigned int i = 0; i < width; ++i, pmask >>= 2, shift -= 2 )
 					ostr << ((buffer & pmask) >> shift);
-				
+
 				return ostr.str();
 			}
 			std::string toString() const
 			{
 				std::ostringstream ostr;
-				
+
 				for ( unsigned int i = 0; i < fullshift; ++i )
 					ostr << toString(buffers[i],getMaxBasesPerWord());
 

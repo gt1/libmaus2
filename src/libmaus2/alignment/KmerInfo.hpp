@@ -31,19 +31,19 @@ namespace libmaus2
 			uint64_t rank;
 			uint64_t pos;
 			uint64_t offset;
-			
+
 			KmerInfo() : rank(0), pos(0), offset(0) {}
 			KmerInfo(
 				uint64_t const rrank,
 				uint64_t const rpos,
 				uint64_t const roffset
 			) : rank(rrank), pos(rpos), offset(roffset) {}
-			
+
 			bool operator<(KmerInfo const & O) const
 			{
 				int64_t const offa = static_cast<int64_t>(pos) - static_cast<int64_t>(offset);
 				int64_t const offb = static_cast<int64_t>(O.pos) - static_cast<int64_t>(O.offset);
-				
+
 				if ( offa != offb )
 					return offa < offb;
 				else

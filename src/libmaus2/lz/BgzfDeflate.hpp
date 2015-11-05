@@ -30,7 +30,7 @@ namespace libmaus2
 	{
 		template<typename _stream_type>
 		struct BgzfDeflate : public BgzfDeflateBase
-		{	
+		{
 			typedef BgzfDeflateBase base_type;
 			typedef _stream_type stream_type;
 			typedef BgzfDeflate<_stream_type> this_type;
@@ -40,8 +40,8 @@ namespace libmaus2
 			std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback *> blockoutputcallbacks;
 
 			BgzfDeflate(
-				stream_type & rstream, 
-				int const level = Z_DEFAULT_COMPRESSION, 
+				stream_type & rstream,
+				int const level = Z_DEFAULT_COMPRESSION,
 				bool const rflushmode = false
 			)
 			: BgzfDeflateBase(level,rflushmode), stream(rstream), blockoutputcallbacks()
@@ -67,9 +67,9 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "failed to write compressed data to bgzf stream." << std::endl;
 					se.finish();
-					throw se;				
+					throw se;
 				}
-				
+
 				for ( uint64_t i = 0; i < blockoutputcallbacks.size(); ++i )
 					(*(blockoutputcallbacks[i]))(in,incnt,out,outcnt);
 			}
@@ -80,7 +80,7 @@ namespace libmaus2
 				BgzfDeflateZStreamBaseFlushInfo const & BDZSBFI)
 			{
 				assert ( BDZSBFI.blocks == 1 || BDZSBFI.blocks == 2 );
-				
+
 				if ( BDZSBFI.blocks == 1 )
 				{
 					/* write data to stream, one block */
@@ -99,7 +99,7 @@ namespace libmaus2
 			{
 				/* flush, compress */
 				BgzfDeflateZStreamBaseFlushInfo BDZSBFI = base_type::flush(flushmode);
-								
+
 				/* write blocks */
 				streamWrite(inbuf.begin(), outbuf.begin(), BDZSBFI);
 
@@ -118,11 +118,11 @@ namespace libmaus2
 				/* return number of compressed bytes written */
 				return BDZSBFI.getCompressedSize();
 			}
-			
+
 			void write(char const * const cp, unsigned int n)
 			{
 				uint8_t const * p = reinterpret_cast<uint8_t const *>(cp);
-			
+
 				while ( n )
 				{
 					unsigned int const towrite = std::min(n,static_cast<unsigned int>(pe-pc));
@@ -131,7 +131,7 @@ namespace libmaus2
 					p += towrite;
 					pc += towrite;
 					n -= towrite;
-					
+
 					if ( pc == pe )
 						flush();
 				}
@@ -147,13 +147,13 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				assert ( ! flushmode ); // flush should write exactly one block
-			
+
 				uint64_t bcnt = 0;
 				uint64_t ccnt = 0;
 				uint8_t const * p = reinterpret_cast<uint8_t const *>(cp);
-			
+
 				while ( n )
 				{
 					unsigned int const towrite = std::min(n,static_cast<unsigned int>(pe-pc));
@@ -162,31 +162,31 @@ namespace libmaus2
 					p += towrite;
 					pc += towrite;
 					n -= towrite;
-					
+
 					if ( pc == pe )
 					{
 						ccnt += flush();
 						bcnt++;
 					}
 				}
-				
+
 				// drain buffer
 				while ( pc != pa )
 				{
 					ccnt += flush();
-					bcnt++;				
+					bcnt++;
 				}
-				
+
 				return std::pair<uint64_t,uint64_t>(bcnt,ccnt);
 			}
-			
+
 			void put(uint8_t const c)
 			{
 				*(pc++) = c;
 				if ( pc == pe )
 					flush();
 			}
-			
+
 			void addEOFBlock()
 			{
 				// flush, if there is any uncompressed data
@@ -197,32 +197,32 @@ namespace libmaus2
 				// write empty block
 				flush();
 			}
-		};                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+		};
 
 		template<typename _stream_type>
 		struct BgzfDeflateWrapper
 		{
 			typedef _stream_type stream_type;
-			
+
 			BgzfDeflate<stream_type> object;
 
 			BgzfDeflateWrapper(stream_type & rstream, int const level = Z_DEFAULT_COMPRESSION, bool const rflushmode = false)
 			: object(rstream,level,rflushmode)
 			{
 			}
-			
+
 		};
 
 		struct BgzfOutputStreamBuffer : public BgzfDeflateWrapper<std::ostream>, public ::std::streambuf
 		{
 			::libmaus2::autoarray::AutoArray<char> buffer;
-		
+
 			BgzfOutputStreamBuffer(std::ostream & out, int const level = Z_DEFAULT_COMPRESSION)
-			: BgzfDeflateWrapper<std::ostream>(out,level,true), buffer(BgzfConstants::getBgzfMaxBlockSize(),false) 
+			: BgzfDeflateWrapper<std::ostream>(out,level,true), buffer(BgzfConstants::getBgzfMaxBlockSize(),false)
 			{
 				setp(buffer.begin(),buffer.end());
 			}
-			
+
 			int_type overflow(int_type c = traits_type::eof())
 			{
 				if ( c != traits_type::eof() )
@@ -234,7 +234,7 @@ namespace libmaus2
 
 				return c;
 			}
-			
+
 			void doSync()
 			{
 				int64_t const n = pptr()-pbase();
@@ -247,19 +247,19 @@ namespace libmaus2
 				BgzfDeflateWrapper<std::ostream>::object.flush();
 				return 0; // no error, -1 for error
 			}
-			
+
 			void addEOFBlock()
 			{
 				BgzfDeflateWrapper<std::ostream>::object.addEOFBlock();
 			}
 		};
-		
+
 		struct BgzfOutputStream : public BgzfOutputStreamBuffer, public std::ostream
-		{	
+		{
 			typedef BgzfOutputStream this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			BgzfOutputStream(std::ostream & out, int const level = Z_DEFAULT_COMPRESSION)
 			: BgzfOutputStreamBuffer(out,level), std::ostream(this)
 			{

@@ -39,9 +39,9 @@ namespace libmaus2
                                         se.finish();
                                         throw se;
                                 }
-                                
+
                                 std::string const shostname(hostnamebuf.get());
-                                
+
                                 return shostname;
                         }
                 };

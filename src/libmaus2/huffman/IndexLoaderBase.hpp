@@ -39,8 +39,8 @@ namespace libmaus2
 	{
 		struct IndexLoaderBase
 		{
-			/* 
-			 * read position of index, which is stored in the last 8 bytes of the file 
+			/*
+			 * read position of index, which is stored in the last 8 bytes of the file
 			 * byte order of the number is big endian
 			 */
 			static uint64_t getIndexPos(std::string const & filename);

@@ -31,7 +31,7 @@ namespace libmaus2
                         typedef FastQReaderSplit reader_type;
                         typedef FASTQEntry pattern_type;
                         typedef PatternBlock<pattern_type> block_type;
-                        
+
                         typedef reader_type this_type;
                         typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
@@ -42,11 +42,11 @@ namespace libmaus2
 
                         pattern_type patbuf[2];
                         unsigned int patbuffill;
-                        
+
                         FastQReaderSplit(
-				std::string const & filename, 
-				int rqualityOffset = 0, 
-				unsigned int numbuffers = 16, 
+				std::string const & filename,
+				int rqualityOffset = 0,
+				unsigned int numbuffers = 16,
 				unsigned int bufsize = 16*1024,
 				uint64_t const fileoffset = 0,
 				uint64_t const rnextid = 0)
@@ -55,9 +55,9 @@ namespace libmaus2
                         }
 
                         FastQReaderSplit(
-				std::vector<std::string> const & filenames, 
-				int rqualityOffset = 0, 
-				unsigned int numbuffers = 16, 
+				std::vector<std::string> const & filenames,
+				int rqualityOffset = 0,
+				unsigned int numbuffers = 16,
 				unsigned int bufsize = 16*1024,
 				uint64_t const fileoffset = 0,
 				uint64_t const rnextid = 0)
@@ -86,12 +86,12 @@ namespace libmaus2
                         {
                         }
 
-                        
+
                         uint64_t countPatterns()
                         {
                                 pattern_type pattern;
                                 uint64_t count = 0;
-                                
+
                                 while ( skipPattern(pattern) )
                                         count += 2;
 
@@ -120,7 +120,7 @@ namespace libmaus2
 						{
 							skipPattern(pattern);
 							count += 2;
-							
+
 							if ( pattern.patlen > 2 )
 							{
 							        symcount += pattern.patlen-2;
@@ -131,14 +131,14 @@ namespace libmaus2
 
 						std::cerr << "[" << scount << "," << count << ") at " << o << std::endl;
 
-                                                uint64_t const endo = 
-                                                        foundnextmarker ? 
-                                                                (::libmaus2::aio::SynchronousFastReaderBase::getC() - 1) 
-                                                                : 
+                                                uint64_t const endo =
+                                                        foundnextmarker ?
+                                                                (::libmaus2::aio::SynchronousFastReaderBase::getC() - 1)
+                                                                :
                                                                 (::libmaus2::aio::SynchronousFastReaderBase::getC());
 						V.push_back(FastInterval(scount,count,o,endo,symcount,minlen,maxlen));
 					}
-                        	        while ( foundnextmarker );	
+                        	        while ( foundnextmarker );
 				}
 
 				return V;
@@ -150,7 +150,7 @@ namespace libmaus2
 				return reader.enumerateOffsets(steps);
                         }
 
-                        static std::vector<FastInterval> enumerateOffsets(std::vector<std::string> const & filenames, 
+                        static std::vector<FastInterval> enumerateOffsets(std::vector<std::string> const & filenames,
 				uint64_t const steps = 1)
                         {
                                 reader_type reader(filenames);
@@ -167,7 +167,7 @@ namespace libmaus2
                         static std::vector<FastInterval> buildIndex(std::string const & filename, uint64_t const steps = 1)
                         {
 				std::string const indexfilename = getIndexFileName(filename,steps);
-				
+
 				if ( ::libmaus2::util::GetFileSize::fileExists ( indexfilename ) )
 				{
 				        libmaus2::aio::InputStreamInstance istr(indexfilename);
@@ -178,11 +178,11 @@ namespace libmaus2
 				{
                                         reader_type reader(filename);
 	        			std::vector<FastInterval> intervals = reader.enumerateOffsets(steps);
-				
+
         				libmaus2::aio::OutputStreamInstance ostr(indexfilename);
 	        			FastInterval::serialiseVector(ostr,intervals);
 		        		ostr.flush();
-				
+
 			        	return intervals;
                                 }
                         }
@@ -196,14 +196,14 @@ namespace libmaus2
                                 #endif
                                 for ( int64_t i = 0; i < static_cast<int64_t>(filenames.size()); ++i )
                                         buildIndex(filenames[i], steps);
-                        
+
                                 for ( uint64_t i = 0; i < filenames.size(); ++i )
                                 {
                                         std::vector<FastInterval> subintervals = buildIndex(filenames[i], steps);
-                                        
+
                                         uint64_t const eo = intervals.size() ? intervals.back().fileoffsethigh : 0;
                                         uint64_t const eh = intervals.size() ? intervals.back().high : 0;
-                                        
+
                                         for ( uint64_t j = 0; j < subintervals.size(); ++j )
                                         {
                                                 FastInterval fi = subintervals[j];
@@ -214,7 +214,7 @@ namespace libmaus2
                                                 intervals.push_back(fi);
                                         }
                                 }
-                                
+
                                 return intervals;
                         }
 
@@ -222,7 +222,7 @@ namespace libmaus2
                         {
                                 reader_type reader(filename);
                                 pattern_type pat;
-                                
+
                                 if ( ! reader.getNextPatternUnlocked(pat) )
                                         return 0;
                                 else
@@ -232,7 +232,7 @@ namespace libmaus2
                         {
                                 reader_type reader(filenames);
                                 pattern_type pat;
-                                
+
                                 if ( ! reader.getNextPatternUnlocked(pat) )
                                         return 0;
                                 else
@@ -256,12 +256,12 @@ namespace libmaus2
                                 {
                                         pattern_type rawpat;
                                         bool const ok = FastQReader::getNextPatternUnlocked(rawpat);
-                                        
+
                                         if ( ! ok )
                                                 return false;
 
                                         patbuf[1].sid = rawpat.sid + "/1";
-                                        patbuf[1].spattern = rawpat.spattern.substr(0, rawpat.spattern.size()/2 );        
+                                        patbuf[1].spattern = rawpat.spattern.substr(0, rawpat.spattern.size()/2 );
                                         patbuf[1].patid = 2*rawpat.patid;
                                         patbuf[1].plus = rawpat.plus;
                                         patbuf[1].quality = rawpat.quality.substr(0, rawpat.spattern.size()/2 );
@@ -273,7 +273,7 @@ namespace libmaus2
 
                                         patbuf[1].pattern = patbuf[1].spattern.c_str();
                                         patbuf[1].patlen = patbuf[1].spattern.size();
-                                        
+
                                         patbuf[0].sid = rawpat.sid + "/2";
                                         patbuf[0].spattern = rawpat.spattern.substr(rawpat.spattern.size()/2 );
                                         patbuf[0].patid = 2*rawpat.patid + 1;
@@ -287,14 +287,14 @@ namespace libmaus2
 
                                         patbuf[0].pattern = patbuf[0].spattern.c_str();
                                         patbuf[0].patlen = patbuf[0].spattern.size();
-   
+
                                         patbuffill = 2;
                                 }
-                                
+
                                 assert ( patbuffill );
-                                
+
                                 pattern = patbuf [ --patbuffill ] ;
-                                
+
                                 return true;
                         }
 
@@ -303,7 +303,7 @@ namespace libmaus2
                                 unsigned int const s)
                         {
                                 unsigned int i = 0;
-                                
+
                                 while ( i < s )
                                 {
                                         if ( getNextPatternUnlocked(pat[i]) )
@@ -311,7 +311,7 @@ namespace libmaus2
                                         else
                                                 break;
                                 }
-                                
+
                                 return i;
                         }
 
@@ -319,21 +319,21 @@ namespace libmaus2
                         {
                                 block.setup(s);
                                 block.idbase = nextid;
-                                
+
                                 unsigned int i = 0;
-                                
+
                                 while ( i < block.numid )
                                 {
                                         pattern_type pat;
-                                        
+
                                         if ( getNextPatternUnlocked(pat) )
                                                 block.ids[i++] = pat.sid;
                                         else
                                                 break;
                                 }
-                                
+
                                 block.blocksize = i;
-                                
+
                                 return i;
                         }
 
@@ -344,16 +344,16 @@ namespace libmaus2
                                 while ( file.getNextPatternUnlocked(entry) )
                                 {
                                         std::string const & quality = entry.quality;
-                                        
+
                                         for ( unsigned int i = 0; i < quality.size(); ++i )
                                                 // Sanger
                                                 if ( quality[i] <= 54 )
                                                         return 33;
                                                 // Illumina
                                                 else if ( quality[i] >= 94 )
-                                                        return 64;                
+                                                        return 64;
                                 }
-                                
+
                                 return 0;
                         }
                 };

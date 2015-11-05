@@ -38,7 +38,7 @@ void testcompact()
 
 	::libmaus2::util::TempFileRemovalContainer::setup();
 	::libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
-	
+
 	uint64_t n = 1024*1024;
 	unsigned int const b = 3;
 	::libmaus2::bitio::CompactArray CA(n,b);
@@ -56,23 +56,23 @@ void testcompact()
 	COS.flush();
 	COS.close();
 	#endif
-	
+
 	::libmaus2::aio::InputStreamInstance CIS(fn);
 	std::cerr << "compact file size is " << ::libmaus2::util::GetFileSize::getFileSize(CIS) << std::endl;
 	assert ( CIS.tellg() == static_cast< ::std::streampos >(0) );
 	assert ( CIS.get() >= 0 );
-	
+
 	::libmaus2::bitio::CompactDecoderWrapper W(fn,4096);
-	
+
 	W.seekg(0,std::ios::end);
 	int64_t const fs = W.tellg();
 	W.seekg(0,std::ios::beg);
 	W.clear();
-	
+
 	assert ( fs == static_cast<int64_t>(n) );
-	
+
 	std::cerr << "n=" << n << " fs=" << fs << std::endl;
-	
+
 	for ( uint64_t i = 0; i < n; ++i )
 	{
 		assert ( W.tellg() == static_cast< ::std::streampos >(i) );
@@ -80,21 +80,21 @@ void testcompact()
 		assert ( v == static_cast<int>(CA[i]) );
 		// std::cerr << static_cast<int>(W.get()) << " " << CA[i] << std::endl;
 	}
-	
+
 	for ( uint64_t i = 0; i < n; i += (rand() % 256) )
 	{
 		W.clear();
 		W.seekg(i);
-		
+
 		std::cerr << "seek to " << W.tellg() << std::endl;
-		
+
 		for ( uint64_t j = i; j < n; ++j )
 		{
 			assert ( W.tellg() == static_cast< ::std::streampos >(j) );
 			int const v = W.get();
 			assert ( v == static_cast<int>(CA[j]) );
 		}
-		
+
 		uint64_t ii = n-i;
 		W.clear();
 		W.seekg(ii);
@@ -114,7 +114,7 @@ void testcompact()
 ::libmaus2::autoarray::AutoArray<uint64_t> computeCharHist(std::string const & inputfile)
 {
 	uint64_t const n = ::libmaus2::util::GetFileSize::getFileSize(inputfile);
-	
+
 	#if defined(_OPENMP)
 	uint64_t const numthreads = omp_get_max_threads();
 	#else
@@ -124,7 +124,7 @@ void testcompact()
 	uint64_t const packsize = (n + numthreads-1)/numthreads;
 
 	::libmaus2::parallel::OMPLock lock;
-	::libmaus2::autoarray::AutoArray<uint64_t> ghist(256);	
+	::libmaus2::autoarray::AutoArray<uint64_t> ghist(256);
 	#if defined(_OPENMP)
 	#pragma omp parallel for
 	#endif
@@ -133,16 +133,16 @@ void testcompact()
 		uint64_t const low  = std::min(n,t*packsize);
 		uint64_t const high = std::min(n,low+packsize);
 		uint64_t const range = high-low;
-		
+
 		if ( range )
 		{
-			::libmaus2::autoarray::AutoArray<uint64_t> lhist(ghist.size());	
+			::libmaus2::autoarray::AutoArray<uint64_t> lhist(ghist.size());
 			::libmaus2::aio::InputStreamInstance CIS(inputfile);
 			CIS.seekg(low);
 			uint64_t const blocksize = 8192;
 			uint64_t const numblocks = ((range)+blocksize-1)/blocksize;
 			::libmaus2::autoarray::AutoArray<uint8_t> B(blocksize);
-			
+
 			for ( uint64_t b = 0; b < numblocks; ++b )
 			{
 				uint64_t const llow = std::min(low + b*blocksize,high);
@@ -160,7 +160,7 @@ void testcompact()
 			lock.unlock();
 		}
 	}
-	
+
 	return ghist;
 }
 
@@ -185,7 +185,7 @@ int main(int argc, char * argv[])
 
 		uint64_t const n = std::accumulate(chist.begin(),chist.end(),0ull);
 		if ( verbose )
-			std::cerr << "[V] n=" << n << " maxsym=" << maxsym << " b=" << b << std::endl;				
+			std::cerr << "[V] n=" << n << " maxsym=" << maxsym << " b=" << b << std::endl;
 
 		uint64_t const blocksize = 8*1024;
 		uint64_t const numblocks = (n+blocksize-1)/blocksize;
@@ -193,25 +193,25 @@ int main(int argc, char * argv[])
 		::libmaus2::aio::InputStreamInstance CIS(input);
 		::libmaus2::bitio::CompactArrayWriter CAW(output,n+addterm,b);
 		int64_t lastperc = -1;
-		
+
 		if ( verbose )
 			std::cerr << "[V] ";
-			
+
 		for ( uint64_t b = 0; b < numblocks; ++b )
 		{
 			uint64_t const low = std::min(b*blocksize,n);
 			uint64_t const high = std::min(low+blocksize,n);
 			uint64_t const range = high-low;
-			
+
 			CIS.read ( reinterpret_cast<char *>(B.begin()), range );
 			assert ( CIS.gcount() == static_cast<int64_t>(range) );
-			
+
 			if ( addterm )
 				for ( uint64_t i = 0; i < range; ++i )
 					B[i] += 1;
-			
+
 			CAW.write(B.begin(),range);
-			
+
 			int64_t const newperc = (high * 100) / n;
 			if ( verbose && newperc != lastperc )
 			{
@@ -223,9 +223,9 @@ int main(int argc, char * argv[])
 			CAW.put(0);
 		if ( verbose )
 			std::cerr << std::endl;
-		
+
 		CAW.flush();
-		
+
 		#if 0
 		::libmaus2::bitio::CompactDecoderWrapper CDW(output);
 		for ( uint64_t i = 0; i < n+addterm; ++i )

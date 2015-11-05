@@ -35,7 +35,7 @@ namespace libmaus2
 		{
 			typedef TripleEdgeOutputSet this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			::libmaus2::util::TempFileNameGenerator & tmpgen;
 			// std::string const filenameprefix;
 			uint64_t const numreads;
@@ -59,10 +59,10 @@ namespace libmaus2
 			}
 
 			TripleEdgeOutputSet(
-				::libmaus2::util::TempFileNameGenerator & rtmpgen, 
-				uint64_t const rnumreads, 
+				::libmaus2::util::TempFileNameGenerator & rtmpgen,
+				uint64_t const rnumreads,
 				::libmaus2::graph::TripleEdgeBufferSet & rtbs)
-			: tmpgen(rtmpgen), numreads(rnumreads), tbs(rtbs), outputs(tbs.numparts) 
+			: tmpgen(rtmpgen), numreads(rnumreads), tbs(rtbs), outputs(tbs.numparts)
 			{
 				for ( uint64_t i = 0; i < tbs.numparts; ++i )
 				{
@@ -90,23 +90,23 @@ namespace libmaus2
 			}
 
 			static inline uint64_t hash(uint64_t const a, uint64_t const numparts, uint64_t const numreads)
-			{			
+			{
 				return (a * numparts)/numreads;
 			}
 
 			inline uint64_t hash(uint64_t const a) const
-			{			
+			{
 				return hash(a,tbs.numparts,numreads);
 			}
-			
+
 			static ::libmaus2::autoarray::AutoArray<uint64_t> getHashStarts(uint64_t const numparts, uint64_t const numreads)
 			{
 				::libmaus2::autoarray::AutoArray<uint64_t> HS(numparts+1,false);
 				HS[numparts] = numreads;
-				
+
 				for ( int64_t i = static_cast<int64_t>(numreads)-1; i >= 0; --i )
 					HS [ hash(i,numparts,numreads) ] = i;
-					
+
 				return HS;
 			}
 

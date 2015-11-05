@@ -44,7 +44,7 @@ namespace libmaus2
 				bam_header_read_done,
 				bam_header_read_failed
 			};
-			
+
 			size_t byteSize() const
 			{
 				return
@@ -67,36 +67,36 @@ namespace libmaus2
 
 			// state
 			bam_header_parse_state state;
-		
+
 			// number of magic bytes read
 			uint64_t b_magic_read;
-			
+
 			// number of text length bytes read
 			uint64_t b_l_text_read;
 			// length of text
 			uint64_t l_text;
 			libmaus2::autoarray::AutoArray<char> text;
-			
+
 			// number of text bytes read
 			uint64_t b_text_read;
-			
+
 			// number of nref bytes read
 			uint64_t b_n_ref;
 			// number of reference sequences
 			uint64_t n_ref;
 			// number of references read
 			uint64_t b_ref;
-			
+
 			// number of name length bytes read
 			uint64_t b_l_name_read;
 			// length of name
 			uint64_t l_name;
-			
+
 			// number of name bytes read
 			uint64_t b_name_read;
 			// name
 			libmaus2::autoarray::AutoArray<char> name;
-			
+
 			// number of reference sequence length bytes read
 			uint64_t b_l_ref_read;
 			// length of ref seq
@@ -104,14 +104,14 @@ namespace libmaus2
 
 			//! chromosome (reference sequence meta data) vector
 			std::vector< ::libmaus2::bambam::Chromosome > chromosomes;
-			
+
 			uint64_t getSeriliasedLength() const
 			{
 				libmaus2::util::CountPutObject CPO;
 				serialise(CPO);
 				return CPO.c;
 			}
-			
+
 			libmaus2::autoarray::AutoArray<char> getSerialised() const
 			{
 				uint64_t const len = getSeriliasedLength();
@@ -120,7 +120,7 @@ namespace libmaus2
 				serialise(C);
 				return B;
 			}
-			
+
 			template<typename stream_type>
 			void serialise(stream_type & out) const
 			{
@@ -128,13 +128,13 @@ namespace libmaus2
 				out.put('A');
 				out.put('M');
 				out.put('\1');
-				
+
 				out.put((l_text >>  0) & 0xFF);
 				out.put((l_text >>  8) & 0xFF);
 				out.put((l_text >> 16) & 0xFF);
 				out.put((l_text >> 24) & 0xFF);
 				out.write(text.begin(),l_text);
-				
+
 				out.put((chromosomes.size() >>  0) & 0xFF);
 				out.put((chromosomes.size() >>  8) & 0xFF);
 				out.put((chromosomes.size() >> 16) & 0xFF);
@@ -158,7 +158,7 @@ namespace libmaus2
 					out.put((C.getLength() >> 24) & 0xFF);
 				}
 			}
-			
+
 			BamHeaderParserState()
 			: state(bam_header_read_magic),
 			  b_magic_read(0),
@@ -177,14 +177,14 @@ namespace libmaus2
 			  l_ref(0),
 			  chromosomes()
 			{
-			
+
 			}
 
 			template<typename stream_type>
 			std::pair<bool,uint64_t> parseHeader(stream_type & in, uint64_t const n = std::numeric_limits<uint64_t>::max())
 			{
 				uint64_t r = 0;
-				
+
 				while ( r != n && this->state != bam_header_read_done && this->state != bam_header_read_failed )
 				{
 					switch ( this->state )
@@ -193,8 +193,8 @@ namespace libmaus2
 						{
 							uint8_t const sym = getByte(in);
 							r += 1;
-							
-							if ( 
+
+							if (
 								(this->b_magic_read == 0 && sym == 'B')
 								||
 								(this->b_magic_read == 1 && sym == 'A')
@@ -213,22 +213,22 @@ namespace libmaus2
 								se.finish();
 								throw se;
 							}
-							
+
 							// switch to next state if we got the whole magic
 							if ( this->b_magic_read == 4 )
 								this->state = bam_header_read_l_text;
-							
+
 							break;
 						}
 						case bam_header_read_l_text:
 						{
 							uint8_t const sym = getByte(in);
 							r += 1;
-							
+
 							this->l_text |= static_cast<uint64_t>(sym) << (8*this->b_l_text_read);
-							
+
 							this->b_l_text_read++;
-							
+
 							if ( this->b_l_text_read == 4 )
 							{
 								if ( this->l_text )
@@ -245,45 +245,45 @@ namespace libmaus2
 						{
 							uint8_t const sym = getByte(in);
 							r += 1;
-							
+
 							this->text[this->b_text_read++] = static_cast<char>(static_cast<unsigned char>(sym));
-							
+
 							if ( this->b_text_read == this->l_text )
 							{
 								// removing padding null bytes
 								while ( this->l_text && (!this->text[this->l_text-1]) )
 									--this->l_text;
-									
+
 								#if 0
-								std::cerr << 
+								std::cerr <<
 									std::string(
 										this->text.begin(),
 										this->text.begin()+this->l_text);
 								#endif
-							
+
 								this->state = bam_header_read_n_ref;
 							}
-							
+
 							break;
 						}
 						case bam_header_read_n_ref:
 						{
 							uint8_t const sym = getByte(in);
 							r += 1;
-							
+
 							this->n_ref |= static_cast<uint64_t>(sym) << (8*this->b_n_ref);
 							this->b_n_ref += 1;
-							
+
 							if ( this->b_n_ref == 4 )
 							{
 								this->chromosomes.resize(this->n_ref);
-								
+
 								if ( this->n_ref )
 									this->state = bam_header_reaf_ref_l_name;
 								else
 									this->state = bam_header_read_done;
 							}
-							
+
 							break;
 						}
 						case bam_header_reaf_ref_l_name:
@@ -293,13 +293,13 @@ namespace libmaus2
 
 							this->l_name |= static_cast<uint64_t>(sym) << (8*this->b_l_name_read);
 							this->b_l_name_read += 1;
-							
+
 							if ( this->b_l_name_read == 4 )
 							{
 								this->b_name_read = 0;
 								if ( this->l_name > this->name.size() )
 									this->name.resize(this->l_name);
-								
+
 								if ( this->l_name )
 									this->state = bam_header_read_ref_name;
 								else
@@ -311,28 +311,28 @@ namespace libmaus2
 						{
 							uint8_t const sym = getByte(in);
 							r += 1;
-							
+
 							this->name[this->b_name_read] = static_cast<char>(static_cast<unsigned char>(sym));
 							this->b_name_read += 1;
-							
+
 							if ( this->b_name_read == this->l_name )
 								this->state = bam_header_read_ref_l_ref;
-							
+
 							break;
 						}
 						case bam_header_read_ref_l_ref:
 						{
 							uint8_t const sym = getByte(in);
 							r += 1;
-							
+
 							this->l_ref |= static_cast<uint64_t>(sym) << (8*this->b_l_ref_read);
 							this->b_l_ref_read += 1;
-							
+
 							if ( this->b_l_ref_read == 4 )
 							{
 								// remove padding null bytes from name
 								while ( this->l_name && (!this->name[this->l_name-1]) )
-									-- this->l_name;							
+									-- this->l_name;
 
 								this->chromosomes[this->b_ref] = ::libmaus2::bambam::Chromosome(
 									std::string(this->name.begin(),this->name.begin()+this->l_name),
@@ -340,14 +340,14 @@ namespace libmaus2
 								);
 
 								#if 0
-								std::cerr << 
+								std::cerr <<
 									std::string(this->name.begin(),this->name.begin()+this->l_name)
 									<< "\t"
 									<< this->l_ref << std::endl;
 								#endif
 
 								this->b_ref += 1;
-								
+
 								if ( this->b_ref == this->n_ref )
 								{
 									this->state = bam_header_read_done;
@@ -361,7 +361,7 @@ namespace libmaus2
 									this->l_ref = 0;
 									this->state = bam_header_reaf_ref_l_name;
 								}
-							}				
+							}
 							break;
 						}
 						case bam_header_read_done:
@@ -376,8 +376,8 @@ namespace libmaus2
 							this->state = bam_header_read_failed;
 							break;
 					}
-				} 
-				
+				}
+
 				if ( this->state == bam_header_read_failed )
 				{
 					libmaus2::exception::LibMausException se;
@@ -385,8 +385,8 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
-				return 
+
+				return
 					std::pair<bool,uint64_t>(this->state == bam_header_read_done,r);
 			}
 		};

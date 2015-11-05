@@ -29,7 +29,7 @@
 namespace libmaus2
 {
 	namespace fastx
-	{			
+	{
 
 		struct CompactFastReplace : public ::libmaus2::util::UTF8, public CompactFastTerminator
 		{
@@ -45,7 +45,7 @@ namespace libmaus2
 				bool const storedHasIndeterminate = (flags & 1) != 0;
 				// does mapped pattern have indeterminate bases?
 				bool const patternHasIndeterminate = hasIndeterminate(pattern);
-				
+
 				if ( patlen == getTerminator() )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -58,7 +58,7 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "CompactFastDecoderBase::replacePattern() cannot change length of stored pattern." << std::endl;
 					se.finish();
-					throw se;					
+					throw se;
 				}
 				if ( patternHasIndeterminate && !storedHasIndeterminate )
 				{
@@ -67,7 +67,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				// replace pattern
 				::libmaus2::util::PutObject<uint8_t *> P(text);
 				::libmaus2::fastx::CompactFastEncoder::encode(pattern.c_str(),patlen,flags,P);

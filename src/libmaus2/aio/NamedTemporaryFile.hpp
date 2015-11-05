@@ -37,14 +37,14 @@ namespace libmaus2
 			std::string const name;
 			uint64_t const id;
 			libmaus2::aio::OutputStream::unique_ptr_type stream;
-			
+
 			NamedTemporaryFile(std::string const & rname, uint64_t const rid)
 			: name(rname), id(rid), stream()
 			{
 				libmaus2::aio::OutputStream::unique_ptr_type tstream(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(name));
 				stream = UNIQUE_PTR_MOVE(tstream);
 			}
-			
+
 			static unique_ptr_type uconstruct(std::string const & rname, uint64_t const rid)
 			{
 				unique_ptr_type tptr(new this_type(rname,rid));
@@ -56,17 +56,17 @@ namespace libmaus2
 				shared_ptr_type tptr(new this_type(rname,rid));
 				return tptr;
 			}
-			
+
 			uint64_t getId() const
 			{
 				return id;
 			}
-			
+
 			std::string const & getName() const
 			{
 				return name;
 			}
-			
+
 			libmaus2::aio::OutputStream & getStream()
 			{
 				return *stream;

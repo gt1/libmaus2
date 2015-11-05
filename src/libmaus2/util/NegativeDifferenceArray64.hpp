@@ -31,12 +31,12 @@ namespace libmaus2
 			::libmaus2::util::Array864::unique_ptr_type A;
 			typedef NegativeDifferenceArray64 this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			void serialise(std::ostream & out) const;
 
 			NegativeDifferenceArray64(::std::istream & in);
 			NegativeDifferenceArray64(::libmaus2::util::Array864::unique_ptr_type & rA);
-			
+
 			uint64_t operator[](uint64_t const i) const
 			{
 				return i-(*A)[i];

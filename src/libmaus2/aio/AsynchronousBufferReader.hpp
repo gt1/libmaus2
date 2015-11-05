@@ -63,7 +63,7 @@ namespace libmaus2
 			uint64_t low;
 			uint64_t high;
 			uint64_t offset;
-			
+
 			void enqueRead()
 			{
 				memset ( &contexts[high%numbuffers], 0, sizeof(aiocb) );
@@ -78,14 +78,14 @@ namespace libmaus2
 			void waitForNextBuffer()
 			{
 				aiocb *waitlist[1] = { &contexts[low%numbuffers] };
-				int r = aio_suspend (waitlist,1,0);	
-				
+				int r = aio_suspend (waitlist,1,0);
+
 				if ( r != 0 )
 				{
 					std::cerr << "ERROR: " << strerror(errno) << std::endl;
 				}
 			}
-			
+
 			public:
 			/**
 			 * destructor
@@ -106,8 +106,8 @@ namespace libmaus2
 			 **/
 			AsynchronousBufferReader ( std::string const & rfilename, uint64_t rnumbuffers = 16, uint64_t rbufsize = 32, uint64_t roffset = 0 )
 			: filename(rfilename),
-			  fd( open(filename.c_str(),O_RDONLY ) ), 
-			  numbuffers(rnumbuffers), bufsize(rbufsize), 
+			  fd( open(filename.c_str(),O_RDONLY ) ),
+			  numbuffers(rnumbuffers), bufsize(rbufsize),
 			  bufferspace ( numbuffers * bufsize ),
 			  buffers ( numbuffers ),
 			  contexts(numbuffers), low(0), high(0), offset(roffset)
@@ -117,23 +117,23 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "::libmaus2::aio::AsynchronousBufferReader: Failed to open file " << filename << ": " << strerror(errno);
 					se.finish();
-					
+
 					/*
 					std::cerr << se.s << std::endl;
-					
-					kill ( getpid(), SIGSTOP );					
+
+					kill ( getpid(), SIGSTOP );
 					*/
-					
+
 					throw se;
 				}
-				
+
 				for ( unsigned int i = 0; i < numbuffers; ++i )
 					buffers[i] = bufferspace.get() + i*bufsize;
 
 				while ( high < numbuffers )
 					enqueRead();
 			}
-			
+
 			/**
 			 * get next buffer
 			 *
@@ -148,8 +148,8 @@ namespace libmaus2
 				waitForNextBuffer();
 				red = aio_return(&contexts[low%numbuffers]);
 				data = std::pair < char const *, ssize_t > (buffers[low%numbuffers],red );
-				
-				low++;		
+
+				low++;
 				return red > 0;
 			}
 			/**
@@ -157,7 +157,7 @@ namespace libmaus2
 			 **/
 			void returnBuffer()
 			{
-				enqueRead();	
+				enqueRead();
 			}
 			/**
 			 * wait for all read requests already submitted to finish
@@ -202,12 +202,12 @@ namespace libmaus2
 			 * @param offset initial file offset
 			 **/
 			AsynchronousBufferReader(
-				std::string const & filename, 
-				uint64_t const rnumbufs, 
+				std::string const & filename,
+				uint64_t const rnumbufs,
 				uint64_t const rbufsize,
 				uint64_t const offset
 			)
-			: libmaus2::aio::InputStreamInstance(filename), bufsize(rnumbufs * rbufsize), 
+			: libmaus2::aio::InputStreamInstance(filename), bufsize(rnumbufs * rbufsize),
                           abuffer(bufsize), buffer(abuffer.get()), av(true)
 			{
 				libmaus2::aio::InputStreamInstance::seekg(offset,std::ios::beg);
@@ -221,15 +221,15 @@ namespace libmaus2
 			bool getBuffer(std::pair < char const *, ssize_t > & data)
 			{
 				assert ( av );
-			
+
 				libmaus2::aio::InputStreamInstance::read(buffer,bufsize);
-				
+
 				data.first = buffer;
 				data.second = libmaus2::aio::InputStreamInstance::gcount();
 				av = false;
-				
+
 				// std::cerr << "Got " << data.second << std::endl;
-				
+
 				return data.second > 0;
 			}
 			/**
@@ -293,10 +293,10 @@ namespace libmaus2
 			AsynchronousBufferReaderList(
 				in_iterator_type ina,
 				in_iterator_type ine,
-				uint64_t rnumbuffers = 16, 
+				uint64_t rnumbuffers = 16,
 				uint64_t rbufsize = 32,
 				uint64_t offset = 0)
-			: 
+			:
 				C(ina,ine), ita(C.begin()), ite(C.end()), numbuffers(rnumbuffers), bufsize(rbufsize)
 			{
 				while ( ita != ite && offset >= ::libmaus2::util::GetFileSize::getFileSize(*ita) )
@@ -329,7 +329,7 @@ namespace libmaus2
 			{
 				if ( ! (reader.get()) )
 					return false;
-			
+
 				if ( reader->getBuffer(data) )
 					return true;
 

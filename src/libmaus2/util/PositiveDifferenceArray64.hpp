@@ -31,9 +31,9 @@ namespace libmaus2
 			::libmaus2::util::Array864::unique_ptr_type A;
 			typedef PositiveDifferenceArray64 this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			void serialise(std::ostream & out) const;
-			
+
 			PositiveDifferenceArray64(::std::istream & in);
 			PositiveDifferenceArray64(::libmaus2::util::Array864::unique_ptr_type & rA);
 

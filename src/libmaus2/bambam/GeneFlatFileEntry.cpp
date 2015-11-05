@@ -29,13 +29,13 @@ std::ostream & libmaus2::bambam::operator<<(std::ostream & out, libmaus2::bambam
 	out << O.cdsStart; out.put('\t');
 	out << O.cdsEnd; out.put('\t');
 	out << O.exons.size(); out.put('\t');
-			
+
 	for ( uint64_t i = 0; i < O.exons.size(); ++i )
 		out << O.exons[i].first << ",";
 	out.put('\t');
 
 	for ( uint64_t i = 0; i < O.exons.size(); ++i )
 		out << O.exons[i].second << ",";
-			
+
 	return out;
 }

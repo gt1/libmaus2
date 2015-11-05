@@ -31,7 +31,7 @@ namespace libmaus2
 		{
 			static libmaus2::parallel::PosixSpinLock lock;
 			static uint64_t initcomplete;
-			
+
 			GnuTLSInit();
 			~GnuTLSInit();
 		};

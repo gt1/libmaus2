@@ -25,11 +25,11 @@
 namespace libmaus2
 {
 	namespace parallel
-	{		
+	{
 		struct SimpleThreadPoolInterfaceEnqueTermInterface
 		{
 			virtual ~SimpleThreadPoolInterfaceEnqueTermInterface() {}
-			virtual void enque(SimpleThreadWorkPackage * P) = 0;		
+			virtual void enque(SimpleThreadWorkPackage * P) = 0;
 			virtual void terminate() = 0;
 
 			virtual void addLogString(std::string const & s) = 0;

@@ -36,7 +36,7 @@ namespace libmaus2
 			typedef BamAlignmentDecoder this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			protected:
 			//! true if there is an alignment in the put back buffer, i.e. next call to readAlignment will not load a new alignment
 			bool putbackbuffer;
@@ -56,7 +56,7 @@ namespace libmaus2
 			public:
 			//! pattern type
 			typedef ::libmaus2::fastx::FASTQEntry pattern_type;
-		
+
 			/**
 			 * constructor
 			 *
@@ -67,14 +67,14 @@ namespace libmaus2
 			 * destructor
 			 **/
 			virtual ~BamAlignmentDecoder() {}
-			
+
 			/**
 			 * pure virtual alignment input method
 			 *
 			 * @return bool if alignment input was successfull and a new alignment was stored
 			 **/
 			virtual bool readAlignmentInternal(bool const = false) = 0;
-			
+
 			/**
 			 * get current alignment
 			 *
@@ -94,7 +94,7 @@ namespace libmaus2
 			{
 				return alignment;
 			}
-			
+
 			/**
 			 * pure virtual method for retrieving the BAM header
 			 *
@@ -111,7 +111,7 @@ namespace libmaus2
 				if ( putrank )
 					rank -= 1;
 			}
-			
+
 			/**
 			 * read the next alignment
 			 *
@@ -125,7 +125,7 @@ namespace libmaus2
 					putbackbuffer = false;
 					return true;
 				}
-				
+
 				return readAlignmentInternal(delayPutRank);
 			}
 
@@ -139,7 +139,7 @@ namespace libmaus2
 				libmaus2::bambam::BamAlignment::unique_ptr_type ptr(getAlignment().uclone());
 				return UNIQUE_PTR_MOVE(ptr);
 			}
-			
+
 			/**
 			 * clone current alignment and return it as a shared pointer
 			 *
@@ -159,7 +159,7 @@ namespace libmaus2
 			{
 				return getAlignment().formatAlignment(getHeader(),auxiliary);
 			}
-			
+
 			/**
 			 * format current alignment as FastQ entry and return it as a string object
 			 *
@@ -169,7 +169,7 @@ namespace libmaus2
 			{
 				return getAlignment().formatFastq(auxiliary);
 			}
-			
+
 			/**
 			 * fill FastQ pattern
 			 *
@@ -180,12 +180,12 @@ namespace libmaus2
 			{
 				if ( !readAlignment() )
 					return false;
-				
+
 				getAlignment().toPattern(pattern,patid++);
-				
+
 				return true;
 			}
-			
+
 			/**
 			 * get rank value which will be assigned to the next alignment
 			 *
@@ -205,7 +205,7 @@ namespace libmaus2
 				if ( putrank )
 				{
 					alignment.putRank("ZR",lrank /*,bamheader */);
-				}			
+				}
 			}
 
 			/**
@@ -241,7 +241,7 @@ namespace libmaus2
 				if ( bs3 < 0 )
 					// reached end of file
 					return false;
-				
+
 				/* assemble block size as LE integer */
 				alignment.blocksize = (bs0 << 0) | (bs1 << 8) | (bs2 << 16) | (bs3 << 24) ;
 
@@ -257,7 +257,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				if ( validate )
 				{
 					libmaus2_bambam_alignment_validity const validity = bamheader ? alignment.valid(*bamheader) : alignment.valid();
@@ -266,10 +266,10 @@ namespace libmaus2
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Invalid alignment: " << validity << std::endl;
 						se.finish();
-						throw se;					
+						throw se;
 					}
 				}
-				
+
 				return true;
 			}
 
@@ -298,7 +298,7 @@ namespace libmaus2
 				if ( bs3 < 0 )
 					// reached end of file
 					return false;
-				
+
 				/* assemble block size as LE integer */
 				alignment.blocksize = (bs0 << 0) | (bs1 << 8) | (bs2 << 16) | (bs3 << 24) ;
 
@@ -314,7 +314,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				if ( validate )
 				{
 					libmaus2_bambam_alignment_validity const validity = bamheader ? alignment.valid(*bamheader) : alignment.valid();
@@ -323,20 +323,20 @@ namespace libmaus2
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Invalid alignment: " << validity << std::endl;
 						se.finish();
-						throw se;					
+						throw se;
 					}
 				}
-				
+
 				return true;
 			}
 		};
-		
+
 		struct BamAlignmentDecoderWrapper
 		{
 			typedef BamAlignmentDecoderWrapper this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			virtual ~BamAlignmentDecoderWrapper() {}
 			virtual BamAlignmentDecoder & getDecoder() = 0;
 		};

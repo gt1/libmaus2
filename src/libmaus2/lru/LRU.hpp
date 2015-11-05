@@ -45,10 +45,10 @@ namespace libmaus2
 				timeToObject.erase(ita);
 				return std::pair<uint64_t, uint64_t>(object,otime);
 			}
-			
+
 			public:
 			LRU(uint64_t const rn  = 0) : n(rn), curtime(0), fill(0), objectToTime(n) {}
-			
+
 			void update(uint64_t object)
 			{
 				uint64_t const otime = objectToTime[object];
@@ -58,13 +58,13 @@ namespace libmaus2
 				objectToTime[object] = curtime;
 				timeToObject[curtime] = object;
 			}
-			
+
 			std::pair < std::pair < uint64_t, uint64_t >, bool > add()
 			{
 				std::pair < std::pair < uint64_t, uint64_t >, bool > ot;
 
 				++curtime;
-			
+
 				if ( fill < n )
 				{
 					ot.first = std::pair<uint64_t, uint64_t>(fill++,0);
@@ -78,11 +78,11 @@ namespace libmaus2
 
 				objectToTime[ot.first.first] = curtime;
 				timeToObject[curtime] = ot.first.first;
-				
+
 				return ot;
 			}
 		};
-		
+
 	}
 }
 #endif

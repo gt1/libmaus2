@@ -35,7 +35,7 @@
 #include <libmaus2/bambam/ReadEndsBlockDecoderBaseCollection.hpp>
 #include <libmaus2/bambam/ReadEndsStreamDecoderBase.hpp>
 #include <libmaus2/bambam/ReadEndsStreamDecoderFileBase.hpp>
-#include <libmaus2/bambam/ReadEndsStreamDecoder.hpp>		
+#include <libmaus2/bambam/ReadEndsStreamDecoder.hpp>
 
 #include <libmaus2/index/ExternalMemoryIndexGenerator.hpp>
 
@@ -45,7 +45,7 @@
 namespace libmaus2
 {
 	namespace bambam
-	{		
+	{
 		/**
 		 * container class for ReadEnds objects
 		 **/
@@ -57,7 +57,7 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-					
+
 			private:
 			//! digit table
 			static ::libmaus2::util::DigitTable const D;
@@ -68,22 +68,22 @@ namespace libmaus2
 			enum { index_type_size = sizeof(index_type) };
 			//! buffer array
 			::libmaus2::autoarray::AutoArray<index_type> A;
-			
+
 			//! index insertion pointer (from back of A)
 			index_type * iptr;
 			//! data insert pointer (from front of A)
 			uint8_t * dptr;
-			
+
 			//! temporary file name
 			std::string const tempfilename;
 			//! temporary file name of index
 			std::string const tempfilenameindex;
-			
+
 			//! temporary output file stream
 			::libmaus2::aio::OutputStream::unique_ptr_type tempfileout;
 			//! compressed output stream
 			::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::OutputStream >::unique_ptr_type pSOS;
-			
+
 			//! index generator type
 			typedef libmaus2::index::ExternalMemoryIndexGenerator<
 				libmaus2::bambam::ReadEndsBase,
@@ -95,22 +95,22 @@ namespace libmaus2
 			//! index generator
 			index_generator_pointer_type Pindexer;
 			uint64_t indexerpos;
-			
+
 			std::vector<uint64_t> indexblockstart;
-			
+
 			//! uint64_t pair
 			typedef std::pair<uint64_t,uint64_t> upair;
 			//! index for blocks in temporary file
 			std::vector < upair > tmpoffsetintervals;
 			//! number of objects stored in each block of temporary file
 			std::vector < uint64_t > tmpoutcnts;
-			
+
 			//! if true then copy alignments
 			bool const copyAlignments;
-			
+
 			//! minimum length of stored objcts in bytes (for determining how many runs of radix sort are possible)
 			uint64_t minlen;
-			
+
 			bool decodingPrepared;
 
 			/**
@@ -145,7 +145,7 @@ namespace libmaus2
 					return 0;
 				}
 			}
-			
+
 			/**
 			 * @return compressed temporary file output stream
 			 **/
@@ -162,7 +162,7 @@ namespace libmaus2
 			}
 
 			#define READENDSRADIXSORT
-			
+
 			/**
 			 * @return free space in buffer in bytes
 			 **/
@@ -170,7 +170,7 @@ namespace libmaus2
 			{
 				uint64_t const textdata = dptr-reinterpret_cast<uint8_t const *>(A.begin());
 				uint64_t const ptrdata = (A.end() - iptr)*sizeof(index_type);
-				
+
 				#if defined(READENDSRADIXSORT) && defined(LIBMAUS2_HAVE_x86_64)
 				return A.size() * sizeof(index_type) - (2*ptrdata + textdata);
 				#else
@@ -179,7 +179,7 @@ namespace libmaus2
 				return reinterpret_cast<uint8_t const *>(iptr) - dptr;
 				#endif
 			}
-			
+
 			/**
 			 * decode entry at offset ioff
 			 *
@@ -190,10 +190,10 @@ namespace libmaus2
 			{
 				uint8_t const * eptr = reinterpret_cast<uint8_t const *>(A.begin()) + ioff;
 				/* uint32_t const len = */ decodeLength(eptr);
-						
+
 				::libmaus2::util::CountGetObject<uint8_t const *> G(eptr);
 				RE.reset();
-				RE.get(G);	
+				RE.get(G);
 			}
 
 			/**
@@ -206,13 +206,13 @@ namespace libmaus2
 			{
 				uint8_t const * eptr = reinterpret_cast<uint8_t const *>(A.begin()) + ioff;
 				uint32_t const len = decodeLength(eptr);
-				
+
 				::libmaus2::autoarray::AutoArray<uint8_t> A(len,false);
 				std::copy(eptr,eptr+len,A.begin());
-						
+
 				return A;
 			}
-			
+
 			/**
 			 * decode and return ReadEnds object at offset ioff
 			 *
@@ -225,7 +225,7 @@ namespace libmaus2
 				decodeEntry(ioff,RE);
 				return RE;
 			}
-			
+
 			/**
 			 * projector type for radix sort
 			 **/
@@ -234,7 +234,7 @@ namespace libmaus2
 				private:
 				//! buffer array
 				uint8_t const * const A;
-				
+
 				public:
 				/**
 				 * constructor
@@ -242,7 +242,7 @@ namespace libmaus2
 				 * @param rA buffer
 				 **/
 				RadixProjectorType(uint8_t const * const rA) : A(rA) {}
-				
+
 				/**
 				 * project object at offset i to its first 8 bytes
 				 *
@@ -251,7 +251,7 @@ namespace libmaus2
 				 **/
 				uint64_t operator()(uint64_t const i) const
 				{
-					uint8_t const * p = A+i; 
+					uint8_t const * p = A+i;
 					decodeLength(p);
 					return *(reinterpret_cast<uint64_t const *>(p));
 				}
@@ -267,7 +267,7 @@ namespace libmaus2
 				uint8_t const * const A;
 				//! offset
 				uint64_t const offset;
-				
+
 				public:
 				/**
 				 * construct
@@ -276,14 +276,14 @@ namespace libmaus2
 				 * @param roffset offset
 				 **/
 				RadixProjectorTypeOffset(uint8_t const * const rA, uint64_t const roffset) : A(rA), offset(roffset) {}
-				
+
 				/**
 				 * @param i offset in buffer
 				 * @return eight bytes from compact read ends representation starting from offset of object
 				 **/
 				uint64_t operator()(uint64_t const i) const
 				{
-					uint8_t const * p = A+i; 
+					uint8_t const * p = A+i;
 					decodeLength(p);
 					return *(reinterpret_cast<uint64_t const *>(p+offset));
 				}
@@ -296,18 +296,18 @@ namespace libmaus2
 			 * @param bytes size of buffer in bytes
 			 * @param rtempfilename name of temporary file
 			 * @param rcopyAlignments copy alignments along with read ends objects
-			 **/ 
+			 **/
 			ReadEndsContainer(uint64_t const bytes, std::string const & rtempfilename, bool const rcopyAlignments = false)
-			: A( (bytes + index_type_size - 1) / index_type_size, false ), 
+			: A( (bytes + index_type_size - 1) / index_type_size, false ),
 			  iptr(A.end()), dptr(reinterpret_cast<uint8_t *>(A.begin())),
-			  tempfilename(rtempfilename), 
+			  tempfilename(rtempfilename),
 			  tempfilenameindex(),
 			  indexerpos(0),
 			  copyAlignments(rcopyAlignments),
 			  minlen(std::numeric_limits<uint64_t>::max()),
 			  decodingPrepared(false)
 			{
-			
+
 			}
 
 			/**
@@ -317,31 +317,31 @@ namespace libmaus2
 			 * @param rtempfilename name of temporary file
 			 * @param rtempfilenameindex name of temporary file for index
 			 * @param rcopyAlignments copy alignments along with read ends objects
-			 **/ 
+			 **/
 			ReadEndsContainer(
-				uint64_t const bytes, 
-				std::string const & rtempfilename, 
+				uint64_t const bytes,
+				std::string const & rtempfilename,
 				std::string const & rtempfilenameindex,
 				bool const rcopyAlignments = false
 			)
-			: A( (bytes + index_type_size - 1) / index_type_size, false ), 
+			: A( (bytes + index_type_size - 1) / index_type_size, false ),
 			  iptr(A.end()), dptr(reinterpret_cast<uint8_t *>(A.begin())),
-			  tempfilename(rtempfilename), 
+			  tempfilename(rtempfilename),
 			  tempfilenameindex(rtempfilenameindex),
 			  indexerpos(0),
 			  copyAlignments(rcopyAlignments),
 			  minlen(std::numeric_limits<uint64_t>::max()),
 			  decodingPrepared(false)
 			{
-			
+
 			}
-			
+
 			/**
 			 * release buffer array
 			 **/
 			void releaseArray()
 			{
-				A.release();				
+				A.release();
 				iptr = A.end();
 			}
 
@@ -355,7 +355,7 @@ namespace libmaus2
 				if ( tempfilenameindex.size() )
 					libmaus2::aio::FileRemoval::removeFile(tempfilenameindex);
 			}
-			
+
 			/**
 			 * flush and close output files, deallocate memory
 			 **/
@@ -364,7 +364,7 @@ namespace libmaus2
 				if ( ! decodingPrepared )
 				{
 					flush();
-					
+
 					if ( pSOS )
 					{
 						assert ( pSOS->getOffset().second == 0 );
@@ -373,12 +373,12 @@ namespace libmaus2
 
 					getTempFile().flush();
 					tempfileout.reset();
-					
+
 					if ( getIndexer() )
 						Pindexer.reset();
 
 					releaseArray();
-					
+
 					decodingPrepared = true;
 				}
 			}
@@ -391,7 +391,7 @@ namespace libmaus2
 			::libmaus2::bambam::SortedFragDecoder::unique_ptr_type getDecoder()
 			{
 				prepareDecoding();
-				
+
 				::libmaus2::bambam::SortedFragDecoder::unique_ptr_type ptr(
 					::libmaus2::bambam::SortedFragDecoder::construct(tempfilename,tmpoffsetintervals,tmpoutcnts)
 				);
@@ -406,11 +406,11 @@ namespace libmaus2
 			::libmaus2::bambam::ReadEndsStreamDecoder::unique_ptr_type getUnmergedDecoder()
 			{
 				prepareDecoding();
-				
+
 				::libmaus2::bambam::ReadEndsStreamDecoder::unique_ptr_type tptr(
 					new ::libmaus2::bambam::ReadEndsStreamDecoder(tempfilename)
 				);
-				
+
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 
@@ -422,21 +422,21 @@ namespace libmaus2
 				if ( iptr != A.end() )
 				{
 					// std::cerr << "[V] minlen=" << minlen << std::endl;
-				
+
 					// sort entries in buffer
 					::libmaus2::bambam::CompactReadEndsComparator const comp(reinterpret_cast<uint8_t const *>(A.begin()));
 					::libmaus2::bambam::CompactReadEndsComparator::prepare(reinterpret_cast<uint8_t *>(A.begin()),A.end()-iptr);
-					
+
 					#if defined(READENDSRADIXSORT) && defined(LIBMAUS2_HAVE_x86_64)
 					unsigned int const maxradruns = 1;
 					unsigned int const posradruns = minlen >> 3;
 					unsigned int const radruns = std::min(maxradruns,posradruns);
 					// std::cerr << "radruns: " << radruns << std::endl;
-					
+
 					if ( radruns )
 					{
 						uint64_t const radixn = A.end()-iptr;
-						
+
 						for ( unsigned int r = 1; r < radruns; ++r )
 						{
 							uint64_t const offset = (radruns-r)<<3;
@@ -444,15 +444,15 @@ namespace libmaus2
 							std::cerr << "offset " << offset << std::endl;
 							libmaus2::sorting::SerialRadixSort64<index_type,RadixProjectorTypeOffset>::radixSort(iptr,iptr-radixn,radixn,RP);
 						}
-					
+
 						RadixProjectorType RP(reinterpret_cast<uint8_t const *>(A.begin()));
 						libmaus2::sorting::SerialRadixSort64<index_type,RadixProjectorType>::radixSort(
 							iptr,iptr-radixn,radixn,RP
 						);
-						
+
 						#if 1
 						uint64_t low = 0;
-						
+
 						while ( low != radixn )
 						{
 							uint64_t high = std::min(low+16*1024,radixn);
@@ -460,11 +460,11 @@ namespace libmaus2
 								++high;
 
 							std::sort(iptr+low,iptr+high,comp);
-						
+
 							low = high;
 						}
 						#else
-						std::sort(iptr,A.end(),comp);						
+						std::sort(iptr,A.end(),comp);
 						#endif
 					}
 					else
@@ -473,7 +473,7 @@ namespace libmaus2
 						std::sort(iptr,A.end(),comp);
 					}
 					::libmaus2::bambam::CompactReadEndsComparator::prepare(reinterpret_cast<uint8_t *>(A.begin()),A.end()-iptr);
-					
+
 					#if 0
 					// std::cerr << "Checking sorting...";
 					for ( index_type * xptr = iptr; xptr+1 < A.end(); ++xptr )
@@ -490,59 +490,59 @@ namespace libmaus2
 
 							::libmaus2::autoarray::AutoArray<uint8_t> A = decodeEntryArray(xptr[0]);
 							::libmaus2::autoarray::AutoArray<uint8_t> B = decodeEntryArray(xptr[1]);
-							
+
 							for ( uint64_t i = 0; i < std::min(A.size(),B.size()); ++i )
 								std::cerr << std::hex << static_cast<int>(A[i]) << std::dec << ";";
 							std::cerr << std::endl;
 							for ( uint64_t i = 0; i < std::min(A.size(),B.size()); ++i )
-								std::cerr << std::hex << static_cast<int>(B[i]) << std::dec << ";";						
+								std::cerr << std::hex << static_cast<int>(B[i]) << std::dec << ";";
 							std::cerr << std::endl;
 						}
 						assert ( ok );
 					}
 					// std::cerr << "done." << std::endl;
 					#endif
-					
+
 					index_generator_type * indexer = getIndexer();
 					if ( indexer )
 						indexblockstart.push_back(indexer->setup());
-						
+
 					::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::OutputStream > & SOS = getCompressedTempFile();
 					uint64_t const prepos = SOS.getOffset().first;
 					assert ( SOS.getOffset().second == 0 );
-							
+
 					// write entries
 					for ( index_type * xptr = iptr; xptr != A.end(); ++xptr )
-					{						
+					{
 						if ( indexer && ((xptr - iptr) & index_generator_type::base_index_mask) == 0 )
 						{
 							index_type const ioff = *xptr;
 							uint8_t const * eptr = reinterpret_cast<uint8_t const *>(A.begin()) + ioff;
-							
+
 							// decode
 							/* uint32_t const len = */ decodeLength(eptr);
 							::libmaus2::util::CountGetObject<uint8_t const *> G(eptr);
-							
+
 							::libmaus2::bambam::ReadEnds RE;
 							RE.get(G);
 							// put object
-							indexer->put(RE,SOS.getOffset());							
+							indexer->put(RE,SOS.getOffset());
 						}
 
 						index_type const ioff = *xptr;
 						uint8_t const * eptr = reinterpret_cast<uint8_t const *>(A.begin()) + ioff;
-					
+
 						#if 1
 						uint32_t const len = decodeLength(eptr);
 						SOS.write(reinterpret_cast<char const *>(eptr),len);
 						#else
 						/* uint32_t const len = */ decodeLength(eptr);
-						
+
 						::libmaus2::util::CountGetObject<uint8_t const *> G(eptr);
 						::libmaus2::bambam::ReadEnds RE;
 						RE.get(G);
 						RE.put(SOS);
-						
+
 						// std::cerr << RE << std::endl;
 						#endif
 					}
@@ -553,7 +553,7 @@ namespace libmaus2
 
 					if ( indexer )
 						indexer->flush();
-					
+
 					// file positions
 					tmpoffsetintervals.push_back(upair(prepos,postpos));
 					// number of elements
@@ -564,45 +564,45 @@ namespace libmaus2
 					// reset buffer
 					iptr = A.end();
 					dptr = reinterpret_cast<uint8_t *>(A.begin());
-					
+
 					// std::cerr << "block." << std::endl;
 				}
-				
+
 				minlen = std::numeric_limits<uint64_t>::max();
 			}
-			
+
 			ReadEndsBlockDecoderBaseCollectionInfoBase getMergeInfo()
 			{
 				prepareDecoding();
 				return ReadEndsBlockDecoderBaseCollectionInfoBase(tempfilename,tempfilenameindex,tmpoutcnts,indexblockstart);
 			}
-			
+
 			ReadEndsBlockDecoderBaseCollection<true>::unique_ptr_type getBaseDecoderCollectionWithProxy()
 			{
 				prepareDecoding();
-				
+
 				ReadEndsBlockDecoderBaseCollection<true>::unique_ptr_type tptr(
 					new ReadEndsBlockDecoderBaseCollection<true>(
 						std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase>(1,getMergeInfo())
 					)
 				);
-				
+
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 
 			ReadEndsBlockDecoderBaseCollection<false>::unique_ptr_type getBaseDecoderCollectionWithoutProxy()
 			{
 				prepareDecoding();
-				
+
 				ReadEndsBlockDecoderBaseCollection<false>::unique_ptr_type tptr(
 					new ReadEndsBlockDecoderBaseCollection<false>(
-						std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase>(1,getMergeInfo())					
+						std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase>(1,getMergeInfo())
 					)
 				);
-				
+
 				return UNIQUE_PTR_MOVE(tptr);
 			}
-			
+
 			/**
 			 * construct fragment ReadEnds object from p and put it in the buffer
 			 *
@@ -625,9 +625,9 @@ namespace libmaus2
 			 **/
 			template<typename header_type>
 			void putFrag(
-				uint8_t const * p, 
+				uint8_t const * p,
 				uint64_t const pblocksize,
-				header_type const & header, 
+				header_type const & header,
 				uint64_t const tagid = 0
 			)
 			{
@@ -645,15 +645,15 @@ namespace libmaus2
 			 **/
 			template<typename header_type>
 			void putPair(
-				::libmaus2::bambam::BamAlignment const & p, 
-				::libmaus2::bambam::BamAlignment const & q, 
+				::libmaus2::bambam::BamAlignment const & p,
+				::libmaus2::bambam::BamAlignment const & q,
 				header_type const & header,
 				uint64_t tagid = 0
 			)
 			{
 				::libmaus2::bambam::ReadEnds RE(p,q,header, /* RE, */ copyAlignments,tagid);
 				// fillFragPair(p,q,header,RE);
-				put(RE);				
+				put(RE);
 			}
 
 			/**
@@ -675,7 +675,7 @@ namespace libmaus2
 			{
 				::libmaus2::bambam::ReadEnds RE(p,pblocksize,q,qblocksize,header, /* RE, */ copyAlignments,tagid);
 				// fillFragPair(p,q,header,RE);
-				put(RE);				
+				put(RE);
 			}
 
 			/**
@@ -686,7 +686,7 @@ namespace libmaus2
 			void put(::libmaus2::bambam::ReadEnds const & R)
 			{
 				// assert ( R.recode() == R );
-			
+
 				// compute space required for adding R
 				uint64_t const entryspace = getEntryLength(R);
 				uint64_t const numlen = getNumberLength(entryspace);
@@ -696,18 +696,18 @@ namespace libmaus2
 				#else
 				uint64_t const reqspace = entryspace+numlen+idexlen;
 				#endif
-				
+
 				assert ( reqspace <= A.size() * sizeof(index_type) );
-				
+
 				// flush buffer if needed
 				if ( reqspace > freeSpace() )
 					flush();
-					
+
 				minlen = std::min(entryspace,minlen);
-				
+
 				// store current offset
 				*(--iptr) = dptr - reinterpret_cast<uint8_t *>(A.begin());
-				
+
 				// put entry
 				::libmaus2::util::PutObject<uint8_t *> P(dptr);
 				// put length
@@ -716,8 +716,8 @@ namespace libmaus2
 				// put entry data
 				R.put(P);
 				assert ( (P.p - dptr) == static_cast<ptrdiff_t>(numlen+entryspace) );
-				
-				dptr = P.p;		
+
+				dptr = P.p;
 			}
 
 			size_t byteSize() const
@@ -727,7 +727,7 @@ namespace libmaus2
 					sizeof(iptr) +
 					sizeof(dptr) +
 					tempfilename.size() +
-					tempfilenameindex.size() + 
+					tempfilenameindex.size() +
 					sizeof(pSOS) +
 					(pSOS ? pSOS->byteSize() : 0) +
 					sizeof(Pindexer) +

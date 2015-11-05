@@ -33,7 +33,7 @@ namespace libmaus2
 		{
 			/**
 			 * compute n staticic use ta = 50, b = 100 for n50
-			 * 
+			 *
 			 * @param ta numerator
 			 * @param b denominator
 			 * @param nval reference for storing n value

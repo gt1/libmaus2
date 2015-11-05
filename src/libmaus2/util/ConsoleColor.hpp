@@ -58,13 +58,13 @@ namespace libmaus2
 				c_lightgray,
 				c_defaultcolor
 				};
-				
+
 			/**
 			 * @return true if stderr is a terminal
 			 **/
 			static bool istty();
 			/**
-			 * return escape code for turning the text color to c 
+			 * return escape code for turning the text color to c
 			 *
 			 * @param c requested color
 			 * @return escape code for turning text to color c
@@ -106,7 +106,7 @@ namespace libmaus2
 			 * @return escape code for turning text colour to default colour
 			 **/
 			static std::string defaultcolor();
-			
+
 			/**
 			 * @return code for starting coloured printing
 			 **/

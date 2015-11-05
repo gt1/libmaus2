@@ -35,12 +35,12 @@ namespace libmaus2
 		{
 			typedef IntervalTree this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			unique_ptr_type leftchild;
 			unique_ptr_type rightchild;
 
 			uint64_t split;
-			
+
 			bool isLeaf() const;
 
 			IntervalTree(
@@ -50,7 +50,7 @@ namespace libmaus2
 				bool const check = true
 			);
 			~IntervalTree();
-			
+
 			uint64_t findTrace(std::vector < IntervalTree const * > & trace, uint64_t const v) const;
 			IntervalTree const * lca(uint64_t const v, uint64_t const w) const;
 			uint64_t find(uint64_t const v) const;

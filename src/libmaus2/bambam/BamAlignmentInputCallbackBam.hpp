@@ -28,7 +28,7 @@ namespace libmaus2
 	namespace bambam
 	{
 		template<typename _update_base_type = libmaus2::bambam::BamAlignmentInputPositionCallbackNull>
-		struct BamAlignmentInputCallbackBam : 
+		struct BamAlignmentInputCallbackBam :
 			public ::libmaus2::bambam::CollatingBamDecoderAlignmentInputCallback,
 			public _update_base_type
 		{
@@ -39,7 +39,7 @@ namespace libmaus2
 
 			uint64_t als;
 			::libmaus2::bambam::BamWriter::unique_ptr_type BWR;
-			
+
 			BamAlignmentInputCallbackBam(
 				std::string const & filename,
 				::libmaus2::bambam::BamHeader const & bamheader,
@@ -47,9 +47,9 @@ namespace libmaus2
 			)
 			: update_base_type(bamheader), als(0), BWR(new ::libmaus2::bambam::BamWriter(filename,bamheader,rewritebamlevel))
 			{
-				
+
 			}
-			
+
 			~BamAlignmentInputCallbackBam()
 			{
 			}
@@ -59,7 +59,7 @@ namespace libmaus2
 				als++;
 				update_base_type::updatePosition(A);
 				A.serialise(BWR->getStream());
-			}	
+			}
 		};
 	}
 }

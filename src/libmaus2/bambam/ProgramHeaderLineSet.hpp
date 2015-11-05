@@ -41,7 +41,7 @@ namespace libmaus2
 			std::vector<uint64_t> roots;
 			//! PG tree edges
 			std::map< uint64_t,std::vector<uint64_t> > edges;
-			
+
 			/**
 			 * constructor for empty PG line set
 			 **/
@@ -54,62 +54,62 @@ namespace libmaus2
 			{
 				for ( uint64_t i = 0; i < lines.size(); ++i )
 					idmap [ lines[i].getValue("ID") ] = i;
-				
+
 				for ( uint64_t i = 0; i < lines.size(); ++i )
 					if ( lines[i].hasKey("PP") )
 					{
 						std::string const PP = lines[i].getValue("PP");
-						
+
 						if ( idmap.find(PP) == idmap.end() )
 						{
 							::libmaus2::exception::LibMausException se;
 							se.getStream() << "Broken sam header: referenced ID by PP " << PP << " does not exist" << std::endl;
 							se.finish();
-							throw se;						
+							throw se;
 						}
-						
+
 						uint64_t const parid = idmap.find(PP)->second;
 						parent[i] = parid;
 						edges [ parid ] . push_back(i);
 					}
-					
+
 				for ( uint64_t i = 0; i < parent.size(); ++i )
 					if ( parent[i] < 0 )
 						roots.push_back(i);
-				
+
 				if ( roots.size() > 1 )
 					std::cerr << "WARNING: SAM header designates more than one PG tree root by PP tags." << std::endl;
-					
-				for ( 
-					std::map< uint64_t,std::vector<uint64_t> >::const_iterator ita = edges.begin(); 
-					ita != edges.end(); 
-					++ita 
+
+				for (
+					std::map< uint64_t,std::vector<uint64_t> >::const_iterator ita = edges.begin();
+					ita != edges.end();
+					++ita
 				)
 					if ( ita->second.size() > 1 )
 					{
 						std::cerr << "WARNING: PG line with id " << lines[ita->first].getValue("ID") << " has multiple children referencing it by PP tags." << std::endl;
 					}
-				
+
 				#if 0
 				for ( uint64_t i = 0; i < roots.size(); ++i )
 				{
 					uint64_t const root = roots[i];
 					std::cerr << "[ROOT=" << root << "]" << std::endl;
-					
+
 					std::stack< std::pair<uint64_t,uint64_t> > S;
 					S.push(std::pair<uint64_t,uint64_t>(root,0));
 					std::set<uint64_t> seen;
-					
+
 					while ( S.size() )
 					{
 						uint64_t const cur = S.top().first;
 						uint64_t const d = S.top().second;
 						seen.insert(cur);
 						S.pop();
-						
+
 						std::cerr << std::string(d,' ');
 						std::cerr << lines[cur].getValue("ID") << " [" << cur << "]" << std::endl;
-						
+
 						if ( edges.find(cur) != edges.end() )
 						{
 							std::vector<uint64_t> const & E = edges.find(cur)->second;
@@ -126,12 +126,12 @@ namespace libmaus2
 								}
 							}
 						}
-						
+
 					}
 				}
 				#endif
-			}		
-			
+			}
+
 			/**
 			 * @return last id in PG id chain
 			 **/
@@ -140,15 +140,15 @@ namespace libmaus2
 				// no lines -> no parent ID
 				if ( ! lines.size() )
 					return std::string();
-					
-				assert ( roots.size() );	
-					
+
+				assert ( roots.size() );
+
 				// more than one root, assume last inserted line was last ID
 				if ( roots.size() > 1 )
 					return lines.back().getValue("ID");
-				
+
 				uint64_t cur = roots[0];
-				
+
 				while ( edges.find(cur) != edges.end() )
 				{
 					std::vector<uint64_t> const & E = edges.find(cur)->second;
@@ -157,7 +157,7 @@ namespace libmaus2
 						std::cerr << "WARNING: PG lines in header do not form a linear chain." << std::endl;
 					cur = E[0];
 				}
-				
+
 				return lines[cur].getValue("ID");
 			}
 
@@ -182,7 +182,7 @@ namespace libmaus2
 			)
 			{
 				std::vector<HeaderLine> hlv = HeaderLine::extractLines(headertext);
-				
+
 				std::set<std::string> ids;
 				std::string LPP;
 				int64_t lp = -1;
@@ -193,11 +193,11 @@ namespace libmaus2
 						LPP = hlv[i].getValue("ID");
 						lp = i;
 					}
-				
-				// add ' while ID is not unique		
+
+				// add ' while ID is not unique
 				while ( ids.find(ID) != ids.end() )
 					ID += (char)39; // prime
-					
+
 				if ( !ID.size() )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -217,15 +217,15 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "PP=" << PP << " does not exist in addProgramLine" << std::endl;
 					se.finish();
-					throw se;				
+					throw se;
 				}
-				
+
 				std::ostringstream ostr;
 				for ( uint64_t i = 0; i < hlv.size(); ++i )
 				{
 					ostr << hlv[i].line << std::endl;
-					if ( 
-						static_cast<int64_t>(i) == lp 
+					if (
+						static_cast<int64_t>(i) == lp
 						||
 						((i+1 == hlv.size()) && lp == -1)
 					)
@@ -240,9 +240,9 @@ namespace libmaus2
 						if ( VN.size() )
 							ostr << "\tVN:" << VN;
 						ostr << std::endl;
-					}		
+					}
 				}
-				
+
 				return ostr.str();
 			}
 
@@ -268,7 +268,7 @@ namespace libmaus2
 			)
 			{
 				std::vector<HeaderLine> hlv = HeaderLine::extractLines(headertext);
-				
+
 				std::set<std::string> ids;
 				std::string LPP;
 				int64_t lp = -1;
@@ -279,11 +279,11 @@ namespace libmaus2
 						LPP = hlv[i].getValue("ID");
 						lp = i;
 					}
-				
-				// add ' while ID is not unique		
+
+				// add ' while ID is not unique
 				while ( ids.find(ID) != ids.end() )
 					ID += (char)39; // prime
-					
+
 				if ( !ID.size() )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -303,15 +303,15 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "PP=" << PP << " does not exist in addProgramLine" << std::endl;
 					se.finish();
-					throw se;				
+					throw se;
 				}
-				
+
 				std::ostringstream ostr;
 				for ( uint64_t i = 0; i < hlv.size(); ++i )
 				{
 					ostr << hlv[i].line << std::endl;
-					if ( 
-						static_cast<int64_t>(i) == lp 
+					if (
+						static_cast<int64_t>(i) == lp
 						||
 						((i+1 == hlv.size()) && lp == -1)
 					)
@@ -326,9 +326,9 @@ namespace libmaus2
 						if ( VN.size() )
 							ostr << "\tVN:" << VN;
 						ostr << std::endl;
-					}		
+					}
 				}
-				
+
 				return ostr.str();
 			}
 		};
@@ -349,7 +349,7 @@ namespace libmaus2
 			{
 				uint64_t const len = strlen(from);
 				int64_t const id = tries[srcfileid]->searchCompleteNoFailure(from,from+len);
-				
+
 				if ( id >= 0 && id < static_cast<int64_t>(PGids.size()) )
 					return PGids[triedictmaps[srcfileid][id]];
 				else
@@ -360,18 +360,18 @@ namespace libmaus2
 					throw se;
 				}
 			}
-		
+
 			ProgramHeaderLinesMerge(
 				std::vector< std::string const * > const & headers
-			) 
+			)
 			: tries(headers.size())
 			{
 				std::vector < HeaderLine > PGlines;
 				std::vector < std::vector < HeaderLine > > headerlines;
 				std::vector < std::map<std::string,std::string> > PGlinesmappingS;
-				
+
 				std::vector<std::string> lastinchain;
-				
+
 				// extract pg lines and get last in chain ids
 				for ( uint64_t i = 0; i < headers.size(); ++i )
 				{
@@ -385,7 +385,7 @@ namespace libmaus2
 					for ( uint64_t j = 0; j < headerlines[i].size(); ++j )
 					{
 						HeaderLine & line = headerlines[i][j];
-						
+
 						if ( ! line.hasKey("ID") )
 						{
 							libmaus2::exception::LibMausException lme;
@@ -411,41 +411,41 @@ namespace libmaus2
 						if ( it->second > 1 )
 							idremap[ std::pair<uint64_t,uint64_t>(i,j) ] = idcntremap[ID]++;
 					}
-									
+
 				std::ostringstream PGtextstr;
-				std::set < std::string > gids;	
+				std::set < std::string > gids;
 				for ( uint64_t i = 0; i < headerlines.size(); ++i )
 				{
 					std::map<std::string,std::string> lidmap;
-					
+
 					for ( uint64_t j = 0; j < headerlines[i].size(); ++j )
 					{
 						HeaderLine & line = headerlines[i][j];
 						assert ( line.hasKey("ID") );
-						
+
 						std::string const origID = line.getValue("ID");
 						std::string ID = origID;
-						
+
 						if ( idremap.find(std::pair<uint64_t,uint64_t>(i,j)) != idremap.end() )
 						{
 							std::ostringstream idostr;
 							idostr << origID << "_" << idremap.find(std::pair<uint64_t,uint64_t>(i,j))->second;
 							ID = idostr.str();
 						}
-						
+
 						while ( gids.find(ID) != gids.end() )
 							ID += '\'';
-							
+
 						#if 0
 						if ( ID != origID )
 							std::cerr << "[D] replacing PG ID " << origID << " by " << ID << std::endl;
 						#endif
-						
+
 						line.M["ID"] = ID;
-						
+
 						lidmap [ origID ] = ID;
 						gids.insert(ID);
-						
+
 						if ( lastinchain[i] == origID )
 							lastinchain[i] = ID;
 					}
@@ -453,18 +453,18 @@ namespace libmaus2
 					for ( uint64_t j = 0; j < headerlines[i].size(); ++j )
 					{
 						HeaderLine & line = headerlines[i][j];
-						
+
 						if ( line.hasKey("PP") )
 							line.M["PP"] = lidmap.find(line.getValue("PP"))->second;
 						else if ( i > 0 && lastinchain[i-1].size() )
 							line.M["PP"] = lastinchain[i-1];
-							
+
 						line.constructLine();
-						
+
 						PGlines.push_back(line);
 						PGtextstr << line.line << std::endl;
 					}
-					
+
 					PGlinesmappingS.push_back(lidmap);
 				}
 
@@ -481,7 +481,7 @@ namespace libmaus2
 					std::map<std::string,std::string> const & M = PGlinesmappingS[i];
 					std::vector < std::string > ldict;
 					std::vector < uint64_t > ldictmap;
-					
+
 					for ( std::map<std::string,std::string>::const_iterator ita = M.begin();
 						ita != M.end(); ++ita )
 					{
@@ -491,19 +491,19 @@ namespace libmaus2
 						ldictmap.push_back(toid);
 						ldict.push_back(from);
 					}
-					
+
 					::libmaus2::trie::Trie<char> trienofailure;
 					trienofailure.insertContainer(ldict);
-					::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure 
+					::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure
 						(trienofailure.toLinearHashTrie<uint32_t>());
-						
+
 					tries[i] = UNIQUE_PTR_MOVE(LHTnofailure);
-						
+
 					triedictmaps.push_back(ldictmap);
 				}
-				
+
 				PGtext = PGtextstr.str();
-				
+
 				#if 0
 				headerlines.resize(0);
 				for ( uint64_t i = 0; i < headers.size(); ++i )

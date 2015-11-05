@@ -40,13 +40,13 @@ namespace libmaus2
 		{
 			private:
 			void * v;
-			
+
 			friend GmpInteger operator+(GmpInteger const & A, GmpInteger const & B);
 			friend GmpInteger operator-(GmpInteger const & A, GmpInteger const & B);
 			friend GmpInteger operator*(GmpInteger const & A, GmpInteger const & B);
 			friend GmpInteger operator/(GmpInteger const & A, GmpInteger const & B);
 			friend GmpInteger operator%(GmpInteger const & A, GmpInteger const & B);
-			
+
 			public:
 			GmpInteger(int64_t rv = 0);
 			GmpInteger(GmpInteger const & o);
@@ -69,7 +69,7 @@ namespace libmaus2
 			operator uint64_t() const;
 			operator int64_t() const;
 		};
-		
+
 		GmpInteger operator+(GmpInteger const & A, GmpInteger const & B);
 		GmpInteger operator-(GmpInteger const & A, GmpInteger const & B);
 		GmpInteger operator*(GmpInteger const & A, GmpInteger const & B);

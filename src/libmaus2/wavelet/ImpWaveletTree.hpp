@@ -31,19 +31,19 @@ namespace libmaus2
 		{
 			typedef ImpWaveletTree this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			uint64_t const n;
 			uint64_t const b;
 
 			typedef ::libmaus2::rank::ImpCacheLineRank rank_type;
 			typedef rank_type::unique_ptr_type rank_ptr_type;
 			typedef ::libmaus2::autoarray::AutoArray<rank_ptr_type> rank_array_type;
-			
+
 			::libmaus2::autoarray::AutoArray<rank_array_type> dicts;
 			rank_type const * root;
 
 			::libmaus2::autoarray::AutoArray< ::libmaus2::autoarray::AutoArray<rank_type const * > > traces;
-			
+
 			uint64_t getN() const
 			{
 				return n;
@@ -53,12 +53,12 @@ namespace libmaus2
 			{
 				return b;
 			}
-			
+
 			uint64_t size() const
 			{
 				return n;
 			}
-			
+
 			void serialise(std::ostream & out) const
 			{
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,n);
@@ -68,7 +68,7 @@ namespace libmaus2
 						dicts[i][j]->serialise(out);
 				out.flush();
 			}
-			
+
 			ImpWaveletTree(std::istream & in)
 			:
 				n(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
@@ -79,19 +79,19 @@ namespace libmaus2
 			{
 				if ( b )
 				{
-					dicts[0] = rank_array_type( 1 );	
+					dicts[0] = rank_array_type( 1 );
 					rank_ptr_type tdicts00(new rank_type(in));
 					dicts[0][0] = UNIQUE_PTR_MOVE(tdicts00);
 					root = dicts[0][0].get();
-					
+
 					for ( uint64_t ib = 1; ib < b; ++ib )
 					{
-						dicts[ib] = rank_array_type( 1ull << ib );	
+						dicts[ib] = rank_array_type( 1ull << ib );
 						for ( uint64_t i = 0; i < dicts[ib].size(); ++i )
 						{
 							rank_ptr_type tdictsibi(new rank_type(in));
 							dicts[ib][i] = UNIQUE_PTR_MOVE(tdictsibi);
-							
+
 							if ( i & 1 )
 							{
 								dicts[ib-1][i/2]->right = dicts[ib][i].get();
@@ -100,7 +100,7 @@ namespace libmaus2
 							{
 								dicts[ib-1][i/2]->left = dicts[ib][i].get();
 							}
-							
+
 							dicts[ib][i]->parent = dicts[ib-1][i/2].get();
 						}
 					}
@@ -109,11 +109,11 @@ namespace libmaus2
 					{
 						traces[i] = ::libmaus2::autoarray::AutoArray<rank_type const *>(b);
 						rank_type const * node = root;
-	
+
 						for ( uint64_t mask = 1ull << (b-1), j = 0; mask; mask >>= 1, ++j )
 						{
 							traces[i][j] = node;
-							
+
 							if ( i & mask )
 								node = node->right;
 							else
@@ -122,18 +122,18 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			std::pair<uint64_t,uint64_t> inverseSelect(uint64_t i) const
 			{
 				uint64_t sym = 0;
 				rank_type const * node = root;
-				
+
 				for ( uint64_t ib = 0; ib < b; ++ib )
 				{
 					unsigned int bit;
 					uint64_t const r1 = node->inverseSelect1(i,bit);
 					sym <<= 1;
-					
+
 					if ( bit )
 					{
 						i = r1-1;
@@ -147,7 +147,7 @@ namespace libmaus2
 						node = node->left;
 					}
 				}
-								
+
 				return std::pair<uint64_t,uint64_t>(sym,i);
 			}
 
@@ -155,13 +155,13 @@ namespace libmaus2
 			{
 				uint64_t sym = 0;
 				rank_type const * node = root;
-				
+
 				for ( uint64_t ib = 0; ib < b; ++ib )
 				{
 					unsigned int bit;
 					uint64_t const r1 = node->inverseSelect1(i,bit);
 					sym <<= 1;
-					
+
 					if ( bit )
 					{
 						i = r1-1;
@@ -175,14 +175,14 @@ namespace libmaus2
 						node = node->left;
 					}
 				}
-								
+
 				return sym;
 			}
-			
+
 			uint64_t rank(uint64_t const s, uint64_t i) const
 			{
 				rank_type const * node = root;
-				
+
 				for ( uint64_t mask = 1ull << (b-1); mask; mask >>= 1 )
 				{
 					if ( s & mask )
@@ -202,24 +202,24 @@ namespace libmaus2
 						node = node->left;
 					}
 				}
-				
+
 				return i+1;
 			}
-			
+
 			uint64_t select(uint64_t const s, uint64_t i) const
 			{
 				rank_type const * node = dicts[b-1][s/2].get();
-				
+
 				for ( uint64_t mask = 1; node; mask <<= 1 )
 				{
 					if ( s & mask )
 						i = node->select1(i);
 					else
 						i = node->select0(i);
-					
+
 					node = node->parent;
 				}
-				
+
 				return i;
 			}
 

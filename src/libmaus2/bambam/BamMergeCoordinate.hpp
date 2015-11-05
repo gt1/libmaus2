@@ -29,36 +29,36 @@ namespace libmaus2
 		struct BamMergeCoordinateHeapComparator
 		{
 			libmaus2::bambam::BamAlignment ** algns;
-			
+
 			BamMergeCoordinateHeapComparator(libmaus2::bambam::BamAlignment ** ralgns) : algns(ralgns) {}
-		
+
 			bool operator()(uint64_t const a, uint64_t const b) const
 			{
 				libmaus2::bambam::BamAlignment const * A = algns[a];
 				libmaus2::bambam::BamAlignment const * B = algns[b];
-			
+
 				uint32_t const refida = A->getRefID();
 				uint32_t const refidb = B->getRefID();
-				
+
 				if ( refida != refidb )
 					return refida > refidb;
-				
+
 				uint32_t const posa = A->getPos();
 				uint32_t const posb = B->getPos();
-				
+
 				if ( posa != posb )
 					return posa > posb;
-					
+
 				return a > b;
 			}
 		};
 
 		typedef BamMergeTemplate<BamMergeCoordinateHeapComparator,BamCatHeader::IsCoordinateSorted> BamMergeCoordinate;
-		
+
 		struct BamMergeCoordinateWrapper
 		{
 			BamMergeCoordinate object;
-			
+
 			BamMergeCoordinateWrapper(libmaus2::util::ArgInfo const & arginfo, std::vector<std::string> const & filenames, bool const putrank = false)
 			: object(arginfo,filenames,putrank) {}
 			BamMergeCoordinateWrapper(std::vector<std::string> const & filenames, bool const putrank = false)

@@ -35,7 +35,7 @@ namespace libmaus2
 			typedef BamRangeDecoder this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			private:
 			/**
 			 * derive .bai file name from .bam file name. The function
@@ -49,7 +49,7 @@ namespace libmaus2
 			static std::string deriveBamIndexName(std::string const & bamname)
 			{
 				std::string bainame;
-				
+
 				// try to add .bai
 				if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(bamname+".bai") )
 				{
@@ -57,7 +57,7 @@ namespace libmaus2
 				}
 				// try to clip off .bam and then add .bai
 				else if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(
-					libmaus2::util::OutputFileNameTools::clipOff(bamname,".bam")+".bai") 
+					libmaus2::util::OutputFileNameTools::clipOff(bamname,".bam")+".bai")
 				)
 				{
 					return libmaus2::util::OutputFileNameTools::clipOff(bamname,".bam")+".bai";
@@ -71,7 +71,7 @@ namespace libmaus2
 					throw se;
 				}
 			}
-			
+
 			/**
 			 * load BAM file header of file named filename
 			 *
@@ -100,17 +100,17 @@ namespace libmaus2
 				libmaus2::bambam::BamIndex::unique_ptr_type Pindex(new libmaus2::bambam::BamIndex(CIS));
 				return UNIQUE_PTR_MOVE(Pindex);
 			}
-			
+
 			//! pointer to bam header
 			libmaus2::bambam::BamHeader::unique_ptr_type const Pheader;
 			//! bam header reference
 			libmaus2::bambam::BamHeader const & header;
-			
+
 			//! pointer to bam index (bai)
 			libmaus2::bambam::BamIndex::unique_ptr_type const Pindex;
 			//! bam index reference
 			libmaus2::bambam::BamIndex const & index;
-			
+
 			//! range array
 			libmaus2::autoarray::AutoArray<libmaus2::bambam::BamRange::unique_ptr_type> ranges;
 			//! next element to be processed in ranges
@@ -118,18 +118,18 @@ namespace libmaus2
 			//! pointer to range which is currently processed
 			libmaus2::bambam::BamRange const * rangecur;
 
-			//! bam decoder wrapper			
+			//! bam decoder wrapper
 			libmaus2::bambam::BamDecoderResetableWrapper wrapper;
 			//! chunks for current range
 			std::vector< std::pair<uint64_t,uint64_t> > chunks;
 			//! next element to be processed in chunks
 			uint64_t chunkidx;
-			
+
 			//! decoder for current chunk
 			libmaus2::bambam::BamAlignmentDecoder & decoder;
 			//! alignment object in decoder
 			libmaus2::bambam::BamAlignment & algn;
-			
+
 			//! true if decoder is still active
 			bool active;
 
@@ -150,14 +150,14 @@ namespace libmaus2
 					{
 						rangecur = ranges[rangeidx++].get();
 						chunks = rangecur->getChunks(index);
-						chunkidx = 0;							
+						chunkidx = 0;
 					}
 					// no more ranges
 					else
 					{
 						return false;
 					}
-				}				
+				}
 			}
 
 			/**
@@ -170,7 +170,7 @@ namespace libmaus2
 				while ( active )
 				{
 					bool const ok = decoder.readAlignment();
-					
+
 					if ( ok )
 					{
 						if ( (*rangecur)(algn) == libmaus2::bambam::BamRange::interval_rel_pos_matching )
@@ -179,7 +179,7 @@ namespace libmaus2
 					else
 						active = setup();
 				}
-				
+
 				return false;
 			}
 
@@ -192,13 +192,13 @@ namespace libmaus2
 			bool readAlignmentInternal(bool const delayPutRank = false)
 			{
 				bool const ok = readAlignmentInRange();
-				
+
 				if ( ! ok )
 					return false;
-			
+
 				if ( ! delayPutRank )
 					putRank();
-			
+
 				return true;
 			}
 
@@ -212,7 +212,7 @@ namespace libmaus2
 			 **/
 			BamRangeDecoder(std::string const & filename, std::string const & rranges, bool const rputrank = false)
 			:
-			  libmaus2::bambam::BamAlignmentDecoder(rputrank), 
+			  libmaus2::bambam::BamAlignmentDecoder(rputrank),
 			  Pheader(loadHeader(filename)),
 			  header(*Pheader),
 			  Pindex(loadIndex(deriveBamIndexName(filename))),
@@ -228,7 +228,7 @@ namespace libmaus2
 			  active(setup())
 			{
 			}
-			
+
 			void setRange(std::string const & rranges)
 			{
 				ranges = libmaus2::bambam::BamRangeParser::parse(rranges,header);
@@ -238,7 +238,7 @@ namespace libmaus2
 				chunkidx = 0;
 				active = setup();
 			}
-			
+
 			/**
 			 * get next alignment. Calling this function is only valid
 			 * if the most recent call to readAlignment returned true
@@ -260,7 +260,7 @@ namespace libmaus2
 			{
 				return algn;
 			}
-			
+
 			/**
 			 * @return BAM file header object
 			 **/
@@ -269,7 +269,7 @@ namespace libmaus2
 				return header;
 			}
 		};
-		
+
 		/**
 		 * wrapper for a BamRangeDecoder object
 		 **/
@@ -288,9 +288,9 @@ namespace libmaus2
 			BamRangeDecoderWrapper(std::string const & rfilename, std::string const & rranges, bool const rputrank = false)
 			: decoder(rfilename,rranges,rputrank)
 			{
-			
+
 			}
-			
+
 			libmaus2::bambam::BamAlignmentDecoder & getDecoder()
 			{
 				return decoder;

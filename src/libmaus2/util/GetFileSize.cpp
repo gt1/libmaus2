@@ -40,25 +40,25 @@ int libmaus2::util::GetFileSize::getSymbolAtPosition(std::string const & filenam
 		se.finish();
 		throw se;
 	}
-	
+
 	return c;
 }
 
 ::libmaus2::autoarray::AutoArray<uint8_t> libmaus2::util::GetFileSize::readFile(std::string const & filename)
 {
 	::libmaus2::autoarray::AutoArray<uint8_t> A;
-	
+
 	if ( ! fileExists(filename) )
 		return A;
-	
+
 	uint64_t const fs = getFileSize(filename);
 	A = ::libmaus2::autoarray::AutoArray<uint8_t>(fs);
-	
+
 	libmaus2::aio::InputStreamInstance istr(filename);
 	istr.read ( reinterpret_cast<char *>(A.get()), fs );
 	assert ( istr );
 	assert ( istr.gcount() == static_cast<int64_t>(fs) );
-	
+
 	return A;
 }
 

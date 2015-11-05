@@ -24,7 +24,7 @@
 #include <sys/types.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-              
+
 #include <csignal>
 #include <cerrno>
 #include <cstring>
@@ -38,7 +38,7 @@ namespace libmaus2
 		struct PosixProcess
 		{
 			pid_t pid;
-			
+
 			PosixProcess() : pid(-1)
 			{
 			}
@@ -46,7 +46,7 @@ namespace libmaus2
 			{
 				join();
 			}
-			
+
 			void kill(int signal)
 			{
 				if ( pid != static_cast<pid_t>(-1) )
@@ -54,7 +54,7 @@ namespace libmaus2
 					::kill(pid,signal);
 				}
 			}
-			
+
 			void start()
 			{
 				if ( pid != static_cast<pid_t>(-1) )
@@ -62,7 +62,7 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "PosixProcess::start() called for process which is already running." << std::endl;
 					se.finish();
-					throw se;		
+					throw se;
 				}
 				if ( (pid=fork()) == static_cast<pid_t>(-1) )
 				{
@@ -89,7 +89,7 @@ namespace libmaus2
 					_exit(r);
 				}
 			}
-			
+
 			bool tryJoin()
 			{
 				if ( pid == static_cast<pid_t>(-1) )
@@ -106,15 +106,15 @@ namespace libmaus2
 					return false;
 				}
 			}
-			
+
 			void join()
 			{
 				if ( pid != static_cast<pid_t>(-1) )
 				{
-					// wait for child to exit	
+					// wait for child to exit
 					int status;
 					waitpid(pid,&status,0);
-					pid = -1;		
+					pid = -1;
 				}
 			}
 

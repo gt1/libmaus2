@@ -40,14 +40,14 @@ namespace libmaus2
 				typedef FastqParsePackageDispatcher this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				FastqParsePackageReturnInterface & packageReturnInterface;
 				FastqParsePackageFinishedInterface & addPendingInterface;
 				libmaus2::bambam::BamSeqEncodeTable const seqenc;
 				libmaus2::fastx::SpaceTable const ST;
 				std::string const rgid;
 				libmaus2::autoarray::AutoArray<uint8_t> rgA;
-							
+
 				FastqParsePackageDispatcher(
 					FastqParsePackageReturnInterface & rpackageReturnInterface,
 					FastqParsePackageFinishedInterface & raddPendingInterface,
@@ -62,18 +62,18 @@ namespace libmaus2
 						rgA[1] = 'G';
 						rgA[2] = 'Z';
 						std::copy(rgid.begin(),rgid.end(),rgA.begin()+3);
-						rgA[3 + rgid.size()] = 0;						
+						rgA[3 + rgid.size()] = 0;
 					}
 				}
-			
+
 				void dispatch(
-					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadWorkPackage * P,
 					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
 					assert ( dynamic_cast<FastqParsePackage *>(P) != 0 );
 					FastqParsePackage * BP = dynamic_cast<FastqParsePackage *>(P);
-					
+
 					FastqToBamControlSubReadPending & data = BP->data;
 					FastQInputDescBase::input_block_type::shared_ptr_type & block = data.block;
 					DecompressedBlock::shared_ptr_type & deblock = data.deblock;
@@ -85,12 +85,12 @@ namespace libmaus2
 
 					libmaus2::fastx::EntityBuffer<uint8_t,libmaus2::bambam::BamAlignment::D_array_alloc_type> buffer;
 					libmaus2::bambam::BamAlignment algn;
-					
+
 					std::pair<uint8_t *, uint8_t *> Q = block->meta.blocks[data.subid];
 					while ( Q.first != Q.second )
 					{
 						std::pair<uint8_t *,uint8_t *> ls[4];
-						
+
 						for ( unsigned int i = 0; i < 4; ++i )
 						{
 							uint8_t * s = Q.first;
@@ -107,7 +107,7 @@ namespace libmaus2
 							ls[i] = std::pair<uint8_t *,uint8_t *>(s,Q.first);
 							Q.first += 1;
 						}
-						
+
 						uint8_t const * name = ls[0].first+1;
 						uint32_t const namelen = ls[0].second-ls[0].first-1;
 						int32_t const refid = -1;
@@ -126,7 +126,7 @@ namespace libmaus2
 						libmaus2::fastx::NameInfo const NI(
 							name,namelen,ST,libmaus2::fastx::NameInfoBase::fastq_name_scheme_generic
 						);
-						
+
 						uint32_t flags = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP;
 						if ( NI.ispair )
 						{
@@ -137,7 +137,7 @@ namespace libmaus2
 							else
 								flags |= libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD2;
 						}
-						
+
 						std::pair<uint8_t const *,uint8_t const *> NP = NI.getName();
 
 						libmaus2::bambam::BamAlignmentEncoderBase::encodeAlignment
@@ -145,16 +145,16 @@ namespace libmaus2
 							buffer,seqenc,NP.first,NP.second-NP.first,refid,pos,mapq,flags,cigar,cigarlen,
 							nextrefid,nextpos,tlen,seq,seqlen,qual,qualshift
 						);
-						
+
 						if ( rgA.size() )
 							for ( uint64_t i = 0; i < rgA.size(); ++i )
 								buffer.bufferPush(rgA[i]);
-						
+
 						algn.blocksize = buffer.swapBuffer(algn.D);
-						
+
 						deblock->pushData      (algn.D.begin(), algn.blocksize);
 					}
-					
+
 					addPendingInterface.fastqParsePackageFinished(BP->data);
 					packageReturnInterface.fastqParsePackageReturn(BP);
 				}

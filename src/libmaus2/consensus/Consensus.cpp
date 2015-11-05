@@ -33,10 +33,10 @@ std::vector<std::string> libmaus2::consensus::ConsensusComputationBase::computeM
 	#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 	::libmaus2::util::DynamicLibraryFunction<libmaus2_consensus_ConsensusComputationBase_computeMultipleAlignment_wrapperC_type> DLF(
 		"libmaus2_consensus_mod.so","libmaus2_consensus_ConsensusComputationBase_computeMultipleAlignment_wrapperC");
-	
+
 	std::vector<std::string> R;
 	int const r = DLF.func(obj,&R,&V);
-	
+
 	if ( r < 0 )
 	{
 		::libmaus2::exception::LibMausException se;
@@ -44,7 +44,7 @@ std::vector<std::string> libmaus2::consensus::ConsensusComputationBase::computeM
 		se.finish();
 		throw se;
 	}
-	
+
 	return R;
 	#else
 	::libmaus2::exception::LibMausException se;
@@ -62,10 +62,10 @@ std::string libmaus2::consensus::ConsensusComputationBase::computeConsensus(
 	#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 	::libmaus2::util::DynamicLibraryFunction<libmaus2_consensus_ConsensusComputationBase_computeConsensusX_wrapperC_type> DLF(
 		"libmaus2_consensus_mod.so","libmaus2_consensus_ConsensusComputationBase_computeConsensusQ_wrapperC");
-	
+
 	std::string R;
 	int const r = DLF.func(obj,&R,&V,verbose,ostr);
-	
+
 	if ( r < 0 )
 	{
 		::libmaus2::exception::LibMausException se;
@@ -73,7 +73,7 @@ std::string libmaus2::consensus::ConsensusComputationBase::computeConsensus(
 		se.finish();
 		throw se;
 	}
-	
+
 	return R;
 	#else
 	::libmaus2::exception::LibMausException se;
@@ -118,7 +118,7 @@ void libmaus2::consensus::ConsensusComputationBase::construct(void ** P)
 		"libmaus2_consensus_mod.so","libmaus2_consensus_ConsensusComputationBase_construct_wrapperC");
 
 	int const r = DLF.func(P);
-	
+
 	if ( r < 0 )
 	{
 		::libmaus2::exception::LibMausException se;
@@ -132,7 +132,7 @@ void libmaus2::consensus::ConsensusComputationBase::construct(void ** P)
 	se.finish();
 	throw se;
 	#endif
-	
+
 	// std::cerr << "Received ptr " << *P << " stored at " << P << std::endl;
 }
 
@@ -143,7 +143,7 @@ void libmaus2::consensus::ConsensusComputationBase::destruct(void * P)
 		"libmaus2_consensus_mod.so","libmaus2_consensus_ConsensusComputationBase_destruct_wrapperC");
 
 	int const r = DLF.func(P);
-	
+
 	if ( r < 0 )
 	{
 		::libmaus2::exception::LibMausException se;

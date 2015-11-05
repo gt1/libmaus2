@@ -28,13 +28,13 @@ namespace libmaus2
 	{
 		struct HuffmanInputFile
 		{
-			typedef ::libmaus2::huffman::BitInputBuffer4 sbis_type;			
-			
+			typedef ::libmaus2::huffman::BitInputBuffer4 sbis_type;
+
 			::libmaus2::aio::InputStream::unique_ptr_type istr;
 			sbis_type::raw_input_ptr_type ript;
 			sbis_type::unique_ptr_type SBIS;
 			::libmaus2::huffman::CanonicalEncoder const & canon;
-			
+
 			HuffmanInputFile(std::string const & filename, ::libmaus2::huffman::CanonicalEncoder const & rcanon)
 			: istr(libmaus::aio::InputStreamFactoryContainer::constructUnique(filename)),
 			  ript(
@@ -47,9 +47,9 @@ namespace libmaus2
 			  SBIS(UNIQUE_PTR_MOVE(sbis_type::unique_ptr_type(new sbis_type(ript,static_cast<uint64_t>(64*1024))))),
 			  canon(rcanon)
 			{
-			
+
 			}
-			
+
 			int64_t decode()
 			{
 				return canon.fastDecode(*SBIS);

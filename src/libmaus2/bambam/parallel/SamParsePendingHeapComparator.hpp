@@ -20,7 +20,7 @@
 #define LIBMAUS2_BAMBAM_PARALLEL_SAMPARSEPENDINGHEAPCOMPARATOR_HPP
 
 #include <libmaus2/bambam/parallel/SamParsePending.hpp>
-			
+
 namespace libmaus2
 {
 	namespace bambam

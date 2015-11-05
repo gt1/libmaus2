@@ -30,7 +30,7 @@ namespace libmaus2
 		{
 			private:
 			typedef ::libmaus2::graph::TripleEdgeOutput base_type;
-		
+
 			::libmaus2::graph::TripleEdge prevtrip;
 
 			void flush()
@@ -49,7 +49,7 @@ namespace libmaus2
 			{
 
 			}
-			
+
 			~TripleEdgeOutputMerge()
 			{
 				flush();
@@ -68,7 +68,7 @@ namespace libmaus2
 				{
 					prevtrip.c += T.c;
 				}
-			}		
+			}
 		};
 	}
 }

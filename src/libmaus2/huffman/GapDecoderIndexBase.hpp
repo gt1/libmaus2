@@ -60,7 +60,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < index.size(); ++i )
 					for ( uint64_t j = 0; j < index[i].size(); ++j )
 						preaccu[k++] = index[i][j].vcnt;
-						
+
 				preaccu.prefixSums();
 				::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > accu(numint);
 				for ( uint64_t i = 1; i < preaccu.size(); ++i )
@@ -90,11 +90,11 @@ namespace libmaus2
 			static uint64_t getLength(std::string const & filename)
 			{
 				libmaus2::aio::InputStreamInstance istr(filename);
-				::libmaus2::bitio::StreamBitInputStream SBIS(istr);	
+				::libmaus2::bitio::StreamBitInputStream SBIS(istr);
 				SBIS.readBit(); // need escape
 				return ::libmaus2::bitio::readElias2(SBIS);
 			}
-			
+
 			// get length of vector of files in symbols
 			static uint64_t getLength(std::vector<std::string> const & filenames)
 			{
@@ -107,12 +107,12 @@ namespace libmaus2
 			::libmaus2::autoarray::AutoArray < ::libmaus2::autoarray::AutoArray < uint64_t > > getBlockSizes() const
 			{
 				::libmaus2::autoarray::AutoArray < ::libmaus2::autoarray::AutoArray < uint64_t > > blocksizes(index.size());
-				
+
 				for ( uint64_t fileptr = 0; fileptr < index.size(); ++fileptr )
 				{
 					blocksizes[fileptr] = ::libmaus2::autoarray::AutoArray<uint64_t>(index[fileptr].size(),false);
 					libmaus2::aio::InputStreamInstance istr(filenames[fileptr]);
-					
+
 					for ( uint64_t blockptr = 0; blockptr < index[fileptr].size(); ++blockptr )
 					{
 						istr.clear();
@@ -123,11 +123,11 @@ namespace libmaus2
 						blocksizes[fileptr][blockptr] = blocksize;
 					}
 				}
-				
-				
+
+
 				return blocksizes;
 			}
-			
+
 			::libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > computeBlockIntervals() const
 			{
 				uint64_t numblocks = 0;
@@ -144,20 +144,20 @@ namespace libmaus2
 					blockintervals[i-1] = std::pair<uint64_t,uint64_t>(lblocksizes[i-1],lblocksizes[i]);
 				return blockintervals;
 			}
-			
+
 			static std::vector<std::string> filterFilenamesByLength(std::vector<std::string> const & rfilenames)
 			{
 				std::vector<std::string> filtered;
-				
+
 				for ( uint64_t i = 0; i < rfilenames.size(); ++i )
 					if ( getLength(rfilenames[i]) )
 						filtered.push_back(rfilenames[i]);
-						
+
 				return filtered;
 			}
 
 			GapDecoderIndexBase(std::vector<std::string> const & rfilenames)
-			: 
+			:
 			  filenames(filterFilenamesByLength(rfilenames)),
 			  index(loadIndex(filenames)),
 			  symaccu(computeSymAccu()),

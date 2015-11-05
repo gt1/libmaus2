@@ -31,29 +31,29 @@ namespace libmaus2
 		struct RefPathTokenVector
 		{
 			std::vector<RefPathToken> V;
-			
+
 			RefPathTokenVector(std::string const & s = std::string())
 			{
 				uint64_t i = 0;
-				
+
 				while ( i < s.size() )
 				{
 					if ( s[i] == '%' )
 					{
 						std::ostringstream ostr;
 						ostr.put(s[i++]);
-						
+
 						// get numbers after %
 						std::ostringstream numostr;
 						while ( i < s.size() && isdigit(static_cast<unsigned char>(s[i])) )
 							numostr.put(s[i++]);
-						
+
 						// is next character an s?
 						if ( i < s.size() && s[i] == 's' )
 						{
 							// step over 's'
 							i += 1;
-							
+
 							// number before s
 							if ( numostr.str().size() )
 							{
@@ -76,11 +76,11 @@ namespace libmaus2
 						{
 							// copy numbers
 							ostr << numostr.str();
-							
+
 							// copy next symbol
 							if ( i < s.size() )
 								ostr.put(s[i++]);
-							
+
 							if ( V.size() && V.back().token == RefPathToken::path_token_literal )
 								V.back().s += ostr.str();
 							else
@@ -95,7 +95,7 @@ namespace libmaus2
 
 						V.push_back(RefPathToken(ostr.str()));
 					}
-				}				
+				}
 			}
 
 			std::string expand(std::string const & s) const
@@ -115,8 +115,8 @@ namespace libmaus2
 							ostr.put(s[j++]);
 					}
 				}
-			
-				// append rest of s	
+
+				// append rest of s
 				if ( j != s.size() )
 				{
 					// append slash if string is non empty but not ending on '/'
@@ -124,11 +124,11 @@ namespace libmaus2
 						ostr.put('/');
 					ostr << s.substr(j);
 				}
-				
+
 				return ostr.str();
 			}
 		};
-		
+
 		std::ostream & operator<<(std::ostream & out, libmaus2::fastx::RefPathTokenVector const & O);
 	}
 }

@@ -37,13 +37,13 @@ namespace libmaus2
 			: fn(std::vector<std::string>(1,rfn)), level(rlevel) {}
 			SparseGammaGapMultiFile(std::vector<std::string> const & rfn, uint64_t const rlevel)
 			: fn(rfn), level(rlevel) {}
-			
+
 			bool operator<(SparseGammaGapMultiFile const & o) const
 			{
 				return level > o.level;
 			}
 		};
-		
+
 		inline std::ostream & operator<<(std::ostream & out, SparseGammaGapMultiFile const & SGGF)
 		{
 			out << "SparseGammaGapMultiFile(fn={";

@@ -49,13 +49,13 @@ namespace libmaus2
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			::libmaus2::autoarray::AutoArray< IndexEntry > const index;
-			
+
 			IndexEntryContainer(libmaus2::autoarray::AutoArray< IndexEntry > & rindex)
 			: index(rindex)
 			{
-			
+
 			}
-			
+
 			uint64_t getNumKeys() const
 			{
 				if ( index.size() )
@@ -71,9 +71,9 @@ namespace libmaus2
 				else
 					return 0;
 			}
-			
+
 			uint64_t lookupKey(uint64_t const k) const
-			{				
+			{
 				if ( !index.size() )
 					return 0;
 
@@ -82,13 +82,13 @@ namespace libmaus2
 				::libmaus2::util::ConstIterator<adapter_type,uint64_t> const ita(&IEKGA);
 				::libmaus2::util::ConstIterator<adapter_type,uint64_t> ite(ita);
 				ite += index.size();
-				
+
 				::libmaus2::util::ConstIterator<adapter_type,uint64_t> R =
 					::std::lower_bound(ita,ite,k);
-					
+
 				if ( R == ite )
 					return index.size()-1;
-					
+
 				if ( k == *R )
 					return R-ita;
 				else
@@ -96,7 +96,7 @@ namespace libmaus2
 			}
 
 			uint64_t lookupValue(uint64_t const v) const
-			{				
+			{
 				if ( !index.size() )
 					return 0;
 
@@ -105,13 +105,13 @@ namespace libmaus2
 				::libmaus2::util::ConstIterator<adapter_type,uint64_t> const ita(&IEKGA);
 				::libmaus2::util::ConstIterator<adapter_type,uint64_t> ite(ita);
 				ite += index.size();
-				
+
 				::libmaus2::util::ConstIterator<adapter_type,uint64_t> R =
 					::std::lower_bound(ita,ite,v);
-					
+
 				if ( R == ite )
 					return index.size()-1;
-					
+
 				if ( v == *R )
 					return R-ita;
 				else
@@ -135,36 +135,36 @@ namespace libmaus2
 				else
 					return 0;
 			}
-			
+
 			IndexEntry const & operator[](uint64_t const i) const
 			{
 				return index[i];
 			}
 		};
-		
+
 		struct IndexEntryContainerVector
 		{
 			typedef IndexEntryContainerVector this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			::libmaus2::autoarray::AutoArray<IndexEntryContainer::unique_ptr_type> A;
-			
+
 			IndexEntryContainerVector(::libmaus2::autoarray::AutoArray<IndexEntryContainer::unique_ptr_type> & rA)
 			: A(rA)
 			{
 			}
-			
+
 			std::pair<uint64_t,uint64_t> lookupKey(uint64_t k) const
 			{
 				uint64_t fileptr = 0;
-				
+
 				while ( fileptr < A.size() && k >= A[fileptr]->getNumKeys() )
 				{
 					k -= A[fileptr]->getNumKeys();
 					++fileptr;
 				}
-					
+
 				if ( fileptr == A.size() )
 					return std::pair<uint64_t,uint64_t>(fileptr,0);
 				else
@@ -174,13 +174,13 @@ namespace libmaus2
 			std::pair<uint64_t,uint64_t> lookupValue(uint64_t v) const
 			{
 				uint64_t fileptr = 0;
-				
+
 				while ( fileptr < A.size() && v >= A[fileptr]->getNumValues() )
 				{
 					v -= A[fileptr]->getNumValues();
 					++fileptr;
 				}
-					
+
 				if ( fileptr == A.size() )
 					return std::pair<uint64_t,uint64_t>(fileptr,0);
 				else
@@ -193,12 +193,12 @@ namespace libmaus2
 			libmaus2::aio::InputStream::unique_ptr_type Pindexistr;
 			std::istream & indexistr;
 			::libmaus2::bitio::StreamBitInputStream SBIS;
-			
+
 			uint64_t numentries;
 			unsigned int posbits;
 			unsigned int kbits;
-			unsigned int vbits;		
-			
+			unsigned int vbits;
+
 			IndexLoaderSequential(std::string const & filename)
 			: Pindexistr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename)), indexistr(*Pindexistr), SBIS(indexistr)
 			{
@@ -209,7 +209,7 @@ namespace libmaus2
 				numentries = ::libmaus2::bitio::readElias2(SBIS);
 				// pos bits
 				posbits = ::libmaus2::bitio::readElias2(SBIS);
-				
+
 				// k bits
 				kbits = ::libmaus2::bitio::readElias2(SBIS);
 				// k acc
@@ -219,7 +219,7 @@ namespace libmaus2
 				vbits = ::libmaus2::bitio::readElias2(SBIS);
 				// v acc
 				/* uint64_t const symacc = */ ::libmaus2::bitio::readElias2(SBIS);
-				
+
 				// align
 				SBIS.flush();
 			}
@@ -232,20 +232,20 @@ namespace libmaus2
 				return IndexEntry(pos,kcnt,vcnt);
 			}
 		};
-	
+
 		struct IndexLoader : public IndexLoaderBase
 		{
-			/* 
-			 * load indexes for multiple files 
+			/*
+			 * load indexes for multiple files
 			 */
-			static ::libmaus2::autoarray::AutoArray< ::libmaus2::autoarray::AutoArray< IndexEntry > > 
+			static ::libmaus2::autoarray::AutoArray< ::libmaus2::autoarray::AutoArray< IndexEntry > >
 				loadIndex(std::vector<std::string> const & filenames)
 			{
 				::libmaus2::autoarray::AutoArray< ::libmaus2::autoarray::AutoArray< IndexEntry > > index(filenames.size());
-				
+
 				for ( uint64_t i = 0; i < index.size(); ++i )
 					index[i] = loadIndex(filenames[i]);
-				
+
 				return index;
 			}
 
@@ -260,12 +260,12 @@ namespace libmaus2
 				}
 
 				IndexEntryContainerVector::unique_ptr_type IECV(new IndexEntryContainerVector(A));
-				
+
 				return UNIQUE_PTR_MOVE(IECV);
 			}
 
 			/*
-			 * load index for one file 
+			 * load index for one file
 			 */
 			static IndexEntryContainer::unique_ptr_type
 				loadAccIndex(std::string const & filename)
@@ -276,14 +276,14 @@ namespace libmaus2
 				std::istream & indexistr = *Pindexistr;
 				// seek to index position
 				indexistr.seekg(indexpos,std::ios::beg);
-				// 
+				//
 				::libmaus2::bitio::StreamBitInputStream SBIS(indexistr);
-				
+
 				// read size of index
 				uint64_t const numentries = ::libmaus2::bitio::readElias2(SBIS);
 				// pos bits
 				unsigned int const posbits = ::libmaus2::bitio::readElias2(SBIS);
-				
+
 				// k bits
 				unsigned int const kbits = ::libmaus2::bitio::readElias2(SBIS);
 				// k acc
@@ -293,17 +293,17 @@ namespace libmaus2
 				unsigned int const vbits = ::libmaus2::bitio::readElias2(SBIS);
 				// v acc
 				/* uint64_t const symacc = */ ::libmaus2::bitio::readElias2(SBIS);
-				
+
 				// align
 				SBIS.flush();
-				
+
 				SBIS.getBitsRead();
-				
+
 				// std::cerr << "numentries " << numentries << std::endl;
-				
+
 				// read index
 				libmaus2::autoarray::AutoArray< IndexEntry > index(numentries+1,false);
-				
+
 				for ( uint64_t i = 0; i < numentries+1; ++i )
 				{
 					uint64_t const pos = SBIS.read(posbits);
@@ -311,14 +311,14 @@ namespace libmaus2
 					uint64_t const vcnt = SBIS.read(vbits);
 					index[i] = IndexEntry(pos,kcnt,vcnt);
 				}
-				
+
 				IndexEntryContainer::unique_ptr_type IEC(new IndexEntryContainer(index));
-				
+
 				return UNIQUE_PTR_MOVE(IEC);
 			}
 
 			/*
-			 * load index for one file 
+			 * load index for one file
 			 */
 			static libmaus2::autoarray::AutoArray< IndexEntry > loadIndex(std::string const & filename)
 			{
@@ -331,18 +331,18 @@ namespace libmaus2
 				if ( static_cast<int64_t>(indexistr.tellg()) != static_cast<int64_t>(indexpos) )
 				{
 					::libmaus2::exception::LibMausException se;
-					se.getStream() << "Failed to seek to index position " << indexpos << " in file " << filename << " of size " 
+					se.getStream() << "Failed to seek to index position " << indexpos << " in file " << filename << " of size "
 						<< ::libmaus2::util::GetFileSize::getFileSize(filename) << std::endl;
 					se.finish();
 					throw se;
 				}
 				::libmaus2::bitio::StreamBitInputStream SBIS(indexistr);
-				
+
 				// read size of index
 				uint64_t const numentries = ::libmaus2::bitio::readElias2(SBIS);
 				// pos bits
 				unsigned int const posbits = ::libmaus2::bitio::readElias2(SBIS);
-				
+
 				// k bits
 				unsigned int const kbits = ::libmaus2::bitio::readElias2(SBIS);
 				// k acc
@@ -352,19 +352,19 @@ namespace libmaus2
 				unsigned int const vbits = ::libmaus2::bitio::readElias2(SBIS);
 				// v acc
 				/* uint64_t const symacc = */ ::libmaus2::bitio::readElias2(SBIS);
-				
+
 				// align
 				SBIS.flush();
-				
+
 				SBIS.getBitsRead();
-				
+
 				// std::cerr << "numentries " << numentries << std::endl;
-				
+
 				// read index
 				libmaus2::autoarray::AutoArray< IndexEntry > index(numentries,false);
-				
+
 				// #define INDEXLOADERDEBUG
-				
+
 				#if defined(INDEXLOADERDEBUG)
 				libmaus2::autoarray::AutoArray< IndexEntry > tindex(numentries+1);
 				#endif
@@ -389,24 +389,24 @@ namespace libmaus2
 						index[i-1].kcnt = index[i].kcnt;
 						index[i-1].vcnt = index[i].vcnt;
 					}
-				
+
 					/* uint64_t const pos = */   SBIS.read(posbits);
 					index[numentries-1].kcnt = SBIS.read(kbits);
 					index[numentries-1].vcnt = SBIS.read(vbits);
-					
+
 					#if defined(INDEXLOADERDEBUG)
 					tindex[numentries].kcnt = index[numentries-1].kcnt;
 					tindex[numentries].vcnt = index[numentries-1].vcnt;
 					#endif
 				}
-				
+
 				if ( numentries )
 					for ( uint64_t i = numentries-1; i >= 1; --i )
 					{
 						index[i].kcnt -= index[i-1].kcnt;
 						index[i].vcnt -= index[i-1].vcnt;
 					}
-					
+
 				#if defined(INDEXLOADERDEBUG)
 				for ( uint64_t i = 0; i < numentries; ++i )
 				{
@@ -414,7 +414,7 @@ namespace libmaus2
 					assert ( index[i].vcnt == tindex[i+1].vcnt-tindex[i].vcnt );
 				}
 				#endif
-				
+
 				#if defined(INDEXLOADERDEBUG)
 				IndexDecoderData IDD(filename);
 				assert ( IDD.numentries == numentries );
@@ -422,7 +422,7 @@ namespace libmaus2
 				assert ( IDD.kbits == kbits );
 				assert ( IDD.vbits == vbits );
 				// assert ( IDD.symacc == symacc );
-				
+
 				std::cerr << "((**++CHECKING " << numentries << "...";
 				uint64_t tkacc = 0;
 				uint64_t tvacc = 0;
@@ -432,7 +432,7 @@ namespace libmaus2
 					assert ( P.pos == index[i].pos );
 					assert ( P.kcnt == tkacc );
 					assert ( P.vcnt == tvacc );
-									
+
 					tkacc += index[i].kcnt;
 					tvacc += index[i].vcnt;
 				}
@@ -442,7 +442,7 @@ namespace libmaus2
 				#endif
 
 				// std::cerr << "loaded index of size " << numentries << std::endl;
-				
+
 				return index;
 			}
 		};

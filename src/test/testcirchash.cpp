@@ -45,24 +45,24 @@ void bamcollate(libmaus2::util::ArgInfo const & arginfo)
 		arginfo.progname, // PN
 		arginfo.commandline, // CL
 		::libmaus2::bambam::ProgramHeaderLineSet(headertext).getLastIdInChain(), // PP
-		std::string(PACKAGE_VERSION) // VN			
+		std::string(PACKAGE_VERSION) // VN
 	);
 	// construct new header
 	::libmaus2::bambam::BamHeader uphead(upheadtext);
 	// change sort order
 	uphead.changeSortOrder("unknown");
-	
+
 	libmaus2::bambam::BamWriter bamwr(std::cout,uphead,0);
-	
+
 	uint64_t cnt = 0;
-	
+
 	unsigned int const verbshift = 20;
 	libmaus2::timing::RealTimeClock rtc; rtc.start();
-	
+
 	while ( (ob = CHCBD.process()) )
 	{
 		uint64_t const precnt = cnt;
-		
+
 		if ( ob->fpair )
 		{
 			libmaus2::bambam::EncoderBase::putLE< libmaus2::lz::BgzfDeflate<std::ostream>,uint32_t>(bamwr.getStream(),ob->blocksizea);
@@ -79,13 +79,13 @@ void bamcollate(libmaus2::util::ArgInfo const & arginfo)
 
 			cnt += 1;
 		}
-		
+
 		if ( precnt >> verbshift != cnt >> verbshift )
 		{
 			std::cerr << (cnt >> 20) << "\t" << static_cast<double>(cnt)/rtc.getElapsedSeconds() << std::endl;
 		}
 	}
-	
+
 	std::cerr << cnt << std::endl;
 }
 
@@ -102,11 +102,11 @@ void bamtofastqNonCollating(libmaus2::util::ArgInfo const & arginfo)
 	uint64_t cnt = 0;
 	uint64_t bcnt = 0;
 	unsigned int const verbshift = 20;
-		
+
 	while ( bamdec.readAlignment() )
 	{
 		uint64_t const precnt = cnt++;
-		
+
 		if ( ! (algn.getFlags() & excludeflags) )
 		{
 			uint64_t la = libmaus2::bambam::BamAlignmentDecoderBase::putFastQ(algn.D.begin(),T);
@@ -116,14 +116,14 @@ void bamtofastqNonCollating(libmaus2::util::ArgInfo const & arginfo)
 
 		if ( precnt >> verbshift != cnt >> verbshift )
 		{
-			std::cerr 
-				<< (cnt >> 20) 
+			std::cerr
+				<< (cnt >> 20)
 				<< "\t"
 				<< (static_cast<double>(bcnt)/(1024.0*1024.0))/rtc.getElapsedSeconds() << "MB/s"
 				<< "\t" << static_cast<double>(cnt)/rtc.getElapsedSeconds() << std::endl;
 		}
 	}
-		
+
 	std::cout.flush();
 }
 
@@ -135,7 +135,7 @@ void bamtofastqCollating(
 	libmaus2::bambam::BamToFastqOutputFileSet OFS(arginfo);
 
 	libmaus2::bambam::CircularHashCollatingBamDecoder::OutputBufferEntry const * ob = 0;
-	
+
 	// number of alignments written to files
 	uint64_t cnt = 0;
 	// number of bytes written to files
@@ -143,11 +143,11 @@ void bamtofastqCollating(
 	unsigned int const verbshift = 20;
 	libmaus2::timing::RealTimeClock rtc; rtc.start();
 	::libmaus2::autoarray::AutoArray<uint8_t> T;
-	
+
 	while ( (ob = CHCBD.process()) )
 	{
 		uint64_t const precnt = cnt;
-		
+
 		if ( ob->fpair )
 		{
 			uint64_t la = libmaus2::bambam::BamAlignmentDecoderBase::putFastQ(ob->Da,T);
@@ -182,18 +182,18 @@ void bamtofastqCollating(
 			cnt += 1;
 			bcnt += (la);
 		}
-		
+
 		if ( precnt >> verbshift != cnt >> verbshift )
 		{
-			std::cerr 
+			std::cerr
 				<< "[V] "
-				<< (cnt >> 20) 
+				<< (cnt >> 20)
 				<< "\t"
 				<< (static_cast<double>(bcnt)/(1024.0*1024.0))/rtc.getElapsedSeconds() << "MB/s"
 				<< "\t" << static_cast<double>(cnt)/rtc.getElapsedSeconds() << std::endl;
 		}
 	}
-	
+
 	std::cerr << "[V] " << cnt << std::endl;
 }
 

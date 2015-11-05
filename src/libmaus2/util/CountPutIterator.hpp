@@ -38,12 +38,12 @@ namespace libmaus2
 			typedef _value_type value_type;
 			//! this type
 			typedef CountPutIterator<output_type,value_type> this_type;
-		
+
 			//! wrapped object written elements are trasnfered to
 			output_type * out;
 			//! number of elements written
 			uint64_t c;
-		
+
 			/**
 			 * constructor
 			 *
@@ -51,7 +51,7 @@ namespace libmaus2
 			 **/
 			CountPutIterator(output_type * const rout)
 			: out(rout), c(0) {}
-			
+
 			/**
 			 * @return state of wrapped object
 			 **/
@@ -60,7 +60,7 @@ namespace libmaus2
 				bool const ok = *out;
 				return ok;
 			}
-			
+
 			/**
 			 * put element v
 			 *
@@ -71,7 +71,7 @@ namespace libmaus2
 				c += 1;
 				out->put(v);
 			}
-			
+
 			/**
 			 * put string s by putting its symbols
 			 *
@@ -85,7 +85,7 @@ namespace libmaus2
 				while ( u != ue )
 					put(*(u++));
 			}
-			
+
 			/**
 			 * assignment operator calling put operation on wrapped object for v
 			 *
@@ -97,7 +97,7 @@ namespace libmaus2
 				put(v);
 				return *this;
 			}
-			
+
 			/**
 			 * dereference operator (does nothing)
 			 *
@@ -115,8 +115,8 @@ namespace libmaus2
 			 *
 			 * @return *this
 			 **/
-			this_type & operator++(int) { return *this; }		
-		};	
+			this_type & operator++(int) { return *this; }
+		};
 	}
 }
 #endif

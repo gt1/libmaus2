@@ -21,15 +21,15 @@
 namespace libmaus2
 {
 	namespace parallel
-	{		
+	{
 		struct DummyThreadWorkPackageMeta
 		{
 			uint64_t unfinished;
 			uint64_t finished;
-			
+
 			DummyThreadWorkPackageMeta() : unfinished(0), finished(0)
 			{
-			
+
 			}
 		};
 
@@ -37,20 +37,20 @@ namespace libmaus2
 		{
 			libmaus2::parallel::PosixMutex::shared_ptr_type mutex;
 			DummyThreadWorkPackageMeta * meta;
-		
+
 			DummyThreadWorkPackage() : mutex(), meta(0) {}
 			DummyThreadWorkPackage(
-				uint64_t const rpriority, 
-				uint64_t const rdispatcherid, 
+				uint64_t const rpriority,
+				uint64_t const rdispatcherid,
 				libmaus2::parallel::PosixMutex::shared_ptr_type rmutex,
 				DummyThreadWorkPackageMeta * rmeta,
 				uint64_t const rpackageid = 0
 			)
 			: ThreadWorkPackage(rpriority,rdispatcherid,rpackageid), mutex(rmutex), meta(rmeta)
 			{
-			
+
 			}
-	
+
 			virtual ThreadWorkPackage::unique_ptr_type uclone() const
 			{
 				ThreadWorkPackage::unique_ptr_type tptr(new DummyThreadWorkPackage(priority,dispatcherid,mutex,meta,packageid));
@@ -73,7 +73,7 @@ namespace libmaus2
 
 				libmaus2::parallel::ScopePosixMutex mutex(*(DP->mutex));
 				std::cerr << DP << std::endl;
-				
+
 				if ( DP->meta->unfinished < 1024 )
 					tpi.enque(libmaus2::parallel::DummyThreadWorkPackage(
 						DP->meta->unfinished++,DP->dispatcherid,DP->mutex,DP->meta)
@@ -103,6 +103,6 @@ int main()
 	libmaus2::parallel::PosixMutex::shared_ptr_type printmutex(new libmaus2::parallel::PosixMutex);
 
 	TP.enque(libmaus2::parallel::DummyThreadWorkPackage(0,dispid,printmutex,&meta));
-	
+
 	TP.join();
 }

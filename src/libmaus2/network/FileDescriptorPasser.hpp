@@ -35,13 +35,13 @@ namespace libmaus2
 			typedef FileDescriptorPasser this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			::libmaus2::network::SocketPair * SP;
 			uint64_t cid;
 			::libmaus2::network::SocketBase * passfd;
 			std::string hostname;
 			std::string semname;
-			
+
 			FileDescriptorPasser(
 				::libmaus2::network::SocketPair * rSP,
 				uint64_t const rcid,
@@ -53,7 +53,7 @@ namespace libmaus2
 				// std::cerr << "File descriptor passer for cid=" << cid << std::endl;
 				start();
 			}
-			
+
 			int run()
 			{
 				try
@@ -62,13 +62,13 @@ namespace libmaus2
 					::libmaus2::parallel::NamedPosixSemaphore NPS(semname,false);
 					NPS.wait();
 					// std::cerr << "Got it for id " << cid << std::endl;
-				
+
 					// send process id
 					::libmaus2::network::SocketBase socket(SP->parentGet());
 					socket.writeSingle<uint64_t>(cid);
 					socket.writeString(hostname);
 					socket.releaseFD();
-				
+
 					// send file descriptor
 					SP->sendFd(passfd->getFD());
 				}

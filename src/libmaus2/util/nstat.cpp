@@ -21,7 +21,7 @@
 
 /**
  * compute n staticic use ta = 50, b = 100 for n50
- * 
+ *
  * @param ta numerator
  * @param b denominator
  * @param nval reference for storing n value
@@ -55,34 +55,34 @@ void libmaus2::util::NStat::nstat(
 			se.finish();
 			throw se;
 		}
-	
-		// total bases in contigs	
+
+		// total bases in contigs
 		uint64_t total = 0;
 		for ( uint64_t i = 0; i < clens.size(); ++i )
 			total += clens[i];
-			
+
 		uint64_t nl = 0, nr = 0;
-				
-		if ( 
+
+		if (
 			(((total-1) * a) % b == 0)
 			||
 			(a==b)
 		)
 		{
 			uint64_t const medidx = (a!=b)? ((total-1)*a/b):(total-1);
-			
+
 			uint64_t low = 0;
 			for ( uint64_t i = 0; i < clens.size(); ++i )
 			{
 				uint64_t const high = low + clens[i];
-				
+
 				if ( (low <= medidx) && (medidx < high) )
 					nl = nr = clens[i];
-			
+
 				low = high;
 			}
 		}
-		else	
+		else
 		{
 			uint64_t const i0 = (total*a)/b-1;
 			uint64_t const i1 = (total*a)/b;
@@ -92,21 +92,21 @@ void libmaus2::util::NStat::nstat(
 			for ( uint64_t i = 0; i < clens.size(); ++i )
 			{
 				uint64_t const high = low + clens[i];
-				
+
 				if ( (low <= i0) && (i0 < high) )
 					nl = clens[i];
 				if ( (low <= i1) && (i1 < high) )
 					nr = clens[i];
 
 				low = high;
-			}	
+			}
 		}
-		
+
 		uint64_t const acc = std::accumulate(clens.begin(),clens.end(),0ull);
 		avg = static_cast<double>(acc)/static_cast<double>(clens.size());
 
 		if ( nl == nr )
-			nval = nl; 
+			nval = nl;
 		else
 			nval = static_cast<double>(nl+nr)/2.0;
 	}

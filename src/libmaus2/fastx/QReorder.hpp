@@ -35,29 +35,29 @@ namespace libmaus2
 		struct QReorderTemplate4Base
 		{
 			enum { k = _k };
-			
+
 			typedef QReorderTemplate4Base<k> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			typedef uint64_t value_type;
-			
+
 			unsigned int l0;
 			unsigned int l1;
 			unsigned int l2;
 			unsigned int l3;
 			unsigned int l;
-			
+
 			unsigned int bits0;
 			unsigned int bits1;
 			unsigned int bits2;
 			unsigned int bits3;
-			
+
 			unsigned int bits01;
 			unsigned int bits12;
 			unsigned int bits13;
 			unsigned int bits02;
 			unsigned int bits23;
-			
+
 			uint64_t mask0;
 			uint64_t mask1;
 			uint64_t mask2;
@@ -65,7 +65,7 @@ namespace libmaus2
 			uint64_t mask01; uint64_t mask23;
 			uint64_t mask02; uint64_t mask13;
 			uint64_t mask03; uint64_t mask12;
-			
+
 			QReorderTemplate4Base(
 				unsigned int const rl0,
 				unsigned int const rl1,
@@ -92,9 +92,9 @@ namespace libmaus2
 			    mask03( mask0 | mask3 ),
 			    mask12( mask1 | mask2 )
 			{
-			
+
 			}
-			
+
 			uint64_t front01(uint64_t const v) const
 			{
 				return v;
@@ -104,7 +104,7 @@ namespace libmaus2
 			{
 				return v;
 			}
-			
+
 			uint64_t front02(uint64_t const v) const
 			{
 				return
@@ -128,10 +128,10 @@ namespace libmaus2
 					|
 					(v & mask3);
 			}
-			
+
 			uint64_t front03(uint64_t const v) const
 			{
-				return 
+				return
 					(v & mask0)
 					|
 					((v & mask12) >> bits3)
@@ -141,17 +141,17 @@ namespace libmaus2
 
 			uint64_t front03i(uint64_t const v) const
 			{
-				return 
+				return
 					(v & mask0)
 					|
 					((v << bits3) & mask12)
 					|
 					((v >> (bits12)) & mask3);
 			}
-			
+
 			uint64_t front12(uint64_t const v) const
 			{
-				return 
+				return
 					((v&mask0) >> (bits12))
 					|
 					((v&mask12) << bits0)
@@ -161,14 +161,14 @@ namespace libmaus2
 
 			uint64_t front12i(uint64_t const v) const
 			{
-				return 
+				return
 					((v << (bits12)) & mask0)
 					|
 					((v >> bits0) & mask12)
 					|
 					(v & mask3);
 			}
-			
+
 			uint64_t front13(uint64_t const v) const
 			{
 				return
@@ -188,7 +188,7 @@ namespace libmaus2
 					((v >> (bits02)) &mask3)
 				;
 			}
-			
+
 			uint64_t front23(uint64_t const v) const
 			{
 				return
@@ -219,35 +219,35 @@ namespace libmaus2
 		struct QReorderTemplate4 : public QReorderTemplate4Base<_k>
 		{
 			enum { k = _k };
-			typedef QReorderTemplate4Base<k> base_type;			
+			typedef QReorderTemplate4Base<k> base_type;
 			enum { sel_two = _sel_two };
 
 			typedef QReorderTemplate4<k,_sel_two> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			unique_ptr_type uclone() const
 			{
 				unique_ptr_type O(new this_type(base_type::l0,base_type::l1,base_type::l2,base_type::l3));
 				return UNIQUE_PTR_MOVE(O);
 			}
-			
+
 			QReorderTemplate4(
 				unsigned int const l0,
 				unsigned int const l1,
 				unsigned int const l2,
 				unsigned int const l3)
 			: QReorderTemplate4Base<_k>(l0,l1,l2,l3) {}
-			
+
 			uint64_t frontmask() const
 			{
 				switch ( _sel_two )
 				{
 					case select_two_01: return (*this)(base_type::mask01);
 					case select_two_02: return (*this)(base_type::mask02);
-					case select_two_03: return (*this)(base_type::mask03); 
-					case select_two_12: return (*this)(base_type::mask12); 
-					case select_two_13: return (*this)(base_type::mask13); 
+					case select_two_03: return (*this)(base_type::mask03);
+					case select_two_12: return (*this)(base_type::mask12);
+					case select_two_13: return (*this)(base_type::mask13);
 					case select_two_23: return (*this)(base_type::mask23);
 				}
 			}
@@ -291,7 +291,7 @@ namespace libmaus2
 				}
 			}
 		};
-	
+
 		/*
 		 * reorder qgram (swap middle part with back, k bits per symbol)
 		 */
@@ -321,19 +321,19 @@ namespace libmaus2
 			unsigned int const ss1;
 			unsigned int const ss2;
 			uint64_t const f;
-			
+
 			unique_ptr_type uclone() const
 			{
 				unique_ptr_type U(new this_type(*this));
 				return UNIQUE_PTR_MOVE(U);
 			}
-			
+
 			shared_ptr_type sclone() const
 			{
 				shared_ptr_type U(new this_type(*this));
 				return U;
 			}
-			
+
 			QReorderTemplate(QReorderTemplate const & o)
 			:
 				l(o.l), l0(o.l0), l1(o.l1), l2(o.l2),
@@ -350,13 +350,13 @@ namespace libmaus2
 				ss2(k*l1),
 				f(mm0 | (mm2 << ss2))
 			{
-				assert ( l0+l1+l2 == l );			
+				assert ( l0+l1+l2 == l );
 			}
-			
+
 			QReorderTemplate(
-				unsigned int const rl, 
-				unsigned int const rl0, 
-				unsigned int const rl1, 
+				unsigned int const rl,
+				unsigned int const rl0,
+				unsigned int const rl1,
 				unsigned int const rl2
 			)
 			: l(rl), l0(rl0), l1(rl1), l2(rl2),
@@ -375,17 +375,17 @@ namespace libmaus2
 			{
 				assert ( l0+l1+l2 == l );
 			}
-			
+
 			uint64_t operator()(uint64_t const v) const
 			{
 				return (v & mm0) | ((v & mm1) >> ss1) | ((v & mm2) << ss2);
 			}
-			
+
 			uint64_t inverse(uint64_t const v) const
 			{
 				return (v & mm0) | ((v << ss1) & mm1) | ((v >> ss2) & mm2);
 			}
-			
+
 			uint64_t backmask() const
 			{
 				return mm2;
@@ -395,20 +395,20 @@ namespace libmaus2
 				return f;
 			}
 		};
-		
+
 		struct QReorderComparator
 		{
 			uint64_t const frontmask;
-			
-			template<typename qreorder_type>			
+
+			template<typename qreorder_type>
 			QReorderComparator(
 				qreorder_type const & rqreorder
 			)
-			: frontmask(rqreorder.frontmask()) 
+			: frontmask(rqreorder.frontmask())
 			{
-			
+
 			}
-			
+
 			template<typename value_type>
 			bool operator()(value_type const a, value_type const b) const
 			{
@@ -418,48 +418,48 @@ namespace libmaus2
 
 		typedef QReorderTemplate<2> QReorder2;
 		typedef QReorderTemplate<3> QReorder3;
-		
+
 		struct QCache
 		{
 			unsigned int const lookupbits;
 			unsigned int const lookupshift;
 			libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > cache;
-			
+
 			template<typename iterator, typename qreorder_type>
 			QCache(
 				iterator ita,
 				iterator ite,
 				unsigned int const rlookupbits,
 				qreorder_type const & qreorder
-			) : lookupbits( 
+			) : lookupbits(
 				std::min(
-					rlookupbits, 
-					libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(qreorder->frontmask()) 
-				) 
+					rlookupbits,
+					libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(qreorder->frontmask())
+				)
 			    ),
 			    lookupshift ( qreorder->k*qreorder->l - lookupbits ),
 			    cache(1ull << lookupbits)
 			{
 				// std::cerr << "lookupbits " << lookupbits << " lookupshift " << lookupshift << std::endl;
-			
+
 				std::fill(cache.begin(),cache.end(),std::pair<uint64_t,uint64_t>(0,0));
-			
+
 				iterator it = ita;
 
 				while ( it != ite )
 				{
 					iterator itc = it;
-					
+
 					while ( itc != ite && (*itc >> lookupshift) == (*it >> lookupshift) )
 						++itc;
-					
+
 					cache[ *it >> lookupshift ] = std::pair<uint64_t,uint64_t>(it - ita, itc - ita);
-					
+
 					it = itc;
 				}
 			}
 		};
-		
+
 		/*
 		 *
 		 */
@@ -471,12 +471,12 @@ namespace libmaus2
 			typedef QReorderComponent<value_type,qreorder_type> this_type;
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			typename qreorder_type::unique_ptr_type qreorder;
 			libmaus2::autoarray::AutoArray<value_type> const C;
 			QReorderComparator const recomp;
 			QCache const cache;
-			
+
 			template<typename iterator>
 			static libmaus2::autoarray::AutoArray<value_type> generateC(qreorder_type const & qreorder, iterator ita, iterator ite)
 			{
@@ -485,10 +485,10 @@ namespace libmaus2
 				while ( ita != ite )
 					*(outp++) = qreorder(*(ita++));
 				std::sort(C.begin(),C.end());
-				
+
 				return C;
 			}
-			
+
 			template<typename iterator>
 			QReorderComponent(qreorder_type const & rqreorder, iterator ita, iterator ite, unsigned int const rlookupbits)
 			: qreorder(UNIQUE_PTR_MOVE(rqreorder.uclone())), C(generateC(*qreorder,ita,ite)),
@@ -501,18 +501,18 @@ namespace libmaus2
 					std::cerr << C[i] << ";";
 				}
 				std::cerr << std::endl;
-				
+
 				for ( iterator it = ita; it != ite; ++it )
 				{
 					std::pair<value_type const *, value_type const *> p = search(*it);
 					assert ( p.first != p.second );
-					
+
 					std::cerr << "[" << p.first - C.begin() << "," << p.second - C.begin() << ")";
-					
+
 					bool found = false;
-					
+
 					for ( value_type const * pp = p.first; pp != p.second; ++pp )
-						if ( 
+						if (
 							(
 								(*qreorder)(*it)
 							) == (*pp)
@@ -521,16 +521,16 @@ namespace libmaus2
 					std::cerr << "{" << found << "}";
 					assert ( found );
 				}
-				
+
 				std::cerr << std::endl;
 				#endif
 			}
-			
+
 			std::pair<value_type const *, value_type const *> search(value_type const v)
 			{
 				value_type const rv = (*qreorder)(v);
 				std::pair<uint64_t,uint64_t> const lookup = cache.cache[rv >> cache.lookupshift];
-			
+
 				std::pair<value_type const *, value_type const *> p =
 					std::equal_range(
 						C.begin()+lookup.first,
@@ -538,41 +538,41 @@ namespace libmaus2
 						rv,
 						recomp
 					);
-					
+
 				return p;
 			}
 		};
-		
+
 		template<int i, unsigned int k, unsigned int d>
 		struct KmaskPower
 		{
 			static uint64_t const power = 0;
 		};
-		
+
 		template<int i, unsigned int k>
 		struct KmaskPower<i,k,0>
 		{
 			static uint64_t const power = 1ull << (i*k);
 		};
-		
+
 		template<int i, unsigned int k>
 		struct KmaskComputation
 		{
 			static uint64_t const kmask = KmaskPower<i,k,(i*k)/64>::power | KmaskComputation<i-1,k>::kmask;
 		};
-		
+
 		template<unsigned int k>
 		struct KmaskComputation<-1,k>
 		{
 			static uint64_t const kmask = 0;
 		};
-		
+
 		template<unsigned int k>
 		struct KMask
 		{
 			static uint64_t const kmask = KmaskComputation<(64/k),k>::kmask;
 		};
-		
+
 		template<unsigned int k>
 		struct KBlockBitK
 		{
@@ -581,16 +581,16 @@ namespace libmaus2
 				return (v >> (k-1)) | KBlockBitK<k-1>::compute(v);
 			}
 		};
-		
+
 		template<>
 		struct KBlockBitK<0>
 		{
 			static uint64_t compute(uint64_t const)
 			{
 				return 0;
-			}		
+			}
 		};
-		
+
 		template<unsigned int k>
 		struct KBlockBitCountPrep
 		{
@@ -607,23 +607,23 @@ namespace libmaus2
 			{
 				return libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(KBlockBitCountPrep<k>::compute(v));
 			}
-			
+
 			static uint64_t diff(uint64_t const a, uint64_t const b)
 			{
 				return compute(a ^ b);
 			}
 		};
-		
+
 		template<typename _iterator>
 		struct WordPutObject
 		{
 			typedef _iterator iterator;
 			typedef typename ::std::iterator_traits<iterator>::value_type value_type;
-			
+
 			iterator it;
-			
+
 			WordPutObject(iterator rit) : it(rit) {}
-			
+
 			void put(value_type const val)
 			{
 				*(it++) = val;
@@ -634,12 +634,12 @@ namespace libmaus2
 		struct AutoArrayWordPutObject
 		{
 			typedef _value_type value_type;
-			
+
 			libmaus2::autoarray::AutoArray<value_type> A;
 			uint64_t p;
-			
+
 			AutoArrayWordPutObject() : p(0) {}
-			
+
 			void put(value_type const val)
 			{
 				if ( p == A.size() )
@@ -650,20 +650,20 @@ namespace libmaus2
 					A = N;
 				}
 				assert ( p < A.size() );
-				
+
 				A[p++] = val;
 			}
-			
+
 			void reset()
 			{
 				p = 0;
 			}
-			
+
 			void sort()
 			{
 				std::sort(A.begin(),A.begin()+p);
 			}
-			
+
 			void unique()
 			{
 				p = std::unique(A.begin(),A.begin()+p) - A.begin();
@@ -682,17 +682,17 @@ namespace libmaus2
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			typedef KBlockBitCount<qreorder_type::k> diff_type;
-			
+
 			typename qreorder_type::unique_ptr_type qreorder;
 			libmaus2::autoarray::AutoArray<value_type> const C;
 			QReorderComparator const recomp;
 			QCache const cache;
-			
+
 			static uint64_t diff(uint64_t const a, uint64_t const b)
 			{
 				return diff_type::diff(a,b);
 			}
-			
+
 			template<typename iterator>
 			static libmaus2::autoarray::AutoArray<value_type> generateC(qreorder_type const & qreorder, iterator ita, iterator ite)
 			{
@@ -701,10 +701,10 @@ namespace libmaus2
 				while ( ita != ite )
 					*(outp++) = qreorder(*(ita++));
 				std::sort(C.begin(),C.end());
-				
+
 				return C;
 			}
-			
+
 			template<typename other_qreorder_type>
 			typename QReorder4Component<value_type,other_qreorder_type>::unique_ptr_type
 				getReorderedClone(other_qreorder_type const & rqreorder) const
@@ -715,14 +715,14 @@ namespace libmaus2
 				);
 				return UNIQUE_PTR_MOVE(U);
 			}
-			
+
 			template<typename iterator>
 			QReorder4Component(
-				qreorder_type const & rqreorder, 
-				iterator ita, iterator ite, 
+				qreorder_type const & rqreorder,
+				iterator ita, iterator ite,
 				unsigned int const rlookupbits
 			)
-			: qreorder(rqreorder.uclone()), 
+			: qreorder(rqreorder.uclone()),
 			  C(generateC(*qreorder,ita,ite)),
 			  recomp(*qreorder),
 			  cache(C.begin(),C.end(),rlookupbits,qreorder)
@@ -733,40 +733,40 @@ namespace libmaus2
 					std::cerr << C[i] << ";";
 				}
 				std::cerr << std::endl;
-				
+
 				for ( iterator it = ita; it != ite; ++it )
 				{
 					std::pair<value_type const *, value_type const *> p = search(*it);
 					assert ( p.first != p.second );
-					
+
 					std::cerr << "[" << p.first - C.begin() << "," << p.second - C.begin() << ")";
-					
+
 					bool found = false;
-					
+
 					for ( value_type const * pp = p.first; pp != p.second; ++pp )
 						if ( ( (*qreorder)(*it) ) == (*pp) )
 							found = true;
 					std::cerr << "{" << found << "}";
 					assert ( found );
 				}
-				
+
 				std::cerr << std::endl;
 				#endif
 			}
-			
+
 			uint64_t searchRank(value_type const v) const
 			{
 				value_type const rv = (*qreorder)(v);
 				std::pair<uint64_t,uint64_t> const lookup = cache.cache[rv >> cache.lookupshift];
-				
-				uint64_t const off = 
+
+				uint64_t const off =
 					std::lower_bound(
 						C.begin()+lookup.first,
 						C.begin()+lookup.second,rv
 					) - C.begin();
-					
+
 				assert ( C[off] == v );
-					
+
 				return off;
 			}
 
@@ -774,7 +774,7 @@ namespace libmaus2
 			{
 				value_type const rv = (*qreorder)(v);
 				std::pair<uint64_t,uint64_t> const lookup = cache.cache[rv >> cache.lookupshift];
-			
+
 				std::pair<value_type const *, value_type const *> p =
 					std::equal_range(
 						C.begin()+lookup.first,
@@ -782,7 +782,7 @@ namespace libmaus2
 						rv,
 						recomp
 					);
-					
+
 				return p;
 			}
 
@@ -801,22 +801,22 @@ namespace libmaus2
 						rv,
 						recomp
 					);
-					
+
 				uint64_t c = 0;
 				// iterate over interval
 				for ( value_type const * it = p.first; it != p.second; ++it )
 				{
 					value_type const iv = *it;
-					
+
 					if ( diff(iv,rv) <= maxmis )
 					{
 						++c;
 						out.put(qreorder->inverse(iv));
 					}
 				}
-				
+
 				return c;
-			}			
+			}
 		};
 
 		/**
@@ -828,11 +828,11 @@ namespace libmaus2
 		{
 			enum { k = _k };
 			typedef _value_type value_type;
-			
+
 			typedef QReorder4Set<_k,_value_type> this_type;
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			unsigned int l0;
 			unsigned int l1;
 			unsigned int l2;
@@ -866,25 +866,25 @@ namespace libmaus2
 			comp13_ptr_type comp13;
 			comp23_ptr_type comp23;
 
-			template<typename iterator>			
+			template<typename iterator>
 			QReorder4Set(unsigned int l, iterator ita, iterator ite, unsigned int const rlookupbits)
 			{
 				l0 = (l+3)/4; l -= l0;
 				l1 = (l+2)/3; l -= l1;
 				l2 = (l+1)/2; l -= l2;
 				l3 = l;     ; l -= l3;
-					
+
 				typename QReorderTemplate4<_k,select_two_01>::unique_ptr_type rreorder01(new QReorderTemplate4<_k,select_two_01>(l0,l1,l2,l3)); reorder01 = UNIQUE_PTR_MOVE(rreorder01);
 				typename QReorderTemplate4<_k,select_two_02>::unique_ptr_type rreorder02(new QReorderTemplate4<_k,select_two_02>(l0,l1,l2,l3)); reorder02 = UNIQUE_PTR_MOVE(rreorder02);
 				typename QReorderTemplate4<_k,select_two_03>::unique_ptr_type rreorder03(new QReorderTemplate4<_k,select_two_03>(l0,l1,l2,l3)); reorder03 = UNIQUE_PTR_MOVE(rreorder03);
 				typename QReorderTemplate4<_k,select_two_12>::unique_ptr_type rreorder12(new QReorderTemplate4<_k,select_two_12>(l0,l1,l2,l3)); reorder12 = UNIQUE_PTR_MOVE(rreorder12);
 				typename QReorderTemplate4<_k,select_two_13>::unique_ptr_type rreorder13(new QReorderTemplate4<_k,select_two_13>(l0,l1,l2,l3)); reorder13 = UNIQUE_PTR_MOVE(rreorder13);
 				typename QReorderTemplate4<_k,select_two_23>::unique_ptr_type rreorder23(new QReorderTemplate4<_k,select_two_23>(l0,l1,l2,l3)); reorder23 = UNIQUE_PTR_MOVE(rreorder23);
-				
-				typename QReorder4Component< value_type,QReorderTemplate4<k,select_two_01> >::unique_ptr_type 
-					rcomp01(new QReorder4Component< value_type,QReorderTemplate4<k,select_two_01> >(*reorder01, ita, ite, rlookupbits)); 
+
+				typename QReorder4Component< value_type,QReorderTemplate4<k,select_two_01> >::unique_ptr_type
+					rcomp01(new QReorder4Component< value_type,QReorderTemplate4<k,select_two_01> >(*reorder01, ita, ite, rlookupbits));
 				comp01 = UNIQUE_PTR_MOVE(rcomp01);
-				
+
 				comp02_ptr_type tcomp02(comp01->getReorderedClone(*reorder02));
 				comp02 = UNIQUE_PTR_MOVE(tcomp02);
 
@@ -902,18 +902,18 @@ namespace libmaus2
 			}
 
 			uint64_t slowComp(uint64_t a, uint64_t b) const
-			{	
+			{
 				unsigned int const l = l0+l1+l2+l3;
-				
+
 				unsigned int d = 0;
 				uint64_t const mask = libmaus2::math::lowbits(k);
-				
+
 				for ( unsigned int i = 0; i < l; ++i, a >>= k, b >>= k )
 					 if ( (a & mask) != (b & mask) )
 					 {
 						d++;
 					 }
-					 
+
 				return d;
 			}
 
@@ -925,19 +925,19 @@ namespace libmaus2
 				comp03->search(v,A,maxmis);
 				comp12->search(v,A,maxmis);
 				comp13->search(v,A,maxmis);
-				comp23->search(v,A,maxmis);	
-				A.sort();			
+				comp23->search(v,A,maxmis);
+				A.sort();
 				A.unique();
-				
+
 				#if 0
 				for ( uint64_t i = 0; i < A.p; ++i )
 				{
-					assert ( 
+					assert (
 						slowComp(A.A[i],v) <= maxmis
 					);
 				}
 				#endif
-				
+
 				return A.p;
 			}
 

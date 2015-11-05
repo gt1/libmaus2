@@ -48,7 +48,7 @@ uint64_t getColumns()
 {
 	// get window size
 	struct winsize w;
-	
+
 	if ( isatty(STDOUT_FILENO) && ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0 )
 		return w.ws_col;
 	else if ( getenv("COLUMNS") != 0 )
@@ -71,7 +71,7 @@ int main(int argc, char * argv[])
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
 
 		#if defined(LIBMAUS2_HAVE_DALIGNER)
-		
+
 		#if 1
 		{
 			libmaus2::lcs::DalignerLocalAlignment DLA;
@@ -166,7 +166,7 @@ int main(int argc, char * argv[])
 			);
 		}
 		#endif
-		
+
 		{
 			std::vector<uint8_t> vecA, vecB, vecC, vecD, vecE;
 			for ( uint64_t i = 0; i < 512; ++i )
@@ -184,24 +184,24 @@ int main(int argc, char * argv[])
 				vecD.push_back(::libmaus2::random::Random::rand8()%4);
 				vecE.push_back(::libmaus2::random::Random::rand8()%4);
 			}
-			
-			std::string const sa = 
-				std::string(vecA.begin(),vecA.end()) + 
+
+			std::string const sa =
+				std::string(vecA.begin(),vecA.end()) +
 				std::string(vecC.begin(),vecC.end())
 				+ '\0' +
 				std::string(vecC.begin(),vecC.end()) +
 				std::string(vecD.begin(),vecD.end());
-			std::string const sb = 
-				std::string(vecB.begin(),vecB.end()) + 
-				std::string(vecC.begin(),vecC.end()) + 
-				std::string(vecC.begin(),vecC.end()) + 
+			std::string const sb =
+				std::string(vecB.begin(),vecB.end()) +
+				std::string(vecC.begin(),vecC.end()) +
+				std::string(vecC.begin(),vecC.end()) +
 				std::string(vecE.begin(),vecE.end());
-				
+
 			libmaus2::autoarray::AutoArray<uint8_t> A(sa.size());
 			libmaus2::autoarray::AutoArray<uint8_t> B(sb.size());
 			std::copy(sa.begin(),sa.end(),A.begin());
 			std::copy(sb.begin(),sb.end(),B.begin());
-			
+
 			{
 			libmaus2::lcs::DalignerLocalAlignment DLA;
 			libmaus2::lcs::LocalEditDistanceResult LEDR = DLA.process(
@@ -229,7 +229,7 @@ int main(int argc, char * argv[])
 				A.begin(),A.size(),vecA.size(),
 				B.begin(),B.size(),vecB.size()
 			);
-						
+
 			libmaus2::lcs::LocalAlignmentPrint::printAlignmentLines(
 				std::cerr,
 				A.begin(),A.end(),
@@ -252,7 +252,7 @@ int main(int argc, char * argv[])
 			libmaus2::autoarray::AutoArray<char> Adbfn(dbfn.size()+1);
 			std::copy(dbfn.begin(),dbfn.end(),Adbfn.begin());
 			Adbfn[dbfn.size()] = 0;
-			
+
 			HITS_DB db;
 			int const r = Open_DB(Adbfn.begin(),&db);
 			if ( r < 0 )
@@ -265,7 +265,8 @@ int main(int argc, char * argv[])
 
 				char inqualtrackname[] = "inqual";
 
-				int const tr = Check_Track(&db,&inqualtrackname[0]);
+				int kind = CUSTOM_TRACK;
+				int const tr = Check_Track(&db,&inqualtrackname[0],&kind);
 
 				std::cerr << "tr=" << tr << std::endl;
 
@@ -289,7 +290,7 @@ int main(int argc, char * argv[])
 		bool loadallb = arginfo.getValue<int>("loadallb",loadall);
 		double const eratelimit = arginfo.getValue<double>("eratelimit",1.0);
 		uint64_t const cols = getColumns();
-		
+
 		libmaus2::dazzler::db::DatabaseFile::unique_ptr_type PDB1;
 		libmaus2::dazzler::db::DatabaseFile::unique_ptr_type PDB2;
 		libmaus2::dazzler::db::DatabaseFile * DB1 = 0;
@@ -301,36 +302,36 @@ int main(int argc, char * argv[])
 		std::vector<libmaus2::dazzler::db::Read> const * readsMeta2 = 0;
 
 		libmaus2::autoarray::AutoArray<char> AreadsA;
-		std::vector<uint64_t> AreadsOffA;	
+		std::vector<uint64_t> AreadsOffA;
 		libmaus2::autoarray::AutoArray<char> AreadsB;
-		std::vector<uint64_t> AreadsOffB;	
+		std::vector<uint64_t> AreadsOffB;
 
 		libmaus2::autoarray::AutoArray<char> const * readsA = 0;
-		std::vector<uint64_t> const * readsOffA = 0;	
+		std::vector<uint64_t> const * readsOffA = 0;
 		libmaus2::autoarray::AutoArray<char> const * readsB = 0;
-		std::vector<uint64_t> const * readsOffB = 0;	
-		
+		std::vector<uint64_t> const * readsOffB = 0;
+
 		if ( arginfo.restargs.size() == 2 )
 		{
 			std::string const dbfn = arginfo.restargs.at(0);
 			aligns = arginfo.restargs.at(1);
-		
+
 			libmaus2::dazzler::db::DatabaseFile::unique_ptr_type PDB(new libmaus2::dazzler::db::DatabaseFile(dbfn));
 			PDB->computeTrimVector();
-			PDB1 = UNIQUE_PTR_MOVE(PDB);	
+			PDB1 = UNIQUE_PTR_MOVE(PDB);
 			DB1 = PDB1.get();
 			DB2 = PDB1.get();
-			
+
 			DB1->getAllReads(VreadsMeta1);
 			readsMeta1 = &VreadsMeta1;
 			readsMeta2 = &VreadsMeta1;
-			
+
 			if ( loadalla || loadallb )
 			{
 				DB1->decodeAllReads(AreadsA,AreadsOffA);
 				loadalla = true;
 				loadallb = true;
-				
+
 				readsA = &AreadsA;
 				readsOffA = &AreadsOffA;
 				readsB = &AreadsA;
@@ -342,7 +343,7 @@ int main(int argc, char * argv[])
 			std::string const db1fn = arginfo.restargs.at(0);
 			std::string const db2fn = arginfo.restargs.at(1);
 			aligns = arginfo.restargs.at(2);
-		
+
 			libmaus2::dazzler::db::DatabaseFile::unique_ptr_type TPDB1(new libmaus2::dazzler::db::DatabaseFile(db1fn));
 			TPDB1->computeTrimVector();
 			PDB1 = UNIQUE_PTR_MOVE(TPDB1);
@@ -350,10 +351,10 @@ int main(int argc, char * argv[])
 			libmaus2::dazzler::db::DatabaseFile::unique_ptr_type TPDB2(new libmaus2::dazzler::db::DatabaseFile(db2fn));
 			TPDB2->computeTrimVector();
 			PDB2 = UNIQUE_PTR_MOVE(TPDB2);
-				
+
 			DB1 = PDB1.get();
 			DB2 = PDB2.get();
-			
+
 			DB1->getAllReads(VreadsMeta1);
 			readsMeta1 = &VreadsMeta1;
 
@@ -378,7 +379,7 @@ int main(int argc, char * argv[])
 			std::cerr << "usage: " << argv[0] << " <reads.db> <alignments.las> or <reads.db> <reads.db> <alignments.las>" << std::endl;
 			return EXIT_FAILURE;
 		}
-		
+
 		if ( PDB1 )
 			std::cerr << *PDB1;
 		if ( PDB2 )
@@ -403,22 +404,22 @@ int main(int argc, char * argv[])
 		{
 			std::cerr << ex.what();
 		}
-					
+
 		libmaus2::aio::InputStream::unique_ptr_type Palgnfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(aligns));
 		libmaus2::dazzler::align::AlignmentFile algn(*Palgnfile);
 
-		libmaus2::lcs::EditDistanceTraceContainer ATC;		
-		libmaus2::lcs::EditDistanceTraceContainer RATC;		
+		libmaus2::lcs::EditDistanceTraceContainer ATC;
+		libmaus2::lcs::EditDistanceTraceContainer RATC;
 		libmaus2::lcs::NDextendDNA ND;
 		libmaus2::dazzler::align::Overlap OVL;
-		
+
 		// number of alignments processed
 		uint64_t z = 0;
-		
+
 		libmaus2::autoarray::AutoArray<char> Aspace;
 		int64_t aid = -1;
 		char const * aptr = NULL;
-		
+
 		libmaus2::autoarray::AutoArray<char> Bspace;
 		libmaus2::autoarray::AutoArray<char> Binvspace;
 		int64_t bid = -1;
@@ -438,11 +439,11 @@ int main(int argc, char * argv[])
 				p += OVL.path.path[i].second;
 			assert ( p == OVL.path.bepos );
 			#endif
-			
+
 			if ( OVL.aread != aid )
 			{
 				libmaus2::dazzler::db::Read const & R = readsMeta1->at(OVL.aread);
-				
+
 				if ( loadalla )
 				{
 					#if 0
@@ -450,7 +451,7 @@ int main(int argc, char * argv[])
 						Aspace.resize(R.rlen);
 					std::copy(readsA.begin()+readsOffA[OVL.aread],readsA.begin()+readsOffA[OVL.aread+1],Aspace.begin());
 					#endif
-					
+
 					aptr = readsA->begin()+(*readsOffA)[OVL.aread];
 				}
 				else
@@ -460,14 +461,14 @@ int main(int argc, char * argv[])
 					libmaus2::dazzler::db::DatabaseFile::decodeRead(*PbaseStreamA,Aspace,R.rlen);
 					aptr = Aspace.begin();
 				}
-				
+
 				aid = OVL.aread;
 			}
 
 			if ( OVL.bread != bid )
 			{
 				libmaus2::dazzler::db::Read const & R = readsMeta2->at(OVL.bread);
-				
+
 				if ( loadallb )
 				{
 					#if 0
@@ -484,23 +485,23 @@ int main(int argc, char * argv[])
 					libmaus2::dazzler::db::DatabaseFile::decodeRead(*PbaseStreamB,Bspace,R.rlen);
 					bbaseptr = Bspace.begin();
 				}
-				
+
 				bid = OVL.bread;
-				Binvspacevalid = false;						
+				Binvspacevalid = false;
 			}
-			
+
 			if ( OVL.isInverse() )
 			{
 				if ( ! Binvspacevalid )
 				{
 					libmaus2::dazzler::db::Read const & R = readsMeta2->at(OVL.bread);
-				
+
 					if ( R.rlen > static_cast<int64_t>(Binvspace.size()) )
 						Binvspace.resize(R.rlen);
-				
+
 					char const * pin =  bbaseptr;
 					char * pout = Binvspace.begin() + R.rlen;
-				
+
 					for ( int64_t i = 0; i < R.rlen; ++i )
 						*(--pout) = libmaus2::fastx::invertUnmapped(*(pin++));
 
@@ -533,12 +534,12 @@ int main(int argc, char * argv[])
 					);
 
 				ROVL.computeTrace(reinterpret_cast<uint8_t const *>(aptr),reinterpret_cast<uint8_t const *>(bptr),algn.tspace,RATC,ND);
-	
+
 				if ( ! ROVL.compareMetaLower(OVL) )
 				{
 					std::cerr << OVL << std::endl;
 					std::cerr << ROVL << std::endl;
-				
+
 					assert ( ROVL.compareMetaLower(OVL) );
 				}
 			}
@@ -547,7 +548,7 @@ int main(int argc, char * argv[])
 			if ( printAlignments )
 			{
 				libmaus2::lcs::AlignmentStatistics const AS = ATC.getAlignmentStatistics();
-				
+
 				if ( AS.getErrorRate() <= eratelimit )
 				{
 					std::cout << OVL << std::endl;
@@ -555,9 +556,9 @@ int main(int argc, char * argv[])
 					ATC.printAlignmentLines(std::cout,aptr + OVL.path.abpos,OVL.path.aepos-OVL.path.abpos,bptr + OVL.path.bbpos,OVL.path.bepos-OVL.path.bbpos,cols);
 				}
 			}
-			
+
 			z += 1;
-			
+
 			if ( z % 1024 == 0 )
 				std::cerr.put('.');
 		}

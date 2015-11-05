@@ -65,7 +65,7 @@ namespace libmaus2
 
 				if ( (tt = (v >> 16)) )
 					c = (t = v >> 24) ? 24 + LogTable256[t] : 16 + LogTable256[tt & 0xFF];
-				else 
+				else
 					c = (t = v >> 8) ? 8 + LogTable256[t] : LogTable256[v];
 				return c;
 			}
@@ -84,10 +84,10 @@ namespace libmaus2
 			public:
 			typedef FischerSystematicSuccinctRMQ<array_iterator> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			private:
 			typedef typename std::iterator_traits<array_iterator>::value_type DT;
-			
+
 			// microblock size
 			static const unsigned int sbits = 3;
 			static const DTidx s = 1<<sbits;
@@ -124,7 +124,7 @@ namespace libmaus2
 			// precomputed in-block queries
 			::libmaus2::autoarray::AutoArray<DTsucc> APrec;
 			::libmaus2::autoarray::AutoArray<DTsucc *> Prec;
-			
+
 			// table M for the out-of-block queries (contains indices of block-minima)
 			::libmaus2::autoarray::AutoArray<DTsucc> AM;
 			::libmaus2::autoarray::AutoArray<DTsucc *> M;
@@ -135,16 +135,16 @@ namespace libmaus2
 			// table M' for superblock-queries (contains indices of block-minima)
 			::libmaus2::autoarray::AutoArray<DTidx> AMprime;
 			::libmaus2::autoarray::AutoArray<DTidx*> Mprime;
-			
+
 			inline static DTidx checkNb(DTidx nb, DTidx n)
 			{
 				// The following is necessary because we've fixed s, s' and s'' according to the computer's
 				// word size and NOT according to the input size. This may cause the (super-)block-size
 				// to be too big, or, in other words, the array too small. If this code is compiled on
-				// a 32-bit computer, this happens iff n < 113. For such small instances it isn't 
-				// advisable anyway to use this data structure, because simpler methods are faster and 
+				// a 32-bit computer, this happens iff n < 113. For such small instances it isn't
+				// advisable anyway to use this data structure, because simpler methods are faster and
 				// less space consuming.
-				if (nb<sprimeprime/(2*sprime)) 
+				if (nb<sprimeprime/(2*sprime))
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Array of size " << n << " too small in FischerSystematicSuccinctRMQ.";
@@ -153,10 +153,10 @@ namespace libmaus2
 				}
 				else
 				{
-					return nb;			
+					return nb;
 				}
 			}
-			
+
 			inline static ::libmaus2::autoarray::AutoArray<DTsucc *> allocatePrec(::libmaus2::autoarray::AutoArray<DTsucc> & APrec)
 			{
 				::libmaus2::autoarray::AutoArray<DTsucc *> Prec(Catalan[s][s]);
@@ -190,20 +190,20 @@ namespace libmaus2
 
 				return Mprime;
 			}
-			
+
 			inline static int ilog2floor(DTidx n)
 			{
 				int c = 0;
-				
+
 				while ( n )
 				{
 					n >>= 1;
 					c++;
 				}
-				
+
 				return c-1;
 			}
-			
+
 			// return microblock-number of entry i:
 			inline static DTidx microblock(DTidx i) { return i/s; }
 
@@ -212,7 +212,7 @@ namespace libmaus2
 
 			// return superblock-number of entry i:
 			inline static DTidx superblock(DTidx i) { return i/sprimeprime; }
-			
+
 			// because M just stores offsets (rel. to start of block), this method
 			// re-calculates the true index:
 			inline DTidx m(DTidx k, DTidx block) const { return M[k][block]+(block*sprime); }
@@ -222,10 +222,10 @@ namespace libmaus2
 			 * Standard Constructor. a is the array to be prepared for RMQ.
 			 * n is the size of the array.
 			 */
-			FischerSystematicSuccinctRMQ(array_iterator const ra, DTidx rn) 
-			: a(ra), n(rn), 
-				nb( checkNb(std::max(((n+sprime-1)/sprime),static_cast<DTidx>(1)),n) ), 
-				nsb( std::max((n+sprimeprime-1)/sprimeprime,static_cast<DTidx>(1)) ), 
+			FischerSystematicSuccinctRMQ(array_iterator const ra, DTidx rn)
+			: a(ra), n(rn),
+				nb( checkNb(std::max(((n+sprime-1)/sprime),static_cast<DTidx>(1)),n) ),
+				nsb( std::max((n+sprimeprime-1)/sprimeprime,static_cast<DTidx>(1)) ),
 				nmb( std::max( (n+s-1)/s,static_cast<DTidx>(1)) ),
 				type ( nmb ),
 				APrec ( s * Catalan[s][s] ),
@@ -244,7 +244,7 @@ namespace libmaus2
 				DTidx q;                // position in Catalan triangle
 				DTidx p;                // --------- " ----------------
 
-				// prec[i]: the jth bit is 1 iff j is 1. pos. to the left of i where a[j] < a[i] 
+				// prec[i]: the jth bit is 1 iff j is 1. pos. to the left of i where a[j] < a[i]
 				DTidx gstack[s];
 				DTidx gstacksize;
 				DTidx g; // first position to the left of i where a[g[i]] < a[i]
@@ -289,7 +289,7 @@ namespace libmaus2
 				}
 
 				// out-of-block- and out-of-superblock-queries:
-				
+
 				// fill 0'th rows of M and Mprime:
 				z = 0; // minimum in current block
 				q = 0; // pos. of min in current superblock
@@ -423,4 +423,3 @@ namespace libmaus2
 	}
 }
 #endif
-

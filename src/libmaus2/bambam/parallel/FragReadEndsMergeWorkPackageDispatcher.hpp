@@ -36,20 +36,20 @@ namespace libmaus2
 				typedef FragReadEndsMergeWorkPackageDispatcher this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				FragReadEndsMergeWorkPackageReturnInterface & packageReturnInterface;
 				FragReadEndsMergeWorkPackageFinishedInterface & mergeFinishedInterface;
 				AddDuplicationMetricsInterface & addDuplicationMetricsInterface;
-						
+
 				FragReadEndsMergeWorkPackageDispatcher(
 					FragReadEndsMergeWorkPackageReturnInterface & rpackageReturnInterface,
 					FragReadEndsMergeWorkPackageFinishedInterface & rmergeFinishedInterface,
 					AddDuplicationMetricsInterface & raddDuplicationMetricsInterface
-				) : libmaus2::parallel::SimpleThreadWorkPackageDispatcher(), 
+				) : libmaus2::parallel::SimpleThreadWorkPackageDispatcher(),
 				    packageReturnInterface(rpackageReturnInterface), mergeFinishedInterface(rmergeFinishedInterface),
 				    addDuplicationMetricsInterface(raddDuplicationMetricsInterface)
 				{
-				
+
 				}
 				virtual ~FragReadEndsMergeWorkPackageDispatcher() {}
 				virtual void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
@@ -59,15 +59,15 @@ namespace libmaus2
 
 					ReadEndsBlockIndexSet fragindexset(*(BP->REQ.MI));
 					libmaus2::bambam::DupSetCallbackSharedVector dvec(*(BP->REQ.dupbitvec));
-							
+
 					fragindexset.merge(
 						BP->REQ.SMI,
 						libmaus2::bambam::DupMarkBase::isDupFrag,
 						libmaus2::bambam::DupMarkBase::markDuplicateFrags,dvec
 					);
-									
+
 					addDuplicationMetricsInterface.addDuplicationMetrics(dvec.metrics);
-					
+
 					mergeFinishedInterface.fragReadEndsMergeWorkPackageFinished(BP);
 					packageReturnInterface.fragReadEndsMergeWorkPackageReturn(BP);
 				}

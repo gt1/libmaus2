@@ -27,18 +27,18 @@
 void decodeGzipFastqBlocks(std::string const & filename, std::string const & indexfilename)
 {
 	libmaus2::aio::InputStreamInstance FICIS(indexfilename);
-	std::vector < libmaus2::fastx::FastInterval > FIV = 
+	std::vector < libmaus2::fastx::FastInterval > FIV =
 		libmaus2::fastx::FastInterval::deserialiseVector(FICIS);
-		
+
 	for ( uint64_t i = 0; i < FIV.size(); ++i )
 	{
 		std::cerr << FIV[i] << std::endl;
-			
+
 		libmaus2::fastx::GzipFileFastQReader reader(filename,FIV[i]);
 		libmaus2::fastx::GzipFileFastQReader::pattern_type pattern;
 
 		while ( reader.getNextPatternUnlocked(pattern) )
-			std::cout << pattern;		
+			std::cout << pattern;
 	}
 }
 
@@ -49,14 +49,14 @@ std::string getNameBase(std::string const & s)
 	for ( uint64_t i = 0; i < s.size(); ++i )
 		if ( s[i] == '/' )
 			d = i;
-	
+
 	return s.substr(0,d);
 }
 
 void countReadsGzipFastqBlocks(std::string const & filename, std::string const & indexfilename)
 {
 	libmaus2::aio::InputStreamInstance FICIS(indexfilename);
-	std::vector < libmaus2::fastx::FastInterval > FIV = 
+	std::vector < libmaus2::fastx::FastInterval > FIV =
 		libmaus2::fastx::FastInterval::deserialiseVector(FICIS);
 
 	libmaus2::parallel::LockedBool ok(true);
@@ -68,7 +68,7 @@ void countReadsGzipFastqBlocks(std::string const & filename, std::string const &
 	{
 		if ( ok.get() )
 		{
-			// std::cerr << FIV[i] << std::endl;			
+			// std::cerr << FIV[i] << std::endl;
 			libmaus2::fastx::GzipFileFastQReader reader(filename,FIV[i]);
 			libmaus2::fastx::GzipFileFastQReader::pattern_type pattern;
 
@@ -86,10 +86,10 @@ void countReadsGzipFastqBlocks(std::string const & filename, std::string const &
 						nok = false;
 					}
 				}
-				
-				prevname = pattern.sid;				
+
+				prevname = pattern.sid;
 			}
-			
+
 			if ( i % 1024 == 0 )
 				std::cerr << FIV[i] << std::endl;
 			if ( cnt != FIV[i].high - FIV[i].low )
@@ -100,16 +100,16 @@ void countReadsGzipFastqBlocks(std::string const & filename, std::string const &
 			if ( cnt % 2 != 0 )
 			{
 				std::cerr << cnt << " is uneven " << std::endl;
-				ok.set(false);			
+				ok.set(false);
 			}
 			if ( ! nok )
 			{
 				std::cerr << "name fail " << std::endl;
-				ok.set(false);						
+				ok.set(false);
 			}
 		}
 	}
-	
+
 	if ( ! ok.get() )
 		std::cerr << "failed." << std::endl;
 	else
@@ -121,12 +121,12 @@ void decodeGzipFastQStream(std::istream & in, std::ostream & out)
 	libmaus2::fastx::GzipStreamFastQReader reader(in);
 	libmaus2::fastx::GzipStreamFastQReader::pattern_type pattern;
 	while ( reader.getNextPatternUnlocked(pattern) )
-		out << pattern;	
+		out << pattern;
 }
 
 void decodeGzipFastqBlocksByParameters(int argc, char * argv[])
 {
-	libmaus2::util::ArgInfo const arginfo(argc,argv);		
+	libmaus2::util::ArgInfo const arginfo(argc,argv);
 	std::string const filename = arginfo.stringRestArg(0);
 	std::string const indexfilename = arginfo.stringRestArg(1);
 	decodeGzipFastqBlocks(filename,indexfilename);
@@ -138,18 +138,18 @@ void decodeGzipFastqBlocksByParameters(int argc, char * argv[])
 void testNextStart()
 {
 	libmaus2::fastx::FastQBgzfWriter writer("index.id",1024,std::cout);
-	
+
 	char input[] = "@A/1\nACGT\n+\nHHHH\n@AAA/2\nTGCAT\n+plus\nHHHHH\n";
 	std::istringstream istr(input);
 	libmaus2::fastx::StreamFastQReaderWrapper fqin(istr);
 	libmaus2::fastx::StreamFastQReaderWrapper::pattern_type pattern;
-		
+
 	while ( fqin.getNextPatternUnlocked(pattern) )
 	{
 		// std::cerr << pattern;
 		writer.put(pattern);
 	}
-		
+
 	// writer.testPrevStart();
 	writer.testNextStart();
 }
@@ -159,9 +159,9 @@ int main(int argc, char * argv[])
 	try
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
-		
+
 		testNextStart();
-		
+
 		for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
 		{
 			std::string const filename = arginfo.stringRestArg(i);

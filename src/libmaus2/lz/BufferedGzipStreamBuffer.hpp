@@ -30,13 +30,13 @@ namespace libmaus2
 			typedef BufferedGzipStreamBuffer this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			BufferedGzipStreamBuffer(::std::istream & in, uint64_t const bufsize = 64*1024, uint64_t const pushbacksize = 64*1024)
 			: GzipStreamWrapper(in), ::libmaus2::lz::StreamWrapperBuffer< ::libmaus2::lz::GzipStream >(GZ,bufsize,pushbacksize)
 			{
-			
-			}	
-		};		
+
+			}
+		};
 	}
 }
 #endif

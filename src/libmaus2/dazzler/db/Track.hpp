@@ -23,7 +23,7 @@
 namespace libmaus2
 {
 	namespace dazzler
-	{	
+	{
 		namespace db
 		{
 			struct Track

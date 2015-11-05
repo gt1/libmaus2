@@ -28,7 +28,7 @@ void printBits(uint64_t const i)
 			std::cerr << '1';
 		else
 			std::cerr << '0';
-	
+
 	std::cerr << std::endl;
 }
 
@@ -36,7 +36,7 @@ void testReorder4()
 {
 	unsigned int const k = 2;
 	uint64_t const fraglen = 2;
-	
+
 	for ( uint64_t z = 0; z < 16; ++z )
 	{
 		libmaus2::fastx::QReorderTemplate4Base<k> Q(
@@ -45,9 +45,9 @@ void testReorder4()
 			fraglen+((z&4)!=0),
 			fraglen+((z&8)!=0)
 		);
-	
+
 		for ( uint64_t i = 0; i < (1ull<<((Q.l0+Q.l1+Q.l2+Q.l3)*Q.k)); ++i )
-		{			
+		{
 			assert ( i == Q.front01i(Q.front01(i)) );
 			assert ( i == Q.front02i(Q.front02(i)) );
 			assert ( i == Q.front03i(Q.front03(i)) );
@@ -59,21 +59,21 @@ void testReorder4()
 }
 
 uint64_t slowComp(uint64_t a, uint64_t b, unsigned int k, unsigned int l)
-{	
+{
 	unsigned int d = 0;
 	uint64_t const mask = libmaus2::math::lowbits(k);
-	
+
 	for ( unsigned int i = 0; i < l; ++i, a >>= k, b >>= k )
 		 if ( (a & mask) != (b & mask) )
 		 {
 		 	d++;
 		 }
-		 
+
 	return d;
 }
 
 std::vector<uint64_t> filter(
-	std::vector<uint64_t> const & V, 
+	std::vector<uint64_t> const & V,
 	uint64_t const q,
 	unsigned int const k,
 	unsigned int const l,
@@ -95,7 +95,7 @@ void testQReorder4Set()
 	unsigned int const l = 7;
 	unsigned int const k = 2;
 	uint64_t const bmask = (1ull<<(l*k))-1;
-	
+
 	for ( uint64_t i = 0; i < 32; ++i )
 		V.push_back( rand() & bmask );
 
@@ -105,9 +105,9 @@ void testQReorder4Set()
 	{
 		QR.search(V[i],0,AAWPO);
 		assert ( AAWPO.p );
-		
+
 		// std::cerr << V[i] << "\t" << AAWPO.p << std::endl;
-		
+
 		if ( AAWPO.p )
 			for ( uint64_t j = 0; j < AAWPO.p; ++j )
 				assert ( AAWPO.A[j] == V[i] );
@@ -135,7 +135,7 @@ void testQReorder4Set()
 			for ( unsigned int z = 0; z < (l*k); ++z )
 			{
 				uint64_t const q = (V[i] ^ (1ull << j)) ^ (1ull << z);
-			
+
 				QR.search(q,2,AAWPO);
 				assert ( AAWPO.p );
 
@@ -149,7 +149,7 @@ void testQReorder4Set()
 int main()
 {
 	try
-	{		
+	{
 		testQReorder4Set();
 		return EXIT_SUCCESS;
 	}
@@ -159,4 +159,3 @@ int main()
 		return EXIT_FAILURE;
 	}
 }
-

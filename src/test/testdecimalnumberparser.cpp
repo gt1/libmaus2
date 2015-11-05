@@ -29,11 +29,11 @@ int main(
 {
 	try
 	{
-		{		
+		{
 			libmaus2::math::DecimalNumberParser NP;
 
 			srand(time(0));
-			
+
 			std::vector<std::string> SV;
 			std::vector<uint64_t> NV;
 			for ( uint64_t i = 0; i < 1u << 24; ++i )
@@ -44,16 +44,16 @@ int main(
 				SV.push_back(ostr.str());
 				NV.push_back(j);
 			}
-			
+
 			libmaus2::timing::RealTimeClock rtc;
 			rtc.start();
 			for ( uint64_t i = 0; i < NV.size(); ++i )
 			{
 				std::string const & s = SV[i];
 				char const * a = s.c_str();
-				
+
 				uint64_t const vv = NP.parseUnsignedNumber<uint64_t>(a,a+s.size());
-				
+
 				assert ( vv == NV[i] );
 			}
 			std::cerr << rtc.getElapsedSeconds() << std::endl;
@@ -63,10 +63,10 @@ int main(
 			{
 				std::string const & s = SV[i];
 				std::istringstream istr(s);
-				
+
 				uint64_t vv;
 				istr >> vv;
-				
+
 				assert ( vv == NV[i] );
 			}
 			std::cerr << rtc.getElapsedSeconds() << std::endl;
@@ -77,27 +77,27 @@ int main(
 				std::string const & s = SV[i];
 				char const * a = s.c_str();
 				char * ep;
-				
+
 				uint64_t const vv = strtoull(a,&ep,10);
-				
+
 				assert ( vv == NV[i] );
 			}
 			std::cerr << rtc.getElapsedSeconds() << std::endl;
-			
+
 			return 0;
 
-			#if 0		
+			#if 0
 			for ( int64_t i = std::numeric_limits<int16_t>::min(); i <= std::numeric_limits<int16_t>::max(); ++i )
 			{
 				std::ostringstream ostr;
 				ostr << i;
 				std::string const s = ostr.str();
 				char const * a = s.c_str();
-				
+
 				std::cerr << s << std::endl;
-			
+
 				std::cerr << static_cast<int>(NP.parseSignedNumber<int16_t>(a,a+s.size())) << std::endl;
-				
+
 				assert ( NP.parseSignedNumber<int16_t>(a,a+s.size()) == i );
 			}
 			#endif
@@ -108,14 +108,14 @@ int main(
 				ostr << i;
 				std::string const s = ostr.str();
 				char const * a = s.c_str();
-				
+
 				std::cerr << s << std::endl;
-			
+
 				std::cerr << static_cast<uint>(NP.parseUnsignedNumber<uint16_t>(a,a+s.size())) << std::endl;
-				
+
 				assert ( NP.parseUnsignedNumber<uint16_t>(a,a+s.size()) == i );
 			}
-			
+
 			#if 0
 			{
 				int64_t i = std::numeric_limits<int16_t>::min();
@@ -125,7 +125,7 @@ int main(
 				ostr << i;
 				std::string const s = ostr.str();
 				char const * a = s.c_str();
-			
+
 				std::cerr << static_cast<int>(NP.parseSignedNumber<int16_t>(a,a+s.size())) << std::endl;
 			}
 			#endif
@@ -138,7 +138,7 @@ int main(
 				ostr << i;
 				std::string const s = ostr.str();
 				char const * a = s.c_str();
-			
+
 				std::cerr << static_cast<int>(NP.parseSignedNumber<int16_t>(a,a+s.size())) << std::endl;
 			}
 			#endif
@@ -151,17 +151,17 @@ int main(
 				ostr << i;
 				std::string const s = ostr.str();
 				char const * a = s.c_str();
-			
+
 				std::cerr << static_cast<int>(NP.parseUnsignedNumber<uint16_t>(a,a+s.size())) << std::endl;
 			}
 			#endif
 		}
-		
+
 		return 0;
 	}
 	catch(std::exception const & ex)
 	{
 		std::cerr << ex.what() << std::endl;
-		return EXIT_FAILURE;	
+		return EXIT_FAILURE;
 	}
 }

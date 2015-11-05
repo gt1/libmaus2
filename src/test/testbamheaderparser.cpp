@@ -23,7 +23,7 @@ int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus2::util::ArgInfo const arginfo(argc,argv);		
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		libmaus2::bambam::BamHeader::parseHeader(std::cin);
 	}
 	catch(std::exception const & ex)

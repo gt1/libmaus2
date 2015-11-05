@@ -29,7 +29,7 @@ namespace libmaus2
 		{
 			struct PutBgzfDeflateZStreamBaseInterface
 			{
-				virtual ~PutBgzfDeflateZStreamBaseInterface() {}	
+				virtual ~PutBgzfDeflateZStreamBaseInterface() {}
 				virtual void putBgzfDeflateZStreamBase(libmaus2::lz::BgzfDeflateZStreamBase::shared_ptr_type &) = 0;
 			};
 		}

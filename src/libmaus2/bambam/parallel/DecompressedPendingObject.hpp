@@ -31,7 +31,7 @@ namespace libmaus2
 			struct DecompressedPendingObject : std::pair<uint64_t, DecompressedBlock::shared_ptr_type>
 			{
 				typedef std::pair<uint64_t, DecompressedBlock::shared_ptr_type> base_type;
-			
+
 				DecompressedPendingObject() : base_type(0,DecompressedBlock::shared_ptr_type()) {}
 				DecompressedPendingObject(
 					uint64_t const rid,

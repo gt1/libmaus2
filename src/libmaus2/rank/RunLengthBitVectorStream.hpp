@@ -41,7 +41,7 @@ namespace libmaus2
 			uint64_t const pointerarrayoffset;
 			uint64_t const baseoffset;
 			uint64_t const rankaccbits;
-			
+
 			static uint64_t readAtWordOffset(std::istream & in, uint64_t const pos)
 			{
 				in.clear();
@@ -53,7 +53,7 @@ namespace libmaus2
 			}
 
 			static uint64_t readBlockSize(std::istream & in) { return readAtWordOffset(in,0); }
-			static uint64_t readN(std::istream & in) { return readAtWordOffset(in,1); }		
+			static uint64_t readN(std::istream & in) { return readAtWordOffset(in,1); }
 			static uint64_t readIndexPos(std::istream & in) { return readAtWordOffset(in,2); }
 
 			static uint64_t readBlocks(std::istream & in, uint64_t const indexpos)
@@ -67,24 +67,24 @@ namespace libmaus2
 				in.seekg(-static_cast<int64_t>(indexpos),std::ios::cur);
 				return blocks;
 			}
-			
+
 			RunLengthBitVectorStream(std::istream & rin, uint64_t const rbaseoffset = 0)
-			: in(rin), 
-			  blocksize(readBlockSize(in)), 
+			: in(rin),
+			  blocksize(readBlockSize(in)),
 			  n(readN(in)),
 			  indexpos(readIndexPos(in)),
-			  blocks(readBlocks(in,indexpos)), 
+			  blocks(readBlocks(in,indexpos)),
 			  pointerarrayoffset(indexpos + 1*sizeof(uint64_t)), baseoffset(rbaseoffset),
 			  rankaccbits(libmaus2::rank::RunLengthBitVectorBase::getRankAccBits())
 			{
 				#if 0
-				std::cerr << "indexpos=" << indexpos << std::endl;	
-				std::cerr << "blocksize=" << blocksize << std::endl;	
-				std::cerr << "blocks=" << blocks << std::endl;	
-				std::cerr << "n=" << n << std::endl;	
+				std::cerr << "indexpos=" << indexpos << std::endl;
+				std::cerr << "blocksize=" << blocksize << std::endl;
+				std::cerr << "blocks=" << blocks << std::endl;
+				std::cerr << "n=" << n << std::endl;
 				#endif
 			}
-			
+
 			uint64_t getBlockPointer(uint64_t const b) const
 			{
 				in.clear();
@@ -93,76 +93,76 @@ namespace libmaus2
 				libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&blockptr);
 				return blockptr + 4*8*sizeof(uint64_t);
 			}
-			
+
 			bool operator[](uint64_t const i) const
 			{
 				return get(i);
 			}
-			
+
 			bool get(uint64_t i) const
 			{
 				assert ( i < n );
-				
+
 				uint64_t const block = i / blocksize;
 				i -= block*blocksize;
 
-				uint64_t const blockptr = getBlockPointer(block);		
-						
+				uint64_t const blockptr = getBlockPointer(block);
+
 				uint64_t const byteoff = (blockptr / (8*sizeof(uint64_t)))*8;
 				uint64_t const bitoff = blockptr % (8*sizeof(uint64_t));
-				
+
 				in.clear();
 				in.seekg(baseoffset + byteoff);
-				
+
 				::libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(in,8,std::numeric_limits<uint64_t>::max(),false /* checkmod */);
 				::libmaus2::gamma::GammaDecoder < ::libmaus2::aio::SynchronousGenericInput<uint64_t> > GD(SGI);
 				if ( bitoff )
 					GD.decodeWord(bitoff);
-					
+
 				GD.decodeWord(rankaccbits); // 1 bit accumulator
 				bool sym = GD.decodeWord(1);
-				
+
 				uint64_t rl = GD.decode()+1;
-				
+
 				while ( i >= rl )
 				{
 					i -= rl;
 					sym = ! sym;
 					rl = GD.decode()+1;
 				}
-						
+
 				return sym;
 			}
-			
+
 			uint64_t rank1(uint64_t i) const
 			{
 				assert ( i < n );
-				
+
 				uint64_t const block = i / blocksize;
 				i -= block*blocksize;
 
-				uint64_t const blockptr = getBlockPointer(block);		
+				uint64_t const blockptr = getBlockPointer(block);
 				uint64_t const byteoff = (blockptr / (8*sizeof(uint64_t)))*8;
 				uint64_t const bitoff = blockptr % (8*sizeof(uint64_t));
-				
+
 				in.clear();
 				in.seekg(baseoffset + byteoff);
-				
+
 				::libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(in,8,std::numeric_limits<uint64_t>::max(),false /* checkmod */);
 				::libmaus2::gamma::GammaDecoder < ::libmaus2::aio::SynchronousGenericInput<uint64_t> > GD(SGI);
 				if ( bitoff )
 					GD.decodeWord(bitoff);
-					
+
 				uint64_t r = GD.decodeWord(rankaccbits); // 1 bit accumulator
 				bool sym = GD.decodeWord(1);
-				
+
 				uint64_t rl = GD.decode()+1;
-				
+
 				while ( i >= rl )
 				{
 					if ( sym )
 						r += rl;
-				
+
 					i -= rl;
 					sym = ! sym;
 					rl = GD.decode()+1;
@@ -177,34 +177,34 @@ namespace libmaus2
 			uint64_t rankm1(uint64_t i) const
 			{
 				assert ( i < n );
-				
+
 				uint64_t const block = i / blocksize;
 				i -= block*blocksize;
 
-				uint64_t const blockptr = getBlockPointer(block);		
+				uint64_t const blockptr = getBlockPointer(block);
 				uint64_t const byteoff = (blockptr / (8*sizeof(uint64_t)))*8;
 				uint64_t const bitoff = blockptr % (8*sizeof(uint64_t));
-				
+
 				in.clear();
 				in.seekg(baseoffset + byteoff);
-				
+
 				::libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(in,8,std::numeric_limits<uint64_t>::max(),false /* checkmod */);
 				::libmaus2::gamma::GammaDecoder < ::libmaus2::aio::SynchronousGenericInput<uint64_t> > GD(SGI);
 				if ( bitoff )
 					GD.decodeWord(bitoff);
-					
+
 				uint64_t r = GD.decodeWord(rankaccbits); // 1 bit accumulator
 				bool sym = GD.decodeWord(1);
-				
+
 				uint64_t rl = GD.decode()+1;
-				
+
 				// std::cerr << "sym=" << sym << " rl=" << rl << std::endl;
-				
+
 				while ( i >= rl )
 				{
 					if ( sym )
 						r += rl;
-				
+
 					i -= rl;
 					sym = ! sym;
 					rl = GD.decode()+1;

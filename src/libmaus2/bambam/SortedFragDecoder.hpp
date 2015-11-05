@@ -55,7 +55,7 @@ namespace libmaus2
 			typedef std::pair<uint64_t,::libmaus2::bambam::ReadEnds> qtype;
 			//! merge heap
 			std::priority_queue<qtype,std::vector<qtype>,::libmaus2::bambam::ReadEndsHeapPairComparator> Q;
-			
+
 			/**
 			 * convert vector of pairs [u_0,u_1),[u_1,u_2),... to index vector [u_0,u_1,u_2,...)
 			 *
@@ -90,13 +90,13 @@ namespace libmaus2
 			static unique_ptr_type construct(
 				std::string const & filename,
 				std::vector < upair > const & tmpoffsetintervals,
-				std::vector < uint64_t > const & rtmpoutcnts		
+				std::vector < uint64_t > const & rtmpoutcnts
 			)
 			{
 				unique_ptr_type ptr(new this_type(filename,tmpoffsetintervals,rtmpoutcnts));
 				return UNIQUE_PTR_MOVE(ptr);
 			}
-			
+
 			/**
 			 * constructor
 			 *
@@ -114,7 +114,7 @@ namespace libmaus2
 			  tmpincnts(tmpoutcnts.size(),0)
 			{
 				infilearray->setEofThrow(true);
-				
+
 				for ( uint64_t i = 0; i < tmpoffsetintervals.size(); ++i )
 					if ( tmpincnts[i] != tmpoutcnts[i] )
 					{
@@ -124,7 +124,7 @@ namespace libmaus2
 						tmpincnts[i]++;
 					}
 			}
-			
+
 			/**
 			 * get next ReadEnds object and append it to V if one is available
 			 *
@@ -135,13 +135,13 @@ namespace libmaus2
 			{
 				::libmaus2::bambam::ReadEnds RE;
 				bool const ok = getNext(RE);
-				
+
 				if ( ok )
 					V.push_back(RE);
-				
+
 				return ok;
 			}
-			
+
 			/**
 			 * get next ReadEnds object
 			 *
@@ -155,9 +155,9 @@ namespace libmaus2
 					RE = Q.top().second;
 					uint64_t const id = Q.top().first;
 					Q.pop();
-					
+
 					// std::cerr << "id=" << id << std::endl;
-					
+
 					if ( tmpincnts[id] != tmpoutcnts[id] )
 					{
 						::libmaus2::bambam::ReadEnds NRE;
@@ -165,7 +165,7 @@ namespace libmaus2
 						Q.push(qtype(id,NRE));
 						tmpincnts[id]++;
 					}
-					
+
 					return true;
 				}
 				else

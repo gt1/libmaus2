@@ -32,7 +32,7 @@ namespace libmaus2
 			::libmaus2::autoarray::AutoArray<uint8_t> qbuf;
 
 			CompactFastQContext(uint64_t const rnextid = 0) : nextid(rnextid), qbuf() {}
-			
+
 			uint64_t byteSize() const
 			{
 				return sizeof(CompactFastQContext) + qbuf.byteSize();

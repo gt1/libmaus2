@@ -40,13 +40,13 @@ namespace libmaus2
 			typedef MemInBuffer<value_type> this_type;
 			//! unique pointer type
 			typedef typename ::libmaus2::util::unique_ptr < this_type >::type unique_ptr_type;
-		
+
 			private:
 			//! current input pointer
 			value_type const * in;
 			//! end of input pointer
 			value_type const * const ine;
-			
+
 			public:
 			/**
 			 * constructor
@@ -57,9 +57,9 @@ namespace libmaus2
 			MemInBuffer(value_type const * const rin, uint64_t const n)
 			: in(rin), ine(in+n)
 			{
-			
+
 			}
-			
+
 			/**
 			 * get next element
 			 * @param v reference for storing next element
@@ -75,13 +75,13 @@ namespace libmaus2
 					return true;
 				}
 			}
-			
+
 			/**
 			 * flush (do nothing)
 			 **/
 			void flush()
 			{
-			
+
 			}
 		};
 	}

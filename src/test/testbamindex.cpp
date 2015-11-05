@@ -42,20 +42,20 @@ int main(int argc, char * argv[])
 			libmaus2::aio::InputStreamInstance::unique_ptr_type bamCIS(openFile(fn));
 			// libmaus2::lz::BgzfInflate<libmaus2::aio::InputStreamInstance> bgzfin(*bamCIS);
 			libmaus2::lz::BgzfInflate<std::istream> bgzfin(*bamCIS);
-		
+
 			libmaus2::lz::BgzfInflateInfo P;
 			libmaus2::autoarray::AutoArray<uint8_t> B(libmaus2::lz::BgzfConstants::getBgzfMaxBlockSize(),false);
 			while ( !(P=bgzfin.readAndInfo(reinterpret_cast<char *>(B.begin()), B.size())).streameof )
 				indexgen.addBlock(B.begin(),P.compressed,P.uncompressed);
 			indexgen.flush(indexostr);
 			bamCIS.reset();
-			
+
 			libmaus2::aio::OutputStreamInstance COS(fn+".bai");
 			std::string const & index = indexostr.str();
 			COS.write(index.c_str(),index.size());
 			COS.flush();
 		}
-		
+
 		libmaus2::autoarray::AutoArray<char> const indexA = libmaus2::autoarray::AutoArray<char>::readFile(fn+".bai");
 		indexostr.write(indexA.begin(),indexA.size());
 		std::istringstream indexistr(indexostr.str());
@@ -64,7 +64,7 @@ int main(int argc, char * argv[])
 		libmaus2::bambam::BamDecoder::unique_ptr_type pbamdec(new libmaus2::bambam::BamDecoder(fn));
 		libmaus2::bambam::BamHeader::unique_ptr_type bamheader = pbamdec->getHeader().uclone();
 		pbamdec.reset();
-		
+
 		assert ( index.getRefs().size() == bamheader->getNumRef() );
 
 		libmaus2::bambam::BamDecoderResetableWrapper BDRW(fn, *bamheader);
@@ -75,9 +75,9 @@ int main(int argc, char * argv[])
 			libmaus2::bambam::BamIndexLinear const & lin = ref.lin;
 			for ( uint64_t i = 0; i < lin.intervals.size(); ++i )
 			{
-				
+
 			}
-			
+
 			for ( uint64_t i = 0; i < ref.bin.size(); ++i )
 			{
 				libmaus2::bambam::BamIndexBin const & bin = ref.bin[i];
@@ -85,10 +85,10 @@ int main(int argc, char * argv[])
 				for ( uint64_t j = 0; j < bin.chunks.size(); ++j )
 				{
 					libmaus2::bambam::BamIndexBin::Chunk const & c = bin.chunks[j];
-					std::cerr 
-						<< "refid=" << r 
-						<< " bin=" << bin.bin 
-						<< " chunk=" 
+					std::cerr
+						<< "refid=" << r
+						<< " bin=" << bin.bin
+						<< " chunk="
 						<< "(" << (c.first>>16) << "," << (c.first&((1ull<<16)-1)) << ")"
 						<< ","
 						<< "(" << (c.second>>16) << "," << (c.second&((1ull<<16)-1)) << ")"
@@ -96,7 +96,7 @@ int main(int argc, char * argv[])
 					BDRW.resetStream(c.first,c.second);
 					while ( BDRW.getDecoder().readAlignment() )
 					{
-					
+
 					}
 				}
 			}

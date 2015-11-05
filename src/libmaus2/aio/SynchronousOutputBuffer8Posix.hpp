@@ -44,7 +44,7 @@ namespace libmaus2
 			typedef SynchronousOutputBuffer8Posix this_type;
 			//! unique pointer type
 			typedef ::libmaus2::util::unique_ptr < this_type > :: type unique_ptr_type;
-			
+
 			//! value type
 			typedef uint64_t value_type;
 
@@ -67,16 +67,16 @@ namespace libmaus2
                         void writeBuffer()
                         {
                                 int const fd = open(filename.c_str(),O_WRONLY);
-                                
+
                                 if ( fd < 0 )
                                 {
 				        ::libmaus2::exception::LibMausException se;
 				        se.getStream() << "Failed to open buffer file " << filename << " in SynchronousOutputBuffer8Posix::writeBuffer(): "
 				                << strerror(errno);
 				        se.finish();
-				        throw se;                                
+				        throw se;
                                 }
-                                
+
                                 if ( lseek(fd,ptr,SEEK_SET) == static_cast<off_t>(-1) )
                                 {
                                         close(fd);
@@ -84,16 +84,16 @@ namespace libmaus2
 				        ::libmaus2::exception::LibMausException se;
 				        se.getStream() << "Failed to seek in file " << filename << " in SynchronousOutputBuffer8Posix::writeBuffer()";
 				        se.finish();
-				        throw se;                                
+				        throw se;
                                 }
-                                
+
                                 uint64_t const towrite = reinterpret_cast<char const *>(pc)-reinterpret_cast<char const *>(pa);
                                 ssize_t const written = ::write(fd,pa,towrite);
-                        
+
 				if ( written != static_cast<ssize_t>(towrite) )
 				{
 				        close(fd);
-				        
+
 				        ::libmaus2::exception::LibMausException se;
 				        se.getStream() << "Failed to write buffer in SynchronousOutputBuffer8Posix::writeBuffer()";
 				        se.finish();
@@ -111,13 +111,13 @@ namespace libmaus2
 				        throw se;
 				}
 				#endif
-				
+
 				if ( close(fd) )
 				{
 				        ::libmaus2::exception::LibMausException se;
 				        se.getStream() << "Failed to close file properly in SynchronousOutputBuffer8Posix::writeBuffer()";
 				        se.finish();
-				        throw se;				
+				        throw se;
 				}
 
 				ptr += towrite;

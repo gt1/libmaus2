@@ -42,15 +42,15 @@ namespace libmaus2
 			typename _hash_compute_type = SimpleHashMapHashCompute<_key_type>,
 			typename _number_cast_type = SimpleHashMapNumberCast<_key_type>
 		>
-		struct SimpleHashMapInsDel : 
+		struct SimpleHashMapInsDel :
 			public _constants_type,
-			public _key_print_type, 
+			public _key_print_type,
 			public _hash_compute_type,
 			public _number_cast_type
 		{
 			typedef _key_type key_type;
 			typedef _value_type value_type;
-			
+
 			typedef _constants_type constants_type;
 			typedef _key_print_type key_print_type;
 			typedef _hash_compute_type hash_compute_type;
@@ -67,7 +67,7 @@ namespace libmaus2
 			uint64_t hashmask;
 			uint64_t fill;
 			uint64_t deleted;
-			
+
 			// hash array
 			::libmaus2::autoarray::AutoArray<pair_type> H;
 			// shrink array
@@ -77,7 +77,7 @@ namespace libmaus2
 			{
 				return hash_compute_type::hash(v) & hashmask;
 			}
-			
+
 			inline uint64_t displace(uint64_t const p, key_type const & k) const
 			{
 				return (p + primes16[number_cast_type::cast(k)&0xFFFFu]) & hashmask;
@@ -93,27 +93,27 @@ namespace libmaus2
 						{
 							R[o++] = H[i];
 						}
-						
+
 					slog++;
 					hashsize <<= 1;
 					hashmask = hashsize-1;
 					fill = 0;
 					deleted = 0;
-					
+
 					H = ::libmaus2::autoarray::AutoArray<pair_type>(hashsize,false);
 					for ( uint64_t i = 0; i < hashsize; ++i )
 						H[i].first = constants_type::unused();
-					
+
 					for ( uint64_t i = 0; i < o; ++i )
 						insert(R[i].first,R[i].second);
-						
-					R = ::libmaus2::autoarray::AutoArray<pair_type>(hashsize,false);					
+
+					R = ::libmaus2::autoarray::AutoArray<pair_type>(hashsize,false);
 				}
 				else
 				{
 					assert ( hashsize < H.size() );
 					assert ( 2*hashsize <= H.size() );
-					
+
 					uint64_t o = 0;
 					for ( uint64_t i = 0; i < hashsize; ++i )
 					{
@@ -134,7 +134,7 @@ namespace libmaus2
 						insert(R[i].first,R[i].second);
 				}
 			}
-			
+
 			void shrink()
 			{
 				assert ( fill <= hashsize/2 );
@@ -148,7 +148,7 @@ namespace libmaus2
 							R[o++] = H[i];
 						H[i].first = constants_type::unused();
 					}
-						
+
 					hashsize >>= 1;
 					slog -= 1;
 					hashmask = hashsize-1;
@@ -156,11 +156,11 @@ namespace libmaus2
 					deleted = 0;
 
 					for ( uint64_t i = 0; i < o; ++i )
-						insert(R[i].first,R[i].second);						
+						insert(R[i].first,R[i].second);
 				}
 			}
 
-			public:			
+			public:
 			SimpleHashMapInsDel(unsigned int const rslog)
 			: slog(rslog), hashsize(1ull << slog), hashmask(hashsize-1), fill(0), deleted(0), H(hashsize,false), R(hashsize,false)
 			{
@@ -172,23 +172,23 @@ namespace libmaus2
 			pair_type const * end() const { return begin()+hashsize; }
 			pair_type * begin() { return H.begin(); }
 			pair_type * end() { return begin()+hashsize; }
-			
+
 			uint64_t getTableSize() const
 			{
 				return H.size();
 			}
-						
+
 			uint64_t size() const
 			{
 				return fill;
 			}
-		
+
 			double loadFactor() const
 			{
 				return static_cast<double>(fill+deleted) / hashsize;
 			}
-			
-			
+
+
 			value_type const & getValue(uint64_t const i) const
 			{
 				return H[i].second;
@@ -203,7 +203,7 @@ namespace libmaus2
 			{
 				if ( loadFactor() >= loadthres || (fill == hashsize) )
 					extendInternal();
-				
+
 				return insert(v,w);
 			}
 
@@ -230,11 +230,11 @@ namespace libmaus2
 						p = displace(p,v);
 					}
 				} while ( p != p0 );
-				
+
 				return false;
 			}
 
-			// 
+			//
 			uint64_t getIndex(key_type const & v) const
 			{
 				uint64_t const p0 = hash(v);
@@ -258,7 +258,7 @@ namespace libmaus2
 						p = displace(p,v);
 					}
 				} while ( p != p0 );
-				
+
 				libmaus2::exception::LibMausException lme;
 				lme.getStream() << "SimpleHashMapInsDel::getIndex called for non-existing key ";
 				key_print_type::printKey(lme.getStream(),v);
@@ -291,10 +291,10 @@ namespace libmaus2
 						p = displace(p,v);
 					}
 				} while ( p != p0 );
-				
+
 				return false;
 			}
-			
+
 			// returns true if value v is contained
 			// store index of element (if any) in index
 			bool containsKey(key_type const & v, uint64_t & index) const
@@ -320,10 +320,10 @@ namespace libmaus2
 						p = displace(p,v);
 					}
 				} while ( p != p0 );
-				
+
 				return false;
 			}
-			
+
 			// get count for value v
 			value_type get(key_type const & v) const
 			{
@@ -348,7 +348,7 @@ namespace libmaus2
 						p = displace(p,v);
 					}
 				} while ( p != p0 );
-				
+
 				::libmaus2::exception::LibMausException se;
 				se.getStream() << "SimpleHashMapInsDel::get() called for key ";
 				key_print_type::printKey(se.getStream(),v);
@@ -370,7 +370,7 @@ namespace libmaus2
 						p = displace(p,v);
 			}
 
-			// 
+			//
 			uint64_t getIndexUnchecked(key_type const & v) const
 			{
 				uint64_t p = hash(v);
@@ -385,10 +385,10 @@ namespace libmaus2
 					{
 						p = displace(p,v);
 					}
-				}				
+				}
 			}
 
-			// 
+			//
 			int64_t getIndexChecked(key_type const & v) const
 			{
 				uint64_t const p0 = hash(v);
@@ -412,7 +412,7 @@ namespace libmaus2
 						p = displace(p,v);
 					}
 				} while ( p != p0 );
-				
+
 				return -1;
 			}
 
@@ -421,7 +421,7 @@ namespace libmaus2
 			{
 				uint64_t const p0 = hash(v);
 				uint64_t p = p0;
-				
+
 				do
 				{
 					// position in use?
@@ -452,21 +452,21 @@ namespace libmaus2
 						{
 							assert ( H[p].first == constants_type::unused() );
 						}
-					
+
 						H[p].first = v;
-						H[p].second = w;						
+						H[p].second = w;
 						fill += 1;
 						return p;
 					}
 				} while ( p != p0 );
-				
+
 				::libmaus2::exception::LibMausException se;
 				se.getStream() << "SimpleHashMapInsDel::insert(): unable to insert, table is full." << std::endl;
 				se.finish();
 				throw se;
 			}
 
-			// 
+			//
 			void erase(key_type const & v)
 			{
 				uint64_t const p0 = hash(v);
@@ -483,7 +483,7 @@ namespace libmaus2
 
 						if ( deleted >= (hashsize/2) && slog )
 							shrink();
-							
+
 						return;
 					}
 					// position in use?
@@ -497,7 +497,7 @@ namespace libmaus2
 						p = displace(p,v);
 					}
 				} while ( p != p0 );
-				
+
 				libmaus2::exception::LibMausException lme;
 				lme.getStream() << "SimpleHashMapInsDel::erase called for non-existing key ";
 				key_print_type::printKey(lme.getStream(),v);
@@ -511,7 +511,7 @@ namespace libmaus2
 				H[i].first = constants_type::deleted();
 				deleted++;
 				fill--;
-				
+
 				if ( deleted >= (hashsize/2) && slog )
 					shrink();
 			}

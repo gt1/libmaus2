@@ -47,10 +47,10 @@ namespace libmaus2
 		{
 			typedef _owner_type owner_type;
 			typedef GetPosAdapter<owner_type> this_type;
-			
+
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			typedef uint64_t value_type;
 			typedef libmaus2::aio::InputStreamInstance input_stream_type;
 			typedef ::libmaus2::util::shared_ptr< input_stream_type >::type input_stream_pointer_type;
@@ -78,7 +78,7 @@ namespace libmaus2
 			owner_type const * owner;
 			input_stream_pointer_type indexistr;
 
-			GetKeyCntAdapter(owner_type const * rowner, input_stream_pointer_type const & rindexistr) : owner(rowner), indexistr(rindexistr) {}			
+			GetKeyCntAdapter(owner_type const * rowner, input_stream_pointer_type const & rindexistr) : owner(rowner), indexistr(rindexistr) {}
 			value_type get(uint64_t const i) const { return owner->getKeyCnt(*indexistr,i); }
 		};
 
@@ -94,7 +94,7 @@ namespace libmaus2
 			typedef uint64_t value_type;
 			typedef ::libmaus2::aio::InputStreamInstance input_stream_type;
 			typedef ::libmaus2::util::shared_ptr< input_stream_type >::type input_stream_pointer_type;
-			
+
 			owner_type const * owner;
 			input_stream_pointer_type indexistr;
 
@@ -114,7 +114,7 @@ namespace libmaus2
 			typedef uint64_t value_type;
 			typedef ::libmaus2::aio::InputStreamInstance input_stream_type;
 			typedef ::libmaus2::util::shared_ptr< input_stream_type >::type input_stream_pointer_type;
-			
+
 			owner_type const * owner;
 			input_stream_pointer_type indexistr;
 
@@ -132,7 +132,7 @@ namespace libmaus2
 			typedef ::libmaus2::util::ConstIteratorSharedPointer< GetKeyCntAdapter<this_type>, uint64_t > const_kcnt_iterator;
 			typedef ::libmaus2::util::ConstIteratorSharedPointer< GetValueCntAdapter<this_type>, uint64_t > const_vcnt_iterator;
 			typedef ::libmaus2::util::ConstIteratorSharedPointer< GetKeyValueCntAdapter<this_type>, uint64_t > const_kvcnt_iterator;
-			
+
 			typedef ::libmaus2::aio::InputStreamInstance input_stream_type;
 			typedef ::libmaus2::util::shared_ptr< input_stream_type >::type input_stream_pointer_type;
 
@@ -144,14 +144,14 @@ namespace libmaus2
 			unsigned int vbits;
 			uint64_t vacc;
 			uint64_t indexvectorpos;
-						
+
 			GetPosAdapter<this_type>::shared_ptr_type getPosAdapter() const
 			{
 				input_stream_pointer_type file = openFile();
 				GetPosAdapter<this_type>::shared_ptr_type adptr(new GetPosAdapter<this_type>(this,file));
 				return adptr;
 			}
-			
+
 			GetKeyCntAdapter<this_type>::shared_ptr_type getKeyCntAdapter() const
 			{
 				input_stream_pointer_type file = openFile();
@@ -172,7 +172,7 @@ namespace libmaus2
 				GetKeyValueCntAdapter<this_type>::shared_ptr_type adptr(new GetKeyValueCntAdapter<this_type>(this,file));
 				return adptr;
 			}
-			
+
 			const_pos_iterator pbegin() const { return const_pos_iterator(getPosAdapter()); }
 			const_pos_iterator pend(const_pos_iterator const & begin)   const { return begin + numentries + 1; }
 			const_kcnt_iterator kbegin() const { return const_kcnt_iterator(getKeyCntAdapter()); }
@@ -181,13 +181,13 @@ namespace libmaus2
 			const_vcnt_iterator vend(const_vcnt_iterator const & begin)   const { return begin + numentries + 1; }
 			const_kvcnt_iterator kvbegin() const { return const_kvcnt_iterator(getKeyValueCntAdapter()); }
 			const_kvcnt_iterator kvend(const_kvcnt_iterator const & begin)   const { return begin + numentries + 1; }
-						
+
 			static uint64_t getKAcc(std::string const & filename)
 			{
 				IndexDecoderData IDD(filename);
 				return IDD.kacc;
 			}
-			
+
 			static uint64_t getVAcc(std::string const & filename)
 			{
 				IndexDecoderData IDD(filename);
@@ -199,12 +199,12 @@ namespace libmaus2
 				IndexDecoderData IDD(filename);
 				return IDD.kacc + IDD.vacc;
 			}
-			
+
 			uint64_t getEntryBitPos(uint64_t const entry) const
 			{
 				return (indexvectorpos<<3) + entry*(posbits+kbits+vbits);
 			}
-			
+
 			uint64_t getPos(uint64_t const entryid) const
 			{
 				return readEntry(entryid).pos;
@@ -245,38 +245,38 @@ namespace libmaus2
 				IndexEntry const entry = readEntry(istr,entryid);
 				return entry.kcnt + entry.vcnt;
 			}
-			
+
 			IndexEntry readEntry(std::istream & indexistr, uint64_t const entryid) const
 			{
 				uint64_t const entrybitpos = getEntryBitPos(entryid);
 				uint64_t const entrybytepos = entrybitpos>>3;
 				uint64_t const entrybitoff = entrybitpos - (entrybytepos<<3);
-				
+
 				// seek to index position
 				indexistr.clear();
 				indexistr.seekg(entrybytepos,std::ios::beg);
 				if ( static_cast<int64_t>(indexistr.tellg()) != static_cast<int64_t>(entrybytepos) )
 				{
 					::libmaus2::exception::LibMausException se;
-					se.getStream() << "Failed to seek to index position " << entrybytepos << " in file " << filename << " of size " 
+					se.getStream() << "Failed to seek to index position " << entrybytepos << " in file " << filename << " of size "
 						<< ::libmaus2::util::GetFileSize::getFileSize(filename) << std::endl;
 					se.finish();
 					throw se;
 				}
 				::libmaus2::bitio::StreamBitInputStream SBIS(indexistr);
-			
+
 				SBIS.read(entrybitoff);
-				
+
 				uint64_t const pos = SBIS.read(posbits);
 				uint64_t const kcnt = SBIS.read(kbits);
 				uint64_t const vcnt = SBIS.read(vbits);
-				
+
 				return IndexEntry(pos,kcnt,vcnt);
 			}
 
 			input_stream_pointer_type openFile() const
 			{
-				input_stream_pointer_type indexistr(new input_stream_type(filename));				
+				input_stream_pointer_type indexistr(new input_stream_type(filename));
 				return indexistr;
 			}
 
@@ -301,14 +301,14 @@ namespace libmaus2
 				}
 				return *this;
 			}
-			
-			IndexDecoderData() 
-			: numentries(0), posbits(0), kbits(0), kacc(0), vbits(0), vacc(0), indexvectorpos(0) 
+
+			IndexDecoderData()
+			: numentries(0), posbits(0), kbits(0), kacc(0), vbits(0), vacc(0), indexvectorpos(0)
 			  // , posadpt(this), kadpt(this), vadpt(this)
 			{
-			
+
 			}
-			
+
 			IndexDecoderData(IndexDecoderData const & o)
 			: filename(o.filename),
 			  numentries(o.numentries),
@@ -320,11 +320,11 @@ namespace libmaus2
 			  indexvectorpos(o.indexvectorpos)
 			  // , posadpt(this), kadpt(this), vadpt(this)
 			{
-			
+
 			}
-			
+
 			IndexDecoderData(std::string const & rfilename)
-			: filename(rfilename), 
+			: filename(rfilename),
 			  numentries(0), posbits(0), kbits(0), kacc(0), vbits(0), vacc(0), indexvectorpos(0)
 			  // , posadpt(this), kadpt(this), vadpt(this)
 			{
@@ -338,18 +338,18 @@ namespace libmaus2
 				if ( static_cast<int64_t>(indexistr.tellg()) != static_cast<int64_t>(indexpos) )
 				{
 					::libmaus2::exception::LibMausException se;
-					se.getStream() << "Failed to seek to position " << indexpos << " of index in file " << filename << " of size " 
+					se.getStream() << "Failed to seek to position " << indexpos << " of index in file " << filename << " of size "
 						<< ::libmaus2::util::GetFileSize::getFileSize(filename) << std::endl;
 					se.finish();
 					throw se;
 				}
 				::libmaus2::bitio::StreamBitInputStream SBIS(indexistr);
-				
+
 				// read size of index
 				numentries = ::libmaus2::bitio::readElias2(SBIS);
 				// pos bits
 				posbits = ::libmaus2::bitio::readElias2(SBIS);
-				
+
 				// k bits
 				kbits = ::libmaus2::bitio::readElias2(SBIS);
 				// k acc
@@ -359,12 +359,12 @@ namespace libmaus2
 				vbits = ::libmaus2::bitio::readElias2(SBIS);
 				// v acc
 				vacc = ::libmaus2::bitio::readElias2(SBIS);
-				
+
 				// align
 				SBIS.flush();
-				
+
 				assert ( SBIS.getBitsRead() % 8 == 0 );
-				
+
 				indexvectorpos = indexpos + SBIS.getBitsRead() / 8;
 			}
 		};
@@ -374,13 +374,13 @@ namespace libmaus2
 			uint64_t fileptr;
 			uint64_t blockptr;
 			uint64_t offset;
-			
+
 			FileBlockOffset()
 			: fileptr(0), blockptr(0), offset(0) {}
 			FileBlockOffset(uint64_t const rfileptr, uint64_t const rblockptr, uint64_t const roffset)
 			: fileptr(rfileptr), blockptr(rblockptr), offset(roffset) {}
 		};
-		
+
 		struct KvAdapter
 		{
 			typedef KvAdapter this_type;
@@ -388,15 +388,15 @@ namespace libmaus2
 
 			::libmaus2::autoarray::AutoArray<uint64_t> const & kvec;
 			::libmaus2::autoarray::AutoArray<uint64_t> const & vvec;
-			
+
 			KvAdapter(
 				::libmaus2::autoarray::AutoArray<uint64_t> const & rkvec,
 				::libmaus2::autoarray::AutoArray<uint64_t> const & rvvec
 			) : kvec(rkvec), vvec(rvvec)
 			{
-			
+
 			}
-			
+
 			uint64_t get(uint64_t const i) const
 			{
 				return kvec[i] + vvec[i];
@@ -409,7 +409,7 @@ namespace libmaus2
 			{
 				return kvec.size();
 			}
-			
+
 			const_iterator begin() const
 			{
 				return const_iterator(this,0);
@@ -425,129 +425,129 @@ namespace libmaus2
 			typedef IndexDecoderDataArray this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			::libmaus2::autoarray::AutoArray<IndexDecoderData> data;
 			::libmaus2::autoarray::AutoArray<uint64_t> kvec;
 			::libmaus2::autoarray::AutoArray<uint64_t> vvec;
-			
+
 			FileBlockOffset findKBlock(uint64_t const offset) const
 			{
 				uint64_t const * p = std::lower_bound(kvec.begin(),kvec.end(),offset);
-				
+
 				// beyond end
 				if ( p == kvec.end() )
-					return FileBlockOffset(data.size(),0,0);				
+					return FileBlockOffset(data.size(),0,0);
 
 				uint64_t const fileptr = (offset == *p) ? (p-kvec.begin()) : ((p-kvec.begin())-1);
-				
+
 				// beyond end (pointing at the symbol right beyound the end)
 				if ( fileptr >= data.size() )
 					return FileBlockOffset(data.size(),0,0);
-				
+
 				assert ( fileptr+1 < kvec.size() );
 				assert ( offset >= kvec[fileptr] );
 				assert ( offset  < kvec[fileptr+1] );
-				
+
 				IndexDecoderData const & fdata = data[fileptr];
 				uint64_t const fileoffset = offset-kvec[fileptr];
-				
+
 				IndexDecoderData::const_kcnt_iterator kbegin = fdata.kbegin();
 				IndexDecoderData::const_kcnt_iterator kend = fdata.kend(kbegin);
 				IndexDecoderData::const_kcnt_iterator kit =
 					::std::lower_bound(kbegin,kend,fileoffset);
-				
+
 				assert ( kit != kend );
-				
+
 				uint64_t const blockptr = (*kit == fileoffset) ? (kit-kbegin) : ((kit-kbegin)-1);
-				
+
 				return FileBlockOffset(fileptr,blockptr,offset-(kvec[fileptr]+fdata.getKeyCnt(blockptr)));
 			}
 
 			FileBlockOffset findVBlock(uint64_t const offset) const
 			{
 				uint64_t const * p = std::lower_bound(vvec.begin(),vvec.end(),offset);
-				
+
 				// beyond end
 				if ( p == vvec.end() )
-					return FileBlockOffset(data.size(),0,0);				
+					return FileBlockOffset(data.size(),0,0);
 
 				uint64_t const fileptr = (offset == *p) ? (p-vvec.begin()) : ((p-vvec.begin())-1);
-				
+
 				// beyond end (pointing at the symbol right beyound the end)
 				if ( fileptr >= data.size() )
 					return FileBlockOffset(data.size(),0,0);
-				
+
 				assert ( fileptr+1 < vvec.size() );
 				assert ( offset >= vvec[fileptr] );
 				assert ( offset  < vvec[fileptr+1] );
-				
+
 				IndexDecoderData const & fdata = data[fileptr];
 				uint64_t const fileoffset = offset-vvec[fileptr];
-				
+
 				IndexDecoderData::const_vcnt_iterator vbegin = fdata.vbegin();
 				IndexDecoderData::const_vcnt_iterator vend = fdata.vend(vbegin);
 				IndexDecoderData::const_vcnt_iterator vit =
 					::std::lower_bound(vbegin,vend,fileoffset);
-				
+
 				assert ( vit != vend );
-				
+
 				uint64_t const blockptr = (*vit == fileoffset) ? (vit-vbegin) : ((vit-vbegin)-1);
-				
+
 				return FileBlockOffset(fileptr,blockptr,offset-(vvec[fileptr]+fdata.getValueCnt(blockptr)));
 			}
 
 			FileBlockOffset findKVBlock(uint64_t const offset) const
 			{
 				KvAdapter kvadapter(kvec,vvec);
-				
+
 				KvAdapter::const_iterator p = std::lower_bound(kvadapter.begin(),kvadapter.end(),offset);
-				
+
 				// beyond end
 				if ( p == kvadapter.end() )
-					return FileBlockOffset(data.size(),0,0);				
+					return FileBlockOffset(data.size(),0,0);
 
 				uint64_t const fileptr = (offset == *p) ? (p-kvadapter.begin()) : ((p-kvadapter.begin())-1);
-				
+
 				// beyond end (pointing at the symbol right beyound the end)
 				if ( fileptr >= data.size() )
 					return FileBlockOffset(data.size(),0,0);
-				
+
 				assert ( fileptr+1 < kvadapter.size() );
 				assert ( offset >= kvadapter[fileptr] );
 				assert ( offset  < kvadapter[fileptr+1] );
-				
+
 				IndexDecoderData const & fdata = data[fileptr];
 				uint64_t const fileoffset = offset-kvadapter[fileptr];
-				
+
 				IndexDecoderData::const_kvcnt_iterator kvbegin = fdata.kvbegin();
 				IndexDecoderData::const_kvcnt_iterator kvend = fdata.kvend(kvbegin);
 				IndexDecoderData::const_kvcnt_iterator kvit =
 					::std::lower_bound(kvbegin,kvend,fileoffset);
-				
+
 				assert ( kvit != kvend );
-				
+
 				uint64_t const blockptr = (*kvit == fileoffset) ? (kvit-kvbegin) : ((kvit-kvbegin)-1);
-				
+
 				return FileBlockOffset(fileptr,blockptr,fileoffset-fdata.getKeyValueCnt(blockptr));
 			}
-			
+
 			static unique_ptr_type construct(std::vector<std::string> const & filenames)
 			{
 				unique_ptr_type ptr(new this_type(filenames));
 				return UNIQUE_PTR_MOVE(ptr);
 			}
-			
+
 			IndexDecoderDataArray(std::vector<std::string> const & filenames)
 			{
 				uint64_t nonempty = 0;
-				
+
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
 				{
 					IndexDecoderData IDD(filenames[i]);
 					if ( IDD.numentries && IDD.kacc )
 						nonempty++;
 				}
-				
+
 				data = ::libmaus2::autoarray::AutoArray<IndexDecoderData>(nonempty);
 				kvec = ::libmaus2::autoarray::AutoArray<uint64_t>(nonempty+1,false);
 				vvec = ::libmaus2::autoarray::AutoArray<uint64_t>(nonempty+1,false);
@@ -563,11 +563,11 @@ namespace libmaus2
 						j += 1;
 					}
 				}
-				
+
 				kvec.prefixSums();
 				vvec.prefixSums();
 			}
-		};	
+		};
 	}
 }
 #endif

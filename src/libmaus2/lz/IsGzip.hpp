@@ -31,23 +31,23 @@ namespace libmaus2
 			static bool isGzip(std::istream & in)
 			{
 				int const b0 = in.get();
-				
+
 				if ( b0 < 0 )
 					return false;
-				
+
 				int const b1 = in.get();
-				
+
 				if ( b1 < 0 )
 				{
 					in.clear();
 					in.putback(b0);
 					return false;
 				}
-				
+
 				in.clear();
 				in.putback(b1);
 				in.putback(b0);
-				
+
 				return b0 == libmaus2::lz::GzipHeaderConstantsBase::ID1 &&
 				       b1 == libmaus2::lz::GzipHeaderConstantsBase::ID2;
 			}

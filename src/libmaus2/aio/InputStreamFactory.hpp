@@ -30,7 +30,7 @@ namespace libmaus2
 			typedef InputStreamFactory this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			virtual ~InputStreamFactory() {}
 			virtual InputStream::unique_ptr_type constructUnique(std::string const & filename) = 0;
 			virtual InputStream::shared_ptr_type constructShared(std::string const & filename) = 0;

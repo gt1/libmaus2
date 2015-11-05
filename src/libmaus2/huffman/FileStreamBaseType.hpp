@@ -34,13 +34,13 @@ namespace libmaus2
 		{
 			typedef FileStreamBaseType this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			typedef libmaus2::aio::InputStreamInstance file_type;
 			typedef ::libmaus2::util::unique_ptr<file_type>::type file_ptr_type;
-			
+
 			file_ptr_type fileptr;
 			std::istream & in;
-		
+
 			FileStreamBaseType(std::string const & filename, uint64_t const offset)
 			: fileptr ( new file_type ( filename ) ), in(*fileptr)
 			{
@@ -52,7 +52,7 @@ namespace libmaus2
 			: fileptr ( ), in(rin)
 			{
 			}
-			
+
 			void read(char * const buf, uint64_t const n)
 			{
 				in.read(buf,n);

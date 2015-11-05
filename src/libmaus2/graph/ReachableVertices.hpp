@@ -41,16 +41,16 @@ namespace libmaus2
 				std::stack<uint64_t> S;
 				S.push(rv);
 				seen.insert(rv);
-				
+
 				while ( !S.empty() )
 				{
 					uint64_t const v = S.top();
 					S.pop();
-					
+
 					if ( edges.find(v) != edges.end() )
 					{
 						std::vector<edge_type> const & V = edges.find(v)->second;
-						
+
 						for ( uint64_t i = 0; i < V.size(); ++i )
 						{
 							uint64_t const t = projector(V[i]);
@@ -62,7 +62,7 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				return seen;
 			}
 		};

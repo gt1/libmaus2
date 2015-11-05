@@ -33,19 +33,19 @@ namespace libmaus2
 				typedef CramPassPointerObject this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				libmaus2::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type block;
 				libmaus2::autoarray::AutoArray<char const *>::shared_ptr_type D;
 				libmaus2::autoarray::AutoArray<size_t>::shared_ptr_type S;
 				libmaus2::autoarray::AutoArray<size_t>::shared_ptr_type L;
 				size_t numblocks;
-				
+
 				CramPassPointerObject() {}
-								
+
 				void set(libmaus2::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type rblock)
 				{
 					block = rblock;
-					
+
 					std::vector<std::pair<uint8_t *,uint8_t *> > V;
 					block->getLinearOutputFragments(V);
 					std::vector<size_t> const fillVector = block->getFillVector();
@@ -57,12 +57,12 @@ namespace libmaus2
 						D = T;
 					}
 					if ( V.size() > (S?S->size():0) )
-					{						
+					{
 						libmaus2::autoarray::AutoArray<size_t>::shared_ptr_type T(new libmaus2::autoarray::AutoArray<size_t>(V.size(),false));
 						S = T;
 					}
 					if ( V.size() > (L?L->size():0) )
-					{						
+					{
 						libmaus2::autoarray::AutoArray<size_t>::shared_ptr_type T(new libmaus2::autoarray::AutoArray<size_t>(V.size(),false));
 						L = T;
 					}

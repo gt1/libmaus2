@@ -37,13 +37,13 @@ namespace libmaus2
 			typedef GammaRLEncoder this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::aio::SynchronousGenericOutput<uint64_t> sgo_type;
-			
+
 			uint64_t const blocksize;
-			
+
 			::libmaus2::aio::OutputStreamInstance COS;
 			sgo_type SGO;
 			::libmaus2::gamma::GammaEncoder < sgo_type > GE;
-						
+
 			::std::vector< ::libmaus2::huffman::IndexEntry > index;
 			typedef std::pair<int64_t,uint64_t> ptype;
 			::libmaus2::autoarray::AutoArray< ptype > A;
@@ -53,17 +53,17 @@ namespace libmaus2
 
 			uint64_t cursym;
 			uint64_t curcnt;
-			
+
 			bool indexwritten;
-			
+
 			unsigned int const albits;
 
-			
+
 			GammaRLEncoder(std::string const & filename, unsigned int const ralbits, uint64_t const n, uint64_t const rblocksize, uint64_t const rbufsize = 64*1024)
-			: 
+			:
 			  blocksize(rblocksize),
-			  COS(filename), SGO(COS,rbufsize), GE(SGO), 
-			  A(blocksize), pa(A.begin()), pc(pa), pe(A.end()), 
+			  COS(filename), SGO(COS,rbufsize), GE(SGO),
+			  A(blocksize), pa(A.begin()), pc(pa), pe(A.end()),
 			  cursym(0), curcnt(0), indexwritten(false), albits(ralbits)
 			{
 				SGO.put(n);
@@ -73,11 +73,11 @@ namespace libmaus2
 			{
 				flush();
 			}
-			
+
 			void implicitFlush()
 			{
 				uint64_t const bs = pc-pa;
-				
+
 				if ( bs )
 				{
 					uint64_t acc = 0;
@@ -91,14 +91,14 @@ namespace libmaus2
 						GE.encode(pa[i].second);
 					}
 					GE.flush();
-					
+
 					::libmaus2::huffman::IndexEntry const entry(pos,bs,acc);
 					index.push_back(entry);
-					
+
 					pc = pa;
 				}
 			}
-			
+
 			void encode(uint64_t const sym)
 			{
 				if ( sym == cursym )
@@ -108,10 +108,10 @@ namespace libmaus2
 				else if ( curcnt )
 				{
 					*(pc++) = ptype(cursym,curcnt);
-					
+
 					if ( pc == pe )
 						implicitFlush();
-					
+
 					cursym = sym;
 					curcnt = 1;
 				}
@@ -122,7 +122,7 @@ namespace libmaus2
 					curcnt = 1;
 				}
 			}
-			
+
 			template<typename iterator>
 			void encode(iterator a, iterator e)
 			{
@@ -142,18 +142,18 @@ namespace libmaus2
 				SGO.flush();
 
 				uint64_t const indexpos = SGO.getWrittenBytes();
-				writeIndex(indexpos);				
+				writeIndex(indexpos);
 			}
-			
+
 			static void writeIndex(
 				::std::vector< ::libmaus2::huffman::IndexEntry > const & index,
-				::libmaus2::bitio::FastWriteBitWriterStream8Std & gapHEF, 
+				::libmaus2::bitio::FastWriteBitWriterStream8Std & gapHEF,
 				uint64_t const indexpos
 			)
 			{
 				uint64_t const maxpos = index.size() ? index[index.size()-1].pos : 0;
 				unsigned int const posbits = ::libmaus2::math::bitsPerNum(maxpos);
-				
+
 				uint64_t const kacc = std::accumulate(index.begin(),index.end(),0ull,::libmaus2::huffman::IndexEntryKeyAdd());
 				unsigned int const kbits = ::libmaus2::math::bitsPerNum(kacc);
 
@@ -164,7 +164,7 @@ namespace libmaus2
 				gapHEF.writeElias2(index.size());
 				// write number of bits per file position
 				gapHEF.writeElias2(posbits);
-				
+
 				// write number of bits per sym acc
 				gapHEF.writeElias2(kbits);
 				// write symacc
@@ -174,10 +174,10 @@ namespace libmaus2
 				gapHEF.writeElias2(vbits);
 				// write symacc
 				gapHEF.writeElias2(vacc);
-				
+
 				// align
 				gapHEF.flush();
-				
+
 				uint64_t tkacc = 0, tvacc = 0;
 				for ( uint64_t i = 0; i < index.size(); ++i )
 				{
@@ -191,12 +191,12 @@ namespace libmaus2
 				gapHEF.write(tkacc,kbits); // sum of values inblock
 				gapHEF.write(tvacc,vbits); // sum of values inblock
 				gapHEF.flush();
-			
-				// write position of index in last 64 bits of file	
+
+				// write position of index in last 64 bits of file
 				for ( uint64_t i = 0; i < 64; ++i )
 					gapHEF.writeBit( (indexpos & (1ull<<(63-i))) != 0 );
 
-				gapHEF.flush();				
+				gapHEF.flush();
 			}
 
 			void writeIndex(uint64_t const indexpos)
@@ -211,56 +211,56 @@ namespace libmaus2
 					FWBWS.flush();
 					SGO.flush();
 					COS.flush();
-					
+
 					indexwritten = true;
 				}
 			}
-			
+
 			static void concatenate(std::vector<std::string> const & infilenames, std::string const & outfilename, bool const removeinput = false)
 			{
 				uint64_t const n = ::libmaus2::gamma::GammaRLDecoder::getLength(infilenames);
 				unsigned int const albits = infilenames.size() ? ::libmaus2::gamma::GammaRLDecoder::getAlBits(infilenames[0]) : 0;
-				
+
 				::libmaus2::aio::OutputStreamInstance COS(outfilename);
 				::libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO(COS,64);
 				SGO.put(n);
 				SGO.put(albits);
 				SGO.flush();
 				uint64_t const headerlen = 2*sizeof(uint64_t);
-				
+
 				std::vector < ::libmaus2::huffman::IndexEntry > index;
 				uint64_t ioff = headerlen;
-				
+
 				for ( uint64_t i = 0; i < infilenames.size(); ++i )
 				{
 					uint64_t const indexpos = ::libmaus2::huffman::IndexLoaderBase::getIndexPos(infilenames[i]);
 					uint64_t const datalen = indexpos-headerlen;
-					
+
 					// copy data
 					::libmaus2::aio::InputStreamInstance CIS(infilenames[i]);
 					CIS.seekg(headerlen);
 					::libmaus2::util::GetFileSize::copy(CIS,COS,datalen);
-					
+
 					// add entries to index
 					::libmaus2::huffman::IndexLoaderSequential indexdata(infilenames[i]);
 					::libmaus2::huffman::IndexEntry ij = indexdata.getNext();
-					
+
 					// ::libmaus2::huffman::IndexDecoderData indexdata(infilenames[i]);
 					for ( uint64_t j = 0; j < indexdata.numentries; ++j )
 					{
 						::libmaus2::huffman::IndexEntry ij1 = indexdata.getNext();
 						/*
 						::libmaus2::huffman::IndexEntry const ij  = indexdata.readEntry(j);
-						::libmaus2::huffman::IndexEntry const ij1 = indexdata.readEntry(j+1);						
+						::libmaus2::huffman::IndexEntry const ij1 = indexdata.readEntry(j+1);
 						*/
 						index.push_back(::libmaus2::huffman::IndexEntry((ij.pos - headerlen) + ioff, ij1.kcnt - ij.kcnt, ij1.vcnt - ij.vcnt));
-						
+
 						ij = ij1;
 					}
-					
+
 					// update position pointer
 					ioff += datalen;
-					
+
 					if ( removeinput )
 						libmaus2::aio::FileRemoval::removeFile(infilenames[i]);
 				}

@@ -37,7 +37,7 @@ namespace libmaus2
 				WriteBlockWorkPackageReturnInterface & packageReturnInterface;
 				ReturnBgzfOutputBufferInterface & bufferReturnInterface;
 				BgzfOutputBlockWrittenInterface & bgzfOutputBlockWrittenInterface;
-	
+
 				WriteBlockWorkPackageDispatcher(
 					WriteBlockWorkPackageReturnInterface & rpackageReturnInterface,
 					ReturnBgzfOutputBufferInterface & rbufferReturnInterface,
@@ -45,17 +45,17 @@ namespace libmaus2
 				) : packageReturnInterface(rpackageReturnInterface), bufferReturnInterface(rbufferReturnInterface),
 				    bgzfOutputBlockWrittenInterface(rbgzfOutputBlockWrittenInterface)
 				{
-				
+
 				}
-			
+
 				virtual void dispatch(
-					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadWorkPackage * P,
 					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
 					WriteBlockWorkPackage * BP = dynamic_cast<WriteBlockWorkPackage *>(P);
 					assert ( BP );
-					
+
 					std::ostream & out = *(BP->obj.out);
 					libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type obuf = BP->obj.obuf;
 					libmaus2::lz::BgzfDeflateZStreamBaseFlushInfo const & flushinfo = BP->obj.flushinfo;
@@ -63,7 +63,7 @@ namespace libmaus2
 					uint64_t n = 0;
 
 					assert ( flushinfo.blocks == 1 || flushinfo.blocks == 2 );
-					
+
 					if ( flushinfo.blocks == 1 )
 					{
 						/* write data to stream, one block */
@@ -82,14 +82,14 @@ namespace libmaus2
 					{
 						// check for output errors
 					}
-				
-					// return output buffer	
+
+					// return output buffer
 					bufferReturnInterface.returnBgzfOutputBufferInterface(obuf);
-					// 
+					//
 					bgzfOutputBlockWrittenInterface.bgzfOutputBlockWritten(BP->obj.streamid,BP->obj.blockid,BP->obj.subid,n);
 					// return work package
 					packageReturnInterface.returnWriteBlockWorkPackage(BP);
-				}		
+				}
 			};
 		}
 	}

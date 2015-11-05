@@ -27,7 +27,7 @@ namespace libmaus2
 	namespace bambam
 	{
 		namespace parallel
-		{			
+		{
 			struct AddWritePendingBgzfBlockInterface
 			{
 				virtual ~AddWritePendingBgzfBlockInterface() {}

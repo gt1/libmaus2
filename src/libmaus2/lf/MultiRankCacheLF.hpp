@@ -29,12 +29,12 @@ namespace libmaus2
 		{
 			typedef ::libmaus2::rank::CacheLineRank8 rank_type;
 			typedef rank_type::WriteContext writer_type;
-			typedef rank_type::unique_ptr_type rank_ptr_type;			
-			
+			typedef rank_type::unique_ptr_type rank_ptr_type;
+
 			typedef MultiRankCacheLF this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			uint64_t n;
 			::libmaus2::autoarray::AutoArray < rank_ptr_type > rank_dictionaries;
 			::libmaus2::autoarray::AutoArray < uint64_t > D;
@@ -48,41 +48,41 @@ namespace libmaus2
 					uint64_t maxval = rmaxval;
 					for ( uint64_t i = 0; i < n; ++i )
 						maxval = std::max ( maxval, static_cast<uint64_t>(BWT[i]) );
-						
+
 					rank_dictionaries = ::libmaus2::autoarray::AutoArray < rank_ptr_type >(maxval+1);
-					
+
 					for ( uint64_t i = 0; i < rank_dictionaries.size(); ++i )
 					{
 						rank_ptr_type trank_dictionariesi(new rank_type(n+1));
 						rank_dictionaries[i] = UNIQUE_PTR_MOVE(trank_dictionariesi);
 						writer_type writer = rank_dictionaries[i]->getWriteContext();
-						
+
 						for ( uint64_t j = 0; j < n; ++j )
 							writer.writeBit(BWT[j] == i);
 						// write additional bit to make rankm1 defined for n
 						writer.writeBit(0);
-						
+
 						writer.flush();
 					}
-					
+
 					D = ::libmaus2::autoarray::AutoArray < uint64_t >(rank_dictionaries.size()+1);
 					for ( uint64_t i = 0; i < rank_dictionaries.size(); ++i )
 						D [ i ] = rank_dictionaries[i]->rank1(n-1);
 					D.prefixSums();
 				}
 			}
-			
+
 			uint64_t getN() const
 			{
 				return n;
 			}
-			
+
 			private:
-			
+
 			public:
 			inline uint64_t rankm1(uint64_t const k, uint64_t const sp) const { return rank_dictionaries[k]->rankm1(sp); }
 			inline uint64_t step(uint64_t const k, uint64_t const sp) const { return D[k] + rankm1(k,sp); }
-			
+
 			uint64_t operator[](uint64_t const i) const
 			{
 				for ( uint64_t j = 0; j < rank_dictionaries.size(); ++j )
@@ -96,11 +96,11 @@ namespace libmaus2
 				return step((*this)[r],r);
 			}
 
-			template<typename iterator>	
+			template<typename iterator>
 			inline void search(iterator query, uint64_t const m, uint64_t & sp, uint64_t & ep) const
 			{
 				sp = 0, ep = n;
-				
+
 				for ( uint64_t i = 0; i < m && sp != ep; ++i )
 					sp = step(query[m-i-1],sp),
 					ep = step(query[m-i-1],ep);
@@ -114,7 +114,7 @@ namespace libmaus2
 						return syms-i-1;
 				return 0;
 			}
-			
+
 			uint64_t phi(uint64_t r) const
 			{
 				uint64_t const sym = sortedSymbol(r);

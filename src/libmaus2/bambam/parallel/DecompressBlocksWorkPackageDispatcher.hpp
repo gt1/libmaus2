@@ -40,38 +40,38 @@ namespace libmaus2
 				DecompressedBlockAddPendingInterface & decompressedBlockPendingInterface;
 				BgzfInflateZStreamBaseReturnInterface & decoderReturnInterface;
 				BgzfInflateZStreamBaseGetInterface & decoderGetInterface;
-	
+
 				DecompressBlocksWorkPackageDispatcher(
 					DecompressBlocksWorkPackageReturnInterface & rpackageReturnInterface,
 					InputBlockReturnInterface & rinputBlockReturnInterface,
 					DecompressedBlockAddPendingInterface & rdecompressedBlockPendingInterface,
 					BgzfInflateZStreamBaseReturnInterface & rdecoderReturnInterface,
 					BgzfInflateZStreamBaseGetInterface & rdecoderGetInterface
-	
+
 				) : packageReturnInterface(rpackageReturnInterface), inputBlockReturnInterface(rinputBlockReturnInterface),
 				    decompressedBlockPendingInterface(rdecompressedBlockPendingInterface), decoderReturnInterface(rdecoderReturnInterface),
 				    decoderGetInterface(rdecoderGetInterface)
 				{
-				
+
 				}
-			
+
 				virtual void dispatch(
-					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadWorkPackage * P,
 					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
 				)
 				{
 					DecompressBlocksWorkPackage * BP = dynamic_cast<DecompressBlocksWorkPackage *>(P);
 					assert ( BP );
-					
+
 					assert ( BP->inputblocks.size() == BP->outputblocks.size() );
-					
+
 					libmaus2::lz::BgzfInflateZStreamBase::shared_ptr_type zdecoder = decoderGetInterface.getBgzfInflateZStreamBase();
-					
+
 					for ( uint64_t z = 0; z < BP->inputblocks.size(); ++z )
 					{
 						// decompress the block
 						BP->outputblocks[z]->decompressBlock(zdecoder.get(),BP->inputblocks[z].get());
-					
+
 						// compute crc of uncompressed data
 						uint32_t const crc = BP->outputblocks[z]->computeCrc();
 
@@ -79,11 +79,11 @@ namespace libmaus2
 						if ( crc != BP->inputblocks[z]->crc )
 						{
 							tpi.getGlobalLock().lock();
-							std::cerr << "crc failed for block " << BP->inputblocks[z]->blockid 
+							std::cerr << "crc failed for block " << BP->inputblocks[z]->blockid
 								<< " expecting " << std::hex << BP->inputblocks[z]->crc << std::dec
 								<< " got " << std::hex << crc << std::dec << std::endl;
 							tpi.getGlobalLock().unlock();
-						
+
 							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "DecompressBlocksWorkPackageDispatcher: corrupt input data (crc mismatch)\n";
 							lme.finish();
@@ -104,7 +104,7 @@ namespace libmaus2
 					decoderReturnInterface.putBgzfInflateZStreamBaseReturn(zdecoder);
 					// return work meta package
 					packageReturnInterface.putDecompressBlocksWorkPackage(BP);
-				}		
+				}
 			};
 		}
 	}

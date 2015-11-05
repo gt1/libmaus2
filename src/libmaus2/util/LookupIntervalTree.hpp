@@ -50,33 +50,33 @@ namespace libmaus2
 			  sublookupbits(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 			  L(createLookup()), lookupshift ( rangebits - sublookupbits )
 			{
-			
+
 			}
-			
+
 			LookupIntervalTree(LookupIntervalTree const & o)
 			: H(o.H.clone()), I(H,0,H.size()),
 			  rangebits(o.rangebits), sublookupbits(o.sublookupbits),
 			  L(createLookup()), lookupshift ( rangebits - sublookupbits )
 			{
-			
+
 			}
-			
+
 			uint64_t find(uint64_t const v) const
 			{
 				// start search from lowest common ancestor of all values
 				// which have the same length sublookupbits prefix
-				return L[ v >> lookupshift ] -> find(v);	
+				return L[ v >> lookupshift ] -> find(v);
 			}
-			
+
 			void test(bool setupRandom = true) const;
-			
+
 			void serialise(std::ostream & out) const
 			{
 				H.serialize(out);
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,rangebits);
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,sublookupbits);
 			}
-			
+
 			std::string serialise() const
 			{
 				std::ostringstream out;

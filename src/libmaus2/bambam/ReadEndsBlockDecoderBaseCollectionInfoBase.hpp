@@ -33,14 +33,14 @@ namespace libmaus2
 		{
 			typedef ReadEndsBlockDecoderBaseCollectionInfoBase this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;			
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			std::string datafilename;
 			std::string indexfilename;
-										
+
 			std::vector < uint64_t > blockelcnt;
 			std::vector < uint64_t > indexoffset;
-			
+
 			void move()
 			{
 				std::string const mdatafilename =  datafilename + ".moved";
@@ -50,7 +50,7 @@ namespace libmaus2
 				datafilename = mdatafilename;
 				indexfilename = mindexfilename;
 			}
-			
+
 			void serialise(std::ostream & out) const
 			{
 				libmaus2::util::StringSerialisation::serialiseString(out,datafilename);
@@ -58,13 +58,13 @@ namespace libmaus2
 				libmaus2::util::NumberSerialisation::serialiseNumberVector(out,blockelcnt);
 				libmaus2::util::NumberSerialisation::serialiseNumberVector(out,indexoffset);
 			}
-			
+
 			void moveAndSerialise(std::ostream & out)
 			{
 				move();
 				serialise(out);
 			}
-			
+
 			void deserialise(std::istream & in)
 			{
 				datafilename = libmaus2::util::StringSerialisation::deserialiseString(in);
@@ -72,16 +72,16 @@ namespace libmaus2
 				blockelcnt = libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
 				indexoffset = libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
 			}
-			
+
 			ReadEndsBlockDecoderBaseCollectionInfoBase(std::istream & in)
 			{
 				deserialise(in);
 			}
-			
+
 			ReadEndsBlockDecoderBaseCollectionInfoBase()
 			: datafilename(), indexfilename(), blockelcnt(), indexoffset()
 			{
-			
+
 			}
 
 			ReadEndsBlockDecoderBaseCollectionInfoBase(
@@ -89,18 +89,18 @@ namespace libmaus2
 				std::string const & rindexfilename,
 				std::vector < uint64_t > const & rblockelcnt,
 				std::vector < uint64_t > const & rindexoffset
-			
+
 			)
 			: datafilename(rdatafilename), indexfilename(rindexfilename), blockelcnt(rblockelcnt), indexoffset(rindexoffset)
 			{
-			
+
 			}
-			
+
 			ReadEndsBlockDecoderBaseCollectionInfoBase(
 				ReadEndsBlockDecoderBaseCollectionInfoBase const & O
 			) : datafilename(O.datafilename), indexfilename(O.indexfilename), blockelcnt(O.blockelcnt), indexoffset(O.indexoffset)
 			{
-			
+
 			}
 		};
 	}

@@ -35,12 +35,12 @@ namespace libmaus2
 		{
 			//! digit table
 			char A[256];
-			
+
 			/**
 			 * constructor
 			 */
 			AlphaTable();
-			
+
 			/**
 			 * check whether i is a digit
 			 *

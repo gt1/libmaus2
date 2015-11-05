@@ -41,7 +41,7 @@ namespace libmaus2
 		struct RealTimeClockBase
 		{
 			virtual ~RealTimeClockBase() {}
-		
+
 			static std::string formatTime(double dsecs)
 			{
 				uint64_t days = 0;
@@ -52,7 +52,7 @@ namespace libmaus2
 				bool printhours = false;
 				bool printminutes = false;
 				bool printsecs = false;
-				
+
 				if ( static_cast<uint64_t>(dsecs) >= 60*60*24 )
 				{
 					days = static_cast<uint64_t>(dsecs)/(60*60*24);
@@ -93,7 +93,7 @@ namespace libmaus2
 					timestr << std::setw(2) << minutes << ":";
 				if ( printsecs )
 					timestr << std::setw(2) << secs << ":";
-				
+
 				unsigned int ddigs = 0;
 				unsigned int const maxddigs = 8;
 				timestr << std::setw(0);
@@ -117,7 +117,7 @@ namespace libmaus2
 			private:
 			struct timeval started;
 			mutable struct timezone tz;
-      
+
 			public:
 			RealTimeClock(bool rstart = false) : started(), tz()
 			{
@@ -127,12 +127,12 @@ namespace libmaus2
 					start();
 			}
 			~RealTimeClock() throw() {}
-      
-			bool start() throw() 
+
+			bool start() throw()
 			{
 				return gettimeofday(&started,&tz) == 0;
 			}
-			
+
 			static rtc_u_int64_t getTime()
 			{
 				struct timeval started;
@@ -140,25 +140,25 @@ namespace libmaus2
 				gettimeofday(&started,&tz);
 
 				return static_cast<rtc_u_int64_t>(started.tv_usec) + (
-						static_cast<rtc_u_int64_t>(started.tv_sec) * 
+						static_cast<rtc_u_int64_t>(started.tv_sec) *
 						static_cast<rtc_u_int64_t>(1000000ul)
 				);
 			}
-      
+
 			//! elapsed time in u-secs
-			rtc_u_int64_t getElapsed() const 
+			rtc_u_int64_t getElapsed() const
 			{
 				struct timeval stopped;
 				gettimeofday(&stopped,&tz);
 				struct timeval dif;
 				timersub(&stopped,&started,&dif);
-				return 
+				return
 					static_cast<rtc_u_int64_t>(dif.tv_usec) + (
-						static_cast<rtc_u_int64_t>(dif.tv_sec) * 
+						static_cast<rtc_u_int64_t>(dif.tv_sec) *
 						static_cast<rtc_u_int64_t>(1000000ul)
 					);
 			}
-			double getElapsedSeconds() const 
+			double getElapsedSeconds() const
 			{
 				rtc_u_int64_t const t = getElapsed();
 				rtc_u_int64_t const s = t / 1000000;
@@ -175,16 +175,16 @@ namespace libmaus2
 		{
 			private:
 			LARGE_INTEGER freq;
-			LARGE_INTEGER started;  
+			LARGE_INTEGER started;
 
-			static __int64 ltd(LARGE_INTEGER const & l) 
+			static __int64 ltd(LARGE_INTEGER const & l)
 			{
 				__int64 result = l.HighPart;
 				result <<= 32;
 				result |= l.LowPart;
 				return result;
-			} 
-      
+			}
+
 			public:
 			RealTimeClock(bool const rstart = false)
 			{
@@ -193,7 +193,7 @@ namespace libmaus2
 					start();
 			}
 			~RealTimeClock() throw() {}
-      
+
 			bool start() throw()
 			{
 				if ( ltd(freq) == 0 )
@@ -203,7 +203,7 @@ namespace libmaus2
 					return QueryPerformanceCounter(&started) > 0;
 				}
 			}
-      
+
 			rtc_u_int64_t getElapsed() const
 			{
 				if ( ! ltd(freq) )
@@ -212,14 +212,14 @@ namespace libmaus2
 				{
 					LARGE_INTEGER now;
 					QueryPerformanceCounter(&now);
-					return 
+					return
 						( static_cast<rtc_u_int64_t>(ltd(now)-ltd(started)) *
 							static_cast<rtc_u_int64_t>(1000000ul) )
 							/ static_cast<rtc_u_int64_t>(ltd(freq));
 				}
 			}
 
-			double getElapsedSeconds() const 
+			double getElapsedSeconds() const
 			{
 				rtc_u_int64_t const t = getElapsed();
 				rtc_u_int64_t const s = t / 1000000;

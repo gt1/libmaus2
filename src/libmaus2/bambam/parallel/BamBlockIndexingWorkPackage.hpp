@@ -22,7 +22,7 @@
 #include <libmaus2/bambam/parallel/GenericInputControlCompressionPending.hpp>
 #include <libmaus2/bambam/BamIndexGenerator.hpp>
 #include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
-			
+
 namespace libmaus2
 {
 	namespace bambam
@@ -37,11 +37,11 @@ namespace libmaus2
 
 				libmaus2::bambam::parallel::GenericInputControlCompressionPending GICCP;
 				libmaus2::bambam::BamIndexGenerator * bamindexgenerator;
-				
-				BamBlockIndexingWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage() {}               
+
+				BamBlockIndexingWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage() {}
 				BamBlockIndexingWorkPackage(
-					uint64_t const rpriority, 
-					uint64_t const rdispatcherid, 
+					uint64_t const rpriority,
+					uint64_t const rdispatcherid,
 					libmaus2::bambam::parallel::GenericInputControlCompressionPending rGICCP,
 					libmaus2::bambam::BamIndexGenerator * rbamindexgenerator
 				)

@@ -38,13 +38,13 @@ namespace libmaus2
 				typedef SamParseWorkPackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				SamParseWorkPackageReturnInterface & packageReturnInterface;
 				SamParseDecompressedBlockFinishedInterface & blockFinishedInterface;
 				SamParseFragmentParsedInterface & fragmentParsedInterface;
 				SamParseGetSamInfoInterface & getSamInfoInterface;
 				SamParsePutSamInfoInterface & putSamInfoInterface;
-				
+
 				SamParseWorkPackageDispatcher(
 					SamParseWorkPackageReturnInterface & rpackageReturnInterface,
 					SamParseDecompressedBlockFinishedInterface & rblockFinishedInterface,
@@ -59,14 +59,14 @@ namespace libmaus2
 					getSamInfoInterface(rgetSamInfoInterface),
 					putSamInfoInterface(rputSamInfoInterface)
 				{
-				
+
 				}
-						
+
 				void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					SamParseWorkPackage * BP = dynamic_cast<SamParseWorkPackage *>(P);
 					assert ( BP );
-					
+
 					SamParsePending & SPP = BP->SPP;
 
 					libmaus2::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type & block = SPP.block;
@@ -83,7 +83,7 @@ namespace libmaus2
 					db->final = block->meta.eof && (subid+1 == block->meta.blocks.size());
 					db->streamid = streamid;
 					db->blockid = absid;
-					
+
 					if ( Q.first != Q.second )
 					{
 						assert ( Q.second[-1] == '\n' );
@@ -93,14 +93,14 @@ namespace libmaus2
 							while ( *p != '\n' )
 								++p;
 							assert ( *p == '\n' );
-						
+
 							saminfo->parseSamLine(reinterpret_cast<char const *>(Q.first),reinterpret_cast<char const *>(p));
 							db->pushData(algn.D.begin(),algn.blocksize);
-						
+
 							Q.first = ++p;
 						}
 					}
-					
+
 					putSamInfoInterface.samParsePutSamInfo(saminfo);
 					blockFinishedInterface.samParseDecompressedBlockFinished(streamid,db);
 					fragmentParsedInterface.samParseFragmentParsed(SPP);

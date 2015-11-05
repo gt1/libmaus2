@@ -29,13 +29,13 @@ namespace libmaus2
 			typedef NP this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			struct NPElement
 			{
 				int offset;
 				int id;
 			};
-			
+
 			enum trace_op {
 				trace_op_none,
 				trace_op_diag,
@@ -52,7 +52,7 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray<NPElement> DE;
 			libmaus2::autoarray::AutoArray<NPElement> DO;
 			libmaus2::autoarray::AutoArray<TraceElement,libmaus2::autoarray::alloc_type_c> trace;
-			
+
 			template<typename iter_a, typename iter_b, bool neg>
 			static inline int slide(iter_a a, iter_a const ae, iter_b b, iter_a const be, int const offset)
 			{
@@ -61,7 +61,7 @@ namespace libmaus2
 
 				iter_a ac = a;
 				iter_b bc = b;
-				
+
 				if ( ae-ac < be-bc )
 					while ( ac < ae && *ac == *bc )
 						++ac, ++bc;
@@ -74,12 +74,12 @@ namespace libmaus2
 				else
 					return bc-b;
 			}
-			
+
 			void align(uint8_t const * a, size_t const l_a, uint8_t const * b, size_t const l_b)
 			{
 				np(a,a+l_a,b,b+l_b);
 			}
-			
+
 			AlignmentTraceContainer const & getTraceContainer() const
 			{
 				return *this;
@@ -99,7 +99,7 @@ namespace libmaus2
 			{
 				size_t const an = ae-a;
 				size_t const bn = be-b;
-				
+
 				if ( ! an )
 				{
 					if ( AlignmentTraceContainer::capacity() <= bn )
@@ -118,17 +118,17 @@ namespace libmaus2
 					std::fill(AlignmentTraceContainer::ta,AlignmentTraceContainer::te,STEP_DEL);
 					return an;
 				}
-				
+
 				size_t const sn = std::max(an,bn);
 				int const numdiag = (sn<<1)+1;
 				int64_t id = 0;
-				
+
 				if ( numdiag > static_cast<int>(DE.size()) )
 				{
 					DE.resize(numdiag);
 					DO.resize(numdiag);
-				}				
-						
+				}
+
 				NPElement * DP = DE.begin() + sn;
 				NPElement * DN = DO.begin() + sn;
 
@@ -142,7 +142,7 @@ namespace libmaus2
 				{
 					if ( static_cast<int64_t>(trace.size()) < id+1 )
 						trace.resize(id+1);
-				
+
 					if ( (!self_check) || (a!=b) )
 					{
 						int const s = slide<iter_a,iter_b,false>(a,ae,b,be,0);
@@ -165,13 +165,13 @@ namespace libmaus2
 						trace[nodeid].op = trace_op_none;
 					}
 				}
-				
+
 				int d = 1;
 				if ( DP[fdiag].offset != fdiagoff )
 				{
 					if ( static_cast<int64_t>(trace.size()) < id+3 )
 						trace.resize(id+3);
-						
+
 					{
 						if ( (!self_check) || (a!=b+1) )
 						{
@@ -194,7 +194,7 @@ namespace libmaus2
 							trace[nodeid].prev = DP[0].id;
 							trace[nodeid].slide = 0;
 							trace[nodeid].op = trace_op_ins;
-							
+
 							if ( fdiag == -1 && DP[0].offset == fdiagoff )
 								DN[fdiag].offset = fdiagoff;
 						}
@@ -240,7 +240,7 @@ namespace libmaus2
 							trace[nodeid].op = trace_op_del;
 						}
 						else
-						{						
+						{
 							DN[ 1].offset = -1;
 							int const nodeid = id++;
 							assert ( nodeid < static_cast<int64_t>(trace.size()) );
@@ -267,10 +267,10 @@ namespace libmaus2
 						uint64_t const newsize = std::max(mult,reqsize);
 						trace.resize(newsize);
 					}
-										
+
 					iter_a aa = a;
 					iter_b bb = b + d;
-				
+
 					{
 						if ( (!self_check) || (aa!=bb) )
 						{
@@ -295,7 +295,7 @@ namespace libmaus2
 							DN[-d].id = nodeid;
 							trace[nodeid].prev = DP[-d+1].id;
 							trace[nodeid].slide = 0;
-							trace[nodeid].op = trace_op_ins;						
+							trace[nodeid].op = trace_op_ins;
 
 							if ( fdiag == -d && DP[-d+1].offset == fdiagoff )
 								DN[fdiag].offset = fdiagoff;
@@ -303,7 +303,7 @@ namespace libmaus2
 
 						bb -= 1;
 					}
-					
+
 					{
 						int const top  = DP[-d+2].offset;
 						int const diag = DP[-d+1].offset;
@@ -311,13 +311,13 @@ namespace libmaus2
 						int const nodeid = id++;
 						assert ( nodeid < static_cast<int64_t>(trace.size()) );
 						DN[-d+1].id = nodeid;
-						
+
 						if ( (!self_check) || (aa!=bb) )
 						{
 							if ( diag+1 >= top )
 							{
 								int const p = diag+1;
-								int const s = slide<iter_a,iter_b,true>(aa,ae,bb,be,p); 
+								int const s = slide<iter_a,iter_b,true>(aa,ae,bb,be,p);
 								DN[-d+1].offset = p + s;
 								trace[nodeid].prev = DP[-d+1].id;
 								trace[nodeid].slide = s;
@@ -369,7 +369,7 @@ namespace libmaus2
 						int const nodeid = id++;
 						assert ( nodeid < static_cast<int64_t>(trace.size()) );
 						DN[di].id = nodeid;
-						
+
 						if ( (!self_check) || (aa!=bb) )
 						{
 							if ( diag >= left )
@@ -425,7 +425,7 @@ namespace libmaus2
 									trace[nodeid].prev = DP[di].id;
 									trace[nodeid].slide = 0;
 									trace[nodeid].op = trace_op_diag;
-									
+
 									if ( fdiag == di && diag+1 == fdiagoff )
 										DN[fdiag].offset = fdiagoff;
 								}
@@ -463,7 +463,7 @@ namespace libmaus2
 										DN[fdiag].offset = fdiagoff;
 								}
 							}
-						
+
 						}
 
 						bb -= 1;
@@ -477,7 +477,7 @@ namespace libmaus2
 						int const nodeid = id++;
 						assert ( nodeid < static_cast<int64_t>(trace.size()) );
 						DN[0].id = nodeid;
-						
+
 						if ( (!self_check) || (aa!=bb) )
 						{
 							if ( diag >= left )
@@ -575,7 +575,7 @@ namespace libmaus2
 
 						aa += 1;
 					}
-					
+
 					for ( int di = 1; di <= d-2 ; ++di )
 					{
 						int const left = DP[di-1].offset;
@@ -585,9 +585,9 @@ namespace libmaus2
 						int const nodeid = id++;
 						assert ( nodeid < static_cast<int64_t>(trace.size()) );
 						DN[di].id = nodeid;
-						
+
 						if ( (!self_check) || (aa!=bb) )
-						{						
+						{
 							if ( diag+1 >= left )
 							{
 								if ( diag >= top )
@@ -680,7 +680,7 @@ namespace libmaus2
 								}
 							}
 						}
-						
+
 						aa += 1;
 					}
 
@@ -691,9 +691,9 @@ namespace libmaus2
 						int const nodeid = id++;
 						assert ( nodeid < static_cast<int64_t>(trace.size()) );
 						DN[d-1].id = nodeid;
-						
+
 						if ( (!self_check) || (aa!=bb) )
-						{						
+						{
 							if ( diag+1 >= left )
 							{
 								int const p = diag+1;
@@ -735,19 +735,19 @@ namespace libmaus2
 								if ( fdiag == d-1 && left == fdiagoff )
 									DN[fdiag].offset = fdiagoff;
 							}
-						
-						}						
-						
+
+						}
+
 						aa += 1;
 					}
-					
+
 					{
 						if ( (!self_check) || (aa!=bb) )
-						{						
+						{
 							// extend above
 							int const p = DP[ d-1].offset;
 							int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
-							DN[d  ].offset = p + s; 
+							DN[d  ].offset = p + s;
 							int const nodeid = id++;
 							assert ( nodeid < static_cast<int64_t>(trace.size()) );
 							DN[d].id = nodeid;
@@ -758,35 +758,35 @@ namespace libmaus2
 						else
 						{
 							// extend above
-							DN[d  ].offset = -1; 
+							DN[d  ].offset = -1;
 							int const nodeid = id++;
 							assert ( nodeid < static_cast<int64_t>(trace.size()) );
 							DN[d].id = nodeid;
 							trace[nodeid].prev = DP[ d-1].id;
 							trace[nodeid].slide = 0;
-							trace[nodeid].op = trace_op_del;						
+							trace[nodeid].op = trace_op_del;
 
 							if ( fdiag == d && DP[ d-1].offset == fdiagoff )
 								DN[fdiag].offset = fdiagoff;
 						}
 					}
-					
+
 					std::swap(DP,DN);
 				}
-				
+
 				int const ed = d-1;
-								
+
 				if ( AlignmentTraceContainer::capacity() <= std::min(an,bn)+ed )
 					AlignmentTraceContainer::resize(std::min(an,bn)+ed);
 				AlignmentTraceContainer::reset();
-				
+
 				int tid = DP[fdiag].id;
 				while ( trace[tid].op != trace_op_none )
 				{
 					for ( int i = 0; i < trace[tid].slide; ++i )
 						*(--AlignmentTraceContainer::ta) = STEP_MATCH;
 					// std::cerr << "(" << trace[tid].slide << ")";
-					
+
 					switch ( trace[tid].op )
 					{
 						case trace_op_diag:
@@ -806,12 +806,12 @@ namespace libmaus2
 					}
 					tid = trace[tid].prev;
 				}
-				
+
 				for ( int i = 0; i < trace[tid].slide; ++i )
 					*(--AlignmentTraceContainer::ta) = STEP_MATCH;
 				//std::cerr << "(" << trace[tid].slide << ")";
 				//std::cerr << std::endl;
-				
+
 				// std::cerr << "d=" << d << std::endl;
 				return ed;
 			}

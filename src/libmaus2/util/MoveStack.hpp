@@ -35,7 +35,7 @@ namespace libmaus2
                         typedef typename array_type::unique_ptr_type array_ptr_type;
                         typedef MoveStack<type> this_type;
                         typedef typename ::libmaus2::util::unique_ptr< this_type>::type unique_ptr_type;
-                        
+
                         array_ptr_type array;
                         uint64_t fill;
 
@@ -47,19 +47,19 @@ namespace libmaus2
                                 	(*newarray)[i] = UNIQUE_PTR_MOVE((*array)[i]);
 				array = UNIQUE_PTR_MOVE(newarray);
                         }
-                        
+
                         public:
                         MoveStack()
                         : array(new array_type(0)), fill(0)
                         {
                         }
-                        
+
                         void reserve(uint64_t const size)
                         {
                         	assert ( size >= array->size() );
                         	expand(size);
                         }
-                        
+
                         uint64_t push_back(type_ptr & ptr)
                         {
                                 if ( fill == array->size() )
@@ -67,13 +67,13 @@ namespace libmaus2
                                 	uint64_t const newsize = std::max(2*fill,static_cast<uint64_t>(1));
 					expand(newsize);
                                 }
-                                
+
                                 uint64_t id = fill++;
                                 (*array)[id] = UNIQUE_PTR_MOVE(ptr);
 
                                 return id;
                         }
-                        
+
                         void pop_back()
                         {
                         	if ( fill )
@@ -82,18 +82,18 @@ namespace libmaus2
                         		(*array)[fill].reset();
                         	}
                         }
-                        
+
                         type * back()
                         {
                         	assert ( fill );
                         	return (*array)[fill-1].get();
                         }
-                        
+
                         uint64_t size() const
                         {
                         	return fill;
                         }
-                        
+
                         type * operator[](uint64_t const i)
                         {
                                 return (*array)[i].get();
@@ -103,7 +103,7 @@ namespace libmaus2
                         {
                                 return (*array)[i].get();
                         }
-                        
+
                         void reset(uint64_t i)
                         {
                                 (*array)[i].reset();

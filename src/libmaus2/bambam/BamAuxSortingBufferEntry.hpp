@@ -35,7 +35,7 @@ namespace libmaus2
 			uint64_t offset;
 			//! block length
 			uint64_t length;
-			
+
 			/**
 			 * construct for empty/invalid entry
 			 **/
@@ -49,7 +49,7 @@ namespace libmaus2
 			 * @param rlength block lengt (in bytes)
 			 **/
 			BamAuxSortingBufferEntry(uint8_t const ca, uint8_t const cb, uint64_t const roffset, uint64_t const rlength) : c(ca,cb), offset(roffset), length(rlength) {}
-			
+
 			/**
 			 * comparator
 			 *

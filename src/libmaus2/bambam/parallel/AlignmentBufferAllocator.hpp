@@ -32,10 +32,10 @@ namespace libmaus2
 				uint64_t const buffersize;
 				uint64_t const pointerdif;
 
-				AlignmentBufferAllocator(uint64_t const rbuffersize, uint64_t const rpointerdif) 
+				AlignmentBufferAllocator(uint64_t const rbuffersize, uint64_t const rpointerdif)
 				: buffersize(rbuffersize), pointerdif(rpointerdif)
 				{}
-				
+
 				AlignmentBuffer::shared_ptr_type operator()()
 				{
 					AlignmentBuffer::shared_ptr_type tptr(new AlignmentBuffer(buffersize,pointerdif));

@@ -30,7 +30,7 @@ namespace libmaus2
 			struct DecompressedBlockAllocator
 			{
 				DecompressedBlockAllocator() {}
-				
+
 				DecompressedBlock::shared_ptr_type operator()()
 				{
 					DecompressedBlock::shared_ptr_type tptr(new DecompressedBlock);

@@ -33,17 +33,17 @@ namespace libmaus2
                 	typedef _value_type value_type;
                 	static const ::libmaus2::autoarray::alloc_type atype = _atype;
                 	typedef EntityBuffer<value_type,_atype> this_type;
-                	
+
                 	private:
                 	this_type operator=(this_type const &);
                 	EntityBuffer(this_type const &);
-                
+
                 	public:
                         uint64_t buffersize;
                         uint64_t length;
 			::libmaus2::autoarray::AutoArray<value_type,atype> abuffer;
 			value_type * buffer;
-			
+
 			uint64_t swapBuffer(::libmaus2::autoarray::AutoArray<value_type,atype> & obuffer)
 			{
 				uint64_t const rlength = length;
@@ -52,7 +52,7 @@ namespace libmaus2
 				length = 0;
 				buffersize = abuffer.size();
 				buffer = abuffer.begin();
-				
+
 				return rlength;
 			}
 
@@ -62,12 +62,12 @@ namespace libmaus2
                                         expandBuffer();
                                 buffer[length++] = c;
                         }
-                        
+
                         void put(value_type c)
                         {
                         	bufferPush(c);
                         }
-                        
+
                         template<typename iterator>
                         void put(iterator c, size_t n)
                         {
@@ -83,35 +83,35 @@ namespace libmaus2
                         			buffer[length++] = *(c++);
                         	}
                         }
-                        
+
                         void expandBuffer()
                         {
                                 uint64_t newbuffersize = std::max(2*buffersize,static_cast<uint64_t>(1u));
                                 ::libmaus2::autoarray::AutoArray<value_type,atype> newabuffer(newbuffersize);
-                        
+
                                 std::copy ( abuffer.get(), abuffer.get()+buffersize, newabuffer.get() );
-                                
+
                                 buffersize = newbuffersize;
                                 abuffer = newabuffer;
                                 buffer = abuffer.get();
-                                
+
                                 // std::cerr << "expanded buffer size to " << buffersize << std::endl;
                         }
-                        
+
                         EntityBuffer(
                         	::libmaus2::autoarray::AutoArray<value_type,atype> & rbuffer,
                         	uint64_t const blocksize)
 			: buffersize(rbuffer.size()), length(blocksize), abuffer(rbuffer), buffer(abuffer.get())
 			{
-			
+
 			}
 
                         EntityBuffer(uint64_t const initialsize = 128)
                         : buffersize(initialsize), length(0), abuffer(buffersize), buffer(abuffer.get())
                         {
-                        
+
                         }
-                        
+
                         void assign(std::string & s)
                         {
                         	s.assign ( buffer, buffer + length );
@@ -120,17 +120,17 @@ namespace libmaus2
 			{
 				length = 0;
 			}
-			
+
 			value_type const * begin() const
 			{
 				return buffer;
 			}
-			
+
 			value_type const * end() const
 			{
 				return buffer + length;
 			}
-			
+
 			void reverseComplementUnmapped()
 			{
 				std::reverse(buffer,buffer+length);
@@ -138,7 +138,7 @@ namespace libmaus2
 					buffer[i] = ::libmaus2::fastx::invertUnmapped(buffer[i]);
 			}
                 };
-                
+
                 typedef EntityBuffer<char,::libmaus2::autoarray::alloc_type_cxx> CharBuffer;
                 typedef EntityBuffer<uint8_t,::libmaus2::autoarray::alloc_type_cxx> UCharBuffer;
                 typedef EntityBuffer<uint8_t,::libmaus2::autoarray::alloc_type_memalign_cacheline> UCharBufferC;

@@ -28,13 +28,13 @@ namespace libmaus2
 		struct SamInfoAllocator
 		{
 			libmaus2::bambam::BamHeaderLowMem * header;
-			
+
 			SamInfoAllocator(libmaus2::bambam::BamHeaderLowMem * rheader = 0)
 			: header(rheader)
 			{
-			
+
 			}
-		
+
 			SamInfo::shared_ptr_type operator()()
 			{
 				SamInfo::shared_ptr_type tptr(new SamInfo(*header));

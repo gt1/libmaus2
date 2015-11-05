@@ -47,7 +47,7 @@ namespace libmaus2
 				else if ( A.x != B.x )
 					return A.x < B.x;
 				else
-					return A.y < B.y;	
+					return A.y < B.y;
 			}
 			/**
 			 * compare optical parameter of objects A and B; this lexicographically involves the attributes

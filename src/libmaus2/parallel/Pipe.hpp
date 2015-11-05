@@ -32,7 +32,7 @@ namespace libmaus2
 			protected:
 			int readfd;
 			int writefd;
-			
+
 			Pipe()
 			: readfd(-1), writefd(-1)
 			{
@@ -49,7 +49,7 @@ namespace libmaus2
 				readfd = fd[0];
 				writefd = fd[1];
 			}
-			
+
 			~Pipe()
 			{
 				if ( readfd != -1 )

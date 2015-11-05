@@ -44,11 +44,11 @@ namespace libmaus2
 			uint64_t const bs;
 			libmaus2::autoarray::AutoArray<char> Bin;
 			bool eof;
-			
+
 			FastaBPSequenceDecoder(std::istream & rin, uint64_t const rbs)
 			: in(rin), bs(rbs), Bin((bs+1)/2,false), eof(false)
 			{
-			
+
 			}
 
 			ssize_t read(char * p, uint64_t const m)
@@ -57,28 +57,28 @@ namespace libmaus2
 					return 0;
 
 				uint64_t bytesread = 0;
-			
+
 				int const flags = in.get();
 				if ( flags < 0 )
 				{
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "FastaBPSequenceDecoder::read(): EOF/error while reading block flags" << std::endl;
 					lme.finish();
-					throw lme;			
+					throw lme;
 				}
 				bytesread += 1;
-						
+
 				// check whether this is the last block
 				eof = ( flags & ::libmaus2::fastx::FastABPConstants::base_block_last );
 				// determine number of bytes to be produced from this block
 				uint64_t const toread = eof ? libmaus2::util::UTF8::decodeUTF8(in,bytesread) : bs;
-				
+
 				if ( m < toread )
 				{
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "FastaBPSequenceDecoder::read(): buffer is too small for block data" << std::endl;
 					lme.finish();
-					throw lme;					
+					throw lme;
 				}
 
 				switch ( flags & ::libmaus2::fastx::FastABPConstants::base_block_mask )
@@ -91,28 +91,28 @@ namespace libmaus2
 							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "FastaBPSequenceDecoder::read(): input failure" << std::endl;
 							lme.finish();
-							throw lme;					
+							throw lme;
 						}
 						bytesread += in.gcount();
 						uint64_t k = 0;
-						
+
 						for ( uint64_t j = 0; j < toread/4; ++j )
 						{
 							uint8_t const u = static_cast<uint8_t>(Bin[j]);
-							
+
 							p[k++] = libmaus2::fastx::remapChar((u >> 6) & 3);
 							p[k++] = libmaus2::fastx::remapChar((u >> 4) & 3);
 							p[k++] = libmaus2::fastx::remapChar((u >> 2) & 3);
 							p[k++] = libmaus2::fastx::remapChar((u >> 0) & 3);
 						}
-						
+
 						if ( (toread) % 4 )
 						{
 							uint8_t const u = static_cast<uint8_t>(Bin[toread/4]);
 
-							for ( uint64_t j = 0; j < ((toread)%4); ++j )								
-								p[k++] = libmaus2::fastx::remapChar((u >> (6-2*j)) & 3);								
-						}								
+							for ( uint64_t j = 0; j < ((toread)%4); ++j )
+								p[k++] = libmaus2::fastx::remapChar((u >> (6-2*j)) & 3);
+						}
 						break;
 					}
 					case ::libmaus2::fastx::FastABPConstants::base_block_5:
@@ -123,15 +123,15 @@ namespace libmaus2
 							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "FastaBPSequenceDecoder::read(): input failure" << std::endl;
 							lme.finish();
-							throw lme;				
+							throw lme;
 						}
 						bytesread += in.gcount();
 						uint64_t k = 0;
-					
+
 						for ( uint64_t j = 0; j < (toread)/3; ++j )
 						{
 							uint8_t const u = Bin[j];
-							
+
 							p[k++] = libmaus2::fastx::remapChar((u/(5*5))%5);
 							p[k++] = libmaus2::fastx::remapChar((u/(5*1))%5);
 							p[k++] = libmaus2::fastx::remapChar((u/(1*1))%5);
@@ -139,7 +139,7 @@ namespace libmaus2
 						if ( toread % 3 )
 						{
 							uint8_t const u = Bin[toread/3];
-							
+
 							switch ( toread % 3 )
 							{
 								case 1:
@@ -151,7 +151,7 @@ namespace libmaus2
 									break;
 							}
 						}
-						
+
 						assert ( k == toread );
 						break;
 					}
@@ -163,7 +163,7 @@ namespace libmaus2
 							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "FastaBPSequenceDecoder::read(): input failure" << std::endl;
 							lme.finish();
-							throw lme;				
+							throw lme;
 						}
 						bytesread += in.gcount();
 						uint64_t k = 0;
@@ -180,7 +180,7 @@ namespace libmaus2
 							uint8_t const u = Bin[toread/2];
 							p[k++] = libmaus2::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(u >> 4);
 						}
-						
+
 						assert ( k == toread );
 						break;
 					}
@@ -192,9 +192,9 @@ namespace libmaus2
 						throw lme;
 					}
 				}
-				
+
 				uint64_t const inputcount = in.gcount();
-				
+
 				// align file
 				if ( bytesread % 8 )
 				{
@@ -208,7 +208,7 @@ namespace libmaus2
 						throw lme;
 					}
 				}
-				
+
 				// read crc
 				uint8_t crcbytes[8];
 				in.read(reinterpret_cast<char *>(&crcbytes[0]),sizeof(crcbytes));
@@ -219,13 +219,13 @@ namespace libmaus2
 					lme.finish();
 					throw lme;
 				}
-				
-				uint32_t const crcin = 
+
+				uint32_t const crcin =
 					(static_cast<uint32_t>(crcbytes[0]) << 24) |
 					(static_cast<uint32_t>(crcbytes[1]) << 16) |
 					(static_cast<uint32_t>(crcbytes[2]) <<  8) |
 					(static_cast<uint32_t>(crcbytes[3]) <<  0);
-				uint32_t const crcout = 
+				uint32_t const crcout =
 					(static_cast<uint32_t>(crcbytes[4]) << 24) |
 					(static_cast<uint32_t>(crcbytes[5]) << 16) |
 					(static_cast<uint32_t>(crcbytes[6]) <<  8) |
@@ -233,20 +233,20 @@ namespace libmaus2
 
 				uint32_t const crcincomp = libmaus2::hashing::Crc32::crc32_8bytes(p,toread,0 /*prev*/);
 				uint32_t const crcoutcomp = libmaus2::hashing::Crc32::crc32_8bytes(Bin.begin(),inputcount,0 /*prev*/);
-				
+
 				if ( crcin != crcincomp )
 				{
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "FastaBPSequenceDecoder::read(): crc error on uncompressed data" << std::endl;
 					lme.finish();
-					throw lme;		
+					throw lme;
 				}
 				if ( crcout != crcoutcomp )
 				{
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "FastaBPSequenceDecoder::read(): crc error on compressed data" << std::endl;
 					lme.finish();
-					throw lme;				
+					throw lme;
 				}
 
 				return toread;

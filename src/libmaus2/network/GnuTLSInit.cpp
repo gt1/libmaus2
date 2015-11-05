@@ -34,15 +34,15 @@ libmaus2::network::GnuTLSInit::GnuTLSInit()
 	if ( ! initcomplete++ )
 	{
 		#if defined(LIBMAUS2_HAVE_GNUTLS)
-		if (gnutls_check_version("2.12.14") == NULL) 
+		if (gnutls_check_version("2.12.14") == NULL)
 		{
 			libmaus2::exception::LibMausException lme;
 			lme.getStream() << "Required GnuTLS 2.12.14 not available" << "\n";
 			lme.finish();
 			throw lme;
 		}
-		
-		gnutls_global_init();	
+
+		gnutls_global_init();
 		#endif
 	}
 }

@@ -67,8 +67,8 @@ namespace libmaus2
 			 * @return number of bytes written to output file
 			 **/
 			static uint64_t concatParallel(
-				std::vector < std::string > const & files, 
-				std::string const & outputfilename, 
+				std::vector < std::string > const & files,
+				std::string const & outputfilename,
 				bool const rem
 			);
 			/**
@@ -81,8 +81,8 @@ namespace libmaus2
 			 * @return number of bytes written to output file
 			 **/
 			static uint64_t concatParallel(
-				std::vector < std::vector < std::string > > const & files, 
-				std::string const & outputfilename, 
+				std::vector < std::vector < std::string > > const & files,
+				std::string const & outputfilename,
 				bool const rem
 			);
 			/**
@@ -103,8 +103,8 @@ namespace libmaus2
 			 * @return number of bytes written to output file
 			 **/
 			static uint64_t concat(
-				std::vector < std::vector < std::string > > const & files, 
-				std::string const & outputfilename, 
+				std::vector < std::vector < std::string > > const & files,
+				std::string const & outputfilename,
 				bool const rem
 			);
 		};

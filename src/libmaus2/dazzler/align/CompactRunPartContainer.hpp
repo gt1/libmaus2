@@ -31,7 +31,7 @@ namespace libmaus2
 			struct CompactRunPartContainer : public libmaus2::dazzler::db::PartTrackContainer
 			{
 				CompactRunPartContainer(libmaus2::dazzler::db::DatabaseFile const & DB, int64_t const blockid = -1)
-				: PartTrackContainer(DB,"compactruns",blockid) 
+				: PartTrackContainer(DB,"compactruns",blockid)
 				{
 				}
 
@@ -52,7 +52,7 @@ namespace libmaus2
 					assert ( offset + len <= track.Adata->size() );
 					std::string const appdata(track.Adata->begin() + offset,track.Adata->begin() + offset + len);
 					std::istringstream appistr(appdata);
-					
+
 					uint64_t roffset = 0;
 					uint64_t const numel = len ? libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(appistr,roffset) : 0;
 					std::pair<uint64_t,uint64_t> V(numel);
@@ -62,7 +62,7 @@ namespace libmaus2
 						uint64_t const p1 = libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(appistr,offset);
 						V[i] = std::pair<uint64_t,uint64_t>(p0,p1);
 					}
-					
+
 					return V;
 				}
 

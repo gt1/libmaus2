@@ -34,7 +34,7 @@ namespace libmaus2
 			{
 				srand(t);
 			}
-		
+
 			static inline uint64_t rand64()
 			{
 				uint64_t v = 0;

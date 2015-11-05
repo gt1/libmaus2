@@ -28,12 +28,12 @@ namespace libmaus2
 		struct FileUrl : public UrlBase
 		{
 			std::string filename;
-			
+
 			static bool isFileUrl(std::string const & url)
 			{
 				return isAbsoluteUrl(url) && (getProtocol(url) == "file");
 			}
-			
+
 			FileUrl(std::string const & url)
 			{
 				if ( isAbsoluteUrl(url) )
@@ -55,7 +55,7 @@ namespace libmaus2
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "FileUrl: " << url << " is not an URL" << "\n";
 					lme.finish();
-					throw lme;					
+					throw lme;
 				}
 			}
 		};

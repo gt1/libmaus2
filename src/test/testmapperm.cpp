@@ -43,19 +43,19 @@ int main(int argc, char * argv[])
 
 		::libmaus2::bambam::BamHeader header;
 		header.addChromosome("text",textlen);
-		
+
 		std::vector<uint64_t> P;
 		for ( uint64_t i = 0; i < numreads; ++i )
 			P.push_back(i);
 
-		uint64_t const check = std::min(static_cast<uint64_t>(arginfo.getValue<int>("check",8)),static_cast<uint64_t>(P.size()));		
+		uint64_t const check = std::min(static_cast<uint64_t>(arginfo.getValue<int>("check",8)),static_cast<uint64_t>(P.size()));
 		std::vector<uint64_t> prev(check,numreads);
 
 		do
-		{		
+		{
 			std::ostringstream out;
 			::libmaus2::bambam::BamWriter::unique_ptr_type bamwriter(new ::libmaus2::bambam::BamWriter(out,header,0,0));
-			
+
 			bool print = false;
 			for ( uint64_t i = 0; i < check; ++i )
 				if ( P[i] != prev[i] )
@@ -70,27 +70,27 @@ int main(int argc, char * argv[])
 				}
 				std::cerr << std::endl;
 			}
-					
+
 			for ( uint64_t j = 0; j < P.size(); ++j )
 			{
 				uint64_t const i = P[j];
-				
+
 				std::ostringstream rnstr;
 				rnstr << "r" << "_" << std::setw(6) << std::setfill('0') << i;
 				std::string const rn = rnstr.str();
-				
+
 				std::string const read(T.begin()+i,T.begin()+i+readlen);
 				// std::cerr << read << std::endl;
 
-				bamwriter->encodeAlignment(rn,0 /* refid */,i,30, 0, 
-					libmaus2::util::NumberSerialisation::formatNumber(readlen,0) + "M", 
+				bamwriter->encodeAlignment(rn,0 /* refid */,i,30, 0,
+					libmaus2::util::NumberSerialisation::formatNumber(readlen,0) + "M",
 					-1,-1, -1, read, std::string(readlen,'H'));
 				bamwriter->commit();
 			}
-			
+
 			bamwriter.reset();
 		} while ( std::next_permutation(P.begin(),P.end()) );
-		
+
 		// std::cout << out.str();
 	}
 	catch(std::exception const & ex)

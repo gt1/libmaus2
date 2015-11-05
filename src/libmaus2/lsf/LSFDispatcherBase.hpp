@@ -38,11 +38,11 @@ namespace libmaus2
 
 			static uint64_t getNumProcs(uint64_t const maxprocs, ::libmaus2::util::ArgInfo const & arginfo)
 			{
-				return std::min(static_cast<uint64_t>(maxprocs),arginfo.getValue<uint64_t>("numprocs",32));	
+				return std::min(static_cast<uint64_t>(maxprocs),arginfo.getValue<uint64_t>("numprocs",32));
 			}
 
 			LSFDispatcherBase(
-				uint64_t const rexmem, 
+				uint64_t const rexmem,
 				::libmaus2::util::ArgInfo const & rarginfo,
 				uint64_t const maxprocs,
 				std::string const & dispatchprogname,
@@ -64,7 +64,7 @@ namespace libmaus2
 					if ( tokens.size() )
 					{
 						reqhosts = std::vector < std::string > (tokens.begin(),tokens.end());
-						phosts = &reqhosts;			
+						phosts = &reqhosts;
 					}
 				}
 				waiter = UNIQUE_PTR_MOVE(BPS.startAsynchronous(numprocs,0,dispatchprogname,dispatchprogname,project,queue,lsfthreads,blocksortmem,"/dev/null","/dev/null","/dev/null",phosts));
@@ -77,22 +77,22 @@ namespace libmaus2
 				waiter->stop();
 				//
 				std::cerr << "done." << std::endl;
-				
+
 				std::cerr << "Calling join for waiter...";
 				// wait until waiter thread has finished
 				waiter->join();
 				std::cerr << "done." << std::endl;
 
-				std::cerr << "Killing remaing processes...";		
+				std::cerr << "Killing remaing processes...";
 				// kill remaining processes
 				for ( uint64_t i = 0; i < BPS.size(); ++i )
 					BPS.process(i)->kill();
-				std::cerr << "done." << std::endl;	
-					
+				std::cerr << "done." << std::endl;
+
 				std::cerr << "Waiting for processes to leave...";
 				// wait until they are gone
 				for ( uint64_t i = 0; i < BPS.size(); ++i )
-					BPS.process(i)->wait(1);	
+					BPS.process(i)->wait(1);
 				std::cerr << "done." << std::endl;
 			}
 		};

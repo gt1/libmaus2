@@ -35,13 +35,13 @@ namespace libmaus2
 			uint64_t const numreads;
 			unsigned int const qbits;
 			::libmaus2::fastx::FqWeightQuantiser const quant;
-			
+
 			uint64_t byteSize() const
 			{
-				return 
+				return
 					2*sizeof(uint64_t)+1*sizeof(unsigned int)+quant.byteSize();
 			}
-			
+
 			template<typename stream_type>
 			CompactFastQHeader(stream_type & stream)
 			:
@@ -50,9 +50,9 @@ namespace libmaus2
 			  qbits(stream.get()),
 			  quant(stream)
 			{
-			
+
 			}
-			
+
 			static uint64_t getEmptyBlockHeaderSize()
 			{
 				::libmaus2::fastx::FqWeightQuantiser quant;

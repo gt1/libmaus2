@@ -43,7 +43,7 @@ namespace libmaus2
 
 			for ( uint64_t i = 0; i < fullwordswaps; ++i, o0 += 64, o1 += 64 )
 				swapWordBitBlock(A,o0,o1,64);
-					
+
 			swapWordBitBlock(A,o0,o1,restbitswaps);
 		}
 
@@ -66,7 +66,7 @@ namespace libmaus2
 					l0 -= l1;
 				}
 			}
-		}	
+		}
 	}
 }
 #endif

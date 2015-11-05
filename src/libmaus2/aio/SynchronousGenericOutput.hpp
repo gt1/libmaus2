@@ -44,21 +44,21 @@ namespace libmaus2
                         typedef SynchronousGenericOutput<data_type> this_type;
                         //! unique pointer type
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			//! output file stream type
 			typedef ::libmaus2::aio::OutputStreamInstance ofstream_type;
 			//! output file stream pointer type
 			typedef ::libmaus2::util::unique_ptr< ofstream_type >::type ofstream_ptr_type;
-			
+
 			//! file stream type
 			typedef ::libmaus2::util::unique_ptr< std::fstream  >::type  fstream_ptr_type;
 			//! iterator type
 			typedef PutOutputIterator<data_type,this_type> iterator_type;
 
-			private:                
+			private:
 			//! default append is off
 			static bool const append = false;
-			
+
 			//! output buffer
                         ::libmaus2::autoarray::AutoArray<data_type> B;
                         //! output buffer start pointer
@@ -67,14 +67,14 @@ namespace libmaus2
                         data_type * pc;
                         //! output buffer end pointer
                         data_type * const pe;
-                        
+
                         //! output stream pointer (for truncating)
                         ofstream_ptr_type PW;
                         //! file stream pointer (for appending)
                          fstream_ptr_type PF;
                         //! ostream reference
                         std::ostream & W;
-                        
+
                         //! number of elements written to file
                         uint64_t datawrittentofile;
 
@@ -86,7 +86,7 @@ namespace libmaus2
                                 char const * ca = reinterpret_cast<char const *>(pa);
                                 char const * cc = reinterpret_cast<char const *>(pc);
                                 W.write ( ca, cc-ca );
-                                
+
                                 if ( ! W )
                                 {
                                         ::libmaus2::exception::LibMausException se;
@@ -110,14 +110,14 @@ namespace libmaus2
                          * @param outputfilename name of output file
                          **/
 			template< ::libmaus2::autoarray::alloc_type atype >
-			static void writeArray(::libmaus2::autoarray::AutoArray<data_type,atype> const & A, 
+			static void writeArray(::libmaus2::autoarray::AutoArray<data_type,atype> const & A,
 				std::string const & outputfilename)
 			{
 				this_type out(outputfilename,64*1024);
-				
+
 				for ( uint64_t i = 0; i < A.getN(); ++i )
 					out.put(A[i]);
-				
+
 				out.flush();
 			}
 
@@ -130,7 +130,7 @@ namespace libmaus2
 			 * @param offset write offset in bytes
 			 **/
                         SynchronousGenericOutput(std::string const & filename, uint64_t const bufsize, bool const truncate = true, uint64_t const offset = 0, bool const /* metasync */ = true)
-                        : B(bufsize,false), pa(B.get()), pc(pa), pe(pa+B.getN()), 
+                        : B(bufsize,false), pa(B.get()), pc(pa), pe(pa+B.getN()),
                           PW ( truncate ? new ofstream_type(filename) : 0),
                           PF ( truncate ? 0 : new std::fstream(filename.c_str(), std::ios::binary|std::ios::in|std::ios::out|std::ios::ate) ),
                           W  ( truncate ? (static_cast<std::ostream &>(*PW)) : (static_cast<std::ostream &>(*PF)) ),
@@ -146,7 +146,7 @@ namespace libmaus2
                          * @param bufsize output buffer size
                          **/
                         SynchronousGenericOutput(std::ostream & out, uint64_t const bufsize)
-                        : B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN()), 
+                        : B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN()),
                           W(out),
                           datawrittentofile(0)
                         {
@@ -191,7 +191,7 @@ namespace libmaus2
                                 if ( pc == pe )
                                         writeBuffer();
                         }
-                        
+
                         /**
                          * @return number of words written
                          **/
@@ -199,7 +199,7 @@ namespace libmaus2
                         {
                         	return datawrittentofile + (pc-pa);
                         }
-                        
+
                         /**
                          * @return number of bytes written
                          **/
@@ -207,7 +207,7 @@ namespace libmaus2
                         {
                         	return getWrittenWords() * sizeof(data_type);
                         }
-                        
+
                         /**
                          * put an array of elements
                          *
@@ -225,7 +225,7 @@ namespace libmaus2
 					A += towrite;
 					pc += towrite;
 					n -= towrite;
-					
+
 					if ( pc == pe )
 						writeBuffer();
         			}

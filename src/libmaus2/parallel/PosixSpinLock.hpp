@@ -44,9 +44,9 @@ namespace libmaus2
                 	typedef PosixSpinLock this_type;
                 	typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
                 	typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-                
+
                         pthread_spinlock_t spinlock;
-                        
+
                         PosixSpinLock()
                         {
                                 if ( pthread_spin_init(&spinlock,PTHREAD_PROCESS_PRIVATE) )
@@ -54,14 +54,14 @@ namespace libmaus2
                         		::libmaus2::exception::LibMausException se;
                         		se.getStream() << "pthread_spin_init failed" << std::endl;
                         		se.finish();
-                        		throw se;                                	
+                        		throw se;
                                 }
                         }
                         ~PosixSpinLock()
                         {
                                 pthread_spin_destroy(&spinlock);
                         }
-                        
+
                         void lock()
                         {
                         	if ( pthread_spin_lock ( &spinlock ) )
@@ -79,7 +79,7 @@ namespace libmaus2
                         		::libmaus2::exception::LibMausException se;
                         		se.getStream() << "pthread_spin_unlock failed" << std::endl;
                         		se.finish();
-                        		throw se;                        	
+                        		throw se;
                         	}
                         }
                         /**
@@ -98,14 +98,14 @@ namespace libmaus2
                         		::libmaus2::exception::LibMausException se;
                         		se.getStream() << "pthread_spin_trylock failed" << std::endl;
                         		se.finish();
-                        		throw se;                        						
+                        		throw se;
 				}
 				else
 				{
 					return true;
 				}
                         }
-                        
+
                         /*
                          * try to lock spin lock. if succesful, lock is unlocked and return value is true,
                          * otherwise return value is false
@@ -125,16 +125,16 @@ namespace libmaus2
                 	typedef PosixSpinLock this_type;
                 	typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
                 	typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-                
+
                 	OSSpinLock spinlock;
-                        
+
                         PosixSpinLock() : spinlock(OS_SPINLOCK_INIT)
                         {
                         }
                         ~PosixSpinLock()
                         {
                         }
-                        
+
                         void lock()
                         {
                         	OSSpinLockLock(&spinlock);
@@ -151,7 +151,7 @@ namespace libmaus2
                         {
                         	return OSSpinLockTry(&spinlock);
                         }
-                        
+
                         /*
                          * try to lock spin lock. if succesful, lock is unlocked and return value is true,
                          * otherwise return value is false
@@ -163,7 +163,7 @@ namespace libmaus2
                         		unlock();
 				return r;
                         }
-                };                
+                };
                 // no posix or Darwin api for spin locks but sync lock support
                 #elif defined(LIBMAUS2_HAVE_SYNC_LOCK)
                 struct PosixSpinLock
@@ -171,9 +171,9 @@ namespace libmaus2
                 	typedef PosixSpinLock this_type;
                 	typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
                 	typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-                
+
                 	unsigned int volatile spinlock;
-                        
+
                         PosixSpinLock() : spinlock()
                         {
                                 spinlock = 0;
@@ -181,13 +181,13 @@ namespace libmaus2
                         ~PosixSpinLock()
                         {
                         }
-                        
+
                         void lock()
                         {
                         	// spin until we have the lock
                         	while ( __sync_lock_test_and_set(&spinlock,1) == 1 )
                         	{
-                        	}                        
+                        	}
                         }
                         void unlock()
                         {
@@ -204,7 +204,7 @@ namespace libmaus2
 				else
 					return false;
                         }
-                        
+
                         /*
                          * try to lock spin lock. if succesful, lock is unlocked and return value is true,
                          * otherwise return value is false
@@ -216,29 +216,29 @@ namespace libmaus2
                         		unlock();
 				return r;
                         }
-                };                
+                };
                 // none of the two above, use mutexes instead
                 #else
                 typedef PosixMutex PosixSpinLock;
                 #endif
-                
+
                 struct ScopePosixSpinLock
                 {
                 	PosixSpinLock & spinlock;
                 	bool locked;
-                	
+
                 	void lock()
                 	{
                 		spinlock.lock();
                 		locked = true;
                 	}
-                	
+
                 	void unlock()
                 	{
                 		spinlock.unlock();
                 		locked = false;
                 	}
-                	
+
                 	ScopePosixSpinLock(PosixSpinLock & rspinlock, bool prelocked = false)
                 	: spinlock(rspinlock), locked(prelocked)
                 	{

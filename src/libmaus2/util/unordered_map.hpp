@@ -42,14 +42,14 @@ namespace libmaus2
 			typedef ::boost::hash<T> hash_type;
 			#else
 			#error "Required unordered_map not found."
-			#endif			
+			#endif
 		};
-	
+
 		template<typename T1, typename T2, typename H = typename unordered_map_hash<T1>::hash_type >
 		struct unordered_map
 		{
 			#if defined(LIBMAUS2_USE_STD_UNORDERED_MAP)
-			typedef typename ::std::unordered_map<T1,T2,H> type;			
+			typedef typename ::std::unordered_map<T1,T2,H> type;
 			#elif defined(LIBMAUS2_USE_BOOST_UNORDERED_MAP)
 			typedef typename ::boost::unordered_map<T1,T2,H> type;
 			#else

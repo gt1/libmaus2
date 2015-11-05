@@ -34,22 +34,22 @@ namespace libmaus2
 				typedef DecompressBlockWorkPackage this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				ControlInputInfo::input_block_type::shared_ptr_type inputblock;
 				DecompressedBlock::shared_ptr_type outputblock;
 				libmaus2::lz::BgzfInflateZStreamBase::shared_ptr_type decoder;
-	
+
 				DecompressBlockWorkPackage()
-				: 
-					libmaus2::parallel::SimpleThreadWorkPackage(), 
+				:
+					libmaus2::parallel::SimpleThreadWorkPackage(),
 					inputblock(),
 					outputblock(),
 					decoder()
 				{
 				}
-				
+
 				DecompressBlockWorkPackage(
-					uint64_t const rpriority, 
+					uint64_t const rpriority,
 					ControlInputInfo::input_block_type::shared_ptr_type rinputblock,
 					DecompressedBlock::shared_ptr_type routputblock,
 					libmaus2::lz::BgzfInflateZStreamBase::shared_ptr_type rdecoder,
@@ -58,7 +58,7 @@ namespace libmaus2
 				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdecompressDispatcherId), inputblock(rinputblock), outputblock(routputblock), decoder(rdecoder)
 				{
 				}
-			
+
 				char const * getPackageName() const
 				{
 					return "DecompressBlockWorkPackage";

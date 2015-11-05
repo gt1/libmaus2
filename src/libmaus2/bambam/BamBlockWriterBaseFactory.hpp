@@ -34,10 +34,10 @@ namespace libmaus2
 			typedef BamBlockWriterBaseFactory this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			BamBlockWriterBaseFactory() {}
 			virtual ~BamBlockWriterBaseFactory() {}
-			
+
 			static std::string levelToString(int const level)
 			{
 				switch ( level )
@@ -49,7 +49,7 @@ namespace libmaus2
 					case Z_BEST_COMPRESSION:
 						return "best";
 					case Z_NO_COMPRESSION:
-						return "uncompressed";				
+						return "uncompressed";
 					#if defined(LIBMAUS2_HAVE_IGZIP)
 					case libmaus2::lz::IGzipDeflate::COMPRESSION_LEVEL:
 						return "igzip";
@@ -63,24 +63,24 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			static std::string getLevelHelpText()
 			{
 				std::set<int> S = getValidCompressionLevels();
 				std::vector<int> V(S.begin(),S.end());
-				
+
 				std::ostringstream ostr;
 				for ( std::vector<int>::size_type i = 0; i < V.size(); ++i )
 					ostr << V[i] << "=" << levelToString(V[i]) << ((i+1<V.size())?",":"");
-					
+
 				return ostr.str();
 			}
-			
+
 			static std::string getBamOutputLevelHelpText()
 			{
 				return std::string("compression settings for output bam file (") + getLevelHelpText() + std::string(")");
 			}
-			
+
 			static std::set<int> getValidCompressionLevels()
 			{
 				std::set<int> S;
@@ -124,10 +124,10 @@ namespace libmaus2
 					}
 						break;
 				}
-				
+
 				return level;
 			}
-			
+
 			static std::set<std::string> getValidOutputFormatsSet()
 			{
 				std::set<std::string> S;
@@ -137,10 +137,10 @@ namespace libmaus2
 				S.insert("sam");
 				S.insert("cram");
 				#endif
-				
+
 				return S;
 			}
-			
+
 			static std::string getValidOutputFormats()
 			{
 				std::set<std::string> const S = getValidOutputFormatsSet();
@@ -149,10 +149,10 @@ namespace libmaus2
 				for ( std::set<std::string>::const_iterator ita = S.begin();
 					ita != S.end(); ++ita )
 					ostr << ((ita!=S.begin())?",":"") << (*ita);
-				
+
 				return ostr.str();
 			}
-			
+
 			static std::string getDefaultOutputFormat()
 			{
 				return "bam";
@@ -176,11 +176,11 @@ namespace libmaus2
 					ex.finish();
 					throw ex;
 				}
-				
+
 				if ( outputformat == "bam" )
 				{
 					int const level = checkCompressionLevel(arginfo.getValue("level",Z_DEFAULT_COMPRESSION));
-					
+
 					if ( outputthreads == 1 )
 					{
 						if ( outputisstdout )
@@ -208,8 +208,8 @@ namespace libmaus2
 						}
 					}
 				}
-				else if ( 
-					outputformat == "maussam"					
+				else if (
+					outputformat == "maussam"
 					#if !defined(LIBMAUS2_HAVE_IO_LIB)
 					||
 					outputformat == "sam"
@@ -230,7 +230,7 @@ namespace libmaus2
 						);
 						return UNIQUE_PTR_MOVE(tptr);
 					}
-				
+
 				}
 				#if defined(LIBMAUS2_HAVE_IO_LIB)
 				else if ( outputformat == "sam" )
@@ -242,7 +242,7 @@ namespace libmaus2
 						return UNIQUE_PTR_MOVE(tptr);
 					}
 					else
-					{					
+					{
 						libmaus2::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus2::bambam::ScramEncoder(bamheader,outputfilename,"ws","",true /* verbose */));
 						return UNIQUE_PTR_MOVE(tptr);
 					}
@@ -251,14 +251,14 @@ namespace libmaus2
 				{
 					std::string const reference = arginfo.getUnparsedValue("reference","");
 					bool const scramverbose = arginfo.getValue<unsigned int>("scramverbose",false);
-				
+
 					if ( outputisstdout )
 					{
 						libmaus2::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus2::bambam::ScramEncoder(bamheader,"-","wc",reference,scramverbose /* verbose */));
 						return UNIQUE_PTR_MOVE(tptr);
 					}
 					else
-					{					
+					{
 						libmaus2::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus2::bambam::ScramEncoder(bamheader,outputfilename,"wc",reference,scramverbose /* verbose */));
 						return UNIQUE_PTR_MOVE(tptr);
 					}

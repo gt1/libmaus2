@@ -38,8 +38,8 @@ void testSnappy()
 	std::string const message(A.begin(),A.end()) ;
 	std::string const compressed = ::libmaus2::lz::SnappyCompress::compress(message);
 	std::string const uncompressed = ::libmaus2::lz::SnappyCompress::uncompress(compressed);
-	
-	std::cerr << "single block test " << ((uncompressed==message)?"ok":"FAILED") 
+
+	std::cerr << "single block test " << ((uncompressed==message)?"ok":"FAILED")
 		<< " (uncompressed " << uncompressed.size() << " compressed " << compressed.size() << ")"
 		<< std::endl;
 }
@@ -54,23 +54,23 @@ void testSnappyStream()
 	SOS.write(A.begin(),A.size());
 	SOS.flush();
 	ostr.flush();
-	
+
 	std::string const & streamdata = ostr.str();
 	::libmaus2::lz::SnappyStringInputStream SIS(streamdata);
-	
+
 	std::ostringstream comp;
 	int c = -1;
 	while ( (c = SIS.get()) != -1 )
 		comp.put(c);
-		
-	
+
+
 	::libmaus2::lz::SnappyStringInputStream SISB(streamdata);
 	libmaus2::autoarray::AutoArray<char> B(A.size(),false);
 	char * p = B.begin();
 	uint64_t d;
 	while ( (d = SISB.read(p,64*1024)) != 0 )
 		p += d;
-	
+
 	assert ( std::string(B.begin(),B.end()) == message );
 
 	std::cerr << "block stream test " << ((comp.str()==message)?"ok":"FAILED") << std::endl;
@@ -83,12 +83,12 @@ void testSnappyStreamDual()
 
 	std::string const messageA(A.begin(),A.end()) ;
 	std::string const messageB(B.begin(),B.end()) ;
-	
+
 	std::vector < std::string const * > messages;
 
 	std::vector<uint64_t> offsets;
 	std::ostringstream ostr;
-	
+
 	offsets.push_back(ostr.tellp());
 	::libmaus2::lz::SnappyOutputStream<std::ostringstream> SOSA(ostr,64*1024);
 	SOSA.write(messageA.c_str(),messageA.size());
@@ -102,21 +102,21 @@ void testSnappyStreamDual()
 	SOSB.flush();
 
 	offsets.push_back(ostr.tellp());
-	
+
 	ostr.flush();
 
 	std::istringstream istr(ostr.str());
 	::libmaus2::lz::SnappyInputStreamArray SISA(istr,offsets.begin(),offsets.end());
-	
+
 	bool ok = true;
 	for ( uint64_t i = 0; ok && i+1 < offsets.size(); ++i )
 	{
 		std::ostringstream lostr;
-		
+
 		int c = -1;
 		while ( (c=SISA[i].get()) >= 0 )
 			lostr.put(c);
-	
+
 		ok = ok && ( lostr.str() == (*(messages[i])) );
 	}
 

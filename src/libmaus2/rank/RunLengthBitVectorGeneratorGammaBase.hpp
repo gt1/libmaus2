@@ -31,15 +31,15 @@ namespace libmaus2
 			typedef RunLengthBitVectorGeneratorGammaBase this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			std::ostream & ostr;
 			::libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO;
 			::libmaus2::gamma::GammaEncoder < ::libmaus2::aio::SynchronousGenericOutput<uint64_t> > GE;
-			
+
 			RunLengthBitVectorGeneratorGammaBase(std::ostream & rostr)
 			: ostr(rostr), SGO(ostr,64*1024), GE(SGO)
 			{
-			
+
 			}
 		};
 	}

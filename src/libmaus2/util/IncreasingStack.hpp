@@ -31,27 +31,27 @@ struct IncreasingStack
 	::libmaus2::bitio::BitVector blockused;
 	uint64_t topv;
 	uint64_t fill;
-	
+
 	IncreasingStack(uint64_t const rn)
 	: n(rn), b( (n+63)/64 ), data(n), blockused(b), topv(0), fill(0)
 	{
 	}
-	
+
 	void push(uint64_t const i)
 	{
 		uint64_t const block = i>>6;
-		
+
 		bool const blockpreempty = !(data.A[block]);
 		data[i] = true;
 		blockused[block] = true;
-		
+
 		if ( blockpreempty && block && ! blockused[block-1] )
 			data.A[block-1] = topv;
 
 		topv = i;
 		fill++;
 	}
-	
+
 	uint64_t top() const
 	{
 		if ( ! fill )
@@ -63,18 +63,18 @@ struct IncreasingStack
 		}
 		return topv;
 	}
-	
+
 	void pop()
 	{
 		uint64_t const r = topv;
 		uint64_t const block = (r>>6);
-		
+
 		// erase bit
 		data[r] = false;
 		// more bits in block?
 		if ( ! data.A[block] )
 			blockused[block] = false;
-		
+
 		if ( --fill )
 		{
 			// another bit in same block or block below?
@@ -94,8 +94,8 @@ struct IncreasingStack
 				// get pointer
 				topv = data.A[block-1];
 				// erase pointer
-				data.A[block-1] = 0;					
-			}		
+				data.A[block-1] = 0;
+			}
 		}
 	}
 };

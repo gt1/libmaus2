@@ -40,7 +40,7 @@ namespace libmaus2
 				bam_header_read_failed
 			};
 		};
-			
+
 		std::ostream & operator<<(std::ostream & out, BamHeaderParserStateBase::bam_header_parse_state const & state);
 	}
 }

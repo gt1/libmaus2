@@ -36,16 +36,16 @@ namespace libmaus2
 		struct FastAStreamSet
 		{
 			::libmaus2::fastx::FastALineParser parser;
-			
+
 			FastAStreamSet(std::istream & in) : parser(in) {}
-			
+
 			bool getNextStream(std::pair<std::string,FastAStream::shared_ptr_type> & P)
 			{
 				::libmaus2::fastx::FastALineParserLineInfo line;
-				
+
 				if ( ! parser.getNextLine(line) )
 					return false;
-				
+
 				if ( line.linetype != ::libmaus2::fastx::FastALineParserLineInfo::libmaus2_fastx_fasta_id_line )
 				{
 					libmaus2::exception::LibMausException se;
@@ -53,18 +53,18 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
-				std::string const id(line.line,line.line+line.linelen);		
+
+				std::string const id(line.line,line.line+line.linelen);
 
 				libmaus2::fastx::FastAStream::shared_ptr_type ptr(
 					new libmaus2::fastx::FastAStream(parser,64*1024,0));
-					
+
 				P.first = id;
 				P.second = ptr;
-				
+
 				return true;
 			}
-			
+
 			std::map<std::string,std::string> computeMD5(bool writedata = true, bool verify = true)
 			{
 				std::pair<std::string,FastAStream::shared_ptr_type> P;
@@ -74,20 +74,20 @@ namespace libmaus2
 				libmaus2::fastx::SpaceTable const S;
 				libmaus2::util::ToUpperTable const T;
 				uint8_t digest[libmaus2::util::MD5::digestlength];
-				
+
 				char const * datadir = writedata ? getenv("REF_CACHE") : NULL;
 				if ( (!datadir) || (!*datadir) )
 					datadir = NULL;
 				// do not write data if no location is given
 				if ( (!datadir) )
 					writedata = false;
-					
+
 				char const * refpath = getenv("REF_PATH");
 				if ( (!refpath) || (!*refpath) )
 					refpath = NULL;
 
 				RefPathTokenVector refcacheexp(writedata ? std::string(datadir) : std::string());
-				RefPathTokenVectorSequence refpathexp(refpath ? std::string(refpath) : std::string());				
+				RefPathTokenVectorSequence refpathexp(refpath ? std::string(refpath) : std::string());
 
 				while ( getNextStream(P) )
 				{
@@ -97,28 +97,28 @@ namespace libmaus2
 					md5.init();
 
 					std::ostringstream data;
-			
-					// shorten id by cutting off everystring from first white space		
+
+					// shorten id by cutting off everystring from first white space
 					uint64_t z = 0;
 					while ( z < id.size() && S.nospacetable[static_cast<unsigned char>(id[z])] )
 						++z;
 					id = id.substr(0,z);
-					
+
 					while ( str )
 					{
 						str.read(B.begin(),B.size());
 						size_t const n = str.gcount();
-						
+
 						size_t o = 0;
 						for ( size_t i = 0; i < n; ++i )
 							if ( S.nospacetable[ u[i] ] )
 								u[o++] = T.touppertable[u[i]];
-								
+
 						md5.update(reinterpret_cast<uint8_t const *>(u),o);
 						if ( writedata )
 							data.write(B.begin(),o);
 					}
-					
+
 					md5.digest(&digest[0]);
 					std::string const sdigest = md5.digestToString(&digest[0]);
 
@@ -129,18 +129,18 @@ namespace libmaus2
 						std::cerr << "\t" << E[z];
 					std::cerr << std::endl;
 					#endif
-					
+
 					M[id] = sdigest;
-					
+
 					if ( writedata )
 					{
 						std::vector<std::string> E = refpathexp.expand(sdigest);
 						E.push_back(refcacheexp.expand(sdigest));
-						
+
 						bool found = false;
 						std::string foundfn;
-				
-						// check if the data is in the cache		
+
+						// check if the data is in the cache
 						for ( size_t z = 0; (!found) && z < E.size(); ++z )
 						{
 							std::string e = E[z];
@@ -154,7 +154,7 @@ namespace libmaus2
 								foundfn = e;
 							}
 						}
-						
+
 						// data not found in cache
 						if ( !found )
 						{
@@ -186,7 +186,7 @@ namespace libmaus2
 
 							checkmd5.digest(&digest[0]);
 							std::string const scheckdigest = checkmd5.digestToString(&digest[0]);
-							
+
 							if ( scheckdigest != sdigest )
 							{
 								libmaus2::exception::LibMausException lme;
@@ -197,7 +197,7 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				return M;
 			}
 		};

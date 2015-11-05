@@ -15,7 +15,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/			
+*/
 #if ! defined(LIBMAUS2_BAMBAM_PARALLEL_GENERICINPUTBAMPARSEWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS2_BAMBAM_PARALLEL_GENERICINPUTBAMPARSEWORKPACKAGEDISPATCHER_HPP
 
@@ -34,10 +34,10 @@ namespace libmaus2
 				typedef GenericInputBamParseWorkPackageDispatcher this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				GenericInputBamParseWorkPackageReturnInterface & packageReturnInterface;
 				GenericInputBamParseWorkPackageBlockParsedInterface & blockParsedInterface;
-			
+
 				GenericInputBamParseWorkPackageDispatcher(
 					GenericInputBamParseWorkPackageReturnInterface & rpackageReturnInterface,
 					GenericInputBamParseWorkPackageBlockParsedInterface & rblockParsedInterface
@@ -45,16 +45,16 @@ namespace libmaus2
 				: packageReturnInterface(rpackageReturnInterface),
 				  blockParsedInterface(rblockParsedInterface)
 				{
-				
+
 				}
-			
+
 				void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					assert ( dynamic_cast<GenericInputBamParseWorkPackage *>(P) != 0 );
 					GenericInputBamParseWorkPackage * BP = dynamic_cast<GenericInputBamParseWorkPackage *>(P);
-					
+
 					BP->data.dispatch();
-					
+
 					blockParsedInterface.genericInputBamParseWorkPackageBlockParsed(BP->data.block);
 					packageReturnInterface.genericInputBamParseWorkPackageReturn(BP);
 				}

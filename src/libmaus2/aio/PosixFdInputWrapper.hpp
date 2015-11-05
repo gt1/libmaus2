@@ -28,7 +28,7 @@ namespace libmaus2
 		struct PosixFdInputWrapper
 		{
 			libmaus2::aio::PosixFdInput object;
-			
+
 			PosixFdInputWrapper(int const rfd) : object(rfd) {}
 			PosixFdInputWrapper(std::string const & filename, int const rflags = PosixFdInput::getDefaultFlags()) : object(filename,rflags) {}
 		};

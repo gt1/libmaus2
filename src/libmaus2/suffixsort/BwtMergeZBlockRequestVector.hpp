@@ -29,15 +29,15 @@ namespace libmaus2
 		{
 			private:
 			libmaus2::autoarray::AutoArray< ::libmaus2::suffixsort::BwtMergeZBlockRequest > requests;
-			
+
 			public:
 			BwtMergeZBlockRequestVector()
 			{
-			
+
 			}
-			
+
 			BwtMergeZBlockRequestVector(BwtMergeZBlockRequestVector const & o) : requests(o.requests.clone()) {}
-			
+
 			BwtMergeZBlockRequestVector(std::istream & in)
 			{
 				uint64_t const siz = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
@@ -45,7 +45,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < siz; ++i )
 					(*this)[i] = ::libmaus2::suffixsort::BwtMergeZBlockRequest(in);
 			}
-			
+
 			BwtMergeZBlockRequestVector & operator=(BwtMergeZBlockRequestVector const & o)
 			{
 				if ( this != &o )
@@ -54,7 +54,7 @@ namespace libmaus2
 				}
 				return *this;
 			}
-			
+
 			template<typename stream_type>
 			void serialise(stream_type & stream) const
 			{
@@ -62,24 +62,24 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < size(); ++i )
 					(*this)[i].serialise(stream);
 			}
-			
+
 			std::string serialise() const
 			{
 				std::ostringstream ostr;
 				serialise(ostr);
 				return ostr.str();
 			}
-			
+
 			void resize(uint64_t const n)
 			{
 				requests.resize(n);
 			}
-			
+
 			uint64_t size() const
 			{
 				return requests.size();
 			}
-			
+
 			::libmaus2::suffixsort::BwtMergeZBlockRequest & operator[](uint64_t const i)
 			{
 				return requests.at(i);
@@ -92,4 +92,3 @@ namespace libmaus2
 	}
 }
 #endif
-

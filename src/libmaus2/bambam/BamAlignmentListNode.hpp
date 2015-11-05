@@ -32,7 +32,7 @@ namespace libmaus2
 
 			libmaus2::bambam::BamAlignment A;
 			BamAlignmentListNode * next;
-			
+
 			BamAlignmentListNode() : next(0) {}
 		};
 	}

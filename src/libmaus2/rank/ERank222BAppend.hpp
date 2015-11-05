@@ -59,7 +59,7 @@ namespace libmaus2
 			uint64_t activemask;
 			uint64_t nc;
 			uint64_t nr;
-			
+
 			::libmaus2::autoarray::AutoArray<uint64_t> S; // n / 2^16 * 64 bits = n / 2^10 = n/1024 bits
 			::libmaus2::autoarray::AutoArray<unsigned short> M; // n / 2^16 * 2^16 / 64 * 16 = n/4 bits
 
@@ -96,7 +96,7 @@ namespace libmaus2
 				uint64_t const ii = iii - S[s];
 				uint64_t left = (s << sbbitwidth) >>  mbbitwidth;
 				uint64_t right = ::std::min( activemini, ((s+1) << sbbitwidth) >>  mbbitwidth);
-			
+
 				while ( right-left > 1 )
 				{
 					uint64_t const d = right-left;
@@ -113,13 +113,13 @@ namespace libmaus2
 				return left;
 			}
 
-			
-			public:		
+
+			public:
 			/**
 			 * @param rUUUUUUUU bit vector
 			 * @param rn number of bits in vector (has to be a multiple of 64)
 			 **/
-			ERank222BAppend(uint64_t * const rUUUUUUUU, uint64_t const rn) 
+			ERank222BAppend(uint64_t * const rUUUUUUUU, uint64_t const rn)
 			: UUUUUUUU(rUUUUUUUU), n(rn),
 			  numsuper( divUp(n,sbsize) ), nummini( divUp(n,mbsize) ),
 			  activesuper(0), activemini(0), activepointer(UUUUUUUU-1), activemask(0),
@@ -127,7 +127,7 @@ namespace libmaus2
 			  S( numsuper , false ), M( nummini, false)
 			{
 			}
-			
+
 			void appendOneRun(uint64_t j)
 			{
 				while ( j-- )
@@ -139,7 +139,7 @@ namespace libmaus2
 				while ( j-- )
 					appendBit(false);
 			}
-			
+
 			void appendBit(bool const b)
 			{
 				// start new word if activemask is null
@@ -157,7 +157,7 @@ namespace libmaus2
 				if ( !(nc & mbmask) )
 				{
 					// update superblock dictionary if necessary
-					//if ( !(nc & sbmask) ) 
+					//if ( !(nc & sbmask) )
 					if ( ! (activemini & sbmbmask) )
 						S [ activesuper++ ] = nr;
 
@@ -169,24 +169,24 @@ namespace libmaus2
 				// update position
 				++nc;
 			}
-						
+
 			bool operator[](uint64_t const i) const
 			{
 				return ::libmaus2::bitio::getBit(UUUUUUUU,i);
 			}
-			
+
 			/**
 			 * @return estimated space in bytes
-			 **/		
+			 **/
 			uint64_t byteSize() const
 			{
-				return 
-					sizeof(uint64_t *) + 
+				return
+					sizeof(uint64_t *) +
 					3*sizeof(uint64_t) +
-					S.byteSize() + 
+					S.byteSize() +
 					M.byteSize();
 			}
-			
+
 			/**
 			 * return number of 1 bits up to (and including) index i
 			 * @param i
@@ -207,7 +207,7 @@ namespace libmaus2
 				return (i+1) - rank1(i);
 			}
 			/**
-			 * Return the position of the ii'th 1 bit. This function is implemented using a 
+			 * Return the position of the ii'th 1 bit. This function is implemented using a
 			 * binary search on the rank1 function.
 			 **/
 			uint64_t select1(uint64_t const ii) const
@@ -218,7 +218,7 @@ namespace libmaus2
 				uint64_t const m = selectMini(s,i);
 				i -= S[s]; i -= M[m];
 				uint64_t const v = (UUUUUUUU[m]);
-				
+
 				uint64_t left = 0, right = 1u<<mbbitwidth;
 				while ( right-left )
 				{
@@ -242,11 +242,11 @@ namespace libmaus2
 					else
 						right = mid;
 				}
-				
+
 				return nc;
 			}
 			/**
-			 * Return the position of the ii'th 0 bit. This function is implemented using a 
+			 * Return the position of the ii'th 0 bit. This function is implemented using a
 			 * binary search on the rank1 function.
 			 **/
 			uint64_t select0(uint64_t const ii) const
@@ -254,7 +254,7 @@ namespace libmaus2
 				uint64_t const i = ii+1;
 
 				uint64_t left = 0, right = nc;
-				
+
 				while ( (right-left) )
 				{
 					uint64_t const d = right-left;
@@ -274,8 +274,8 @@ namespace libmaus2
 					else
 						right = mid;
 				}
-				
-				return nc;		
+
+				return nc;
 			}
 		};
 	}

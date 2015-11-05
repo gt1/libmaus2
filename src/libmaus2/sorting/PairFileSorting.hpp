@@ -71,17 +71,17 @@ namespace libmaus2
 				first_type first;
 				second_type second;
 				third_type third;
-				
+
 				Triple() {}
 				Triple(first_type rfirst, second_type rsecond, third_type rthird)
 				: first(rfirst), second(rsecond), third(rthird)
 				{
-				
+
 				}
-				
+
 				std::ostream & toStream(std::ostream & out) const
 				{
-					out 
+					out
 						<< "Triple("
 						<< std::setw(16) << std::setfill('0') << std::hex << first << std::dec << std::setw(0) << ","
 						<< std::setw(16) << std::setfill('0') << std::hex << second << std::dec << std::setw(0) << ","
@@ -89,7 +89,7 @@ namespace libmaus2
 
 					return out;
 				}
-				
+
 				std::string toString() const
 				{
 					std::ostringstream ostr;
@@ -141,38 +141,38 @@ namespace libmaus2
 				{
 					::libmaus2::autoarray::AutoArray < ::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > in(numblocks);
 
-					std::priority_queue < 
-						triple_type, 
-						std::vector<triple_type>, 
+					std::priority_queue <
+						triple_type,
+						std::vector<triple_type>,
 						comparator_type
 					> Q;
-							
+
 					for ( uint64_t i = 0; i < numblocks; ++i )
 					{
-						uint64_t const rwords = (i+1==numblocks) ?  
+						uint64_t const rwords = (i+1==numblocks) ?
 									(lastblock?(2*lastblock):(2*elnum)) : (2*elnum);
-						
+
 						::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tini(
 							new ::libmaus2::aio::SynchronousGenericInput<uint64_t>(
 								tmpfilename,16*1024,2*i*elnum,
 								rwords
-							) 
+							)
 						);
-						
+
 						in[i] = UNIQUE_PTR_MOVE(tini);
-				
+
 						uint64_t a = 0, b = 0;
 						bool const aok = in[i]->getNext(a);
 						bool const bok = in[i]->getNext(b);
 						assert ( aok );
 						assert ( bok );
-						
+
 						triple_type triple(a,b,i);
-						
-						Q . push ( triple );						
+
+						Q . push ( triple );
 					}
-					
-				
+
+
 					while ( Q.size() )
 					{
 						if ( keepfirst )
@@ -183,22 +183,22 @@ namespace libmaus2
 						uint64_t const id = Q.top().third;
 
 						// std::cerr << Q.top().toString() << std::endl;
-						
+
 						Q.pop();
-						
+
 						uint64_t a = 0;
 						if ( in[id]->getNext(a) )
 						{
 							uint64_t b = 0;
 							bool const bok = in[id]->getNext(b);
 							assert ( bok );
-							
+
 							triple_type triple(a,b,id);
-							
+
 							Q.push(triple);
 						}
 					}
-					
+
 				}
 			}
 
@@ -213,19 +213,19 @@ namespace libmaus2
 				out_type & SGOfinal
 			)
 			{
-				
+
 				if ( keepfirst )
 				{
 					if ( keepsecond )
 						mergeTriplesTemplate<comparator_type,out_type,true,true>(numblocks,tmpfilename,elnum,lastblock,SGOfinal);
-					else					
+					else
 						mergeTriplesTemplate<comparator_type,out_type,true,false>(numblocks,tmpfilename,elnum,lastblock,SGOfinal);
 				}
 				else
 				{
 					if ( keepsecond )
 						mergeTriplesTemplate<comparator_type,out_type,false,true>(numblocks,tmpfilename,elnum,lastblock,SGOfinal);
-					else					
+					else
 						mergeTriplesTemplate<comparator_type,out_type,false,false>(numblocks,tmpfilename,elnum,lastblock,SGOfinal);
 				}
 
@@ -234,16 +234,16 @@ namespace libmaus2
 
 			template<typename out_type>
 			static void sortPairFileTemplate(
-				std::vector<std::string> const & filenames, 
+				std::vector<std::string> const & filenames,
 				std::string const & tmpfilename,
 				bool const second,
 				bool const keepfirst,
 				bool const keepsecond,
 				out_type & SGOfinal,
 				uint64_t const bufsize = 256*1024*1024,
-				bool const 
+				bool const
 				#if defined(_OPENMP)
-					parallel 
+					parallel
 				#endif
 					= false,
 				bool const deleteinput = false
@@ -259,7 +259,7 @@ namespace libmaus2
 					frags.push_back(frag);
 					tlen += len;
 				}
-				
+
 				assert ( tlen % 2 == 0 );
 				uint64_t const tlen2 = tlen/2;
 
@@ -276,11 +276,11 @@ namespace libmaus2
 					::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type SGO(
 						new ::libmaus2::aio::SynchronousGenericOutput<uint64_t>(tmpfilename,16*1024)
 					);
-					
+
 					uint64_t dfullblocks = 0;
 					uint64_t dlastblock = 0;
 					uint64_t dnumblocks = 0;
-						
+
 					while ( SGI.peek() >= 0 )
 					{
 						std::pair<uint64_t,uint64_t> * P = A.begin();
@@ -290,16 +290,16 @@ namespace libmaus2
 						{
 							bool const ok = SGI.getNext(v);
 							assert ( ok );
-							*(P++) = std::pair<uint64_t,uint64_t>(w,v);			
+							*(P++) = std::pair<uint64_t,uint64_t>(w,v);
 						}
-						
+
 						#if defined(_OPENMP)
 						if ( parallel )
 						{
 							if ( second )
 								__gnu_parallel::sort(A.begin(),P,SecondComp<uint64_t,uint64_t>());
 							else
-								__gnu_parallel::sort(A.begin(),P,FirstComp<uint64_t,uint64_t>());					
+								__gnu_parallel::sort(A.begin(),P,FirstComp<uint64_t,uint64_t>());
 						}
 						else
 						#endif
@@ -309,13 +309,13 @@ namespace libmaus2
 							else
 								std::sort(A.begin(),P,FirstComp<uint64_t,uint64_t>());
 						}
-						
+
 						for ( ptrdiff_t i = 0; i < P-A.begin(); ++i )
 						{
 							SGO->put(A[i].first);
 							SGO->put(A[i].second);
 						}
-						
+
 						if ( P == A.end() )
 							dfullblocks++;
 						else
@@ -323,7 +323,7 @@ namespace libmaus2
 
 						dnumblocks++;
 					}
-					
+
 					SGO->flush();
 					SGO.reset();
 
@@ -331,11 +331,11 @@ namespace libmaus2
 					assert ( dlastblock = lastblock );
 					assert ( dnumblocks == numblocks );
 				}
-				
+
 				if ( deleteinput )
 					for ( uint64_t i = 0; i < filenames.size(); ++i )
 						libmaus2::aio::FileRemoval::removeFile(filenames[i]);
-				
+
 				if ( second )
 					mergeTriples< TripleSecondComparator<uint64_t,uint64_t,uint64_t>, out_type >(
 						numblocks,tmpfilename,elnum,lastblock,
@@ -347,7 +347,7 @@ namespace libmaus2
 			}
 
 			static void sortPairFile(
-				std::vector<std::string> const & filenames, 
+				std::vector<std::string> const & filenames,
 				std::string const & tmpfilename,
 				bool const second,
 				bool const keepfirst,
@@ -364,7 +364,7 @@ namespace libmaus2
 			}
 
 			static void sortPairFile(
-				std::vector<std::string> const & filenames, 
+				std::vector<std::string> const & filenames,
 				std::string const & tmpfilename,
 				bool const second,
 				bool const keepfirst,

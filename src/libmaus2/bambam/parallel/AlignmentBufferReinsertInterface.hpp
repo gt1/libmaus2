@@ -20,11 +20,11 @@
 #define LIBMAUS2_BAMBAM_PARALLEL_ALIGNMENTBUFFERREINSERTINTERFACE_HPP
 
 #include <libmaus2/bambam/parallel/AlignmentBuffer.hpp>
-		
+
 namespace libmaus2
 {
 	namespace bambam
-	{		
+	{
 		namespace parallel
 		{
 			// reinsert an alignment buffer which still has more data

@@ -29,18 +29,18 @@ namespace libmaus2
 		struct BgzfInflateBlockIdInfo
 		{
 			libmaus2::autoarray::AutoArray<libmaus2::lz::BgzfInflateBlock::unique_ptr_type> const & inflateB;
-					
+
 			BgzfInflateBlockIdInfo(
 				libmaus2::autoarray::AutoArray<libmaus2::lz::BgzfInflateBlock::unique_ptr_type> const & rinflateB
 			) : inflateB(rinflateB)
 			{
-			
+
 			}
 
 			uint64_t operator()(uint64_t const i) const
 			{
 				return inflateB[i]->blockid;
-			}		
+			}
 
 			BgzfThreadQueueElement const & operator()(BgzfThreadQueueElement const & i) const
 			{

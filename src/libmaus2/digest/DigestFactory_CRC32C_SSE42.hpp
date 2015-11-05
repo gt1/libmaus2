@@ -28,12 +28,12 @@ namespace libmaus2
 		struct DigestFactory_CRC32C_SSE42 : DigestFactoryInterface
 		{
 			static std::set<std::string> getSupportedDigestsStatic();
-			
+
 			std::set<std::string> getSupportedDigests() const
 			{
 				return getSupportedDigestsStatic();
 			}
-			
+
 			static libmaus2::digest::DigestInterface::unique_ptr_type constructStatic(std::string const & name);
 
 			libmaus2::digest::DigestInterface::unique_ptr_type construct(std::string const & name) const

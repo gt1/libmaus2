@@ -40,20 +40,20 @@ libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::
 	UP->lastblocksize = ::libmaus2::util::NumberSerialisation::deserialiseNumber(CIS);
 	UP->maxblockbytes = ::libmaus2::util::NumberSerialisation::deserialiseNumber(CIS);
 	uint64_t const numblocks = ::libmaus2::util::NumberSerialisation::deserialiseNumber(CIS);
-	
+
 	UP->blockstarts = ::libmaus2::autoarray::AutoArray<uint64_t>(numblocks+1,false);
-	
+
 	for ( uint64_t i = 0; i < UP->blockstarts.size(); ++i )
 		UP->blockstarts[i] = ::libmaus2::util::NumberSerialisation::deserialiseNumber(CIS);
-	
-	
+
+
 	return UNIQUE_PTR_MOVE(UP);
 }
 
 libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::constructFromUtf8File(std::string const & fn, uint64_t const rblocksize)
 {
 	uint64_t const fs = ::libmaus2::util::GetFileSize::getFileSize(fn);
-	
+
 
 	#if defined(_OPENMP)
 	uint64_t const numthreads = omp_get_max_threads();
@@ -77,14 +77,14 @@ libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::
 		return UNIQUE_PTR_MOVE(UP);
 	}
 
-	
+
 	::libmaus2::aio::InputStreamInstance::unique_ptr_type CIS(new ::libmaus2::aio::InputStreamInstance(fn));
 	std::vector<uint64_t> preblockstarts;
-	
+
 	for ( uint64_t b = 0; b < numbblocks; ++b )
 	{
 		uint64_t low = b*bblocksize;
-		
+
 		CIS->clear();
 		CIS->seekg(low);
 
@@ -93,16 +93,16 @@ libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::
 		uint64_t p = low;
 		while ( ((c=CIS->get()) >= 0) && ((c & 0xc0) == (0x80)) )
 			++p;
-			
+
 		preblockstarts.push_back(p);
 		/*
 		template<typename in_type>
 		static uint32_t decodeUTF8(in_type & istr, uint64_t & codelen)
-		*/	                        			
+		*/
 	}
-	
+
 	// CIS.reset();
-	
+
 	preblockstarts.push_back(fs);
 	::libmaus2::autoarray::AutoArray<uint64_t> bblocksyms(numbblocks+1,false);
 	::libmaus2::autoarray::AutoArray< ::libmaus2::aio::InputStreamInstance::unique_ptr_type > thrstreams(numthreads,false);
@@ -112,7 +112,7 @@ libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::
                         (new ::libmaus2::aio::InputStreamInstance(fn));
 		thrstreams[t] = UNIQUE_PTR_MOVE(thrstreamst);
 	}
-	
+
 	#if defined(_OPENMP)
 	#pragma omp parallel for
 	#endif
@@ -123,33 +123,33 @@ libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::
 		#else
 		uint64_t const threadid = 0;
 		#endif
-		
+
 		::libmaus2::aio::InputStreamInstance * CIS = thrstreams[threadid].get();
 		CIS->clear();
 		CIS->seekg(preblockstarts[b]);
-		
+
 		uint64_t codelen = 0;
 		uint64_t syms = 0;
 		uint64_t const bblocksize = preblockstarts[b+1]-preblockstarts[b];
-		
+
 		while ( codelen != bblocksize )
 		{
 			::libmaus2::util::UTF8::decodeUTF8(*CIS, codelen);
 			syms++;
 		}
-		
+
 		assert ( syms <= bblocksize );
-		
-		bblocksyms[b] = syms;			
+
+		bblocksyms[b] = syms;
 	}
-	
+
 	bblocksyms.prefixSums();
-	
+
 	uint64_t const numsyms = bblocksyms[bblocksyms.size()-1];
 	uint64_t const numblocks = (numsyms + blocksize-1)/blocksize;
-	
+
 	::libmaus2::autoarray::AutoArray<uint64_t> blockstarts(numblocks+1,false);
-	
+
 	#if defined(_OPENMP)
 	#pragma omp parallel for
 	#endif
@@ -160,26 +160,26 @@ libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::
 		#else
 		uint64_t const threadid = 0;
 		#endif
-		
+
 		::libmaus2::aio::InputStreamInstance * CIS = thrstreams[threadid].get();
 		CIS->clear();
 		CIS->seekg(preblockstarts[b]);
-		
+
 		uint64_t codelen = 0;
 		uint64_t syms = bblocksyms[b];
 		uint64_t const bblocksize = preblockstarts[b+1]-preblockstarts[b];
-		
+
 		while ( codelen != bblocksize )
 		{
 			if ( (syms & blockmask) == 0 )
 				blockstarts[syms>>blockshift] = preblockstarts[b]+codelen;
-		
+
 			::libmaus2::util::UTF8::decodeUTF8(*CIS, codelen);
 			syms++;
-		}			
+		}
 	}
 	blockstarts[numblocks] = fs;
-	
+
 	uint64_t maxblockbytes = 0;
 	for ( uint64_t i = 0; i < numblocks; ++i )
 		maxblockbytes = std::max(maxblockbytes,blockstarts[i+1]-blockstarts[i]);
@@ -187,7 +187,7 @@ libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::
 	#if defined(UTF8SPLITDEBUG)
 	CIS->clear();
 	CIS->seekg(0);
-	
+
 	int cc = -1;
 	uint64_t symcnt = 0;
 	uint64_t codelen = 0;
@@ -197,8 +197,8 @@ libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::
 		{
 			assert ( blockstarts[symcnt/blocksize] == codelen );
 		}
-	
-		::libmaus2::util::UTF8::decodeUTF8(*CIS, codelen);		
+
+		::libmaus2::util::UTF8::decodeUTF8(*CIS, codelen);
 		symcnt += 1;
 	}
 	#endif
@@ -215,8 +215,8 @@ libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::
 	while ( codelen != fs )
 	{
 		::libmaus2::util::UTF8::decodeUTF8(*CIS, codelen);
-		++(UP->lastblocksize);	
+		++(UP->lastblocksize);
 	}
-	
+
 	return UNIQUE_PTR_MOVE(UP);
 }

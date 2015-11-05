@@ -15,7 +15,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/			
+*/
 #if ! defined(LIBMAUS2_BAMBAM_PARALLEL_DECOMPRESSEDBLOCKHEAPCOMPARATOR_HPP)
 #define LIBMAUS2_BAMBAM_PARALLEL_DECOMPRESSEDBLOCKHEAPCOMPARATOR_HPP
 
@@ -28,7 +28,7 @@ namespace libmaus2
 			struct DecompressedBlockHeapComparator
 			{
 				bool operator()(
-					libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type const & A, 
+					libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type const & A,
 					libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type const & B
 				) const
 				{

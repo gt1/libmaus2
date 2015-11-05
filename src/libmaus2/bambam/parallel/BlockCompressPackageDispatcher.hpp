@@ -30,7 +30,7 @@
 namespace libmaus2
 {
 	namespace bambam
-	{		
+	{
 		namespace parallel
 		{
 			// dispatcher for block compression
@@ -40,60 +40,60 @@ namespace libmaus2
 				AddPendingCompressBufferWriteInterface & addPendingWriteInterface;
 				ReturnCompressionPendingElementInterface & returnCompressionPendingElementInterface;
 				AlignmentBlockCompressPackageReturnInterface & packageReturnInterface;
-				
+
 				BlockCompressPackageDispatcher(
 					libmaus2::parallel::LockedGrowingFreeList<libmaus2::lz::CompressorObject, libmaus2::lz::CompressorObjectFreeListAllocator> & rcompfreelist,
 					AddPendingCompressBufferWriteInterface & raddPendingWriteInterface,
 					ReturnCompressionPendingElementInterface & rreturnCompressionPendingElementInterface,
 					AlignmentBlockCompressPackageReturnInterface & rpackageReturnInterface
-				) : compfreelist(rcompfreelist), 
-				    addPendingWriteInterface(raddPendingWriteInterface), 
+				) : compfreelist(rcompfreelist),
+				    addPendingWriteInterface(raddPendingWriteInterface),
 				    returnCompressionPendingElementInterface(rreturnCompressionPendingElementInterface),
-				    packageReturnInterface(rpackageReturnInterface) 
+				    packageReturnInterface(rpackageReturnInterface)
 				{
 				}
-			
+
 				virtual void dispatch(
-					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadWorkPackage * P,
 					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
 				)
 				{
 					AlignmentBlockCompressPackage * BP = dynamic_cast<AlignmentBlockCompressPackage *>(P);
 					assert ( BP );
-	
+
 					CompressionPendingElement * pend = BP->pend;
 					CompressBuffer * compbuf = BP->compbuf;
-					
+
 					compbuf->blockid = pend->blockid;
 					compbuf->subid = pend->subid;
 					compbuf->totalsubids = pend->totalsubids;
-	
+
 					AlignmentRewriteBuffer * rewritebuffer = pend->buffer;
 					uint64_t const low = rewritebuffer->blocksizes[pend->subid];
 					uint64_t const high = rewritebuffer->blocksizes[pend->subid+1];
-					
+
 					uint8_t * compin = compbuf->inputBuffer.begin();
-	
+
 					for ( uint64_t i = low; i < high; ++i )
 					{
 						std::pair<uint8_t const *,uint64_t> P = rewritebuffer->at(i);
 						assert ( ( (compin + P.second + sizeof(uint32_t)) - compbuf->inputBuffer.begin()) <= compbuf->inputBuffer.size() );
-						
+
 						// length as little endian
 						*(compin++) = (P.second >> 0) & 0xFF;
 						*(compin++) = (P.second >> 8) & 0xFF;
 						*(compin++) = (P.second >> 16) & 0xFF;
 						*(compin++) = (P.second >> 24) & 0xFF;
-						
+
 						// copy alignment data block
 						memcpy(compin,P.first,P.second);
 						compin += P.second;
 					}
-					
+
 					uint64_t const insize = compin - compbuf->inputBuffer.begin();
-					
+
 					libmaus2::lz::CompressorObject * compressor = compfreelist.get();
-	
+
 					try
 					{
 						compbuf->compsize = compressor->compress(
@@ -107,18 +107,18 @@ namespace libmaus2
 						compfreelist.put(compressor);
 						throw;
 					}
-					
+
 					compfreelist.put(compressor);
-					
+
 					// return pending object
 					returnCompressionPendingElementInterface.putReturnCompressionPendingElement(pend);
-					
+
 					// mark block as pending for writing
 					addPendingWriteInterface.putAddPendingCompressBufferWrite(compbuf);
-					
-					// return the work package				
-					packageReturnInterface.putAlignmentBlockCompressPackagePackage(BP);				
-				}		
+
+					// return the work package
+					packageReturnInterface.putAlignmentBlockCompressPackagePackage(BP);
+				}
 			};
 		}
 	}

@@ -32,7 +32,7 @@ namespace libmaus2
 		{
 			//! destructor
 			virtual ~BamHeaderRewriteCallback() {}
-			
+
 			/**
 			 * rewrite callback
 			 *
@@ -41,7 +41,7 @@ namespace libmaus2
 			 **/
 			virtual libmaus2::bambam::BamHeader::unique_ptr_type operator()(libmaus2::bambam::BamHeader const & header) const = 0;
 		};
-	
+
 		//! class for parallel rewriting of a BAM file
 		struct BamParallelRewrite
 		{
@@ -124,7 +124,7 @@ namespace libmaus2
 				std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
 			)
 			: stream(in,out,level,numthreads,blocksperthread), dec(stream), rewrittenheader(rewritecallback(dec.getHeader())), writer(stream.bgzf,*rewrittenheader,rblockoutputcallbacks) {}
-			
+
 			/**
 			 * @return decoder
 			 */
@@ -132,7 +132,7 @@ namespace libmaus2
 			{
 				return dec;
 			}
-			
+
 			/**
 			 * read next alignment
 			 *
@@ -142,7 +142,7 @@ namespace libmaus2
 			{
 				return dec.readAlignment();
 			}
-			
+
 			/**
 			 * get most recently read alignment. only valid if most recent call of
 			 * readAlignment returned true and readAlignment was called for this object
@@ -166,14 +166,14 @@ namespace libmaus2
 			{
 				return dec.getAlignment();
 			}
-			
+
 			/**
 			 * @return BAM writer object
 			 **/
 			writer_type & getWriter()
 			{
 				return writer;
-			}	
+			}
 		};
 	}
 }

@@ -32,7 +32,7 @@ namespace libmaus2
 			{
 				return ::libmaus2::fastx::CompactFastDecoder::loadIndex(filename);
 			}
-			
+
 			static uint64_t getNonEmptyDataSize(std::string const & filename)
 			{
 				std::vector< ::libmaus2::fastx::FastInterval > const index = loadIndex(filename);
@@ -46,11 +46,11 @@ namespace libmaus2
 			{
 				return CompactFastQHeader::getEmptyBlockHeaderSize();
 			}
-			
+
 			static ::std::vector < ::libmaus2::aio::FileFragment > getFragments(std::vector<std::string> const & filenames)
 			{
 				::std::vector < ::libmaus2::aio::FileFragment > frags;
-				
+
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
 				{
 					std::string const & fn = filenames[i];
@@ -59,16 +59,16 @@ namespace libmaus2
 					frags.push_back(::libmaus2::aio::FileFragment(fn,offset,length));
 					// std::cerr << frags.back() << std::endl;
 				}
-				
+
 				return frags;
 			}
-			
+
 			static ::std::vector < ::libmaus2::aio::FileFragment > getFragments(std::string const & filename)
 			{
 				return getFragments(std::vector<std::string>(1,filename));
 			}
 		};
-	
+
 		template<typename _stream_type>
 		struct CompactFastQMultiBlockReader
 		{
@@ -80,30 +80,30 @@ namespace libmaus2
 			typedef ::libmaus2::fastx::CompactFastQSingleBlockReader<stream_type> single_block_reader_type;
 			typedef typename single_block_reader_type::unique_ptr_type single_block_reader_ptr_type;
 			typedef typename single_block_reader_type::pattern_type pattern_type;
-			
+
 			stream_type & stream;
 			uint64_t nextid;
 			uint64_t maxdecode;
 			single_block_reader_ptr_type rptr;
 			bool finished;
-			
+
 			bool openNextStream()
 			{
 				if ( finished )
 					return false;
-			
+
 				if ( rptr )
 				{
 					nextid = rptr->nextid;
 					maxdecode -= rptr->numdecoded;
 				}
-				
+
 				rptr = UNIQUE_PTR_MOVE(
 					single_block_reader_ptr_type(
 						new single_block_reader_type(stream,nextid,maxdecode)
 					)
 				);
-				
+
 				if ( rptr->numreads )
 				{
 					// std::cerr << "opened block containing " << rptr->numreads << " reads." << std::endl;
@@ -116,10 +116,10 @@ namespace libmaus2
 					return false;
 				}
 			}
-			
+
 			CompactFastQMultiBlockReader(
-				stream_type & rstream, 
-				uint64_t rnextid = 0, 
+				stream_type & rstream,
+				uint64_t rnextid = 0,
 				uint64_t const rmaxdecode = std::numeric_limits<uint64_t>::max()
 			)
 			: stream(rstream), nextid(rnextid), maxdecode(rmaxdecode), finished(false)
@@ -132,18 +132,18 @@ namespace libmaus2
 				while ( ! finished )
 				{
 					bool const ok = rptr->getNextPatternUnlocked(pattern);
-					
+
 					if ( ok )
 						return true;
 					else
 						openNextStream();
 				}
-				
+
 				return false;
 			}
 
 		};
-		
+
 		struct MultiFileCompactFastQDecoder
 		{
 			typedef MultiFileCompactFastQDecoder this_type;
@@ -153,16 +153,16 @@ namespace libmaus2
 			::libmaus2::aio::ReorderConcatGenericInput<uint8_t> stream;
 			CompactFastQMultiBlockReader< ::libmaus2::aio::ReorderConcatGenericInput<uint8_t> > reader;
 			typedef CompactFastQMultiBlockReader< ::libmaus2::aio::ReorderConcatGenericInput<uint8_t> >::pattern_type pattern_type;
-			
+
 			MultiFileCompactFastQDecoder(std::vector<std::string> const & filenames)
 			: stream(CompactFastQMultiBlockReaderBase::getFragments(filenames)), reader(stream)
 			{
-			
+
 			}
 			MultiFileCompactFastQDecoder(std::string const & filename)
 			: stream(CompactFastQMultiBlockReaderBase::getFragments(filename)), reader(stream)
 			{
-			
+
 			}
 
 			bool getNextPatternUnlocked(pattern_type & pattern)

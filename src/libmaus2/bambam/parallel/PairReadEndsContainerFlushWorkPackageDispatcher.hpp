@@ -34,27 +34,27 @@ namespace libmaus2
 				typedef PairReadEndsContainerFlushWorkPackageDispatcher this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				PairReadEndsContainerFlushWorkPackageReturnInterface & packageReturnInterface;
 				PairReadEndsContainerFlushFinishedInterface & flushFinishedInterface;
-						
+
 				PairReadEndsContainerFlushWorkPackageDispatcher(
 					PairReadEndsContainerFlushWorkPackageReturnInterface & rpackageReturnInterface,
-					PairReadEndsContainerFlushFinishedInterface & rflushFinishedInterface	
-				) : libmaus2::parallel::SimpleThreadWorkPackageDispatcher(), 
+					PairReadEndsContainerFlushFinishedInterface & rflushFinishedInterface
+				) : libmaus2::parallel::SimpleThreadWorkPackageDispatcher(),
 				    packageReturnInterface(rpackageReturnInterface), flushFinishedInterface(rflushFinishedInterface)
 				{
-				
+
 				}
 				virtual ~PairReadEndsContainerFlushWorkPackageDispatcher() {}
 				virtual void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					PairReadEndsContainerFlushWorkPackage * BP = dynamic_cast<PairReadEndsContainerFlushWorkPackage *>(P);
 					assert ( BP );
-					
+
 					BP->REC->flush();
 					BP->REC->prepareDecoding();
-					
+
 					flushFinishedInterface.pairReadEndsContainerFlushFinished(BP->REC);
 					packageReturnInterface.pairReadEndsContainerFlushWorkPackageReturn(BP);
 				}

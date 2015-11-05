@@ -145,7 +145,7 @@ int   LZ4_compress_limitedOutput_continue (void* LZ4_Data, const char* source, c
 char* LZ4_slideInputBuffer (void* LZ4_Data);
 int   LZ4_free (void* LZ4_Data);
 
-/* 
+/*
 These functions allow the compression of dependent blocks, where each block benefits from prior 64 KB within preceding blocks.
 In order to achieve this, it is necessary to start creating the LZ4 Data Structure, thanks to the function :
 
@@ -159,11 +159,11 @@ The input buffer must be already allocated, and size at least 192KB.
 
 All blocks are expected to lay next to each other within the input buffer, starting from 'inputBuffer'.
 To compress each block, use either LZ4_compress_continue() or LZ4_compress_limitedOutput_continue().
-Their behavior are identical to LZ4_compress() or LZ4_compress_limitedOutput(), 
+Their behavior are identical to LZ4_compress() or LZ4_compress_limitedOutput(),
 but require the LZ4 Data Structure as their first argument, and check that each block starts right after the previous one.
 If next block does not begin immediately after the previous one, the compression will fail (return 0).
 
-When it's no longer possible to lay the next block after the previous one (not enough space left into input buffer), a call to : 
+When it's no longer possible to lay the next block after the previous one (not enough space left into input buffer), a call to :
 char* LZ4_slideInputBuffer(void* LZ4_Data);
 must be performed. It will typically copy the latest 64KB of input at the beginning of input buffer.
 Note that, for this function to work properly, minimum size of an input buffer must be 192KB.

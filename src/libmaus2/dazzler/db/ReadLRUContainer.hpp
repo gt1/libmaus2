@@ -33,29 +33,29 @@ namespace libmaus2
 				std::vector<libmaus2::dazzler::db::Read> const & meta;
 				std::map<uint64_t,std::string> V;
 				libmaus2::lru::SparseLRU L;
-				libmaus2::aio::InputStream::unique_ptr_type Pbasestr; 
+				libmaus2::aio::InputStream::unique_ptr_type Pbasestr;
 				libmaus2::autoarray::AutoArray<char> tmpspace;
-				
+
 				ReadLRUContainer(
-					libmaus2::dazzler::db::DatabaseFile & rDB, 
+					libmaus2::dazzler::db::DatabaseFile & rDB,
 					std::vector<libmaus2::dazzler::db::Read> const & rmeta,
 					uint64_t const size
 				)
 				: DB(rDB), meta(rmeta), V(), L(size), Pbasestr(DB.openBaseStream())
 				{
 				}
-				
+
 				void loadRead(uint64_t const id)
 				{
 					uint64_t const rlen = meta.at(id).rlen;
 					DB.decodeRead(*Pbasestr,tmpspace,rlen);
-					V [ id ] = std::string(tmpspace.begin(),tmpspace.begin()+rlen);	
+					V [ id ] = std::string(tmpspace.begin(),tmpspace.begin()+rlen);
 				}
-				
+
 				std::string const & operator[](uint64_t const id)
 				{
 					int64_t const remid = L.get(id);
-					
+
 					if ( remid >= 0 )
 					{
 						assert ( V.find(remid) != V.end() );
@@ -66,7 +66,7 @@ namespace libmaus2
 					{
 						loadRead(id);
 					}
-							
+
 					assert ( V.find(id) != V.end() );
 					return V.find(id)->second;
 				}

@@ -38,17 +38,17 @@ namespace libmaus2
 
 				GenericInputControlBlockWritePackageReturnInterface & packageReturnInterface;
 				GenericInputControlBlockWritePackageBlockWrittenInterface & blockWrittenInterface;
-				
-				GenericInputControlBlockWritePackageDispatcher(				
+
+				GenericInputControlBlockWritePackageDispatcher(
 					GenericInputControlBlockWritePackageReturnInterface & rpackageReturnInterface,
 					GenericInputControlBlockWritePackageBlockWrittenInterface & rblockWrittenInterface
 				) : packageReturnInterface(rpackageReturnInterface), blockWrittenInterface(rblockWrittenInterface) {}
-				
+
 				void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					assert ( dynamic_cast<GenericInputControlBlockWritePackage *>(P) != 0 );
 					GenericInputControlBlockWritePackage * BP = dynamic_cast<GenericInputControlBlockWritePackage *>(P);
-					
+
 					libmaus2::bambam::parallel::GenericInputControlCompressionPending & G = BP->GICCP;
 
 					libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type outblock = G.outblock;
@@ -58,7 +58,7 @@ namespace libmaus2
 					uint64_t n = 0;
 
 					assert ( flushinfo.blocks == 1 || flushinfo.blocks == 2 );
-						
+
 					if ( flushinfo.blocks == 1 )
 					{
 						/* write data to stream, one block */
@@ -71,8 +71,8 @@ namespace libmaus2
 						n = flushinfo.block_a_c + flushinfo.block_b_c;
 					}
 
-					BP->out->write(outp, n);                                
-				
+					BP->out->write(outp, n);
+
 					blockWrittenInterface.genericInputControlBlockWritePackageBlockWritten(BP->GICCP);
 					packageReturnInterface.genericInputControlBlockWritePackageReturn(BP);
 				}

@@ -86,16 +86,16 @@ void testMultiWordDNABitBuffer32()
 				mwdbb3.pushBack(v);
 				mwdbb4.pushBack(v);
 			}
-			
+
 			bool ok = mwdbb3.toString() == mwdbb4.toString();
-			
+
 			if ( ! ok )
 			{
 				std::cerr << "FAILURE: " << std::endl;
 				std::cerr << mwdbb3.toString() << std::endl;
 				std::cerr << mwdbb4.toString() << std::endl;
 			}
-			
+
 			assert ( ok );
 		}
 	}
@@ -105,7 +105,7 @@ void shortWordDNABitBufferTest()
 {
 	::libmaus2::fastx::SingleWordDNABitBuffer swdbb(7);
 	::libmaus2::fastx::MultiWordDNABitBuffer<32> mwdbb(7);
-	
+
 	for ( unsigned int i = 0; i < 2*swdbb.width; ++i )
 	{
 		swdbb.pushBackMasked(2);
@@ -150,7 +150,7 @@ int main()
 	try
 	{
 		testMultiWordDNABitBuffer32<31>();
-		
+
 		testMultiWordDNABitBuffer<31>();
 		testMultiWordDNABitBuffer<32>();
 		shortWordDNABitBufferTest();

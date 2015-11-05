@@ -30,21 +30,21 @@ static std::string writeHeader(libmaus2::util::ArgInfo const & arginfo, std::ost
 
 	std::ostringstream headerostr;
 	headerostr << "@HD\tVN:1.4\tSO:unknown\n";
-	headerostr 
-		<< "@PG"<< "\t" 
-		<< "ID:" << "fastqtobam" << "\t" 
+	headerostr
+		<< "@PG"<< "\t"
+		<< "ID:" << "fastqtobam" << "\t"
 		<< "PN:" << "fastqtobam" << "\t"
 		<< "CL:" << arginfo.commandline << "\t"
 		<< "VN:" << std::string(PACKAGE_VERSION)
 		<< std::endl;
 	headerostr << rginfo.toString();
 	::libmaus2::bambam::BamHeader bamheader;
-	bamheader.text = headerostr.str();		
+	bamheader.text = headerostr.str();
 
 	libmaus2::lz::BgzfOutputStream bgzf(out);
 	bamheader.serialise(bgzf);
 	bgzf.flush();
-	
+
 	return rginfo.ID;
 }
 
@@ -53,7 +53,7 @@ static int fastqtobampar(libmaus2::util::ArgInfo const & arginfo)
 	std::ostream & out = std::cout;
 	uint64_t const numlogcpus = arginfo.getValue<int>("threads",libmaus2::parallel::NumCpus::getNumLogicalProcessors());
 	int const level = arginfo.getValue<int>("level",Z_DEFAULT_COMPRESSION);
-		
+
 	std::string const rgid = writeHeader(arginfo,out);
 
 	libmaus2::parallel::SimpleThreadPool STP(numlogcpus);
@@ -65,8 +65,8 @@ static int fastqtobampar(libmaus2::util::ArgInfo const & arginfo)
 
 	FTBC.enqueReadPackage();
 	FTBC.waitCompressionFinished();
-		
-	STP.terminate();		
+
+	STP.terminate();
 	STP.join();
 
 	return EXIT_SUCCESS;
@@ -77,7 +77,7 @@ int main(int argc, char * argv[])
 	try
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
-		
+
 		return fastqtobampar(arginfo);
 	}
 	catch(std::exception const & ex)

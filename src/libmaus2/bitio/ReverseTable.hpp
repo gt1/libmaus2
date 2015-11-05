@@ -31,31 +31,31 @@ namespace libmaus2
 		{
 			unsigned int const b;
 			::libmaus2::autoarray::AutoArray < ::libmaus2::autoarray::AutoArray<uint64_t> > A;
-			
+
 			uint64_t operator()(unsigned int const ib, uint64_t m) const
 			{
 				return A[ib][m];
 			}
-			
+
 			ReverseTable(unsigned int const rb)
 			: b(rb), A(b+1)
 			{
 				for ( unsigned int ib = 0; ib <= b; ++ib )
 				{
 					A[ib] = ::libmaus2::autoarray::AutoArray<uint64_t>(1ull << ib);
-					
+
 					for ( uint64_t i = 0; i < (1ull<<ib); ++i )
 					{
 						uint64_t w = i;
 						uint64_t v = 0;
-						
+
 						for ( unsigned int j = 0; j < ib; ++j )
 						{
 							v <<= 1;
 							v |= (w&1);
 							w >>= 1;
 						}
-						
+
 						A[ib][i] = v;
 					}
 

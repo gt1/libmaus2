@@ -32,31 +32,31 @@
 namespace libmaus2
 {
 	namespace parallel
-	{		
+	{
 		struct SimpleThreadPoolThread : libmaus2::parallel::PosixThread
 		{
 			typedef SimpleThreadPoolThread this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			SimpleThreadPoolInterface & tpi;
 
 			libmaus2::parallel::PosixSpinLock curpacklock;
 			libmaus2::parallel::SimpleThreadWorkPackage * curpack;
-			
+
 			uint64_t const threadid;
-			
+
 			SimpleThreadPoolThread(SimpleThreadPoolInterface & rtpi, uint64_t const rthreadid) : tpi(rtpi), curpack(0), threadid(rthreadid)
 			{
 			}
 			virtual ~SimpleThreadPoolThread() {}
-			
+
 			libmaus2::parallel::SimpleThreadWorkPackage * getCurrentPackage()
 			{
 				libmaus2::parallel::ScopePosixSpinLock lcurpacklock(curpacklock);
-				return curpack;				
+				return curpack;
 			}
-		
+
 			void * run()
 			{
 				try
@@ -65,10 +65,10 @@ namespace libmaus2
 					long const tid = syscall(SYS_gettid);
 					tpi.setTaskId(threadid,tid);
 					#endif
-				
+
 					// notify pool this thread is now running
 					tpi.notifyThreadStart();
-					
+
 					bool running = true;
 					while ( running )
 					{
@@ -77,7 +77,7 @@ namespace libmaus2
 							libmaus2::parallel::ScopePosixSpinLock lcurpacklock(curpacklock);
 							curpack = P;
 						}
-						
+
 						#if 0
 						{
 						tpi.getGlobalLock().lock();
@@ -85,9 +85,9 @@ namespace libmaus2
 						tpi.getGlobalLock().unlock();
 						}
 						#endif
-						
+
 						SimpleThreadWorkPackageDispatcher * disp = tpi.getDispatcher(P);
-						
+
 						try
 						{
 							disp->dispatch(P,tpi);
@@ -100,20 +100,20 @@ namespace libmaus2
 						{
 							tpi.panic(ex);
 						}
-						
+
 						{
 							libmaus2::parallel::ScopePosixSpinLock lcurpacklock(curpacklock);
-							curpack = 0;							
+							curpack = 0;
 						}
 					}
 				}
 				catch(std::exception const & ex)
 				{
-					// std::cerr << ex.what() << std::endl;	
+					// std::cerr << ex.what() << std::endl;
 				}
-								
+
 				return 0;
-			}		
+			}
 		};
 	}
 }

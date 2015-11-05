@@ -33,12 +33,12 @@
 namespace libmaus2
 {
 	namespace bambam
-	{	
+	{
 		template<bool _proxy>
 		struct ReadEndsBlockDecoderBase : public ::libmaus2::bambam::ReadEndsContainerBase
 		{
 			static bool const proxy = _proxy;
-			
+
 			typedef ReadEndsBlockDecoderBase<proxy> this_type;
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
@@ -50,11 +50,11 @@ namespace libmaus2
 			ReadEndsBlockDecoderBaseCollectionInfoIndexStreamProvider & indexprovider;
 			std::istream & data;
 			std::istream & index;
-			
+
 			uint64_t const indexoffset;
 			uint64_t const numentries;
 			uint64_t const numblocks;
-			
+
 			libmaus2::index::ExternalMemoryIndexDecoder<ReadEndsBase,baseIndexShift,innerIndexShift>::unique_ptr_type Pindex;
 			libmaus2::index::ExternalMemoryIndexDecoder<ReadEndsBase,baseIndexShift,innerIndexShift> & Rindex;
 
@@ -67,7 +67,7 @@ namespace libmaus2
 
 			mutable libmaus2::lru::SparseLRU secondaryProxyLRU;
 			mutable std::map<uint64_t,ReadEnds> secondaryProxyMap;
-			
+
 			libmaus2::index::ExternalMemoryIndexDecoder<ReadEndsBase,baseIndexShift,innerIndexShift>::unique_ptr_type openIndex()
 			{
 				index.clear();
@@ -83,31 +83,31 @@ namespace libmaus2
 				uint64_t const blocklow  = i << baseIndexShift;
 				uint64_t const blockhigh = std::min(blocklow + baseIndexStep, numentries);
 				uint64_t const blocksize = blockhigh-blocklow;
-				
+
 				assert ( i < numblocks );
 				std::pair<uint64_t,uint64_t> const IP = Rindex[i];
 
 				data.clear();
 				data.seekg(IP.first);
-				
+
 				libmaus2::lz::SnappyInputStream SIS(data);
 				SIS.ignore(IP.second);
-				
+
 				if ( blocksize > B.size() )
 				{
 					B = libmaus2::autoarray::AutoArray<libmaus2::bambam::ReadEnds>();
 					B = libmaus2::autoarray::AutoArray<libmaus2::bambam::ReadEnds>(blocksize,false);
 				}
-				
+
 				for ( uint64_t j = 0; j < blocksize; ++j )
-					B[j].get(SIS);					
+					B[j].get(SIS);
 
 				if ( proxy )
 				{
 					for ( uint64_t j = 0; j < blocksize; ++j )
 					{
 						uint64_t const absj = blocklow+j;
-						
+
 						if ( secondaryProxyMap.find(absj) == secondaryProxyMap.end() )
 						{
 							int64_t kickid = secondaryProxyLRU.get(absj);
@@ -119,7 +119,7 @@ namespace libmaus2
 						}
 					}
 				}
-					
+
 				blockloaded = i;
 				blockloadedvalid = true;
 			}
@@ -132,7 +132,7 @@ namespace libmaus2
 				std::istream & rindex,
 				uint64_t const rindexoffset,
 				uint64_t const rnumentries
-			) : 
+			) :
 			    dataprovider(rdataprovider),
 			    indexprovider(rindexprovider),
 			    data(rdata), index(rindex), indexoffset(rindexoffset), numentries(rnumentries),
@@ -144,17 +144,17 @@ namespace libmaus2
 			    secondaryProxyLRU(proxy ? 2*ReadEndsContainerBase::baseIndexStep : 0)
 			{
 			}
-			
-			
+
+
 			ReadEnds const & operator[](uint64_t const i) const
 			{
 				return get(i);
 			}
-			
+
 			ReadEnds const & get(uint64_t const i) const
 			{
 				assert ( i < numentries );
-				
+
 				if ( proxy )
 				{
 					std::map<uint64_t,ReadEnds>::const_iterator pita = primaryProxyMap.find(i);
@@ -163,41 +163,41 @@ namespace libmaus2
 						primaryProxyLRU.update(i);
 						return pita->second;
 					}
-					
+
 					std::map<uint64_t,ReadEnds>::const_iterator sita = secondaryProxyMap.find(i);
 					if ( sita != secondaryProxyMap.end() )
 					{
 						secondaryProxyLRU.update(i);
-				
-						// copy element to primary proxy		
+
+						// copy element to primary proxy
 						int64_t kickid = primaryProxyLRU.get(i);
-					
+
 						if ( kickid >= 0 )
 							primaryProxyMap.erase(primaryProxyMap.find(kickid));
-						
+
 						primaryProxyMap[i] = sita->second;
-						
+
 						return sita->second;
 					}
 				}
-				
+
 				uint64_t const blockid = i >> baseIndexShift;
 				if ( (blockloaded != blockid) || (!blockloadedvalid) )
 					loadBlock(blockid);
 				uint64_t const blocklow = blockid << baseIndexShift;
-				
+
 				ReadEnds const & el = B[i-blocklow];
-				
+
 				if ( proxy )
 				{
 					int64_t kickid = primaryProxyLRU.get(i);
-					
+
 					if ( kickid >= 0 )
 						primaryProxyMap.erase(primaryProxyMap.find(kickid));
-						
+
 					primaryProxyMap[i] = el;
 				}
-				
+
 				return el;
 			}
 
@@ -210,12 +210,12 @@ namespace libmaus2
 			{
 				return const_iterator(this,numentries);
 			}
-						
+
 			uint64_t size() const
 			{
 				return numentries;
 			}
-			
+
 			uint64_t countSmallerThanShort(ReadEndsBase const & A) const
 			{
 				return std::lower_bound(begin(),end(),A,ReadEndsBaseShortHashAttributeComparator())-begin();

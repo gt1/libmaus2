@@ -35,9 +35,9 @@ namespace libmaus2
 			typedef BgzfDeflateOutputCallbackBamIndex this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			::libmaus2::bambam::BamIndexGenerator generator;
-		
+
 			BgzfDeflateOutputCallbackBamIndex(
 				std::string const & tmpfileprefix,
 				unsigned int const rverbose = 0,
@@ -46,9 +46,9 @@ namespace libmaus2
 			{
 
 			}
-			
+
 			void operator()(
-				uint8_t const * in, 
+				uint8_t const * in,
 				uint64_t const incnt,
 				uint8_t const * /* out */,
 				uint64_t const outcnt
@@ -56,13 +56,13 @@ namespace libmaus2
 			{
 				generator.addBlock(in /* uncomp data */,outcnt /* comp size */,incnt /* uncomp size */);
 			}
-			
+
 			template<typename stream_type>
 			void flush(stream_type & stream)
 			{
 				generator.flush(stream);
 			}
-			
+
 			void flush(std::string const & filename)
 			{
 				libmaus2::aio::OutputStream::unique_ptr_type pCOS(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(filename));

@@ -40,7 +40,7 @@ namespace libmaus2
 			std::string range;
 
 			static std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> filenameToInfo(
-				libmaus2::util::ArgInfo const & arginfo, 
+				libmaus2::util::ArgInfo const & arginfo,
 				std::vector<std::string> const & filenames,
 				std::string const & putrank = std::string("0")
 			)
@@ -74,7 +74,7 @@ namespace libmaus2
 			{
 				return "-";
 			}
-			
+
 			static std::string getDefaultInputFormat()
 			{
 				return "bam";
@@ -84,27 +84,27 @@ namespace libmaus2
 			{
 				return 1;
 			}
-			
+
 			static std::string getDefaultReference()
 			{
 				return "";
 			}
-			
+
 			static bool getDefaultPutRank()
 			{
 				return false;
 			}
-			
+
 			static std::ostream * getDefaultCopyStr()
 			{
 				return 0;
 			}
-			
+
 			static std::string getDefaultRange()
 			{
 				return "";
 			}
-			
+
 			static uint64_t parseNumber(std::string const & number)
 			{
 				std::istringstream istr(number);
@@ -119,7 +119,7 @@ namespace libmaus2
 				}
 				return u;
 			}
-			
+
 			BamAlignmentDecoderInfo(BamAlignmentDecoderInfo const & o)
 			: inputfilename(o.inputfilename), inputformat(o.inputformat), inputthreads(o.inputthreads),
 			  reference(o.reference), putrank(o.putrank), copystr(o.copystr), range(o.range) {}
@@ -144,13 +144,13 @@ namespace libmaus2
 				std::ostream * rcopystr    = NULL,
 				std::string const rrange   = std::string()
 			)
-			: inputfilename(getDefaultInputFileName()), 
-			  inputformat(getDefaultInputFormat()), 
+			: inputfilename(getDefaultInputFileName()),
+			  inputformat(getDefaultInputFormat()),
 			  inputthreads(getDefaultThreads()),
-			  reference(getDefaultReference()), 
-			  putrank(getDefaultPutRank()), 
-			  copystr(getDefaultCopyStr()), 
-			  range(getDefaultRange()) 
+			  reference(getDefaultReference()),
+			  putrank(getDefaultPutRank()),
+			  copystr(getDefaultCopyStr()),
+			  range(getDefaultRange())
 			{
 				inputfilename = rinputfilename.size() ? rinputfilename             : arginfo.getUnparsedValue("I",          inputfilename);
 				inputformat   = rinputformat.size()   ? rinputformat               : arginfo.getUnparsedValue("inputformat",inputformat);
@@ -161,7 +161,7 @@ namespace libmaus2
 				range         = rrange.size()         ? rrange                     : arginfo.getUnparsedValue("range",range);
 				range         = range.size()          ? range                      : arginfo.getUnparsedValue("ranges",range);
 			}
-			  
+
 			BamAlignmentDecoderInfo & operator=(BamAlignmentDecoderInfo const & o)
 			{
 				if ( this != &o )
@@ -180,7 +180,7 @@ namespace libmaus2
 			static libmaus2::bambam::BamAlignmentDecoderInfo constructInfo(
 				libmaus2::util::ArgInfo const & arginfo,
 				std::string const & filename,
-				bool const putrank = false, 
+				bool const putrank = false,
 				std::ostream * copystr = 0
 			)
 			{
@@ -190,7 +190,7 @@ namespace libmaus2
 				std::string const prange = arginfo.getUnparsedValue("range",libmaus2::bambam::BamAlignmentDecoderInfo::getDefaultRange());
 				std::string const pranges = arginfo.getUnparsedValue("ranges",std::string(""));
 				std::string const range = pranges.size() ? pranges : prange;
-			
+
 				return libmaus2::bambam::BamAlignmentDecoderInfo(
 					filename,
 					inputformat,
@@ -202,7 +202,7 @@ namespace libmaus2
 				);
 			}
 		};
-		
+
 		std::ostream & operator<<(std::ostream & out, libmaus2::bambam::BamAlignmentDecoderInfo const & o);
 	}
 }

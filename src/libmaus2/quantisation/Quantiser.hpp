@@ -34,26 +34,26 @@ namespace libmaus2
 	{
 		struct Quantiser;
 		std::ostream & operator<<(std::ostream & out, Quantiser const & Q);
-		
+
 		struct Quantiser
 		{
 			friend std::ostream & operator<<(std::ostream & out, Quantiser const & Q);
-		
+
 			typedef Quantiser this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
+
 			private:
 			std::vector<double> const centres;
-			
+
 			public:
 			Quantiser(std::vector<double> const & rcentres) : centres(rcentres) {}
-			
+
 			uint64_t byteSize() const
 			{
 				return centres.size() * sizeof(double);
 			}
-			
+
 			template<typename stream_type>
 			void serialise(stream_type & out) const
 			{
@@ -61,7 +61,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < centres.size(); ++i )
 					::libmaus2::util::NumberSerialisation::serialiseDouble(out,centres[i]);
 			}
-			
+
 			template<typename stream_type>
 			static std::vector<double> decodeCentreVector(stream_type & in)
 			{
@@ -71,24 +71,24 @@ namespace libmaus2
 					centres.push_back(::libmaus2::util::NumberSerialisation::deserialiseDouble(in));
 				return centres;
 			}
-			
+
 			template<typename stream_type>
 			Quantiser(stream_type & in) : centres(decodeCentreVector(in))
 			{
 			}
-			
+
 			uint64_t operator()(double const val) const
 			{
-				std::vector<double>::const_iterator it = 
+				std::vector<double>::const_iterator it =
 					std::lower_bound(centres.begin(),centres.end(),val);
-					
+
 				if ( it == centres.end() ) it -= 1;
-				
+
 				std::vector<double>::const_iterator ita = (it == centres.begin()) ? it : (it-1);
-				std::vector<double>::const_iterator itb = it;		
+				std::vector<double>::const_iterator itb = it;
 				std::vector<double>::const_iterator itc = ((it+1) != centres.end()) ? it+1 : it;
 				std::vector<double>::const_iterator itv;
-				
+
 				if ( std::abs(*ita-val) < std::abs(*itb-val) )
 				{
 					// check ita, itc
@@ -105,34 +105,34 @@ namespace libmaus2
 					else
 						itv = itc;
 				}
-				
+
 				#if 0
-				std::cerr << "::Q:: " << val << " -> " << *itv 
+				std::cerr << "::Q:: " << val << " -> " << *itv
 					<< " level=" << itv-centres.begin()
 					<< std::endl;
 				#endif
-			
+
 				return itv-centres.begin();
 			}
-			
+
 			double operator[](uint64_t const q) const
 			{
 				return centres[q];
 			}
-			
+
 			uint64_t size() const
 			{
 				return centres.size();
 			}
 		};
-		
+
 		inline std::ostream & operator<<(std::ostream & out, Quantiser const & Q)
 		{
 			out << "Quantiser(\n";
-			
+
 			for ( uint64_t i = 0; i < Q.centres.size(); ++i )
 				out << "\tcentres[" << i << "]=" << Q.centres[i] << ";\n";
-			
+
 			out << ")\n";
 			return out;
 		}

@@ -37,8 +37,8 @@ int main(int argc, char *argv[])
 		libmaus2::bambam::BamAlignment & samalgn = saminfo.algn;
 		::libmaus2::autoarray::AutoArray<char> A, B;
 		libmaus2::autoarray::AutoArray < std::pair<uint8_t,uint8_t> > auxA, auxB;
-		uint64_t c = 0;		
-		
+		uint64_t c = 0;
+
 		while ( decoder.readAlignment() )
 		{
 			ostr.str(empty);
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 			ostr.put('\n');
 			std::string const s = ostr.str();
 			saminfo.parseSamLine(s.c_str(),s.c_str()+s.size()-1);
-			
+
 			ptrdiff_t const baseblocklength = libmaus2::bambam::BamAlignmentDecoderBase::getAux(algn.D.begin()) - algn.D.begin();
 			ptrdiff_t const sbaseblocklength = libmaus2::bambam::BamAlignmentDecoderBase::getAux(samalgn.D.begin()) - samalgn.D.begin();
 
@@ -75,19 +75,19 @@ int main(int argc, char *argv[])
 
 			assert (baseblocklength == sbaseblocklength);
 			assert ( (l=algn.enumerateAuxTags(auxA)) == samalgn.enumerateAuxTags(auxB) );
-			
+
 			std::sort(auxA.begin(),auxA.begin()+l);
 			std::sort(auxB.begin(),auxB.begin()+l);
-			
+
 			for ( uint64_t i = 0; i < l; ++i )
 			{
 				assert ( auxA[i] == auxB[i] );
 
 				char const tag[] = { static_cast<char>(auxA[i].first), static_cast<char>(auxA[i].second), 0 };
-				
+
 				uint8_t const * fieldA = libmaus2::bambam::BamAlignmentDecoderBase::getAux(algn.D.begin(),algn.blocksize,&tag[0]);
 				uint8_t const * fieldB = libmaus2::bambam::BamAlignmentDecoderBase::getAux(samalgn.D.begin(),samalgn.blocksize,&tag[0]);
-				
+
 				assert ( fieldA );
 				assert ( fieldB );
 
@@ -96,20 +96,20 @@ int main(int argc, char *argv[])
 					case 'A':
 					case 'c':
 					case 'C':
-					case 's': 
+					case 's':
 					case 'S':
-					case 'i': 
-					case 'I': 
+					case 'i':
+					case 'I':
 						assert (
 							libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumber<int64_t>(algn.D.begin(),algn.blocksize,&tag[0])
-							==						
+							==
 							libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumber<int64_t>(samalgn.D.begin(),samalgn.blocksize,&tag[0])
 						);
 						break;
 					case 'f':
 						assert (
 							libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumber<double>(algn.D.begin(),algn.blocksize,&tag[0])
-							==						
+							==
 							libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumber<double>(samalgn.D.begin(),samalgn.blocksize,&tag[0])
 						);
 						break;
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
 							);
 						}
 						else
-						{						
+						{
 							assert (
 								libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumberArray<int64_t>(algn.D.begin(),algn.blocksize,&tag[0])
 								==
@@ -143,9 +143,9 @@ int main(int argc, char *argv[])
 						break;
 				}
 			}
-			
+
 			if ( ++c % (1024*1024) == 0 )
-				std::cerr << "[V] " << c << std::endl;			
+				std::cerr << "[V] " << c << std::endl;
 		}
 	}
 	catch(std::exception const & ex)

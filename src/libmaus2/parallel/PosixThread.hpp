@@ -28,7 +28,7 @@
 #endif
 
 #if defined(LIBMAUS2_HAVE_PRCTL)
-#include <sys/prctl.h>      
+#include <sys/prctl.h>
 #endif
 
 namespace libmaus2
@@ -41,7 +41,7 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::unique_ptr<pthread_t>::type thread_ptr_type;
 
-			private:			
+			private:
 			thread_ptr_type thread;
 			std::string name;
 
@@ -51,7 +51,7 @@ namespace libmaus2
 				try
 				{
 					this_type * t = reinterpret_cast<this_type *>(p);
-					
+
 					if ( t->name.size() )
 						t->setName(t->name);
 
@@ -62,37 +62,37 @@ namespace libmaus2
 					std::cerr << "Uncaught exception in thread:" << std::endl;
 					std::cerr << ex.what() << std::endl;
 				}
-				
+
 				return q;
 			}
-			
+
 			public:
 			PosixThread(std::string const rname = std::string())
 			: thread(), name(rname)
 			{
-			
+
 			}
 			virtual ~PosixThread()
 			{
 				if ( thread.get() )
 					join();
 			}
-			
+
 			#if defined(__FreeBSD__)
 			typedef cpuset_t cpu_set_t;
 			#endif
-			
+
 			#if defined(LIBMAUS2_HAVE_PTHREAD_SETAFFINITY_NP)
 			void setaffinity(std::vector<uint64_t> const & procs)
 			{
 				cpu_set_t cpuset;
-				
+
 				CPU_ZERO(&cpuset);
 				for ( uint64_t i = 0; i < procs.size(); ++i )
 					CPU_SET(procs[i],&cpuset);
-					
+
 				int const err = pthread_setaffinity_np(*thread, sizeof(cpu_set_t), &cpuset);
-				
+
 				if ( err != 0 )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -101,13 +101,13 @@ namespace libmaus2
 					throw se;
 				}
 			}
-			
+
 			void setaffinity(uint64_t const proc)
 			{
 				setaffinity(std::vector<uint64_t>(1,proc));
 			}
 			#endif
-			
+
 			void startStack(uint64_t const rstacksize = 64*1024)
 			{
 				if ( ! thread.get() )
@@ -126,7 +126,7 @@ namespace libmaus2
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "pthread_attr_init failed:" << strerror(errno);
 						se.finish();
-						throw se; 					
+						throw se;
 					}
 
 					#if defined(PTHREAD_STACK_MIN)
@@ -141,17 +141,17 @@ namespace libmaus2
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "pthread_attr_setstacksize() failed in PosixThread::startStack(): " << strerror(errno) << std::endl;
 						se.finish();
-						throw se; 						
+						throw se;
 					}
-					
-					
+
+
 					if ( pthread_create(thread.get(),&attr,dispatch,this) )
 					{
 						pthread_attr_destroy(&attr);
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "pthread_create() failed in PosixThread::start()";
 						se.finish();
-						throw se; 	
+						throw se;
 					}
 
 					if ( pthread_attr_destroy(&attr) )
@@ -159,8 +159,8 @@ namespace libmaus2
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "pthread_attr_destroy failed:" << strerror(errno);
 						se.finish();
-						throw se; 					
-					
+						throw se;
+
 					}
 				}
 				else
@@ -168,11 +168,11 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "PosixThread::start() called but object is already in use.";
 					se.finish();
-					throw se; 					
+					throw se;
 				}
-			
+
 			}
-						
+
 			void start()
 			{
 				if ( ! thread.get() )
@@ -184,13 +184,13 @@ namespace libmaus2
 					std::cerr << "Creating thread without affinity." << std::endl;
 					std::cerr << ::libmaus2::util::StackTrace::getStackTrace() << std::endl;
 					#endif
-					
+
 					if ( pthread_create(thread.get(),0,dispatch,this) )
 					{
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "pthread_create() failed in PosixThread::start()";
 						se.finish();
-						throw se; 	
+						throw se;
 					}
 				}
 				else
@@ -198,7 +198,7 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "PosixThread::start() called but object is already in use.";
 					se.finish();
-					throw se; 					
+					throw se;
 				}
 			}
 
@@ -221,52 +221,52 @@ namespace libmaus2
 				{
 					thread_ptr_type tthread(new pthread_t);
 					thread = UNIQUE_PTR_MOVE(tthread);
-				
+
 					pthread_attr_t attr;
 					if ( pthread_attr_init(&attr) )
 					{
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "pthread_attr_init failed:" << strerror(errno);
 						se.finish();
-						throw se; 					
+						throw se;
 					}
-					
+
 					cpu_set_t cpuset;
-				
+
 					CPU_ZERO(&cpuset);
 					for ( uint64_t i = 0; i < procs.size(); ++i )
 						CPU_SET(procs[i],&cpuset);
-					
+
 					if ( pthread_attr_setaffinity_np(&attr,sizeof(cpu_set_t),&cpuset) )
 					{
 						pthread_attr_destroy(&attr);
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "pthread_attr_setaffinity_np failed:" << strerror(errno);
 						se.finish();
-						throw se; 										
+						throw se;
 					}
-					
+
 					#if 0
 					std::cerr << "Creating thread with affinity." << std::endl;
 					std::cerr << ::libmaus2::util::StackTrace::getStackTrace() << std::endl;
 					#endif
-					
+
 					if ( pthread_create(thread.get(),&attr,dispatch,this) )
 					{
 						pthread_attr_destroy(&attr);
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "pthread_create() failed in PosixThread::start()";
 						se.finish();
-						throw se; 	
+						throw se;
 					}
-					
+
 					if ( pthread_attr_destroy(&attr) )
 					{
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "pthread_attr_destroy failed:" << strerror(errno);
 						se.finish();
-						throw se; 					
-					
+						throw se;
+
 					}
 				}
 				else
@@ -274,13 +274,13 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "PosixThread::start() called but object is already in use.";
 					se.finish();
-					throw se; 					
+					throw se;
 				}
 			}
 			#endif
-			
+
 			virtual void * run() = 0;
-			
+
 			void * tryJoin()
 			{
 				if ( thread.get() )
@@ -292,11 +292,11 @@ namespace libmaus2
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "pthread_join() failed in PosixThread::join()";
 						se.finish();
-						throw se;				
+						throw se;
 					}
-					
+
 					thread.reset();
-	
+
 					return p;
 				}
 				else
@@ -304,7 +304,7 @@ namespace libmaus2
 					return 0;
 				}
 			}
-			
+
 			void * join()
 			{
 				if ( thread.get() )
@@ -316,11 +316,11 @@ namespace libmaus2
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "pthread_join() failed in PosixThread::join()";
 						se.finish();
-						throw se;				
+						throw se;
 					}
-					
+
 					thread.reset();
-	
+
 					return p;
 				}
 				else
@@ -328,12 +328,12 @@ namespace libmaus2
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "PosixThread::join() called but no thread initialised";
 					se.finish();
-					throw se; 	
+					throw se;
 				}
 			}
-			
+
 			void setName(
-				std::string const & 
+				std::string const &
 				#if defined(LIBMAUS2_HAVE_PRCTL)
 					name
 				#endif
@@ -343,7 +343,7 @@ namespace libmaus2
 				prctl(PR_SET_NAME,name.c_str(),0,0,0);
 				#endif
 			}
-			
+
 			bool isCurrent()
 			{
 				pthread_t self = pthread_self();

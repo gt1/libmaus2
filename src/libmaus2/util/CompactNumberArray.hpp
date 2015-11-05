@@ -72,13 +72,13 @@ namespace libmaus2
 				::libmaus2::wavelet::HuffmanWaveletTree::unique_ptr_type H (
 					new ::libmaus2::wavelet::HuffmanWaveletTree(B.begin(),B.end())
 					);
-				
+
 				for ( uint64_t i = 0; i < B.size(); ++i )
 					assert ( B[i] == (*H)[i] );
-					
+
 				return H;
 			}
-			
+
 			/**
 			 * constructor from random access number sequence
 			 *
@@ -96,14 +96,14 @@ namespace libmaus2
 						C[i] = ::libmaus2::bitio::CompactArray::unique_ptr_type(new ::libmaus2::bitio::CompactArray(numsyms,i));
 						std::cerr << numsyms << " symbols use " << i << " bits " << std::endl;
 					}
-				
-				
+
+
 				uint64_t j = 0;
 				for ( iterator i = a; i != e; ++i, ++j )
 				{
 					uint64_t const bits = ::libmaus2::math::bitsPerNum(*i);
 					assert ( (*H)[j] == bits );
-					
+
 					if ( bits )
 					{
 						assert ( bits < C.size() );
@@ -117,7 +117,7 @@ namespace libmaus2
 				for ( iterator i = a; i != e; ++i, ++j )
 					assert ( (*this)[j] == (*i) );
 			}
-			
+
 			/**
 			 * access element i
 			 *
@@ -127,7 +127,7 @@ namespace libmaus2
 			uint64_t operator[](uint64_t const i) const
 			{
 				uint64_t const bits = (*H)[i];
-				
+
 				if ( bits )
 				{
 					uint64_t const rank = H->rank(bits,i)-1;

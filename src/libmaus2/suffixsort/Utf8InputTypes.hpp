@@ -37,7 +37,7 @@ namespace libmaus2
 			typedef ::libmaus2::suffixsort::Utf8CircularSuffixComparator circular_suffix_comparator;
 			typedef ::libmaus2::util::Utf8String string_type;
 			typedef ::libmaus2::aio::CircularWrapper octet_circular_wrapper;
-			
+
 			static bwt_merge_sort_input_type getType()
 			{
 				return bwt_merge_input_type_utf8;
@@ -54,7 +54,7 @@ namespace libmaus2
 				std::map<int64_t,uint64_t> const & freqs)
 			{
 				uint64_t sourcelen = 0;
-				
+
 				for ( std::map<int64_t,uint64_t>::const_iterator ita = freqs.begin();
 					ita != freqs.end(); ++ita )
 				{
@@ -62,7 +62,7 @@ namespace libmaus2
 					libmaus2::util::UTF8::encodeUTF8(ita->first,C);
 					sourcelen += 8 * C.c * ita->second;
 				}
-				
+
 				return sourcelen;
 			}
 
@@ -73,7 +73,7 @@ namespace libmaus2
 				std::map<int64_t,uint64_t> const & freqs)
 			{
 				uint64_t sourcelen = 0;
-				
+
 				for ( std::map<int64_t,uint64_t>::const_iterator ita = freqs.begin();
 					ita != freqs.end(); ++ita )
 				{
@@ -81,7 +81,7 @@ namespace libmaus2
 					libmaus2::util::UTF8::encodeUTF8(ita->first,C);
 					sourcelen += C.c * ita->second;
 				}
-				
+
 				return sourcelen;
 			}
 
@@ -95,7 +95,7 @@ namespace libmaus2
 				uint64_t const rankbits = (vecbits*4+2)/3;
 				uint64_t const selectbits = (vecbits + 255)/256;
 				return vecbits + rankbits + selectbits;
-			}	
+			}
 		};
 	}
 }

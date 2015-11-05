@@ -27,7 +27,7 @@ namespace libmaus2
 			struct OverlapIndexerBase
 			{
 				static unsigned int const base_level_log = 8;
-				static unsigned int const inner_level_log = 3;			
+				static unsigned int const inner_level_log = 3;
 			};
 		}
 	}

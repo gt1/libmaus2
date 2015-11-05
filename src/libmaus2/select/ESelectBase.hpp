@@ -32,7 +32,7 @@ namespace libmaus2
 			static bool const sym = _sym;
 			typedef ESelectBase<_sym> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			static inline uint64_t process(uint64_t v)
 			{
 				if ( _sym )
@@ -60,7 +60,7 @@ namespace libmaus2
 			{
 				uint64_t j = 0;
 				unsigned int p;
-				
+
 				/**
 				 * push decision to lower 32 bits
 				 **/
@@ -76,7 +76,7 @@ namespace libmaus2
 					j += 16, i -= p;
 				else
 					v >>= 16;
-				
+
 				return j + ESelectBase<_sym>::R [ ((v&0xFFFFull) << 4) | i ];
 			}
 

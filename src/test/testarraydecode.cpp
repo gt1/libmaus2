@@ -30,14 +30,14 @@ void testArrayDecode()
 		{
 			::libmaus2::autoarray::AutoArray<uint8_t> A( (n*b + 7)/8, false );
 			::libmaus2::bitio::FastWriteBitWriter FWB(A.get());
-		
+
 			for ( uint64_t i = 0; i < n; ++i )
 				FWB.write ( i % (1ull<<b) , b );
 			FWB.flush();
-		
+
 			::libmaus2::autoarray::AutoArray<uint8_t> O(n,false);
 			::libmaus2::bitio::ArrayDecode::decodeArray(A.begin(),O.begin(),n,b);
-		
+
 			// std::cerr << "n=" << n << std::endl;
 			for ( uint64_t i = 0; i < n; ++i )
 				assert ( O[i] == i%(1ull<<b) );

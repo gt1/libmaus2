@@ -34,7 +34,7 @@ namespace libmaus2
 				typedef GenericInputBase this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				
+
 				// meta data type for block reading
 				typedef libmaus2::bambam::parallel::GenericInputBlockSubBlockInfo meta_type;
 				// block type
@@ -43,7 +43,7 @@ namespace libmaus2
 				typedef generic_input_block_type::unique_ptr_type generic_input_block_ptr_type;
 				// shared pointer to block type
 				typedef generic_input_block_type::shared_ptr_type generic_input_shared_block_ptr_type;
-				
+
 				// free list type
 				typedef libmaus2::parallel::LockedFreeList<
 					generic_input_block_type,
@@ -52,7 +52,7 @@ namespace libmaus2
 				> generic_input_block_free_list_type;
 				// pointer to free list type
 				typedef generic_input_block_free_list_type::unique_ptr_type generic_input_block_free_list_pointer_type;
-			
+
 				// stall array type
 				typedef libmaus2::autoarray::AutoArray<uint8_t,libmaus2::autoarray::alloc_type_c> generic_input_stall_array_type;
 			};

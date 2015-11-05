@@ -30,17 +30,17 @@ int main(int argc, char * argv[])
 		// uint64_t const mem = arginfo.getValue<int>("mem",0);
 		::libmaus2::network::SocketBase controlsock(controlfd);
 		bool running = true;
-		
+
 		while ( running )
 		{
 			controlsock.writeSingle<uint64_t>(0);
 			std::string const packettype = controlsock.readString();
-			
+
 			if ( packettype == "sleeppacket" )
 			{
 				uint64_t const packet = controlsock.readSingle<uint64_t>();
 				std::string const spacket = controlsock.readString();
-			
+
 				std::cerr << "got packet id " << packet << " text " << spacket << std::endl;
 				sleep(1);
 
@@ -61,8 +61,8 @@ int main(int argc, char * argv[])
 				std::cerr << "unknown packet type " << packettype << ", quit" << std::endl;
 				running = false;
 			}
-		}		
-		
+		}
+
 		controlsock.barrierRw();
 	}
 	catch(std::exception const & ex)

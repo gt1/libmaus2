@@ -34,8 +34,8 @@ namespace libmaus2
 		struct FastABPGenerator
 		{
 			static void fastAToFastaBP(
-				std::istream & fain, 
-				std::ostream & finalout, 
+				std::istream & fain,
+				std::ostream & finalout,
 				std::ostream * verboseout = 0,
 				uint64_t const bs = 64*1024
 			)
@@ -54,7 +54,7 @@ namespace libmaus2
 				libmaus2::autoarray::AutoArray<uint64_t> H(256,false);
 				// bam encoding table
 				libmaus2::bambam::BamSeqEncodeTable const bamencodetab;
-				
+
 				// write file magic
 				char cmagic[] = { 'F', 'A', 'S', 'T', 'A', 'B', 'P', '\0' };
 				std::string const magic(&cmagic[0],&cmagic[sizeof(cmagic)]);
@@ -80,7 +80,7 @@ namespace libmaus2
 					std::vector<uint64_t> blockstarts;
 					uint64_t prevblocksize = bs;
 					uint64_t seqlen = 0;
-										
+
 					if ( ! sid.size() )
 					{
 						libmaus2::exception::LibMausException lme;
@@ -88,42 +88,42 @@ namespace libmaus2
 						lme.finish();
 						throw lme;
 					}
-					
+
 					// length of name
 					filepos += libmaus2::util::UTF8::encodeUTF8(sid.size(),finalout);
 					// name
 					finalout.write(sid.c_str(),sid.size());
 					filepos += sid.size();
-					
+
 					while ( filepos % sizeof(uint64_t) )
 					{
 						finalout.put(0);
 						filepos++;
 					}
-					
+
 					while ( in )
 					{
 						in.read(Bin.begin(),bs);
 						uint64_t const n = in.gcount();
-						
+
 						if ( n )
 						{
 							// check block size consistency
 							assert ( prevblocksize == bs );
 							prevblocksize = n;
-							
+
 							bool const lastblock = (n != bs);
 							uint8_t const lastblockflag = lastblock ? ::libmaus2::fastx::FastABPConstants::base_block_last : 0;
-							
+
 							//
 							seqlen += n;
-							
+
 							// block start
 							blockstarts.push_back(filepos);
-						
-							// clear histogram table	
+
+							// clear histogram table
 							std::fill(H.begin(),H.end(),0ull);
-							
+
 							// convert to upper case and fill histogram
 							for ( uint64_t i = 0; i < n; ++i )
 							{
@@ -134,22 +134,22 @@ namespace libmaus2
 
 							uint64_t const regcnt = H['A'] + H['C'] + H['G'] + H['T'];
 							uint64_t const regncnt = regcnt + H['N'];
-							
+
 							// output block pointer
 							uint8_t * outp = reinterpret_cast<uint8_t *>(Bout.begin());
-							
+
 							if ( regcnt == n )
 							{
 								// block type
 								finalout.put(::libmaus2::fastx::FastABPConstants::base_block_4 | lastblockflag);
 								filepos++;
-								
+
 								// store length if last block
 								if ( lastblockflag )
 									filepos += libmaus2::util::UTF8::encodeUTF8(n,finalout);
-							
+
 								char const * inp = Bin.begin();
-								
+
 								while ( inp != Bin.begin() + (n/4)*4 )
 								{
 									uint8_t v = 0;
@@ -160,7 +160,7 @@ namespace libmaus2
 									*(outp++) = v;
 								}
 								uint64_t const rest = n % 4;
-								
+
 								if ( rest )
 								{
 									uint8_t v = 0;
@@ -168,7 +168,7 @@ namespace libmaus2
 										v |= libmaus2::fastx::mapChar(*(inp++)) << (6-2*i);
 									*(outp++) = v;
 								}
-								
+
 								assert ( outp == reinterpret_cast<uint8_t *>(Bout.begin() + (n+3)/4) );
 
 								++rcnt;
@@ -197,7 +197,7 @@ namespace libmaus2
 									uint8_t v = 0;
 										v += libmaus2::fastx::mapChar(*(inp++));
 									v *= 5; v += libmaus2::fastx::mapChar(*(inp++));
-									v *= 5;						
+									v *= 5;
 									*(outp++) = v;
 								}
 								else if ( rest == 1 )
@@ -240,17 +240,17 @@ namespace libmaus2
 								uint64_t const rest = n % 2;
 
 								if ( rest )
-									*(outp++) = bamencodetab[*(inp++)] << 4;	
+									*(outp++) = bamencodetab[*(inp++)] << 4;
 
 								assert ( outp == reinterpret_cast<uint8_t *>(Bout.begin() + (n+1)/2) );
-									
+
 								++ncnt;
 							}
-							
+
 							uint64_t const outbytes = outp-reinterpret_cast<uint8_t *>(Bout.begin());
 							finalout.write(Bout.begin(),outbytes);
 							filepos += outbytes;
-							
+
 							while ( filepos%8 != 0 )
 							{
 								finalout.put(0);
@@ -273,7 +273,7 @@ namespace libmaus2
 							}
 						}
 					}
-					
+
 					if ( verboseout )
 						(*verboseout) << "[V] processed " << sid << " length " << seqlen << std::endl;
 
@@ -282,20 +282,20 @@ namespace libmaus2
 
 					libmaus2::fastx::FastAInfo const fainfo(sid,seqlen);
 					filepos += fainfo.serialise(finalout);
-					
+
 					// write block pointers
 					for ( uint64_t i = 0; i < blockstarts.size(); ++i )
 						filepos += libmaus2::util::NumberSerialisation::serialiseNumber(finalout,blockstarts[i]);
-						
+
 					totalseqlen += seqlen;
 				}
-				
+
 				for ( unsigned int i = 0; i < sizeof(uint64_t); ++i )
 				{
 					finalout.put(0);
 					filepos += 1;
 				}
-				
+
 				uint64_t const metapos = filepos;
 				// number of sequences
 				filepos += libmaus2::util::NumberSerialisation::serialiseNumber(finalout,seqmetaposlist.size());
@@ -304,8 +304,8 @@ namespace libmaus2
 					filepos += libmaus2::util::NumberSerialisation::serialiseNumber(finalout,seqmetaposlist[i]);
 
 				// meta data pointer
-				filepos += libmaus2::util::NumberSerialisation::serialiseNumber(finalout,metapos);	
-				
+				filepos += libmaus2::util::NumberSerialisation::serialiseNumber(finalout,metapos);
+
 				if ( verboseout )
 				{
 					(*verboseout) << "[V] number of sequences        " << seqmetaposlist.size() << std::endl;

@@ -26,7 +26,7 @@ namespace libmaus2
 	namespace bambam
 	{
 		namespace parallel
-		{			
+		{
 			struct FastqToBamControlSubReadPendingHeapComparator
 			{
 				bool operator()(FastqToBamControlSubReadPending const & A, FastqToBamControlSubReadPending const & B) const

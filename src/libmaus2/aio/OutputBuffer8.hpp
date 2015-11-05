@@ -33,14 +33,14 @@ namespace libmaus2
 	{
 		/**
 		 * asynchronous output buffer for 64 bit words
-		 **/ 
+		 **/
                 struct OutputBuffer8
                 {
                 	//! this type
                         typedef OutputBuffer8 this_type;
                         //! unique pointer type
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-                
+
 			private:
 			//! buffer
                         ::libmaus2::autoarray::AutoArray<uint64_t> B;
@@ -60,14 +60,14 @@ namespace libmaus2
                          * @param A array
                          * @param outputfilename output file name
                          **/
-			static void writeArray(::libmaus2::autoarray::AutoArray<uint64_t> const & A, 
+			static void writeArray(::libmaus2::autoarray::AutoArray<uint64_t> const & A,
 				std::string const & outputfilename)
 			{
 				::libmaus2::aio::OutputBuffer8 out(outputfilename,64*1024);
-				
+
 				for ( uint64_t i = 0; i < A.getN(); ++i )
 					out.put(A[i]);
-				
+
 				out.flush();
 			}
 
@@ -97,7 +97,7 @@ namespace libmaus2
                          **/
                         void writeBuffer()
                         {
-                                W.write ( 
+                                W.write (
                                         reinterpret_cast<char const *>(pa),
                                         reinterpret_cast<char const *>(pc));
                                 pc = pa;

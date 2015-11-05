@@ -38,7 +38,7 @@
 namespace libmaus2
 {
 	namespace lcs
-	{		
+	{
 		template<
 			libmaus2::lcs::edit_distance_priority_type _edit_distance_priority = ::libmaus2::lcs::del_ins_diag
 		>
@@ -48,7 +48,7 @@ namespace libmaus2
 			typedef EditDistance<edit_distance_priority> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef EditDistanceResult result_type;
-		
+
 			private:
 			uint64_t n; // rows
 			uint64_t m; // columns
@@ -58,7 +58,7 @@ namespace libmaus2
 			// matrix stored column wise
 			typedef std::pair < similarity_type, step_type > element_type;
 			::libmaus2::autoarray::AutoArray<element_type> M;
-			
+
 			void setup(
 				uint64_t const rn,
 				uint64_t const rm,
@@ -69,7 +69,7 @@ namespace libmaus2
 				m = rm;
 				n1 = n+1;
 				m1 = m+1;
-			
+
 				if ( M.size() < n1*m1 )
 					M = ::libmaus2::autoarray::AutoArray<element_type>(n1*m1,false);
 				if ( EditDistanceTraceContainer::capacity() < n+m )
@@ -80,7 +80,7 @@ namespace libmaus2
 			{
 				return M [ i * n1 + j ];
 			}
-			
+
 			template<typename iterator_a, typename iterator_b>
 			void printMatrix(iterator_a a, iterator_b b) const
 			{
@@ -89,22 +89,22 @@ namespace libmaus2
 				{
 					for ( uint64_t j = 0; j < n1; ++j, ++p )
 					{
-						std::cerr << "(" 
+						std::cerr << "("
 							<< std::setw(4)
-							<< p->first 
+							<< p->first
 							<< std::setw(0)
-							<< "," 
-							<< p->second 
+							<< ","
+							<< p->second
 							<< ","
 							<< ((j > 0) ? a[j-1] : ' ')
 							<< ","
 							<< ((i > 0) ? b[i-1] : ' ')
 							<< ")";
 					}
-					
+
 					std::cerr << std::endl;
 				}
-			
+
 			}
 
 			public:
@@ -117,10 +117,10 @@ namespace libmaus2
 			{
 				process(a,l_a,b,l_b,0 /* k */, 0 /* match gain */,1,1,1);
 			}
-						
+
 			template<typename iterator_a, typename iterator_b>
 			EditDistanceResult process(
-				iterator_a a, 
+				iterator_a a,
 				uint64_t const n,
 				iterator_b b,
 				uint64_t const m,
@@ -132,27 +132,27 @@ namespace libmaus2
 			)
 			{
 				setup(n,m,k);
-			
+
 				element_type * p = M.begin();
 
 				int64_t firstpen = 0;
 				for ( uint64_t i = 0; i < n1; ++i, firstpen -= penalty_del )
 					*(p++) = element_type(firstpen,STEP_DEL);
-					
+
 				element_type * q = M.begin();
 
 				iterator_a const ae = a+n;
-				iterator_b const be = b+m;				
+				iterator_b const be = b+m;
 				while ( b != be )
 				{
 					typename std::iterator_traits<iterator_b>::value_type const bchar = *(b++);
-					
+
 					assert ( (p-M.begin()) % n1 == 0 );
 					assert ( (q-M.begin()) % n1 == 0 );
-					
+
 					// top
 					*p = element_type(q->first-penalty_ins,STEP_INS);
-					
+
 					for ( iterator_a aa = a; aa != ae; ++aa )
 					{
 						// left
@@ -161,7 +161,7 @@ namespace libmaus2
 						bool const dmatch = (*aa == bchar);
 						// diagonal
 						similarity_type const diag =
-							dmatch 
+							dmatch
 							?
 							(q->first + gain_match)
 							:
@@ -172,7 +172,7 @@ namespace libmaus2
 						similarity_type const top = q->first - penalty_ins;
 						// move pointer in current row
 						p++;
-					
+
 						switch ( edit_distance_priority )
 						{
 							case del_ins_diag:
@@ -181,7 +181,7 @@ namespace libmaus2
 									if ( left >= diag )
 										// left
 										*p = element_type(left,STEP_DEL);
-									else							
+									else
 										// diag
 										*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
 								}
@@ -216,13 +216,13 @@ namespace libmaus2
 										*p = element_type(top,STEP_INS);
 								}
 								break;
-						}	
-					}	
-					
+						}
+					}
+
 					p++;
-					q++;				
+					q++;
 				}
-				
+
 				b -= m;
 
 				uint64_t i = n;
@@ -230,7 +230,7 @@ namespace libmaus2
 				element_type * pq = M.get() + j*n1 + i;
 
 				ta = te;
-				
+
 				uint64_t numdel = 0;
 				uint64_t numins = 0;
 				uint64_t nummat = 0;
@@ -239,7 +239,7 @@ namespace libmaus2
 				while ( pq != M.begin() )
 				{
 					*(--ta) = pq->second;
-					
+
 					switch ( pq->second )
 					{
 						// previous row
@@ -266,10 +266,10 @@ namespace libmaus2
 							break;
 					}
 				}
-				
+
 				return EditDistanceResult(numins,numdel,nummat,nummis);
-			}	
-			
+			}
+
 			AlignmentTraceContainer const & getTraceContainer() const
 			{
 				return *this;

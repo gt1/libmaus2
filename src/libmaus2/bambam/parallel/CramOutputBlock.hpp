@@ -38,19 +38,19 @@ namespace libmaus2
 				typedef CramOutputBlock this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				ssize_t blockid;
 				size_t subblockid;
 				libmaus2::autoarray::AutoArray<char>::shared_ptr_type A;
 				size_t fill;
 				cram_data_write_block_type blocktype;
-				
+
 				CramOutputBlock()
 				: blockid(std::numeric_limits<ssize_t>::min()), subblockid(0), A(), fill(0)
 				{
-				
+
 				}
-				
+
 				size_t size() const
 				{
 					if ( A )
@@ -58,7 +58,7 @@ namespace libmaus2
 					else
 						return 0;
 				}
-				
+
 				void resize(size_t const s)
 				{
 					if ( ! A )
@@ -71,13 +71,13 @@ namespace libmaus2
 						*A = libmaus2::autoarray::AutoArray<char>(s,false);
 					}
 				}
-				
+
 				void ensure(size_t const s)
 				{
 					if ( s > size() )
 						resize(s);
 				}
-				
+
 				void set(
 					char const * p, size_t const n, ssize_t const rblockid, size_t const rsubblockid,
 					cram_data_write_block_type const rblocktype

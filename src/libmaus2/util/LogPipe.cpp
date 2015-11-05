@@ -38,13 +38,13 @@ libmaus2::util::LogPipe::LogPipe(
 	outsock->setNoDelay();
 	outsock->writeMessage<uint64_t>(0,&rank,1);
 	outsock->writeString(0,sid);
-		
+
 	::libmaus2::network::ClientSocket::unique_ptr_type terrsock(new ::libmaus2::network::ClientSocket(errport,serverhostname.c_str()));
 	errsock = UNIQUE_PTR_MOVE(terrsock);
 	errsock->setNoDelay();
 	errsock->writeMessage<uint64_t>(0,&rank,1);
 	errsock->writeString(0,sid);
-	
+
 	#if 1
 	if ( pipe(&stdoutpipe[0]) != 0 )
 	{
@@ -60,20 +60,20 @@ libmaus2::util::LogPipe::LogPipe(
 		se.finish();
 		throw se;
 	}
-	
+
 	if ( close(STDOUT_FILENO) != 0 )
 	{
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "close() failed: " << strerror(errno) << std::endl;
 		se.finish();
-		throw se;		
+		throw se;
 	}
 	if ( close(STDERR_FILENO) != 0 )
 	{
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "close() failed: " << strerror(errno) << std::endl;
 		se.finish();
-		throw se;		
+		throw se;
 	}
 
 	if ( dup2(stdoutpipe[1],STDOUT_FILENO) == -1 )
@@ -81,24 +81,24 @@ libmaus2::util::LogPipe::LogPipe(
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "dup2() failed: " << strerror(errno) << std::endl;
 		se.finish();
-		throw se;				
+		throw se;
 	}
 	if ( dup2(stderrpipe[1],STDERR_FILENO) == -1 )
 	{
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "dup2() failed: " << strerror(errno) << std::endl;
 		se.finish();
-		throw se;				
+		throw se;
 	}
 
 	pid = fork();
-	
+
 	if ( pid < 0 )
 	{
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "fork() failed: " << strerror(errno) << std::endl;
 		se.finish();
-		throw se;		
+		throw se;
 	}
 	else if ( pid == 0 )
 	{
@@ -108,9 +108,9 @@ libmaus2::util::LogPipe::LogPipe(
 		// close copies
 		close(STDOUT_FILENO);
 		close(STDERR_FILENO);
-							
+
 		bool running = true;
-		
+
 		try
 		{
 			while ( running )
@@ -119,7 +119,7 @@ libmaus2::util::LogPipe::LogPipe(
 				fd_set fds;
 				int maxfd = -1;
 				FD_ZERO(&fds);
-				
+
 				if ( stdoutpipe[0] != -1 )
 				{
 					FD_SET(stdoutpipe[0],&fds);
@@ -130,13 +130,13 @@ libmaus2::util::LogPipe::LogPipe(
 					FD_SET(stderrpipe[0],&fds);
 					maxfd = std::max(maxfd,stderrpipe[0]);
 				}
-				
+
 				running = (maxfd != -1);
-				
+
 				if ( running )
 				{
 					int r = select(maxfd+1,&fds,0,0,0);
-					
+
 					try
 					{
 						if ( r > 0 )
@@ -170,7 +170,7 @@ libmaus2::util::LogPipe::LogPipe(
 									uint64_t stag, n;
 									errsock->readMessage<uint64_t>(stag,0,n);
 								}
-							}	
+							}
 						}
 					}
 					catch(std::exception const & ex)
@@ -183,7 +183,7 @@ libmaus2::util::LogPipe::LogPipe(
 		{
 			std::cerr << "Caught exception in LogPipe" << std::endl;
 		}
-		
+
 		_exit(0);
 	}
 	else

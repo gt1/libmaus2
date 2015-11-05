@@ -45,7 +45,7 @@ namespace libmaus2
 					if ( a[i] == '/' )
 						break;
 				}
-				
+
 				if ( a[i] == '/' )
 					return a.substr(0,i);
 				else

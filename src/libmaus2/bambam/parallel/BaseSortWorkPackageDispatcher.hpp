@@ -28,35 +28,35 @@ namespace libmaus2
 	{
 		namespace parallel
 		{
-	
+
 			// dispatcher for block base sorting
 			template<typename _order_type>
 			struct BaseSortWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef _order_type order_type;
-				
+
 				BaseSortWorkPackageReturnInterface<order_type> & packageReturnInterface;
-				
+
 				BaseSortWorkPackageDispatcher(
 					BaseSortWorkPackageReturnInterface<order_type> & rpackageReturnInterface
-				) : packageReturnInterface(rpackageReturnInterface) 
+				) : packageReturnInterface(rpackageReturnInterface)
 				{
 				}
-			
+
 				virtual void dispatch(
-					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadWorkPackage * P,
 					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
 				)
 				{
 					AlignmentRewritePosSortBaseSortPackage<order_type> * BP = dynamic_cast<AlignmentRewritePosSortBaseSortPackage<order_type> *>(P);
 					assert ( BP );
-					
+
 					BP->request->dispatch();
 					BP->blockSortedInterface->baseBlockSorted();
-					
-					// return the work package				
-					packageReturnInterface.putBaseSortWorkPackage(BP);				
-				}		
+
+					// return the work package
+					packageReturnInterface.putBaseSortWorkPackage(BP);
+				}
 			};
 		}
 	}

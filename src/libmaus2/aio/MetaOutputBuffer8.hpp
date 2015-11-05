@@ -53,7 +53,7 @@ namespace libmaus2
 			 * @param rmetaid meta information for each written block
 			 **/
                         MetaOutputBuffer8(
-				::libmaus2::aio::AsynchronousWriter & rW, 
+				::libmaus2::aio::AsynchronousWriter & rW,
 				uint64_t const bufsize,
 				uint64_t const rmetaid)
                         : B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN()), W(rW), metaid(rmetaid)
@@ -92,7 +92,7 @@ namespace libmaus2
 					writeNumber8(metaid);
 					writeNumber8(pc-pa);
 
-	                                W.write ( 
+	                                W.write (
         	                                reinterpret_cast<char const *>(pa),
                 	                        reinterpret_cast<char const *>(pc));
                         	        pc = pa;

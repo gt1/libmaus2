@@ -25,7 +25,7 @@
 namespace libmaus2
 {
 	namespace lcs
-	{		
+	{
 		template<
 			libmaus2::lcs::edit_distance_priority_type _edit_distance_priority = ::libmaus2::lcs::del_ins_diag
 		>
@@ -37,13 +37,13 @@ namespace libmaus2
 
 			::libmaus2::lcs::LocalEditDistance<edit_distance_priority> E;
 			::libmaus2::lcs::BandedLocalEditDistance<edit_distance_priority> BE;
-			
+
 			typedef typename ::libmaus2::lcs::LocalEditDistance<edit_distance_priority>::result_type result_type;
-			
+
 			MetaLocalEditDistance()
 			{
 			}
-			
+
 			template<typename iterator_a, typename iterator_b>
 			result_type process(
 				iterator_a aa,
@@ -69,7 +69,7 @@ namespace libmaus2
 					result_type const R = E.process(aa,rn,bb,rm,rk,gain_match,penalty_subst,penalty_ins,penalty_del);
 					ta = E.ta;
 					te = E.te;
-					return R;			
+					return R;
 				}
 			}
 		};

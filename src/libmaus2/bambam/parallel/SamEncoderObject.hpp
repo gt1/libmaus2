@@ -33,13 +33,13 @@ namespace libmaus2
 				typedef SamEncoderObject this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-					
+
 				libmaus2::bambam::BamHeaderLowMem::unique_ptr_type Pheader;
-					
+
 				SamEncoderObject(libmaus2::bambam::BamHeaderLowMem::unique_ptr_type & Theader)
 				: Pheader(UNIQUE_PTR_MOVE(Theader))
 				{
-					
+
 				}
 			};
 		}

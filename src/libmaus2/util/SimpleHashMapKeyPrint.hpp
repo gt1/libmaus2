@@ -36,7 +36,7 @@ namespace libmaus2
 				return (out << v);
 			}
 		};
-		
+
 		template<unsigned int k>
 		struct SimpleHashMapKeyPrint< libmaus2::uint::UInt<k> >
 		{
@@ -45,7 +45,7 @@ namespace libmaus2
 				return (out << U);
 			}
 		};
-		
+
 		#if defined(LIBMAUS2_HAVE_UNSIGNED_INT128)
 		template<>
 		struct SimpleHashMapKeyPrint<libmaus2::uint128_t>
@@ -68,10 +68,10 @@ namespace libmaus2
 					}
 					while ( --numdig >= 0 )
 						out.put(C[numdig]);
-					
+
 					return out;
 				}
-			}		
+			}
 		};
 		#endif
 	}

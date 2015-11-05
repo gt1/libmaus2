@@ -56,14 +56,14 @@ void testHashCollisions()
 			std::cerr << std::endl;
 		}
 	}
-	
+
 	uint64_t acc = 0;
 	for ( std::map < uint64_t, uint64_t >::const_iterator ita = S.begin();
 		ita != S.end(); ++ita )
 		acc += ita->second;
 	double const avg = static_cast<double>(acc)/S.size();
-	
-	std::cerr << "S.size()=" << S.size() << " icnt*jcnt=" << icnt*jcnt << " avg=" << avg 
+
+	std::cerr << "S.size()=" << S.size() << " icnt*jcnt=" << icnt*jcnt << " avg=" << avg
 		<< " colcnt=" << colcnt << std::endl;
 }
 
@@ -76,9 +76,9 @@ int main(/* int argc, char * argv[] */)
 	libmaus2::util::SimpleHashMapConstants< libmaus2::uint::UInt<2> > SHMC;
 
 	std::cerr << "unused " << SHMC.unused() << std::endl;
-	
+
 	libmaus2::util::SimpleHashMap< libmaus2::uint::UInt<1>, uint64_t > H(1);
-	
+
 	H.insertNonSyncExtend(libmaus2::uint::UInt<1>(5), 5, 0.8 );
 
 	testHashCollisions();

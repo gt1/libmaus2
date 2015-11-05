@@ -37,9 +37,9 @@ namespace libmaus2
                 	typedef PosixMutex this_type;
                 	typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
                 	typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-                
+
                         pthread_mutex_t mutex;
-                        
+
                         PosixMutex() : mutex()
                         {
                                 pthread_mutex_init(&mutex,0);
@@ -48,7 +48,7 @@ namespace libmaus2
                         {
                                 pthread_mutex_destroy(&mutex);
                         }
-                        
+
                         void lock()
                         {
                         	if ( pthread_mutex_lock ( &mutex ) )
@@ -66,7 +66,7 @@ namespace libmaus2
                         		::libmaus2::exception::LibMausException se;
                         		se.getStream() << "pthread_mutex_unlock failed" << std::endl;
                         		se.finish();
-                        		throw se;                        	
+                        		throw se;
                         	}
                         }
                         /**
@@ -85,14 +85,14 @@ namespace libmaus2
                         		::libmaus2::exception::LibMausException se;
                         		se.getStream() << "pthread_mutex_trylock failed" << std::endl;
                         		se.finish();
-                        		throw se;                        						
+                        		throw se;
 				}
 				else
 				{
 					return true;
 				}
                         }
-                        
+
                         /*
                          * try to lock mutex. if succesful, mutex is unlocked and return value is true,
                          * otherwise return value is false
@@ -105,11 +105,11 @@ namespace libmaus2
 				return r;
                         }
                 };
-                
+
                 struct ScopePosixMutex
                 {
                 	PosixMutex & mutex;
-                	
+
                 	ScopePosixMutex(PosixMutex & rmutex)
                 	: mutex(rmutex)
                 	{

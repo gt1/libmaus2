@@ -43,20 +43,20 @@ int main()
 					std::cerr << i << std::endl;
 				C->set ( i, ::libmaus2::random::Random::rand64() & ((1ull<<b)-1) );
 			}
-				
+
 			array_ptr_type D = C->clone();
-			
-			::libmaus2::timing::RealTimeClock rtc; 
+
+			::libmaus2::timing::RealTimeClock rtc;
 			rtc.start();
 			::libmaus2::autoarray::AutoArray<uint64_t> WC = ::libmaus2::wavelet::toWaveletTreeBits(C.get());
 			std::cerr << ", time=" << rtc.getElapsedSeconds() << std::endl;
-			
+
 			rtc.start();
 			::libmaus2::autoarray::AutoArray<uint64_t> WD = ::libmaus2::wavelet::toWaveletTreeBitsParallel(D.get());
 			std::cerr << ", time=" << rtc.getElapsedSeconds() << std::endl;
-			
+
 			assert ( WC.getN() == WD.getN() );
-			
+
 			for ( uint64_t i = 0; i < WC.getN(); ++i )
 				assert ( WC[i] == WD[i] );
 		}

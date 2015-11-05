@@ -63,18 +63,18 @@ namespace libmaus2
 			int64_t id;
 			uint64_t beg;
 			uint64_t end;
-			
+
 			BamRangeChromosome() : name(), id(-1)
 			{
-			
+
 			}
-			
+
 			BamRangeChromosome(std::string const & rname, libmaus2::bambam::BamHeader const & header)
 			: name(rname), id(header.getIdForRefName(name)), beg(0), end(header.getRefIDLength(id))
 			{
-			
+
 			}
-			
+
 			interval_rel_pos operator()(libmaus2::bambam::BamAlignment const & algn) const
 			{
 				int64_t const alrefid = algn.getRefID();
@@ -112,18 +112,18 @@ namespace libmaus2
 			int64_t id;
 			int64_t start;
 			int64_t end;
-			
+
 			BamRangeHalfOpen() : name(), id(-1), start(-1), end(-1)
 			{
-			
+
 			}
-			
+
 			BamRangeHalfOpen(std::string const & rname, uint64_t const rstart, libmaus2::bambam::BamHeader const & header)
 			: name(rname), id(header.getIdForRefName(name)), start(rstart), end(header.getRefIDLength(id))
 			{
-			
+
 			}
-			
+
 			interval_rel_pos operator()(libmaus2::bambam::BamAlignment const & algn) const
 			{
 				int64_t const alrefid = algn.getRefID();
@@ -132,7 +132,7 @@ namespace libmaus2
 				{
 					int64_t const pos = algn.getPos();
 					int64_t const len = algn.getReferenceLength();
-					
+
 					if ( pos + len > start )
 						return interval_rel_pos_matching;
 					else
@@ -169,18 +169,18 @@ namespace libmaus2
 			int64_t id;
 			int64_t start;
 			int64_t end;
-			
+
 			BamRangeInterval() : name(), id(-1), start(-1), end(-1)
 			{
-			
+
 			}
-			
+
 			BamRangeInterval(std::string const & rname, uint64_t const rstart, uint64_t const rend, libmaus2::bambam::BamHeader const & header)
 			: name(rname), id(header.getIdForRefName(name)), start(rstart), end(rend)
 			{
-			
+
 			}
-			
+
 			interval_rel_pos operator()(libmaus2::bambam::BamAlignment const & algn) const
 			{
 				int64_t const alrefid = algn.getRefID();
@@ -189,7 +189,7 @@ namespace libmaus2
 				{
 					int64_t const pos = algn.getPos();
 					int64_t const len = algn.getReferenceLength();
-					
+
 					if ( pos + len > start )
 					{
 						if ( pos <= end )

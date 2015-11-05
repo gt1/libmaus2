@@ -29,10 +29,10 @@ namespace libmaus2
 		{
 			uint32_t const initial;
 			uint32_t ctx;
-			
+
 			CRC32();
 			~CRC32();
-			
+
 			void init();
 			void update(uint8_t const * t, size_t l);
 			void digest(uint8_t * digest);

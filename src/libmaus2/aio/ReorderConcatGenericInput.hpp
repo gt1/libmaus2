@@ -41,7 +41,7 @@ namespace libmaus2
 			typedef ReorderConcatGenericInput<value_type> this_type;
 			//! unique pointer type
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			private:
 			//! fragment vector
 			std::vector < FileFragment > V;
@@ -51,7 +51,7 @@ namespace libmaus2
 			typedef libmaus2::aio::InputStreamInstance reader_type;
 			//! input stream pointer type
 			typedef ::libmaus2::util::unique_ptr<reader_type>::type reader_ptr_type;
-			
+
 			//! buffer size
 			uint64_t const bufsize;
 			//! input buffer
@@ -62,17 +62,17 @@ namespace libmaus2
 			input_type * pc;
 			//! input buffer end pointer
 			input_type * pe;
-			
+
 			//! reader pointer
 			reader_ptr_type reader;
 			//! number of rest words in current fragmetn
 			uint64_t restwords;
-			
+
 			//! total words read
 			uint64_t totalwords;
 			//! file offset
 			uint64_t offset;
-			
+
 			/**
 			 * fill buffer
 			 *
@@ -82,9 +82,9 @@ namespace libmaus2
 			{
 		                while ( (! restwords) && (it != V.end()) )
 		                        init();
-		                
+
 		                // std::cerr << "rest words " << restwords << std::endl;
-		                
+
                                 if ( restwords )
                                 {
                                         uint64_t const toreadwords = std::min(totalwords,std::min(restwords,bufsize));
@@ -96,17 +96,17 @@ namespace libmaus2
 			                if ( (! reader) || (reader->gcount() != static_cast<int64_t>(toreadbytes) ) )
 			                {
 			                        ::libmaus2::exception::LibMausException se;
-			                        se.getStream() << "Failed to read in ReorderConcatGenericInput<" 
+			                        se.getStream() << "Failed to read in ReorderConcatGenericInput<"
 			                                << ::libmaus2::util::Demangle::demangle<input_type>() << ">::fillBuffer(): " << strerror(errno);
                                                 se.finish();
-                                                throw se;                
+                                                throw se;
 			                }
 
 			                pc = pa;
 			                pe = pa + toreadwords;
 			                restwords -= toreadwords;
 			                totalwords -= toreadwords;
-			                
+
 			                return (toreadwords != 0);
                                 }
                                 else
@@ -114,7 +114,7 @@ namespace libmaus2
                                         return false;
                                 }
 			}
-			
+
 			/**
 			 * init object with next file (move to fragment, open it)
 			 *
@@ -134,21 +134,21 @@ namespace libmaus2
 			                uint64_t const seekword = it->offset+offset;
 			                reader->seekg( seekword * sizeof(input_type) , ::std::ios::beg);
 			                offset = 0;
-			                
-			                if ( 
-			                        (! reader.get()) || 
-			                        (static_cast<int64_t>(reader->tellg()) != static_cast<int64_t>(seekword * sizeof(input_type))) 
+
+			                if (
+			                        (! reader.get()) ||
+			                        (static_cast<int64_t>(reader->tellg()) != static_cast<int64_t>(seekword * sizeof(input_type)))
                                         )
 			                {
 			                        ::libmaus2::exception::LibMausException se;
-			                        se.getStream() << "Failed to seek to word " << seekword << " in file " << it->filename << " in ReorderConcatGenericInput<" 
+			                        se.getStream() << "Failed to seek to word " << seekword << " in file " << it->filename << " in ReorderConcatGenericInput<"
 			                                << ::libmaus2::util::Demangle::demangle<input_type>() << ">::init(): " << strerror(errno);
                                                 se.finish();
-                                                throw se;                
+                                                throw se;
 			                }
-			                
+
 			                it++;
-			                
+
 			                return true;
 			        }
 			        else
@@ -157,7 +157,7 @@ namespace libmaus2
 			                return false;
 			        }
 			}
-			
+
 			public:
 			/**
 			 * return the default buffer size
@@ -166,7 +166,7 @@ namespace libmaus2
 			{
 				return 64*1024;
 			}
-			
+
 			/**
 			 * constructor
 			 *
@@ -181,20 +181,20 @@ namespace libmaus2
 			        uint64_t const rlimit = std::numeric_limits<uint64_t>::max(),
 			        uint64_t const roffset = 0
                         )
-			: V(rV), it(V.begin()), bufsize(rbufsize), B(bufsize), pa(B.begin()), pc(pa), pe(pa), 
+			: V(rV), it(V.begin()), bufsize(rbufsize), B(bufsize), pa(B.begin()), pc(pa), pe(pa),
 			  reader(), restwords(0),
 			  totalwords( std::min(FileFragment::getTotalLength(V)-roffset,rlimit) ),
 			  offset(roffset)
 			{
 			        // std::cerr << "total words " << totalwords << std::endl;
-			
+
 			        while ( (it != V.end()) && (offset >= it->len) )
 			        {
 			                offset -= it->len;
 			                ++it;
                                 }
 			}
-			
+
 			/**
 			 * get total number of words to be read
 			 **/
@@ -202,7 +202,7 @@ namespace libmaus2
 			{
 			        return totalwords;
 			}
-			
+
 			/**
 			 * read a number of elements
 			 *
@@ -213,7 +213,7 @@ namespace libmaus2
 			uint64_t read(input_type * B, uint64_t n)
 			{
 				input_type * const Ba = B;
-				
+
 				while ( n )
 				{
 					if ( pc == pe )
@@ -222,20 +222,20 @@ namespace libmaus2
 						if ( ! ok )
 							break;
 					}
-					
+
 					assert ( pc != pe );
-					
+
 					uint64_t const tocopy = std::min(n,static_cast<uint64_t>(pe-pc));
 					std::copy(pc,pc+tocopy,B);
-					
+
 					pc += tocopy;
 					B += tocopy;
 					n -= tocopy;
 				}
-				
+
 				return (B-Ba);
 			}
-			
+
 			/**
 			 * get next word
 			 *
@@ -250,7 +250,7 @@ namespace libmaus2
 			                if ( ! ok )
 			                        return false;
 			        }
-			        
+
 			        word = *(pc++);
 			        return true;
 			}
@@ -269,18 +269,18 @@ namespace libmaus2
 			                if ( ! ok )
 			                        return false;
 			        }
-			        
+
 			        word = *pc;
 			        return true;
 			}
-			
+
 			/**
 			 * @return next character or -1 (EOF)
 			 **/
 			int64_t getNextCharacter()
 			{
 			        input_type word;
-			        
+
 			        if ( getNext(word) )
 			                return static_cast<int>(word);
                                 else
@@ -288,11 +288,11 @@ namespace libmaus2
 			}
 			/**
 			 * @return peek at character or return -1 (EOF)
-			 **/			
+			 **/
 			int64_t peekNextCharacter()
 			{
 				input_type word;
-				
+
 				if ( peekNext(word) )
 					return word;
 				else
@@ -300,8 +300,8 @@ namespace libmaus2
 			}
 			/**
 			 * @return get next character or -1 for EOF
-			 **/			
-			
+			 **/
+
 			int64_t get()
 			{
 			        return getNextCharacter();
@@ -310,7 +310,7 @@ namespace libmaus2
 			 * peek at next character (look at it without removing it from the stream)
 			 *
 			 * @return next character or -1 or EOF
-			 **/						
+			 **/
 			int64_t peek()
 			{
 				return peekNextCharacter();
@@ -325,13 +325,13 @@ namespace libmaus2
                         static fragment_vector loadFragmentVector(std::vector<std::string> const & infilenames)
                         {
                                 fragment_vector frags(infilenames.size());
-                                
+
                                 for ( int64_t i = 0; i < static_cast<int64_t>(infilenames.size()); ++i )
                                 {
                                         std::string const infile = infilenames[i];
-                                        
+
                                         uint64_t const fs = ::libmaus2::util::GetFileSize::getFileSize(infile);
-                                                                                
+
                                         if ( fs % sizeof(value_type) )
                                         {
                                                 ::libmaus2::exception::LibMausException se;
@@ -340,11 +340,11 @@ namespace libmaus2
                                                 se.finish();
                                                 throw se;
                                         }
-                                        
+
                                         uint64_t const n = fs / sizeof(value_type);
                                         frags[i] = ::libmaus2::aio::FileFragment ( infile , 0 , n );
                                 }
-                                
+
                                 return frags;
                         }
 
@@ -361,16 +361,16 @@ namespace libmaus2
 
                         /**
                          * instantiate object and return it
-                         * 
+                         *
                          * @param requestfilename name of serialised ConcatRequest object
                          * @param bufsize input buffer size
                          * @param limit maximum number of elements to be read
                          * @param offset reading start offset
                          **/
                         static unique_ptr_type openConcatFile(
-                                std::string const & requestfilename, 
-                                uint64_t const bufsize = 64*1024, 
-                                uint64_t const limit = std::numeric_limits<uint64_t>::max(), 
+                                std::string const & requestfilename,
+                                uint64_t const bufsize = 64*1024,
+                                uint64_t const limit = std::numeric_limits<uint64_t>::max(),
                                 uint64_t const offset = 0
                         )
                         {
@@ -389,8 +389,8 @@ namespace libmaus2
                          **/
                         static unique_ptr_type openConcatFile(
                                 std::vector < std::string > const & filenames,
-                                uint64_t const bufsize = 64*1024, 
-                                uint64_t const limit = std::numeric_limits<uint64_t>::max(), 
+                                uint64_t const bufsize = 64*1024,
+                                uint64_t const limit = std::numeric_limits<uint64_t>::max(),
                                 uint64_t const offset = 0
                         )
                         {
@@ -417,10 +417,10 @@ namespace libmaus2
 	        	        ::libmaus2::util::ConcatRequest::unique_ptr_type req(::libmaus2::util::ConcatRequest::load(requestfilename));
 		                fragment_vector frags = loadFragmentVector(req->infilenames);
 		                uint64_t len = 0;
-		                
+
 		                for ( uint64_t i = 0; i < frags.size(); ++i )
 		                        len += frags[i].len;
-                                
+
                                 return len;
                         }
 
@@ -456,37 +456,37 @@ namespace libmaus2
 				unique_ptr_type infile = UNIQUE_PTR_MOVE(unique_ptr_type(new this_type(fragments,bufsize)));
 				uint64_t n = infile->getTotalWords();
 				::libmaus2::autoarray::AutoArray<value_type> B(bufsize,false);
-				
+
 				while ( n )
 				{
 					uint64_t const toread = std::min(n,bufsize);
 					uint64_t const r = infile->fillBlock(B.get(),toread);
 
-					ostr.write ( 
+					ostr.write (
 						reinterpret_cast<char const *>(B.get()),
 						r * sizeof(value_type) );
-						
+
 					if ( (! ostr) )
 					{
 						::libmaus2::exception::LibMausException se;
-						se.getStream() << "Failed to write data to file " << outputfilename 
-							<< ": " 
+						se.getStream() << "Failed to write data to file " << outputfilename
+							<< ": "
 							<< strerror(errno)
 							<< std::endl;
 						se.finish();
 						throw se;
 					}
-					
+
 					n -= r;
 				}
-				
+
 				ostr.flush();
 
 				if ( (! ostr) )
 				{
 					::libmaus2::exception::LibMausException se;
-					se.getStream() << "Failed to flush data to file " << outputfilename 
-						<< ": " 
+					se.getStream() << "Failed to flush data to file " << outputfilename
+						<< ": "
 						<< strerror(errno)
 						<< std::endl;
 					se.finish();
@@ -504,7 +504,7 @@ namespace libmaus2
 			uint64_t fillBlock(input_type * const A, uint64_t n)
 			{
 			        input_type * T = A;
-			        
+
 			        if ( pc != pe )
 			        {
         			        uint64_t const bufcopy = std::min(n,static_cast<uint64_t>(pe-pc));
@@ -527,7 +527,7 @@ namespace libmaus2
                                                 se.finish();
                                                 throw se;
                                         }
-                                        
+
                                         uint64_t const bufread = std::min(n,restwords);
                                         reader->read( reinterpret_cast<char *>(T), bufread*sizeof(input_type) );
                                         restwords -= bufread;
@@ -535,7 +535,7 @@ namespace libmaus2
                                         n -= bufread;
                                         T += bufread;
                                 }
-                                
+
                                 return (T-A);
 			}
 		};

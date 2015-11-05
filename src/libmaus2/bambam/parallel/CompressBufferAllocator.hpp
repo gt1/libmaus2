@@ -24,16 +24,16 @@
 namespace libmaus2
 {
 	namespace bambam
-	{		
+	{
 		namespace parallel
 		{
 			struct CompressBufferAllocator
 			{
 				uint64_t buffersize;
-			
+
 				CompressBufferAllocator(uint64_t const rbuffersize)
 				: buffersize(rbuffersize) {}
-				
+
 				CompressBuffer * operator()()
 				{
 					return new CompressBuffer(buffersize);

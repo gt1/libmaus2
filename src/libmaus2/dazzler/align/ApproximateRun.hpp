@@ -36,17 +36,17 @@ namespace libmaus2
 				int64_t a_readid;
 				int64_t b_readid;
 				std::pair<int64_t,int64_t> full;
-				
+
 				enum approximate_run_alignment_type
 				{
 					approximate_run_alignment_left,
 					approximate_run_alignment_right
 				};
-				
+
 				approximate_run_alignment_type approximate_run_alignment;
-				
+
 				std::vector<int64_t> other;
-				
+
 				uint64_t serialise(std::ostream & out) const
 				{
 					uint64_t offset = 0;
@@ -60,7 +60,7 @@ namespace libmaus2
 						libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(out,*ita,offset);
 					return offset;
 				}
-				
+
 				void deserialise(std::istream & in)
 				{
 					uint64_t offset = 0;
@@ -68,9 +68,9 @@ namespace libmaus2
 					b_readid = libmaus2::dazzler::db::InputBase::getLittleEndianInteger4(in,offset);
 					full.first = libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(in,offset);
 					full.second = libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(in,offset);
-					
+
 					int32_t const align_v = libmaus2::dazzler::db::InputBase::getLittleEndianInteger4(in,offset);
-					
+
 					switch ( align_v )
 					{
 						case approximate_run_alignment_left:
@@ -93,7 +93,7 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < other_size; ++i )
 						other[i] = libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(in,offset);
 				}
-				
+
 				bool operator<(ApproximateRun const & A) const
 				{
 					if ( a_readid != A.a_readid )
@@ -112,14 +112,14 @@ namespace libmaus2
 						for ( uint64_t i = 0; i < m; ++i )
 							if ( other[i] != A.other[i] )
 								return other[i] < A.other[i];
-						
+
 						if ( other.size() != A.other.size() )
 							return other.size() < A.other.size();
-							
+
 						return false;
 					}
 				}
-				
+
 				bool operator==(ApproximateRun const & A) const
 				{
 					return

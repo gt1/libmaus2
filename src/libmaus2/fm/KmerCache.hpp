@@ -35,87 +35,87 @@ namespace libmaus2
 
 			unsigned int const k;
 			libmaus2::autoarray::AutoArray< libmaus2::fm::BidirectionalIndexInterval > C;
-			
+
 			static unsigned int const bits_per_symbol = 2;
-			
+
 			static uint64_t replaceSymbol(uint64_t v, unsigned int const k, unsigned int const i, uint64_t const sym)
 			{
 				unsigned int const shift = (k-i-1) * bits_per_symbol;
-				
+
 				// remove previous symbol
 				v &= ~(libmaus2::math::lowbits(bits_per_symbol) << shift);
 				// add new symbol
 				v |= sym << shift;
-				
+
 				return v;
 			}
-			
+
 			static std::string printWord(uint64_t const v, unsigned int const k)
 			{
 				std::ostringstream ostr;
-				
+
 				for ( unsigned int i = 0; i < k; ++i )
 					ostr << libmaus2::fastx::remapChar(
 						(v >> ((k-i-1)*bits_per_symbol)) & (libmaus2::math::lowbits(bits_per_symbol))
 					);
-					
+
 				return ostr.str();
 			}
 
 			static std::string printVector(std::vector<char> const & V, unsigned int const k)
 			{
 				std::ostringstream ostr;
-				
+
 				for ( unsigned int i = 0; i < k; ++i )
 					ostr << libmaus2::fastx::remapChar(V[i]-1);
-					
+
 				return ostr.str();
 			}
-			
+
 			private:
 			KmerCache(unsigned int const rk)
 			: k(rk), C( 1ull << (2*k) )
 			{
-			
+
 			}
-			
+
 			public:
 			template<typename index_type, unsigned int range_low = libmaus2::fastx::mapChar('A')+1, unsigned int range_high = libmaus2::fastx::mapChar('T')+1>
 			static unique_ptr_type construct(index_type const & index, unsigned int const k)
 			{
 				unique_ptr_type Tptr(new this_type(k));
 				this_type & me = *Tptr;
-				
+
 				std::vector<char> S(k+1,range_low);
 
 				std::vector<libmaus2::fm::BidirectionalIndexInterval> B(k+1);
 				B[k] = index.epsilon();
 				for ( uint64_t i = 0; i < k; ++i )
 					B[k-i-1] = index.backwardExtend(B[k-i],S[k-i-1]);
-					
+
 				uint64_t m = 0;
-				
+
 				while ( true )
 				{
 					me.C[m] = B[0];
-					
+
 					#if 0
 					std::cerr << printWord(m,k) << "\t" << me.C[m] << std::endl;
-					
+
 					assert ( me.C[m] == index.biSearchBackward(S.begin(),k) );
 					#endif
-			
+
 					int i = 0;
 					while ( S[i] == range_high )
 						++i;
-								
+
 					if ( i == static_cast<int>(k) )
 						break;
 					else
 					{
 						B[i] = index.backwardExtend(B[i+1],++S[i]);
 						m = replaceSymbol(m,k,i,S[i]-range_low);
-						
+
 						while ( --i >= 0 )
 						{
 							B[i] = index.backwardExtend(B[i+1],(S[i]=range_low));
@@ -123,10 +123,10 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				return UNIQUE_PTR_MOVE(Tptr);
 			}
-			
+
 			template<typename index_type, typename iterator>
 			libmaus2::fm::BidirectionalIndexInterval lookup(index_type const & index, iterator query, uint64_t m) const
 			{
@@ -137,7 +137,7 @@ namespace libmaus2
 				else
 				{
 					iterator cquery = query + m - k;
-					
+
 					uint64_t v = 0;
 					for ( unsigned int i = 0; i < k; ++i )
 					{
@@ -146,12 +146,12 @@ namespace libmaus2
 					}
 
 					libmaus2::fm::BidirectionalIndexInterval bint = C[v];
-								
+
 					cquery = query + m - k;
-					
+
 					while ( bint.siz  && cquery != query )
 						bint = index.backwardExtend(bint,*(--cquery));
-					
+
 					return bint;
 				}
 			}

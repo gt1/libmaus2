@@ -38,7 +38,7 @@ namespace libmaus2
 			}
 			return c;
 		}
-		
+
 		inline unsigned int numbits32(uint32_t n)
 		{
 			unsigned int c = 0;
@@ -54,7 +54,7 @@ namespace libmaus2
 				n >>= 1, c+= 1;
 			if ( n )
 				n >>= 1, c+= 1;
-				
+
 			return c;
 		}
 
@@ -78,16 +78,16 @@ namespace libmaus2
 
 			return c;
 		}
-		
+
 		struct NumBits8
 		{
 			private:
 			NumBits8 & operator=(NumBits8 const &);
 			NumBits8(NumBits8 const &);
-		
+
 			protected:
 			::libmaus2::autoarray::AutoArray<unsigned int> T;
-			
+
 			public:
 			NumBits8() : T(256)
 			{
@@ -95,19 +95,19 @@ namespace libmaus2
 					T[i] = ::libmaus2::math::numbits(i);
 			}
 			virtual ~NumBits8() {}
-			
+
 			unsigned int operator()(unsigned int const i) const
 			{
 				return T[i];
-			}			
+			}
 		};
-		
+
 		struct NumBits32 : public NumBits8
 		{
 			typedef NumBits8 base_type;
-		
+
 			NumBits32() : NumBits8() {}
-			
+
 			unsigned int operator()(uint32_t n) const
 			{
 				unsigned int c = 0;
@@ -122,9 +122,9 @@ namespace libmaus2
 		struct NumBits64 : public NumBits8
 		{
 			typedef NumBits8 base_type;
-		
+
 			NumBits64() : NumBits8() {}
-			
+
 			unsigned int operator()(uint64_t n) const
 			{
 				unsigned int c = 0;
@@ -142,7 +142,7 @@ namespace libmaus2
 		inline uint64_t nextTwoPow(uint64_t const n)
 		{
 			uint64_t const numbits = ::libmaus2::math::numbits(n);
-			
+
 			if ( n == (static_cast<uint64_t>(1ull) << (numbits-1)) )
 				return n;
 			else

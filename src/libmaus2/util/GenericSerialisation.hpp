@@ -58,7 +58,7 @@ namespace libmaus2
 				std::istringstream istr(s);
 				data_type d;
 				istr >> d;
-				
+
 				if ( ! istr )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -66,7 +66,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
-				
+
 				return d;
 			}
 		};

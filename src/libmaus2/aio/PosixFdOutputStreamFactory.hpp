@@ -31,12 +31,12 @@ namespace libmaus2
 			typedef PosixFdOutputStreamFactory this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			virtual ~PosixFdOutputStreamFactory() {}
 			virtual libmaus2::aio::OutputStream::unique_ptr_type constructUnique(std::string const & filename)
 			{
 				if ( filename == "-" )
-				{				
+				{
 					libmaus2::util::shared_ptr<std::ostream>::type iptr(new PosixFdOutputStream(STDOUT_FILENO));
 					libmaus2::aio::OutputStream::unique_ptr_type istr(new libmaus2::aio::OutputStream(iptr));
 					return UNIQUE_PTR_MOVE(istr);
@@ -51,7 +51,7 @@ namespace libmaus2
 			virtual libmaus2::aio::OutputStream::shared_ptr_type constructShared(std::string const & filename)
 			{
 				if ( filename == "-" )
-				{				
+				{
 					libmaus2::util::shared_ptr<std::ostream>::type iptr(new PosixFdOutputStream(STDOUT_FILENO));
 					libmaus2::aio::OutputStream::shared_ptr_type istr(new libmaus2::aio::OutputStream(iptr));
 					return istr;

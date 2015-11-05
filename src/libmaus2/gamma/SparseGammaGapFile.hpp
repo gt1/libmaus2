@@ -35,13 +35,13 @@ namespace libmaus2
 			SparseGammaGapFile() : fn(), level(0) {}
 			SparseGammaGapFile(std::string const & rfn, uint64_t const rlevel)
 			: fn(rfn), level(rlevel) {}
-			
+
 			bool operator<(SparseGammaGapFile const & o) const
 			{
 				return level > o.level;
 			}
 		};
-		
+
 		inline std::ostream & operator<<(std::ostream & out, SparseGammaGapFile const & SGGF)
 		{
 			out << "SparseGammaGapFile(fn=" << SGGF.fn << ",level=" << SGGF.level << ")";

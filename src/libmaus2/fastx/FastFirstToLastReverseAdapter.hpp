@@ -32,14 +32,14 @@ namespace libmaus2
 			typedef typename pattern_type::unique_ptr_type pattern_ptr_type;
 
 			reader_type & reader;
-			
+
 			bool havefirst;
 			bool usedfirst;
-			
+
 			pattern_ptr_type first;
-			
+
 			uint64_t patid;
-			
+
 			bool const reverse;
 
 			FastFirstToLastReverseAdapter(reader_type & rreader, bool const mapfirsttolast, bool const rreverse)
@@ -47,13 +47,13 @@ namespace libmaus2
 			{
 				if ( mapfirsttolast )
 					havefirst = reader.getNextPatternUnlocked(*first);
-			
+
 			}
 
 			bool getNextPatternUnlocked(pattern_type & pattern)
 			{
 				bool r;
-			
+
 				if ( reader.getNextPatternUnlocked(pattern) )
 				{
 					r = true;
@@ -74,7 +74,7 @@ namespace libmaus2
 
 				pattern.pattern = pattern.spattern.c_str();
 				pattern.patid = patid++;
-				
+
 				return r;
 			}
 		};

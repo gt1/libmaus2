@@ -29,12 +29,12 @@ void testGapArrayByte()
 	libmaus2::autoarray::AutoArray<uint32_t> GG(gsize);
 	for ( uint64_t i = 0; i < gsize; ++i )
 		GG[i] = 1;
-	
+
 	for ( uint64_t i = 0; i < 32; ++i )
 		GG[libmaus2::random::Random::rand64() % gsize] = 257;
-	
+
 	uint64_t const numthreads = 32;
-	
+
 	libmaus2::suffixsort::GapArrayByte GAB(gsize,16,numthreads,"tmp");
 
 	#if defined(_OPENMP)
@@ -46,26 +46,26 @@ void testGapArrayByte()
 				#if defined(_OPENMP)
 				GAB(i,omp_get_thread_num());
 				#else
-				GAB(i,0);				
+				GAB(i,0);
 				#endif
 
 	GAB.flush();
-	
+
 	uint64_t offset = 0;
 	libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type pdec(GAB.getDecoder(offset));
 	libmaus2::autoarray::AutoArray<uint32_t> TT(48);
-	
+
 	while ( offset != gsize )
 	{
 		uint64_t const rest = gsize - offset;
 		uint64_t const tocopy = std::min(rest,TT.size());
 		pdec->decode(TT.begin(),tocopy);
-		
+
 		for ( uint64_t i = 0; i < tocopy; ++i )
 			assert (
 				TT[i] == GG[offset+i]
 			);
-		
+
 		offset += tocopy;
 	}
 }

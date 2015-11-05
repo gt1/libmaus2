@@ -36,17 +36,17 @@ namespace libmaus2
 		{
 			typedef GammaGapEncoder this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			static uint64_t const blocksize = 256*1024;
-			
+
 			::libmaus2::aio::OutputStreamInstance COS;
 			::std::vector< ::libmaus2::huffman::IndexEntry > index;
-			
+
 			GammaGapEncoder(std::string const & filename)
-			: COS(filename) 
+			: COS(filename)
 			{
 			}
-			
+
 			uint64_t writeFileSize(uint64_t const n)
 			{
 				::libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO(COS,64);
@@ -54,23 +54,23 @@ namespace libmaus2
 				SGO.flush();
 				return SGO.getWrittenBytes();
 			}
-			
+
 			template<typename iterator>
 			uint64_t encodeInternal(iterator ita, uint64_t const n, uint64_t off)
 			{
 				::libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO(COS,64*1024);
 				::libmaus2::gamma::GammaEncoder < ::libmaus2::aio::SynchronousGenericOutput<uint64_t> > GE(SGO);
 				uint64_t const numblocks = (n + blocksize-1)/blocksize;
-				
+
 				for ( uint64_t b = 0; b < numblocks; ++b )
 				{
 					uint64_t const blow = std::min(b*blocksize,n);
 					uint64_t const bhigh = std::min(blow+blocksize,n);
 					uint64_t const bcnt = bhigh-blow;
-					
+
 					uint64_t const pos = SGO.getWrittenBytes();
 					uint64_t vacc = 0;
-					
+
 					GE.encodeWord(bcnt,32);
 					for ( uint64_t i = 0; i < bcnt; ++i )
 					{
@@ -79,13 +79,13 @@ namespace libmaus2
 						vacc += v;
 					}
 					GE.flush();
-					
+
 					::libmaus2::huffman::IndexEntry const entry(pos+off,bcnt,vacc);
-					index.push_back(entry);										
+					index.push_back(entry);
 				}
-				
+
 				SGO.flush();
-				
+
 				return SGO.getWrittenBytes();
 			}
 
@@ -93,7 +93,7 @@ namespace libmaus2
 			{
 				uint64_t const maxpos = index.size() ? index[index.size()-1].pos : 0;
 				unsigned int const posbits = ::libmaus2::math::bitsPerNum(maxpos);
-				
+
 				uint64_t const kacc = std::accumulate(index.begin(),index.end(),0ull,::libmaus2::huffman::IndexEntryKeyAdd());
 				unsigned int const kbits = ::libmaus2::math::bitsPerNum(kacc);
 
@@ -104,7 +104,7 @@ namespace libmaus2
 				gapHEF.writeElias2(index.size());
 				// write number of bits per file position
 				gapHEF.writeElias2(posbits);
-				
+
 				// write number of bits per sym acc
 				gapHEF.writeElias2(kbits);
 				// write symacc
@@ -114,10 +114,10 @@ namespace libmaus2
 				gapHEF.writeElias2(vbits);
 				// write symacc
 				gapHEF.writeElias2(vacc);
-				
+
 				// align
 				gapHEF.flush();
-				
+
 				uint64_t tkacc = 0, tvacc = 0;
 				for ( uint64_t i = 0; i < index.size(); ++i )
 				{
@@ -131,14 +131,14 @@ namespace libmaus2
 				gapHEF.write(tkacc,kbits); // sum of values inblock
 				gapHEF.write(tvacc,vbits); // sum of values inblock
 				gapHEF.flush();
-			
-				// write position of index in last 64 bits of file	
+
+				// write position of index in last 64 bits of file
 				for ( uint64_t i = 0; i < 64; ++i )
 					gapHEF.writeBit( (indexpos & (1ull<<(63-i))) != 0 );
 
-				gapHEF.flush();				
+				gapHEF.flush();
 			}
-			
+
 			void writeIndex(uint64_t const indexpos)
 			{
 				::libmaus2::aio::SynchronousGenericOutput<uint8_t> SGO(COS,64*1024);
@@ -149,15 +149,15 @@ namespace libmaus2
 				FWBWS.flush();
 				SGO.flush();
 			}
-			
+
 			template<typename iterator>
 			void encode(iterator ita, uint64_t const n)
-			{			
+			{
 				uint64_t const fslen = writeFileSize(n);
 				uint64_t const indexpos = fslen + encodeInternal<iterator>(ita,n,fslen);
-												
+
 				writeIndex(indexpos);
-				
+
 				COS.flush();
 			}
 
@@ -191,7 +191,7 @@ namespace libmaus2
 							se.finish();
 							throw se;
 						}
-						
+
 					GammaGapEncoder::unique_ptr_type GGE(new GammaGapEncoder(outfilename));
 					::libmaus2::autoarray::AutoArray<GammaGapDecoder::unique_ptr_type> GGD(infilenames.size());
 					for ( uint64_t i = 0; i < infilenames.size(); ++i )
@@ -206,7 +206,7 @@ namespace libmaus2
 						new ::libmaus2::aio::SynchronousGenericOutput<uint64_t>(GGE->COS,64*1024));
 					::libmaus2::gamma::GammaEncoder < ::libmaus2::aio::SynchronousGenericOutput<uint64_t> >::unique_ptr_type
 						GE(new ::libmaus2::gamma::GammaEncoder < ::libmaus2::aio::SynchronousGenericOutput<uint64_t> > (*SGO));
-					
+
 					for ( uint64_t b = 0; b < numblocks; ++b )
 					{
 						uint64_t const blow = std::min(b*blocksize,n);
@@ -214,10 +214,10 @@ namespace libmaus2
 						uint64_t const bcnt = bhigh-blow;
 
 						uint64_t const pos = SGO->getWrittenBytes();
-						
+
 						GE->encodeWord(bcnt,32);
 						uint64_t vacc = 0;
-						
+
 						for ( uint64_t i = 0; i < bcnt; ++i )
 						{
 							uint64_t v = 0;
@@ -229,21 +229,21 @@ namespace libmaus2
 						GE->flush();
 
 						::libmaus2::huffman::IndexEntry const entry(pos+fslen,bcnt,vacc);
-						GGE->index.push_back(entry);						
+						GGE->index.push_back(entry);
 					}
-					
+
 					GE.reset();
 					SGO->flush();
 					uint64_t const indexpos = fslen + SGO->getWrittenBytes();
 					SGO.reset();
-					
+
 					GGE->writeIndex(indexpos);
 					GGE->COS.flush();
 					GGE.reset();
 
 					for ( uint64_t i = 0; i < infilenames.size(); ++i )
 						GGD[i].reset();
-						
+
 					bool const check = true;
 					if ( check )
 					{
@@ -253,15 +253,15 @@ namespace libmaus2
 							GGD[i] = UNIQUE_PTR_MOVE(tGGDi);
 						}
 						GammaGapDecoder OGGD(std::vector<std::string>(1,outfilename));
-						
+
 						for ( uint64_t i = 0; i < n; ++i )
 						{
 							uint64_t v = 0;
 							for ( uint64_t j = 0; j < infilenames.size(); ++j )
 								v += GGD[j]->decode();
-							
+
 							uint64_t const vv = OGGD.decode();
-							
+
 							if ( v != vv )
 							{
 								::libmaus2::exception::LibMausException se;
@@ -270,11 +270,11 @@ namespace libmaus2
 								throw se;
 							}
 						}
-						
+
 						std::cerr << "[D] merge succesfull." << std::endl;
 					}
 				}
-			}                                                                                        
+			}
 		};
 	}
 }

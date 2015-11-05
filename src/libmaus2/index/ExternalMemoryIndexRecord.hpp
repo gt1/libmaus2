@@ -28,7 +28,7 @@
 namespace libmaus2
 {
 	namespace index
-	{		
+	{
 		template<typename _data_type>
 		struct ExternalMemoryIndexRecord
 		{
@@ -36,22 +36,22 @@ namespace libmaus2
 			typedef ExternalMemoryIndexRecord<data_type> this_type;
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			std::pair<uint64_t,uint64_t> P;
 			data_type D;
-			
+
 			ExternalMemoryIndexRecord()
 			: P(), D()
 			{
-			
+
 			}
-			
+
 			ExternalMemoryIndexRecord(data_type const & rD)
 			: P(), D(rD) {}
-			
+
 			ExternalMemoryIndexRecord(std::pair<uint64_t,uint64_t> const & rP, data_type const & rD)
 			: P(rP), D(rD) {}
-			
+
 			template<typename stream_type>
 			void deserialise(stream_type & stream)
 			{
@@ -59,12 +59,12 @@ namespace libmaus2
 				P.second = libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
 				D.deserialise(stream);
 			}
-			
+
 			bool operator<(this_type const & O) const
 			{
 				return D < O.D;
 			}
-			
+
 			bool equal(ExternalMemoryIndexRecord const & O) const
 			{
 				return (P == O.P) && (D == O.D);

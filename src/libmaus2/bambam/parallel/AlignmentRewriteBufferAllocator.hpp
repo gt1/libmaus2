@@ -31,19 +31,19 @@ namespace libmaus2
 			{
 				uint64_t bufferSize;
 				uint64_t mult;
-				
+
 				AlignmentRewriteBufferAllocator()
 				: bufferSize(0), mult(0)
 				{
-				
+
 				}
-				
+
 				AlignmentRewriteBufferAllocator(uint64_t const rbufferSize, uint64_t const rmult)
 				: bufferSize(rbufferSize), mult(rmult)
 				{
-				
+
 				}
-				
+
 				AlignmentRewriteBuffer * operator()() const
 				{
 					return new AlignmentRewriteBuffer(bufferSize,mult);

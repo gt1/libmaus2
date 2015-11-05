@@ -29,13 +29,13 @@ namespace libmaus2
 {
 	namespace lz
 	{
-		struct BgzfInflateDeflateParallelInputStream : 
-			public ::libmaus2::lz::BgzfInflateDeflateParallelWrapper, 
+		struct BgzfInflateDeflateParallelInputStream :
+			public ::libmaus2::lz::BgzfInflateDeflateParallelWrapper,
 			public ::libmaus2::lz::BgzfStreamWrapper< ::libmaus2::lz::BgzfInflateDeflateParallel >
 		{
 			typedef BgzfInflateDeflateParallelInputStream this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			BgzfInflateDeflateParallelInputStream(
 				std::istream & in,
 				std::ostream & out,
@@ -43,7 +43,7 @@ namespace libmaus2
 				uint64_t const rnumthreads,
 				uint64_t const rblocksperthread = 1
 			)
-			: ::libmaus2::lz::BgzfInflateDeflateParallelWrapper(in,out,level,rnumthreads,rblocksperthread), 
+			: ::libmaus2::lz::BgzfInflateDeflateParallelWrapper(in,out,level,rnumthreads,rblocksperthread),
 			  ::libmaus2::lz::BgzfStreamWrapper< ::libmaus2::lz::BgzfInflateDeflateParallel >(
 			  	::libmaus2::lz::BgzfInflateDeflateParallelWrapper::bgzf,64*1024,0)
 			{

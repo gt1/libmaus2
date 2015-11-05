@@ -30,13 +30,13 @@ int main(int argc, char * argv[])
 		libmaus2::timing::RealTimeClock rtc;
 		uint64_t const runs = 10;
 		std::pair <libmaus2::bambam::BamAlignment const *, libmaus2::bambam::BamAlignment const *> P;
-		
+
 		for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
 		{
 			std::string const fn = arginfo.restargs[i];
 			double srate = 0, drate = 0;
-	
-			for ( uint64_t j = 0; j < runs; ++j )		
+
+			for ( uint64_t j = 0; j < runs; ++j )
 			{
 				rtc.start();
 				libmaus2::bambam::BamDecoder bamdec(fn);
@@ -44,14 +44,14 @@ int main(int argc, char * argv[])
 				while ( bamdec.readAlignment() )
 					++cnt;
 				double const lela = rtc.getElapsedSeconds();
-				
-				std::cerr << "[S] " << "cnt=" << cnt << " ela=" << lela 
+
+				std::cerr << "[S] " << "cnt=" << cnt << " ela=" << lela
 					<< " rate=" << cnt/lela << std::endl;
-					
+
 				srate += cnt/lela;
 			}
 
-			for ( uint64_t j = 0; j < runs; ++j )		
+			for ( uint64_t j = 0; j < runs; ++j )
 			{
 				rtc.start();
 				libmaus2::aio::InputStreamInstance CIS(fn);
@@ -66,13 +66,13 @@ int main(int argc, char * argv[])
 				}
 				libmaus2::aio::FileRemoval::removeFile("tmpfile");
 				double const lela = rtc.getElapsedSeconds();
-				
-				std::cerr << "[D] " << "cnt=" << cnt << " ela=" << lela 
+
+				std::cerr << "[D] " << "cnt=" << cnt << " ela=" << lela
 					<< " rate=" << cnt/lela << std::endl;
-					
+
 				drate += cnt/lela;
 			}
-			
+
 			srate /= runs;
 			drate /= runs;
 			std::cerr << "[Q] " << srate/drate << std::endl;

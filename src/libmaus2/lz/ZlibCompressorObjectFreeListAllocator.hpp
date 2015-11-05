@@ -27,12 +27,12 @@ namespace libmaus2
 {
 	namespace lz
 	{
-		struct ZlibCompressorObjectFreeListAllocator : 
-			public libmaus2::lz::ZlibCompressorObjectFactoryWrapper, 
+		struct ZlibCompressorObjectFreeListAllocator :
+			public libmaus2::lz::ZlibCompressorObjectFactoryWrapper,
 			public libmaus2::lz::CompressorObjectFreeListAllocator
 		{
 			ZlibCompressorObjectFreeListAllocator(int const level = Z_DEFAULT_COMPRESSION)
-			: libmaus2::lz::ZlibCompressorObjectFactoryWrapper(libmaus2::lz::ZlibCompressorObjectFactory::shared_ptr_type(new ZlibCompressorObjectFactory(level))), 
+			: libmaus2::lz::ZlibCompressorObjectFactoryWrapper(libmaus2::lz::ZlibCompressorObjectFactory::shared_ptr_type(new ZlibCompressorObjectFactory(level))),
 			  libmaus2::lz::CompressorObjectFreeListAllocator(libmaus2::lz::ZlibCompressorObjectFactoryWrapper::factory) {}
 		};
 	}

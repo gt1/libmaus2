@@ -31,29 +31,29 @@ uint64_t writeMappedFile(std::string const & bamfn, std::string const & rankfn, 
 	libmaus2::bambam::BamHeader const & header = bamdec.getHeader();
 	libmaus2::bambam::BamAlignment & algn = bamdec.getAlignment();
 	uint64_t r = 0;
-	
+
 	for ( ; bamdec.readAlignment(); ++r )
 	{
 		WCE.writeBit(algn.isMapped());
-		
+
 		if ( algn.isMapped() )
 		{
 			binhist( algn.getBin() );
-			
+
 			if ( algn.getBin() != algn.computeBin() )
 			{
 				std::cerr << "stored bin " << algn.getBin() << " != computed bin " << algn.computeBin()
 					<< " for alignment " << algn.formatAlignment(header) << std::endl;
 			}
 		}
-		
+
 		if ( ! (r & (1024*1024-1)) )
 			std::cerr << "[" << r/(1024*1024)  << "]";
 	}
-		
+
 	WCE.flush();
 	WCE.fillHeader(r);
-	
+
 	return r;
 }
 
@@ -63,20 +63,20 @@ void getBinHistogram(std::string const & bamfn, libmaus2::util::Histogram & binh
 	libmaus2::bambam::BamHeader const & header = bamdec.getHeader();
 	libmaus2::bambam::BamAlignment & algn = bamdec.getAlignment();
 	uint64_t r = 0;
-	
+
 	for ( ; bamdec.readAlignment(); ++r )
 	{
 		if ( algn.isMapped() )
 		{
 			binhist( algn.getBin() );
-			
+
 			if ( algn.getBin() != algn.computeBin() )
 			{
 				std::cerr << "stored bin " << algn.getBin() << " != computed bin " << algn.computeBin()
 					<< " for alignment " << algn.formatAlignment(header) << std::endl;
 			}
 		}
-		
+
 		if ( ! (r & (1024*1024-1)) )
 			std::cerr << "[" << r/(1024*1024)  << "]";
 	}
@@ -96,7 +96,7 @@ int main(int argc, char * argv[])
 		libmaus2::util::TempFileRemovalContainer::addTempFile(mappedfile);
 		libmaus2::util::Histogram binhist;
 		uint64_t const n = writeMappedFile(fn,mappedfile,binhist);
-		
+
 		libmaus2::aio::InputStreamInstance mappedCIS(mappedfile);
 		libmaus2::rank::ImpCacheLineRank mappedrank(mappedCIS);
 		mappedCIS.close();
@@ -110,25 +110,25 @@ int main(int argc, char * argv[])
 		std::cerr << ", done." << std::endl;
 
 		std::cerr << "[V] Computing bin histogram using index...";
-		libmaus2::bambam::BamIndex index(fn);		
+		libmaus2::bambam::BamIndex index(fn);
 		libmaus2::bambam::BamDecoder bamdec(fn);
 		libmaus2::bambam::BamHeader const & bamheader = bamdec.getHeader();
-		
+
 		libmaus2::bambam::BamDecoderResetableWrapper BDRW(fn, bamheader);
 		libmaus2::util::Histogram readhist;
 
 		for ( uint64_t r = 0; r < index.getRefs().size(); ++r )
 		{
 			std::cerr << "(" << static_cast<double>(r) / index.getRefs().size() << ")";
-			
+
 			libmaus2::bambam::BamIndexRef const & ref = index.getRefs()[r];
 			libmaus2::bambam::BamIndexLinear const & lin = ref.lin;
 			std::cerr << "[L" << lin.intervals.size() << "]";
 			for ( uint64_t i = 0; i < lin.intervals.size(); ++i )
 			{
-				std::cerr << "L[" << i << "]=" << lin.intervals[i] << std::endl;	
+				std::cerr << "L[" << i << "]=" << lin.intervals[i] << std::endl;
 			}
-			
+
 			for ( uint64_t i = 0; i < ref.bin.size(); ++i )
 			{
 				libmaus2::bambam::BamIndexBin const & bin = ref.bin[i];
@@ -146,28 +146,28 @@ int main(int argc, char * argv[])
 						{
 							if ( algn.isMapped() && bin.bin != algn.getBin() )
 							{
-								std::cerr 
-									<< "refid=" << r 
-									<< " bin=" << bin.bin 
-									<< " chunk=" 
+								std::cerr
+									<< "refid=" << r
+									<< " bin=" << bin.bin
+									<< " chunk="
 									<< "(" << (c.first>>16) << "," << (c.first&((1ull<<16)-1)) << ")"
 									<< ","
 									<< "(" << (c.second>>16) << "," << (c.second&((1ull<<16)-1)) << ")"
 									<< std::endl;
 
 								std::cerr << bin.bin << "\t" << algn.getBin() << "\t" << algn.computeBin() << " z=" << z << std::endl;
-								
+
 								brok = true;
 							}
-							
+
 							if ( algn.isMapped() )
 							{
 								readhist(algn.getBin());
 							}
-							
+
 							++z;
 						}
-						
+
 						if ( brok )
 							std::cerr << "[brok total] " << z << std::endl;
 					}
@@ -175,7 +175,7 @@ int main(int argc, char * argv[])
 			}
 		}
 		std::cerr << "done." << std::endl;
-		
+
 		std::cerr << "[V] Comparing histograms...";
 		std::map<uint32_t,uint64_t> const binmap = binhist.getByType<uint32_t>();
 		std::map<uint32_t,uint64_t> const readmap = readhist.getByType<uint32_t>();
@@ -184,13 +184,13 @@ int main(int argc, char * argv[])
 			keyset.insert(ita->first);
 		for ( std::map<uint32_t,uint64_t>::const_iterator ita = readmap.begin(); ita != readmap.end(); ++ita )
 			keyset.insert(ita->first);
-			
+
 		bool equal = true;
-			
+
 		for ( std::set<uint32_t>::const_iterator ita = keyset.begin(); ita != keyset.end(); ++ita )
 		{
 			uint32_t const key = *ita;
-			
+
 			if ( binmap.find(key) == binmap.end() )
 			{
 				std::cerr << "bin " << key << " is not in bin map" << std::endl;
@@ -201,7 +201,7 @@ int main(int argc, char * argv[])
 				std::cerr << "bin " << key << " is not in read map" << std::endl;
 				equal = false;
 			}
-			else if ( 
+			else if (
 				binmap.find(key)->second != readmap.find(key)->second
 			)
 			{
@@ -213,7 +213,7 @@ int main(int argc, char * argv[])
 			}
 		}
 		std::cerr << "done." << std::endl;
-		
+
 		std::cerr << "[R] " << (equal ? "equal" : "not equal") << std::endl;
 	}
 	catch(std::exception const & ex)

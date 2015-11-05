@@ -31,24 +31,24 @@ namespace libmaus2
 			typedef SnappyInputStreamArrayFile this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			libmaus2::aio::InputStreamInstance istr;
 			SnappyInputStreamArray array;
-			
+
 			template<typename iterator>
 			SnappyInputStreamArrayFile(std::string const & filename, iterator offa, iterator offe)
 			: istr(filename), array(istr,offa,offe)
 			{
-			
+
 			}
-			
+
 			template<typename iterator>
 			static unique_ptr_type construct(std::string const & filename, iterator offa, iterator offe)
 			{
 				unique_ptr_type ptr(new this_type(filename,offa,offe));
 				return UNIQUE_PTR_MOVE(ptr);
 			}
-			
+
 			static unique_ptr_type construct(std::string const & filename, std::vector<uint64_t> const & V)
 			{
 				unique_ptr_type ptr(construct(filename,V.begin(),V.end()));

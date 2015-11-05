@@ -27,20 +27,20 @@
 namespace libmaus2
 {
 	namespace lcp
-	{		
+	{
 		struct WaveletLCPResult
 		{
 			typedef WaveletLCPResult this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			typedef uint8_t small_elem_type;
 			::libmaus2::autoarray::AutoArray<uint8_t>::unique_ptr_type WLCP;
 			::libmaus2::autoarray::AutoArray<uint64_t>::unique_ptr_type U;
 			::libmaus2::rank::ERank222B::unique_ptr_type Urank;
 			::libmaus2::autoarray::AutoArray<uint64_t>::unique_ptr_type LLCP;
-			
+
 			typedef libmaus2::util::ConstIterator<WaveletLCPResult,uint64_t> const_iterator;
-			
+
 			const_iterator begin() const
 			{
 				return const_iterator(this,0);
@@ -50,7 +50,7 @@ namespace libmaus2
 			{
 				return const_iterator(this,WLCP->size()-1);
 			}
-			
+
 			void serialise(std::ostream & out) const
 			{
 				::libmaus2::util::NumberSerialisation::serialiseNumber(out,U.get()!=0);
@@ -61,24 +61,24 @@ namespace libmaus2
 					LLCP->serialize(out);
 				}
 			}
-			
+
 			static unique_ptr_type load(std::string const & filename)
 			{
 				libmaus2::aio::InputStreamInstance istr(filename);
-				
+
 				unique_ptr_type P ( new this_type(istr) );
-				
+
 				if ( ! istr )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to load file " << filename << " in WaveletLCPResult::load()" << std::endl;
 					se.finish();
-					throw se;					
+					throw se;
 				}
-				
+
 				return UNIQUE_PTR_MOVE(P);
 			}
-			
+
 			WaveletLCPResult(std::istream & in)
 			{
 				bool const haveU = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
@@ -96,13 +96,13 @@ namespace libmaus2
 					Urank = UNIQUE_PTR_MOVE(tUrank);
 				}
 			}
-			
+
 			WaveletLCPResult(uint64_t const n)
 			: WLCP(::libmaus2::autoarray::AutoArray<uint8_t>::unique_ptr_type(new ::libmaus2::autoarray::AutoArray<uint8_t>(n+1)))
 			{
-			
+
 			}
-			
+
 			bool isUnset(uint64_t i) const
 			{
 				if ( (*WLCP)[i] != std::numeric_limits<small_elem_type>::max() )
@@ -115,7 +115,7 @@ namespace libmaus2
 					return (*LLCP) [ Urank->rank1(i)-1 ] == std::numeric_limits<uint64_t>::max();
 				}
 			}
-			
+
 			void set(uint64_t const i, uint64_t const v)
 			{
 				assert ( (*WLCP)[i] == std::numeric_limits<small_elem_type>::max() ) ;
@@ -123,7 +123,7 @@ namespace libmaus2
 				assert ( ::libmaus2::bitio::getBit(U->get(),i) );
 				(*LLCP) [ Urank->rank1(i)-1 ] = v;
 			}
-			
+
 			uint64_t operator[](uint64_t const i) const
 			{
 				if ( ! U )
@@ -133,12 +133,12 @@ namespace libmaus2
 				else
 					return (*LLCP) [ Urank->rank1(i)-1 ];
 			}
-			
+
 			uint64_t get(uint64_t const i) const
 			{
 				return (*this)[i];
 			}
-			
+
 			void setupLargeValueVector(uint64_t const n, small_elem_type const unset)
 			{
 				// set up large value bit vector
@@ -156,7 +156,7 @@ namespace libmaus2
 				this->LLCP = UNIQUE_PTR_MOVE(tLLCP);
 				// mark all large values as unset
 				for ( uint64_t i = 0; i < this->LLCP->size(); ++i )
-					(*(this->LLCP))[i] = std::numeric_limits<uint64_t>::max();				
+					(*(this->LLCP))[i] = std::numeric_limits<uint64_t>::max();
 			}
 		};
 	}

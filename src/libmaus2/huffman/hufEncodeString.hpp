@@ -40,7 +40,7 @@ namespace libmaus2
 			::libmaus2::autoarray::AutoArray<uint64_t> acode(arraylength);
 
 			bitio::FastWriteBitWriter8 fwbw8(acode.get());
-			
+
 			for ( ; a != e ; ++a )
 				enctable [ *a ].first.serialize ( fwbw8 , enctable[*a].second );
 			fwbw8.flush();

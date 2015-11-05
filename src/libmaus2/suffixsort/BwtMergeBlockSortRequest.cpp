@@ -48,6 +48,6 @@ std::ostream & libmaus2::suffixsort::operator<<(std::ostream & out, libmaus2::su
 	out << ",";
 	out << o.lcpnext;
 	out << ")";
-	
+
 	return out;
 }

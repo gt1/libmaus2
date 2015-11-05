@@ -29,7 +29,7 @@ namespace libmaus2
 		struct FastADefinedBasesTable
 		{
 			::libmaus2::autoarray::AutoArray<bool> table;
-			
+
 			FastADefinedBasesTable()
 			: table(256,false)
 			{
@@ -38,7 +38,7 @@ namespace libmaus2
 				table['M'] = table['R'] = table['Y'] = table['S'] = table['W'] = table['B'] =
 				table['V'] = table['H'] = table['D'] = true;
 			}
-			
+
 			bool operator[](uint64_t const i) const
 			{
 				return table[i];

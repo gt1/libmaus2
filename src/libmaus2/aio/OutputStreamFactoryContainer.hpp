@@ -33,11 +33,11 @@ namespace libmaus2
 		{
 			private:
 			static std::map<std::string,libmaus2::aio::OutputStreamFactory::shared_ptr_type> factories;
-			
+
 			static std::map<std::string,libmaus2::aio::OutputStreamFactory::shared_ptr_type> setupFactories()
 			{
 				std::map<std::string,libmaus2::aio::OutputStreamFactory::shared_ptr_type> tfactories;
-				
+
 				libmaus2::aio::PosixFdOutputStreamFactory::shared_ptr_type tfilefact(new libmaus2::aio::PosixFdOutputStreamFactory);
 				tfactories["file"] = tfilefact;
 
@@ -46,37 +46,37 @@ namespace libmaus2
 
 				return tfactories;
 			}
-			
+
 			static bool startsWithAlphaColon(std::string const & url)
 			{
-				uint64_t col = url.size();			
+				uint64_t col = url.size();
 				for ( uint64_t i = 0; i < url.size() && col == url.size(); ++i )
 					if ( url[i] == ':' )
 						col = i;
-				
+
 				if ( col == url.size() )
 					return false;
-					
+
 				for ( uint64_t i = 0; i < col; ++i )
 					if ( !isalpha(static_cast<unsigned char >(url[i])) )
 						return false;
-						
+
 				return true;
 			}
-			
+
 			static bool haveFactoryForProtocol(std::string const & url)
 			{
 				bool const hasurlprefix = startsWithAlphaColon(url);
-			
+
 				if ( hasurlprefix )
 				{
-					uint64_t col = url.size();	
+					uint64_t col = url.size();
 					for ( uint64_t i = 0; i < url.size() && col == url.size(); ++i )
 						if ( url[i] == ':' )
 							col = i;
-					
+
 					std::string const protocol = url.substr(0,col);
-											
+
 					if ( factories.find(protocol) != factories.end() )
 					{
 						libmaus2::aio::OutputStreamFactory::shared_ptr_type factory = factories.find(protocol)->second;
@@ -87,19 +87,19 @@ namespace libmaus2
 						return false;
 					}
 				}
-				
+
 				return false;
 			}
-			
+
 			static libmaus2::aio::OutputStreamFactory::shared_ptr_type getFactory(std::string const & url)
 			{
 				if ( haveFactoryForProtocol(url) )
 				{
-					uint64_t col = url.size();	
+					uint64_t col = url.size();
 					for ( uint64_t i = 0; i < url.size() && col == url.size(); ++i )
 						if ( url[i] == ':' )
 							col = i;
-					
+
 					return factories.find(url.substr(0,col))->second;
 				}
 				else
@@ -107,23 +107,23 @@ namespace libmaus2
 					return factories.find("file")->second;
 				}
 			}
-			
+
 			static void copy(std::string const & from, std::string const & to);
 
 			public:
 			static libmaus2::aio::OutputStream::unique_ptr_type constructUnique(std::string const & url)
 			{
 				libmaus2::aio::OutputStreamFactory::shared_ptr_type factory = getFactory(url);
-				
+
 				if ( haveFactoryForProtocol(url) )
 				{
-					uint64_t col = url.size();	
+					uint64_t col = url.size();
 					for ( uint64_t i = 0; i < url.size() && col == url.size(); ++i )
 						if ( url[i] == ':' )
 							col = i;
-					
+
 					std::string const protocol = url.substr(0,col);
-					
+
 					#if 0
 					if ( protocol == "ftp" || protocol == "http" || protocol == "https" )
 					{
@@ -140,7 +140,7 @@ namespace libmaus2
 				else
 				{
 					libmaus2::aio::OutputStream::unique_ptr_type tptr(factory->constructUnique(url));
-					return UNIQUE_PTR_MOVE(tptr);				
+					return UNIQUE_PTR_MOVE(tptr);
 				}
 			}
 
@@ -166,16 +166,16 @@ namespace libmaus2
 			static libmaus2::aio::OutputStream::shared_ptr_type constructShared(std::string const & url)
 			{
 				libmaus2::aio::OutputStreamFactory::shared_ptr_type factory = getFactory(url);
-				
+
 				if ( haveFactoryForProtocol(url) )
 				{
-					uint64_t col = url.size();	
+					uint64_t col = url.size();
 					for ( uint64_t i = 0; i < url.size() && col == url.size(); ++i )
 						if ( url[i] == ':' )
 							col = i;
-					
+
 					std::string const protocol = url.substr(0,col);
-					
+
 					#if 0
 					if ( protocol == "ftp" || protocol == "http" || protocol == "https" )
 					{
@@ -195,7 +195,7 @@ namespace libmaus2
 					return tptr;
 				}
 			}
-			
+
 			static bool tryOpen(std::string const & url)
 			{
 				try
@@ -208,7 +208,7 @@ namespace libmaus2
 					return false;
 				}
 			}
-			
+
 			static void rename(std::string const & from, std::string const & to)
 			{
 				libmaus2::aio::OutputStreamFactory::shared_ptr_type fromfact = getFactory(from);
@@ -227,9 +227,9 @@ namespace libmaus2
 
 			static void addHandler(std::string const & protocol, libmaus2::aio::OutputStreamFactory::shared_ptr_type factory)
 			{
-				factories[protocol] = factory;			
+				factories[protocol] = factory;
 			}
-		};	
+		};
 	}
 }
 #endif

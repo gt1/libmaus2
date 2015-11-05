@@ -37,7 +37,7 @@ namespace libmaus2
 			::libmaus2::bambam::BamFormatAuxiliary aux;
 			//! output stream
 			std::ostream & out;
-			
+
 			/**
 			 * constructor
 			 *
@@ -53,7 +53,7 @@ namespace libmaus2
 			 * @param D alignment block
 			 * @param n size of alignment block
 			 **/
-			void put(uint8_t const * D, uint64_t const n) 
+			void put(uint8_t const * D, uint64_t const n)
 			{
 				out << libmaus2::bambam::BamAlignmentDecoderBase::formatAlignment(D,n,header,aux) << "\n";
 			}

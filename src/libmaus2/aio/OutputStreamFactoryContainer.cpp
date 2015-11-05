@@ -32,13 +32,13 @@ void libmaus2::aio::OutputStreamFactoryContainer::copy(std::string const & from,
 	libmaus2::aio::InputStreamInstance in(from);
 	libmaus2::aio::OutputStreamInstance out(to);
 	libmaus2::autoarray::AutoArray<char> B(64*1024);
-	
+
 	while ( in )
 	{
 		in.read(B.begin(),B.size());
 		ssize_t got = in.gcount();
 		out.write(B.begin(),got);
-		
+
 		if ( ! out )
 		{
 			libmaus2::exception::LibMausException lme;
@@ -47,13 +47,13 @@ void libmaus2::aio::OutputStreamFactoryContainer::copy(std::string const & from,
 			throw lme;
 		}
 	}
-	
+
 	if ( in.bad() )
 	{
 		libmaus2::exception::LibMausException lme;
 		lme.getStream() << "libmaus2::aio::OutputStreamFactoryContainer::copy(" << from << "," << to << "): input failed" << std::endl;
 		lme.finish();
 		throw lme;
-	
+
 	}
 }

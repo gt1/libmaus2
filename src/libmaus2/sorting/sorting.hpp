@@ -33,7 +33,7 @@ namespace libmaus2
 		struct IntProjector
 		{
 			typedef int value_type;
-			
+
 			#if defined(QUICKSORT_DEBUG)
 			template<typename type>
 			static value_type proj(type & A, unsigned int i)
@@ -41,7 +41,7 @@ namespace libmaus2
 				return A[i];
 			}
 			#endif
-			
+
 			template<typename type>
 			static void swap(type & A, unsigned int i, unsigned int j)
 			{
@@ -63,11 +63,11 @@ namespace libmaus2
 			)
 		{
 			assert ( right > left );
-			
+
 			unsigned int const l = left;
 			unsigned int const r = right;
 			unsigned int const m = (l+r)>>1;
-				
+
 			if ( ptype::comp(A,l,m) ) { if ( ptype::comp(A,l,r-1) ) { if ( ptype::comp(A,m,r-1) ) return m; else return r-1; } else { return l; } }
 			else {  if ( ptype::comp(A,m,r-1) ) { if ( ptype::comp(A,l,r-1) ) return l; else return r-1; } else { return m; } }
 		}
@@ -106,7 +106,7 @@ namespace libmaus2
 						else
 							break;
 				}
-				
+
 				if ( g == 1 )
 					break;
 
@@ -131,7 +131,7 @@ namespace libmaus2
 						ptype::swap(A,j,j+1);
 					else
 						break;
-				
+
 			#if defined(QUICKSORT_DEBUG)
 			std::cerr << "Output: "; print<type,ptype>(A,left,right); std::cerr << std::endl;
 			#endif
@@ -145,12 +145,12 @@ namespace libmaus2
 			#if defined(QUICKSORT_DEBUG)
 			std::cerr << "input: "; print<type,ptype>(A,left,right); std::cerr << std::endl;
 			#endif
-			
+
 			if ( right - left < 2 )
 				return;
-			
+
 			unsigned int const m = median<type,ptype>(A,left,right);
-			
+
 			#if defined(QUICKSORT_DEBUG)
 			std::cerr << "pivot position: " << m << " pivot value " << ptype::proj(A,m) << std::endl;
 			#endif
@@ -161,21 +161,21 @@ namespace libmaus2
 			#if defined(QUICKSORT_DEBUG)
 			std::cerr << "pivot swap: "; print<type,ptype>(A,left,right); std::cerr << std::endl;
 			#endif
-			
+
 			unsigned int l = left+1;
 			unsigned int r = right-1;
-			
+
 			while ( true )
 			{
 				#if defined(QUICKSORT_DEBUG)
 				std::cerr << "entering loop: "; print<type,ptype>(A,left,right); std::cerr << " l=" << l << " r=" << r << std::endl;
 				#endif
-				
+
 				while ( l < right && !(ptype::comp(A,left,l)) )
 					++l;
 				while ( r > left && ptype::comp(A,left,r) )
 					--r;
-				
+
 				if ( r < l )
 				{
 					#if defined(QUICKSORT_DEBUG)
@@ -183,7 +183,7 @@ namespace libmaus2
 					#endif
 					break;
 				}
-				
+
 				ptype::swap(A,l,r);
 				l++;
 				r--;
@@ -192,7 +192,7 @@ namespace libmaus2
 			#if defined(QUICKSORT_DEBUG)
 			std::cerr << "entering loop: "; print<type,ptype>(A,left,right); std::cerr << " l=" << l << " r=" << r << std::endl;
 			#endif
-			
+
 			assert ( l > r );
 
 			ptype::swap(A,left,l-1);
@@ -204,7 +204,7 @@ namespace libmaus2
 			unsigned int const cutoff = 24;
 
 			if ( (l-1)-left < cutoff )
-				insertionsort<type,ptype>(A,left,l-1);		
+				insertionsort<type,ptype>(A,left,l-1);
 			else
 				quicksort<type,ptype>(A,left,l-1);
 

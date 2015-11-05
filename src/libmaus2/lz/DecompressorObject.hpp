@@ -29,11 +29,11 @@ namespace libmaus2
 		{
 			typedef DecompressorObject this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+
 			virtual ~DecompressorObject() {}
 			virtual bool rawuncompress(
-				char const * compressed, 
-				size_t compressed_length, 
+				char const * compressed,
+				size_t compressed_length,
 				char * uncompressed,
 				size_t uncompressed_length) = 0;
 			virtual std::string getDescription() const = 0;

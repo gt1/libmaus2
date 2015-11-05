@@ -39,12 +39,12 @@ namespace libmaus2
 			typedef SynchronousFastReaderBase this_type;
 			//! unique pointer type
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-		
+
 			private:
 			//! input file names
 			std::vector<std::string> const filenames;
-		
-			//! input type	
+
+			//! input type
 			typedef libmaus2::aio::InputStreamInstance input_type;
 			//! input pointer type
 			typedef ::libmaus2::util::unique_ptr<input_type>::type input_type_ptr;
@@ -71,10 +71,10 @@ namespace libmaus2
 			uint8_t * pe;
 			//! number of symbols extracted
 			uint64_t c;
-			
+
 			//! character buffer
 			::libmaus2::fastx::CharBuffer cb;
-			
+
 			/**
 			 * get file pointer object for numerical offset in a list of files
 			 *
@@ -84,17 +84,17 @@ namespace libmaus2
 			 **/
 			static file_offset_type getFileOffset(
 				std::vector<std::string> const & filenames,
-				uint64_t offset)			
+				uint64_t offset)
 			{
 				std::vector<std::string>::const_iterator ita = filenames.begin();
-				
+
 				uint64_t l;
 				while ( ita != filenames.end() && offset >= (l=::libmaus2::util::GetFileSize::getFileSize(*ita)) )
 					++ita, offset -= l;
-			
+
 				return file_offset_type(ita,offset);
 			}
-			
+
 			/**
 			 * set up input for a list of file names and an offset in bytes
 			 *
@@ -107,18 +107,18 @@ namespace libmaus2
 				uint64_t offset)
 			{
 				std::vector<std::string>::const_iterator ita = filenames.begin();
-				
+
 				uint64_t l;
 				while ( ita != filenames.end() && offset >= (l=::libmaus2::util::GetFileSize::getFileSize(*ita)) )
 					++ita, offset -= l;
-				
+
 				if ( ita != filenames.end() )
 				{
 					input_type_ptr itp(new input_type(*ita));
-										
+
 					if ( offset != 0 )
 						itp->seekg(offset,std::ios::beg);
-					
+
 					file_pair_ptr_type fpt(new file_pair_type());
 					fpt->first = UNIQUE_PTR_MOVE(itp);
 					fpt->second = ita;
@@ -130,7 +130,7 @@ namespace libmaus2
 					return UNIQUE_PTR_MOVE(fptr);
 				}
 			}
-			
+
 			/**
 			 * transform a single file name to a list of file names
 			 **/
@@ -191,7 +191,7 @@ namespace libmaus2
 				uint64_t const v1 = readNumber4();
 				return (v0<<32)|v1;
 			}
-			
+
 			SynchronousFastReaderBase(SynchronousFastReaderBase const &);
 			SynchronousFastReaderBase & operator=(SynchronousFastReaderBase const &);
 
@@ -204,11 +204,11 @@ namespace libmaus2
 			 * @param offset read start offset
 			 **/
 			SynchronousFastReaderBase(
-				std::string const & rfilename, 
-				unsigned int = 0, 
-				unsigned int bufsize = 1024, 
+				std::string const & rfilename,
+				unsigned int = 0,
+				unsigned int bufsize = 1024,
 				uint64_t const offset = 0)
-			: 
+			:
 				filenames(singleToList(rfilename)),
 				fpt(setupInput(filenames,offset)),
 				B(bufsize),
@@ -229,10 +229,10 @@ namespace libmaus2
 			 **/
 			SynchronousFastReaderBase(
 				std::vector<std::string> const & rfilenames,
-				unsigned int = 0, 
-				unsigned int bufsize = 1024, 
+				unsigned int = 0,
+				unsigned int bufsize = 1024,
 				uint64_t const offset = 0)
-			: 
+			:
 				filenames(rfilenames),
 				fpt(setupInput(filenames,offset)),
 				B(bufsize),
@@ -270,9 +270,9 @@ namespace libmaus2
 					/* no input stream? */
 					if ( !(fpt->first.get()) )
 						return -1;
-					
+
 					fpt->first->read ( reinterpret_cast<char *>(pa), B.size() );
-					
+
 					if (  fpt->first->gcount() )
 					{
 						pc = pa;
@@ -289,11 +289,11 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				c += 1;
 				return *(pc++);
 			}
-			
+
 			/**
 			 * get line as character array
 			 *
@@ -305,13 +305,13 @@ namespace libmaus2
 				cb.reset();
 				while ( (c=getNextCharacter()) >= 0 && c != '\n' )
 					cb.bufferPush(c);
-				
+
 				if ( cb.length == 0 && c == -1 )
 					return std::pair<char const *, uint64_t>(reinterpret_cast<char const *>(0),0);
 				else
 					return std::pair<char const *, uint64_t>(cb.buffer,cb.length);
 			}
-			
+
 			/**
 			 * get line as string object
 			 *
@@ -321,7 +321,7 @@ namespace libmaus2
 			bool getLine(std::string & s)
 			{
 				std::pair < char const *, uint64_t > P = getLineRaw();
-				
+
 				if ( P.first )
 				{
 					s = std::string(P.first,P.first+P.second);
@@ -332,7 +332,7 @@ namespace libmaus2
 					return false;
 				}
 			}
-			
+
 			/**
 			 * get line offsets for line number modulo mod equaling zero
 			 *
@@ -355,7 +355,7 @@ namespace libmaus2
 			std::vector < uint64_t > getLineOffsets(uint64_t const mod)
 			{
 				std::vector<uint64_t> V;
-				
+
 				int ch = 0;
 				uint64_t l = 0;
 
@@ -369,7 +369,7 @@ namespace libmaus2
 							V.push_back(c-1);
 							// std::cerr << "Pushed " << V.back() << std::endl;
 						}
-				
+
 				return V;
 			}
 		};
