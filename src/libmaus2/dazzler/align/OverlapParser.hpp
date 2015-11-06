@@ -32,6 +32,10 @@ namespace libmaus2
 		{
 			struct OverlapParser
 			{
+				typedef OverlapParser this_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+			
 				enum overlap_parser_state {
 					overlap_parser_reading_record_length, overlap_parser_reading_record
 				};
