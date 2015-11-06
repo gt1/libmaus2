@@ -35,7 +35,7 @@ namespace libmaus2
 				typedef OverlapParser this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 				enum overlap_parser_state {
 					overlap_parser_reading_record_length, overlap_parser_reading_record
 				};
@@ -64,6 +64,13 @@ namespace libmaus2
 				OverlapData & getData()
 				{
 					return odata;
+				}
+
+				bool isIdle() const
+				{
+					return
+						state == overlap_parser_reading_record_length &&
+						recordLengthRead == 0;
 				}
 
 				uint64_t parseBlock(uint8_t const * data, uint8_t const * data_e)

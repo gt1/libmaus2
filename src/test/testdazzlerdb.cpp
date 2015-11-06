@@ -44,6 +44,7 @@
 
 #include <libmaus2/lcs/DalignerLocalAlignment.hpp>
 #include <libmaus2/dazzler/align/OverlapParser.hpp>
+#include <libmaus2/dazzler/align/SimpleOverlapParser.hpp>
 
 uint64_t getColumns()
 {
@@ -71,7 +72,37 @@ int main(int argc, char * argv[])
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
 
-		#if 1
+		#if 0
+		{
+			std::string const lasfn = arginfo.getUnparsedRestArg(0);
+			libmaus2::dazzler::align::SimpleOverlapParser OVLP(lasfn);
+			libmaus2::dazzler::align::AlignmentFileRegion::unique_ptr_type PAF(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFileWithoutIndex(lasfn));
+
+			uint64_t c = 0;
+			while ( OVLP.parseNextBlock() )
+			{
+				libmaus2::dazzler::align::OverlapData & data = OVLP.getData();
+				for ( uint64_t i = 0; i < data.size(); ++i )
+				{
+					libmaus2::dazzler::align::Overlap OVL;
+					bool const ok = PAF->getNextOverlap(OVL);
+					assert ( ok );
+					std::istringstream istr(data.getDataAsString(i));
+					libmaus2::dazzler::align::Overlap COVL;
+					uint64_t l = 0;
+					libmaus2::dazzler::align::AlignmentFile::readOverlap(istr,COVL,l,OVLP.AF.tspace);
+					assert ( OVL == COVL );
+
+					if ( ++c % (32*1024*1024) == 0 )
+						std::cerr << c << std::endl;
+				}
+			}
+
+			return 0;
+		}
+		#endif
+
+		#if 0
 		{
 			std::string const lasfn = arginfo.getUnparsedRestArg(0);
 			libmaus2::aio::InputStreamInstance ISI(lasfn);
