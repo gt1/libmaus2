@@ -604,6 +604,33 @@ int main(int argc, char * argv[])
 				bptr = bbaseptr;
 			}
 
+			libmaus2::lcs::DalignerLocalAlignment DLA;
+			libmaus2::autoarray::AutoArray<std::pair<uint16_t,uint16_t> > Atrace(OVL.path.tlen/2);
+			std::copy(
+				OVL.path.path.begin(),
+				OVL.path.path.begin() + OVL.path.tlen/2,
+				Atrace.begin()
+			);
+
+			libmaus2::lcs::LocalEditDistanceResult const DLALEDR = DLA.computeDenseTrace(
+				aptr,aptr+readsMeta1->at(OVL.aread).rlen,
+				bptr,bptr+readsMeta2->at(OVL.bread).rlen,
+				algn.tspace,
+				Atrace.begin(),
+				Atrace.size(),
+				OVL.path.diffs,
+				OVL.path.abpos,
+				OVL.path.bbpos,
+				OVL.path.aepos,
+				OVL.path.bepos);
+			std::cerr << "[VDLA]" << std::endl;
+			libmaus2::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,
+				aptr,aptr+readsMeta1->at(OVL.aread).rlen,
+				bptr,bptr+readsMeta2->at(OVL.bread).rlen,
+				80,
+				DLA.ta,
+				DLA.te,
+				DLALEDR);
 
 			// compute alignment trace
 			OVL.computeTrace(reinterpret_cast<uint8_t const *>(aptr),reinterpret_cast<uint8_t const *>(bptr),algn.tspace,ATC,ND);
