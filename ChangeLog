@@ -1,3 +1,11 @@
+libmaus2 (2.0.103-1) unstable; urgency=medium
+
+  * add DALIGNER sparse to dense trace interface
+  * add light weight dazzler Overlap parser
+  * fix memory allocation in DatabaseFile::decodeReads
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 06 Nov 2015 13:34:25 +0100
+
 libmaus2 (2.0.102-1) unstable; urgency=medium
 
   * fix daligner indexing
