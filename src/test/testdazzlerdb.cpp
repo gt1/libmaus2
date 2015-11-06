@@ -71,7 +71,7 @@ int main(int argc, char * argv[])
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
 
-		#if 0
+		#if 1
 		{
 			std::string const lasfn = arginfo.getUnparsedRestArg(0);
 			libmaus2::aio::InputStreamInstance ISI(lasfn);
@@ -93,14 +93,16 @@ int main(int argc, char * argv[])
 			{
 				ISI.read(block.begin(),block.size());
 				uint64_t const r = ISI.gcount();
-				uint64_t const rec = OVLP.parseBlock(
+				OVLP.parseBlock(
 					reinterpret_cast<uint8_t const *>(block.begin()),
 					reinterpret_cast<uint8_t const *>(block.begin()+r)
 				);
 
-				for ( uint64_t z = 0; z < OVLP.size(); ++z )
+				libmaus2::dazzler::align::OverlapData const & OPD = OVLP.getData();
+
+				for ( uint64_t z = 0; z < OPD.size(); ++z )
 				{
-					std::string const s = OVLP.getDataAsString(z);
+					std::string const s = OPD.getDataAsString(z);
 					std::istringstream istr(s);
 					libmaus2::dazzler::align::Overlap OVL;
 					uint64_t l = 0;
@@ -123,16 +125,16 @@ int main(int argc, char * argv[])
 
 					assert ( OVL == OVLref );
 
-					assert ( OVL.path.tlen == libmaus2::dazzler::align::OverlapParser::getTLen(OVLP.getData(z).first) );
-					assert ( OVL.path.abpos == libmaus2::dazzler::align::OverlapParser::getABPos(OVLP.getData(z).first) );
-					assert ( OVL.path.bbpos == libmaus2::dazzler::align::OverlapParser::getBBPos(OVLP.getData(z).first) );
-					assert ( OVL.path.aepos == libmaus2::dazzler::align::OverlapParser::getAEPos(OVLP.getData(z).first) );
-					assert ( OVL.path.bepos == libmaus2::dazzler::align::OverlapParser::getBEPos(OVLP.getData(z).first) );
-					assert ( OVL.flags == libmaus2::dazzler::align::OverlapParser::getFlags(OVLP.getData(z).first) );
-					assert ( OVL.aread == libmaus2::dazzler::align::OverlapParser::getARead(OVLP.getData(z).first) );
-					assert ( OVL.bread == libmaus2::dazzler::align::OverlapParser::getBRead(OVLP.getData(z).first) );
+					assert ( OVL.path.tlen == libmaus2::dazzler::align::OverlapData::getTLen(OPD.getData(z).first) );
+					assert ( OVL.path.abpos == libmaus2::dazzler::align::OverlapData::getABPos(OPD.getData(z).first) );
+					assert ( OVL.path.bbpos == libmaus2::dazzler::align::OverlapData::getBBPos(OPD.getData(z).first) );
+					assert ( OVL.path.aepos == libmaus2::dazzler::align::OverlapData::getAEPos(OPD.getData(z).first) );
+					assert ( OVL.path.bepos == libmaus2::dazzler::align::OverlapData::getBEPos(OPD.getData(z).first) );
+					assert ( static_cast<int32_t>(OVL.flags) == libmaus2::dazzler::align::OverlapData::getFlags(OPD.getData(z).first) );
+					assert ( OVL.aread == libmaus2::dazzler::align::OverlapData::getARead(OPD.getData(z).first) );
+					assert ( OVL.bread == libmaus2::dazzler::align::OverlapData::getBRead(OPD.getData(z).first) );
 
-					uint64_t const tl = libmaus2::dazzler::align::OverlapParser::decodeTraceVector(OVLP.getData(z).first, Atrace, OVLP.small);
+					uint64_t const tl = libmaus2::dazzler::align::OverlapData::decodeTraceVector(OPD.getData(z).first, Atrace, OVLP.small);
 					assert ( tl == OVLref.path.path.size() );
 					for ( uint64_t i = 0; i < tl; ++i )
 					{
@@ -144,7 +146,7 @@ int main(int argc, char * argv[])
 				}
 				// std::cerr << r << " " << rec << std::endl;
 
-				c += OVLP.size();
+				c += OPD.size();
 
 				if (  c / (64*1024) != lp / (64*1024) )
 				{
@@ -153,7 +155,7 @@ int main(int argc, char * argv[])
 				}
 			}
 
-			assert ( c == novl );
+			assert ( static_cast<int64_t>(c) == novl );
 
 			return 0;
 		}
