@@ -29,6 +29,10 @@ namespace libmaus2
 		{
 			struct OverlapData
 			{
+				typedef OverlapData this_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
 				libmaus2::autoarray::AutoArray<uint8_t> Adata;
 				libmaus2::autoarray::AutoArray<uint64_t> Aoffsets;
 				libmaus2::autoarray::AutoArray<uint64_t> Alength;
