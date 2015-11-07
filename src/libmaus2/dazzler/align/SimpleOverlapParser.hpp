@@ -38,12 +38,13 @@ namespace libmaus2
 				libmaus2::dazzler::align::AlignmentFile AF;
 				OverlapParser parser;
 				libmaus2::autoarray::AutoArray<char> Abuffer;
+				bool const dontsplit;
 
-				SimpleOverlapParser(std::istream & rin, uint64_t const bufsize = 32*1024)
-				: PISI(), in(rin), AF(in), parser(AF.tspace), Abuffer(bufsize) {}
+				SimpleOverlapParser(std::istream & rin, uint64_t const bufsize = 32*1024, bool const rdontsplit = false)
+				: PISI(), in(rin), AF(in), parser(AF.tspace), Abuffer(bufsize), dontsplit(rdontsplit) {}
 
-				SimpleOverlapParser(std::string const & fn, uint64_t const bufsize = 32*1024)
-				: PISI(new libmaus2::aio::InputStreamInstance(fn)), in(*PISI), AF(in), parser(AF.tspace), Abuffer(bufsize)
+				SimpleOverlapParser(std::string const & fn, uint64_t const bufsize = 32*1024, bool const rdontsplit = false)
+				: PISI(new libmaus2::aio::InputStreamInstance(fn)), in(*PISI), AF(in), parser(AF.tspace), Abuffer(bufsize), dontsplit(rdontsplit)
 				{}
 
 				std::istream & getStream()
@@ -72,6 +73,17 @@ namespace libmaus2
 
 					if ( ! r )
 					{
+						if ( parser.pushbackfill )
+						{
+							parser.parseBlock(
+								reinterpret_cast<uint8_t const *>(Abuffer.begin()),
+								reinterpret_cast<uint8_t const *>(Abuffer.begin()+r),
+								false
+							);
+							assert ( ! parser.pushbackfill );
+							return true;
+						}
+
 						bool const ok = parser.isIdle();
 						if ( ! ok )
 						{
@@ -87,7 +99,8 @@ namespace libmaus2
 					{
 						parser.parseBlock(
 							reinterpret_cast<uint8_t const *>(Abuffer.begin()),
-							reinterpret_cast<uint8_t const *>(Abuffer.begin()+r)
+							reinterpret_cast<uint8_t const *>(Abuffer.begin()+r),
+							dontsplit
 						);
 
 						return true;

@@ -72,31 +72,71 @@ int main(int argc, char * argv[])
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
 
-		#if 0
+		#if 1
 		{
 			std::string const lasfn = arginfo.getUnparsedRestArg(0);
-			libmaus2::dazzler::align::SimpleOverlapParser OVLP(lasfn);
+			uint64_t const m = arginfo.getValueUnsignedNumeric<uint64_t>("m",64*1024);
+			libmaus2::dazzler::db::DatabaseFile DB(lasfn);
+			DB.computeTrimVector();
+			libmaus2::dazzler::db::DatabaseFile::SplitResult SR = DB.splitDb(m);
+
+			for ( uint64_t i = 0; i < SR.size(); ++i )
+			{
+				uint64_t s = 0;
+				for ( uint64_t j = SR[i].low; j < SR[i].high; ++j )
+					s += DB.getRead(j).rlen;
+				std::cerr << SR[i].low << " " << SR[i].high << " " << SR[i].size << " " << s << std::endl;
+				assert ( SR[i].high-SR[i].low == 1 || s <= m );
+				assert ( s == SR[i].size );
+			}
+
+			return 0;
+		}
+		#endif
+
+		#if 1
+		{
+			std::string const lasfn = arginfo.getUnparsedRestArg(0);
+			libmaus2::dazzler::align::SimpleOverlapParser OVLP(lasfn,32*1024,true);
 			libmaus2::dazzler::align::AlignmentFileRegion::unique_ptr_type PAF(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFileWithoutIndex(lasfn));
 
 			uint64_t c = 0;
+			int32_t prev_a = -1;
+			int32_t prev_b = -1;
 			while ( OVLP.parseNextBlock() )
 			{
 				libmaus2::dazzler::align::OverlapData & data = OVLP.getData();
+
+				libmaus2::dazzler::align::Overlap OVL;
+
 				for ( uint64_t i = 0; i < data.size(); ++i )
 				{
-					libmaus2::dazzler::align::Overlap OVL;
 					bool const ok = PAF->getNextOverlap(OVL);
+					assert ( OVL.aread != prev_a || OVL.bread != prev_b );
 					assert ( ok );
 					std::istringstream istr(data.getDataAsString(i));
 					libmaus2::dazzler::align::Overlap COVL;
 					uint64_t l = 0;
 					libmaus2::dazzler::align::AlignmentFile::readOverlap(istr,COVL,l,OVLP.AF.tspace);
+
+					if ( ! (OVL == COVL) )
+						std::cerr << c << " " << PAF->Palgn->novl << std::endl;
+
 					assert ( OVL == COVL );
 
 					if ( ++c % (32*1024*1024) == 0 )
-						std::cerr << c << std::endl;
+						std::cerr << c / static_cast<double>(PAF->Palgn->novl) << std::endl;
+				}
+
+				if ( data.size() )
+				{
+					prev_a = OVL.aread;
+					prev_b = OVL.bread;
 				}
 			}
+
+			libmaus2::dazzler::align::Overlap OVL;
+			assert ( ! PAF->getNextOverlap(OVL) );
 
 			return 0;
 		}

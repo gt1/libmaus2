@@ -43,22 +43,44 @@ namespace libmaus2
 				int64_t const tspace;
 				bool const small;
 
-				overlap_parser_state state;
-				unsigned int recordLengthRead;
-				uint8_t recordLengthArray[sizeof(int32_t)];
-				uint64_t recordLength;
-				uint64_t recordRead;
+				struct State
+				{
+					overlap_parser_state state;
+					unsigned int recordLengthRead;
+					uint8_t recordLengthArray[sizeof(int32_t)];
+					uint64_t recordLength;
+					uint64_t recordRead;
+					uint8_t * tmpptr;
 
+					void reset()
+					{
+						state = overlap_parser_reading_record_length;
+						recordLengthRead = 0;
+						recordLength = 0;
+						recordRead = 0;
+						tmpptr = 0;
+					}
+				};
+
+				State state;
 				OverlapData odata;
 
 				libmaus2::autoarray::AutoArray<uint8_t> Atmp;
 				uint8_t * tmpptr;
 
-				OverlapParser(int64_t const rtspace)
-				: tspace(rtspace), small(AlignmentFile::tspaceToSmall(tspace)), state(overlap_parser_reading_record_length), recordLengthRead(0), recordLength(0), odata(),
-				  tmpptr(0)
-				{
+				libmaus2::autoarray::AutoArray<uint8_t> Apushback;
+				uint64_t pushbackfill;
 
+				OverlapParser(int64_t const rtspace)
+				: tspace(rtspace),
+				  small(AlignmentFile::tspaceToSmall(tspace)),
+				  odata(),
+				  tmpptr(0),
+				  pushbackfill(0)
+				{
+				  state.state = overlap_parser_reading_record_length;
+				  state.recordLengthRead = 0;
+				  state.recordLength = 0;
 				}
 
 				OverlapData & getData()
@@ -69,26 +91,100 @@ namespace libmaus2
 				bool isIdle() const
 				{
 					return
-						state == overlap_parser_reading_record_length &&
-						recordLengthRead == 0;
+						state.state == overlap_parser_reading_record_length &&
+						state.recordLengthRead == 0 &&
+						pushbackfill == 0;
 				}
 
-				uint64_t parseBlock(uint8_t const * data, uint8_t const * data_e)
+				uint64_t parseBlock(uint8_t const * data, uint8_t const * data_e, bool dontsplit = false)
 				{
 					uint8_t * dataptr = odata.Adata.begin();
 					uint64_t * offsetptr = odata.Aoffsets.begin();
 					uint64_t * lengthptr = odata.Alength.begin();
 
+					if ( pushbackfill )
+					{
+						State statesave = state;
+						state.reset();
+						parseBlockInternal(Apushback.begin(),Apushback.begin()+pushbackfill,dataptr,offsetptr,lengthptr);
+						pushbackfill = 0;
+						state = statesave;
+					}
+					parseBlockInternal(data,data_e,dataptr,offsetptr,lengthptr);
+
+					if ( dontsplit && odata.overlapsInBuffer )
+					{
+						int64_t lastindex = static_cast<int64_t>(odata.overlapsInBuffer)-1;
+						int32_t const last_a_read = OverlapData::getARead(odata.Adata.begin()+odata.Aoffsets[lastindex]);
+						int32_t const last_b_read = OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[lastindex]);
+
+						int64_t previndex = lastindex-1;
+
+						while (
+							previndex >= 0 &&
+							OverlapData::getARead(odata.Adata.begin()+odata.Aoffsets[previndex]) == last_a_read &&
+							OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[previndex]) == last_b_read
+						)
+							--previndex;
+
+						assert ( previndex < 0 ||
+							OverlapData::getARead(odata.Adata.begin()+odata.Aoffsets[previndex]) != last_a_read ||
+							OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[previndex]) != last_b_read );
+						assert ( previndex >= 0 || previndex == -1 );
+
+						for ( uint64_t i = static_cast<uint64_t>(previndex+1); i < odata.overlapsInBuffer; ++i )
+							assert (
+								OverlapData::getARead(odata.Adata.begin()+odata.Aoffsets[i]) == last_a_read &&
+								OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[i]) == last_b_read
+							);
+
+						uint64_t copylen = 0;
+						uint64_t pullback = 0;
+						for ( uint64_t i = static_cast<uint64_t>(previndex+1); i < odata.overlapsInBuffer; ++i )
+						{
+							copylen += odata.Alength[i];
+							pullback += 1;
+						}
+						uint8_t const * copystartptr = odata.Adata.begin()+odata.Aoffsets[previndex+1];
+						if ( Apushback.size() < copylen )
+							Apushback.resize(copylen);
+						std::copy(copystartptr,copystartptr+copylen,Apushback.begin());
+						pushbackfill = copylen;
+
+						odata.overlapsInBuffer -= pullback;
+
+						for ( uint64_t i = 0; i < odata.overlapsInBuffer; ++i )
+							assert (
+								OverlapData::getARead(odata.Adata.begin()+odata.Aoffsets[i]) != last_a_read ||
+								OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[i]) != last_b_read
+							);
+						assert (
+							OverlapData::getARead(odata.Adata.begin()+odata.Aoffsets[odata.overlapsInBuffer]) == last_a_read &&
+							OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[odata.overlapsInBuffer]) == last_b_read
+						);
+					}
+
+					return odata.overlapsInBuffer;
+				}
+
+				void parseBlockInternal(
+					uint8_t const * data,
+					uint8_t const * data_e,
+					uint8_t * & dataptr,
+					uint64_t * & offsetptr,
+					uint64_t * & lengthptr
+				)
+				{
 					while ( (data != data_e) )
 					{
-						switch ( state )
+						switch ( state.state )
 						{
 							case overlap_parser_reading_record_length:
 								assert ( data != data_e );
 								if (
-									(!recordLengthRead)
+									(!state.recordLengthRead)
 									&&
-									data_e-data >= static_cast<ptrdiff_t>(sizeof(recordLengthArray))
+									data_e-data >= static_cast<ptrdiff_t>(sizeof(state.recordLengthArray))
 									&&
 									data_e-data >= static_cast<ptrdiff_t>(6 * sizeof(int32_t) + 4 * sizeof(int32_t) + (small ? 1 : 2) * libmaus2::util::loadValueLE4(data))
 								)
@@ -96,7 +192,7 @@ namespace libmaus2
 									uint64_t reclen = 0;
 
 									while (
-										data_e-data >= static_cast<ptrdiff_t>(sizeof(recordLengthArray))
+										data_e-data >= static_cast<ptrdiff_t>(sizeof(state.recordLengthArray))
 										&&
 										data_e-data >= static_cast<ptrdiff_t>((reclen=6 * sizeof(int32_t) + 4 * sizeof(int32_t) + (small ? 1 : 2) * libmaus2::util::loadValueLE4(data)))
 									)
@@ -136,19 +232,19 @@ namespace libmaus2
 								}
 								else
 								{
-									while ( (data != data_e) && (recordLengthRead < sizeof(recordLengthArray)) )
-										recordLengthArray[recordLengthRead++] = *(data++);
-									if ( recordLengthRead == sizeof(recordLengthArray) )
+									while ( (data != data_e) && (state.recordLengthRead < sizeof(state.recordLengthArray)) )
+										state.recordLengthArray[state.recordLengthRead++] = *(data++);
+									if ( state.recordLengthRead == sizeof(state.recordLengthArray) )
 									{
-										state = overlap_parser_reading_record;
-										recordLength =
+										state.state = overlap_parser_reading_record;
+										state.recordLength =
 											5 * sizeof(int32_t) + // path meta - tlen
 											4 * sizeof(int32_t) + // overlap meta
-											(small ? 1 : 2) * libmaus2::util::loadValueLE4(&recordLengthArray[0]) // path
+											(small ? 1 : 2) * libmaus2::util::loadValueLE4(&state.recordLengthArray[0]) // path
 											;
-										recordRead = 0;
+										state.recordRead = 0;
 
-										while ( Atmp.size() < recordLength+sizeof(int32_t) )
+										while ( Atmp.size() < state.recordLength+sizeof(int32_t) )
 										{
 											uint64_t const size = Atmp.size();
 											uint64_t const one = 1;
@@ -159,20 +255,20 @@ namespace libmaus2
 
 										// std::cerr << "got record length " << recordLength << std::endl;
 
-										std::copy(&recordLengthArray[0],&recordLengthArray[sizeof(recordLengthArray)],tmpptr);
+										std::copy(&state.recordLengthArray[0],&state.recordLengthArray[sizeof(state.recordLengthArray)],tmpptr);
 										tmpptr += sizeof(int32_t);
 									}
 								}
 								break;
 							case overlap_parser_reading_record:
-								while ( (data != data_e) && (recordRead < recordLength) )
+								while ( (data != data_e) && (state.recordRead < state.recordLength) )
 								{
 									*(tmpptr++) = *(data++);
-									recordRead++;
+									state.recordRead++;
 								}
-								if ( recordRead == recordLength )
+								if ( state.recordRead == state.recordLength )
 								{
-									while ( (odata.Adata.end() - dataptr) < static_cast<ptrdiff_t>(recordLength+sizeof(int32_t)) )
+									while ( (odata.Adata.end() - dataptr) < static_cast<ptrdiff_t>(state.recordLength+sizeof(int32_t)) )
 									{
 										uint64_t const dataptroffset = dataptr - odata.Adata.begin();
 										uint64_t const newsize = std::max(static_cast<uint64_t>(1),static_cast<uint64_t>(2*odata.Adata.size()));
@@ -199,13 +295,13 @@ namespace libmaus2
 
 									assert ( offsetptr < odata.Aoffsets.end() );
 									assert ( lengthptr < odata.Alength.end() );
-									assert ( dataptr+recordLength+sizeof(int32_t) <= odata.Adata.end() );
+									assert ( dataptr+state.recordLength+sizeof(int32_t) <= odata.Adata.end() );
 
 									*(offsetptr++) = dataptr - odata.Adata.begin();
-									*(lengthptr++) = recordLength + sizeof(int32_t);
+									*(lengthptr++) = state.recordLength + sizeof(int32_t);
 
-									std::copy(Atmp.begin(),Atmp.begin() + recordLength + sizeof(recordLengthArray), dataptr);
-									dataptr += recordLength + sizeof(recordLengthArray);
+									std::copy(Atmp.begin(),Atmp.begin() + state.recordLength + sizeof(state.recordLengthArray), dataptr);
+									dataptr += state.recordLength + sizeof(state.recordLengthArray);
 
 									#if 0
 									uint8_t const * recdataptr = dataptr - (recordLength+sizeof(int32_t));
@@ -219,16 +315,14 @@ namespace libmaus2
 									#endif
 
 									// std::cerr << "got record" << std::endl;
-									recordLengthRead = 0;
-									state = overlap_parser_reading_record_length;
+									state.recordLengthRead = 0;
+									state.state = overlap_parser_reading_record_length;
 								}
 								break;
 						}
 					}
 
 					odata.overlapsInBuffer = offsetptr - odata.Aoffsets.begin();
-
-					return odata.overlapsInBuffer;
 				}
 			};
 		}

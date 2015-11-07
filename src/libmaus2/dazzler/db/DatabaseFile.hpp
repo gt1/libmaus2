@@ -789,6 +789,80 @@ namespace libmaus2
 					return R;
 				}
 
+				struct SplitResultElement
+				{
+					uint64_t low;
+					uint64_t high;
+					uint64_t size;
+
+					SplitResultElement() {}
+					SplitResultElement(
+						uint64_t const rlow,
+						uint64_t const rhigh,
+						uint64_t const rsize
+					) : low(rlow), high(rhigh), size(rsize) {}
+				};
+
+				struct SplitResult : public std::vector<SplitResultElement>
+				{
+
+				};
+
+				SplitResult splitDb(uint64_t const maxmem) const
+				{
+					SplitResult SR;
+
+					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
+					Pidxfile->seekg(indexoffset);
+
+					uint64_t const n = Ptrim->n;
+					bool init = false;
+					uint64_t l = 0;
+					uint64_t s = 0;
+
+					for ( uint64_t i = 0; i < n; ++i )
+					{
+						Read R(*Pidxfile);
+
+						if ( (*Ptrim)[i] )
+						{
+							uint64_t const rlen = R.rlen;
+
+							if ( ! init )
+							{
+								assert ( Ptrim->rank1(i) );
+								l = Ptrim->rank1(i)-1;
+								s = rlen;
+								init = true;
+							}
+							else
+							{
+								if ( s + rlen <= maxmem )
+								{
+									s += rlen;
+								}
+								else
+								{
+									uint64_t const h = Ptrim->rank1(i)-1;
+
+									SR.push_back(SplitResultElement(l,h,s));
+
+									s = rlen;
+									l = h;
+								}
+							}
+						}
+					}
+
+					if ( init )
+					{
+						uint64_t const h = Ptrim->rank1(n-1);
+						SR.push_back(SplitResultElement(l,h,s));
+					}
+
+					return SR;
+				}
+
 				uint64_t trimmedToUntrimmed(size_t const i) const
 				{
 					if ( i >= size() )
