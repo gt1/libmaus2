@@ -40,11 +40,21 @@ namespace libmaus2
 				libmaus2::autoarray::AutoArray<char> Abuffer;
 				bool const dontsplit;
 
-				SimpleOverlapParser(std::istream & rin, uint64_t const bufsize = 32*1024, bool const rdontsplit = false)
-				: PISI(), in(rin), AF(in), parser(AF.tspace), Abuffer(bufsize), dontsplit(rdontsplit) {}
+				bool const limitset;
+				uint64_t const limit;
+				uint64_t tr;
 
-				SimpleOverlapParser(std::string const & fn, uint64_t const bufsize = 32*1024, bool const rdontsplit = false)
-				: PISI(new libmaus2::aio::InputStreamInstance(fn)), in(*PISI), AF(in), parser(AF.tspace), Abuffer(bufsize), dontsplit(rdontsplit)
+				SimpleOverlapParser(
+					std::istream & rin,
+					int64_t const rtspace,
+					uint64_t const bufsize = 32*1024,
+					bool const rdontsplit = false, int64_t const rlimit = -1
+				)
+				: PISI(), in(rin), AF(), parser(rtspace), Abuffer(bufsize), dontsplit(rdontsplit), limitset(rlimit != -1), limit(rlimit), tr(0) {}
+
+				SimpleOverlapParser(std::string const & fn, uint64_t const bufsize = 32*1024, bool const rdontsplit = false, int64_t const rlimit = -1)
+				: PISI(new libmaus2::aio::InputStreamInstance(fn)), in(*PISI), AF(in), parser(AF.tspace), Abuffer(bufsize), dontsplit(rdontsplit),
+				  limitset(rlimit != -1), limit(rlimit), tr(0)
 				{}
 
 				std::istream & getStream()
@@ -59,7 +69,18 @@ namespace libmaus2
 
 				bool parseNextBlock()
 				{
-					in.read(Abuffer.begin(),Abuffer.size());
+					if ( limitset )
+					{
+						uint64_t const rest = limit - tr;
+						uint64_t const toread = std::min(static_cast<uint64_t>(Abuffer.size()),rest);
+						in.read(Abuffer.begin(),toread);
+					}
+					else
+					{
+						in.read(Abuffer.begin(),Abuffer.size());
+					}
+
+					tr += in.gcount();
 
 					if ( in.bad() )
 					{
