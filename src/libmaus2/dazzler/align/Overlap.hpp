@@ -285,7 +285,7 @@ namespace libmaus2
 					int32_t const abpos,
 					int32_t const aepos,
 					int32_t const bbpos,
-					int32_t const bepos,
+					int32_t const /* bepos */,
 					uint8_t const * aptr,
 					uint8_t const * bptr,
 					int64_t const tspace,
