@@ -942,7 +942,7 @@ namespace libmaus2
 				}
 
 				uint64_t getReadNameInterval(
-					size_t const low, size_t const high, 
+					size_t const low, size_t const high,
 					libmaus2::autoarray::AutoArray<char> & V,
 					libmaus2::autoarray::AutoArray<char const *> & P
 					) const
@@ -974,21 +974,23 @@ namespace libmaus2
 
 						Read R(*Pidxfile);
 						std::string const rn = getReadName(i,R);
-						
-						while ( V.end() - p < static_cast<ptrdiff_t>(rn.size()+1) )
+
+						while ( (V.end() - p) < static_cast<ptrdiff_t>(rn.size()+1) )
 						{
+							uint64_t const poff = p - V.begin();
 							uint64_t const oldsize = V.size();
 							uint64_t const one = 1;
 							uint64_t const newsize = std::max(one,oldsize<<1);
 							V.resize(newsize);
+							p = V.begin() + poff;
 						}
-						
+
 						char const * s = rn.c_str();
 						P[i-low] = p;
 						std::copy(s,s+rn.size()+1,p);
 						p += rn.size()+1;
 					}
-					
+
 					return high-low;
 				}
 
@@ -1338,7 +1340,7 @@ namespace libmaus2
 								static_cast<int64_t>(bpsfile.tellg()) != static_cast<int64_t>(V[i].boff)
 							)
 								bpsfile.seekg(V[i].boff,std::ios::beg);
-								
+
 							assert ( (off[i+1]-off[i]) % 2 == 0 );
 							uint64_t const rl = (off[i+1]-off[i])/2;
 
