@@ -941,6 +941,57 @@ namespace libmaus2
 					}
 				}
 
+				uint64_t getReadNameInterval(
+					size_t const low, size_t const high, 
+					libmaus2::autoarray::AutoArray<char> & V,
+					libmaus2::autoarray::AutoArray<char const *> & P
+					) const
+				{
+					if ( high < low )
+						return 0;
+
+					if ( high-low && high > size() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getReadInterval: read index " << high-1 << " out of range (not in [" << 0 << "," << size() << "))" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
+					std::istream & idxfile = *Pidxfile;
+					char * p = V.begin();
+					P.resize(high-low);
+
+					for ( size_t i = low; i < high; ++i )
+					{
+						uint64_t const mappedindex = Ptrim->select1(i);
+
+						if (
+							static_cast<int64_t>(idxfile.tellg()) != static_cast<int64_t>(indexoffset + mappedindex * Read::serialisedSize)
+						)
+							idxfile.seekg(indexoffset + mappedindex * Read::serialisedSize);
+
+						Read R(*Pidxfile);
+						std::string const rn = getReadName(i,R);
+						
+						while ( V.end() - p < static_cast<ptrdiff_t>(rn.size()+1) )
+						{
+							uint64_t const oldsize = V.size();
+							uint64_t const one = 1;
+							uint64_t const newsize = std::max(one,oldsize<<1);
+							V.resize(newsize);
+						}
+						
+						char const * s = rn.c_str();
+						P[i-low] = p;
+						std::copy(s,s+rn.size()+1,p);
+						p += rn.size()+1;
+					}
+					
+					return high-low;
+				}
+
 				void getReadVector(std::vector<uint64_t> const & I, std::vector<Read> & V) const
 				{
 					V.resize(0);
@@ -1260,6 +1311,42 @@ namespace libmaus2
 							)
 								bpsfile.seekg(V[i].boff,std::ios::beg);
 							decodeRead(*Pbpsfile,A.begin()+off[i],off[i+1]-off[i]);
+						}
+					}
+				}
+
+				void decodeReadsAndReverseComplement(size_t const low, size_t const high, libmaus2::autoarray::AutoArray<char> & A, std::vector<uint64_t> & off) const
+				{
+					off.resize((high-low)+1);
+					off[0] = 0;
+
+					if ( high - low )
+					{
+						std::vector<Read> V;
+						getReadInterval(low,high,V);
+
+						for ( size_t i = 0; i < high-low; ++i )
+							off[i+1] = off[i] + 2*V[i].rlen;
+
+						libmaus2::aio::InputStream::unique_ptr_type Pbpsfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(bpspath));
+						std::istream & bpsfile = *Pbpsfile;
+
+						A = libmaus2::autoarray::AutoArray<char>(off.back(),false);
+						for ( size_t i = 0; i < high-low; ++i )
+						{
+							if (
+								static_cast<int64_t>(bpsfile.tellg()) != static_cast<int64_t>(V[i].boff)
+							)
+								bpsfile.seekg(V[i].boff,std::ios::beg);
+								
+							assert ( (off[i+1]-off[i]) % 2 == 0 );
+							uint64_t const rl = (off[i+1]-off[i])/2;
+
+							decodeRead(*Pbpsfile,A.begin()+off[i],rl);
+							std::copy(A.begin()+off[i],A.begin()+off[i]+rl,A.begin()+off[i]+rl);
+							std::reverse(A.begin()+off[i]+rl,A.begin()+off[i]+2*rl);
+							for ( uint64_t j = 0; j < rl; ++j )
+								A[off[i]+rl+j] = libmaus2::fastx::invertUnmapped(A[off[i]+rl+j]);
 						}
 					}
 				}
