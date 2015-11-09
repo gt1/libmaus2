@@ -961,6 +961,7 @@ namespace libmaus2
 					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
 					std::istream & idxfile = *Pidxfile;
 					char * p = V.begin();
+					libmaus2::autoarray::AutoArray<uint64_t> U(high-low);
 					P.resize(high-low);
 
 					for ( size_t i = low; i < high; ++i )
@@ -986,10 +987,13 @@ namespace libmaus2
 						}
 
 						char const * s = rn.c_str();
-						P[i-low] = p;
+						U[i-low] = p-V.begin();
 						std::copy(s,s+rn.size()+1,p);
 						p += rn.size()+1;
 					}
+
+					for ( uint64_t i = 0; i < U.size(); ++i )
+						P[i] = V.begin() + U[i];
 
 					return high-low;
 				}
