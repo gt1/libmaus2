@@ -242,6 +242,8 @@ namespace libmaus2
 			}
 			uint64_t getNextDispatcherId()
 			{
+				while ( dispatchers.find(nextDispatcherId) != dispatchers.end() )
+					++nextDispatcherId;
 				return nextDispatcherId++;
 			}
 
