@@ -36,22 +36,24 @@ namespace libmaus2
 			uint64_t priority;
 			uint64_t dispatcherid;
 			uint64_t packageid;
+			uint64_t subid;
 
 			SimpleThreadWorkPackage()
-			: priority(0), dispatcherid(0), packageid(0)
+			: priority(0), dispatcherid(0), packageid(0), subid(0)
 			{
 
 			}
-			SimpleThreadWorkPackage(uint64_t const rpriority, uint64_t const rdispatcherid, uint64_t const rpackageid = 0)
-			: priority(rpriority), dispatcherid(rdispatcherid), packageid(rpackageid)
+			SimpleThreadWorkPackage(uint64_t const rpriority, uint64_t const rdispatcherid, uint64_t const rpackageid = 0, uint64_t const rsubid = 0)
+			: priority(rpriority), dispatcherid(rdispatcherid), packageid(rpackageid), subid(rsubid)
 			{
 
 			}
-			void reset(uint64_t const rpriority, uint64_t const rdispatcherid, uint64_t const rpackageid = 0)
+			void reset(uint64_t const rpriority, uint64_t const rdispatcherid, uint64_t const rpackageid = 0, uint64_t const rsubid = 0)
 			{
 				priority = rpriority;
 				dispatcherid = rdispatcherid;
 				packageid = rpackageid;
+				subid = rsubid;
 			}
 			virtual ~SimpleThreadWorkPackage() {}
 
