@@ -3825,6 +3825,242 @@ namespace libmaus2
 			 * @param B alignment block
 			 * @param blocksize length of block in bytes
 			 * @param context temporary space and result storage
+			 * @param itref pointer to reference at position of first non clipping op
+			 * @param seq pointer to encoded query sequence
+			 * @param readlength length of query sequence
+			 * @param warnchanges warn about changes on stderr if previous values are present
+			 **/
+			template<typename it_a>
+			static void calculateMdMapped(
+				uint8_t const * B,
+				uint64_t const blocksize,
+				::libmaus2::bambam::MdStringComputationContext & context,
+				it_a itref,
+				uint8_t const * seq,
+				uint64_t const readlength,
+				bool const warnchanges = true
+			)
+			{
+				static const bool calmd_preterm[] =
+				{
+					true, // LIBMAUS2_BAMBAM_CMATCH = 0,
+					false, // LIBMAUS2_BAMBAM_CINS = 1,
+					false, // LIBMAUS2_BAMBAM_CDEL = 2,
+					false, // LIBMAUS2_BAMBAM_CREF_SKIP = 3,
+					false, // LIBMAUS2_BAMBAM_CSOFT_CLIP = 4,
+					false, // LIBMAUS2_BAMBAM_CHARD_CLIP = 5,
+					false, // LIBMAUS2_BAMBAM_CPAD = 6,
+					true, // LIBMAUS2_BAMBAM_CEQUAL = 7,
+					true // LIBMAUS2_BAMBAM_CDIFF = 8
+				};
+
+				static const uint8_t calmd_insmult[] =
+				{
+					0, // LIBMAUS2_BAMBAM_CMATCH = 0,
+					1, // LIBMAUS2_BAMBAM_CINS = 1,
+					0, // LIBMAUS2_BAMBAM_CDEL = 2,
+					0, // LIBMAUS2_BAMBAM_CREF_SKIP = 3,
+					0, // LIBMAUS2_BAMBAM_CSOFT_CLIP = 4,
+					0, // LIBMAUS2_BAMBAM_CHARD_CLIP = 5,
+					0, // LIBMAUS2_BAMBAM_CPAD = 6,
+					0, // LIBMAUS2_BAMBAM_CEQUAL = 7,
+					0 // LIBMAUS2_BAMBAM_CDIFF = 8
+				};
+
+				static const uint8_t calmd_readadvance[] =
+				{
+					1, // LIBMAUS2_BAMBAM_CMATCH = 0,
+					1, // LIBMAUS2_BAMBAM_CINS = 1,
+					0, // LIBMAUS2_BAMBAM_CDEL = 2,
+					0, // LIBMAUS2_BAMBAM_CREF_SKIP = 3,
+					1, // LIBMAUS2_BAMBAM_CSOFT_CLIP = 4,
+					0, // LIBMAUS2_BAMBAM_CHARD_CLIP = 5,
+					0, // LIBMAUS2_BAMBAM_CPAD = 6,
+					1, // LIBMAUS2_BAMBAM_CEQUAL = 7,
+					1 // LIBMAUS2_BAMBAM_CDIFF = 8
+				};
+
+				static const uint8_t calmd_refadvance[] =
+				{
+					1, // LIBMAUS2_BAMBAM_CMATCH = 0,
+					0, // LIBMAUS2_BAMBAM_CINS = 1,
+					1, // LIBMAUS2_BAMBAM_CDEL = 2,
+					1, // LIBMAUS2_BAMBAM_CREF_SKIP = 3,
+					0, // LIBMAUS2_BAMBAM_CSOFT_CLIP = 4,
+					0, // LIBMAUS2_BAMBAM_CHARD_CLIP = 5,
+					0, // LIBMAUS2_BAMBAM_CPAD = 6,
+					1, // LIBMAUS2_BAMBAM_CEQUAL = 7,
+					1 // LIBMAUS2_BAMBAM_CDIFF = 8
+				};
+
+				context.diff = false;
+
+				if ( ! libmaus2::bambam::BamAlignmentDecoderBase::isUnmap(
+					libmaus2::bambam::BamAlignmentDecoderBase::getFlags(B)
+					)
+				)
+				{
+					// number of cigar operations
+					libmaus2::autoarray::AutoArray<libmaus2::bambam::cigar_operation> & cigop = context.cigop;
+					uint32_t const numcigop = libmaus2::bambam::BamAlignmentDecoderBase::getCigarOperations(B,cigop);
+
+					// length of unrolled cigar operatios
+					uint64_t cigsum = 0;
+					for ( uint64_t i = 0; i < numcigop; ++i )
+						cigsum += cigop[i].second;
+
+					context.checkSize(cigsum);
+
+					// insertions and deletions
+					uint64_t numins = 0;
+					uint64_t numdel = 0;
+					uint64_t nummis = 0;
+					// position on read
+					uint64_t readpos = 0;
+					// index on RL cigar string
+					uint64_t cigi = 0;
+
+					it_a const itreforg = itref;
+					uint64_t a = 0;
+					char * mdp = context.md.begin();
+
+					for ( ; cigi != numcigop; ++cigi )
+					{
+						int32_t const cigo = cigop[cigi].first;
+						uint64_t const cigp = cigop[cigi].second;
+
+						if ( calmd_preterm[cigo] )
+						{
+							uint64_t l = 0;
+							while ( l != cigp )
+							{
+								uint64_t h = l;
+
+								uint64_t const startoff = readpos + h;
+								uint8_t const * lseq = seq + (startoff>>1);
+								if ( startoff & 1 )
+								{
+									uint8_t const c = *(lseq++);
+									uint8_t const c1 = libmaus2::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(c & 0xF);
+
+									if (  context.T0[c1] != context.T1[libmaus2::fastx::remapChar(itref[h])] )
+										goto cmpdone;
+
+									++h;
+								}
+
+								while ( cigp - h > 1 )
+								{
+									uint8_t const c = *(lseq++);
+									uint8_t const c0 = libmaus2::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c>>4)&0xF);
+
+									if ( context.T0[c0] != context.T1[libmaus2::fastx::remapChar(itref[h])] )
+										goto cmpdone;
+
+									++h;
+
+									uint8_t const c1 = libmaus2::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c>>0)&0xF);
+
+									if ( context.T0[c1] != context.T1[libmaus2::fastx::remapChar(itref[h])] )
+										goto cmpdone;
+
+									++h;
+								}
+
+								if ( cigp - h )
+								{
+									uint8_t const c = *(lseq++);
+									uint8_t const c0 = libmaus2::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c>>4)&0xF);
+
+									if (
+										context.T0[c0]
+										==
+										context.T1[libmaus2::fastx::remapChar(itref[h])]
+									)
+										++h;
+								}
+
+								cmpdone:
+
+								if ( h != cigp )
+								{
+									mdp = ::libmaus2::bambam::MdStringComputationContext::putNumber(mdp,h-l+a);
+									*(mdp++) = libmaus2::fastx::remapChar(itref[h]);
+									h += 1;
+									a = 0;
+									nummis += 1;
+								}
+								else
+								{
+									a += h-l;
+								}
+
+								l = h;
+							}
+						}
+						else if ( cigo == ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDEL )
+						{
+							mdp = ::libmaus2::bambam::MdStringComputationContext::putNumber(mdp,a);
+							a = 0;
+							*(mdp++) =  '^';
+							for ( uint64_t i = 0; i < cigp; ++i )
+								*(mdp++) = libmaus2::fastx::remapChar(itref[i]);
+
+							numdel += cigp;
+						}
+
+						readpos += calmd_readadvance[cigo] * cigp;
+						itref   += calmd_refadvance[cigo] * cigp;
+						numins  += calmd_insmult[cigo] * cigp;
+					}
+					mdp = ::libmaus2::bambam::MdStringComputationContext::putNumber(mdp,a);
+					*(mdp++) = 0;
+
+					context.nm = numins+numdel+nummis;
+
+					char const * const prevmd = libmaus2::bambam::BamAlignmentDecoderBase::getAuxString(B,blocksize,"MD");
+					int32_t prevnm = -1;
+					bool const haveprevnm = libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumber<int32_t>(B,blocksize,"NM",prevnm);
+
+					context.mddiff = (!prevmd) || strcmp(context.md.get(),prevmd);
+					context.nmdiff = (!haveprevnm) || (prevnm != static_cast<int32_t>(context.nm));
+					context.diff = context.mddiff | context.nmdiff;
+
+					if ( warnchanges )
+					{
+						if ( context.mddiff && prevmd )
+							std::cerr << "[D] " << libmaus2::bambam::BamAlignmentDecoderBase::getReadName(B) << ":" << libmaus2::bambam::BamAlignmentDecoderBase::getFlags(B) << " update MD from " << prevmd << " to " << context.md.get() << "\n";
+						if ( haveprevnm && (prevnm != static_cast<int32_t>(context.nm)) )
+							std::cerr << "[D] " << libmaus2::bambam::BamAlignmentDecoderBase::getReadName(B) << ":" << libmaus2::bambam::BamAlignmentDecoderBase::getFlags(B) << " update NM from " << prevnm << " to " << context.nm << "\n";
+					}
+
+					if ( readpos != readlength )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "BamAlignmentDecoderBase::calculateMd: readpos=" << readpos << " != " << readlength << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					if ( itref != itreforg + libmaus2::bambam::BamAlignmentDecoderBase::getReferenceLength(B) )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "BamAlignmentDecoderBase::calculateMd: itrefdif=" << itref-itreforg << " != reflength " << libmaus2::bambam::BamAlignmentDecoderBase::getReferenceLength(B) << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					context.eraseold = prevmd || haveprevnm;
+				}
+
+			}
+
+
+
+			/**
+			 * calculate MD and NM fields
+			 *
+			 * @param B alignment block
+			 * @param blocksize length of block in bytes
+			 * @param context temporary space and result storage
 			 * @param pointer to reference at position of first non clipping op
 			 * @param warnchanges warn about changes on stderr if previous values are present
 			 **/
@@ -3838,6 +4074,27 @@ namespace libmaus2
 			)
 			{
 				calculateMd(B,blocksize,context,itref,libmaus2::bambam::BamAlignmentDecoderBase::getSeq(B),libmaus2::bambam::BamAlignmentDecoderBase::getLseq(B),warnchanges);
+			}
+
+			/**
+			 * calculate MD and NM fields
+			 *
+			 * @param B alignment block
+			 * @param blocksize length of block in bytes
+			 * @param context temporary space and result storage
+			 * @param pointer to reference at position of first non clipping op
+			 * @param warnchanges warn about changes on stderr if previous values are present
+			 **/
+			template<typename it_a>
+			static void calculateMdMapped(
+				uint8_t const * B,
+				uint64_t const blocksize,
+				::libmaus2::bambam::MdStringComputationContext & context,
+				it_a itref,
+				bool const warnchanges = true
+			)
+			{
+				calculateMdMapped(B,blocksize,context,itref,libmaus2::bambam::BamAlignmentDecoderBase::getSeq(B),libmaus2::bambam::BamAlignmentDecoderBase::getLseq(B),warnchanges);
 			}
 
 			/**
