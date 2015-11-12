@@ -78,6 +78,22 @@ namespace libmaus2
 					std::swap(overlapsInBuffer,rhs.overlapsInBuffer);
 				}
 
+				static std::ostream & toString(std::ostream & out, uint8_t const * p)
+				{
+					out << "OverlapData(";
+					out << "flags=" << getFlags(p) << ";";
+					out << "aread=" << getARead(p) << ";";
+					out << "bread=" << getBRead(p) << ";";
+					out << "tlen=" << getTLen(p) << ";";
+					out << "diffs=" << getDiffs(p) << ";";
+					out << "abpos=" << getABPos(p) << ";";
+					out << "bbpos=" << getBBPos(p) << ";";
+					out << "aepos=" << getAEPos(p) << ";";
+					out << "bepos=" << getBEPos(p);
+					out << ")";
+					return out;
+				}
+
 				static int32_t getTLen(uint8_t const * p)
 				{
 					return libmaus2::util::loadValueLE4(p + 0*sizeof(int32_t));
