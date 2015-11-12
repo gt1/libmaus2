@@ -89,6 +89,24 @@ namespace libmaus2
 				#endif
 			);
 
+			LocalEditDistanceResult computeDenseTracePreMapped(
+				#if defined(LIBMAUS2_HAVE_DALIGNER)
+				uint8_t const * a, uint64_t const n, uint8_t const * b, uint64_t const m, int64_t const tspace, std::pair<uint16_t,uint16_t> const * trace, uint64_t const tracelen,
+				int32_t const diffs,
+				int32_t const abpos,
+				int32_t const bbpos,
+				int32_t const aepos,
+				int32_t const bepos
+				#else
+				uint8_t const *, uint64_t const, uint8_t const *, uint64_t const, int64_t const, std::pair<uint16_t,uint16_t> const *, uint64_t const,
+				int32_t const,
+				int32_t const,
+				int32_t const,
+				int32_t const,
+				int32_t const
+				#endif
+			);
+
 			template<typename iterator_a, typename iterator_b>
 			LocalEditDistanceResult process(
 				iterator_a aa, iterator_a ae, uint64_t const seedposa,
