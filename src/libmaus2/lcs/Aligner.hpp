@@ -31,12 +31,11 @@ namespace libmaus2
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			virtual ~Aligner() {}
-			virtual void align(
-				uint8_t const * a,
-				size_t const l_a,
-				uint8_t const * b,
-				size_t const l_b
-			) = 0;
+			virtual void align(uint8_t const * a, size_t const l_a, uint8_t const * b, size_t const l_b) = 0;
+			virtual void alignPreMapped(uint8_t const * a, size_t const l_a, uint8_t const * b, size_t const l_b)
+			{
+				align(a,l_a,b,l_b);
+			}
 			virtual AlignmentTraceContainer const & getTraceContainer() const = 0;
 		};
 	}
