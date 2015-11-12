@@ -27,27 +27,34 @@ namespace libmaus2
 	{
 		namespace align
 		{
+			template<typename comparator_type>
 			struct SortingOverlapOutputBufferMerger
 			{
 				typedef SortingOverlapOutputBufferMerger this_type;
-				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 				libmaus2::aio::InputStreamInstance ISI;
 				bool const small;
 				std::vector< std::pair<uint64_t,uint64_t> > const blocks;
+				libmaus2::autoarray::AutoArray < typename SortingOverlapBlockInput<comparator_type>::unique_ptr_type > B;
+				comparator_type comparator;
 				std::priority_queue<
 					std::pair<uint64_t,libmaus2::dazzler::align::Overlap>,
 					std::vector< std::pair<uint64_t,libmaus2::dazzler::align::Overlap> >,
-					OverlapHeapComparator
+					OverlapHeapComparator<comparator_type>
 				> Q;
-				libmaus2::autoarray::AutoArray < SortingOverlapBlockInput::unique_ptr_type > B;
 
-				SortingOverlapOutputBufferMerger(std::string const & filename, bool const rsmall, std::vector< std::pair<uint64_t,uint64_t> > const & rblocks, uint64_t const inbufsize = 1024)
-				: ISI(filename), small(rsmall), blocks(rblocks), B(blocks.size())
+				SortingOverlapOutputBufferMerger(
+					std::string const & filename,
+					bool const rsmall,
+					std::vector< std::pair<uint64_t,uint64_t> > const & rblocks,
+					uint64_t const inbufsize = 1024,
+					comparator_type rcomparator = comparator_type())
+				: ISI(filename), small(rsmall), blocks(rblocks), B(blocks.size()), comparator(rcomparator), Q(comparator)
 				{
 					for ( uint64_t i = 0; i < B.size(); ++i )
 					{
-						SortingOverlapBlockInput::unique_ptr_type T(new SortingOverlapBlockInput(ISI,small,blocks[i],inbufsize));
+						typename SortingOverlapBlockInput<comparator_type>::unique_ptr_type T(new SortingOverlapBlockInput<comparator_type>(ISI,small,blocks[i],inbufsize,comparator));
 						B[i] = UNIQUE_PTR_MOVE(T);
 					}
 					for ( uint64_t id = 0; id < B.size(); ++id )
