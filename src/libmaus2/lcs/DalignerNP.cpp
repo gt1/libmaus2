@@ -170,6 +170,114 @@ void libmaus2::lcs::DalignerNP::align(
 	}
 	#endif
 }
+void libmaus2::lcs::DalignerNP::alignPreMapped(
+	#if defined(LIBMAUS2_HAVE_DALIGNER)
+	uint8_t const * a,
+	size_t const l_a,
+	uint8_t const * b,
+	size_t const l_b
+	#else
+	uint8_t const *,
+	size_t const,
+	uint8_t const *,
+	size_t const
+	#endif
+)
+{
+	#if defined(LIBMAUS2_HAVE_DALIGNER)
+	Path path;
+	path.trace = NULL;
+	path.tlen = 0;
+	path.diffs = l_a+l_b;
+	path.abpos = 0;
+	path.bbpos = 0;
+	path.aepos = l_a;
+	path.bepos = l_b;
+
+	Alignment algn;
+	algn.path = &path;
+	algn.flags = 0;
+	algn.aseq = const_cast<char *>(reinterpret_cast<char const *>(a));
+	algn.bseq = const_cast<char *>(reinterpret_cast<char const *>(b));
+	algn.alen = l_a;
+	algn.blen = l_b;
+
+	Compute_Trace_ALL(&algn,reinterpret_cast<Work_Data *>(data));
+
+	if ( capacity() < l_a+l_b )
+		resize(l_a+l_b);
+
+	ta = trace.begin();
+	te = trace.begin();
+
+	int const * trace = reinterpret_cast<int const *>(algn.path->trace);
+	int i = 1;
+	int j = 1;
+	uint8_t const * tp = a-1;
+	uint8_t const * qp = b-1;
+	for ( int k = 0; k < algn.path->tlen; ++k )
+	{
+		if ( trace[k] < 0 )
+		{
+			int p = -trace[k];
+			while ( i < p )
+			{
+				char const tc = tp[i++];
+				char const qc = qp[j++];
+				bool const eq = tc == qc;
+
+				if ( eq )
+				{
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;
+				}
+				else
+				{
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;
+				}
+			}
+
+			*(te++)	= libmaus2::lcs::BaseConstants::STEP_INS;
+			++j;
+		}
+		else
+		{
+			int p = trace[k];
+			while ( j < p )
+			{
+				char const tc = tp[i++];
+				char const qc = qp[j++];
+				bool const eq = tc == qc;
+
+				if ( eq )
+				{
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;
+				}
+				else
+				{
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;
+				}
+			}
+			*(te++)	= libmaus2::lcs::BaseConstants::STEP_DEL;
+			++i;
+		}
+	}
+	while ( i <= static_cast<int>(l_a) )
+	{
+		char const tc = tp[i++];
+		char const qc = qp[j++];
+		bool const eq = tc == qc;
+
+		if ( eq )
+		{
+			*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;
+		}
+		else
+		{
+			*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;
+		}
+	}
+	#endif
+}
 libmaus2::lcs::AlignmentTraceContainer const & libmaus2::lcs::DalignerNP::getTraceContainer() const
 {
 	return *this;
