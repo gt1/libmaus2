@@ -38,7 +38,7 @@ namespace libmaus2
 				libmaus2::dazzler::align::AlignmentFile AF;
 				OverlapParser parser;
 				libmaus2::autoarray::AutoArray<char> Abuffer;
-				bool const dontsplit;
+				OverlapParser::split_type splittype;
 
 				bool const limitset;
 				uint64_t const limit;
@@ -48,12 +48,12 @@ namespace libmaus2
 					std::istream & rin,
 					int64_t const rtspace,
 					uint64_t const bufsize = 32*1024,
-					bool const rdontsplit = false, int64_t const rlimit = -1
+					OverlapParser::split_type const rsplittype = OverlapParser::overlapparser_do_split, int64_t const rlimit = -1
 				)
-				: PISI(), in(rin), AF(), parser(rtspace), Abuffer(bufsize), dontsplit(rdontsplit), limitset(rlimit != -1), limit(rlimit), tr(0) {}
+				: PISI(), in(rin), AF(), parser(rtspace), Abuffer(bufsize), splittype(rsplittype), limitset(rlimit != -1), limit(rlimit), tr(0) {}
 
-				SimpleOverlapParser(std::string const & fn, uint64_t const bufsize = 32*1024, bool const rdontsplit = false, int64_t const rlimit = -1)
-				: PISI(new libmaus2::aio::InputStreamInstance(fn)), in(*PISI), AF(in), parser(AF.tspace), Abuffer(bufsize), dontsplit(rdontsplit),
+				SimpleOverlapParser(std::string const & fn, uint64_t const bufsize = 32*1024, OverlapParser::split_type const rsplittype = OverlapParser::overlapparser_do_split, int64_t const rlimit = -1)
+				: PISI(new libmaus2::aio::InputStreamInstance(fn)), in(*PISI), AF(in), parser(AF.tspace), Abuffer(bufsize), splittype(rsplittype),
 				  limitset(rlimit != -1), limit(rlimit), tr(0)
 				{}
 
@@ -99,7 +99,7 @@ namespace libmaus2
 							parser.parseBlock(
 								reinterpret_cast<uint8_t const *>(Abuffer.begin()),
 								reinterpret_cast<uint8_t const *>(Abuffer.begin()+r),
-								false
+								OverlapParser::overlapparser_do_split
 							);
 							assert ( ! parser.pushbackfill );
 							return true;
@@ -121,7 +121,7 @@ namespace libmaus2
 						parser.parseBlock(
 							reinterpret_cast<uint8_t const *>(Abuffer.begin()),
 							reinterpret_cast<uint8_t const *>(Abuffer.begin()+r),
-							dontsplit
+							splittype
 						);
 
 						return true;

@@ -96,7 +96,13 @@ namespace libmaus2
 						pushbackfill == 0;
 				}
 
-				uint64_t parseBlock(uint8_t const * data, uint8_t const * data_e, bool dontsplit = false)
+				enum split_type {
+					overlapparser_do_split,
+					overlapparser_do_not_split_ab,
+					overlapparser_do_not_split_b
+				};
+
+				uint64_t parseBlock(uint8_t const * data, uint8_t const * data_e, split_type const splittype)
 				{
 					uint8_t * dataptr = odata.Adata.begin();
 					uint64_t * offsetptr = odata.Aoffsets.begin();
@@ -112,56 +118,103 @@ namespace libmaus2
 					}
 					parseBlockInternal(data,data_e,dataptr,offsetptr,lengthptr);
 
-					if ( dontsplit && odata.overlapsInBuffer )
+					if ( odata.overlapsInBuffer )
 					{
-						int64_t lastindex = static_cast<int64_t>(odata.overlapsInBuffer)-1;
-						int32_t const last_a_read = OverlapData::getARead(odata.Adata.begin()+odata.Aoffsets[lastindex]);
-						int32_t const last_b_read = OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[lastindex]);
-
-						int64_t previndex = lastindex-1;
-
-						while (
-							previndex >= 0 &&
-							OverlapData::getARead(odata.Adata.begin()+odata.Aoffsets[previndex]) == last_a_read &&
-							OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[previndex]) == last_b_read
-						)
-							--previndex;
-
-						assert ( previndex < 0 ||
-							OverlapData::getARead(odata.Adata.begin()+odata.Aoffsets[previndex]) != last_a_read ||
-							OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[previndex]) != last_b_read );
-						assert ( previndex >= 0 || previndex == -1 );
-
-						for ( uint64_t i = static_cast<uint64_t>(previndex+1); i < odata.overlapsInBuffer; ++i )
-							assert (
-								OverlapData::getARead(odata.Adata.begin()+odata.Aoffsets[i]) == last_a_read &&
-								OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[i]) == last_b_read
-							);
-
-						uint64_t copylen = 0;
-						uint64_t pullback = 0;
-						for ( uint64_t i = static_cast<uint64_t>(previndex+1); i < odata.overlapsInBuffer; ++i )
+						switch ( splittype )
 						{
-							copylen += odata.Alength[i];
-							pullback += 1;
+							case overlapparser_do_not_split_ab:
+							{
+								int64_t lastindex = static_cast<int64_t>(odata.overlapsInBuffer)-1;
+								int32_t const last_a_read = OverlapData::getARead(odata.Adata.begin()+odata.Aoffsets[lastindex]);
+								int32_t const last_b_read = OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[lastindex]);
+
+								int64_t previndex = lastindex-1;
+
+								while (
+									previndex >= 0 &&
+									OverlapData::getARead(odata.Adata.begin()+odata.Aoffsets[previndex]) == last_a_read &&
+									OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[previndex]) == last_b_read
+								)
+									--previndex;
+
+								assert ( previndex < 0 ||
+									OverlapData::getARead(odata.Adata.begin()+odata.Aoffsets[previndex]) != last_a_read ||
+									OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[previndex]) != last_b_read );
+								assert ( previndex >= 0 || previndex == -1 );
+
+								for ( uint64_t i = static_cast<uint64_t>(previndex+1); i < odata.overlapsInBuffer; ++i )
+									assert (
+										OverlapData::getARead(odata.Adata.begin()+odata.Aoffsets[i]) == last_a_read &&
+										OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[i]) == last_b_read
+									);
+
+								uint64_t copylen = 0;
+								uint64_t pullback = 0;
+								for ( uint64_t i = static_cast<uint64_t>(previndex+1); i < odata.overlapsInBuffer; ++i )
+								{
+									copylen += odata.Alength[i];
+									pullback += 1;
+								}
+								uint8_t const * copystartptr = odata.Adata.begin()+odata.Aoffsets[previndex+1];
+								if ( Apushback.size() < copylen )
+									Apushback.resize(copylen);
+								std::copy(copystartptr,copystartptr+copylen,Apushback.begin());
+								pushbackfill = copylen;
+
+								odata.overlapsInBuffer -= pullback;
+
+								for ( uint64_t i = 0; i < odata.overlapsInBuffer; ++i )
+									assert (
+										OverlapData::getARead(odata.Adata.begin()+odata.Aoffsets[i]) != last_a_read ||
+										OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[i]) != last_b_read
+									);
+								assert (
+									OverlapData::getARead(odata.Adata.begin()+odata.Aoffsets[odata.overlapsInBuffer]) == last_a_read &&
+									OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[odata.overlapsInBuffer]) == last_b_read
+								);
+								break;
+							}
+							case overlapparser_do_not_split_b:
+							{
+								int64_t lastindex = static_cast<int64_t>(odata.overlapsInBuffer)-1;
+								int32_t const last_b_read = OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[lastindex]);
+
+								int64_t previndex = lastindex-1;
+
+								while ( previndex >= 0 && OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[previndex]) == last_b_read )
+									--previndex;
+
+								assert ( previndex < 0 || OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[previndex]) != last_b_read );
+								assert ( previndex >= 0 || previndex == -1 );
+
+								for ( uint64_t i = static_cast<uint64_t>(previndex+1); i < odata.overlapsInBuffer; ++i )
+									assert ( OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[i]) == last_b_read );
+
+								uint64_t copylen = 0;
+								uint64_t pullback = 0;
+								for ( uint64_t i = static_cast<uint64_t>(previndex+1); i < odata.overlapsInBuffer; ++i )
+								{
+									copylen += odata.Alength[i];
+									pullback += 1;
+								}
+								uint8_t const * copystartptr = odata.Adata.begin()+odata.Aoffsets[previndex+1];
+								if ( Apushback.size() < copylen )
+									Apushback.resize(copylen);
+								std::copy(copystartptr,copystartptr+copylen,Apushback.begin());
+								pushbackfill = copylen;
+
+								odata.overlapsInBuffer -= pullback;
+
+								for ( uint64_t i = 0; i < odata.overlapsInBuffer; ++i )
+									assert (
+										OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[i]) != last_b_read
+									);
+								assert ( OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[odata.overlapsInBuffer]) == last_b_read );
+								break;
+							}
+							default:
+								break;
 						}
-						uint8_t const * copystartptr = odata.Adata.begin()+odata.Aoffsets[previndex+1];
-						if ( Apushback.size() < copylen )
-							Apushback.resize(copylen);
-						std::copy(copystartptr,copystartptr+copylen,Apushback.begin());
-						pushbackfill = copylen;
-
-						odata.overlapsInBuffer -= pullback;
-
-						for ( uint64_t i = 0; i < odata.overlapsInBuffer; ++i )
-							assert (
-								OverlapData::getARead(odata.Adata.begin()+odata.Aoffsets[i]) != last_a_read ||
-								OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[i]) != last_b_read
-							);
-						assert (
-							OverlapData::getARead(odata.Adata.begin()+odata.Aoffsets[odata.overlapsInBuffer]) == last_a_read &&
-							OverlapData::getBRead(odata.Adata.begin()+odata.Aoffsets[odata.overlapsInBuffer]) == last_b_read
-						);
 					}
 
 					return odata.overlapsInBuffer;

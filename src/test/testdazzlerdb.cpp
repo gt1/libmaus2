@@ -97,7 +97,7 @@ int main(int argc, char * argv[])
 		#if 1
 		{
 			std::string const lasfn = arginfo.getUnparsedRestArg(0);
-			libmaus2::dazzler::align::SimpleOverlapParser OVLP(lasfn,32*1024,true);
+			libmaus2::dazzler::align::SimpleOverlapParser OVLP(lasfn,32*1024,libmaus2::dazzler::align::OverlapParser::overlapparser_do_not_split_ab);
 			libmaus2::dazzler::align::AlignmentFileRegion::unique_ptr_type PAF(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFileWithoutIndex(lasfn));
 
 			uint64_t c = 0;
