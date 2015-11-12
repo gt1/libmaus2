@@ -930,6 +930,42 @@ namespace libmaus2
 				}
 			};
 
+			struct OverlapComparator
+			{
+				bool operator()(Overlap const & lhs, Overlap const & rhs) const
+				{
+					if ( lhs.aread != rhs.aread )
+						return lhs.aread < rhs.aread;
+					else if ( lhs.bread != rhs.bread )
+						return lhs.bread < rhs.bread;
+					else if ( lhs.isInverse() != rhs.isInverse() )
+						return !lhs.isInverse();
+					else if ( lhs.path.abpos != rhs.path.abpos )
+						return lhs.path.abpos < rhs.path.abpos;
+					else
+						return false;
+				}
+
+			};
+
+			struct OverlapComparatorBReadARead
+			{
+				bool operator()(Overlap const & lhs, Overlap const & rhs) const
+				{
+					if ( lhs.bread != rhs.bread )
+						return lhs.bread < rhs.bread;
+					else if ( lhs.aread != rhs.aread )
+						return lhs.aread < rhs.aread;
+					else if ( lhs.isInverse() != rhs.isInverse() )
+						return !lhs.isInverse();
+					else if ( lhs.path.abpos != rhs.path.abpos )
+						return lhs.path.abpos < rhs.path.abpos;
+					else
+						return false;
+				}
+
+			};
+
 			std::ostream & operator<<(std::ostream & out, Overlap const & P);
 		}
 	}
