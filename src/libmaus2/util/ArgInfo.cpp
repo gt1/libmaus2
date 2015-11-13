@@ -126,15 +126,15 @@ void libmaus2::util::ArgInfo::init(std::vector<std::string> const args)
 std::string libmaus2::util::ArgInfo::reconstructCommandLine(int argc, char const * argv[])
 {
 	// "reconstruct" command line
-	std::string cl;
+	std::ostringstream clostr;
 	for ( int i = 0; i < argc; ++i )
 	{
-		cl += argv[i];
+		clostr << argv[i];
 		if ( i+1 < argc )
-			cl += " ";
+			clostr.put(' ');
 	}
 
-	return cl;
+	return clostr.str();
 }
 
 libmaus2::util::ArgInfo::ArgInfo(int argc, char * argv[])
