@@ -36,9 +36,24 @@ namespace libmaus2
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			std::string progname;
+			std::string commandline;
 
 			std::multimap<std::string,std::string> kvargs;
 			std::vector<std::string> restargs;
+
+			static std::string reconstructCommandLine(int argc, char * argv[])
+			{
+				// "reconstruct" command line
+				std::string cl;
+				for ( int i = 0; i < argc; ++i )
+				{
+					cl += argv[i];
+					if ( i+1 < argc )
+						cl += " ";
+				}
+
+				return cl;
+			}
 
 			ArgParser()
 			{
@@ -79,6 +94,8 @@ namespace libmaus2
 						restargs.push_back(arg);
 					}
 				}
+
+				commandline = reconstructCommandLine(argc,argv);
 			}
 
 			size_t size() const
@@ -155,6 +172,20 @@ namespace libmaus2
 				{
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "ArgParser::getParsedRestArg: cannot parse " << (*this)[i] << " as type " << ::libmaus2::util::Demangle::demangle<value_type>() << std::endl;
+					lme.finish();
+					throw lme;
+				}
+			}
+
+			std::string getEqArg(std::string const & key) const
+			{
+				std::string const value = (*this)[key];
+				if ( value.size() && value[0] == '=' )
+					return value.substr(1);
+				else
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "ArgParser::getEqArg: argument for key " << key << " does not contain a = symbol" << std::endl;
 					lme.finish();
 					throw lme;
 				}
