@@ -29,11 +29,21 @@ namespace libmaus2
 		{
 			bool operator()(SimpleThreadWorkPackage const & A, SimpleThreadWorkPackage const & B) const
 			{
-				return A.priority < B.priority;
+				if ( A.priority != B.priority )
+					return A.priority < B.priority;
+				else if ( A.dispatcherid == B.dispatcherid )
+					return A.subid > B.subid;
+				else
+					return false;
 			}
 			bool operator()(SimpleThreadWorkPackage const * A, SimpleThreadWorkPackage const * B) const
 			{
-				return A->priority < B->priority;
+				if ( A->priority != B->priority )
+					return A->priority < B->priority;
+				else if ( A->dispatcherid == B->dispatcherid )
+					return A->subid > B->subid;
+				else
+					return false;
 			}
 		};
 	}

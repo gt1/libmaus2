@@ -278,6 +278,104 @@ namespace libmaus2
 					return path;
 				}
 
+				template<typename path_iterator>
+				static void computeTrace(
+					path_iterator path,
+					size_t pathlen,
+					int32_t const abpos,
+					int32_t const aepos,
+					int32_t const bbpos,
+					int32_t const /* bepos */,
+					uint8_t const * aptr,
+					uint8_t const * bptr,
+					int64_t const tspace,
+					libmaus2::lcs::AlignmentTraceContainer & ATC,
+					libmaus2::lcs::Aligner & aligner
+				)
+				{
+					// current point on A
+					int32_t a_i = ( abpos / tspace ) * tspace;
+					// current point on B
+					int32_t b_i = ( bbpos );
+
+					// reset trace container
+					ATC.reset();
+
+					for ( size_t i = 0; i < pathlen; ++i )
+					{
+						// block end point on A
+						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(aepos) );
+						// block end point on B
+						int32_t const b_i_1 = b_i + path[i].second;
+
+						// block on A
+						uint8_t const * asubsub_b = aptr + std::max(a_i,abpos);
+						uint8_t const * asubsub_e = asubsub_b + a_i_1-std::max(a_i,abpos);
+
+						// block on B
+						uint8_t const * bsubsub_b = bptr + b_i;
+						uint8_t const * bsubsub_e = bsubsub_b + (b_i_1-b_i);
+
+						aligner.align(asubsub_b,(asubsub_e-asubsub_b),bsubsub_b,bsubsub_e-bsubsub_b);
+
+						// add trace to full alignment
+						ATC.push(aligner.getTraceContainer());
+
+						// update start points
+						b_i = b_i_1;
+						a_i = a_i_1;
+					}
+				}
+
+				template<typename path_iterator>
+				static void computeTracePreMapped(
+					path_iterator path,
+					size_t pathlen,
+					int32_t const abpos,
+					int32_t const aepos,
+					int32_t const bbpos,
+					int32_t const /* bepos */,
+					uint8_t const * aptr,
+					uint8_t const * bptr,
+					int64_t const tspace,
+					libmaus2::lcs::AlignmentTraceContainer & ATC,
+					libmaus2::lcs::Aligner & aligner
+				)
+				{
+					// current point on A
+					int32_t a_i = ( abpos / tspace ) * tspace;
+					// current point on B
+					int32_t b_i = ( bbpos );
+
+					// reset trace container
+					ATC.reset();
+
+					for ( size_t i = 0; i < pathlen; ++i )
+					{
+						// block end point on A
+						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(aepos) );
+						// block end point on B
+						int32_t const b_i_1 = b_i + path[i].second;
+
+						// block on A
+						uint8_t const * asubsub_b = aptr + std::max(a_i,abpos);
+						uint8_t const * asubsub_e = asubsub_b + a_i_1-std::max(a_i,abpos);
+
+						// block on B
+						uint8_t const * bsubsub_b = bptr + b_i;
+						uint8_t const * bsubsub_e = bsubsub_b + (b_i_1-b_i);
+
+						aligner.alignPreMapped(asubsub_b,(asubsub_e-asubsub_b),bsubsub_b,bsubsub_e-bsubsub_b);
+
+						// add trace to full alignment
+						ATC.push(aligner.getTraceContainer());
+
+						// update start points
+						b_i = b_i_1;
+						a_i = a_i_1;
+					}
+				}
+
 				static void computeTrace(
 					Path const & path,
 					uint8_t const * aptr,
@@ -830,6 +928,42 @@ namespace libmaus2
 						}
 					}
 				}
+			};
+
+			struct OverlapComparator
+			{
+				bool operator()(Overlap const & lhs, Overlap const & rhs) const
+				{
+					if ( lhs.aread != rhs.aread )
+						return lhs.aread < rhs.aread;
+					else if ( lhs.bread != rhs.bread )
+						return lhs.bread < rhs.bread;
+					else if ( lhs.isInverse() != rhs.isInverse() )
+						return !lhs.isInverse();
+					else if ( lhs.path.abpos != rhs.path.abpos )
+						return lhs.path.abpos < rhs.path.abpos;
+					else
+						return false;
+				}
+
+			};
+
+			struct OverlapComparatorBReadARead
+			{
+				bool operator()(Overlap const & lhs, Overlap const & rhs) const
+				{
+					if ( lhs.bread != rhs.bread )
+						return lhs.bread < rhs.bread;
+					else if ( lhs.aread != rhs.aread )
+						return lhs.aread < rhs.aread;
+					else if ( lhs.isInverse() != rhs.isInverse() )
+						return !lhs.isInverse();
+					else if ( lhs.path.abpos != rhs.path.abpos )
+						return lhs.path.abpos < rhs.path.abpos;
+					else
+						return false;
+				}
+
 			};
 
 			std::ostream & operator<<(std::ostream & out, Overlap const & P);

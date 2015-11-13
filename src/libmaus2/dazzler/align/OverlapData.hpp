@@ -29,6 +29,10 @@ namespace libmaus2
 		{
 			struct OverlapData
 			{
+				typedef OverlapData this_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
 				libmaus2::autoarray::AutoArray<uint8_t> Adata;
 				libmaus2::autoarray::AutoArray<uint64_t> Aoffsets;
 				libmaus2::autoarray::AutoArray<uint64_t> Alength;
@@ -72,6 +76,22 @@ namespace libmaus2
 					Aoffsets.swap(rhs.Aoffsets);
 					Alength.swap(rhs.Alength);
 					std::swap(overlapsInBuffer,rhs.overlapsInBuffer);
+				}
+
+				static std::ostream & toString(std::ostream & out, uint8_t const * p)
+				{
+					out << "OverlapData(";
+					out << "flags=" << getFlags(p) << ";";
+					out << "aread=" << getARead(p) << ";";
+					out << "bread=" << getBRead(p) << ";";
+					out << "tlen=" << getTLen(p) << ";";
+					out << "diffs=" << getDiffs(p) << ";";
+					out << "abpos=" << getABPos(p) << ";";
+					out << "bbpos=" << getBBPos(p) << ";";
+					out << "aepos=" << getAEPos(p) << ";";
+					out << "bepos=" << getBEPos(p);
+					out << ")";
+					return out;
 				}
 
 				static int32_t getTLen(uint8_t const * p)

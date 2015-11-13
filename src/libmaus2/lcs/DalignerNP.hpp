@@ -42,6 +42,7 @@ namespace libmaus2
 			DalignerNP();
 			~DalignerNP();
 			void align(uint8_t const * a, size_t const l_a, uint8_t const * b, size_t const l_b);
+			void alignPreMapped(uint8_t const * a, size_t const l_a, uint8_t const * b, size_t const l_b);
 			AlignmentTraceContainer const & getTraceContainer() const;
 		};
 	}

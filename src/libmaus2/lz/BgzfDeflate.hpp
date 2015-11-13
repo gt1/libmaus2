@@ -197,6 +197,14 @@ namespace libmaus2
 				// write empty block
 				flush();
 			}
+
+			static std::string getEOFBlock()
+			{
+				std::ostringstream ostr;
+				this_type comp(ostr);
+				comp.addEOFBlock();
+				return ostr.str();
+			}
 		};
 
 		template<typename _stream_type>

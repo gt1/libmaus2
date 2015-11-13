@@ -26,11 +26,17 @@ namespace libmaus2
 	{
 		namespace align
 		{
+			template<typename comparator_type>
 			struct OverlapHeapComparator
 			{
+				comparator_type comparator;
+
+				OverlapHeapComparator(comparator_type rcomparator = comparator_type())
+				: comparator(rcomparator) {}
+
 				bool operator()(std::pair<uint64_t,libmaus2::dazzler::align::Overlap> const & A, std::pair<uint64_t,libmaus2::dazzler::align::Overlap> const & B) const
 				{
-					return B.second < A.second;
+					return comparator(B.second,A.second);
 				}
 			};
 		}
