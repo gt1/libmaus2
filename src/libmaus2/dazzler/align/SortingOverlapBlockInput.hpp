@@ -18,6 +18,7 @@
 #if ! defined(LIBMAUS2_DAZZLER_ALIGN_SORTINGOVERLAPBLOCKINPUT_HPP)
 #define LIBMAUS2_DAZZLER_ALIGN_SORTINGOVERLAPBLOCKINPUT_HPP
 
+#include <libmaus2/dazzler/align/AlignmentFile.hpp>
 #include <libmaus2/dazzler/align/OverlapHeapComparator.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/aio/InputStreamInstance.hpp>
