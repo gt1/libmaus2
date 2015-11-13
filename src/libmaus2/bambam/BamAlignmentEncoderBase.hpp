@@ -301,6 +301,51 @@ namespace libmaus2
 			}
 
 			/**
+			 * encode pre mapped query sequence
+			 *
+			 * @param buffer output buffer
+			 * @param seq sequence iterator
+			 * @param seqlen length of query sequence
+			 **/
+			template<typename buffer_type, typename seq_iterator>
+			static void encodeSeqPreMapped(
+				buffer_type & buffer,
+				seq_iterator seq,
+				uint32_t const seqlen)
+			{
+				static uint8_t const enctable[256] = {
+					1,2,4,8,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15};
+				// sequence
+				for ( uint32_t i = 0; i < (seqlen >> 1); ++i )
+				{
+					uint8_t const high = enctable[static_cast<int>((*(seq++)))];
+					uint8_t const low  = enctable[static_cast<int>((*(seq++)))];
+					buffer.put( (high << 4) | low );
+				}
+				if ( seqlen & 1 )
+				{
+					uint8_t const high = enctable[static_cast<int>((*(seq++)))];
+					buffer.put( high<<4 );
+				}
+			}
+
+			/**
 			 * encode a complete alignment block
 			 *
 			 * @param buffer output buffer
@@ -400,6 +445,110 @@ namespace libmaus2
 
 				// encode sequence
 				encodeSeq(buffer,seqenc,seq,seqlen);
+
+				// encode quality
+				for ( uint32_t i = 0; i < seqlen; ++i )
+					buffer.put ( (*(qual++)) - qualoffset );
+			}
+
+			/**
+			 * encode a complete alignment block with pre mapped sequence
+			 *
+			 * @param buffer output buffer
+			 * @param name iterator for name
+			 * @param namelen length of query name
+			 * @param refid reference id
+			 * @param pos position
+			 * @param mapq mapping quality
+			 * @param flags alignment flags
+			 * @param cigar encoded cigar array
+			 * @param cigarlen number of cigar operations
+			 * @param nextrefid reference id of next/mate
+			 * @param nextpos position of next/matex
+			 * @param tlen template length
+			 * @param seq sequence
+			 * @param seqlen length of query sequence
+			 * @param qual quality string
+			 * @param qualoffset quality offset (default 33)
+			 **/
+			template<
+				typename name_iterator,
+				typename cigar_iterator,
+				typename seq_iterator,
+				typename qual_iterator,
+				::libmaus2::autoarray::alloc_type alloc_type
+			>
+			static void encodeAlignmentPreMapped(
+				::libmaus2::fastx::EntityBuffer<uint8_t,alloc_type> & buffer,
+				name_iterator name,
+				uint32_t const namelen,
+				int32_t const refid,
+				int32_t const pos,
+				uint32_t const mapq,
+				uint32_t const flags,
+				cigar_iterator cigar,
+				uint32_t const cigarlen,
+				int32_t const nextrefid,
+				int32_t const nextpos,
+				uint32_t const tlen,
+				seq_iterator seq,
+				uint32_t const seqlen,
+				qual_iterator qual,
+				uint8_t const qualoffset = 33,
+				bool const resetBuffer = true
+			)
+			{
+				typedef ::libmaus2::fastx::EntityBuffer<uint8_t,alloc_type> buffer_type;
+
+				if ( ! libmaus2::bambam::BamAlignmentDecoderBase::nameValid(name,name+namelen) )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "BamAlignmentEncoderBase::encodeAlignment(): name " << std::string(name,name+namelen) << " is invalid (cannot be stored in a BAM file)" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+
+				// typedef ::libmaus2::fastx::UCharBuffer UCharBuffer;
+
+				if ( resetBuffer )
+					buffer.reset();
+
+				uint32_t const bin =
+					(cigarlen > 0xFFFFul)
+					?
+					(cigarlen >> 16)
+					:
+					(flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP) ?
+						((pos < 0) ? 4680 : reg2bin(pos,0))
+						:
+						reg2bin(pos,endpos(pos,cigar,cigarlen)
+					);
+				uint32_t const cflags = (cigarlen > 0xFFFFul) ? (flags | libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FCIGAR32) : flags;
+
+				assert ( namelen+1 < (1ul << 8) );
+				assert ( mapq < (1ul << 8) );
+				assert ( bin < (1ul << 16) );
+				assert ( flags < (1ul << 16) );
+				assert ( cigarlen < (1ul << 16) );
+
+				putLE<buffer_type, int32_t>(buffer,refid); // offset 0
+				putLE<buffer_type, int32_t>(buffer,pos);   // offset 4
+				putLE<buffer_type,uint32_t>(buffer,((bin & 0xFFFFul) << 16)|((mapq & 0xFF) << 8)|(namelen+1)); // offset 8
+				putLE<buffer_type,uint32_t>(buffer,((cflags&0xFFFFu)<<16)|(cigarlen&0xFFFFu)); // offset 12
+				putLE<buffer_type, int32_t>(buffer,seqlen); // offset 16
+				putLE<buffer_type, int32_t>(buffer,nextrefid); // offset 20
+				putLE<buffer_type, int32_t>(buffer,nextpos); // offset 24
+				putLE<buffer_type, int32_t>(buffer,tlen); // offset 28
+
+				// name
+				buffer.put(name,namelen);
+				buffer.put(0);
+
+				// encode cigar string
+				encodeCigar(buffer,cigar,cigarlen);
+
+				// encode sequence
+				encodeSeqPreMapped(buffer,seq,seqlen);
 
 				// encode quality
 				for ( uint32_t i = 0; i < seqlen; ++i )

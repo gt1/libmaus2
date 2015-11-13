@@ -26,6 +26,8 @@ std::ostream & libmaus2::parallel::operator<<(std::ostream & out, libmaus2::para
 		<< "dispatcherid=" << T.dispatcherid
 		<< ","
 		<< "packageid=" << T.packageid
+		<< ","
+		<< "subid=" << T.subid
 		<< ")";
 	return out;
 }
@@ -38,6 +40,8 @@ std::ostream & libmaus2::parallel::operator<<(std::ostream & out, libmaus2::para
 		<< "dispatcherid=" << T->dispatcherid
 		<< ","
 		<< "packageid=" << T->packageid
+		<< ","
+		<< "subid=" << T->subid
 		<< ")";
 	return out;
 }

@@ -18,6 +18,7 @@
 #if ! defined(LIBMAUS2_DAZZLER_ALIGN_SORTINGOVERLAPBLOCKINPUT_HPP)
 #define LIBMAUS2_DAZZLER_ALIGN_SORTINGOVERLAPBLOCKINPUT_HPP
 
+#include <libmaus2/dazzler/align/AlignmentFile.hpp>
 #include <libmaus2/dazzler/align/OverlapHeapComparator.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/aio/InputStreamInstance.hpp>
@@ -28,10 +29,11 @@ namespace libmaus2
 	{
 		namespace align
 		{
+			template<typename comparator_type>
 			struct SortingOverlapBlockInput
 			{
 				typedef SortingOverlapBlockInput this_type;
-				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 				libmaus2::aio::InputStreamInstance & ISI;
 				bool const small;
@@ -44,8 +46,10 @@ namespace libmaus2
 				bool haveprev;
 				libmaus2::dazzler::align::Overlap OVLprev;
 
-				SortingOverlapBlockInput(libmaus2::aio::InputStreamInstance & rISI, bool const rsmall, std::pair<uint64_t,uint64_t> rblock, uint64_t rn)
-				: ISI(rISI), small(rsmall), block(rblock), B(rn), pa(B.begin()), pc(B.begin()), pe(B.begin()), haveprev(false)
+				comparator_type comparator;
+
+				SortingOverlapBlockInput(libmaus2::aio::InputStreamInstance & rISI, bool const rsmall, std::pair<uint64_t,uint64_t> rblock, uint64_t rn, comparator_type rcomparator = comparator_type())
+				: ISI(rISI), small(rsmall), block(rblock), B(rn), pa(B.begin()), pc(B.begin()), pe(B.begin()), haveprev(false), comparator(rcomparator)
 				{
 
 				}
@@ -86,7 +90,7 @@ namespace libmaus2
 
 					if ( haveprev )
 					{
-						bool const ok = !(OVL < OVLprev);
+						bool const ok = !(comparator(OVL,OVLprev));
 						assert ( ok );
 					}
 

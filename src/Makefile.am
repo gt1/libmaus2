@@ -226,7 +226,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/math/GmpInteger.cpp \
 	libmaus2/math/GmpFloat.cpp \
 	libmaus2/dazzler/align/TracePoint.cpp \
-	libmaus2/lz/XzDecoder.cpp
+	libmaus2/lz/XzDecoder.cpp \
+	libmaus2/util/ArgParser.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -275,7 +276,8 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/CompactRunPartContainer.hpp \
 	libmaus2/dazzler/align/Tandem.hpp libmaus2/dazzler/align/TandemVector.hpp \
 	libmaus2/dazzler/align/TandemVectorPartContainer.hpp \
-	libmaus2/dazzler/align/TracePoint.hpp
+	libmaus2/dazzler/align/TracePoint.hpp libmaus2/dazzler/align/OverlapParser.hpp \
+	libmaus2/dazzler/align/OverlapData.hpp libmaus2/dazzler/align/SimpleOverlapParser.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
 libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp libmaus2/autoarray/AutoArrayMultiMap.hpp
@@ -1121,7 +1123,8 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/ArgInfoParseBase.hpp \
 	libmaus2/util/ReverseAdapter.hpp \
 	libmaus2/util/MemoryStatistics.hpp \
-	libmaus2/util/LongestIncreasingSubsequenceExtendedResult.hpp
+	libmaus2/util/LongestIncreasingSubsequenceExtendedResult.hpp \
+	libmaus2/util/ArgParser.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
@@ -1884,7 +1887,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testfastasingleline \
 	testdazzleralignmentrewrite \
 	testxz \
-	testdazzlerindex
+	testdazzlerindex \
+	testargparser
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2375,3 +2379,7 @@ testxz_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testdazzlerindex_SOURCES  = test/testdazzlerindex.cpp
 testdazzlerindex_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testdazzlerindex_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testargparser_SOURCES  = test/testargparser.cpp
+testargparser_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testargparser_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@

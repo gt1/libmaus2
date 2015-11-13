@@ -15,29 +15,26 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_LCS_ALIGNER_HPP)
-#define LIBMAUS2_LCS_ALIGNER_HPP
+#include <libmaus2/util/ArgParser.hpp>
+#include <iostream>
 
-#include <libmaus2/lcs/AlignmentTraceContainer.hpp>
-
-namespace libmaus2
+int main(int argc, char * argv[])
 {
-	namespace lcs
+	try
 	{
-		struct Aligner
-		{
-			typedef Aligner this_type;
-			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-
-			virtual ~Aligner() {}
-			virtual void align(uint8_t const * a, size_t const l_a, uint8_t const * b, size_t const l_b) = 0;
-			virtual void alignPreMapped(uint8_t const * a, size_t const l_a, uint8_t const * b, size_t const l_b)
-			{
-				align(a,l_a,b,l_b);
-			}
-			virtual AlignmentTraceContainer const & getTraceContainer() const = 0;
-		};
+		libmaus2::util::ArgParser const arg(argc,argv);
+		std::cout << arg << std::endl;
+		for ( uint64_t i = 0; i < arg.size(); ++i )
+			std::cout << "arg[" << i << "]=" << arg[i] << std::endl;
+		std::cout << arg.getParsedRestArg<int>(3) << std::endl;
+		std::cout << arg.getUnsignedNumericRestArg<uint64_t>(4) << std::endl;
+		std::cout << arg["I"] << std::endl;
+		std::cout << arg["splita"] << std::endl;
+		std::cout << arg.getUnsignedNumericArg<uint64_t>("m") << std::endl;
+	}
+	catch(std::exception const & ex)
+	{
+		std::cerr << ex.what() << std::endl;
+		return EXIT_FAILURE;
 	}
 }
-#endif

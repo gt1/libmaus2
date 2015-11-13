@@ -37,6 +37,7 @@ namespace libmaus2
 	{
 		namespace align
 		{
+			template<typename comparator_type = libmaus2::dazzler::align::OverlapComparator>
 			struct SortingOverlapOutputBuffer
 			{
 				std::string const filename;
@@ -46,9 +47,10 @@ namespace libmaus2
 				uint64_t f;
 				std::streampos p;
 				std::vector< std::pair<uint64_t,uint64_t> > blocks;
+				comparator_type comparator;
 
-				SortingOverlapOutputBuffer(std::string const & rfilename, bool const rsmall, uint64_t const rn)
-				: filename(rfilename), small(rsmall), Pout(new libmaus2::aio::OutputStreamInstance(filename)), B(rn), f(0), p(0)
+				SortingOverlapOutputBuffer(std::string const & rfilename, bool const rsmall, uint64_t const rn, comparator_type rcomparator = comparator_type())
+				: filename(rfilename), small(rsmall), Pout(new libmaus2::aio::OutputStreamInstance(filename)), B(rn), f(0), p(0), comparator(rcomparator)
 				{
 
 				}
@@ -61,11 +63,11 @@ namespace libmaus2
 
 					if ( f )
 					{
-						std::sort(B.begin(),B.begin()+f);
+						std::sort(B.begin(),B.begin()+f,comparator);
 
 						for ( uint64_t i = 1; i < f; ++i )
 						{
-							bool const ok = !(B[i] < B[i-1]);
+							bool const ok = !(comparator(B[i],B[i-1]));
 							assert ( ok );
 						}
 
@@ -85,17 +87,17 @@ namespace libmaus2
 						flush();
 				}
 
-				SortingOverlapOutputBufferMerger::unique_ptr_type getMerger()
+				typename SortingOverlapOutputBufferMerger<comparator_type>::unique_ptr_type getMerger()
 				{
 					flush();
 					Pout.reset();
-					SortingOverlapOutputBufferMerger::unique_ptr_type tptr(new SortingOverlapOutputBufferMerger(filename,small,blocks));
+					typename SortingOverlapOutputBufferMerger<comparator_type>::unique_ptr_type tptr(new SortingOverlapOutputBufferMerger<comparator_type>(filename,small,blocks));
 					return UNIQUE_PTR_MOVE(tptr);
 				}
 
 				void mergeToFile(std::ostream & out, std::iostream & indexstream, int64_t const tspace)
 				{
-					SortingOverlapOutputBufferMerger::unique_ptr_type merger(getMerger());
+					typename SortingOverlapOutputBufferMerger<comparator_type>::unique_ptr_type merger(getMerger());
 
 					libmaus2::dazzler::align::AlignmentWriter writer(out,indexstream,tspace);
 					libmaus2::dazzler::align::Overlap NOVL;
@@ -108,7 +110,7 @@ namespace libmaus2
 					{
 						if ( haveprev )
 						{
-							bool const ok = !(NOVL < OVLprev);
+							bool const ok = !(comparator(NOVL,OVLprev));
 							assert ( ok );
 						}
 
@@ -148,7 +150,12 @@ namespace libmaus2
 					libmaus2::aio::FileRemoval::removeFile(tmpfilename);
 				}
 
-				static std::vector<std::string> mergeFiles(std::vector<std::string> const & infilenames, std::string const & outfilenameprefix, uint64_t const numthreads, bool const regtmp = false)
+				static std::vector<std::string> mergeFiles(
+					std::vector<std::string> const & infilenames,
+					std::string const & outfilenameprefix,
+					uint64_t const numthreads,
+					bool const regtmp = false,
+					comparator_type comparator = comparator_type())
 				{
 					OverlapMetaIteratorGet G(infilenames);
 					std::vector<uint64_t> const B = G.getBlockStarts(numthreads);
@@ -186,8 +193,8 @@ namespace libmaus2
 						std::priority_queue<
 							std::pair<uint64_t,libmaus2::dazzler::align::Overlap>,
 							std::vector< std::pair<uint64_t,libmaus2::dazzler::align::Overlap> >,
-							OverlapHeapComparator
-						> Q;
+							OverlapHeapComparator<comparator_type>
+						> Q(comparator);
 
 						libmaus2::autoarray::AutoArray<AlignmentFileRegion::unique_ptr_type> I(infilenames.size());
 						Overlap OVL;
@@ -209,7 +216,7 @@ namespace libmaus2
 
 							if ( haveprev )
 							{
-								bool const ok = !(P.second < OVLprev);
+								bool const ok = !(comparator(P.second,OVLprev));
 								assert ( ok );
 							}
 
@@ -226,7 +233,7 @@ namespace libmaus2
 					return VO;
 				}
 
-				static void mergeFilesParallel(std::vector<std::string> const & infilenames, std::string const & outfilename, uint64_t const numthreads)
+				static void mergeFilesParallel(std::vector<std::string> const & infilenames, std::string const & outfilename, uint64_t const numthreads, comparator_type comparator = comparator_type())
 				{
 					// lock
 					libmaus2::parallel::PosixSpinLock L;
@@ -359,8 +366,8 @@ namespace libmaus2
 						std::priority_queue<
 							std::pair<uint64_t,libmaus2::dazzler::align::Overlap>,
 							std::vector< std::pair<uint64_t,libmaus2::dazzler::align::Overlap> >,
-							OverlapHeapComparator
-						> Q;
+							OverlapHeapComparator<comparator_type>
+						> Q(comparator);
 
 						// current alignment id/index in output file
 						uint64_t algnid = NA[i];
@@ -407,7 +414,7 @@ namespace libmaus2
 
 							if ( haveprev )
 							{
-								bool const ok = !(P.second < OVLprev);
+								bool const ok = !(comparator(P.second,OVLprev));
 								assert ( ok );
 							}
 
@@ -514,15 +521,15 @@ namespace libmaus2
 					}
 				}
 
-				static void mergeFiles(std::vector<std::string> const & infilenames, std::string const & outfilename)
+				static void mergeFiles(std::vector<std::string> const & infilenames, std::string const & outfilename, comparator_type comparator = comparator_type())
 				{
 					libmaus2::autoarray::AutoArray<libmaus2::aio::InputStreamInstance::unique_ptr_type> AISI(infilenames.size());
 					libmaus2::autoarray::AutoArray<libmaus2::dazzler::align::AlignmentFile::unique_ptr_type> AF(infilenames.size());
 					std::priority_queue<
 						std::pair<uint64_t,libmaus2::dazzler::align::Overlap>,
 						std::vector< std::pair<uint64_t,libmaus2::dazzler::align::Overlap> >,
-						OverlapHeapComparator
-					> Q;
+						OverlapHeapComparator<comparator_type>
+					> Q(comparator);
 					libmaus2::dazzler::align::Overlap OVL;
 					for ( uint64_t i = 0; i < AISI.size(); ++i )
 					{
@@ -559,7 +566,7 @@ namespace libmaus2
 
 						if ( haveprev )
 						{
-							bool const ok = !(P.second < OVLprev);
+							bool const ok = !(comparator(P.second,OVLprev));
 							assert ( ok );
 						}
 
@@ -578,7 +585,7 @@ namespace libmaus2
 					return 64u;
 				}
 
-				static void sortAndMerge(std::vector<std::string> infilenames, std::string const & outputfilename, std::string const & tmpfilebase, uint64_t const mergefanin = getDefaultMergeFanIn(), uint64_t const numthreads = 1)
+				static void sortAndMerge(std::vector<std::string> infilenames, std::string const & outputfilename, std::string const & tmpfilebase, uint64_t const mergefanin = getDefaultMergeFanIn(), uint64_t const numthreads = 1, comparator_type comparator = comparator_type())
 				{
 					uint64_t volatile tmpid = 0;
 					libmaus2::parallel::PosixSpinLock S;
@@ -596,7 +603,7 @@ namespace libmaus2
 						std::string const fn = fnostr.str();
 						libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
 						libmaus2::util::TempFileRemovalContainer::addTempFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(fn));
-						libmaus2::dazzler::align::SortingOverlapOutputBuffer::sortFile(infilenames[i],fn);
+						libmaus2::dazzler::align::SortingOverlapOutputBuffer<comparator_type>::sortFile(infilenames[i],fn);
 
 						libmaus2::parallel::ScopePosixSpinLock slock(S);
 						infilenames[i] = fn;
@@ -618,7 +625,10 @@ namespace libmaus2
 							std::string const fn = fnostr.str();
 							libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
 							libmaus2::util::TempFileRemovalContainer::addTempFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(fn));
-							libmaus2::dazzler::align::SortingOverlapOutputBuffer::mergeFilesParallel(tomerge,fn,numthreads);
+							if ( numthreads > 1 )
+								libmaus2::dazzler::align::SortingOverlapOutputBuffer<comparator_type>::mergeFilesParallel(tomerge,fn,numthreads);
+							else
+								libmaus2::dazzler::align::SortingOverlapOutputBuffer<comparator_type>::mergeFiles(tomerge,fn,comparator);
 							ninfilenames.push_back(fn);
 							for ( uint64_t i = low; i < high; ++i )
 							{

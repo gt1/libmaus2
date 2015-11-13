@@ -30,9 +30,11 @@ struct DalignerData
 	#if defined(LIBMAUS2_HAVE_DALIGNER)
 	Align_Spec * spec;
 	Work_Data * workdata;
-	Alignment align;
-	Overlap OVL;
+	::Alignment align;
+	::Overlap OVL;
+	::Path path;
 	libmaus2::lcs::DalignerNP NP;
+	libmaus2::autoarray::AutoArray<int16_t> Apath;
 	#endif
 
 	DalignerData(
@@ -201,7 +203,7 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 		seedposb+seedposa /* anti diagonal */,-1,-1);
 
 	// compute dense dataobject->alignment
-	Compute_Trace_PTS(&(dataobject->align),dataobject->workdata,Trace_Spacing(dataobject->spec),LOWERMOST);
+	Compute_Trace_PTS(&(dataobject->align),dataobject->workdata,Trace_Spacing(dataobject->spec),GREEDIEST);
 
 	// check for output size
 	if ( EditDistanceTraceContainer::capacity() < n + m )
@@ -313,4 +315,355 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 	lme.finish();
 	throw lme;
 	#endif
+}
+
+libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::computeDenseTrace(
+	#if defined(LIBMAUS2_HAVE_DALIGNER)
+	uint8_t const * a, uint64_t const n, uint8_t const * b, uint64_t const m, int64_t const tspace, std::pair<uint16_t,uint16_t> const * intrace, uint64_t const tracelen,
+	int32_t const diffs,
+	int32_t const abpos,
+	int32_t const bbpos,
+	int32_t const aepos,
+	int32_t const bepos
+	#else
+	uint8_t const *, uint64_t const, uint8_t const *, uint64_t const, int64_t const, std::pair<uint16_t,uint16_t> const *, uint64_t const,
+	int32_t const,
+	int32_t const,
+	int32_t const,
+	int32_t const,
+	int32_t const
+	#endif
+)
+{
+	#if defined(LIBMAUS2_HAVE_DALIGNER)
+	DalignerData * dataobject = reinterpret_cast<DalignerData *>(data);
+	assert ( dataobject->spec );
+
+	bool const selfie = (a==b) && (n==m);
+
+	libmaus2::autoarray::AutoArray<char> & A = CA;
+	libmaus2::autoarray::AutoArray<char> & B = selfie ? CA : CB;
+
+	if ( (n+2) > A.size() )
+		A.resize(n+2);
+	if ( (m+2) > B.size() )
+		B.resize(m+2);
+
+	// text
+	std::copy(a,a+n,A.begin()+1);
+	// terminators in front and back
+	A[0] = 4;
+	A[n+1] = 4;
+
+	if ( ! selfie )
+	{
+		// text
+		std::copy(b,b+m,B.begin()+1);
+		// terminators in front and back
+		B[0] = 4;
+		B[m+1] = 4;
+	}
+
+	// erase align object
+	::std::memset(&(dataobject->align),0,sizeof(dataobject->align));
+
+	// copy trace data
+	if ( dataobject->Apath.size() < 2*tracelen )
+		dataobject->Apath.resize(2*tracelen);
+	for ( uint64_t i = 0; i < tracelen; ++i )
+	{
+		dataobject->Apath[2*i+0] = intrace[i].first;
+		dataobject->Apath[2*i+1] = intrace[i].second;
+	}
+
+	dataobject->align.aseq = A.begin()+1;
+	dataobject->align.bseq = B.begin()+1;
+	dataobject->align.alen = n;
+	dataobject->align.blen = m;
+	dataobject->align.path = &(dataobject->path);
+	dataobject->path.diffs = diffs;
+	dataobject->path.abpos = abpos;
+	dataobject->path.bbpos = bbpos;
+	dataobject->path.aepos = aepos;
+	dataobject->path.bepos = bepos;
+	dataobject->path.trace = dataobject->Apath.begin();
+	dataobject->path.tlen  = 2*tracelen;
+
+	// compute dense alignment trace
+	Compute_Trace_PTS(&(dataobject->align),dataobject->workdata,tspace,GREEDIEST);
+
+	// check for output size
+	if ( EditDistanceTraceContainer::capacity() < n + m )
+		resize(n + m);
+
+	ta = trace.begin();
+	te = trace.begin();
+
+	// extract edit operations
+	Path *npath    = &(dataobject->path);
+	int const tlen = npath->tlen;
+	int const * trace = reinterpret_cast<int const *>(npath->trace);
+	int i = npath->abpos + 1;
+	int j = npath->bbpos + 1;
+	uint8_t const * tp = a - 1;
+	uint8_t const * qp = b - 1;
+	uint64_t nummat = 0, nummis = 0, numins = 0, numdel = 0;
+
+	for ( int k = 0; k < tlen; ++k )
+	{
+		if ( trace[k] < 0 )
+		{
+			int p = -trace[k];
+
+			while ( i < p )
+			{
+				char const tc = tp[i++];
+				char const qc = qp[j++];
+				bool const eq = tc == qc;
+
+				if ( eq )
+				{
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;
+					nummat += 1;
+				}
+				else
+				{
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;
+					nummis += 1;
+				}
+			}
+
+			*(te++)	= libmaus2::lcs::BaseConstants::STEP_INS;
+			numdel += 1;
+			++j;
+		}
+		else
+		{
+			int p = trace[k];
+
+			while ( j < p )
+			{
+				char const tc = tp[i++];
+				char const qc = qp[j++];
+				bool const eq = tc == qc;
+
+				if ( eq )
+				{
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;
+					nummat += 1;
+				}
+				else
+				{
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;
+					nummis += 1;
+				}
+			}
+			*(te++)	= libmaus2::lcs::BaseConstants::STEP_DEL;
+			numins += 1;
+			++i;
+		}
+	}
+
+	while ( i <= static_cast<int>(npath->aepos) )
+	{
+		char const tc = tp[i++];
+		char const qc = qp[j++];
+		bool const eq = tc == qc;
+
+		if ( eq )
+		{
+			*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;
+			nummat += 1;
+		}
+		else
+		{
+			*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;
+			nummis += 1;
+		}
+	}
+
+	AlignmentStatistics const AS = getAlignmentStatistics();
+
+	// return counts
+	return LocalEditDistanceResult(
+		AS.insertions,AS.deletions,AS.matches,AS.mismatches,
+		// front clipping on a
+		npath->abpos,
+		// back clipping on a
+		n-npath->aepos,
+		// front clipping on b
+		npath->bbpos,
+		// back clipping on b
+		m-npath->bepos
+	);
+	#else
+	libmaus2::exception::LibMausException lme;
+	lme.getStream() << "DalignerLocalAlignment: libmaus2 is compiled without DALIGNER support" << std::endl;
+	lme.finish();
+	throw lme;
+	#endif
+
+}
+
+libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::computeDenseTracePreMapped(
+	#if defined(LIBMAUS2_HAVE_DALIGNER)
+	uint8_t const * a, uint64_t const n, uint8_t const * b, uint64_t const m, int64_t const tspace, std::pair<uint16_t,uint16_t> const * intrace, uint64_t const tracelen,
+	int32_t const diffs,
+	int32_t const abpos,
+	int32_t const bbpos,
+	int32_t const aepos,
+	int32_t const bepos
+	#else
+	uint8_t const *, uint64_t const, uint8_t const *, uint64_t const, int64_t const, std::pair<uint16_t,uint16_t> const *, uint64_t const,
+	int32_t const,
+	int32_t const,
+	int32_t const,
+	int32_t const,
+	int32_t const
+	#endif
+)
+{
+	#if defined(LIBMAUS2_HAVE_DALIGNER)
+	DalignerData * dataobject = reinterpret_cast<DalignerData *>(data);
+	assert ( dataobject->spec );
+
+	// erase align object
+	::std::memset(&(dataobject->align),0,sizeof(dataobject->align));
+
+	// copy trace data
+	if ( dataobject->Apath.size() < 2*tracelen )
+		dataobject->Apath.resize(2*tracelen);
+	for ( uint64_t i = 0; i < tracelen; ++i )
+	{
+		dataobject->Apath[2*i+0] = intrace[i].first;
+		dataobject->Apath[2*i+1] = intrace[i].second;
+	}
+
+	dataobject->align.aseq = const_cast<char *>(reinterpret_cast<char const *>(a));
+	dataobject->align.bseq = const_cast<char *>(reinterpret_cast<char const *>(b));
+	dataobject->align.alen = n;
+	dataobject->align.blen = m;
+	dataobject->align.path = &(dataobject->path);
+	dataobject->path.diffs = diffs;
+	dataobject->path.abpos = abpos;
+	dataobject->path.bbpos = bbpos;
+	dataobject->path.aepos = aepos;
+	dataobject->path.bepos = bepos;
+	dataobject->path.trace = dataobject->Apath.begin();
+	dataobject->path.tlen  = 2*tracelen;
+
+	// compute dense alignment trace
+	Compute_Trace_PTS(&(dataobject->align),dataobject->workdata,tspace,GREEDIEST);
+
+	// check for output size
+	if ( EditDistanceTraceContainer::capacity() < n + m )
+		resize(n + m);
+
+	ta = trace.begin();
+	te = trace.begin();
+
+	// extract edit operations
+	Path *npath    = &(dataobject->path);
+	int const tlen = npath->tlen;
+	int const * trace = reinterpret_cast<int const *>(npath->trace);
+	int i = npath->abpos + 1;
+	int j = npath->bbpos + 1;
+	uint8_t const * tp = a - 1;
+	uint8_t const * qp = b - 1;
+	uint64_t nummat = 0, nummis = 0, numins = 0, numdel = 0;
+
+	for ( int k = 0; k < tlen; ++k )
+	{
+		if ( trace[k] < 0 )
+		{
+			int p = -trace[k];
+
+			while ( i < p )
+			{
+				char const tc = tp[i++];
+				char const qc = qp[j++];
+				bool const eq = tc == qc;
+
+				if ( eq )
+				{
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;
+					nummat += 1;
+				}
+				else
+				{
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;
+					nummis += 1;
+				}
+			}
+
+			*(te++)	= libmaus2::lcs::BaseConstants::STEP_INS;
+			numdel += 1;
+			++j;
+		}
+		else
+		{
+			int p = trace[k];
+
+			while ( j < p )
+			{
+				char const tc = tp[i++];
+				char const qc = qp[j++];
+				bool const eq = tc == qc;
+
+				if ( eq )
+				{
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;
+					nummat += 1;
+				}
+				else
+				{
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;
+					nummis += 1;
+				}
+			}
+			*(te++)	= libmaus2::lcs::BaseConstants::STEP_DEL;
+			numins += 1;
+			++i;
+		}
+	}
+
+	while ( i <= static_cast<int>(npath->aepos) )
+	{
+		char const tc = tp[i++];
+		char const qc = qp[j++];
+		bool const eq = tc == qc;
+
+		if ( eq )
+		{
+			*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;
+			nummat += 1;
+		}
+		else
+		{
+			*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;
+			nummis += 1;
+		}
+	}
+
+	AlignmentStatistics const AS = getAlignmentStatistics();
+
+	// return counts
+	return LocalEditDistanceResult(
+		AS.insertions,AS.deletions,AS.matches,AS.mismatches,
+		// front clipping on a
+		npath->abpos,
+		// back clipping on a
+		n-npath->aepos,
+		// front clipping on b
+		npath->bbpos,
+		// back clipping on b
+		m-npath->bepos
+	);
+	#else
+	libmaus2::exception::LibMausException lme;
+	lme.getStream() << "DalignerLocalAlignment: libmaus2 is compiled without DALIGNER support" << std::endl;
+	lme.finish();
+	throw lme;
+	#endif
+
 }

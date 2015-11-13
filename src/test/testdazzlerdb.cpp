@@ -43,6 +43,8 @@
 #endif
 
 #include <libmaus2/lcs/DalignerLocalAlignment.hpp>
+#include <libmaus2/dazzler/align/OverlapParser.hpp>
+#include <libmaus2/dazzler/align/SimpleOverlapParser.hpp>
 
 uint64_t getColumns()
 {
@@ -69,6 +71,166 @@ int main(int argc, char * argv[])
 	try
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
+
+		#if 1
+		{
+			std::string const lasfn = arginfo.getUnparsedRestArg(0);
+			uint64_t const m = arginfo.getValueUnsignedNumeric<uint64_t>("m",64*1024);
+			libmaus2::dazzler::db::DatabaseFile DB(lasfn);
+			DB.computeTrimVector();
+			libmaus2::dazzler::db::DatabaseFile::SplitResult SR = DB.splitDb(m);
+
+			for ( uint64_t i = 0; i < SR.size(); ++i )
+			{
+				uint64_t s = 0;
+				for ( uint64_t j = SR[i].low; j < SR[i].high; ++j )
+					s += DB.getRead(j).rlen;
+				std::cerr << SR[i].low << " " << SR[i].high << " " << SR[i].size << " " << s << std::endl;
+				assert ( SR[i].high-SR[i].low == 1 || s <= m );
+				assert ( s == SR[i].size );
+			}
+
+			return 0;
+		}
+		#endif
+
+		#if 1
+		{
+			std::string const lasfn = arginfo.getUnparsedRestArg(0);
+			libmaus2::dazzler::align::SimpleOverlapParser OVLP(lasfn,32*1024,libmaus2::dazzler::align::OverlapParser::overlapparser_do_not_split_ab);
+			libmaus2::dazzler::align::AlignmentFileRegion::unique_ptr_type PAF(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFileWithoutIndex(lasfn));
+
+			uint64_t c = 0;
+			int32_t prev_a = -1;
+			int32_t prev_b = -1;
+			while ( OVLP.parseNextBlock() )
+			{
+				libmaus2::dazzler::align::OverlapData & data = OVLP.getData();
+
+				libmaus2::dazzler::align::Overlap OVL;
+
+				for ( uint64_t i = 0; i < data.size(); ++i )
+				{
+					bool const ok = PAF->getNextOverlap(OVL);
+					assert ( OVL.aread != prev_a || OVL.bread != prev_b );
+					assert ( ok );
+					std::istringstream istr(data.getDataAsString(i));
+					libmaus2::dazzler::align::Overlap COVL;
+					uint64_t l = 0;
+					libmaus2::dazzler::align::AlignmentFile::readOverlap(istr,COVL,l,OVLP.AF.tspace);
+
+					if ( ! (OVL == COVL) )
+						std::cerr << c << " " << PAF->Palgn->novl << std::endl;
+
+					assert ( OVL == COVL );
+
+					if ( ++c % (32*1024*1024) == 0 )
+						std::cerr << c / static_cast<double>(PAF->Palgn->novl) << std::endl;
+				}
+
+				if ( data.size() )
+				{
+					prev_a = OVL.aread;
+					prev_b = OVL.bread;
+				}
+			}
+
+			libmaus2::dazzler::align::Overlap OVL;
+			assert ( ! PAF->getNextOverlap(OVL) );
+
+			return 0;
+		}
+		#endif
+
+		#if 0
+		{
+			std::string const lasfn = arginfo.getUnparsedRestArg(0);
+			libmaus2::aio::InputStreamInstance ISI(lasfn);
+			libmaus2::aio::InputStreamInstance ISIref(lasfn);
+			uint64_t offset = 0;
+			int64_t const novl = libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(ISI,offset);
+			int64_t const tspace = libmaus2::dazzler::db::InputBase::getLittleEndianInteger4(ISI,offset);
+			std::cerr << tspace << std::endl;
+
+			libmaus2::dazzler::align::OverlapParser OVLP(tspace);
+			// libmaus2::autoarray::AutoArray<char> block(32*1024);
+			libmaus2::autoarray::AutoArray<char> block(32*1024*1024);
+			libmaus2::dazzler::align::AlignmentFile alf(ISIref);
+			uint64_t c = 0;
+			uint64_t lp = 0;
+			libmaus2::autoarray::AutoArray<std::pair<uint16_t,uint16_t> > Atrace;
+
+			while ( ISI )
+			{
+				ISI.read(block.begin(),block.size());
+				uint64_t const r = ISI.gcount();
+				OVLP.parseBlock(
+					reinterpret_cast<uint8_t const *>(block.begin()),
+					reinterpret_cast<uint8_t const *>(block.begin()+r)
+				);
+
+				libmaus2::dazzler::align::OverlapData const & OPD = OVLP.getData();
+
+				for ( uint64_t z = 0; z < OPD.size(); ++z )
+				{
+					std::string const s = OPD.getDataAsString(z);
+					std::istringstream istr(s);
+					libmaus2::dazzler::align::Overlap OVL;
+					uint64_t l = 0;
+					libmaus2::dazzler::align::AlignmentFile::readOverlap(istr,OVL,l,OVLP.small);
+
+					libmaus2::dazzler::align::Overlap OVLref;
+					uint64_t lref = 0;
+					alf.getNextOverlap(ISIref,OVLref,lref);
+
+					if ( !(OVL == OVLref) )
+					{
+						std::cerr << OVLref << std::endl;
+						std::cerr << OVL << std::endl;
+						assert(0);
+					}
+					else
+					{
+						// std::cerr << "ok" << std::endl;
+					}
+
+					assert ( OVL == OVLref );
+
+					assert ( OVL.path.tlen == libmaus2::dazzler::align::OverlapData::getTLen(OPD.getData(z).first) );
+					assert ( OVL.path.abpos == libmaus2::dazzler::align::OverlapData::getABPos(OPD.getData(z).first) );
+					assert ( OVL.path.bbpos == libmaus2::dazzler::align::OverlapData::getBBPos(OPD.getData(z).first) );
+					assert ( OVL.path.aepos == libmaus2::dazzler::align::OverlapData::getAEPos(OPD.getData(z).first) );
+					assert ( OVL.path.bepos == libmaus2::dazzler::align::OverlapData::getBEPos(OPD.getData(z).first) );
+					assert ( static_cast<int32_t>(OVL.flags) == libmaus2::dazzler::align::OverlapData::getFlags(OPD.getData(z).first) );
+					assert ( OVL.aread == libmaus2::dazzler::align::OverlapData::getARead(OPD.getData(z).first) );
+					assert ( OVL.bread == libmaus2::dazzler::align::OverlapData::getBRead(OPD.getData(z).first) );
+
+					uint64_t const tl = libmaus2::dazzler::align::OverlapData::decodeTraceVector(OPD.getData(z).first, Atrace, OVLP.small);
+					assert ( tl == OVLref.path.path.size() );
+					for ( uint64_t i = 0; i < tl; ++i )
+					{
+						assert ( Atrace[i].first == OVLref.path.path[i].first );
+						assert ( Atrace[i].second == OVLref.path.path[i].second );
+					}
+
+					// std::cerr << OVL << std::endl;
+				}
+				// std::cerr << r << " " << rec << std::endl;
+
+				c += OPD.size();
+
+				if (  c / (64*1024) != lp / (64*1024) )
+				{
+					std::cerr << "[V] " << c / static_cast<double>(novl) << std::endl;
+					lp = c;
+				}
+			}
+
+			assert ( static_cast<int64_t>(c) == novl );
+
+			return 0;
+		}
+		#endif
 
 		#if defined(LIBMAUS2_HAVE_DALIGNER)
 
@@ -515,6 +677,33 @@ int main(int argc, char * argv[])
 				bptr = bbaseptr;
 			}
 
+			libmaus2::lcs::DalignerLocalAlignment DLA;
+			libmaus2::autoarray::AutoArray<std::pair<uint16_t,uint16_t> > Atrace(OVL.path.tlen/2);
+			std::copy(
+				OVL.path.path.begin(),
+				OVL.path.path.begin() + OVL.path.tlen/2,
+				Atrace.begin()
+			);
+
+			libmaus2::lcs::LocalEditDistanceResult const DLALEDR = DLA.computeDenseTrace(
+				aptr,aptr+readsMeta1->at(OVL.aread).rlen,
+				bptr,bptr+readsMeta2->at(OVL.bread).rlen,
+				algn.tspace,
+				Atrace.begin(),
+				Atrace.size(),
+				OVL.path.diffs,
+				OVL.path.abpos,
+				OVL.path.bbpos,
+				OVL.path.aepos,
+				OVL.path.bepos);
+			std::cerr << "[VDLA]" << std::endl;
+			libmaus2::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,
+				aptr,aptr+readsMeta1->at(OVL.aread).rlen,
+				bptr,bptr+readsMeta2->at(OVL.bread).rlen,
+				80,
+				DLA.ta,
+				DLA.te,
+				DLALEDR);
 
 			// compute alignment trace
 			OVL.computeTrace(reinterpret_cast<uint8_t const *>(aptr),reinterpret_cast<uint8_t const *>(bptr),algn.tspace,ATC,ND);

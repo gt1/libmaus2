@@ -1,3 +1,42 @@
+libmaus2 (2.0.105-1) unstable; urgency=medium
+
+  * add command line reconstruction in ArgParser class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 13 Nov 2015 14:40:49 +0100
+
+libmaus2 (2.0.104-1) unstable; urgency=medium
+
+  * add ArgParser class as alternative to ArgInfo
+  * allow sorting las files by orders which are not Overlap::operator< (for serial sorting only so far)
+  * add toString function in OverlapData class
+  * add explicit OverlapComparator class and alternative sorting by b-read first for Overlap objects
+  * add calculateMdMapped method in BamAlignmentDecoderBase
+  * add decodeReadsMappedTerm and decodeReadsAndReverseComplementMappedTerm methods in DatabaseFile class
+  * add computeDenseTracePreMapped method in DalignerLocalAlignment
+  * add alignPreMapped method in Aligner interface (defaults to same as align)
+  * add computeTracePreMapped function in Overlap class (calling alignPreMapped instead of align in base aligner)
+  * add methods for pre encoded sequence data (\000,\001, etc instead of 'A', 'C', etc) in BamAlignmentEncoderBase
+  * add alignPreMapped method in DalignerNP interface
+  * add subid field in SimpleThreadWorkPackage class to improve priorisation
+  * change getNextDispatcherId in SimpleThreadPool so that it does not return an id which is already used
+  * add getEOFBlock function in BgzfDeflate
+  * fix read name range extraction in DatabaseFile class
+  * add pointer based computeTrace function variant in Overlap class
+  * add decodeReadsAndReverseComplement method in DatabaseFile class
+  * add splitDb function in DatabaseFile
+  * add simplified interface SimpleOverlapParser for overlap reading
+  * add openAlignmentFileWithoutIndex function in OverlapIndexer class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 13 Nov 2015 11:52:45 +0100
+
+libmaus2 (2.0.103-1) unstable; urgency=medium
+
+  * add DALIGNER sparse to dense trace interface
+  * add light weight dazzler Overlap parser
+  * fix memory allocation in DatabaseFile::decodeReads
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 06 Nov 2015 13:34:25 +0100
+
 libmaus2 (2.0.102-1) unstable; urgency=medium
 
   * fix daligner indexing
