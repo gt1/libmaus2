@@ -43,16 +43,17 @@ namespace libmaus2
 
 			static std::string reconstructCommandLine(int argc, char * argv[])
 			{
+				std::ostringstream clostr;
+
 				// "reconstruct" command line
-				std::string cl;
 				for ( int i = 0; i < argc; ++i )
 				{
-					cl += argv[i];
+					clostr << argv[i];
 					if ( i+1 < argc )
-						cl += " ";
+						clostr << ' ';
 				}
 
-				return cl;
+				return clostr.str();
 			}
 
 			ArgParser()
@@ -70,6 +71,7 @@ namespace libmaus2
 				for ( int i = 1; i < argc; ++i )
 				{
 					std::string arg = argv[i];
+
 					if ( parseargs && arg.size() > 1 && arg[0] == '-' )
 					{
 						if ( arg == "--" )
@@ -154,8 +156,11 @@ namespace libmaus2
 				typedef std::multimap<std::string,std::string>::const_iterator it_type;
 				std::pair<it_type,it_type> P = kvargs.equal_range(key);
 				uint64_t cnt = 0;
-				while ( (P.first)++ != P.second )
+				while ( P.first != P.second )
+				{
+					++(P.first);
 					++cnt;
+				}
 				return cnt == 1;
 			}
 

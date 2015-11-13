@@ -1,3 +1,9 @@
+libmaus2 (2.0.106-1) unstable; urgency=medium
+
+  * fix uniqueArgPresent in ArgParser class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 13 Nov 2015 16:43:46 +0100
+
 libmaus2 (2.0.105-1) unstable; urgency=medium
 
   * add command line reconstruction in ArgParser class
