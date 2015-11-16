@@ -172,15 +172,17 @@ namespace libmaus2
 						return seekoff(static_cast<int64_t>(sp) - cur, ::std::ios_base::cur, which);
 
 					// target is out of range, we really need to seek
-					uint64_t tsymsread = (sp / blocksize)*blocksize;
+					uint64_t const tsymsread = (sp / blocksize)*blocksize;
 
 					// set symsread
 					symsread = tsymsread;
 
+					// get total file size
 					int64_t const fs = getFileSize();
 					if ( fs < 0 )
 						return -1;
 
+					// seeking beyond end of file
 					if ( static_cast<int64_t>(symsread) >= fs )
 					{
 						filenames_ita = filenames.end();
@@ -191,6 +193,7 @@ namespace libmaus2
 						assert ( fs >= 0 );
 						assert ( static_cast<int64_t>(symsread) < fs );
 
+						// figure out in which file offset symsread is
 						uint64_t const * p = std::lower_bound(filesizes.begin(),filesizes.end(),symsread);
 
 						assert ( p >= filesizes.begin() );
@@ -211,6 +214,9 @@ namespace libmaus2
 						Pin->seekg(off);
 					}
 
+					// reset buffer
+					setg(egptr(),egptr(),egptr());
+
 					// read next block
 					underflow();
 
@@ -220,6 +226,9 @@ namespace libmaus2
 						gptr() + (static_cast<int64_t>(sp)-static_cast<int64_t>(tsymsread)),
 						egptr()
 					);
+
+					if ( sp <= fs )
+						assert ( sp == static_cast<std::streampos>(symsread - (egptr()-gptr())) );
 
 					return sp;
 				}
