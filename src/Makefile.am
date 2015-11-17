@@ -227,7 +227,9 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/math/GmpFloat.cpp \
 	libmaus2/dazzler/align/TracePoint.cpp \
 	libmaus2/lz/XzDecoder.cpp \
-	libmaus2/util/ArgParser.cpp
+	libmaus2/util/ArgParser.cpp \
+	libmaus2/lcs/FragmentEnvelopeYScore.cpp \
+	libmaus2/lcs/FragmentEnvelopeFragment.hpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1377,6 +1379,8 @@ libmaus2fastx_include_HEADERS=\
 	libmaus2/fastx/RefPathTokenVector.hpp \
 	libmaus2/fastx/RefPathTokenVectorSequence.hpp \
 	libmaus2/fastx/RefPathLookup.hpp
+	libmaus2/fastx/FragmentEnvelopeYScore.hpp \
+	libmaus2/fastx/FragmentEnvelopeFragment.hpp
 
 libmaus2timing_includedir=$(includedir)/libmaus2/timing
 libmaus2timing_include_HEADERS=\
@@ -1733,7 +1737,10 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/BandedAlignerFactory.hpp \
 	libmaus2/lcs/NP.hpp \
 	libmaus2/lcs/DalignerNP.hpp \
-	libmaus2/lcs/DalignerLocalAlignment.hpp
+	libmaus2/lcs/DalignerLocalAlignment.hpp \
+	libmaus2/lcs/FragmentEnvelopeYScore.hpp \
+	libmaus2/lcs/FragmentEnvelopeFragment.hpp \
+	libmaus2/lcs/FragmentEnvelope.hpp
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp
@@ -1888,7 +1895,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testdazzleralignmentrewrite \
 	testxz \
 	testdazzlerindex \
-	testargparser
+	testargparser \
+	testfragmentenvelope
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2383,3 +2391,7 @@ testdazzlerindex_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testargparser_SOURCES  = test/testargparser.cpp
 testargparser_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testargparser_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testfragmentenvelope_SOURCES  = test/testfragmentenvelope.cpp
+testfragmentenvelope_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testfragmentenvelope_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
