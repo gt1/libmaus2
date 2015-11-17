@@ -187,6 +187,8 @@ namespace libmaus2
 					{
 						filenames_ita = filenames.end();
 						Pin.reset();
+						setg(buffer.end(),buffer.end(),buffer.end());
+						symsread = fs;
 					}
 					else
 					{
@@ -212,25 +214,25 @@ namespace libmaus2
 						libmaus2::aio::InputStreamInstance::unique_ptr_type Tin(new libmaus2::aio::InputStreamInstance(*(filenames_ita++)));
 						Pin = UNIQUE_PTR_MOVE(Tin);
 						Pin->seekg(off);
+
+						// reset buffer
+						setg(buffer.end(),buffer.end(),buffer.end());
+
+						// read next block
+						underflow();
+
+						// skip bytes in block to get to final position
+						setg(
+							eback(),
+							gptr() + (static_cast<int64_t>(sp)-static_cast<int64_t>(tsymsread)),
+							egptr()
+						);
+
+						if ( sp <= fs )
+							assert ( sp == static_cast<std::streampos>(symsread - (egptr()-gptr())) );
+
+						return sp;
 					}
-
-					// reset buffer
-					setg(egptr(),egptr(),egptr());
-
-					// read next block
-					underflow();
-
-					// skip bytes in block to get to final position
-					setg(
-						eback(),
-						gptr() + (static_cast<int64_t>(sp)-static_cast<int64_t>(tsymsread)),
-						egptr()
-					);
-
-					if ( sp <= fs )
-						assert ( sp == static_cast<std::streampos>(symsread - (egptr()-gptr())) );
-
-					return sp;
 				}
 
 				return -1;
