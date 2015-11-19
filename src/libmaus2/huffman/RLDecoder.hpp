@@ -582,6 +582,164 @@ namespace libmaus2
 				Optr.reset();
 			}
 
+			// compute run length histogram for run length values stored in file given by name
+			static void getFragmentSymHistograms(
+				std::string const & filename,
+				std::string const & outputfilename,
+				std::string const & tmpprefix, int64_t const minsym, int64_t const maxsym,
+				uint64_t const tnumpacks,
+				std::ostream * verbout = 0
+			)
+			{
+				libmaus2::parallel::SynchronousCounter<uint64_t> o_cnt;
+				libmaus2::huffman::IndexDecoderData IDD(filename);
+
+				#if defined(_OPENMP)
+				uint64_t const numthreads = omp_get_max_threads();
+				#else
+				uint64_t const numthreads = 1;
+				#endif
+
+				libmaus2::autoarray::AutoArray<libmaus2::aio::OutputStream::unique_ptr_type> Afiles(numthreads);
+				std::vector<std::string> Vfn;
+				for ( uint64_t i = 0; i < numthreads; ++i )
+				{
+					std::ostringstream fnostr;
+					fnostr << tmpprefix << "_" << i;
+					std::string const fn = fnostr.str();
+					Vfn.push_back(fn);
+					libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
+					libmaus2::aio::OutputStream::unique_ptr_type Tptr(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(fn));
+					Afiles[i] = UNIQUE_PTR_MOVE(Tptr);
+				}
+
+				uint64_t const numentries = IDD.numentries;
+				uint64_t const entriesperthread = (numentries + tnumpacks - 1)/tnumpacks;
+				uint64_t const numpacks = ( numentries + entriesperthread - 1 ) / entriesperthread;
+				unsigned int const verbshift = 10;
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for
+				#endif
+				for ( int64_t t = 0; t < static_cast<int64_t>(numpacks); ++t )
+				{
+					uint64_t const plow = t * entriesperthread;
+					uint64_t const phigh = std::min(plow+entriesperthread,numentries);
+					libmaus2::aio::OutputStream & out = *(Afiles[t]);
+
+					std::vector<uint64_t> H(maxsym-minsym+1,0);
+
+					libmaus2::huffman::IndexEntry const ientry = IDD.readEntry(plow);
+
+					libmaus2::aio::InputStream::unique_ptr_type PCIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename));
+					std::istream & CIS = *PCIS;
+					CIS.clear();
+					CIS.seekg(ientry.pos,std::ios::beg);
+
+					// set up bit input
+					sbis_type::raw_input_ptr_type ript(new sbis_type::raw_input_type(CIS));
+					sbis_type::unique_ptr_type SBIS(new sbis_type(ript,static_cast<uint64_t>(64*1024)));
+
+					libmaus2::autoarray::AutoArray< std::pair<int64_t,uint64_t> > R;
+
+					for ( uint64_t b = plow; b < phigh; ++b )
+					{
+						// byte align stream
+						SBIS->flush();
+
+						// read block size
+						uint64_t const bs = ::libmaus2::bitio::readElias2(*SBIS);
+						bool const cntescape = SBIS->readBit();
+
+						if ( bs > R.size() )
+							R.resize(bs);
+
+						// read huffman code maps
+						::libmaus2::autoarray::AutoArray< std::pair<int64_t, uint64_t> > symmap = ::libmaus2::huffman::CanonicalEncoder::deserialise(*SBIS);
+						::libmaus2::autoarray::AutoArray< std::pair<int64_t, uint64_t> > cntmap = ::libmaus2::huffman::CanonicalEncoder::deserialise(*SBIS);
+
+						// construct decoder for symbols
+						::libmaus2::huffman::CanonicalEncoder symdec(symmap);
+
+						// construct decoder for runlengths
+						::libmaus2::huffman::EscapeCanonicalEncoder::unique_ptr_type esccntdec;
+						::libmaus2::huffman::CanonicalEncoder::unique_ptr_type cntdec;
+						if ( cntescape )
+						{
+							::libmaus2::huffman::EscapeCanonicalEncoder::unique_ptr_type tesccntdec(new ::libmaus2::huffman::EscapeCanonicalEncoder(cntmap));
+							esccntdec = UNIQUE_PTR_MOVE(tesccntdec);
+						}
+						else
+						{
+							::libmaus2::huffman::CanonicalEncoder::unique_ptr_type tcntdec(new ::libmaus2::huffman::CanonicalEncoder(cntmap));
+							cntdec = UNIQUE_PTR_MOVE(tcntdec);
+						}
+
+						// byte align input stream
+						SBIS->flush();
+
+						// decode symbols
+						for ( uint64_t i = 0; i < bs; ++i )
+							R[i].first = symdec.fastDecode(*SBIS);
+
+						// byte align
+						SBIS->flush();
+
+						// decode runlengths
+						if ( cntescape )
+							for ( uint64_t i = 0; i < bs; ++i )
+							{
+								R[i].second = esccntdec->fastDecode(*SBIS);
+							}
+						else
+							for ( uint64_t i = 0; i < bs; ++i )
+							{
+								R[i].second = cntdec->fastDecode(*SBIS);
+							}
+
+						// byte align
+						SBIS->flush();
+
+						for ( uint64_t i = 0; i < bs; ++i )
+							H [ R[i].first - minsym ] += R[i].second;
+
+						uint64_t const lcnt = ++o_cnt;
+						if ( (lcnt & ((1ull<<verbshift)-1)) == 0 && verbout )
+							*verbout << "[V] " << static_cast<double>(lcnt) / numentries << std::endl;
+					}
+
+					for ( uint64_t i = 0; i < H.size(); ++i )
+						libmaus2::util::NumberSerialisation::serialiseNumber(out,H[i]);
+				}
+
+				for ( uint64_t i = 0; i < Afiles.size(); ++i )
+				{
+					Afiles[i]->flush();
+					Afiles[i].reset();
+				}
+
+				std::vector<uint64_t> H(maxsym-minsym+1,0);
+				libmaus2::aio::OutputStream::unique_ptr_type Optr(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(outputfilename));
+				for ( uint64_t i = 0; i < H.size(); ++i )
+					libmaus2::util::NumberSerialisation::serialiseNumber(*Optr,H[i]);
+
+				for ( int64_t t = 0; t < static_cast<int64_t>(numpacks); ++t )
+				{
+					libmaus2::aio::InputStreamInstance::unique_ptr_type in(new libmaus2::aio::InputStreamInstance(Vfn[t]));
+
+					for ( uint64_t i = 0; i < H.size(); ++i )
+						H[i] += libmaus2::util::NumberSerialisation::deserialiseNumber(*in);
+					for ( uint64_t i = 0; i < H.size(); ++i )
+						libmaus2::util::NumberSerialisation::serialiseNumber(*Optr,H[i]);
+
+					in.reset();
+					libmaus2::aio::FileRemoval::removeFile(Vfn[t]);
+				}
+
+				Optr->flush();
+				Optr.reset();
+			}
+
 			static bool haveAlphabetBits()
 			{
 				return false;
