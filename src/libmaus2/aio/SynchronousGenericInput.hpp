@@ -94,7 +94,11 @@ namespace libmaus2
 
 				if ( wordsread == 0 )
 				{
-					if ( totalwordsread != totalwords )
+					if (
+						totalwordsread != totalwords
+						&&
+						totalwords != std::numeric_limits<uint64_t>::max()
+					)
 					{
 						std::cerr << "SynchronousGenericInput<>::getNext(): WARNING: read 0 words but there should be " <<
 							remwords << " left." << std::endl;
