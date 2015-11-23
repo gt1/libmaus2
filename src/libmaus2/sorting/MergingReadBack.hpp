@@ -212,11 +212,7 @@ namespace libmaus2
 			static std::vector<uint64_t> premerge(std::string const & filename, std::vector<uint64_t> blocksizes, uint64_t const maxfan = 16, uint64_t const rbackblocksize = 1024)
 			{
 				while ( blocksizes.size() > maxfan )
-				{
-					std::cerr << "reducing...";
 					blocksizes = mergeStep(filename,blocksizes,maxfan,rbackblocksize);
-					std::cerr << "reduced to " << blocksizes.size() << std::endl;
-				}
 				return blocksizes;
 			}
 
