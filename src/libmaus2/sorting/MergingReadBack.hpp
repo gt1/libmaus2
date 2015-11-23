@@ -26,6 +26,8 @@
 
 #include <libmaus2/aio/BufferedOutput.hpp>
 #include <libmaus2/aio/InputStreamFactoryContainer.hpp>
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
+#include <libmaus2/aio/SynchronousGenericOutput.hpp>
 #include <queue>
 
 namespace libmaus2
@@ -132,20 +134,31 @@ namespace libmaus2
 			}
 
 			public:
-			MergingReadBack(std::string const & filename, std::vector<uint64_t> const & rblocksizes, uint64_t const rbackblocksize = 1024)
+			MergingReadBack(std::string const & filename, std::vector<uint64_t> const & rblocksizes, uint64_t const rbackblocksize = 1024, uint64_t const blockshift = 0)
 			:
+				// input streams
 				PCIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename)),
+				// order pointer
 				Porder(new order_type),
+				// order
 				order(*Porder),
+				// heap order adapter
 				HOA(&order),
+				// block sizes
 				blocksizes(rblocksizes),
+				// read back block size
 				backblocksize(rbackblocksize),
+				// block offsets
 				blockoffsets(blocksizes.size(),false),
+				// block data
 				blocks(backblocksize*blocksizes.size(),false),
+				// sub block meta information (pointers)
 				subblocks(blocksizes.size())
 			{
 				std::copy(blocksizes.begin(),blocksizes.end(),blockoffsets.begin());
 				blockoffsets.prefixSums();
+				for ( uint64_t i = 0; i < blockoffsets.size(); ++i )
+					blockoffsets[i] += blockshift;
 
 				for ( uint64_t i = 0; i < blocksizes.size(); ++i )
 				{
@@ -160,6 +173,51 @@ namespace libmaus2
 					if ( ok )
 						Q.push(std::pair<uint64_t,data_type>(i,v));
 				}
+			}
+
+			static std::vector<uint64_t> mergeStep(std::string const & filename, std::vector<uint64_t> const & blocksizes, uint64_t const maxfan = 16, uint64_t const rbackblocksize = 1024)
+			{
+				uint64_t const tnumpacks = (blocksizes.size() + maxfan - 1)/maxfan;
+				uint64_t const packsize = (blocksizes.size() + tnumpacks -1)/tnumpacks;
+				uint64_t const numpacks = (blocksizes.size() + packsize - 1)/packsize;
+				uint64_t blockshift = 0;
+				std::vector<uint64_t> oblocksizes(numpacks);
+				std::string const ofilename = filename + "_merge";
+				libmaus2::aio::OutputStreamInstance::unique_ptr_type OSI(new libmaus2::aio::OutputStreamInstance(ofilename));
+
+				for ( uint64_t p = 0; p < numpacks; ++p )
+				{
+					uint64_t const p_low = p*packsize;
+					uint64_t const p_high = std::min(p_low+packsize,static_cast<uint64_t>(blocksizes.size()));
+					std::vector<uint64_t> const subblocksizes(blocksizes.begin()+p_low,blocksizes.begin()+p_high);
+					MergingReadBack<data_type,order_type> MRB(filename,subblocksizes,rbackblocksize,blockshift);
+					libmaus2::aio::SynchronousGenericOutput<data_type> Sout(*OSI,8*1024);
+					data_type v;
+					while ( MRB.getNext(v) )
+						Sout.put(v);
+					Sout.flush();
+					uint64_t const blocksum = std::accumulate(subblocksizes.begin(),subblocksizes.end(),0ull);
+					blockshift += blocksum;
+					oblocksizes[p] = blocksum;
+				}
+
+				OSI->flush();
+				OSI.reset();
+
+				libmaus2::aio::OutputStreamFactoryContainer::rename(ofilename,filename);
+
+				return oblocksizes;
+			}
+
+			static std::vector<uint64_t> premerge(std::string const & filename, std::vector<uint64_t> blocksizes, uint64_t const maxfan = 16, uint64_t const rbackblocksize = 1024)
+			{
+				while ( blocksizes.size() > maxfan )
+				{
+					std::cerr << "reducing...";
+					blocksizes = mergeStep(filename,blocksizes,maxfan,rbackblocksize);
+					std::cerr << "reduced to " << blocksizes.size() << std::endl;
+				}
+				return blocksizes;
 			}
 
 			bool getNext(data_type & v)
