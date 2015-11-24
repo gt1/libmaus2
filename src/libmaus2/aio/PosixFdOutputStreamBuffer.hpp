@@ -61,9 +61,11 @@ namespace libmaus2
 			::libmaus2::autoarray::AutoArray<char> buffer;
 			uint64_t writepos;
 
-			void doSeekAbsolute(uint64_t const p)
+			off_t doSeekAbsolute(uint64_t const p, int const whence = SEEK_SET)
 			{
-				while ( ::lseek(fd,p,SEEK_SET) == static_cast<off_t>(-1) )
+				off_t off = static_cast<off_t>(-1);
+
+				while ( (off=::lseek(fd,p,whence)) == static_cast<off_t>(-1) )
 				{
 					int const error = errno;
 
@@ -81,6 +83,20 @@ namespace libmaus2
 						}
 					}
 				}
+
+				return off;
+			}
+
+			off_t getFileSize()
+			{
+				// current position in stream
+				off_t const cur = doSeekAbsolute(0,SEEK_CUR);
+				// end position of stream
+				off_t const end = doSeekAbsolute(0,SEEK_END);
+				// go back to previous current
+				doSeekAbsolute(cur,SEEK_SET);
+				// return end position
+				return end;
 			}
 
 			void doClose()
@@ -198,7 +214,6 @@ namespace libmaus2
 				assert ( ! n );
 			}
 
-
 			public:
 			PosixFdOutputStreamBuffer(int const rfd, int64_t const rbuffersize)
 			: fd(rfd),
@@ -272,15 +287,35 @@ namespace libmaus2
 			 **/
 			::std::streampos seekoff(::std::streamoff off, ::std::ios_base::seekdir way, ::std::ios_base::openmode which)
 			{
-				// seek relative to current position
-				if ( (way == ::std::ios_base::cur) && (which == std::ios_base::out) && (off == 0) )
-					return writepos + (pptr()-pbase());
-				else if ( (way == ::std::ios_base::beg) && (which == std::ios_base::out) )
+				if ( way == ::std::ios_base::cur )
+				{
+					/* do not flush buffer if off == 0 (as for tellg) */
+					if ( off == 0 )
+					{
+						if ( (which & ::std::ios_base::out) )
+							return writepos + (pptr()-pbase());
+						else
+							return -1;
+					}
+					/* seek via absolute position */
+					else
+					{
+						return seekpos(writepos + (pptr()-pbase()) + off, which);
+					}
+				}
+				else if ( way == ::std::ios_base::beg )
+				{
 					return seekpos(off,which);
+				}
+				else if ( way == ::std::ios_base::end )
+				{
+					return seekpos(static_cast<int64_t>(getFileSize()) + off, which);
+				}
 				else
+				{
 					return -1;
+				}
 			}
-
 		};
 	}
 }
