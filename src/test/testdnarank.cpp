@@ -51,6 +51,10 @@ int main(int argc, char * argv[])
 		std::string const fn = arg[0];
 		libmaus2::rank::DNARank::unique_ptr_type Prank(libmaus2::rank::DNARank::loadFromRunLength(fn));
 
+		Prank->testSearch(8);
+		return 0;
+		// Prank->testBackwardSearchConsistency(8);
+
 		std::string const hfn = arg[1];
 		libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type hptr(libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(hfn));
 		libmaus2::autoarray::AutoArray<char> C(Prank->size());
@@ -146,7 +150,7 @@ int main(int argc, char * argv[])
 
 		rtc.start();
 		for ( uint64_t i = 0; i < Prank->size(); ++i )
-			assert ( (*Prank)[i] == C[i] );
+			assert ( static_cast<char>((*Prank)[i]) == static_cast<char>(C[i]) );
 		t = rtc.getElapsedSeconds();
 		std::cerr << "DNARank access " << Prank->size()/t << std::endl;
 	}
