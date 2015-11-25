@@ -1468,7 +1468,8 @@ libmaus2fm_include_HEADERS=\
 	libmaus2/fm/DictionaryInfo.hpp \
 	libmaus2/fm/DictionaryInfoImpCompactHuffmanWaveletTree.hpp \
 	libmaus2/fm/BidirectionalDnaIndexTemplate.hpp \
-	libmaus2/fm/KmerCache.hpp
+	libmaus2/fm/KmerCache.hpp \
+	libmaus2/fm/FA4CompactSampledSuffixArray.hpp
 
 libmaus2alignment_includedir=$(includedir)/libmaus2/alignment
 libmaus2alignment_include_HEADERS=\
