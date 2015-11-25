@@ -908,7 +908,8 @@ libmaus2rank_include_HEADERS=\
 	libmaus2/rank/RunLengthBitVectorGeneratorBase.hpp \
 	libmaus2/rank/RunLengthBitVectorGeneratorGammaBase.hpp \
 	libmaus2/rank/FastRank.hpp \
-	libmaus2/rank/BSwapBase.hpp
+	libmaus2/rank/BSwapBase.hpp \
+	libmaus2/rank/DNARank.hpp
 
 libmaus2geometry_includedir=$(includedir)/libmaus2/geometry
 libmaus2geometry_include_HEADERS=\
@@ -1894,7 +1895,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testxz \
 	testdazzlerindex \
 	testargparser \
-	testfragmentenvelope
+	testfragmentenvelope \
+	testdnarank
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2393,3 +2395,7 @@ testargparser_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testfragmentenvelope_SOURCES  = test/testfragmentenvelope.cpp
 testfragmentenvelope_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testfragmentenvelope_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testdnarank_SOURCES  = test/testdnarank.cpp
+testdnarank_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testdnarank_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@

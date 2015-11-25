@@ -180,7 +180,7 @@ namespace libmaus2
                                 pattern = spattern.c_str();
                         }
 
-                        void computeMapped()
+                        void computeMapped(int const shift = 0)
                         {
                                 smapped.resize(patlen);
                                 stransposed.resize(patlen);
@@ -193,20 +193,20 @@ namespace libmaus2
                                 {
                                         switch ( *(tpattern++) )
                                         {
-                                                case 'A': *(smapped_a++) = ::libmaus2::fastx::mapChar('A');
-                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('A'));
+                                                case 'A': *(smapped_a++) = ::libmaus2::fastx::mapChar('A') + shift;
+                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('A')) + shift;
                                                           break;
-                                                case 'C': *(smapped_a++) = ::libmaus2::fastx::mapChar('C');
-                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('C'));
+                                                case 'C': *(smapped_a++) = ::libmaus2::fastx::mapChar('C') + shift;
+                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('C')) + shift;
                                                           break;
-                                                case 'G': *(smapped_a++) = ::libmaus2::fastx::mapChar('G');
-                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('G'));
+                                                case 'G': *(smapped_a++) = ::libmaus2::fastx::mapChar('G') + shift;
+                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('G')) + shift;
                                                           break;
-                                                case 'T': *(smapped_a++) = ::libmaus2::fastx::mapChar('T');
-                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('T'));
+                                                case 'T': *(smapped_a++) = ::libmaus2::fastx::mapChar('T') + shift;
+                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('T')) + shift;
                                                           break;
-                                                default:  *(smapped_a++) = ::libmaus2::fastx::mapChar('N');
-                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('N'));
+                                                default:  *(smapped_a++) = ::libmaus2::fastx::mapChar('N') + shift;
+                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('N')) + shift;
                                                           break;
                                         }
                                 }

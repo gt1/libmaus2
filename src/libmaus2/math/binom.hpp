@@ -237,29 +237,54 @@ namespace libmaus2
 			static libmaus2::math::GmpFloat binomRowUpperGmpFloat(libmaus2::math::GmpFloat const p, uint64_t const k, uint64_t const n, unsigned int const prec)
 			{
 				libmaus2::math::GmpFloat r(0,prec);
-				libmaus2::math::GmpFloat const q = libmaus2::math::GmpFloat(1.0,prec)-p;
-				libmaus2::math::GmpFloat const tp(1.0,prec);
-				libmaus2::math::GmpFloat const tq = slowPow(q,n,prec);
-				libmaus2::math::GmpFloat f = tp * tq;
+				libmaus2::math::GmpFloat const q = libmaus2::math::GmpFloat(1.0,prec)-p; // q = 1-p
+				libmaus2::math::GmpFloat const tp(1.0,prec); // tp = 1
+				libmaus2::math::GmpFloat const tq = slowPow(q,n,prec); // tq = q^n
+				libmaus2::math::GmpFloat f = tp * tq; // product of tp and tq
 
 				for ( uint64_t i = 0; i < k; ++i )
 				{
-					f *= p;
-					f /= q;
-					f /= (libmaus2::math::GmpFloat(i,prec)+libmaus2::math::GmpFloat(1,prec));
-					f *= (libmaus2::math::GmpFloat(n,prec)-libmaus2::math::GmpFloat(i,prec));
+					f *= p; // multiply factor by p
+					f /= q; // divide factor by q
+					f /= (libmaus2::math::GmpFloat(i,prec)+libmaus2::math::GmpFloat(1,prec)); // divide by i+1
+					f *= (libmaus2::math::GmpFloat(n,prec)-libmaus2::math::GmpFloat(i,prec)); // multiply by n-i
 				}
 
+				// sum up starting from k
 				for ( uint64_t i = k; i <= n; ++i )
 				{
-					r += f;
-					f *= p;
-					f /= q;
-					f /= (libmaus2::math::GmpFloat(i,prec)+libmaus2::math::GmpFloat(1,prec));
-					f *= (libmaus2::math::GmpFloat(n,prec)-libmaus2::math::GmpFloat(i,prec));
+					r += f; // add f to result
+					f *= p; // multiply factor by p
+					f /= q; // divide factor by q
+					f /= (libmaus2::math::GmpFloat(i,prec)+libmaus2::math::GmpFloat(1,prec)); // divide by i+1
+					f *= (libmaus2::math::GmpFloat(n,prec)-libmaus2::math::GmpFloat(i,prec)); // multiply by n-i
 				}
 
 				return r;
+			}
+
+			/**
+			 * search for maximum k s.t. binomRowUpperGmpFloat(p,n,k,prec) >= lim using binary search
+			 **/
+			static uint64_t binomRowUpperGmpFloatLimit(libmaus2::math::GmpFloat const p, uint64_t const n, unsigned int const prec, libmaus2::math::GmpFloat const lim)
+			{
+				uint64_t low = 0;
+				uint64_t high = n+1;
+
+				while ( high-low > 1 )
+				{
+					uint64_t const m = (high + low)>>1;
+					libmaus2::math::GmpFloat const pp = binomRowUpperGmpFloat(p,m,n,prec);
+
+					// m is valid
+					if ( pp >= lim )
+						low = m;
+					// m is invalid
+					else
+						high = m;
+				}
+
+				return low;
 			}
 
 			static libmaus2::math::Rational<libmaus2::math::GmpInteger> binomRowUpperAsRational(libmaus2::math::Rational<libmaus2::math::GmpInteger> const p, uint64_t const k, uint64_t const n)

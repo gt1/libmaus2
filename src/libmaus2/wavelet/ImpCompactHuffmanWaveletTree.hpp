@@ -557,6 +557,96 @@ namespace libmaus2
 				}
 			};
 
+			struct EnumerateSymbolsRankStackElement
+			{
+				enum visit { first, second, third };
+
+				uint64_t l;
+				visit v;
+				uint32_t node;
+
+				EnumerateSymbolsRankStackElement() : l(0), v(first), node(0) {}
+				EnumerateSymbolsRankStackElement(
+					uint64_t const rl,
+					visit const rv,
+					uint32_t const rnode
+				) : l(rl), v(rv), node(rnode) {}
+
+				EnumerateSymbolsRankStackElement left(libmaus2::huffman::HuffmanTree const & H, rank_array_type const & dicts) const
+				{
+					assert ( ! H.isLeaf(node) );
+
+					return
+						EnumerateSymbolsRankStackElement(
+							dicts[node-H.leafs()]->rankm0(l),
+							first,
+							H.leftChild(node)
+						);
+				}
+				EnumerateSymbolsRankStackElement right(libmaus2::huffman::HuffmanTree const & H, rank_array_type const & dicts) const
+				{
+					assert ( ! H.isLeaf(node) );
+
+					return
+						EnumerateSymbolsRankStackElement(
+							dicts[node-H.leafs()]->rankm1(l),
+							first,
+							H.rightChild(node)
+						);
+				}
+			};
+
+			template<typename iterator>
+			void enumerateSymbolsRank(uint64_t const l, iterator P) const
+			{
+				uint64_t const stackdepth = maxdepth+1;
+				uint64_t const stacksize = stackdepth * sizeof(EnumerateRangeSymbolsStackElement);
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+				EnumerateSymbolsRankStackElement * const S = reinterpret_cast<EnumerateSymbolsRankStackElement *>(_alloca( stacksize ));
+#else
+				EnumerateSymbolsRankStackElement * const S = reinterpret_cast<EnumerateSymbolsRankStackElement *>(alloca( stacksize ));
+#endif
+
+				EnumerateSymbolsRankStackElement * SP = S;
+
+				*(SP++) = EnumerateSymbolsRankStackElement(l,EnumerateSymbolsRankStackElement::first,H->root());
+				while ( SP != S )
+				{
+					EnumerateSymbolsRankStackElement & E = *(--SP);
+
+					if ( H->isLeaf(E.node) )
+					{
+						P[H->getSymbol(E.node)] = E.l;
+					}
+					else
+					{
+						switch ( E.v )
+						{
+							case EnumerateSymbolsRankStackElement::first:
+							{
+								// register next visit of E
+								E.v = EnumerateSymbolsRankStackElement::second; ++SP;
+								EnumerateSymbolsRankStackElement SE = E.left(*H,dicts);
+								*(SP++) = SE;
+							}
+								break;
+							case EnumerateSymbolsRankStackElement::second:
+							{
+								// register next visit of E
+								E.v = EnumerateSymbolsRankStackElement::third; ++SP;
+								EnumerateSymbolsRankStackElement SE = E.right(*H,dicts);
+								*(SP++) = SE;
+							}
+								break;
+							case EnumerateSymbolsRankStackElement::third:
+								break;
+						}
+					}
+				}
+			}
+
+
 			std::map < int64_t, uint64_t > enumerateSymbolsInRange(uint64_t const l, uint64_t const r) const
 			{
 				uint64_t const stackdepth = maxdepth+1;

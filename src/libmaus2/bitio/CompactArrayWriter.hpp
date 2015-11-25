@@ -33,6 +33,9 @@ namespace libmaus2
 		 **/
 		struct CompactArrayWriter
 		{
+			typedef CompactArrayWriter this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+
 			::libmaus2::aio::OutputStreamInstance::unique_ptr_type COS;
 			::std::ostream & out;
 			::libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO;

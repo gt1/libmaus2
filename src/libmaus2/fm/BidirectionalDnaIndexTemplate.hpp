@@ -35,10 +35,11 @@ namespace libmaus2
 {
 	namespace fm
 	{
-		template<typename _lf_type>
+		template<typename _lf_type, typename _sa_type>
 		struct BidirectionalDnaIndexTemplate
 		{
 			typedef _lf_type lf_type;
+			typedef _sa_type sa_type;
 			typedef typename lf_type::unique_ptr_type lf_ptr_type;
 
 			typedef typename lf_type::wt_type rank_dictionary_type;
@@ -46,7 +47,6 @@ namespace libmaus2
 
 			typedef ::libmaus2::fm::DictionaryInfo<rank_dictionary_type> rank_dictionary_info_type;
 
-			typedef libmaus2::fm::SimpleSampledSA<lf_type> sa_type;
 			typedef typename sa_type::unique_ptr_type sa_ptr_type;
 
 			std::string const dictname;
@@ -803,8 +803,8 @@ namespace libmaus2
 			}
 		};
 
-		typedef BidirectionalDnaIndexTemplate<libmaus2::lf::ImpCompactHuffmanWaveletLF>   BidirectionalDnaIndexImpCompactHuffmanWaveletTree;
-		typedef BidirectionalDnaIndexTemplate<libmaus2::lf::ImpCompactRLHuffmanWaveletLF> BidirectionalDnaIndexImpCompactRLHuffmanWaveletTree;
+		typedef BidirectionalDnaIndexTemplate<libmaus2::lf::ImpCompactHuffmanWaveletLF,libmaus2::fm::SimpleSampledSA<libmaus2::lf::ImpCompactHuffmanWaveletLF> > BidirectionalDnaIndexImpCompactHuffmanWaveletTree;
+		typedef BidirectionalDnaIndexTemplate<libmaus2::lf::ImpCompactRLHuffmanWaveletLF,libmaus2::fm::SimpleSampledSA<libmaus2::lf::ImpCompactRLHuffmanWaveletLF> > BidirectionalDnaIndexImpCompactRLHuffmanWaveletTree;
 	}
 }
 #endif

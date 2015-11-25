@@ -76,6 +76,11 @@ namespace libmaus2
 
 			}
 
+			void reset()
+			{
+				M.clear();
+			}
+
 			/**
 			 * find best fragment to connect (x,y) to
 			 *

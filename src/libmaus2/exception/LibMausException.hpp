@@ -58,6 +58,14 @@ namespace libmaus2
 				return UNIQUE_PTR_MOVE(uptr);
 			}
 
+			static unique_ptr_type uclone(std::exception const & ex)
+			{
+				unique_ptr_type Tptr(new this_type);
+				Tptr->getStream() << ex.what() << std::endl;
+				Tptr->finish();
+				return UNIQUE_PTR_MOVE(Tptr);
+			}
+
 			std::ostream & getStream()
 			{
 				return *postr;
