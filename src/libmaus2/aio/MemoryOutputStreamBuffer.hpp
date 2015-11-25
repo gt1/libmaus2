@@ -163,11 +163,11 @@ namespace libmaus2
 			::std::streampos seekoff(::std::streamoff off, ::std::ios_base::seekdir way, ::std::ios_base::openmode which)
 			{
 				if ( way == ::std::ios_base::cur )
-					return seekpos(writepos + (pptr()-pbase()));
+					return seekpos(writepos + (pptr()-pbase())+off,which);
 				else if ( way == ::std::ios_base::beg )
 					return seekpos(off,which);
 				else if ( way == ::std::ios_base::end )
-					return seekpos(fd->getFileSize() + off, which);
+					return seekpos(fd->getFileSize() + off,which);
 				else
 					return -1;
 			}
