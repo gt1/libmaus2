@@ -229,7 +229,9 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/lz/XzDecoder.cpp \
 	libmaus2/util/ArgParser.cpp \
 	libmaus2/lcs/FragmentEnvelopeYScore.cpp \
-	libmaus2/lcs/FragmentEnvelopeFragment.cpp
+	libmaus2/lcs/FragmentEnvelopeFragment.cpp \
+	libmaus2/fastx/DNAIndexMetaDataSequence.cpp \
+	libmaus2/fastx/DNAIndexMetaData.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1379,7 +1381,9 @@ libmaus2fastx_include_HEADERS=\
 	libmaus2/fastx/RefPathToken.hpp \
 	libmaus2/fastx/RefPathTokenVector.hpp \
 	libmaus2/fastx/RefPathTokenVectorSequence.hpp \
-	libmaus2/fastx/RefPathLookup.hpp
+	libmaus2/fastx/RefPathLookup.hpp \
+	libmaus2/fastx/DNAIndexMetaDataSequence.hpp \
+	libmaus2/fastx/DNAIndexMetaData.hpp
 
 libmaus2timing_includedir=$(includedir)/libmaus2/timing
 libmaus2timing_include_HEADERS=\
