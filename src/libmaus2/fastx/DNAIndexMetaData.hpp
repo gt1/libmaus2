@@ -20,6 +20,7 @@
 
 #include <libmaus2/fastx/DNAIndexMetaDataSequence.hpp>
 #include <libmaus2/math/numbits.hpp>
+#include <libmaus2/math/lowbits.hpp>
 
 namespace libmaus2
 {
@@ -36,6 +37,7 @@ namespace libmaus2
 			uint64_t maxl;
 			uint64_t seqbits;
 			uint64_t posbits;
+			uint64_t posmask;
 			uint64_t coordbits;
 
 			uint64_t getSeqBits() const
@@ -72,6 +74,7 @@ namespace libmaus2
 					maxl = std::max(maxl,S[i].l);
 				seqbits = getSeqBits();
 				posbits = getPosBits();
+				posmask = libmaus2::math::lowbits(posbits);
 				coordbits = getCoordBits();
 			}
 
@@ -126,6 +129,23 @@ namespace libmaus2
 					mapCoordinatesToWord(i);
 				}
 				assert ( n == L.back() );
+			}
+
+			std::pair<uint64_t,uint64_t> decode(uint64_t const v) const
+			{
+				return std::pair<uint64_t,uint64_t>(v >> posbits, v & posmask);
+			}
+
+			uint64_t decodeToTextPosition(uint64_t const v) const
+			{
+				std::pair<uint64_t,uint64_t> const P = decode(v);
+				return L[P.first] + P.second;
+			}
+
+			bool valid(std::pair<uint64_t,uint64_t> const & P, uint64_t const k) const
+			{
+				uint64_t const seqlen = S[P.first/2].l;
+				return P.second + k <= seqlen;
 			}
 		};
 
