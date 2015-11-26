@@ -485,6 +485,27 @@ namespace libmaus2
 				return (w >> (log_sigma*i)) & (sigma-1);
 			}
 
+			std::pair<uint64_t,uint64_t> simpleLFUntilMask(uint64_t r, uint64_t const mask)
+			{
+				uint64_t d = 0;
+				while ( r & mask )
+				{
+					r = simpleLF(r);
+					d += 1;
+				}
+				return std::pair<uint64_t,uint64_t>(r,d);
+			}
+
+			/**
+			 * return ISA[SA[i]-1] (assuming vector stores the respective BWT)
+			 **/
+			uint64_t simpleLF(uint64_t const i) const
+			{
+				uint64_t R[sigma];
+				unsigned int const sym = inverseSelect(i,&R[0]);
+				return D[sym] + R[sym];
+			}
+
 			std::pair<uint64_t, uint64_t> extendedLF(uint64_t const i) const
 			{
 				uint64_t R[sigma];
