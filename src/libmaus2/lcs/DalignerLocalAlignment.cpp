@@ -317,6 +317,152 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 	#endif
 }
 
+libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::processPreMapped(
+	#if defined(LIBMAUS2_HAVE_DALIGNER)
+	uint8_t const * a, uint64_t const n, uint64_t const seedposa, uint8_t const * b, uint64_t const m, uint64_t const seedposb
+	#else
+	uint8_t const *, uint64_t const, uint64_t const, uint8_t const *, uint64_t const, uint64_t const
+	#endif
+)
+{
+	#if defined(LIBMAUS2_HAVE_DALIGNER)
+	DalignerData * dataobject = reinterpret_cast<DalignerData *>(data);
+	assert ( dataobject->spec );
+	assert ( dataobject->spec );
+
+	::std::memset(&(dataobject->align),0,sizeof(dataobject->align));
+	::std::memset(&(dataobject->OVL),0,sizeof(dataobject->OVL));
+
+	dataobject->align.bseq = const_cast<char *>(reinterpret_cast<char const *>(a));
+	dataobject->align.aseq = const_cast<char *>(reinterpret_cast<char const *>(b));
+	dataobject->align.blen = n;
+	dataobject->align.alen = m;
+	dataobject->align.path = &(dataobject->OVL.path);
+
+	// compute the trace points
+	Local_Alignment(
+		&(dataobject->align),
+		dataobject->workdata,
+		dataobject->spec,
+		static_cast<int64_t>(seedposb)-static_cast<int64_t>(seedposa),
+		static_cast<int64_t>(seedposb)-static_cast<int64_t>(seedposa),
+		seedposb+seedposa /* anti diagonal */,-1,-1);
+
+	// compute dense dataobject->alignment
+	Compute_Trace_PTS(&(dataobject->align),dataobject->workdata,Trace_Spacing(dataobject->spec),GREEDIEST);
+
+	// check for output size
+	if ( EditDistanceTraceContainer::capacity() < n + m )
+		resize(n + m);
+
+	ta = trace.begin();
+	te = trace.begin();
+
+	// extract edit operations
+	Path *npath = dataobject->align.path;
+	int const tlen = dataobject->align.path->tlen;
+	int const * trace = reinterpret_cast<int const *>(npath->trace);
+	int i = npath->abpos + 1;
+	int j = npath->bbpos + 1;
+	uint8_t const * tp = b - 1;
+	uint8_t const * qp = a - 1;
+	uint64_t nummat = 0, nummis = 0, numins = 0, numdel = 0;
+
+	for ( int k = 0; k < tlen; ++k )
+	{
+		if ( trace[k] < 0 )
+		{
+			int p = -trace[k];
+
+			while ( i < p )
+			{
+				char const tc = tp[i++];
+				char const qc = qp[j++];
+				bool const eq = tc == qc;
+
+				if ( eq )
+				{
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;
+					nummat += 1;
+				}
+				else
+				{
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;
+					nummis += 1;
+				}
+			}
+
+			*(te++)	= libmaus2::lcs::BaseConstants::STEP_DEL;
+			numdel += 1;
+			++j;
+		}
+		else
+		{
+			int p = trace[k];
+
+			while ( j < p )
+			{
+				char const tc = tp[i++];
+				char const qc = qp[j++];
+				bool const eq = tc == qc;
+
+				if ( eq )
+				{
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;
+					nummat += 1;
+				}
+				else
+				{
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;
+					nummis += 1;
+				}
+			}
+			*(te++)	= libmaus2::lcs::BaseConstants::STEP_INS;
+			numins += 1;
+			++i;
+		}
+	}
+
+	while ( i <= static_cast<int>(npath->aepos) )
+	{
+		char const tc = tp[i++];
+		char const qc = qp[j++];
+		bool const eq = tc == qc;
+
+		if ( eq )
+		{
+			*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;
+			nummat += 1;
+		}
+		else
+		{
+			*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;
+			nummis += 1;
+		}
+	}
+
+	AlignmentStatistics const AS = getAlignmentStatistics();
+
+	// return counts
+	return LocalEditDistanceResult(
+		AS.insertions,AS.deletions,AS.matches,AS.mismatches,
+		// front clipping on a
+		npath->bbpos,
+		// back clipping on a
+		n-npath->bepos,
+		// front clipping on b
+		npath->abpos,
+		// back clipping on b
+		m-npath->aepos
+	);
+	#else
+	libmaus2::exception::LibMausException lme;
+	lme.getStream() << "DalignerLocalAlignment: libmaus2 is compiled without DALIGNER support" << std::endl;
+	lme.finish();
+	throw lme;
+	#endif
+}
+
 libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::computeDenseTrace(
 	#if defined(LIBMAUS2_HAVE_DALIGNER)
 	uint8_t const * a, uint64_t const n, uint8_t const * b, uint64_t const m, int64_t const tspace, std::pair<uint16_t,uint16_t> const * intrace, uint64_t const tracelen,
