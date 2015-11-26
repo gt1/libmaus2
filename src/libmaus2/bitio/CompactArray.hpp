@@ -534,15 +534,15 @@ namespace libmaus2
 			}
 
 			template<typename iterator>
-			CompactArrayTemplate(iterator a, iterator e, uint64_t const rb, uint64_t const pad = 0)
-			: CompactArrayBase(rb), n(e-a), s ( computeS(n,b) ), AD( allocate(n,b,pad) ), D(AD.get())
+			CompactArrayTemplate(iterator a, iterator e, uint64_t const rb, uint64_t const pad = 0, bool const erase = true)
+			: CompactArrayBase(rb), n(e-a), s ( computeS(n,b) ), AD( allocate(n,b,pad,erase) ), D(AD.get())
 			{
 				uint64_t i = 0;
 				for ( ; a != e; ++a, ++i )
 					set(i,*a);
 			}
-			CompactArrayTemplate(uint64_t const rn, uint64_t const rb, uint64_t const pad = 0)
-			: CompactArrayBase(rb), n(rn), s ( computeS(n,b) ), AD( allocate(n,b,pad) ), D(AD.get())
+			CompactArrayTemplate(uint64_t const rn, uint64_t const rb, uint64_t const pad = 0, bool const erase = true)
+			: CompactArrayBase(rb), n(rn), s ( computeS(n,b) ), AD( allocate(n,b,pad,erase) ), D(AD.get())
 			{
 			}
 			CompactArrayTemplate(uint64_t const rn, uint64_t const rb, uint64_t * const rD) : CompactArrayBase(rb), n(rn), s ( (n*b+63)/64 ), AD(), D(rD)
@@ -582,9 +582,9 @@ namespace libmaus2
 				return (n*b+63)/64;
 			}
 
-			static ::libmaus2::autoarray::AutoArray<uint64_t,::libmaus2::autoarray::alloc_type_c> allocate(uint64_t const n, uint64_t const b, uint64_t const pad = 0)
+			static ::libmaus2::autoarray::AutoArray<uint64_t,::libmaus2::autoarray::alloc_type_c> allocate(uint64_t const n, uint64_t const b, uint64_t const pad = 0, bool erase = true)
 			{
-				return ::libmaus2::autoarray::AutoArray<uint64_t,::libmaus2::autoarray::alloc_type_c>( computeS(n,b) + pad );
+				return ::libmaus2::autoarray::AutoArray<uint64_t,::libmaus2::autoarray::alloc_type_c>( computeS(n,b) + pad, erase );
 			}
 
 			uint64_t get(uint64_t const i) const
