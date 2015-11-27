@@ -1243,6 +1243,109 @@ namespace libmaus2
 				}
 			}
 
+			struct KMatch
+			{
+				uint64_t a;
+				uint64_t b;
+
+				KMatch(uint64_t const ra = 0, uint64_t const rb = 0)
+				: a(ra), b(rb)
+				{
+
+				}
+
+				int64_t getBand() const
+				{
+					return static_cast<int64_t>(a)-static_cast<int64_t>(b);
+				}
+			};
+
+			struct KMatchBandComparator
+			{
+				bool operator()(KMatch const & A, KMatch const & B) const
+				{
+					return A.getBand() < B.getBand();
+				}
+			};
+
+			static void getKMatchOffsets(step_type const * ta, step_type const * te, unsigned int const k, std::vector < KMatch > & R,  uint64_t const off_a = 0, uint64_t const off_b = 0)
+			{
+				uint64_t apos = 0, bpos = 0;
+				uint64_t const kmask = libmaus2::math::lowbits(k);
+				uint64_t const kmask1 = k ? libmaus2::math::lowbits(k-1) : 0;
+				uint64_t e = 0;
+
+				for ( step_type const * tc = ta; tc != te; ++tc )
+				{
+					if ( (tc-ta >= static_cast<ptrdiff_t>(k)) && (e == kmask) )
+					{
+						assert ( apos >= k );
+						assert ( bpos >= k );
+						R.push_back(KMatch(apos-k+off_a,bpos-k+off_b));
+					}
+
+					e &= kmask1;
+					e <<= 1;
+
+					switch ( *tc )
+					{
+						case STEP_MATCH:
+							apos += 1;
+							bpos += 1;
+							e |= 1;
+							break;
+						case STEP_MISMATCH:
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_INS:
+							bpos += 1;
+							break;
+						case STEP_DEL:
+							apos += 1;
+							break;
+						case STEP_RESET:
+							break;
+					}
+				}
+
+				if ( (te-ta >= static_cast<ptrdiff_t>(k)) && (e == kmask) )
+				{
+					assert ( apos >= k );
+					assert ( bpos >= k );
+					R.push_back(KMatch(apos-k+off_a,bpos-k+off_b));
+				}
+			}
+
+			static void getMatchOffsets(step_type const * ta, step_type const * te, std::vector < std::pair<uint64_t,uint64_t> > & R,  uint64_t const off_a = 0, uint64_t const off_b = 0)
+			{
+				uint64_t apos = off_a, bpos = off_b;
+
+				for ( step_type const * tc = ta; tc != te; ++tc )
+				{
+					switch ( *tc )
+					{
+						case STEP_MATCH:
+							R.push_back(std::pair<uint64_t,uint64_t>(apos,bpos));
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_MISMATCH:
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_INS:
+							bpos += 1;
+							break;
+						case STEP_DEL:
+							apos += 1;
+							break;
+						case STEP_RESET:
+							break;
+					}
+				}
+			}
+
 			void
 				getKMatchOffsets(unsigned int const k, std::vector < std::pair<uint64_t,uint64_t> > & R,  uint64_t const off_a = 0, uint64_t const off_b = 0) const
 			{
