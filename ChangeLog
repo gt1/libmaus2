@@ -1,3 +1,9 @@
+libmaus2 (2.0.112-1) unstable; urgency=medium
+
+  * add SemiExternalKeyTupleSort class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 03 Dec 2015 18:54:05 +0100
+
 libmaus2 (2.0.111-1) unstable; urgency=medium
 
   * fix seeking to end of file in ConcatInputStreamBuffer 
