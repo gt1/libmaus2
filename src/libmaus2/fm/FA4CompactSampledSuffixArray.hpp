@@ -110,6 +110,21 @@ namespace libmaus2
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 
+			std::ostream & serialise(std::ostream & out) const
+			{
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,samplingrate);
+				CA.serialize(out);
+				return out;
+			}
+
+			void serialise(std::string const & fn) const
+			{
+				libmaus2::aio::OutputStreamInstance::unique_ptr_type POSI(new libmaus2::aio::OutputStreamInstance(fn));
+				serialise(*POSI);
+				POSI->flush();
+				POSI.reset();
+			}
+
 			template<typename rank_type, typename index_type>
 			static unique_ptr_type construct(rank_type const & Prank, index_type const & Pindex, std::string const & isaname)
 			{
