@@ -330,6 +330,63 @@ namespace libmaus2
 				typename pattern_iterator_type,
 				typename callback_type
 			>
+			void kmerCallbackPosForwardOnlyPreMapped(
+				pattern_iterator_type const pattern_a,
+				unsigned int const l,
+				callback_type & callback,
+				single_word_buffer_type & forw,
+				unsigned int const k,
+				uint64_t const minhash = 0,
+				uint64_t const maxhash = std::numeric_limits<uint64_t>::max(),
+				unsigned int const hashshift = 0
+			) const
+			{
+				if ( l >= k )
+				{
+					forw.reset();
+
+					pattern_iterator_type sequence = pattern_a;
+					pattern_iterator_type fsequence = sequence;
+
+					// number of indeterminate bases in current kmer
+					unsigned int e = 0;
+					// fill in first kmer
+					for ( unsigned int i = 0; i < k; ++i )
+					{
+						char const base = *(sequence++);
+						e += (base>3);
+						forw.pushBackUnmasked( base );
+					}
+
+					// iterate over kmers
+					for ( unsigned int z = 0; z < l-k+1; )
+					{
+						if ( e < 1 )
+						{
+							uint64_t const fword = forw.buffer;
+
+							if ( (fword>>hashshift) >= minhash && (fword>>hashshift) < maxhash )
+								callback(fword,z);
+						}
+
+						// compute next kmer data if there are more bases
+						if ( ++z < l-k+1 )
+						{
+							e -= (*(fsequence++)) > 3;
+
+							char const base = *(sequence++);
+							forw.pushBackMasked( base );
+
+							e += (base > 3);
+						}
+					}
+				}
+			}
+
+			template<
+				typename pattern_iterator_type,
+				typename callback_type
+			>
 			void kmerCallbackPosForwardOnlyReverseCircular(
 				pattern_iterator_type const pattern_a,
 				unsigned int const l,
