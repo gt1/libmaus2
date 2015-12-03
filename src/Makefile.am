@@ -1403,7 +1403,8 @@ libmaus2sorting_include_HEADERS=\
 	libmaus2/sorting/MergingReadBack.hpp \
 	libmaus2/sorting/SortingBufferedOutputFile.hpp \
 	libmaus2/sorting/MergeStepBinSearchResult.hpp \
-	libmaus2/sorting/ParallelStableSort.hpp
+	libmaus2/sorting/ParallelStableSort.hpp \
+	libmaus2/sorting/SemiExternalKeyTupleSort.hpp
 
 libmaus2hashing_includedir=$(includedir)/libmaus2/hashing
 libmaus2hashing_include_HEADERS=\
