@@ -189,6 +189,7 @@ namespace libmaus2
 						Pin.reset();
 						setg(buffer.end(),buffer.end(),buffer.end());
 						symsread = fs;
+						return symsread;
 					}
 					else
 					{
@@ -234,8 +235,10 @@ namespace libmaus2
 						return sp;
 					}
 				}
-
-				return -1;
+				else
+				{
+					return -1;
+				}
 			}
 
 			::std::streampos seekoff(::std::streamoff off, ::std::ios_base::seekdir way, ::std::ios_base::openmode which = ::std::ios_base::in | ::std::ios_base::out)
@@ -249,7 +252,7 @@ namespace libmaus2
 						abstarget = cur + off;
 					else if ( way == ::std::ios_base::beg )
 						abstarget = off;
-					else // if ( way == ::std::ios_base::end )
+					else if ( way == ::std::ios_base::end )
 					{
 						int64_t const fs = getFileSize();
 
@@ -257,6 +260,10 @@ namespace libmaus2
 							return -1;
 
 						abstarget = fs + off;
+					}
+					else
+					{
+						return -1;
 					}
 
 					// no movement
@@ -291,8 +298,10 @@ namespace libmaus2
 						return seekpos(abstarget,which);
 					}
 				}
-
-				return -1;
+				else
+				{
+					return -1;
+				}
 			}
 
 			int_type underflow()
