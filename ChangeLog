@@ -1,3 +1,22 @@
+libmaus2 (2.0.110-1) unstable; urgency=medium
+
+  * add findScore method in FragmentEnvelope (return score of best result along with id)
+  * add serialise method in FA4CompactSampledSuffixArray class
+  * add kmerCallbackPosForwardOnlyPreMapped method in KmerBase class
+  * add traceToCigar function in CigarStringParser class
+  * add extract method in DNARank class
+  * add getKMatchOffsets variant in AlignmentTraceContainer
+  * add simpleLF method in DNARank class
+  * add processPreMapped method in DalignerLocalAlignment (align to pre mapped and pre padded sequences)
+  * add construction of suffix array from BWT in FA4CompactSampledSuffixArray (possibly faster than loading it from disk)
+  * add padding option in Pattern::computeMapped (add padding symbol in front and behind mapped sequence)
+  * add decode method in DNAIndexMetaData (decode combined word into sequence id and offset on sequence)
+  * add option to not erase CompactArray data at construction time (for cases where all values will be set before reading any)
+  * add FA4CompactSampledSuffixArray class
+  * add DNAIndexMetaData class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 03 Dec 2015 08:57:36 +0100
+
 libmaus2 (2.0.109-1) unstable; urgency=medium
 
   * add DNARank class 

@@ -180,29 +180,36 @@ namespace libmaus2
                                 pattern = spattern.c_str();
                         }
 
-                        void computeMapped(int const shift = 0)
+                        void computeMapped(int const shift = 0, bool pad = false, char const padsym = 0)
                         {
-                                smapped.resize(patlen);
-                                stransposed.resize(patlen);
+                                smapped.resize(patlen+(pad?2:0));
+                                stransposed.resize(patlen+(pad?2:0));
 
-                                std::string::iterator       smapped_a = smapped.begin();
-                                std::string::iterator const smapped_e = smapped.end();
-                                std::string::reverse_iterator stransposed_a = stransposed.rbegin();
+                                if ( pad )
+                                {
+                                	smapped[0] = smapped[smapped.size()-1] = padsym;
+                                	stransposed[0] = stransposed[stransposed.size()-1] = padsym;
+                                }
+
+                                std::string::iterator       smapped_a = smapped.begin() + (pad?1:0);
+                                std::string::iterator const smapped_e = smapped.end() - (pad?1:0);
+                                std::string::reverse_iterator stransposed_a = stransposed.rbegin() + (pad?1:0);
+
                                 char const * tpattern = pattern;
                                 while ( smapped_a != smapped_e )
                                 {
                                         switch ( *(tpattern++) )
                                         {
-                                                case 'A': *(smapped_a++) = ::libmaus2::fastx::mapChar('A') + shift;
+                                                case 'a': case 'A': *(smapped_a++) = ::libmaus2::fastx::mapChar('A') + shift;
                                                           *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('A')) + shift;
                                                           break;
-                                                case 'C': *(smapped_a++) = ::libmaus2::fastx::mapChar('C') + shift;
+                                                case 'c': case 'C': *(smapped_a++) = ::libmaus2::fastx::mapChar('C') + shift;
                                                           *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('C')) + shift;
                                                           break;
-                                                case 'G': *(smapped_a++) = ::libmaus2::fastx::mapChar('G') + shift;
+                                                case 'g': case 'G': *(smapped_a++) = ::libmaus2::fastx::mapChar('G') + shift;
                                                           *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('G')) + shift;
                                                           break;
-                                                case 'T': *(smapped_a++) = ::libmaus2::fastx::mapChar('T') + shift;
+                                                case 't': case 'T': *(smapped_a++) = ::libmaus2::fastx::mapChar('T') + shift;
                                                           *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('T')) + shift;
                                                           break;
                                                 default:  *(smapped_a++) = ::libmaus2::fastx::mapChar('N') + shift;
@@ -211,8 +218,8 @@ namespace libmaus2
                                         }
                                 }
 
-                                mapped = smapped.c_str();
-                                transposed = stransposed.c_str();
+                                mapped = smapped.c_str() + (pad ? 1:0);
+                                transposed = stransposed.c_str() + (pad ? 1 : 0);
                         }
                         std::string const & getStringId() const
                         {
