@@ -97,6 +97,60 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < ATCV.size(); ++i )
 					*(--ATC.ta) = ATCV[ATCV.size()-i-1];
 			}
+
+			/**
+			 * convert trace stored in ATC to cigar sequence. Add clipping on left and right as noted in (hard|soft)_clip_(left|right)
+			 * Aopblocks is used as a temporary array
+			 * Aop is used to store the result, it is extended as needed
+			 **/
+			static uint64_t traceToCigar(
+				libmaus2::lcs::AlignmentTraceContainer const & ATC,
+				libmaus2::autoarray::AutoArray< std::pair<libmaus2::lcs::AlignmentTraceContainer::step_type,uint64_t> > & Aopblocks,
+				libmaus2::autoarray::AutoArray<cigar_operation> & Aop,
+				uint64_t hard_clip_left,
+				uint64_t soft_clip_left,
+				uint64_t soft_clip_right,
+				uint64_t hard_clip_right
+			)
+			{
+				uint64_t const clipops = (hard_clip_left!=0)+(soft_clip_left!=0)+(soft_clip_right!=0)+(hard_clip_right!=0);
+				uint64_t const nonclipops = ATC.getOpBlocks(Aopblocks);
+				uint64_t const totalops = clipops+nonclipops;
+				if ( totalops > Aop.size() )
+					Aop.resize(totalops);
+				cigar_operation * out = Aop.begin();
+
+				if ( hard_clip_left )
+					*(out++) = cigar_operation(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP,hard_clip_left);
+				if ( soft_clip_left )
+					*(out++) = cigar_operation(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP,soft_clip_left);
+
+				for ( uint64_t i = 0; i < nonclipops; ++i )
+					switch ( Aopblocks[i].first )
+					{
+						case libmaus2::lcs::BaseConstants::STEP_MATCH:
+							*(out++) = cigar_operation(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL,Aopblocks[i].second);
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
+							*(out++) = cigar_operation(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF,Aopblocks[i].second);
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_INS:
+							*(out++) = cigar_operation(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CINS,Aopblocks[i].second);
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_DEL:
+							*(out++) = cigar_operation(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDEL,Aopblocks[i].second);
+							break;
+						default:
+							break;
+					}
+
+				if ( soft_clip_right )
+					*(out++) = cigar_operation(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP,soft_clip_right);
+				if ( hard_clip_right )
+					*(out++) = cigar_operation(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP,hard_clip_right);
+
+				return totalops;
+			}
 		};
 	}
 }

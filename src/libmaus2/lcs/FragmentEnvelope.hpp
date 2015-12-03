@@ -86,10 +86,10 @@ namespace libmaus2
 			 *
 			 * @return id of best fragment or -1 (none exists)
 			 **/
-			int64_t find(int64_t const x, int64_t const y) const
+			std::pair<int64_t,int64_t> findScore(int64_t const x, int64_t const y) const
 			{
 				if ( ! M.size() || M.begin()->first > x)
-					return -1;
+					return std::pair<int64_t,int64_t>(-1,-1);
 
 				assert ( M.begin() != M.end() && M.begin()->first <= x );
 
@@ -103,12 +103,23 @@ namespace libmaus2
 				int64_t const fragx = it->first;
 				int64_t const fragy = it->second.y;
 				int64_t const fragscore = it->second.score;
+				int64_t const nscore = getAdaptedPrevScore(x,fragx,y,fragy,fragscore);
 
 				// check whether remaining score when reaching x,y is non negative
-				if ( getAdaptedPrevScore(x,fragx,y,fragy,fragscore) >= 0 )
-					return it->second.id;
+				if ( nscore >= 0 )
+					return std::pair<int64_t,int64_t>(it->second.id,nscore>>num_shift);
 				else
-					return -1;
+					return std::pair<int64_t,int64_t>(-1,-1);
+			}
+
+			/**
+			 * find best fragment to connect (x,y) to
+			 *
+			 * @return id of best fragment or -1 (none exists)
+			 **/
+			int64_t find(int64_t const x, int64_t const y) const
+			{
+				return findScore(x,y).first;
 			}
 
 			/**

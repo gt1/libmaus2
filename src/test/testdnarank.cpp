@@ -51,6 +51,20 @@ int main(int argc, char * argv[])
 		std::string const fn = arg[0];
 		libmaus2::rank::DNARank::unique_ptr_type Prank(libmaus2::rank::DNARank::loadFromRunLength(fn));
 
+		std::cerr << "[V] checking extract...";
+		libmaus2::autoarray::AutoArray<char> CC;
+		for ( uint64_t i = 0; i < 64*1024; ++i )
+		{
+			uint64_t const p = libmaus2::random::Random::rand64() % Prank->size();
+			uint64_t const s = std::min( (libmaus2::random::Random::rand64() % 512), Prank->size()-p );
+			if ( s > CC.size() )
+				CC.resize(s);
+			Prank->extract(CC.begin(),p,s);
+			for ( uint64_t j = 0; j < s; ++j )
+				assert ( (*Prank)[p+j] == CC[j] );
+		}
+		std::cerr << "done." << std::endl;
+
 		Prank->testSearch(8);
 		return 0;
 		// Prank->testBackwardSearchConsistency(8);

@@ -244,6 +244,80 @@ namespace libmaus2
 				return out;
 			}
 
+			template<typename iterator>
+			void extract(iterator it, uint64_t i, uint64_t s) const
+			{
+				// data base ptr
+				uint64_t const * P = B.begin();
+
+				// skip blocks until we reach block containing i
+				uint64_t const blockskip = i / data_bases_per_block;
+				i -= blockskip * data_bases_per_block;
+				P += (blockskip * words_per_block);
+
+				// if s and i
+				if ( s && i )
+				{
+					// skip over index words
+					P += dict_words_per_block;
+
+					// skip over words until we reach word containing i
+					uint64_t symsinblock = data_bases_per_block;
+					uint64_t wordskip = i / bases_per_word;
+					i -= wordskip * bases_per_word;
+					symsinblock -= wordskip * bases_per_word;
+					P += wordskip;
+
+					// while block contains more data and we want more
+					while ( s && symsinblock )
+					{
+						uint64_t w = *(P++);
+
+						uint64_t symsinword = bases_per_word;
+
+						assert ( symsinword > i );
+						unsigned int const tocopy = std::min(s,symsinword-i);
+						s -= tocopy;
+						w >>= (i<<1);
+						i = 0;
+
+						iterator ite = it + tocopy;
+						while ( it != ite )
+						{
+							*(it++) = w & 0x3;
+							w >>= 2;
+						}
+
+						symsinblock -= bases_per_word;
+					}
+				}
+
+				assert ( (!s) || (i == 0) );
+
+				while ( s )
+				{
+					P += dict_words_per_block;
+					uint64_t symsinblock = data_bases_per_block;
+
+					while ( s && symsinblock )
+					{
+						uint64_t w = *(P++);
+
+						unsigned int const tocopy = std::min(s,static_cast<uint64_t>(bases_per_word));
+						s -= tocopy;
+
+						iterator ite = it + tocopy;
+						while ( it != ite )
+						{
+							*(it++) = w & 0x3;
+							w >>= 2;
+						}
+
+						symsinblock -= bases_per_word;
+					}
+				}
+			}
+
 			unsigned int operator[](uint64_t i) const
 			{
 				if ( i >= n )
@@ -483,6 +557,27 @@ namespace libmaus2
 				}
 
 				return (w >> (log_sigma*i)) & (sigma-1);
+			}
+
+			std::pair<uint64_t,uint64_t> simpleLFUntilMask(uint64_t r, uint64_t const mask)
+			{
+				uint64_t d = 0;
+				while ( r & mask )
+				{
+					r = simpleLF(r);
+					d += 1;
+				}
+				return std::pair<uint64_t,uint64_t>(r,d);
+			}
+
+			/**
+			 * return ISA[SA[i]-1] (assuming vector stores the respective BWT)
+			 **/
+			uint64_t simpleLF(uint64_t const i) const
+			{
+				uint64_t R[sigma];
+				unsigned int const sym = inverseSelect(i,&R[0]);
+				return D[sym] + R[sym];
 			}
 
 			std::pair<uint64_t, uint64_t> extendedLF(uint64_t const i) const
