@@ -61,7 +61,7 @@ int main(int argc, char * argv[])
 				CC.resize(s);
 			Prank->extract(CC.begin(),p,s);
 			for ( uint64_t j = 0; j < s; ++j )
-				assert ( (*Prank)[p+j] == CC[j] );
+				assert ( static_cast<char>((*Prank)[p+j]) == CC[j] );
 		}
 		std::cerr << "done." << std::endl;
 

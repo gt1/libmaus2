@@ -37,17 +37,16 @@ namespace libmaus2
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			private:
-			static unsigned int const sigma = 4;
-			static unsigned int const log_sigma = 2;
-			static unsigned int const bits_per_byte = 8;
-			static unsigned int const cache_line_size = 64;
-
-			static unsigned int const words_per_block = cache_line_size/sizeof(uint64_t);
-			static unsigned int const dict_words_per_block = (sigma-1);
-			static unsigned int const data_words_per_block = words_per_block - dict_words_per_block;
-			static unsigned int const data_bytes_per_block = data_words_per_block * sizeof(uint64_t);
-			static unsigned int const bases_per_word = (bits_per_byte*sizeof(uint64_t))/log_sigma;
-			static unsigned int const data_bases_per_block = data_bytes_per_block * (bits_per_byte/log_sigma);
+			static unsigned int getSigma() { return 4; }
+			static unsigned int getLogSigma() { return 2; }
+			static unsigned int getBitsPerByte() { return 8; }
+			static unsigned int getCacheLineSize() { return 64; }
+			static unsigned int getWordsPerBlock() { return getCacheLineSize()/sizeof(uint64_t); }
+			static unsigned int getDictWordsPerBlock() { return (getSigma()-1); }
+			static unsigned int getDataWordsPerBlock() { return getWordsPerBlock() - getDictWordsPerBlock(); }
+			static unsigned int getDataBytesPerBlock() { return getDataWordsPerBlock() * sizeof(uint64_t); }
+			static unsigned int getBasesPerWord() { return (getBitsPerByte()*sizeof(uint64_t))/getLogSigma(); }
+			static unsigned int getDataBasesPerBlock() { return getDataBytesPerBlock() * (getBitsPerByte()/getLogSigma()); }
 
 			uint64_t n;
 			libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_memalign_cacheline> B;
@@ -55,7 +54,7 @@ namespace libmaus2
 
 			void computeD()
 			{
-				D.resize(sigma+1);
+				D.resize(getSigma()+1);
 				rankm(n,D.begin());
 				D.prefixSums();
 			}
@@ -81,21 +80,21 @@ namespace libmaus2
 				#endif
 
 				// total number of blocks
-				uint64_t const numblocks = (n + data_bases_per_block - 1)/data_bases_per_block;
+				uint64_t const numblocks = (n + getDataBasesPerBlock() - 1)/getDataBasesPerBlock();
 				// blocks per thread
 				uint64_t const blocksperthread = (numblocks + numthreads-1)/numthreads;
 				// number of thread packages
 				int64_t const numpacks = (numblocks + blocksperthread-1)/blocksperthread;
 
-				uint64_t r_a[sigma];
-				uint64_t r_b[sigma];
+				uint64_t r_a[getSigma()];
+				uint64_t r_b[getSigma()];
 
 				rankm(n,&r_a[0]);
 				rank(n-1,&r_b[0]);
 
-				for ( uint64_t i = 0; i < sigma; ++i )
+				for ( uint64_t i = 0; i < getSigma(); ++i )
 					assert ( r_a[i] == r_b[i] );
-				assert ( std::accumulate(&r_a[0],&r_a[sigma],0ull) == n );
+				assert ( std::accumulate(&r_a[0],&r_a[getSigma()],0ull) == n );
 
 				std::cerr << "checking...";
 				#if defined(_OPENMP)
@@ -105,8 +104,8 @@ namespace libmaus2
 				{
 					uint64_t const block_low = t*blocksperthread;
 					uint64_t const block_high = std::min(block_low + blocksperthread,numblocks);
-					uint64_t const block_base_low = block_low * data_bases_per_block;
-					uint64_t const block_base_high = std::min(n,block_high * data_bases_per_block);
+					uint64_t const block_base_low = block_low * getDataBasesPerBlock();
+					uint64_t const block_base_high = std::min(n,block_high * getDataBasesPerBlock());
 					assert ( block_high > block_low );
 					libmaus2::huffman::RLDecoder rldec(rl,block_base_low);
 
@@ -132,8 +131,8 @@ namespace libmaus2
 				{
 					uint64_t const block_low = t*blocksperthread;
 					uint64_t const block_high = std::min(block_low + blocksperthread,numblocks);
-					uint64_t const block_base_low = block_low * data_bases_per_block;
-					uint64_t const block_base_high = std::min(n,block_high * data_bases_per_block);
+					uint64_t const block_base_low = block_low * getDataBasesPerBlock();
+					uint64_t const block_base_high = std::min(n,block_high * getDataBasesPerBlock());
 					assert ( block_high > block_low );
 					libmaus2::huffman::RLDecoder rldec(rl,block_base_low);
 
@@ -147,13 +146,13 @@ namespace libmaus2
 
 				libmaus2::timing::RealTimeClock rtc; rtc.start();
 				std::cerr << "checking rankm...";
-				uint64_t acc[sigma] = {0,0,0,0};
-				uint64_t racc[sigma];
+				uint64_t acc[getSigma()] = {0,0,0,0};
+				uint64_t racc[getSigma()];
 				for ( uint64_t i = 0; i < n; ++i )
 				{
 					rankm(i,&racc[0]);
 					bool ok = true;
-					for ( unsigned int j = 0; j < sigma; ++j )
+					for ( unsigned int j = 0; j < getSigma(); ++j )
 					{
 						ok = ok && ( acc[j] == racc[j] );
 					}
@@ -161,7 +160,7 @@ namespace libmaus2
 					{
 						std::cerr << "failed at " << i << "/" << n << std::endl;
 
-						for ( uint64_t j = 0; j < sigma; ++j )
+						for ( uint64_t j = 0; j < getSigma(); ++j )
 							std::cerr << acc[j] << "\t" << racc[j] << std::endl;
 
 						assert ( ok );
@@ -174,7 +173,7 @@ namespace libmaus2
 
 					rank(i,&racc[0]);
 					ok = true;
-					for ( unsigned int j = 0; j < sigma; ++j )
+					for ( unsigned int j = 0; j < getSigma(); ++j )
 					{
 						ok = ok && ( acc[j] == racc[j] );
 					}
@@ -182,7 +181,7 @@ namespace libmaus2
 					{
 						std::cerr << "rank failed at " << i << "/" << n << std::endl;
 
-						for ( uint64_t j = 0; j < sigma; ++j )
+						for ( uint64_t j = 0; j < getSigma(); ++j )
 							std::cerr << acc[j] << "\t" << racc[j] << std::endl;
 
 						assert ( ok );
@@ -211,10 +210,10 @@ namespace libmaus2
 				{
 					uint64_t const block_low = t*blocksperthread;
 					uint64_t const block_high = std::min(block_low + blocksperthread,numblocks);
-					uint64_t const block_base_low = block_low * data_bases_per_block;
-					uint64_t const block_base_high = std::min(n,block_high * data_bases_per_block);
+					uint64_t const block_base_low = block_low * getDataBasesPerBlock();
+					uint64_t const block_base_high = std::min(n,block_high * getDataBasesPerBlock());
 					assert ( block_high > block_low );
-					uint64_t R[sigma];
+					uint64_t R[getSigma()];
 
 					for ( uint64_t i = block_base_low; i < block_base_high; ++i )
 					{
@@ -251,21 +250,21 @@ namespace libmaus2
 				uint64_t const * P = B.begin();
 
 				// skip blocks until we reach block containing i
-				uint64_t const blockskip = i / data_bases_per_block;
-				i -= blockskip * data_bases_per_block;
-				P += (blockskip * words_per_block);
+				uint64_t const blockskip = i / getDataBasesPerBlock();
+				i -= blockskip * getDataBasesPerBlock();
+				P += (blockskip * getWordsPerBlock());
 
 				// if s and i
 				if ( s && i )
 				{
 					// skip over index words
-					P += dict_words_per_block;
+					P += getDictWordsPerBlock();
 
 					// skip over words until we reach word containing i
-					uint64_t symsinblock = data_bases_per_block;
-					uint64_t wordskip = i / bases_per_word;
-					i -= wordskip * bases_per_word;
-					symsinblock -= wordskip * bases_per_word;
+					uint64_t symsinblock = getDataBasesPerBlock();
+					uint64_t wordskip = i / getBasesPerWord();
+					i -= wordskip * getBasesPerWord();
+					symsinblock -= wordskip * getBasesPerWord();
 					P += wordskip;
 
 					// while block contains more data and we want more
@@ -273,7 +272,7 @@ namespace libmaus2
 					{
 						uint64_t w = *(P++);
 
-						uint64_t symsinword = bases_per_word;
+						uint64_t symsinword = getBasesPerWord();
 
 						assert ( symsinword > i );
 						unsigned int const tocopy = std::min(s,symsinword-i);
@@ -288,7 +287,7 @@ namespace libmaus2
 							w >>= 2;
 						}
 
-						symsinblock -= bases_per_word;
+						symsinblock -= getBasesPerWord();
 					}
 				}
 
@@ -296,14 +295,14 @@ namespace libmaus2
 
 				while ( s )
 				{
-					P += dict_words_per_block;
-					uint64_t symsinblock = data_bases_per_block;
+					P += getDictWordsPerBlock();
+					uint64_t symsinblock = getDataBasesPerBlock();
 
 					while ( s && symsinblock )
 					{
 						uint64_t w = *(P++);
 
-						unsigned int const tocopy = std::min(s,static_cast<uint64_t>(bases_per_word));
+						unsigned int const tocopy = std::min(s,static_cast<uint64_t>(getBasesPerWord()));
 						s -= tocopy;
 
 						iterator ite = it + tocopy;
@@ -313,7 +312,7 @@ namespace libmaus2
 							w >>= 2;
 						}
 
-						symsinblock -= bases_per_word;
+						symsinblock -= getBasesPerWord();
 					}
 				}
 			}
@@ -329,13 +328,13 @@ namespace libmaus2
 				}
 
 				uint64_t const * P = B.begin();
-				uint64_t const blockskip = i / data_bases_per_block;
-				i -= blockskip * data_bases_per_block;
-				P += (blockskip * words_per_block) + dict_words_per_block;
-				uint64_t wordskip = i / bases_per_word;
-				i -= wordskip * bases_per_word;
+				uint64_t const blockskip = i / getDataBasesPerBlock();
+				i -= blockskip * getDataBasesPerBlock();
+				P += (blockskip * getWordsPerBlock()) + getDictWordsPerBlock();
+				uint64_t wordskip = i / getBasesPerWord();
+				i -= wordskip * getBasesPerWord();
 				P += wordskip;
-				return ((*P) >> (i<<1)) & (sigma-1);
+				return ((*P) >> (i<<1)) & (getSigma()-1);
 			}
 
 			uint64_t size() const
@@ -346,18 +345,18 @@ namespace libmaus2
 			void rankm(uint64_t i, uint64_t * r) const
 			{
 				uint64_t const * P = B.begin();
-				uint64_t const blockskip = i / data_bases_per_block;
-				i -= blockskip * data_bases_per_block;
-				P += (blockskip * words_per_block);
+				uint64_t const blockskip = i / getDataBasesPerBlock();
+				i -= blockskip * getDataBasesPerBlock();
+				P += (blockskip * getWordsPerBlock());
 
-				for ( unsigned int i = 0; i < sigma-1; ++i )
+				for ( unsigned int i = 0; i < getSigma()-1; ++i )
 					r[i] = *(P++);
 
-				uint64_t wordskip = i / bases_per_word;
+				uint64_t wordskip = i / getBasesPerWord();
 
-				r[(sigma-1)] = (blockskip * data_bases_per_block) + (wordskip*bases_per_word);
+				r[(getSigma()-1)] = (blockskip * getDataBasesPerBlock()) + (wordskip*getBasesPerWord());
 
-				i -= wordskip * bases_per_word;
+				i -= wordskip * getBasesPerWord();
 
 				uint64_t w;
 				while ( wordskip-- )
@@ -368,12 +367,12 @@ namespace libmaus2
 					r[2] += symcnt(w,0xAAAAAAAAAAAAAAAAULL);
 				}
 
-				r[sigma-1] -= (r[0]+r[1]+r[2]);
+				r[getSigma()-1] -= (r[0]+r[1]+r[2]);
 
 				if ( i )
 				{
 					w = *(P++);
-					uint64_t const omask = (1ull << (log_sigma*i))-1;
+					uint64_t const omask = (1ull << (getLogSigma()*i))-1;
 					uint64_t const r0 = symcnt(w,0x0000000000000000ULL,omask);
 					uint64_t const r1 = symcnt(w,0x5555555555555555ULL,omask);
 					uint64_t const r2 = symcnt(w,0xAAAAAAAAAAAAAAAAULL,omask);
@@ -389,7 +388,7 @@ namespace libmaus2
 				rankm(l,&R0[0]);
 				rankm(r,&R1[0]);
 
-				for ( unsigned int i = 0; i < sigma; ++i )
+				for ( unsigned int i = 0; i < getSigma(); ++i )
 				{
 					R0[i] += D[i];
 					R1[i] += D[i];
@@ -445,7 +444,7 @@ namespace libmaus2
 			 **/
 			void testSearch(unsigned int k) const
 			{
-				uint64_t const lim = 1ull << (log_sigma*k);
+				uint64_t const lim = 1ull << (getLogSigma()*k);
 
 				#if defined(_OPENMP)
 				uint64_t const numthreads = omp_get_max_threads();
@@ -479,7 +478,7 @@ namespace libmaus2
 					char * const D = AD[tid].begin();
 
 					for ( unsigned int i = 0; i < k; ++i )
-						C[i] = (z >> (log_sigma*i)) & (sigma-1);
+						C[i] = (z >> (getLogSigma()*i)) & (getSigma()-1);
 					std::pair<uint64_t,uint64_t> const P = backwardSearch(C,k);
 
 					cerrlock.lock();
@@ -510,7 +509,7 @@ namespace libmaus2
 
 			std::pair<uint64_t,uint64_t> backwardExtend(std::pair<uint64_t,uint64_t> const & P, unsigned int const sym) const
 			{
-				uint64_t R0[sigma], R1[sigma];
+				uint64_t R0[getSigma()], R1[getSigma()];
 				multiLF(P.first, P.second, &R0[0], &R1[0]);
 				return std::pair<uint64_t,uint64_t>(R0[sym],R1[sym]);
 			}
@@ -518,18 +517,18 @@ namespace libmaus2
 			unsigned int inverseSelect(uint64_t i, uint64_t * r) const
 			{
 				uint64_t const * P = B.begin();
-				uint64_t const blockskip = i / data_bases_per_block;
-				i -= blockskip * data_bases_per_block;
-				P += (blockskip * words_per_block);
+				uint64_t const blockskip = i / getDataBasesPerBlock();
+				i -= blockskip * getDataBasesPerBlock();
+				P += (blockskip * getWordsPerBlock());
 
-				for ( unsigned int i = 0; i < sigma-1; ++i )
+				for ( unsigned int i = 0; i < getSigma()-1; ++i )
 					r[i] = *(P++);
 
-				uint64_t wordskip = i / bases_per_word;
+				uint64_t wordskip = i / getBasesPerWord();
 
-				r[sigma-1] = (blockskip * data_bases_per_block) + (wordskip*bases_per_word);
+				r[getSigma()-1] = (blockskip * getDataBasesPerBlock()) + (wordskip*getBasesPerWord());
 
-				i -= wordskip * bases_per_word;
+				i -= wordskip * getBasesPerWord();
 
 				uint64_t w;
 				while ( wordskip-- )
@@ -540,13 +539,13 @@ namespace libmaus2
 					r[2] += symcnt(w,0xAAAAAAAAAAAAAAAAULL);
 				}
 
-				r[sigma-1] -= (r[0]+r[1]+r[2]);
+				r[getSigma()-1] -= (r[0]+r[1]+r[2]);
 
 				w = *(P++);
 
 				if ( i )
 				{
-					uint64_t const omask = (1ull << (log_sigma*i))-1;
+					uint64_t const omask = (1ull << (getLogSigma()*i))-1;
 					uint64_t const r0 = symcnt(w,0x0000000000000000ULL,omask);
 					uint64_t const r1 = symcnt(w,0x5555555555555555ULL,omask);
 					uint64_t const r2 = symcnt(w,0xAAAAAAAAAAAAAAAAULL,omask);
@@ -556,7 +555,7 @@ namespace libmaus2
 					r[3] += i-(r0+r1+r2);
 				}
 
-				return (w >> (log_sigma*i)) & (sigma-1);
+				return (w >> (getLogSigma()*i)) & (getSigma()-1);
 			}
 
 			std::pair<uint64_t,uint64_t> simpleLFUntilMask(uint64_t r, uint64_t const mask)
@@ -575,14 +574,14 @@ namespace libmaus2
 			 **/
 			uint64_t simpleLF(uint64_t const i) const
 			{
-				uint64_t R[sigma];
+				uint64_t R[getSigma()];
 				unsigned int const sym = inverseSelect(i,&R[0]);
 				return D[sym] + R[sym];
 			}
 
 			std::pair<uint64_t, uint64_t> extendedLF(uint64_t const i) const
 			{
-				uint64_t R[sigma];
+				uint64_t R[getSigma()];
 				unsigned int const sym = inverseSelect(i,&R[0]);
 				return std::pair<uint64_t, uint64_t>(sym,D[sym] + R[sym]);
 			}
@@ -595,7 +594,7 @@ namespace libmaus2
 
 			uint64_t select(unsigned int const sym, uint64_t i) const
 			{
-				uint64_t R[sigma];
+				uint64_t R[getSigma()];
 
 				int64_t l = 0, h = static_cast<int64_t>(n)-1;
 				uint64_t c = std::numeric_limits<uint64_t>::max();
@@ -639,18 +638,18 @@ namespace libmaus2
 				#endif
 
 				// number of blocks allocated
-				uint64_t const numallocblocks = ((n+1) + data_bases_per_block - 1)/data_bases_per_block;
+				uint64_t const numallocblocks = ((n+1) + getDataBasesPerBlock() - 1)/getDataBasesPerBlock();
 				// total number of blocks
-				uint64_t const numblocks = (n + data_bases_per_block - 1)/data_bases_per_block;
+				uint64_t const numblocks = (n + getDataBasesPerBlock() - 1)/getDataBasesPerBlock();
 				// blocks per thread
 				uint64_t const blocksperthread = (numblocks + numthreads-1)/numthreads;
 				// number of thread packages
 				int64_t const numpacks = (numblocks + blocksperthread-1)/blocksperthread;
 
-				P->B = libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_memalign_cacheline>(numallocblocks * words_per_block, false);
+				P->B = libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_memalign_cacheline>(numallocblocks * getWordsPerBlock(), false);
 				P->n = n;
 
-				libmaus2::autoarray::AutoArray<uint64_t> symacc((numpacks+1)*sigma,false);
+				libmaus2::autoarray::AutoArray<uint64_t> symacc((numpacks+1)*getSigma(),false);
 
 				#if defined(_OPENMP)
 				#pragma omp parallel for
@@ -659,18 +658,18 @@ namespace libmaus2
 				{
 					uint64_t const block_low = t*blocksperthread;
 					uint64_t const block_high = std::min(block_low + blocksperthread,numblocks);
-					uint64_t const block_base_low = block_low * data_bases_per_block;
-					uint64_t const block_base_high = std::min(n,block_high * data_bases_per_block);
+					uint64_t const block_base_low = block_low * getDataBasesPerBlock();
+					uint64_t const block_base_high = std::min(n,block_high * getDataBasesPerBlock());
 					uint64_t const block_base_syms = block_base_high - block_base_low;
 					assert ( block_high > block_low );
 					libmaus2::huffman::RLDecoder rldec(rl,block_base_low);
 
-					uint64_t * p = P->B.begin() + block_low * words_per_block;
+					uint64_t * p = P->B.begin() + block_low * getWordsPerBlock();
 
-					uint64_t lsymacc[sigma] = {0,0,0,0};
+					uint64_t lsymacc[getSigma()] = {0,0,0,0};
 
 					uint64_t const numblocks  = block_high-block_low;
-					uint64_t const fullblocks = block_base_syms / data_bases_per_block;
+					uint64_t const fullblocks = block_base_syms / getDataBasesPerBlock();
 					uint64_t const restblocks = numblocks-fullblocks;
 
 					for ( uint64_t b = 0; b < fullblocks; ++b )
@@ -679,10 +678,10 @@ namespace libmaus2
 						*(p++) = lsymacc[1];
 						*(p++) = lsymacc[2];
 
-						for ( uint64_t j = 0; j < data_words_per_block; ++j )
+						for ( uint64_t j = 0; j < getDataWordsPerBlock(); ++j )
 						{
 							uint64_t w = 0;
-							for ( uint64_t k = 0; k < bases_per_word; ++k )
+							for ( uint64_t k = 0; k < getBasesPerWord(); ++k )
 							{
 								uint64_t const sym = rldec.decode();
 								lsymacc[sym]++;
@@ -697,13 +696,13 @@ namespace libmaus2
 						*(p++) = lsymacc[1];
 						*(p++) = lsymacc[2];
 
-						uint64_t const numsyms = block_base_syms - fullblocks * data_bases_per_block;
-						uint64_t const fullwords = numsyms / bases_per_word;
+						uint64_t const numsyms = block_base_syms - fullblocks * getDataBasesPerBlock();
+						uint64_t const fullwords = numsyms / getBasesPerWord();
 
 						for ( uint64_t j = 0; j < fullwords; ++j )
 						{
 							uint64_t w = 0;
-							for ( uint64_t k = 0; k < bases_per_word; ++k )
+							for ( uint64_t k = 0; k < getBasesPerWord(); ++k )
 							{
 								uint64_t const sym = rldec.decode();
 								lsymacc[sym]++;
@@ -711,10 +710,10 @@ namespace libmaus2
 							}
 							*(p++) = w;
 						}
-						if ( numsyms - fullwords * bases_per_word )
+						if ( numsyms - fullwords * getBasesPerWord() )
 						{
 							uint64_t w = 0;
-							for ( uint64_t k = 0; k < (numsyms - fullwords * bases_per_word); ++k )
+							for ( uint64_t k = 0; k < (numsyms - fullwords * getBasesPerWord()); ++k )
 							{
 								uint64_t const sym = rldec.decode();
 								lsymacc[sym]++;
@@ -724,18 +723,18 @@ namespace libmaus2
 						}
 					}
 
-					for ( unsigned int i = 0; i < sigma; ++i )
-						symacc[t*sigma + i] = lsymacc[i];
+					for ( unsigned int i = 0; i < getSigma(); ++i )
+						symacc[t*getSigma() + i] = lsymacc[i];
 				}
 
-				uint64_t a[sigma] = {0,0,0,0};
+				uint64_t a[getSigma()] = {0,0,0,0};
 				for ( int64_t z = 0; z < (numpacks+1); ++z )
 				{
-					uint64_t t[sigma];
-					for ( uint64_t i = 0; i < sigma; ++i )
+					uint64_t t[getSigma()];
+					for ( uint64_t i = 0; i < getSigma(); ++i )
 					{
-						t[i] = symacc[z*sigma + i];
-						symacc[z*sigma + i] = a[i];
+						t[i] = symacc[z*getSigma() + i];
+						symacc[z*getSigma() + i] = a[i];
 						a[i] += t[i];
 					}
 				}
@@ -748,23 +747,23 @@ namespace libmaus2
 					uint64_t const block_low = t*blocksperthread;
 					uint64_t const block_high = std::min(block_low + blocksperthread,numblocks);
 					assert ( block_high > block_low );
-					uint64_t * p = P->B.begin() + block_low * words_per_block;
+					uint64_t * p = P->B.begin() + block_low * getWordsPerBlock();
 					uint64_t const numblocks = block_high-block_low;
 
 					for ( uint64_t b = 0; b < numblocks; ++b )
 					{
-						(*p++) += symacc[t*sigma+0];
-						(*p++) += symacc[t*sigma+1];
-						(*p++) += symacc[t*sigma+2];
-						p += data_words_per_block;
+						(*p++) += symacc[t*getSigma()+0];
+						(*p++) += symacc[t*getSigma()+1];
+						(*p++) += symacc[t*getSigma()+2];
+						p += getDataWordsPerBlock();
 					}
 				}
 
 				// make sure rankm works on argument n
 				if ( numallocblocks != numblocks )
 				{
-					uint64_t * p = P->B.begin() + (numblocks * words_per_block);
-					uint64_t const * acc = symacc.begin() + sigma*numpacks;
+					uint64_t * p = P->B.begin() + (numblocks * getWordsPerBlock());
+					uint64_t const * acc = symacc.begin() + getSigma()*numpacks;
 					for ( uint64_t i = 0; i < 3; ++i )
 						*(p++) = *(acc++);
 				}
