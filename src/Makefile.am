@@ -1129,7 +1129,8 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/ReverseAdapter.hpp \
 	libmaus2/util/MemoryStatistics.hpp \
 	libmaus2/util/LongestIncreasingSubsequenceExtendedResult.hpp \
-	libmaus2/util/ArgParser.hpp
+	libmaus2/util/ArgParser.hpp \
+	libmaus2/util/PrefixSums.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
@@ -1404,7 +1405,8 @@ libmaus2sorting_include_HEADERS=\
 	libmaus2/sorting/SortingBufferedOutputFile.hpp \
 	libmaus2/sorting/MergeStepBinSearchResult.hpp \
 	libmaus2/sorting/ParallelStableSort.hpp \
-	libmaus2/sorting/SemiExternalKeyTupleSort.hpp
+	libmaus2/sorting/SemiExternalKeyTupleSort.hpp \
+	libmaus2/sorting/InterleavedRadixSort.hpp
 
 libmaus2hashing_includedir=$(includedir)/libmaus2/hashing
 libmaus2hashing_include_HEADERS=\

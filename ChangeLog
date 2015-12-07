@@ -1,3 +1,9 @@
+libmaus2 (2.0.113-1) unstable; urgency=medium
+
+  * add InterleavedRadixSort class (radix sorting with bucket sorting and histogram computation in same run)
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 07 Dec 2015 15:09:36 +0100
+
 libmaus2 (2.0.112-1) unstable; urgency=medium
 
   * add SemiExternalKeyTupleSort class
