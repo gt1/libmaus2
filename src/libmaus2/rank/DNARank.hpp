@@ -37,7 +37,9 @@ namespace libmaus2
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			private:
-			static unsigned int getSigma() { return 4; }
+			#define LIBMAUS2_RANK_DNARANK_SIGMA 4
+
+			static unsigned int getSigma() { return LIBMAUS2_RANK_DNARANK_SIGMA; }
 			static unsigned int getLogSigma() { return 2; }
 			static unsigned int getBitsPerByte() { return 8; }
 			static unsigned int getCacheLineSize() { return 64; }
@@ -86,8 +88,8 @@ namespace libmaus2
 				// number of thread packages
 				int64_t const numpacks = (numblocks + blocksperthread-1)/blocksperthread;
 
-				uint64_t r_a[getSigma()];
-				uint64_t r_b[getSigma()];
+				uint64_t r_a[LIBMAUS2_RANK_DNARANK_SIGMA];
+				uint64_t r_b[LIBMAUS2_RANK_DNARANK_SIGMA];
 
 				rankm(n,&r_a[0]);
 				rank(n-1,&r_b[0]);
@@ -146,8 +148,8 @@ namespace libmaus2
 
 				libmaus2::timing::RealTimeClock rtc; rtc.start();
 				std::cerr << "checking rankm...";
-				uint64_t acc[getSigma()] = {0,0,0,0};
-				uint64_t racc[getSigma()];
+				uint64_t acc[LIBMAUS2_RANK_DNARANK_SIGMA] = {0,0,0,0};
+				uint64_t racc[LIBMAUS2_RANK_DNARANK_SIGMA];
 				for ( uint64_t i = 0; i < n; ++i )
 				{
 					rankm(i,&racc[0]);
@@ -213,7 +215,7 @@ namespace libmaus2
 					uint64_t const block_base_low = block_low * getDataBasesPerBlock();
 					uint64_t const block_base_high = std::min(n,block_high * getDataBasesPerBlock());
 					assert ( block_high > block_low );
-					uint64_t R[getSigma()];
+					uint64_t R[LIBMAUS2_RANK_DNARANK_SIGMA];
 
 					for ( uint64_t i = block_base_low; i < block_base_high; ++i )
 					{
@@ -509,7 +511,7 @@ namespace libmaus2
 
 			std::pair<uint64_t,uint64_t> backwardExtend(std::pair<uint64_t,uint64_t> const & P, unsigned int const sym) const
 			{
-				uint64_t R0[getSigma()], R1[getSigma()];
+				uint64_t R0[LIBMAUS2_RANK_DNARANK_SIGMA], R1[LIBMAUS2_RANK_DNARANK_SIGMA];
 				multiLF(P.first, P.second, &R0[0], &R1[0]);
 				return std::pair<uint64_t,uint64_t>(R0[sym],R1[sym]);
 			}
@@ -574,14 +576,14 @@ namespace libmaus2
 			 **/
 			uint64_t simpleLF(uint64_t const i) const
 			{
-				uint64_t R[getSigma()];
+				uint64_t R[LIBMAUS2_RANK_DNARANK_SIGMA];
 				unsigned int const sym = inverseSelect(i,&R[0]);
 				return D[sym] + R[sym];
 			}
 
 			std::pair<uint64_t, uint64_t> extendedLF(uint64_t const i) const
 			{
-				uint64_t R[getSigma()];
+				uint64_t R[LIBMAUS2_RANK_DNARANK_SIGMA];
 				unsigned int const sym = inverseSelect(i,&R[0]);
 				return std::pair<uint64_t, uint64_t>(sym,D[sym] + R[sym]);
 			}
@@ -594,7 +596,7 @@ namespace libmaus2
 
 			uint64_t select(unsigned int const sym, uint64_t i) const
 			{
-				uint64_t R[getSigma()];
+				uint64_t R[LIBMAUS2_RANK_DNARANK_SIGMA];
 
 				int64_t l = 0, h = static_cast<int64_t>(n)-1;
 				uint64_t c = std::numeric_limits<uint64_t>::max();
@@ -666,7 +668,7 @@ namespace libmaus2
 
 					uint64_t * p = P->B.begin() + block_low * getWordsPerBlock();
 
-					uint64_t lsymacc[getSigma()] = {0,0,0,0};
+					uint64_t lsymacc[LIBMAUS2_RANK_DNARANK_SIGMA] = {0,0,0,0};
 
 					uint64_t const numblocks  = block_high-block_low;
 					uint64_t const fullblocks = block_base_syms / getDataBasesPerBlock();
@@ -727,10 +729,10 @@ namespace libmaus2
 						symacc[t*getSigma() + i] = lsymacc[i];
 				}
 
-				uint64_t a[getSigma()] = {0,0,0,0};
+				uint64_t a[LIBMAUS2_RANK_DNARANK_SIGMA] = {0,0,0,0};
 				for ( int64_t z = 0; z < (numpacks+1); ++z )
 				{
-					uint64_t t[getSigma()];
+					uint64_t t[LIBMAUS2_RANK_DNARANK_SIGMA];
 					for ( uint64_t i = 0; i < getSigma(); ++i )
 					{
 						t[i] = symacc[z*getSigma() + i];
