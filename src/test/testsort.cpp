@@ -20,6 +20,7 @@
 #include <libmaus2/sorting/InPlaceParallelSort.hpp>
 #include <libmaus2/sorting/ParallelStableSort.hpp>
 #include <libmaus2/random/Random.hpp>
+#include <libmaus2/sorting/InterleavedRadixSort.hpp>
 
 void testBlockSwapDifferent()
 {
@@ -248,8 +249,57 @@ void testParallelSortState(uint64_t const rn = (1ull << 14) )
 		assert ( V[i-1] <= V[i] );
 }
 
+#include <libmaus2/timing/RealTimeClock.hpp>
+
 int main()
 {
+	std::cerr << "[V] generating random number array...";
+	libmaus2::autoarray::AutoArray<uint64_t> Vrand(1ull<<30,false);
+	for ( uint64_t i = 0; i < Vrand.size(); ++i )
+		Vrand[i] = libmaus2::random::Random::rand64();
+	std::cerr << "done." << std::endl;
+
+	for ( unsigned int i = 0; i < 10; ++i )
+	{
+		{
+			libmaus2::autoarray::AutoArray<uint64_t> Vin(Vrand.size(),false);
+			#if defined(_OPENMP)
+			#pragma omp parallel for
+			#endif
+			for ( uint64_t i = 0; i < Vrand.size(); ++i )
+				Vin[i] = Vrand[i];
+
+			libmaus2::autoarray::AutoArray<uint64_t> Vtmp(Vin.size(),false);
+
+			std::cerr << "sorting byte...";
+			libmaus2::timing::RealTimeClock rtc; rtc.start();
+			libmaus2::sorting::InterleavedRadixSort::byteradixsortTemplate<uint64_t,uint64_t>(Vin.begin(),Vin.end(),Vtmp.begin(),Vtmp.end(),32);
+			std::cerr << "done, " << (Vin.size() / rtc.getElapsedSeconds()) << std::endl;
+
+			for ( uint64_t i = 1; i < Vin.size(); ++i )
+				assert ( Vin[i-1] <= Vin[i] );
+		}
+
+		{
+			libmaus2::autoarray::AutoArray<uint64_t> Vin(Vrand.size(),false);
+			#if defined(_OPENMP)
+			#pragma omp parallel for
+			#endif
+			for ( uint64_t i = 0; i < Vrand.size(); ++i )
+				Vin[i] = Vrand[i];
+
+			libmaus2::autoarray::AutoArray<uint64_t> Vtmp(Vin.size(),false);
+
+			std::cerr << "sorting word...";
+			libmaus2::timing::RealTimeClock rtc; rtc.start();
+			libmaus2::sorting::InterleavedRadixSort::radixsort(Vin.begin(),Vin.end(),Vtmp.begin(),Vtmp.end(),32);
+			std::cerr << "done, " << (Vin.size() / rtc.getElapsedSeconds()) << std::endl;
+
+			for ( uint64_t i = 1; i < Vin.size(); ++i )
+				assert ( Vin[i-1] <= Vin[i] );
+		}
+	}
+
 	testParallelSortState(1u<<14);
 	testParallelSortState(1u<<15);
 	testParallelSortState(1u<<16);

@@ -47,14 +47,14 @@ namespace libmaus2
 				// number of available open output files
 				uint64_t const numavoutputfiles = (maxfiles >= 2*tnumthreads) ? (maxfiles-tnumthreads) : tnumthreads;
 				assert ( numavoutputfiles >= tnumthreads );
-				
+
 				// maximum number of open output files per thread
 				uint64_t filesperthread = numavoutputfiles / tnumthreads;
-				
+
 				// make sure this is at least 1
 				if ( ! filesperthread )
 					filesperthread = 1;
-				
+
 				// if it is not a power of two then make it the next lower one
 				if ( libmaus2::math::nextTwoPow(filesperthread) != filesperthread )
 					filesperthread = libmaus2::math::nextTwoPow(filesperthread)/2;
@@ -75,7 +75,7 @@ namespace libmaus2
 				assert ( numinbytes % sizeof(data_type) == 0 );
 				uint64_t const numin = numinbytes / sizeof(data_type);
 				Psizecheckin.reset();
-				
+
 				uint64_t maxblocksize = numin;
 				uint64_t const maxinmem = (maxmem + sizeof(data_type)-1)/sizeof(data_type);
 				assert ( maxinmem );
@@ -96,12 +96,12 @@ namespace libmaus2
 				unsigned int const nonradixbits = numnbits - radixbits;
 
 				std::cerr << "[V] filesperthread=" << filesperthread << " filebits=" << filebits << " numnbits=" << numnbits << " radixruns=" << radixruns << " filemask=" << filemask << " radixbits=" << radixbits << " nonradixbits=" << nonradixbits << std::endl;
-				
+
 				for ( uint64_t r = 0; r < radixruns; ++r )
 				{
 					unsigned int const rightshift = ((radixruns-r)*filebits <= numnbits) ? (numnbits - (radixruns-r)*filebits) : 0;
 					std::cerr << "[V] radix run " << r << " rightshift=" << rightshift << std::endl;
-					
+
 					std::vector<std::string> outfn(numfiles);
 					// file 0 thread 0
 					// file 0 thread 1
@@ -119,12 +119,12 @@ namespace libmaus2
 
 					#if defined(_OPENMP)
 					#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
-					#endif				
+					#endif
 					for ( uint64_t t = 0; t < numthreads; ++t )
 					{
 						uint64_t const packlow = t*packsize;
 						uint64_t const packhigh = std::min(packlow+packsize,numin);
-						
+
 						libmaus2::autoarray::AutoArray<libmaus2::aio::OutputStreamInstance::unique_ptr_type> Aout(filesperthread);
 						libmaus2::autoarray::AutoArray<typename libmaus2::aio::SynchronousGenericOutput<data_type>::unique_ptr_type> Sout(filesperthread);
 						for ( uint64_t i = 0; i < Aout.size(); ++i )
@@ -134,7 +134,7 @@ namespace libmaus2
 							typename libmaus2::aio::SynchronousGenericOutput<data_type>::unique_ptr_type Sptr(new typename libmaus2::aio::SynchronousGenericOutput<data_type>(*(Aout.at(i)),8*1024));
 							Sout.at(i) = UNIQUE_PTR_MOVE(Sptr);
 						}
-						
+
 						libmaus2::aio::ConcatInputStream::unique_ptr_type Pin(new libmaus2::aio::ConcatInputStream(infn));
 						Pin->seekg(packlow * sizeof(data_type));
 						typename libmaus2::aio::SynchronousGenericInput<data_type>::unique_ptr_type Sin(new libmaus2::aio::SynchronousGenericInput<data_type>(*Pin,16*1024,packhigh-packlow));
@@ -163,9 +163,9 @@ namespace libmaus2
 					infn = outfn;
 					removeinput = true;
 				}
-				
+
 				libmaus2::aio::ConcatInputStream conc(infn);
-				
+
 				uint64_t low = 0;
 				uint64_t end = numin;
 				libmaus2::autoarray::AutoArray<data_type> AS;
@@ -175,7 +175,7 @@ namespace libmaus2
 					conc.clear();
 					conc.seekg(low*sizeof(data_type));
 
-					// count number of elements in block		
+					// count number of elements in block
 					typename libmaus2::aio::SynchronousGenericInput<data_type>::unique_ptr_type TSin(new libmaus2::aio::SynchronousGenericInput<data_type>(conc,8*1024));
 					uint64_t snum = 1;
 					data_type pv;
@@ -185,12 +185,12 @@ namespace libmaus2
 					data_type tv;
 					while ( TSin->getNext(tv) && (key_projector_type::project(tv)>>nonradixbits)==(key_projector_type::project(pv)>>nonradixbits) )
 						++snum;
-					
+
 					TSin.reset();
 
 					conc.clear();
 					conc.seekg(low*sizeof(data_type));
-					
+
 					assert ( conc.tellg() == static_cast<std::streampos>(low*sizeof(data_type)) );
 					if ( AS.size() < snum )
 					{
@@ -199,18 +199,18 @@ namespace libmaus2
 					}
 					conc.read(reinterpret_cast<char *>(AS.begin()),snum*sizeof(data_type));
 					assert ( conc.gcount() == snum*sizeof(data_type) );
-					
+
 					if ( nonradixbits )
 					{
 						libmaus2::sorting::InPlaceParallelSort::inplacesort2(AS.begin(),AS.begin()+snum);
 						// std::sort(AS.begin(),AS.begin()+snum);
 					}
-					
+
 					if ( snum )
 					{
 						Sout->put(output_projector_type::project(AS.at(0)));
 						uint64_t prev = key_projector_type::project(AS.at(0));
-						
+
 						// check for dups
 						for ( uint64_t i = 1; i < snum; ++i )
 							if ( key_projector_type::project(AS.at(i)) != prev )
@@ -219,7 +219,7 @@ namespace libmaus2
 								prev = key_projector_type::project(AS.at(i));
 							}
 					}
-					
+
 					low += snum;
 				}
 
