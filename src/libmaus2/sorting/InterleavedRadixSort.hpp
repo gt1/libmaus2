@@ -50,6 +50,8 @@ namespace libmaus2
 
 			/**
 			 * radix sort. Keys are extracted from records using key_projector::project (see InterleavedRadixSortIdentityProjector for an example)
+			 *
+			 * the sorted sequence is stored in [ita,ite) if rounds is even and [tita,tite) if rounds is odd
 			 **/
 			template<typename iterator, typename key_projector >
 			static void radixsortTemplate(
@@ -224,6 +226,8 @@ namespace libmaus2
 			 *
 			 * keys are assumed to be stored in the first rounds bytes of each record
 			 * for little endian these bytes are read left to right, for big endian right to left
+			 *
+			 * the sorted sequence is stored in [ita,ite) if rounds is even and [tita,tite) if rounds is odd
 			 **/
 			template<typename value_type, typename key_type >
 			static void byteradixsortTemplate(
