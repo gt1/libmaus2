@@ -313,10 +313,8 @@ namespace libmaus2
 					{
 						#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 						unsigned int const key_offset_0 = r;
-						unsigned int const key_offset_1 = key_offset_0+1;
 						#else
 						unsigned int const key_offset_0 = keylength-r-1;
-						unsigned int const key_offset_1 = key_offset_0-1;
 						#endif
 
 						#if defined(_OPENMP)
@@ -338,8 +336,13 @@ namespace libmaus2
 							while ( p_ita != p_ite )
 							{
 								value_type const & v = *(p_ita);
-								uint64_t const bucket      = reinterpret_cast<uint8_t const *>(p_ita)[key_offset_0];
-								uint64_t const next_bucket = reinterpret_cast<uint8_t const *>(p_ita)[key_offset_1];
+								uint8_t const * kp = reinterpret_cast<uint8_t const *>(p_ita) + key_offset_0;
+								#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
+								uint64_t const bucket      = *(kp++);
+								#else
+								uint64_t const bucket      = *(kp--);
+								#endif
+								uint64_t const next_bucket = *kp;
 								uint64_t const outpos      = hist[bucket]++;
 								uint64_t const outpack     = outpos / packsize;
 								thist [ outpack /* out block */ * LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS + next_bucket ] ++;
