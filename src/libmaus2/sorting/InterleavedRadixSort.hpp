@@ -214,7 +214,8 @@ namespace libmaus2
 				iterator ita, iterator ite,
 				iterator tita, iterator tite,
 				unsigned int const tnumthreads,
-				unsigned int const rounds = (CHAR_BIT*sizeof(typename ::std::iterator_traits<iterator>::value_type)) / LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_BUCKET_SHIFT)
+				unsigned int const rounds = (CHAR_BIT*sizeof(typename ::std::iterator_traits<iterator>::value_type)) / LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_BUCKET_SHIFT
+			)
 			{
 				radixsortTemplate<iterator,InterleavedRadixSortIdentityProjector<typename ::std::iterator_traits<iterator>::value_type> >(ita,ite,tita,tite,tnumthreads,rounds);
 			}
@@ -224,7 +225,7 @@ namespace libmaus2
 			 *
 			 * byte access version
 			 *
-			 * keys are assumed to be stored in the first rounds bytes of each record
+			 * keys are assumed to be stored in the first keylength bytes of each record
 			 * for little endian these bytes are read left to right, for big endian right to left
 			 *
 			 * the sorted sequence is stored in [ita,ite) if rounds is even and [tita,tite) if rounds is odd
@@ -234,7 +235,13 @@ namespace libmaus2
 				value_type * ita, value_type * ite,
 				value_type * tita, value_type * tite,
 				unsigned int const tnumthreads,
-				unsigned int const rounds = (CHAR_BIT*sizeof(key_type)) / LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_BUCKET_SHIFT)
+				unsigned int const rounds = (CHAR_BIT*sizeof(key_type)) / LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_BUCKET_SHIFT,
+				unsigned int const
+					#if !defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
+					keylength
+					#endif
+					= (CHAR_BIT*sizeof(key_type)) / LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_BUCKET_SHIFT
+			)
 			{
 				uint64_t const n = ite-ita;
 				uint64_t const packsize = (n + tnumthreads - 1) / tnumthreads;
@@ -254,7 +261,7 @@ namespace libmaus2
 						#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 						unsigned int const key_offset_0 = r;
 						#else
-						unsigned int const key_offset_0 = rounds-r-1;
+						unsigned int const key_offset_0 = keylength-r-1;
 						#endif
 
 						#if defined(_OPENMP)
@@ -308,7 +315,7 @@ namespace libmaus2
 						unsigned int const key_offset_0 = r;
 						unsigned int const key_offset_1 = key_offset_0+1;
 						#else
-						unsigned int const key_offset_0 = rounds-r-1;
+						unsigned int const key_offset_0 = keylength-r-1;
 						unsigned int const key_offset_1 = key_offset_0-1;
 						#endif
 
@@ -362,7 +369,7 @@ namespace libmaus2
 						#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 						unsigned int const key_offset_0 = r;
 						#else
-						unsigned int const key_offset_0 = rounds-r-1;
+						unsigned int const key_offset_0 = keylength-r-1;
 						#endif
 
 						#if defined(_OPENMP)
@@ -399,10 +406,11 @@ namespace libmaus2
 				value_type * ita, value_type * ite,
 				value_type * tita, value_type * tite,
 				unsigned int const tnumthreads,
-				unsigned int const rounds = (CHAR_BIT*sizeof(value_type)) / LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_BUCKET_SHIFT
+				unsigned int const rounds = (CHAR_BIT*sizeof(value_type)) / LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_BUCKET_SHIFT,
+				unsigned int const keylength = (CHAR_BIT*sizeof(value_type)) / LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_BUCKET_SHIFT
 			)
 			{
-				byteradixsortTemplate<value_type,value_type>(ita,ite,tita,tite,tnumthreads,rounds);
+				byteradixsortTemplate<value_type,value_type>(ita,ite,tita,tite,tnumthreads,rounds,keylength);
 			}
 
 
