@@ -237,7 +237,7 @@ namespace libmaus2
 				unsigned int const tnumthreads,
 				unsigned int const rounds = (CHAR_BIT*sizeof(key_type)) / LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_BUCKET_SHIFT,
 				unsigned int const
-					#if !defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
+					#if defined(LIBMAUS2_BYTE_ORDER_BIG_ENDIAN)
 					keylength
 					#endif
 					= (CHAR_BIT*sizeof(key_type)) / LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_BUCKET_SHIFT
@@ -260,8 +260,10 @@ namespace libmaus2
 					{
 						#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 						unsigned int const key_offset_0 = r;
-						#else
+						#elif defined(LIBMAUS2_BYTE_ORDER_BIG_ENDIAN)
 						unsigned int const key_offset_0 = keylength-r-1;
+						#else
+						#error "Unknown byte order"
 						#endif
 
 						#if defined(_OPENMP)
@@ -313,8 +315,10 @@ namespace libmaus2
 					{
 						#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 						unsigned int const key_offset_0 = r;
-						#else
+						#elif defined(LIBMAUS2_BYTE_ORDER_BIG_ENDIAN)
 						unsigned int const key_offset_0 = keylength-r-1;
+						#else
+						#error "Unknown byte order"
 						#endif
 
 						#if defined(_OPENMP)
@@ -339,8 +343,10 @@ namespace libmaus2
 								uint8_t const * kp = reinterpret_cast<uint8_t const *>(p_ita) + key_offset_0;
 								#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 								uint64_t const bucket      = *(kp++);
-								#else
+								#elif defined(LIBMAUS2_BYTE_ORDER_BIG_ENDIAN)
 								uint64_t const bucket      = *(kp--);
+								#else
+								#error "Unknown byte order"
 								#endif
 								uint64_t const next_bucket = *kp;
 								uint64_t const outpos      = hist[bucket]++;
@@ -371,8 +377,10 @@ namespace libmaus2
 					{
 						#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 						unsigned int const key_offset_0 = r;
-						#else
+						#elif defined(LIBMAUS2_BYTE_ORDER_BIG_ENDIAN)
 						unsigned int const key_offset_0 = keylength-r-1;
+						#else
+						#error "Unknown byte order"
 						#endif
 
 						#if defined(_OPENMP)
