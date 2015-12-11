@@ -76,7 +76,7 @@ namespace libmaus2
 
 			uint64_t getBytesForSequence(uint64_t const i, uint64_t const bytesperbase) const
 			{
-				return 2 /* forw + rc */ * bytesperbase * S.at(i).l;
+				return bytesperbase * S.at(i).l;
 			}
 
 			/**
