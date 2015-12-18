@@ -83,7 +83,17 @@ namespace libmaus2
 				) : key()
 				{
 					// is this the left mapping end?
-					bool const isleft = libmaus2::bambam::ReadEndsBase::isLeft(algn.D.begin(),algn.blocksize,Aop);
+					bool isleft;
+					
+					try {
+					    isleft = libmaus2::bambam::ReadEndsBase::isLeft(algn.D.begin(),algn.blocksize,Aop);
+					}
+					catch (libmaus2::exception::LibMausException lme)
+					{
+					    // probably no MC:z entry, see if the older MC:i is there
+					    alt_key(algn, header, tagid);
+					    return;
+					}
 
 					// as number for hash key
 					uint64_t const leftflag = isleft ? 0 : 1;
@@ -203,6 +213,85 @@ namespace libmaus2
 						;
 					key.A[3] = tagid; // tag
 				}
+
+    	    	    	    	
+				void alt_key(libmaus2::bambam::BamAlignment const & algn,
+					libmaus2::bambam::BamHeader const & header,
+					uint64_t tagid)
+				{
+					int64_t const thisref = algn.getRefID();
+					int64_t const thiscoord = algn.getCoordinate();
+					int64_t const otherref = algn.getNextRefID();
+					int64_t const othercoord = algn.getAuxAsNumberNC<int32_t>("mc");
+					
+					// is this the left mapping end?
+					bool const isleft =
+						(thisref < otherref) ||
+						(thisref == otherref && thiscoord < othercoord ) ||
+						(thisref == otherref && thiscoord == othercoord && algn.isRead1());
+					
+					// as number for hash key
+					uint64_t leftflag = isleft ? 0 : 1;
+					
+					pair_orientation_type orientation;
+					
+					// orientation of end pair
+					if ( isleft )
+					{
+						if ( ! algn.isReverse() )
+						{
+							if ( ! algn.isMateReverse() )
+								orientation = pair_orientation_FF;
+							else
+								orientation = pair_orientation_FR;
+						}
+						else
+						{
+							if ( ! algn.isMateReverse() )
+								orientation = pair_orientation_RF;
+							else
+								orientation = pair_orientation_RR;
+						}
+					}
+					else
+					{
+						if ( ! algn.isMateReverse() )
+						{
+							if ( ! algn.isReverse() )
+								orientation = pair_orientation_FF;
+							else
+								orientation = pair_orientation_FR;
+						}
+						else
+						{
+							if ( ! algn.isReverse() )
+								orientation = pair_orientation_RF;
+							else
+								orientation = pair_orientation_RR;
+						}
+					}
+					
+					// orientation as number		
+					uint64_t uorientation = static_cast<uint64_t>(orientation);
+
+					key.A[0] = 
+						(static_cast<uint64_t>(signEncode(thisref)) << 32)
+						|
+						(static_cast<uint64_t>(signEncode(thiscoord)) << 0)
+						;
+					key.A[1] = 
+						(static_cast<uint64_t>(signEncode(otherref)) << 32)
+						|
+						(static_cast<uint64_t>(signEncode(othercoord)) << 0)
+						;
+					key.A[2] = 
+						(static_cast<uint64_t>(signEncode(algn.getLibraryId(header))) << 32)
+						|
+						(leftflag) | (uorientation << 1)
+						;
+					key.A[3] = tagid; // tag
+				}
+				
 
 				bool operator==(this_type const & o) const
 				{
