@@ -40,6 +40,8 @@ namespace libmaus2
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! value type
 			typedef typename ::std::iterator_traits<iterator>::value_type value_type;
+			//! data type
+			typedef value_type data_type;
 			//! iterator
 			iterator p;
 
@@ -54,6 +56,11 @@ namespace libmaus2
 			 * @return next element
 			 **/
 			value_type get() { return *(p++); }
+
+			/**
+			 * get next element
+			 **/
+			bool getNext(value_type & v) { v = *(p++); return true; }
 
 			/**
 			 * read next n elements and store them starting at q
