@@ -27,33 +27,63 @@ namespace libmaus2
 {
 	namespace gamma
 	{
-		struct GammaEncoderBase : public libmaus2::bitio::Clz
+		template<typename stream_data_type>
+		struct GammaEncoderBase
 		{
-			static inline unsigned int getCodeLen(uint64_t const code)
+		};
+
+		template<>
+		struct GammaEncoderBase<uint64_t> : public libmaus2::bitio::Clz
+		{
+			typedef uint64_t stream_data_type;
+
+			static inline unsigned int getCodeLen(stream_data_type const code)
 			{
-				unsigned int const nd = 63-clz(code);
+				unsigned int const lz = clz(code); // number of leading zero bits
+				unsigned int const nd = ((CHAR_BIT*sizeof(stream_data_type))-1)-lz;
 				return 1 + (nd<<1);
 			}
 		};
 
+		#if defined(LIBMAUS2_HAVE_UNSIGNED_INT128)
+		template<>
+		struct GammaEncoderBase<libmaus2::uint128_t> : public libmaus2::bitio::Clz
+		{
+			typedef libmaus2::uint128_t stream_data_type;
+
+			static inline unsigned int getCodeLen(stream_data_type const code)
+			{
+				unsigned int const lz =
+					(code >> 64) ?
+						clz(static_cast<uint64_t>(code>>64))
+						:
+						(64+clz(static_cast<uint64_t>(code)))
+						; // number of leading zero bits
+				unsigned int const nd = ((CHAR_BIT*sizeof(stream_data_type))-1)-lz;
+				return 1 + (nd<<1);
+			}
+		};
+		#endif
+
 		template<typename _stream_type>
-		struct GammaEncoder : public GammaEncoderBase
+		struct GammaEncoder : public GammaEncoderBase<typename _stream_type::data_type>
 		{
 			typedef _stream_type stream_type;
+			typedef typename stream_type::data_type stream_data_type;
 			typedef GammaEncoder<stream_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			stream_type & stream;
-			uint64_t v;
+			stream_data_type v;
 			unsigned int bav;
 
 			GammaEncoder(stream_type & rstream)
-			: stream(rstream), v(0), bav(64)
+			: stream(rstream), v(0), bav((CHAR_BIT*sizeof(stream_data_type)))
 			{
 
 			}
 
-			inline void encodeWord(uint64_t const code, unsigned int const codelen)
+			inline void encodeWord(stream_data_type const code, unsigned int const codelen)
 			{
 				if ( bav >= codelen )
 				{
@@ -65,33 +95,33 @@ namespace libmaus2
 				{
 					unsigned int const overflow = (codelen-bav);
 					stream.put((v << bav) | (code >> overflow));
-					v = code & libmaus2::math::lowbits(overflow);
+					v = code & libmaus2::math::LowBits<stream_data_type>::lowbits(overflow);
 						// ((1ull << overflow)-1);
-					bav = 64-overflow;
+					bav = (CHAR_BIT*sizeof(stream_data_type))-overflow;
 				}
 			}
 
-			void encode(uint64_t const q)
+			void encode(stream_data_type const q)
 			{
-				uint64_t const code = q+1;
-				unsigned int codelen = getCodeLen(code);
+				stream_data_type const code = q+static_cast<stream_data_type>(1);
+				unsigned int codelen = GammaEncoderBase<stream_data_type>::getCodeLen(code);
 				encodeWord(code,codelen);
 			}
 
 			void flush()
 			{
-				if ( bav != 64 )
+				if ( bav != (CHAR_BIT*sizeof(stream_data_type)) )
 				{
 					v <<= bav;
 					stream.put(v);
 					v = 0;
-					bav = 64;
+					bav = (CHAR_BIT*sizeof(stream_data_type));
 				}
 			}
 
 			uint64_t getOffset() const
 			{
-				return 64 * stream.getWrittenWords() + (64-bav);
+				return (CHAR_BIT*sizeof(stream_data_type)) * stream.getWrittenWords() + ((CHAR_BIT*sizeof(stream_data_type))-bav);
 			}
 		};
 	}

@@ -35,6 +35,8 @@
 template<typename T>
 struct VectorPut : public std::vector<T>
 {
+	typedef T data_type;
+
 	VectorPut() {}
 	void put(T const v)
 	{
@@ -42,8 +44,11 @@ struct VectorPut : public std::vector<T>
 	}
 };
 
+template<typename _T>
 struct CountPut
 {
+	typedef _T data_type;
+
 	uint64_t cnt;
 
 	CountPut()
@@ -52,8 +57,7 @@ struct CountPut
 
 	}
 
-	template<typename T>
-	void put(T const)
+	void put(data_type const)
 	{
 		++cnt;
 	}
@@ -63,6 +67,7 @@ template<typename T>
 struct VectorGet
 {
 	typename std::vector<T>::const_iterator it;
+	typedef T data_type;
 
 	VectorGet(typename std::vector<T>::const_iterator rit)
 	: it(rit)
@@ -71,6 +76,12 @@ struct VectorGet
 	uint64_t get()
 	{
 		return *(it++);
+	}
+
+	bool getNext(uint64_t & v)
+	{
+		v = *(it++);
+		return true;
 	}
 };
 
@@ -84,8 +95,8 @@ void testRandom(unsigned int const n)
 	::libmaus2::timing::RealTimeClock rtc;
 
 	rtc.start();
-	CountPut CP;
-	::libmaus2::gamma::GammaEncoder< CountPut > GCP(CP);
+	CountPut<uint64_t> CP;
+	::libmaus2::gamma::GammaEncoder< CountPut<uint64_t> > GCP(CP);
 	for ( uint64_t i = 0; i < n; ++i )
 		GCP.encode(V[i]);
 	GCP.flush();
