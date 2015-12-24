@@ -32,6 +32,9 @@
 #include <libmaus2/gamma/SparseGammaGapFileSet.hpp>
 #include <libmaus2/gamma/SparseGammaGapFileLevelSet.hpp>
 
+#include <libmaus2/gamma/GammaDifferenceEncoder.hpp>
+#include <libmaus2/gamma/GammaDifferenceDecoder.hpp>
+
 template<typename T>
 struct VectorPut : public std::vector<T>
 {
@@ -889,12 +892,46 @@ void testsparsegammamultifilesetmergedense()
 	}
 }
 
+
+void testgammadifferencecoding()
+{
+	std::string const fn = "mem://gamma";
+	// typedef uint64_t gamma_type;
+	typedef libmaus2::uint128_t gamma_type;
+	libmaus2::gamma::GammaDifferenceEncoder<gamma_type>::unique_ptr_type GDE(new libmaus2::gamma::GammaDifferenceEncoder<gamma_type>(fn));
+	#if 0
+	GDE->encode(0);
+	GDE->encode(1);
+	GDE->encode(5);
+	GDE->encode(7);
+	#endif
+	for ( uint64_t i = 0; i < 64*1024; ++i )
+		GDE->encode(3*i+2);
+
+	GDE.reset();
+	libmaus2::gamma::GammaDifferenceDecoder<gamma_type>::unique_ptr_type GDD(new libmaus2::gamma::GammaDifferenceDecoder<gamma_type>(fn));
+	gamma_type v;
+	uint64_t j = 0;
+	while ( GDD->decode(v) )
+	{
+		uint64_t const high = v >> 64;
+		uint64_t const low = v;
+
+		assert ( high == 0 );
+		assert ( low == 3*(j++)+2 );
+	}
+
+	GDD.reset();
+	libmaus2::aio::FileRemoval::removeFile(fn);
+}
+
 int main()
 {
 	try
 	{
 		srand(time(0));
 
+		testgammadifferencecoding();
 		testsparsegammamultifilesetmergedense();
 		testsparsegammamultifilesetmerge();
 		testsparsegammamultimerge();
