@@ -154,7 +154,8 @@ namespace libmaus2
 					cl1 -= bav;
 
 					// read next word
-					v = stream.get();
+					bool const ok = stream.getNext(v);
+					assert ( ok );
 					bav = (CHAR_BIT*sizeof(stream_data_type));
 
 					code <<= cl1;
