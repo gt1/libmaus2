@@ -37,9 +37,11 @@ namespace libmaus2
 		/**
 		 * class for synchronous buffered output
 		 **/
-		template<typename data_type>
-                struct SynchronousGenericOutput
-                {
+		template<typename _data_type>
+		struct SynchronousGenericOutput
+		{
+			//! data type
+			typedef _data_type data_type;
                 	//! this type
                         typedef SynchronousGenericOutput<data_type> this_type;
                         //! unique pointer type

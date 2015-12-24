@@ -35,6 +35,8 @@ namespace libmaus2
 		{
 			//! input type
 			typedef input_type value_type;
+			//! data type
+			typedef input_type data_type;
 			//! input file stream type
 			typedef libmaus2::aio::InputStreamInstance input_stream_type;
 			//! input file stream pointer type
