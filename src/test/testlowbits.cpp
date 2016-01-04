@@ -27,6 +27,7 @@ void testLowBits()
 		assert ( libmaus2::math::lowbits(i) == libmaus2::math::LowBits<uint64_t>::lowbits(i) );
 	}
 
+	#if defined(LIBMAUS2_HAVE_UNSIGNED_INT128)
 	for ( unsigned int i = 0; i <= 128; ++i )
 	{
 		libmaus2::uint128_t v = libmaus2::math::LowBits<libmaus2::uint128_t>::lowbits(i);
@@ -38,6 +39,7 @@ void testLowBits()
 		else
 			std::cerr << i << "\t" << std::hex << low << std::dec << std::endl;
 	}
+	#endif
 }
 
 int main()
