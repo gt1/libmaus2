@@ -2845,9 +2845,17 @@ fi
 AC_MSG_CHECKING([for unsigned __int128])
 AC_LANG_PUSH([C++])
 	AC_TRY_LINK([#include <iostream>],[
-	unsigned __int128 i = 5;
-	std::cout << static_cast<int>(i) << std::endl;
-	return 0;
+	#if defined(__SIZEOF_INT128__)
+		#if __SIZEOF_INT128__ == 16
+		unsigned __int128 i = 5;
+		std::cout << static_cast<int>(i) << std::endl;
+		return 0;
+		#else
+		#error "__SIZEOF_INT128__ not 16"
+		#endif
+	#else
+	#error "__SIZEOF_INT128__ not defined"
+	#endif
 ],[have_unsigned_int128=yes],[have_unsigned_int128=no])
 AC_MSG_RESULT([${have_unsigned_int128}])
 AC_LANG_POP
