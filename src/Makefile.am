@@ -1906,7 +1906,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testdazzlerindex \
 	testargparser \
 	testfragmentenvelope \
-	testdnarank
+	testdnarank \
+	testlowbits
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2409,3 +2410,7 @@ testfragmentenvelope_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testdnarank_SOURCES  = test/testdnarank.cpp
 testdnarank_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testdnarank_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testlowbits_SOURCES  = test/testlowbits.cpp
+testlowbits_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testlowbits_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
