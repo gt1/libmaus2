@@ -26,7 +26,7 @@
 #include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
 #include <libmaus2/aio/FileRemoval.hpp>
-#include <libmaus2/aio/OutputStreamFactory.hpp>
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 
 namespace libmaus2
 {
@@ -123,12 +123,11 @@ namespace libmaus2
 				if ( Vfn.size() )
 				{
 					assert ( Vfn.size() == 1 );
-					libmaus2::aio::OutputStreamFactory::rename(Vfn[0],ofn);
+					libmaus2::aio::OutputStreamFactoryContainer::rename(Vfn[0],ofn);
 				}
 				else
 				{
 					libmaus2::gamma::GammaDifferenceEncoder<data_type> GE(ofn);
-					return ofn;
 				}
 			}
 
@@ -138,7 +137,6 @@ namespace libmaus2
 				libmaus2::gamma::GammaDifferenceDecoder<data_type> GD1(in1);
 				libmaus2::gamma::GammaDifferenceEncoder<data_type> GE(out,rprev);
 
-				uint64_t v = 0;
 				data_type d0;
 				data_type d1;
 				bool haved0 = GD0.decode(d0);

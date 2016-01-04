@@ -45,14 +45,18 @@ namespace libmaus2
 			{
 			}
 
-			void flush(std::string const & ofn)
+			void flush()
 			{
 				if ( f )
 				{
-					merge.put(A.begin(),A.begin()+f);
+					merge.add(A.begin(),A.begin()+f);
 					f = 0;
 				}
+			}
 
+			void flush(std::string const & ofn)
+			{
+				flush();
 				merge.merge(ofn);
 			}
 
