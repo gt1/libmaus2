@@ -27,6 +27,33 @@ namespace libmaus2
 	namespace gamma
 	{
 		template<typename _data_type>
+		struct GammaDifferenceDecoderNumberCast
+		{
+			static int64_t numberCast(_data_type const v)
+			{
+				return static_cast<int64_t>(v);
+			}
+		};
+
+		template<size_t _k>
+		struct GammaDifferenceDecoderNumberCast< libmaus2::math::UnsignedInteger<_k> >
+		{
+			static int64_t numberCast(libmaus2::math::UnsignedInteger<_k> const v)
+			{
+				if ( _k == 0 )
+					return 0;
+				else if ( _k == 1 )
+					return v[0];
+				else
+					return
+						(static_cast<uint64_t>(v[1]) << 32)
+						|
+						(static_cast<uint64_t>(v[0]) <<  0);
+
+			}
+		};
+
+		template<typename _data_type>
 		struct GammaDifferenceDecoder
 		{
 			typedef _data_type data_type;
@@ -82,9 +109,9 @@ namespace libmaus2
 			{
 				if ( n )
 				{
-					data_type dif = Gdec->decode() + 1;
-					v = prev + dif;
-					prev = v;
+					data_type dif = Gdec->decode() + data_type(1);
+					v = prev + GammaDifferenceDecoderNumberCast<data_type>::numberCast(dif);
+					prev = GammaDifferenceDecoderNumberCast<data_type>::numberCast(v);
 					n -= 1;
 					return true;
 				}

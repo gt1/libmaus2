@@ -22,6 +22,10 @@
 #include <libmaus2/bitio/Clz.hpp>
 #include <libmaus2/util/unique_ptr.hpp>
 #include <libmaus2/math/lowbits.hpp>
+#include <algorithm>
+#include <libmaus2/uint/uint.hpp>
+#include <libmaus2/math/UnsignedInteger.hpp>
+#include <libmaus2/util/Demangle.hpp>
 
 namespace libmaus2
 {
@@ -40,6 +44,19 @@ namespace libmaus2
 			static inline unsigned int getCodeLen(stream_data_type const code)
 			{
 				unsigned int const lz = clz(code); // number of leading zero bits
+				unsigned int const nd = ((CHAR_BIT*sizeof(stream_data_type))-1)-lz;
+				return 1 + (nd<<1);
+			}
+		};
+
+		template<size_t k>
+		struct GammaEncoderBase< libmaus2::math::UnsignedInteger<k> >
+		{
+			typedef libmaus2::math::UnsignedInteger<k> stream_data_type;
+
+			static inline unsigned int getCodeLen(stream_data_type const code)
+			{
+				unsigned int const lz = code.clz(); // number of leading zero bits
 				unsigned int const nd = ((CHAR_BIT*sizeof(stream_data_type))-1)-lz;
 				return 1 + (nd<<1);
 			}
@@ -99,6 +116,24 @@ namespace libmaus2
 						// ((1ull << overflow)-1);
 					bav = (CHAR_BIT*sizeof(stream_data_type))-overflow;
 				}
+			}
+
+			std::string printNumber(stream_data_type q)
+			{
+				std::vector<char> digits;
+				stream_data_type const base = 10ull;
+				if ( q )
+					while ( q )
+					{
+						digits.push_back(static_cast<uint64_t>(q % base));
+						q /= base;
+					}
+				else
+					digits.push_back(0);
+				std::reverse(digits.begin(),digits.end());
+				for ( uint64_t i = 0; i < digits.size(); ++i )
+					digits[i] += '0';
+				return std::string(digits.begin(),digits.end());
 			}
 
 			void encode(stream_data_type const q)

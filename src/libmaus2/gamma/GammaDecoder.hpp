@@ -20,6 +20,7 @@
 #define LIBMAUS2_GAMMA_GAMMADECODER_HPP
 
 #include <libmaus2/bitio/Clz.hpp>
+#include <libmaus2/math/UnsignedInteger.hpp>
 #include <libmaus2/util/unique_ptr.hpp>
 
 namespace libmaus2
@@ -40,6 +41,27 @@ namespace libmaus2
 			{
 				return libmaus2::bitio::Clz::clz(v);
 			}
+
+			static bool isNonNull(stream_data_type const v)
+			{
+				return v;
+			}
+		};
+
+		template<size_t k>
+		struct GammaDecoderBase< libmaus2::math::UnsignedInteger<k> >
+		{
+			typedef libmaus2::math::UnsignedInteger<k> stream_data_type;
+
+			static unsigned int clz(stream_data_type const v)
+			{
+				return v.clz();
+			}
+
+			static bool isNonNull(stream_data_type const v)
+			{
+				return !(v.isNull());
+			}
 		};
 
 		#if defined(LIBMAUS2_HAVE_UNSIGNED_INT128)
@@ -54,6 +76,11 @@ namespace libmaus2
 					return libmaus2::bitio::Clz::clz(static_cast<uint64_t>(v >> 64));
 				else
 					return 64 + libmaus2::bitio::Clz::clz(static_cast<uint64_t>(v));
+			}
+
+			static bool isNonNull(stream_data_type const v)
+			{
+				return v;
 			}
 		};
 		#endif
@@ -115,7 +142,7 @@ namespace libmaus2
 				unsigned int cl;
 
 				// decode code length
-				if ( v )
+				if ( base_type::isNonNull(v) )
 				{
 					cl = base_type::clz(v);
 					v <<= cl;

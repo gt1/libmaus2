@@ -897,9 +897,12 @@ void testsparsegammamultifilesetmergedense()
 
 void testgammadifferencecoding()
 {
+	std::cerr << "testing difference coding...";
+
 	std::string const fn = "mem://gamma";
 	// typedef uint64_t gamma_type;
-	typedef libmaus2::uint128_t gamma_type;
+	// typedef libmaus2::uint128_t gamma_type;
+	typedef libmaus2::math::UnsignedInteger<4> gamma_type;
 	libmaus2::gamma::GammaDifferenceEncoder<gamma_type>::unique_ptr_type GDE(new libmaus2::gamma::GammaDifferenceEncoder<gamma_type>(fn));
 	#if 0
 	GDE->encode(0);
@@ -916,8 +919,8 @@ void testgammadifferencecoding()
 	uint64_t j = 0;
 	while ( GDD->decode(v) )
 	{
-		uint64_t const high = v >> 64;
-		uint64_t const low = v;
+		uint64_t const high = libmaus2::gamma::GammaDifferenceDecoderNumberCast<gamma_type>::numberCast(v >> 64);
+		uint64_t const low = libmaus2::gamma::GammaDifferenceDecoderNumberCast<gamma_type>::numberCast(v);
 
 		assert ( high == 0 );
 		assert ( low == 3*(j++)+2 );
@@ -925,6 +928,8 @@ void testgammadifferencecoding()
 
 	GDD.reset();
 	libmaus2::aio::FileRemoval::removeFile(fn);
+
+	std::cerr << "done." << std::endl;
 }
 
 int main()
