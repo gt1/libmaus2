@@ -24,6 +24,7 @@
 #include <iomanip>
 #include <vector>
 #include <libmaus2/types/types.hpp>
+#include <libmaus2/bitio/Clz.hpp>
 
 #include <iostream>
 #include <cassert>
@@ -92,6 +93,17 @@ namespace libmaus2
 			public:
 			template<size_t l>
 			friend struct UnsignedInteger;
+
+			unsigned int clz() const
+			{
+				unsigned int lz = 0;
+				for ( unsigned int i = 0; i < k; ++i )
+					if ( A[k-i-1] )
+						return lz + (libmaus2::bitio::Clz::clz(A[k-i-1])-32);
+					else
+						lz += 32;
+				return lz;
+			}
 
 			UnsignedInteger()
 			{
