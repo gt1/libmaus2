@@ -26,6 +26,7 @@
 #include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
 #include <libmaus2/aio/FileRemoval.hpp>
+#include <libmaus2/aio/OutputStreamFactory.hpp>
 
 namespace libmaus2
 {
