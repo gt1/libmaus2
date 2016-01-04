@@ -1324,9 +1324,19 @@ namespace libmaus2
 				return i ? rank(k,i-1) : 0;
 			}
 
+			uint64_t rankm(uint64_t const k, uint64_t const i) const
+			{
+				return rankm1(k,i);
+			}
+
 			std::pair<uint64_t,uint64_t> rankm1(uint64_t const k, uint64_t const l, uint64_t const r) const
 			{
 				return std::pair<uint64_t,uint64_t>(rankm1(k,l),rankm1(k,r));
+			}
+
+			std::pair<uint64_t,uint64_t> rankm(uint64_t const k, uint64_t const l, uint64_t const r) const
+			{
+				return rankm1(k,l,r);
 			}
 
 			/**
