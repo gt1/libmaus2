@@ -34,6 +34,8 @@
 
 #include <libmaus2/gamma/GammaDifferenceEncoder.hpp>
 #include <libmaus2/gamma/GammaDifferenceDecoder.hpp>
+#include <libmaus2/gamma/GammaDifferenceMerge.hpp>
+#include <libmaus2/gamma/GammaDifferenceOutputBuffer.hpp>
 
 template<typename T>
 struct VectorPut : public std::vector<T>
