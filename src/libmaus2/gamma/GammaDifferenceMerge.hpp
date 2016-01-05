@@ -224,6 +224,14 @@ namespace libmaus2
 				libmaus2::aio::OutputStreamInstance OSI(out);
 				merge(OSI,ISI0,ISI1,prev);
 			}
+
+			static void filterOut(std::string const & out, std::string const & in0, std::string const & in1, int64_t const prev = -1)
+			{
+				libmaus2::aio::InputStreamInstance ISI0(in0);
+				libmaus2::aio::InputStreamInstance ISI1(in1);
+				libmaus2::aio::OutputStreamInstance OSI(out);
+				filterOut(OSI,ISI0,ISI1,prev);
+			}
 		};
 	}
 }
