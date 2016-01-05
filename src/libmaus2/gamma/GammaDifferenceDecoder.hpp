@@ -65,6 +65,9 @@ namespace libmaus2
 			libmaus2::aio::InputStreamInstance::unique_ptr_type Pin;
 			std::istream & in;
 
+			data_type peekslot;
+			bool peekslotfilled;
+
 			int64_t prim;
 			int64_t prev;
 			uint64_t n;
@@ -95,19 +98,40 @@ namespace libmaus2
 			}
 
 			public:
-			GammaDifferenceDecoder(std::istream & rin) : Pin(), in(rin)
+			GammaDifferenceDecoder(std::istream & rin) : Pin(), in(rin), peekslotfilled(false)
 			{
 				setup();
 			}
 
-			GammaDifferenceDecoder(std::string const & rfn) : Pin(new libmaus2::aio::InputStreamInstance(rfn)), in(*Pin)
+			GammaDifferenceDecoder(std::string const & rfn) : Pin(new libmaus2::aio::InputStreamInstance(rfn)), in(*Pin), peekslotfilled(false)
 			{
 				setup();
+			}
+
+			bool peek(data_type & v)
+			{
+				peekslotfilled = peekslotfilled || decode(peekslot);
+
+				if ( peekslotfilled )
+				{
+					v = peekslot;
+					return true;
+				}
+				else
+				{
+					return false;
+				}
 			}
 
 			bool decode(data_type & v)
 			{
-				if ( n )
+				if ( peekslotfilled )
+				{
+					v = peekslot;
+					peekslotfilled = false;
+					return true;
+				}
+				else if ( n )
 				{
 					data_type dif = Gdec->decode() + data_type(mindif);
 					v = prev + GammaDifferenceDecoderNumberCast<data_type>::numberCast(dif);
