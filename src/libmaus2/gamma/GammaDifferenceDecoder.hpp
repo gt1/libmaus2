@@ -53,7 +53,7 @@ namespace libmaus2
 			}
 		};
 
-		template<typename _data_type>
+		template<typename _data_type, int mindif = 1>
 		struct GammaDifferenceDecoder
 		{
 			typedef _data_type data_type;
@@ -109,7 +109,7 @@ namespace libmaus2
 			{
 				if ( n )
 				{
-					data_type dif = Gdec->decode() + data_type(1);
+					data_type dif = Gdec->decode() + data_type(mindif);
 					v = prev + GammaDifferenceDecoderNumberCast<data_type>::numberCast(dif);
 					prev = GammaDifferenceDecoderNumberCast<data_type>::numberCast(v);
 					n -= 1;

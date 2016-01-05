@@ -53,7 +53,7 @@ namespace libmaus2
 			}
 		};
 
-		template<typename _data_type>
+		template<typename _data_type, int mindif = 1>
 		struct GammaDifferenceEncoder
 		{
 			typedef _data_type data_type;
@@ -93,7 +93,7 @@ namespace libmaus2
 			{
 				assert ( v > prev );
 				int64_t const dif = v - prev;
-				int64_t const difenc = dif-1;
+				int64_t const difenc = dif-static_cast<int64_t>(mindif);
 				Genc->encode(difenc);
 				prev = v;
 				n += 1;
