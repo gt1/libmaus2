@@ -171,6 +171,52 @@ namespace libmaus2
 				}
 			}
 
+			static void filterOut(std::ostream & out, std::istream & in0, std::istream & in1, int64_t const rprev = -1)
+			{
+				libmaus2::gamma::GammaDifferenceDecoder<data_type,mindif> GD0(in0);
+				libmaus2::gamma::GammaDifferenceDecoder<data_type,mindif> GD1(in1);
+				libmaus2::gamma::GammaDifferenceEncoder<data_type,mindif> GE(out,rprev);
+
+				data_type d0;
+				data_type d1;
+				bool haved0 = GD0.decode(d0);
+				bool haved1 = GD1.decode(d1);
+
+				while ( haved0 && haved1 )
+				{
+					// same, filter out
+					if ( d0 == d1 )
+					{
+						haved0 = GD0.decode(d0);
+						haved1 = GD1.decode(d1);
+					}
+					// stream value < filter value, keep
+					else if ( d0 < d1 )
+					{
+						GE.encode(d0);
+						haved0 = GD0.decode(d0);
+					}
+					// read next filter value
+					else
+					{
+						haved1 = GD1.decode(d1);
+					}
+				}
+
+				// copy rest of stream values
+				while ( haved0 )
+				{
+					GE.encode(d0);
+					haved0 = GD0.decode(d0);
+				}
+
+				// read rest of filter values
+				while ( haved1 )
+				{
+					haved1 = GD1.decode(d1);
+				}
+			}
+
 			static void merge(std::string const & out, std::string const & in0, std::string const & in1, int64_t const prev = -1)
 			{
 				libmaus2::aio::InputStreamInstance ISI0(in0);
