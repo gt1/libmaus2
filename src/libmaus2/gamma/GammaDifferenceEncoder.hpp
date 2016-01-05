@@ -57,7 +57,7 @@ namespace libmaus2
 		struct GammaDifferenceEncoder
 		{
 			typedef _data_type data_type;
-			typedef GammaDifferenceEncoder<data_type> this_type;
+			typedef GammaDifferenceEncoder<data_type,mindif> this_type;
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
