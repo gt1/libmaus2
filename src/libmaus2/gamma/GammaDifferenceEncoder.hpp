@@ -91,7 +91,7 @@ namespace libmaus2
 
 			void encode(int64_t const v)
 			{
-				assert ( v > prev );
+				assert ( v >= prev+static_cast<int64_t>(mindif) );
 				int64_t const dif = v - prev;
 				int64_t const difenc = dif-static_cast<int64_t>(mindif);
 				Genc->encode(difenc);

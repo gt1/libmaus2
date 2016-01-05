@@ -24,15 +24,15 @@ namespace libmaus2
 {
 	namespace gamma
 	{
-		template<typename _data_type>
+		template<typename _data_type, int mindif = 1>
 		struct GammaDifferenceOutputBuffer
 		{
 			typedef _data_type data_type;
-			typedef GammaDifferenceOutputBuffer<data_type> this_type;
+			typedef GammaDifferenceOutputBuffer<data_type, mindif> this_type;
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			libmaus2::gamma::GammaDifferenceMerge<data_type> merge;
+			libmaus2::gamma::GammaDifferenceMerge<data_type, mindif> merge;
 			libmaus2::autoarray::AutoArray<data_type> A;
 			uint64_t f;
 

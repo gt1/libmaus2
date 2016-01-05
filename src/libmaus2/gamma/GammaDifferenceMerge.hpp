@@ -32,11 +32,11 @@ namespace libmaus2
 {
 	namespace gamma
 	{
-		template<typename _data_type>
+		template<typename _data_type, int mindif = 1>
 		struct GammaDifferenceMerge
 		{
 			typedef _data_type data_type;
-			typedef GammaDifferenceMerge<data_type> this_type;
+			typedef GammaDifferenceMerge<data_type,mindif> this_type;
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
@@ -67,7 +67,7 @@ namespace libmaus2
 				{
 					std::sort(ita,ite);
 					std::string const fn = getNextFileName();
-					typename libmaus2::gamma::GammaDifferenceEncoder<data_type>::unique_ptr_type GE(new libmaus2::gamma::GammaDifferenceEncoder<data_type>(fn));
+					typename libmaus2::gamma::GammaDifferenceEncoder<data_type,mindif>::unique_ptr_type GE(new libmaus2::gamma::GammaDifferenceEncoder<data_type,mindif>(fn));
 					while ( ita != ite )
 						GE->encode(*(ita++));
 					GE.reset();
@@ -127,15 +127,15 @@ namespace libmaus2
 				}
 				else
 				{
-					libmaus2::gamma::GammaDifferenceEncoder<data_type> GE(ofn);
+					libmaus2::gamma::GammaDifferenceEncoder<data_type,mindif> GE(ofn);
 				}
 			}
 
 			static void merge(std::ostream & out, std::istream & in0, std::istream & in1, int64_t const rprev = -1)
 			{
-				libmaus2::gamma::GammaDifferenceDecoder<data_type> GD0(in0);
-				libmaus2::gamma::GammaDifferenceDecoder<data_type> GD1(in1);
-				libmaus2::gamma::GammaDifferenceEncoder<data_type> GE(out,rprev);
+				libmaus2::gamma::GammaDifferenceDecoder<data_type,mindif> GD0(in0);
+				libmaus2::gamma::GammaDifferenceDecoder<data_type,mindif> GD1(in1);
+				libmaus2::gamma::GammaDifferenceEncoder<data_type,mindif> GE(out,rprev);
 
 				data_type d0;
 				data_type d1;
