@@ -123,6 +123,17 @@ namespace libmaus2
 				}
 			}
 
+			int64_t peek()
+			{
+				data_type v;
+				bool const ok = peek(v);
+
+				if ( ok )
+					return GammaDifferenceDecoderNumberCast<data_type>::numberCast(v);
+				else
+					return -1;
+			}
+
 			bool decode(data_type & v)
 			{
 				if ( peekslotfilled )
