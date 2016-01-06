@@ -49,7 +49,6 @@ namespace libmaus2
 						(static_cast<uint64_t>(v[1]) << 32)
 						|
 						(static_cast<uint64_t>(v[0]) <<  0);
-
 			}
 		};
 
@@ -94,7 +93,8 @@ namespace libmaus2
 				assert ( v >= prev+static_cast<int64_t>(mindif) );
 				int64_t const dif = v - prev;
 				int64_t const difenc = dif-static_cast<int64_t>(mindif);
-				Genc->encode(difenc);
+				data_type const d(difenc);
+				Genc->encode(d);
 				prev = v;
 				n += 1;
 			}
