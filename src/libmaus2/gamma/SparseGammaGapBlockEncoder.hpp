@@ -33,14 +33,17 @@ namespace libmaus2
 {
 	namespace gamma
 	{
-		struct SparseGammaGapBlockEncoder
+
+		template<typename _data_type>
+		struct SparseGammaGapBlockEncoderTemplate
 		{
-			typedef SparseGammaGapBlockEncoder this_type;
+			typedef _data_type data_type;
+			typedef SparseGammaGapBlockEncoderTemplate<data_type> this_type;
 
-			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			typedef libmaus2::aio::SynchronousGenericOutput<uint64_t> stream_type;
+			typedef libmaus2::aio::SynchronousGenericOutput<data_type> stream_type;
 
 			// w output stream
 			libmaus2::aio::OutputStreamInstance::unique_ptr_type SGOCOS;
@@ -51,7 +54,7 @@ namespace libmaus2
 			std::ostream & SGOout;
 			std::iostream & indexout;
 
-			libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO;
+			stream_type SGO;
 
 			int64_t prevkey;
 			libmaus2::gamma::GammaEncoder<stream_type> genc;
@@ -61,7 +64,7 @@ namespace libmaus2
 
 			uint64_t indexentries;
 
-			SparseGammaGapBlockEncoder(
+			SparseGammaGapBlockEncoderTemplate(
 				std::ostream & out,
 				std::iostream & rindexout,
 				int64_t const rprevkey = -1,
@@ -79,7 +82,7 @@ namespace libmaus2
 			{
 			}
 
-			SparseGammaGapBlockEncoder(
+			SparseGammaGapBlockEncoderTemplate(
 				std::string const & filename,
 				std::string const & indexfilename,
 				uint64_t const rblocksize = 64*1024
@@ -258,6 +261,9 @@ namespace libmaus2
 				libmaus2::aio::FileRemoval::removeFile(indexfn);
 			}
 		};
+
+		typedef SparseGammaGapBlockEncoderTemplate<uint64_t> SparseGammaGapBlockEncoder;
+		typedef SparseGammaGapBlockEncoderTemplate< libmaus2::math::UnsignedInteger<4> > SparseGammaGapBlockEncoder2;
 	}
 }
 #endif

@@ -23,27 +23,60 @@
 #include <libmaus2/gamma/GammaDecoder.hpp>
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
 #include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/math/UnsignedInteger.hpp>
 
 namespace libmaus2
 {
 	namespace gamma
 	{
-		struct SparseGammaGapDecoder
+		template<typename _data_type>
+		struct SparseGammaGapDecoderNumberCast
 		{
-			typedef SparseGammaGapDecoder this_type;
+			static uint64_t cast(_data_type const v)
+			{
+				return static_cast<uint64_t>(v);
+			}
+		};
 
-			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+		template<size_t k>
+		struct SparseGammaGapDecoderNumberCast< libmaus2::math::UnsignedInteger<k> >
+		{
+			static uint64_t cast(libmaus2::math::UnsignedInteger<k> const v)
+			{
+				if ( !k )
+					return 0;
+				else if ( k == 1 )
+					return v[0];
+				else
+					return
+						(
+							static_cast<uint64_t>(v[1]) << 32
+						)
+						|
+						(
+							static_cast<uint64_t>(v[0])
+						);
+			}
+		};
 
-			typedef libmaus2::aio::SynchronousGenericInput<uint64_t> stream_type;
+		template<typename _data_type>
+		struct SparseGammaGapDecoderTemplate
+		{
+			typedef _data_type data_type;
+			typedef SparseGammaGapDecoderTemplate<data_type> this_type;
 
-			libmaus2::aio::SynchronousGenericInput<uint64_t> SGI;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
+			typedef libmaus2::aio::SynchronousGenericInput<data_type> stream_type;
+
+			stream_type SGI;
 			libmaus2::gamma::GammaDecoder<stream_type> gdec;
-			std::pair<uint64_t,uint64_t> p;
+			std::pair<data_type,data_type> p;
 
 			struct iterator
 			{
-				SparseGammaGapDecoder * owner;
+				this_type * owner;
 				uint64_t v;
 
 				iterator()
@@ -51,7 +84,7 @@ namespace libmaus2
 				{
 
 				}
-				iterator(SparseGammaGapDecoder * rowner)
+				iterator(this_type * rowner)
 				: owner(rowner), v(owner->decode())
 				{
 
@@ -76,7 +109,7 @@ namespace libmaus2
 				}
 			};
 
-			SparseGammaGapDecoder(std::istream & rstream) : SGI(rstream,64*1024), gdec(SGI), p(0,0)
+			SparseGammaGapDecoderTemplate(std::istream & rstream) : SGI(rstream,64*1024), gdec(SGI), p(0,0)
 			{
 				p.first = gdec.decode();
 				p.second = gdec.decode();
@@ -85,11 +118,11 @@ namespace libmaus2
 			uint64_t decode()
 			{
 				// no more non zero values
-				if ( !p.second )
+				if ( ! GammaDecoderBase<data_type>::isNonNull(p.second) )
 					return 0;
 
 				// zero value
-				if ( p.first )
+				if ( GammaDecoderBase<data_type>::isNonNull(p.first) )
 				{
 					p.first -= 1;
 					return 0;
@@ -97,7 +130,7 @@ namespace libmaus2
 				// non zero value
 				else
 				{
-					uint64_t const retval = p.second;
+					uint64_t const retval = SparseGammaGapDecoderNumberCast<data_type>::cast(p.second);
 
 					// get information about next non zero value
 					p.first = gdec.decode();
@@ -112,6 +145,9 @@ namespace libmaus2
 				return iterator(this);
 			}
 		};
+
+		typedef SparseGammaGapDecoderTemplate<uint64_t> SparseGammaGapDecoder;
+		typedef SparseGammaGapDecoderTemplate< libmaus2::math::UnsignedInteger<4> > SparseGammaGapDecoder2;
 	}
 }
 #endif

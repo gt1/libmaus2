@@ -34,14 +34,16 @@ namespace libmaus2
 {
 	namespace gamma
 	{
-		struct SparseGammaGapFileLevelSet
+		template<typename _data_type>
+		struct SparseGammaGapFileLevelSetTemplate
 		{
+			typedef _data_type data_type;
 			libmaus2::util::TempFileNameGenerator & tmpgen;
 			std::map< uint64_t,std::deque<libmaus2::gamma::SparseGammaGapFile> > L;
 			libmaus2::parallel::OMPLock lock;
 			uint64_t addcnt;
 
-			SparseGammaGapFileLevelSet(libmaus2::util::TempFileNameGenerator & rtmpgen) : tmpgen(rtmpgen), addcnt(0) {}
+			SparseGammaGapFileLevelSetTemplate(libmaus2::util::TempFileNameGenerator & rtmpgen) : tmpgen(rtmpgen), addcnt(0) {}
 
 			bool needMerge(uint64_t & l, std::pair<libmaus2::gamma::SparseGammaGapFile,libmaus2::gamma::SparseGammaGapFile> & P)
 			{
@@ -84,7 +86,7 @@ namespace libmaus2
 				libmaus2::aio::InputStreamInstance ina(Sa.fn);
 				libmaus2::aio::InputStreamInstance inb(Sb.fn);
 				libmaus2::aio::OutputStreamInstance out(nfn);
-				libmaus2::gamma::SparseGammaGapMerge::merge(ina,inb,out);
+				libmaus2::gamma::SparseGammaGapMergeTemplate<data_type>::merge(ina,inb,out);
 
 				// remove input files
 				libmaus2::aio::FileRemoval::removeFile(Sa.fn);
@@ -166,8 +168,8 @@ namespace libmaus2
 				if ( merge(tmpfilename) )
 				{
 					libmaus2::aio::InputStreamInstance CIS(tmpfilename);
-					libmaus2::gamma::SparseGammaGapDecoder SGGD(CIS);
-					libmaus2::gamma::SparseGammaGapDecoder::iterator it = SGGD.begin();
+					libmaus2::gamma::SparseGammaGapDecoderTemplate<data_type> SGGD(CIS);
+					typename libmaus2::gamma::SparseGammaGapDecoderTemplate<data_type>::iterator it = SGGD.begin();
 
 					libmaus2::gamma::GammaGapEncoder GGE(outputfilename);
 					GGE.encode(it,n);
@@ -176,6 +178,9 @@ namespace libmaus2
 				}
 			}
 		};
+
+		typedef SparseGammaGapFileLevelSetTemplate<uint64_t> SparseGammaGapFileLevelSet;
+		typedef SparseGammaGapFileLevelSetTemplate< libmaus2::math::UnsignedInteger<4> > SparseGammaGapFileLevelSet2;
 	}
 }
 #endif

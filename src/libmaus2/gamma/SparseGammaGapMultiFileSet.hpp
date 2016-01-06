@@ -34,15 +34,17 @@ namespace libmaus2
 {
 	namespace gamma
 	{
-		struct SparseGammaGapMultiFileSet
+		template<typename _data_type>
+		struct SparseGammaGapMultiFileSetTemplate
 		{
+			typedef _data_type data_type;
 			libmaus2::util::TempFileNameGenerator & tmpgen;
 			std::priority_queue<libmaus2::gamma::SparseGammaGapMultiFile> Q;
 			libmaus2::parallel::OMPLock lock;
 			uint64_t addcnt;
 			uint64_t parts;
 
-			SparseGammaGapMultiFileSet(
+			SparseGammaGapMultiFileSetTemplate(
 				libmaus2::util::TempFileNameGenerator & rtmpgen,
 				uint64_t rparts
 			) : tmpgen(rtmpgen), addcnt(0), parts(rparts) {}
@@ -98,7 +100,7 @@ namespace libmaus2
 				assert ( ! Q.empty() );
 				SparseGammaGapMultiFile const Sb = Q.top(); Q.pop();
 
-				std::vector<std::string> const fno = libmaus2::gamma::SparseGammaGapMerge::merge(Sa.fn,Sb.fn,nfn,parts,true);
+				std::vector<std::string> const fno = libmaus2::gamma::SparseGammaGapMergeTemplate<data_type>::merge(Sa.fn,Sb.fn,nfn,parts,true);
 				SparseGammaGapMultiFile N(fno,Sa.level+1);
 				Q.push(N);
 
@@ -168,8 +170,8 @@ namespace libmaus2
 
 				if ( !Q.empty() )
 				{
-					libmaus2::gamma::SparseGammaGapConcatDecoder SGGD(Q.top().fn);
-					libmaus2::gamma::SparseGammaGapConcatDecoder::iterator it = SGGD.begin();
+					libmaus2::gamma::SparseGammaGapConcatDecoderTemplate<data_type> SGGD(Q.top().fn);
+					typename libmaus2::gamma::SparseGammaGapConcatDecoderTemplate<data_type>::iterator it = SGGD.begin();
 
 					libmaus2::gamma::GammaGapEncoder GGE(outputfilename);
 					GGE.encode(it,n);
@@ -179,6 +181,9 @@ namespace libmaus2
 				}
 			}
 		};
+
+		typedef SparseGammaGapMultiFileSetTemplate<uint64_t> SparseGammaGapMultiFileSet;
+		typedef SparseGammaGapMultiFileSetTemplate< libmaus2::math::UnsignedInteger<4> > SparseGammaGapMultiFileSet2;
 	}
 }
 #endif
