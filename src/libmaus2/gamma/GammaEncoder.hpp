@@ -26,6 +26,7 @@
 #include <libmaus2/uint/uint.hpp>
 #include <libmaus2/math/UnsignedInteger.hpp>
 #include <libmaus2/util/Demangle.hpp>
+#include <libmaus2/util/NumberToString.hpp>
 
 namespace libmaus2
 {
@@ -64,19 +65,17 @@ namespace libmaus2
 
 		#if defined(LIBMAUS2_HAVE_UNSIGNED_INT128)
 		template<>
-		struct GammaEncoderBase<libmaus2::uint128_t> : public libmaus2::bitio::Clz
+		struct GammaEncoderBase<libmaus2::uint128_t>
 		{
-			typedef libmaus2::uint128_t stream_data_type;
-
-			static inline unsigned int getCodeLen(stream_data_type const code)
+			static inline unsigned int getCodeLen(libmaus2::uint128_t const code)
 			{
 				unsigned int const lz =
 					(code >> 64) ?
-						clz(static_cast<uint64_t>(code>>64))
+						libmaus2::bitio::Clz::clz(static_cast<uint64_t>(code>>64))
 						:
-						(64+clz(static_cast<uint64_t>(code)))
+						(64+libmaus2::bitio::Clz::clz(static_cast<uint64_t>(code)))
 						; // number of leading zero bits
-				unsigned int const nd = ((CHAR_BIT*sizeof(stream_data_type))-1)-lz;
+				unsigned int const nd = ((CHAR_BIT*sizeof(libmaus2::uint128_t))-1)-lz;
 				return 1 + (nd<<1);
 			}
 		};
