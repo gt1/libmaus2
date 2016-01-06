@@ -1134,7 +1134,8 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/MemoryStatistics.hpp \
 	libmaus2/util/LongestIncreasingSubsequenceExtendedResult.hpp \
 	libmaus2/util/ArgParser.hpp \
-	libmaus2/util/PrefixSums.hpp
+	libmaus2/util/PrefixSums.hpp \
+	libmaus2/util/NumberToString.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
