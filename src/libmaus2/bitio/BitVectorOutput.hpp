@@ -27,6 +27,10 @@ namespace libmaus2
 	{
 		struct BitVectorOutput
 		{
+			typedef BitVectorOutput this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
 			libmaus2::aio::OutputStreamInstance::unique_ptr_type pout;
 			libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO;
 			uint64_t v;
