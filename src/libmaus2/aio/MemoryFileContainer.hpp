@@ -39,9 +39,18 @@ namespace libmaus2
 				std::string, MemoryFile::shared_ptr_type
 			> M;
 
-			static void rename(std::string const & from, std::string const & to)
+			static void list(std::vector<std::string> & V)
 			{
 				libmaus2::parallel::ScopePosixMutex slock(lock);
+				V.resize(M.size());
+				uint64_t o = 0;
+				for ( std::map < std::string, MemoryFile::shared_ptr_type >::const_iterator ita = M.begin();
+					ita != M.end(); ++ita )
+					V[o++] = ita->first;
+			}
+
+			static void rename(std::string const & from, std::string const & to)
+			{
 				std::map < std::string, MemoryFile::shared_ptr_type >::iterator it = M.find(from);
 
 				if ( it != M.end() )
