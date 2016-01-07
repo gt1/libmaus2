@@ -49,14 +49,20 @@ namespace libmaus2
 					V[o++] = ita->first;
 			}
 
-			static void list(std::vector< std::pair<std::string,uint64_t> > & V)
+			static uint64_t list(std::vector< std::pair<std::string,uint64_t> > & V)
 			{
 				libmaus2::parallel::ScopePosixMutex slock(lock);
+				uint64_t acc = 0;
 				V.resize(M.size());
 				uint64_t o = 0;
 				for ( std::map < std::string, MemoryFile::shared_ptr_type >::const_iterator ita = M.begin();
 					ita != M.end(); ++ita )
-					V[o++] = std::pair<std::string,uint64_t>(ita->first,ita->second->size());
+				{
+					uint64_t const s = ita->second->size();
+					acc += s;
+					V[o++] = std::pair<std::string,uint64_t>(ita->first,s);
+				}
+				return acc;
 			}
 
 			static void rename(std::string const & from, std::string const & to)
