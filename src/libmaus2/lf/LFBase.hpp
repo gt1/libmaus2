@@ -119,10 +119,15 @@ namespace libmaus2
 				// std::cerr << "moved " << W.get() << std::endl;
 			}
 
-			LFBase( bitio::CompactArray::unique_ptr_type & ABWT, bool const verbose = false )
+			LFBase( bitio::CompactArray::unique_ptr_type & ABWT, bool const verbose = false, bool const parallel = true )
 			{
 				// compute wavelet tree bits
-				::libmaus2::autoarray::AutoArray<uint64_t> AW = ::libmaus2::wavelet::toWaveletTreeBitsParallel ( ABWT.get(), verbose );
+				::libmaus2::autoarray::AutoArray<uint64_t> AW =
+					parallel ?
+						::libmaus2::wavelet::toWaveletTreeBitsParallel ( ABWT.get(), verbose )
+						:
+						::libmaus2::wavelet::toWaveletTreeBits ( ABWT.get(), verbose )
+						;
 				wt_ptr_type tW( new wt_type( AW, ABWT->n, ABWT->getB()) );
 				W = UNIQUE_PTR_MOVE(tW);
 
@@ -130,10 +135,15 @@ namespace libmaus2
 
 				ABWT.reset(0);
 			}
-			LFBase( bitio::CompactArray::unique_ptr_type & ABWT, ::libmaus2::util::shared_ptr < huffman::HuffmanTreeNode >::type /* ahnode */, bool const verbose = false )
+			LFBase( bitio::CompactArray::unique_ptr_type & ABWT, ::libmaus2::util::shared_ptr < huffman::HuffmanTreeNode >::type /* ahnode */, bool const verbose = false, bool const parallel = true )
 			{
 				// compute wavelet tree bits
-				::libmaus2::autoarray::AutoArray<uint64_t> AW = ::libmaus2::wavelet::toWaveletTreeBitsParallel ( ABWT.get(), verbose );
+				::libmaus2::autoarray::AutoArray<uint64_t> AW =
+					parallel ?
+						::libmaus2::wavelet::toWaveletTreeBitsParallel ( ABWT.get(), verbose )
+						:
+						::libmaus2::wavelet::toWaveletTreeBits ( ABWT.get(), verbose )
+						;
 				wt_ptr_type tW( new wt_type ( AW, ABWT->n, ABWT->getB()) );
 				W = UNIQUE_PTR_MOVE(tW);
 
