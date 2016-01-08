@@ -32,13 +32,13 @@ namespace libmaus2
 			typedef SimpleGammaEncoderArray<data_type> this_type;
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
 			typedef SimpleGammaEncoder<data_type> encoder_type;
 			typedef typename encoder_type::unique_ptr_type encoder_ptr_type;
-			
+
 			std::vector<std::string> const V;
 			libmaus2::autoarray::AutoArray<encoder_ptr_type> Aencoders;
-			
+
 			private:
 			static std::vector<std::string> constructFileNames(std::string const & base, uint64_t const n, bool const registerTemp)
 			{
@@ -53,27 +53,32 @@ namespace libmaus2
 				}
 				return V;
 			}
-			
+
 			void init(uint64_t const bs)
-			{			
+			{
 				for ( uint64_t i = 0; i < V.size(); ++i )
 				{
 					encoder_ptr_type Tptr(new encoder_type(V[i],bs));
 					Aencoders[i] = UNIQUE_PTR_MOVE(Tptr);
 				}
 			}
-			
+
 			public:
 			SimpleGammaEncoderArray(std::vector<std::string> const & rV, uint64_t const bs = 4*1024)
 			: V(rV), Aencoders(V.size())
 			{
 				init(bs);
 			}
-						
+
 			SimpleGammaEncoderArray(std::string const & base, uint64_t const n, bool const registerTemp = true, uint64_t const bs = 4*1024)
 			: V(constructFileNames(base,n,registerTemp)), Aencoders(V.size())
 			{
 				init(bs);
+			}
+
+			~SimpleGammaEncoderArray()
+			{
+				flush();
 			}
 
 			std::vector<std::string> const & getFileNames() const
@@ -85,17 +90,17 @@ namespace libmaus2
 			{
 				return V[i];
 			}
-			
+
 			uint64_t size() const
 			{
 				return V.size();
 			}
-			
+
 			encoder_type & operator[](uint64_t const i)
 			{
 				return *Aencoders[i];
 			}
-			
+
 			void flush()
 			{
 				for ( uint64_t i = 0; i < size(); ++i )
