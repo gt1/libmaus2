@@ -19,72 +19,14 @@
 #if ! defined(LIBMAUS2_GAMMA_GAMMADECODER_HPP)
 #define LIBMAUS2_GAMMA_GAMMADECODER_HPP
 
-#include <libmaus2/bitio/Clz.hpp>
-#include <libmaus2/math/UnsignedInteger.hpp>
+#include <climits>
+#include <libmaus2/gamma/GammaDecoderBase.hpp>
 #include <libmaus2/util/unique_ptr.hpp>
 
 namespace libmaus2
 {
 	namespace gamma
 	{
-		template<typename stream_data_type>
-		struct GammaDecoderBase
-		{
-		};
-
-		template<>
-		struct GammaDecoderBase<uint64_t>
-		{
-			typedef uint64_t stream_data_type;
-
-			static unsigned int clz(stream_data_type const v)
-			{
-				return libmaus2::bitio::Clz::clz(v);
-			}
-
-			static bool isNonNull(stream_data_type const v)
-			{
-				return v;
-			}
-		};
-
-		template<size_t k>
-		struct GammaDecoderBase< libmaus2::math::UnsignedInteger<k> >
-		{
-			typedef libmaus2::math::UnsignedInteger<k> stream_data_type;
-
-			static unsigned int clz(stream_data_type const v)
-			{
-				return v.clz();
-			}
-
-			static bool isNonNull(stream_data_type const v)
-			{
-				return !(v.isNull());
-			}
-		};
-
-		#if defined(LIBMAUS2_HAVE_UNSIGNED_INT128)
-		template<>
-		struct GammaDecoderBase<libmaus2::uint128_t>
-		{
-			typedef libmaus2::uint128_t stream_data_type;
-
-			static unsigned int clz(stream_data_type const v)
-			{
-				if ( v >> 64 )
-					return libmaus2::bitio::Clz::clz(static_cast<uint64_t>(v >> 64));
-				else
-					return 64 + libmaus2::bitio::Clz::clz(static_cast<uint64_t>(v));
-			}
-
-			static bool isNonNull(stream_data_type const v)
-			{
-				return v;
-			}
-		};
-		#endif
-
 		template<typename _stream_type>
 		struct GammaDecoder : public GammaDecoderBase<typename _stream_type::data_type>
 		{

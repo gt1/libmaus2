@@ -314,7 +314,10 @@ libmaus2gamma_include_HEADERS = libmaus2/gamma/GammaEncoder.hpp libmaus2/gamma/G
 	libmaus2/gamma/GammaDifferenceOutputBuffer.hpp \
 	libmaus2/gamma/GammaEncoderBase.hpp \
 	libmaus2/gamma/SimpleGammaEncoderData.hpp \
-	libmaus2/gamma/SimpleGammaEncoder.hpp
+	libmaus2/gamma/SimpleGammaEncoder.hpp \
+	libmaus2/gamma/GammaDecoderBase.hpp \
+	libmaus2/gamma/SimpleGammaDecoderData.hpp \
+	libmaus2/gamma/SimpleGammaDecoder.hpp
 
 libmaus2regex_includedir=$(includedir)/libmaus2/regex/
 libmaus2regex_include_HEADERS = libmaus2/regex/PosixRegex.hpp
