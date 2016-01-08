@@ -85,14 +85,15 @@ namespace libmaus2
 					// is this the left mapping end?
 					bool isleft;
 					
-					try {
-					    isleft = libmaus2::bambam::ReadEndsBase::isLeft(algn.D.begin(),algn.blocksize,Aop);
+					try
+					{
+					    	isleft = libmaus2::bambam::ReadEndsBase::isLeft(algn.D.begin(),algn.blocksize,Aop);
 					}
 					catch (libmaus2::exception::LibMausException lme)
 					{
-					    // probably no MC:z entry, see if the older MC:i is there
-					    alt_key(algn, header, tagid);
-					    return;
+					    	// probably no MC:z entry, see if the older MC:i is there
+					    	alt_key(algn, header, tagid);
+					    	return;
 					}
 
 					// as number for hash key
@@ -214,7 +215,6 @@ namespace libmaus2
 					key.A[3] = tagid; // tag
 				}
 
-    	    	    	    	
 				void alt_key(libmaus2::bambam::BamAlignment const & algn,
 					libmaus2::bambam::BamHeader const & header,
 					uint64_t tagid)
@@ -270,28 +270,27 @@ namespace libmaus2
 								orientation = pair_orientation_RR;
 						}
 					}
-					
+
 					// orientation as number		
 					uint64_t uorientation = static_cast<uint64_t>(orientation);
 
-					key.A[0] = 
+					key.A[0] =
 						(static_cast<uint64_t>(signEncode(thisref)) << 32)
 						|
 						(static_cast<uint64_t>(signEncode(thiscoord)) << 0)
 						;
-					key.A[1] = 
+					key.A[1] =
 						(static_cast<uint64_t>(signEncode(otherref)) << 32)
 						|
 						(static_cast<uint64_t>(signEncode(othercoord)) << 0)
 						;
-					key.A[2] = 
+					key.A[2] =
 						(static_cast<uint64_t>(signEncode(algn.getLibraryId(header))) << 32)
 						|
 						(leftflag) | (uorientation << 1)
 						;
 					key.A[3] = tagid; // tag
 				}
-				
 
 				bool operator==(this_type const & o) const
 				{
