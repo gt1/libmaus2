@@ -36,11 +36,11 @@ namespace libmaus2
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			SimpleGammaEncoder(std::string const & fn, uint64_t const bs)
+			SimpleGammaEncoder(std::string const & fn, uint64_t const bs = 8*1024)
 			: SimpleGammaEncoderData<_data_type>(fn,bs),
 			  GammaEncoder< typename SimpleGammaEncoderData<_data_type>::stream_type >(SimpleGammaEncoderData<_data_type>::SGO) {}
 
-			SimpleGammaEncoder(std::ostream & out, uint64_t const bs)
+			SimpleGammaEncoder(std::ostream & out, uint64_t const bs = 8*1024)
 			: SimpleGammaEncoderData<_data_type>(out,bs),
 			  GammaEncoder< typename SimpleGammaEncoderData<_data_type>::stream_type >(SimpleGammaEncoderData<_data_type>::SGO) {}
 
