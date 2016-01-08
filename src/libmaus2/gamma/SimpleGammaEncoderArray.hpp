@@ -95,6 +95,12 @@ namespace libmaus2
 			{
 				return *Aencoders[i];
 			}
+			
+			void flush()
+			{
+				for ( uint64_t i = 0; i < size(); ++i )
+					(*this)[i].flush();
+			}
 		};
 	}
 }
