@@ -76,6 +76,11 @@ namespace libmaus2
 				init(bs);
 			}
 
+			std::vector<std::string> const & getFileNames() const
+			{
+				return V;
+			}
+
 			std::string getFileName(uint64_t const i) const
 			{
 				return V[i];
