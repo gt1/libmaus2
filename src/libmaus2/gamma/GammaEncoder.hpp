@@ -19,6 +19,7 @@
 #if ! defined(LIBMAUS2_GAMMA_GAMMAENCODER_HPP)
 #define LIBMAUS2_GAMMA_GAMMAENCODER_HPP
 
+#include <libmaus2/gamma/GammaEncoderBase.hpp>
 #include <libmaus2/bitio/Clz.hpp>
 #include <libmaus2/util/unique_ptr.hpp>
 #include <libmaus2/math/lowbits.hpp>
@@ -27,60 +28,12 @@
 #include <libmaus2/math/UnsignedInteger.hpp>
 #include <libmaus2/util/Demangle.hpp>
 #include <libmaus2/util/NumberToString.hpp>
+#include <libmaus2/aio/SynchronousGenericOutput.hpp>
 
 namespace libmaus2
 {
 	namespace gamma
 	{
-		template<typename stream_data_type>
-		struct GammaEncoderBase
-		{
-		};
-
-		template<>
-		struct GammaEncoderBase<uint64_t> : public libmaus2::bitio::Clz
-		{
-			typedef uint64_t stream_data_type;
-
-			static inline unsigned int getCodeLen(stream_data_type const code)
-			{
-				unsigned int const lz = clz(code); // number of leading zero bits
-				unsigned int const nd = ((CHAR_BIT*sizeof(stream_data_type))-1)-lz;
-				return 1 + (nd<<1);
-			}
-		};
-
-		template<size_t k>
-		struct GammaEncoderBase< libmaus2::math::UnsignedInteger<k> >
-		{
-			typedef libmaus2::math::UnsignedInteger<k> stream_data_type;
-
-			static inline unsigned int getCodeLen(stream_data_type const code)
-			{
-				unsigned int const lz = code.clz(); // number of leading zero bits
-				unsigned int const nd = ((CHAR_BIT*sizeof(stream_data_type))-1)-lz;
-				return 1 + (nd<<1);
-			}
-		};
-
-		#if defined(LIBMAUS2_HAVE_UNSIGNED_INT128)
-		template<>
-		struct GammaEncoderBase<libmaus2::uint128_t>
-		{
-			static inline unsigned int getCodeLen(libmaus2::uint128_t const code)
-			{
-				unsigned int const lz =
-					(code >> 64) ?
-						libmaus2::bitio::Clz::clz(static_cast<uint64_t>(code>>64))
-						:
-						(64+libmaus2::bitio::Clz::clz(static_cast<uint64_t>(code)))
-						; // number of leading zero bits
-				unsigned int const nd = ((CHAR_BIT*sizeof(libmaus2::uint128_t))-1)-lz;
-				return 1 + (nd<<1);
-			}
-		};
-		#endif
-
 		template<typename _stream_type>
 		struct GammaEncoder : public GammaEncoderBase<typename _stream_type::data_type>
 		{

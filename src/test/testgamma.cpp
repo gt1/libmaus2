@@ -16,13 +16,15 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <libmaus2/gamma/SimpleGammaEncoder.hpp>
+#include <libmaus2/gamma/GammaEncoder.hpp>
+
 #include <iostream>
 #include <cassert>
 #include <vector>
 #include <sstream>
 #include <cstdlib>
 #include <libmaus2/timing/RealTimeClock.hpp>
-#include <libmaus2/gamma/GammaEncoder.hpp>
 #include <libmaus2/gamma/GammaDecoder.hpp>
 
 #include <libmaus2/gamma/SparseGammaGapEncoder.hpp>
