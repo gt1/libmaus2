@@ -38,6 +38,10 @@ namespace libmaus2
 		struct SparseGammaGapFileLevelSetTemplate
 		{
 			typedef _data_type data_type;
+			typedef SparseGammaGapFileLevelSetTemplate<data_type> this_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
 			libmaus2::util::TempFileNameGenerator & tmpgen;
 			std::map< uint64_t,std::deque<libmaus2::gamma::SparseGammaGapFile> > L;
 			libmaus2::parallel::OMPLock lock;
