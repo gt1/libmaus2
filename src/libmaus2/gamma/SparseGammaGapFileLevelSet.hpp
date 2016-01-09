@@ -164,6 +164,14 @@ namespace libmaus2
 				}
 			}
 
+			struct NullGet
+			{
+				uint64_t get(uint64_t const) const
+				{
+					return 0;
+				}
+			};
+
 			void mergeToDense(std::string const & outputfilename, uint64_t const n)
 			{
 				std::string const tmpfilename = tmpgen.getFileName();
@@ -179,6 +187,13 @@ namespace libmaus2
 					GGE.encode(it,n);
 
 					libmaus2::aio::FileRemoval::removeFile(tmpfilename);
+				}
+				else
+				{
+					libmaus2::gamma::GammaGapEncoder GGE(outputfilename);
+					NullGet const NG;
+					libmaus2::util::ConstIterator<NullGet,uint64_t> it(&NG);
+					GGE.encode(it,n);
 				}
 			}
 		};
