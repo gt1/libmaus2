@@ -436,7 +436,9 @@ libmaus2lz_include_HEADERS = libmaus2/lz/Inflate.hpp libmaus2/lz/Deflate.hpp lib
 	libmaus2/lz/BgzfDeflateZStreamBaseTypeInfo.hpp \
 	libmaus2/lz/BgzfInflateZStreamBaseAllocator.hpp \
 	libmaus2/lz/BgzfInflateZStreamBaseTypeInfo.hpp \
-	libmaus2/lz/XzDecoder.hpp
+	libmaus2/lz/XzDecoder.hpp \
+	libmaus2/lz/XzInputStreamBuffer.hpp \
+	libmaus2/lz/XzInputStream.hpp
 
 libmaus2bambam_includedir=$(includedir)/libmaus2/bambam/
 libmaus2bambam_include_HEADERS = libmaus2/bambam/DecoderBase.hpp libmaus2/bambam/Chromosome.hpp \
