@@ -226,6 +226,14 @@ namespace libmaus2
                                 return sid;
                         }
 
+			std::string const getShortStringId() const
+			{
+				std::string::size_type i = 0;
+				while ( i < sid.size() && !::isspace(sid[i]) )
+					++i;
+				return sid.substr(0,i);
+			}
+
                         void unmapSource()
                         {
                                 for ( uint64_t i = 0; i < spattern.size(); ++i )
