@@ -25,25 +25,28 @@
 #include <libmaus2/aio/SynchronousGenericOutput.hpp>
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
 #include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/math/UnsignedInteger.hpp>
 
 namespace libmaus2
 {
 	namespace gamma
 	{
-		struct SparseGammaGapEncoder
+		template<typename _data_type>
+		struct SparseGammaGapEncoderTemplate
 		{
-			typedef SparseGammaGapEncoder this_type;
+			typedef _data_type data_type;
+			typedef SparseGammaGapEncoderTemplate<data_type> this_type;
 
-			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			typedef libmaus2::aio::SynchronousGenericOutput<uint64_t> stream_type;
+			typedef libmaus2::aio::SynchronousGenericOutput<data_type> stream_type;
 
-			libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO;
+			stream_type SGO;
 			int64_t prevkey;
 			libmaus2::gamma::GammaEncoder<stream_type> genc;
 
-			SparseGammaGapEncoder(std::ostream & out, int64_t const rprevkey = -1) : SGO(out,64*1024), prevkey(rprevkey), genc(SGO)
+			SparseGammaGapEncoderTemplate(std::ostream & out, int64_t const rprevkey = -1) : SGO(out,64*1024), prevkey(rprevkey), genc(SGO)
 			{
 			}
 
@@ -104,6 +107,9 @@ namespace libmaus2
 				encodeArray(ita,ite,COS);
 			}
 		};
+
+		typedef SparseGammaGapEncoderTemplate<uint64_t> SparseGammaGapEncoder;
+		typedef SparseGammaGapEncoderTemplate< libmaus2::math::UnsignedInteger<4> > SparseGammaGapEncoder2;
 	}
 }
 #endif

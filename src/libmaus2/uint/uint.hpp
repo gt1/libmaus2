@@ -49,6 +49,14 @@ namespace libmaus2
 				return ::libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(u);
 			}
 
+			operator bool() const
+			{
+				uint64_t v = 0;
+				for ( unsigned int i = 0; i < words; ++i )
+					v |= A[i];
+				return v;
+			}
+
 			void keepLowBits(uint64_t pos)
 			{
 				uint64_t const eword = pos/64;

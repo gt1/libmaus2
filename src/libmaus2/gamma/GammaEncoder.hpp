@@ -19,41 +19,40 @@
 #if ! defined(LIBMAUS2_GAMMA_GAMMAENCODER_HPP)
 #define LIBMAUS2_GAMMA_GAMMAENCODER_HPP
 
+#include <libmaus2/gamma/GammaEncoderBase.hpp>
 #include <libmaus2/bitio/Clz.hpp>
 #include <libmaus2/util/unique_ptr.hpp>
 #include <libmaus2/math/lowbits.hpp>
+#include <algorithm>
+#include <libmaus2/uint/uint.hpp>
+#include <libmaus2/math/UnsignedInteger.hpp>
+#include <libmaus2/util/Demangle.hpp>
+#include <libmaus2/util/NumberToString.hpp>
+#include <libmaus2/aio/SynchronousGenericOutput.hpp>
 
 namespace libmaus2
 {
 	namespace gamma
 	{
-		struct GammaEncoderBase : public libmaus2::bitio::Clz
-		{
-			static inline unsigned int getCodeLen(uint64_t const code)
-			{
-				unsigned int const nd = 63-clz(code);
-				return 1 + (nd<<1);
-			}
-		};
-
 		template<typename _stream_type>
-		struct GammaEncoder : public GammaEncoderBase
+		struct GammaEncoder : public GammaEncoderBase<typename _stream_type::data_type>
 		{
 			typedef _stream_type stream_type;
+			typedef typename stream_type::data_type stream_data_type;
 			typedef GammaEncoder<stream_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			stream_type & stream;
-			uint64_t v;
+			stream_data_type v;
 			unsigned int bav;
 
 			GammaEncoder(stream_type & rstream)
-			: stream(rstream), v(0), bav(64)
+			: stream(rstream), v(0), bav((CHAR_BIT*sizeof(stream_data_type)))
 			{
 
 			}
 
-			inline void encodeWord(uint64_t const code, unsigned int const codelen)
+			inline void encodeWord(stream_data_type const code, unsigned int const codelen)
 			{
 				if ( bav >= codelen )
 				{
@@ -65,33 +64,51 @@ namespace libmaus2
 				{
 					unsigned int const overflow = (codelen-bav);
 					stream.put((v << bav) | (code >> overflow));
-					v = code & libmaus2::math::lowbits(overflow);
+					v = code & libmaus2::math::LowBits<stream_data_type>::lowbits(overflow);
 						// ((1ull << overflow)-1);
-					bav = 64-overflow;
+					bav = (CHAR_BIT*sizeof(stream_data_type))-overflow;
 				}
 			}
 
-			void encode(uint64_t const q)
+			std::string printNumber(stream_data_type q)
 			{
-				uint64_t const code = q+1;
-				unsigned int codelen = getCodeLen(code);
+				std::vector<char> digits;
+				stream_data_type const base = 10ull;
+				if ( q )
+					while ( q )
+					{
+						digits.push_back(static_cast<uint64_t>(q % base));
+						q /= base;
+					}
+				else
+					digits.push_back(0);
+				std::reverse(digits.begin(),digits.end());
+				for ( uint64_t i = 0; i < digits.size(); ++i )
+					digits[i] += '0';
+				return std::string(digits.begin(),digits.end());
+			}
+
+			void encode(stream_data_type const q)
+			{
+				stream_data_type const code = q+static_cast<stream_data_type>(1);
+				unsigned int codelen = GammaEncoderBase<stream_data_type>::getCodeLen(code);
 				encodeWord(code,codelen);
 			}
 
 			void flush()
 			{
-				if ( bav != 64 )
+				if ( bav != (CHAR_BIT*sizeof(stream_data_type)) )
 				{
 					v <<= bav;
 					stream.put(v);
 					v = 0;
-					bav = 64;
+					bav = (CHAR_BIT*sizeof(stream_data_type));
 				}
 			}
 
 			uint64_t getOffset() const
 			{
-				return 64 * stream.getWrittenWords() + (64-bav);
+				return (CHAR_BIT*sizeof(stream_data_type)) * stream.getWrittenWords() + ((CHAR_BIT*sizeof(stream_data_type))-bav);
 			}
 		};
 	}

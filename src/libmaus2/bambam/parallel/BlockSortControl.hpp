@@ -607,7 +607,8 @@ namespace libmaus2
 						// copy stream id
 						pend.mib->streamid = streamid;
 						// assign block id
-						pend.mib->blockid = inputreadbase.decompressedBlockIdAcc++;
+						uint64_t const decid = inputreadbase.decompressedBlockIdAcc++;
+						pend.mib->blockid = decid;
 						// decompressed block
 						pend.db = db;
 						db = libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type();
@@ -615,6 +616,7 @@ namespace libmaus2
 
 						libmaus2::bambam::parallel::GenericInputBgzfDecompressionWorkPackage * package = genericInputDecompressWorkPackages.getPackage();
 						*package = libmaus2::bambam::parallel::GenericInputBgzfDecompressionWorkPackage(0/*prio*/,GIBDWPDid,pend);
+						package->subid = decid;
 						STP.enque(package);
 
 						inputreadbase.decompressionpendingnext.second += 1;
