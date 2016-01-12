@@ -1919,7 +1919,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testargparser \
 	testfragmentenvelope \
 	testdnarank \
-	testlowbits
+	testlowbits \
+	testfastaexplode
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2426,3 +2427,7 @@ testdnarank_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testlowbits_SOURCES  = test/testlowbits.cpp
 testlowbits_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testlowbits_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testfastaexplode_SOURCES  = test/testfastaexplode.cpp
+testfastaexplode_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testfastaexplode_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
