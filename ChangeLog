@@ -1,3 +1,45 @@
+libmaus2 (2.0.114-1) unstable; urgency=medium
+
+  * add getShortStringId method in Pattern class
+  * add XzInputStream and XzInputStreamBuffer to list of installed files
+  * add pointer types in BitVectorOutput
+  * add pointer types in BitVectorInput
+  * add list variant with file sizes in MemoryFileContainer
+  * add list function in MemoryFileContainer
+  * add bool cast in uint class
+  * add clz method in UnsignedInteger class
+  * add rankm method in WaveletTree class
+  * add generic LowBits class (lowbits function is for uint64_t only)
+  * add data_type typedef in SynchronousGenericInput and SynchronousGenericOutput
+  * add getNext method and data_type typedef in GetObject class
+  * add step function for pair of ranks in LFBase (map interval for backward search)
+  * add option to select parallel/serial building of wavelet tree in LFBase/LF
+  * pass through option for non verbose wavelet tree construction in LFBase
+  * add parameter to make toWaveletTreeBitsParallel non verbose
+  * add more checking in ArgParser class
+  * add generic NumberToString class and specialised version for uint128_t
+  * improve check for unsigned __int128
+  * add getDiagonalBand function in AlignmentTraceContainer (compute interval of diagonals used by an alignment)
+  * explicitely check for little and big endian in InterleavedRadixSort, stop compilation on anything else
+  * simplify code in InterleavedRadixSort
+  * fix sorting on big endian in case number of sort rounds is smaller than the key length in byte access based sorting of InterleavedRadixSort
+  * add clear, setup, insertExtend and index methods in SimpleHashSet
+  * enable use of UnsignedInteger class for sparse gamma code based gap file encoding
+  * enable usage of UnsignedInteger class for gamma coding
+  * allow construction of all null files in SparseGammaGapFileLevelSet::mergeToDense
+  * add pointer types in SparseGammaGapFileLevelSet
+  * add SimpleGammaEncoderArray class
+  * add SimpleGammaDecoder class
+  * add SimpleGammaEncoder class
+  * extend GammaEncoder and GammaDecoder to streams not based on uint64_t words (specifically uint128_t if available)
+  * add GammaDifferenceOutputBuffer and GammaDifferenceMerge classes
+  * add gamma base difference coding (classes GammaDifferenceEncoder and GammaDifferenceDecoder) plus tests
+  * add MemBlock class in DNAIndexMetaData class
+  * add getBasesPerWord, getWordsForSequence, getWordsForPaddedSequence, getBytesForSequence and getBlocks in DNAIndexMetaData
+  * update getBytesForSequence in DNAIndexMetaData to only compute a single strand (instead forw + rc)
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 12 Jan 2016 19:27:57 +0100
+
 libmaus2 (2.0.113-1) unstable; urgency=medium
 
   * add InterleavedRadixSort class (radix sorting with bucket sorting and histogram computation in same run)
