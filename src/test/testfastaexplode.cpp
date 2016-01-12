@@ -30,11 +30,13 @@ int main(int argc, char * argv[])
 		libmaus2::util::ArgParser const arg(argc,argv);
 		uint64_t cnt = 0;
 		std::string const prefix = arg.uniqueArgPresent("p") ? arg["p"] : "fasta_";
+		bool const singleline = arg.argPresent("s");
+		bool const dataonly = arg.argPresent("d");
 
 		while ( SFA.getNextPatternUnlocked(pattern) )
 		{
 			std::ostringstream fnostr;
-			fnostr << prefix << std::setw(6) << std::setfill('0') << cnt++;
+			fnostr << prefix << std::setw(6) << std::setfill('0') << cnt++ << std::setw(0) << (dataonly ? "" : ".fasta");
 			std::string const fn = fnostr.str();
 			libmaus2::aio::OutputStreamInstance OSI(fn);
 
@@ -44,7 +46,13 @@ int main(int argc, char * argv[])
 				spat[i] = toupper(spat[i]);
 
 			pattern.sid = pattern.getShortStringId();
-			pattern.printMultiLine(OSI,80);
+
+			if ( dataonly )
+				OSI.write(pattern.spattern.c_str(),pattern.spattern.size());
+			else if ( singleline )
+				OSI << pattern;
+			else
+				pattern.printMultiLine(OSI,80);
 
 			std::cout << fn << "\t" << pattern.getStringId() << std::endl;
 		}
