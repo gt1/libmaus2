@@ -40,6 +40,75 @@ namespace libmaus2
 			uint64_t posmask;
 			uint64_t coordbits;
 
+			struct MemBlock
+			{
+				uint64_t low;
+				uint64_t high;
+				uint64_t mem;
+				uint64_t bases;
+				uint64_t words;
+				uint64_t paddedwords;
+
+				MemBlock(uint64_t const rlow = 0, uint64_t const rhigh = 0, uint64_t const rmem = 0, uint64_t const rbases = 0, uint64_t const rwords = 0, uint64_t const rpaddedwords = 0)
+				: low(rlow), high(rhigh), mem(rmem), bases(rbases), words(rwords), paddedwords(rpaddedwords)
+				{
+				}
+			};
+
+			static uint64_t getBasesPerWord()
+			{
+				return (CHAR_BIT*sizeof(uint64_t))/2;
+			}
+
+			uint64_t getWordsForSequence(uint64_t const i) const
+			{
+				uint64_t const l = S.at(i).l;
+				uint64_t const basesperword = getBasesPerWord();
+				return (l + basesperword - 1)/basesperword;
+			}
+
+			uint64_t getWordsForPaddedSequence(uint64_t const i) const
+			{
+				uint64_t const l = S.at(i).l+2;
+				uint64_t const basesperword = getBasesPerWord();
+				return (l + basesperword - 1)/basesperword;
+			}
+
+			uint64_t getBytesForSequence(uint64_t const i, uint64_t const bytesperbase) const
+			{
+				return bytesperbase * S.at(i).l;
+			}
+
+			/**
+			 * get ref blocks split by maxmem
+			 **/
+			std::vector<MemBlock> getBlocks(uint64_t const maxmem, uint64_t const bytesperbase) const
+			{
+				uint64_t low = 0;
+				std::vector<MemBlock> V;
+				while ( low < S.size() )
+				{
+					uint64_t mem = getBytesForSequence(low,bytesperbase);
+					uint64_t bases = S[low].l;
+					uint64_t words = getWordsForSequence(low);
+					uint64_t paddedwords = getWordsForPaddedSequence(low);
+					uint64_t high = low+1;
+					while ( high < S.size() && mem + getBytesForSequence(high,bytesperbase) <= maxmem )
+					{
+						mem += getBytesForSequence(high,bytesperbase);
+						bases += S[high].l;
+						words += getWordsForSequence(high);
+						paddedwords += getWordsForPaddedSequence(high);
+						high++;
+					}
+
+					V.push_back(MemBlock(low,high,mem,bases,words,paddedwords));
+					low = high;
+				}
+
+				return V;
+			}
+
 			uint64_t getSeqBits() const
 			{
 				return S.size() ? libmaus2::math::numbits(2*S.size()-1) : 0;

@@ -466,6 +466,30 @@ namespace libmaus2
 				return (Abpos == Bbpos);
 			}
 
+			static void getDiagonalBand(step_type * ta, step_type * te, int64_t & from, int64_t & to)
+			{
+				from = to = 0;
+				int64_t cur = 0;
+
+				while ( ta != te )
+				{
+					switch ( *(ta++) )
+					{
+						case STEP_INS:
+							cur -= 1;
+							to = std::max(to,cur);
+							break;
+						case STEP_DEL:
+							cur += 1;
+							from = std::min(from,cur);
+							break;
+						default:
+							break;
+
+					}
+				}
+			}
+
 			static void swapRoles(step_type * ta, step_type * te)
 			{
 				for ( step_type * tc = ta; tc != te; ++tc )

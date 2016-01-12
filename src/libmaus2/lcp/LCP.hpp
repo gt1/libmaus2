@@ -106,15 +106,20 @@ namespace libmaus2
 
 			lcp_elem_type l = 0;
 
+			// iterate over positions
 			for ( uint64_t j = 0; j < n; ++j )
 			{
 				if ( l > 0 ) l = l-1;
+
+				// get rank i for position j
 				sa_elem_type const i = isa[j];
 
 				if ( i != 0 )
 				{
+					// get position for rank i-1
 					sa_elem_type jp = sa[i-1];
 
+					// follow j+l,jp+l until we have a mismatch or reach the end of the string
 					if ( static_cast<sa_elem_type>(j) < jp )
 						while ( (jp+l<static_cast<sa_elem_type>(n)) && (y[j+l]==y[jp+l]) )
 							l++;
@@ -126,6 +131,8 @@ namespace libmaus2
 				{
 					l = 0;
 				}
+
+				// set LCP value for rank i (position j)
 				lcp[i] = l;
 			}
 		}

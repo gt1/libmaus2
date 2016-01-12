@@ -68,9 +68,9 @@ namespace libmaus2
 
 			public:
 			key_type const * begin() const { return H.begin(); }
-			key_type const * end() const { return H.end(); }
+			key_type const * end() const { return H.begin()+hashsize; }
 			key_type * begin() { return H.begin(); }
-			key_type * end() { return H.end(); }
+			key_type * end() { return H.begin()+hashsize; }
 
 			uint64_t getTableSize() const
 			{
@@ -80,7 +80,7 @@ namespace libmaus2
 			unique_ptr_type extend() const
 			{
 				unique_ptr_type O(new this_type(slog+1));
-				for ( uint64_t i = 0; i < H.size(); ++i )
+				for ( uint64_t i = 0; i < hashsize; ++i )
 					if ( H[i] != base_type::unused() )
 						O->insert ( H[i] );
 				return UNIQUE_PTR_MOVE(O);
@@ -108,32 +108,70 @@ namespace libmaus2
 				uint64_t const numblocks
 				)
 			{
-				uint64_t const blocksize = (from.H.size()+numblocks-1) / numblocks;
+				uint64_t const blocksize = (from.hashsize+numblocks-1) / numblocks;
 				uint64_t const idlow = blockid*blocksize;
-				uint64_t const idhigh = std::min(idlow+blocksize,from.H.size());
+				uint64_t const idhigh = std::min(idlow+blocksize,from.hashsize);
 
 				for ( uint64_t i = idlow; i < idhigh; ++i )
 					if ( from.H[i] != base_type::unused() )
 						to.insert(from.H[i]);
 			}
 
-			void extendInternal()
+			template<typename key_iterator, typename index_iterator>
+			void clear(key_iterator K, index_iterator I, uint64_t const n)
 			{
-				unique_ptr_type O(new this_type(slog+1));
-				for ( uint64_t i = 0; i < H.size(); ++i )
-					if ( H[i] != base_type::unused() )
-						O->insert ( H[i] );
+				for ( uint64_t i = 0; i < n; ++i )
+					I[i] = index(K[i]);
+				for ( uint64_t i = 0; i < n; ++i )
+					H[I[i]] = base_type::unused();
+				fill -= n;
+			}
 
-				slog = O->slog;
-				hashsize = O->hashsize;
-				hashmask = O->hashmask;
-				fill = O->fill;
-				H = O->H;
+			void extendInternal(unsigned int const logadd = 1)
+			{
+				if ( ((1ull<<logadd)*hashsize+fill <= H.size()) )
+				{
+					key_type * p = H.end();
+					for ( uint64_t i = 0; i < hashsize; ++i )
+						if ( H[i] != base_type::unused() )
+							*(--p) = H[i];
+
+					slog += logadd;
+					hashsize = (1ull<<slog);
+					hashmask = hashsize-1;
+
+					while ( p != H.end() )
+						insert(*(p++));
+				}
+				else
+				{
+					unique_ptr_type O(new this_type(slog+logadd));
+					for ( uint64_t i = 0; i < hashsize; ++i )
+						if ( H[i] != base_type::unused() )
+							O->insert ( H[i] );
+
+					slog = O->slog;
+					hashsize = O->hashsize;
+					hashmask = O->hashmask;
+					fill = O->fill;
+					H = O->H;
+				}
 			}
 
 			SimpleHashSet(unsigned int const rslog)
 			: slog(rslog), hashsize(1ull << slog), hashmask(hashsize-1), fill(0), H(hashsize,false)
 			{
+				std::fill(H.begin(),H.end(),base_type::unused());
+			}
+
+			void setup(unsigned int const rslog)
+			{
+				H.release();
+				slog = rslog;
+				hashsize = 1ull<<slog;
+				hashmask = hashsize-1;
+				fill = 0;
+				H = ::libmaus2::autoarray::AutoArray<key_type>(hashsize,false);
 				std::fill(H.begin(),H.end(),base_type::unused());
 			}
 
@@ -154,7 +192,7 @@ namespace libmaus2
 
 			double loadFactor() const
 			{
-				return static_cast<double>(fill) / H.size();
+				return static_cast<double>(fill) / hashsize;
 			}
 
 			// insert value and return count after insertion
@@ -227,8 +265,16 @@ namespace libmaus2
 				throw se;
 			}
 
+			void insertExtend(key_type const k, double const loadthres = 0.7, unsigned int const logadd = 1)
+			{
+				while ( (loadFactor() >= loadthres) || (fill == hashsize) )
+					extendInternal(logadd);
+
+				insert(k);
+			}
+
 			// returns true if value v is contained
-			bool contains(uint64_t const v) const
+			bool contains(key_type const v) const
 			{
 				uint64_t const p0 = hash(v);
 				uint64_t p = p0;
@@ -252,6 +298,39 @@ namespace libmaus2
 				} while ( p != p0 );
 
 				return false;
+			}
+
+			// returns true if value v is contained
+			uint64_t index(key_type const v) const
+			{
+				uint64_t const p0 = hash(v);
+				uint64_t p = p0;
+
+				do
+				{
+					// correct value stored
+					if ( H[p] == v )
+					{
+						return p;
+					}
+					// position in use?
+					if ( H[p] == base_type::unused() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "SimpleHashSet::index: key " << v << " is not contained" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					else
+					{
+						p = displace(p,v);
+					}
+				} while ( p != p0 );
+
+				libmaus2::exception::LibMausException lme;
+				lme.getStream() << "SimpleHashSet::index: key " << v << " is not contained" << std::endl;
+				lme.finish();
+				throw lme;
 			}
 		};
 

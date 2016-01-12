@@ -125,7 +125,7 @@ namespace libmaus2
 					uint64_t const rl = GD.decode()+1;
 					assert ( rl <= bl );
 					bl -= rl;
-					bitlen += libmaus2::gamma::GammaEncoderBase::getCodeLen(rl);
+					bitlen += libmaus2::gamma::GammaEncoderBase<uint64_t>::getCodeLen(rl);
 				}
 
 				return bitlen;

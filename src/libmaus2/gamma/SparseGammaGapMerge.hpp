@@ -33,13 +33,16 @@ namespace libmaus2
 {
 	namespace gamma
 	{
-		struct SparseGammaGapMerge
+		template<typename _data_type>
+		struct SparseGammaGapMergeTemplate
 		{
+			typedef _data_type data_type;
+
 			struct SparseGammaGapMergeInfo
 			{
 				typedef SparseGammaGapMergeInfo this_type;
-				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 				private:
 				uint64_t tparts;
@@ -371,24 +374,24 @@ namespace libmaus2
 				bool const bproc = indexb.hasKeyInRange(klow,khigh);
 
 				// first key in stream a (or 0 if none)
-				uint64_t const firstkey_a = aproc ? libmaus2::gamma::SparseGammaGapConcatDecoder::getNextKey(indexa,klow) : std::numeric_limits<uint64_t>::max();
+				uint64_t const firstkey_a = aproc ? libmaus2::gamma::SparseGammaGapConcatDecoderTemplate<data_type>::getNextKey(indexa,klow) : std::numeric_limits<uint64_t>::max();
 				// first key in stream b (or 0 if none)
-				uint64_t const firstkey_b = bproc ? libmaus2::gamma::SparseGammaGapConcatDecoder::getNextKey(indexb,klow) : std::numeric_limits<uint64_t>::max();
+				uint64_t const firstkey_b = bproc ? libmaus2::gamma::SparseGammaGapConcatDecoderTemplate<data_type>::getNextKey(indexb,klow) : std::numeric_limits<uint64_t>::max();
 
 				// previous non zero key (or -1 if none)
-				int64_t const prevkey_a = libmaus2::gamma::SparseGammaGapConcatDecoder::getPrevKey(indexa,klow);
-				int64_t const prevkey_b = libmaus2::gamma::SparseGammaGapConcatDecoder::getPrevKey(indexb,klow);
+				int64_t const prevkey_a = libmaus2::gamma::SparseGammaGapConcatDecoderTemplate<data_type>::getPrevKey(indexa,klow);
+				int64_t const prevkey_b = libmaus2::gamma::SparseGammaGapConcatDecoderTemplate<data_type>::getPrevKey(indexb,klow);
 				int64_t const prevkey_ab = std::max(prevkey_a,prevkey_b);
 
 				// set up encoder
-				libmaus2::gamma::SparseGammaGapBlockEncoder oenc(stream_out,index_str,prevkey_ab);
+				libmaus2::gamma::SparseGammaGapBlockEncoderTemplate<data_type> oenc(stream_out,index_str,prevkey_ab);
 				// set up decoders
-				libmaus2::gamma::SparseGammaGapConcatDecoder adec(indexa,firstkey_a);
-				libmaus2::gamma::SparseGammaGapConcatDecoder bdec(indexb,firstkey_b);
+				libmaus2::gamma::SparseGammaGapConcatDecoderTemplate<data_type> adec(indexa,firstkey_a);
+				libmaus2::gamma::SparseGammaGapConcatDecoderTemplate<data_type> bdec(indexb,firstkey_b);
 
 				// current key,value pairs for stream a and b
-				std::pair<uint64_t,uint64_t> aval(firstkey_a,adec.p.second);
-				std::pair<uint64_t,uint64_t> bval(firstkey_b,bdec.p.second);
+				std::pair<uint64_t,uint64_t> aval(firstkey_a,SparseGammaGapDecoderNumberCast<data_type>::cast(adec.p.second));
+				std::pair<uint64_t,uint64_t> bval(firstkey_b,SparseGammaGapDecoderNumberCast<data_type>::cast(bdec.p.second));
 
 				// while both streams have keys in range
 				while ( aval.second && aval.first < khigh && bval.second && bval.first < khigh )
@@ -440,16 +443,16 @@ namespace libmaus2
 				std::ostream & stream_out
 			)
 			{
-				libmaus2::aio::SynchronousGenericInput<uint64_t> SGIa(stream_in_a,64*1024);
-				libmaus2::aio::SynchronousGenericInput<uint64_t> SGIb(stream_in_b,64*1024);
-				libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO(stream_out,64*1024);
+				libmaus2::aio::SynchronousGenericInput<data_type> SGIa(stream_in_a,64*1024);
+				libmaus2::aio::SynchronousGenericInput<data_type> SGIb(stream_in_b,64*1024);
+				libmaus2::aio::SynchronousGenericOutput<data_type> SGO(stream_out,64*1024);
 
-				libmaus2::gamma::GammaDecoder< libmaus2::aio::SynchronousGenericInput<uint64_t> > adec(SGIa);
-				libmaus2::gamma::GammaDecoder< libmaus2::aio::SynchronousGenericInput<uint64_t> > bdec(SGIb);
-				libmaus2::gamma::GammaEncoder< libmaus2::aio::SynchronousGenericOutput<uint64_t> > oenc(SGO);
+				libmaus2::gamma::GammaDecoder< libmaus2::aio::SynchronousGenericInput<data_type> > adec(SGIa);
+				libmaus2::gamma::GammaDecoder< libmaus2::aio::SynchronousGenericInput<data_type> > bdec(SGIb);
+				libmaus2::gamma::GammaEncoder< libmaus2::aio::SynchronousGenericOutput<data_type> > oenc(SGO);
 
-				std::pair<uint64_t,uint64_t> aval;
-				std::pair<uint64_t,uint64_t> bval;
+				std::pair<data_type,data_type> aval;
+				std::pair<data_type,data_type> bval;
 
 				aval.first = adec.decode();
 				aval.second = adec.decode();
@@ -459,14 +462,14 @@ namespace libmaus2
 
 				int64_t prevkey = -1;
 
-				while ( aval.second && bval.second )
+				while ( GammaDecoderBase<data_type>::isNonNull(aval.second) && GammaDecoderBase<data_type>::isNonNull(bval.second) )
 				{
 					if ( aval.first == bval.first )
 					{
-						oenc.encode(static_cast<int64_t>(aval.first) - prevkey - 1);
+						oenc.encode(static_cast<int64_t>(SparseGammaGapDecoderNumberCast<data_type>::cast(aval.first)) - prevkey - 1);
 						oenc.encode(aval.second + bval.second);
 
-						prevkey = aval.first;
+						prevkey = SparseGammaGapDecoderNumberCast<data_type>::cast(aval.first);
 
 						aval.first += adec.decode() + 1;
 						aval.second = adec.decode();
@@ -475,43 +478,43 @@ namespace libmaus2
 					}
 					else if ( aval.first < bval.first )
 					{
-						oenc.encode(static_cast<int64_t>(aval.first) - prevkey - 1);
+						oenc.encode(static_cast<int64_t>(SparseGammaGapDecoderNumberCast<data_type>::cast(aval.first)) - prevkey - 1);
 						oenc.encode(aval.second);
 
-						prevkey = aval.first;
+						prevkey = SparseGammaGapDecoderNumberCast<data_type>::cast(aval.first);
 
 						aval.first += adec.decode() + 1;
 						aval.second = adec.decode();
 					}
 					else // if ( bval.first < aval.first )
 					{
-						oenc.encode(static_cast<int64_t>(bval.first) - prevkey - 1);
+						oenc.encode(static_cast<int64_t>(SparseGammaGapDecoderNumberCast<data_type>::cast(bval.first)) - prevkey - 1);
 						oenc.encode(bval.second);
 
-						prevkey = bval.first;
+						prevkey = SparseGammaGapDecoderNumberCast<data_type>::cast(bval.first);
 
 						bval.first += bdec.decode() + 1;
 						bval.second = bdec.decode();
 					}
 				}
 
-				while ( aval.second )
+				while ( GammaDecoderBase<data_type>::isNonNull(aval.second) )
 				{
-					oenc.encode(static_cast<int64_t>(aval.first) - prevkey - 1);
+					oenc.encode(static_cast<int64_t>(SparseGammaGapDecoderNumberCast<data_type>::cast(aval.first)) - prevkey - 1);
 					oenc.encode(aval.second);
 
-					prevkey = aval.first;
+					prevkey = SparseGammaGapDecoderNumberCast<data_type>::cast(aval.first);
 
 					aval.first += adec.decode() + 1;
 					aval.second = adec.decode();
 				}
 
-				while ( bval.second )
+				while ( GammaDecoderBase<data_type>::isNonNull(bval.second) )
 				{
-					oenc.encode(static_cast<int64_t>(bval.first) - prevkey - 1);
+					oenc.encode(static_cast<int64_t>(SparseGammaGapDecoderNumberCast<data_type>::cast(bval.first)) - prevkey - 1);
 					oenc.encode(bval.second);
 
-					prevkey = bval.first;
+					prevkey = SparseGammaGapDecoderNumberCast<data_type>::cast(bval.first);
 
 					bval.first += bdec.decode() + 1;
 					bval.second = bdec.decode();
@@ -524,6 +527,9 @@ namespace libmaus2
 				stream_out.flush();
 			}
 		};
+
+		typedef SparseGammaGapMergeTemplate<uint64_t> SparseGammaGapMerge;
+		typedef SparseGammaGapMergeTemplate< libmaus2::math::UnsignedInteger<4> > SparseGammaGapMerge2;
 	}
 }
 #endif

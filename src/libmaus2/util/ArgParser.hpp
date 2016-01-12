@@ -124,10 +124,15 @@ namespace libmaus2
 				std::pair<it_type,it_type> P = kvargs.equal_range(key);
 				std::vector< std::pair<std::string,std::string> > V;
 				while ( P.first != P.second )
-					V.push_back(*(P.first++));
+				{
+					std::pair<std::string,std::string> const & S = *(P.first);
+					V.push_back(S);
+					P.first++;
+				}
 
 				if ( V.size() == 1 )
 				{
+					assert ( V[0].first == key );
 					return V[0].second;
 				}
 				else if ( V.size() == 0 )

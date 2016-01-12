@@ -251,6 +251,15 @@ int main(
 {
 	libmaus2::random::Random::setup();
 
+	{
+		libmaus2::math::UnsignedInteger<4> U(1);
+		for ( unsigned int i = 0; i < 8*sizeof(uint32_t)*4; ++i )
+		{
+			std::cerr << U << " " << U.clz() << std::endl;
+			U <<= 1;
+		}
+	}
+
 	#if defined(LIBMAUS2_HAVE_UNSIGNED_INT128)
 	testranddiv128();
 	testrandsub128();

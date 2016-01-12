@@ -211,7 +211,7 @@ namespace libmaus2
 			}
 		};
 
-		::libmaus2::autoarray::AutoArray<uint64_t> toWaveletTreeBitsParallel(::libmaus2::bitio::CompactArray * C)
+		::libmaus2::autoarray::AutoArray<uint64_t> toWaveletTreeBitsParallel(::libmaus2::bitio::CompactArray * C, bool const verbose)
 		{
 			uint64_t const pn = ((C->n + 63) / 64)*64;
 			::libmaus2::autoarray::AutoArray<uint64_t> B( pn/64 , false );
@@ -221,14 +221,16 @@ namespace libmaus2
 			std::deque < qtype > Q;
 			Q.push_back( qtype(0,C->n) );
 
-			std::cerr << "(Sorting bits...";
+			if ( verbose )
+				std::cerr << "(Sorting bits...";
 			for ( int ib = (C->getB())-1; ib>=0; --ib )
 			{
 				std::deque < qtype > Q2;
 				uint64_t const sb = (C->getB()-ib-1);
 
 				uint64_t const mask = (1ull << ib);
-				std::cerr << "(l=" << ib << ")";
+				if ( verbose )
+					std::cerr << "(l=" << ib << ")";
 
 				::libmaus2::bitio::CompactSparseArray S(C->D,C->n, C->getB() - sb , sb , C->getB());
 
@@ -245,7 +247,8 @@ namespace libmaus2
 					uint64_t const intervalsize = r-l;
 					uint64_t const packetsize = ( intervalsize + numpackets - 1 ) / numpackets;
 
-					std::cerr << "(c01/b";
+					if ( verbose )
+						std::cerr << "(c01/b";
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(dynamic,1)
 #endif
@@ -317,7 +320,8 @@ namespace libmaus2
 						azeroes [ h ] = zeroes;
 					}
 
-					std::cerr << ")";
+					if ( verbose )
+						std::cerr << ")";
 
 					/**
 					 * compute prefix sums for zeroes and ones
@@ -349,7 +353,8 @@ namespace libmaus2
 					::libmaus2::autoarray::AutoArray < ::libmaus2::bitio::CompactArray::unique_ptr_type > ACZ(numpackets);
 					::libmaus2::autoarray::AutoArray < ::libmaus2::bitio::CompactArray::unique_ptr_type > ACO(numpackets);
 
-					std::cerr << "(a";
+					if ( verbose )
+						std::cerr << "(a";
 					for ( uint64_t h = 0; h < numpackets; ++h )
 					{
 						::libmaus2::bitio::CompactArray::unique_ptr_type tACZ(
@@ -361,9 +366,11 @@ namespace libmaus2
 						);
 						ACO[h] = UNIQUE_PTR_MOVE(tACO);
 					}
-					std::cerr << ")";
+					if ( verbose )
+						std::cerr << ")";
 
-					std::cerr << "(d";
+					if ( verbose )
+						std::cerr << "(d";
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(dynamic,1)
 #endif
@@ -390,7 +397,8 @@ namespace libmaus2
 						assert ( zp == azeroes[h+1]-azeroes[h] );
 						assert ( op == aones[h+1]-aones[h] );
 					}
-					std::cerr << ")";
+					if ( verbose )
+						std::cerr << ")";
 
 					std::vector < CopyBackPacket > zpacketstodo;
 					for ( int64_t h = 0; h < static_cast<int64_t>(numpackets); ++h )
@@ -451,7 +459,8 @@ namespace libmaus2
 
 					// std::cerr << "zpackets: " << zpackets.size() << " opackets: " << opackets.size() << std::endl;
 
-					std::cerr << "(cb";
+					if ( verbose )
+						std::cerr << "(cb";
 					for ( uint64_t q = 0; q < zpackets.size(); ++q )
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(dynamic,1)
@@ -479,7 +488,8 @@ namespace libmaus2
 							for ( uint64_t oc = 0 ; oc != CBP.high-CBP.low; ++oc )
 								S.set ( ac++ , CO.get(oc) );
 						}
-					std::cerr << ")";
+					if ( verbose )
+						std::cerr << ")";
 
 					if ( zeros )
 						Q2.push_back ( qtype(l,l+zeros) );
@@ -534,7 +544,8 @@ namespace libmaus2
 
 				Q = Q2;
 			}
-			std::cerr << "done)";
+			if ( verbose )
+				std::cerr << "done)";
 
 			B.release();
 
@@ -546,7 +557,8 @@ namespace libmaus2
 			std::fill(A.get(), A.get()+(bb64/64), 0);
 			writer_type AW(A.get());
 
-			std::cerr << "(resorting...";
+			if ( verbose )
+				std::cerr << "(resorting...";
 			for ( int ib = (C->getB())-1; ib>=0; --ib )
 			{
 				uint64_t const sb = (C->getB()-ib-1);
@@ -559,7 +571,8 @@ namespace libmaus2
 				// std::cerr << std::endl;
 			}
 			AW.flush();
-			std::cerr << "done)";
+			if ( verbose )
+				std::cerr << "done)";
 
 			return A;
 		}

@@ -307,7 +307,18 @@ libmaus2gamma_include_HEADERS = libmaus2/gamma/GammaEncoder.hpp libmaus2/gamma/G
 	libmaus2/gamma/SparseGammaGapConcatDecoder.hpp \
 	libmaus2/gamma/SparseGammaGapMultiFileSet.hpp \
 	libmaus2/gamma/SparseGammaGapMultiFileLevelSet.hpp \
-	libmaus2/gamma/SparseGammaGapBlockEncoder.hpp
+	libmaus2/gamma/SparseGammaGapBlockEncoder.hpp \
+	libmaus2/gamma/GammaDifferenceEncoder.hpp \
+	libmaus2/gamma/GammaDifferenceDecoder.hpp \
+	libmaus2/gamma/GammaDifferenceMerge.hpp \
+	libmaus2/gamma/GammaDifferenceOutputBuffer.hpp \
+	libmaus2/gamma/GammaEncoderBase.hpp \
+	libmaus2/gamma/SimpleGammaEncoderData.hpp \
+	libmaus2/gamma/SimpleGammaEncoder.hpp \
+	libmaus2/gamma/GammaDecoderBase.hpp \
+	libmaus2/gamma/SimpleGammaDecoderData.hpp \
+	libmaus2/gamma/SimpleGammaDecoder.hpp \
+	libmaus2/gamma/SimpleGammaEncoderArray.hpp
 
 libmaus2regex_includedir=$(includedir)/libmaus2/regex/
 libmaus2regex_include_HEADERS = libmaus2/regex/PosixRegex.hpp
@@ -425,7 +436,9 @@ libmaus2lz_include_HEADERS = libmaus2/lz/Inflate.hpp libmaus2/lz/Deflate.hpp lib
 	libmaus2/lz/BgzfDeflateZStreamBaseTypeInfo.hpp \
 	libmaus2/lz/BgzfInflateZStreamBaseAllocator.hpp \
 	libmaus2/lz/BgzfInflateZStreamBaseTypeInfo.hpp \
-	libmaus2/lz/XzDecoder.hpp
+	libmaus2/lz/XzDecoder.hpp \
+	libmaus2/lz/XzInputStreamBuffer.hpp \
+	libmaus2/lz/XzInputStream.hpp
 
 libmaus2bambam_includedir=$(includedir)/libmaus2/bambam/
 libmaus2bambam_include_HEADERS = libmaus2/bambam/DecoderBase.hpp libmaus2/bambam/Chromosome.hpp \
@@ -1130,7 +1143,8 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/MemoryStatistics.hpp \
 	libmaus2/util/LongestIncreasingSubsequenceExtendedResult.hpp \
 	libmaus2/util/ArgParser.hpp \
-	libmaus2/util/PrefixSums.hpp
+	libmaus2/util/PrefixSums.hpp \
+	libmaus2/util/NumberToString.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
@@ -1904,7 +1918,9 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testdazzlerindex \
 	testargparser \
 	testfragmentenvelope \
-	testdnarank
+	testdnarank \
+	testlowbits \
+	testfastaexplode
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2407,3 +2423,11 @@ testfragmentenvelope_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testdnarank_SOURCES  = test/testdnarank.cpp
 testdnarank_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testdnarank_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testlowbits_SOURCES  = test/testlowbits.cpp
+testlowbits_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testlowbits_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testfastaexplode_SOURCES  = test/testfastaexplode.cpp
+testfastaexplode_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testfastaexplode_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@

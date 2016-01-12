@@ -19,7 +19,8 @@
 #if ! defined(LIBMAUS2_GAMMA_GAMMADECODER_HPP)
 #define LIBMAUS2_GAMMA_GAMMADECODER_HPP
 
-#include <libmaus2/bitio/Clz.hpp>
+#include <climits>
+#include <libmaus2/gamma/GammaDecoderBase.hpp>
 #include <libmaus2/util/unique_ptr.hpp>
 
 namespace libmaus2
@@ -27,15 +28,17 @@ namespace libmaus2
 	namespace gamma
 	{
 		template<typename _stream_type>
-		struct GammaDecoder : public libmaus2::bitio::Clz
+		struct GammaDecoder : public GammaDecoderBase<typename _stream_type::data_type>
 		{
 			typedef _stream_type stream_type;
+			typedef typename stream_type::data_type stream_data_type;
 			typedef GammaDecoder<stream_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef GammaDecoderBase<typename _stream_type::data_type> base_type;
 
 			stream_type & stream;
-			uint64_t v;
-			uint64_t bav;
+			stream_data_type v;
+			unsigned int bav;
 
 			GammaDecoder(stream_type & rstream) : stream(rstream), v(0), bav(0) {}
 
@@ -45,12 +48,12 @@ namespace libmaus2
 				v = 0;
 			}
 
-			uint64_t decodeWord(unsigned int const bits)
+			stream_data_type decodeWord(unsigned int const bits)
 			{
 				if ( bits <= bav )
 				{
 					// extract bits
-					uint64_t const code = v >> (64-bits);
+					stream_data_type const code = v >> ((CHAR_BIT*sizeof(stream_data_type))-bits);
 
 					// remove bits from stream
 					v <<= bits;
@@ -61,12 +64,14 @@ namespace libmaus2
 				else
 				{
 					unsigned int const restbits = bits-bav;
-					uint64_t code = (v >> (64-bav)) << restbits;
+					stream_data_type code = (v >> ((CHAR_BIT*sizeof(stream_data_type))-bav)) << restbits;
 
-					v = stream.get();
-					bav = 64;
+					bool const ok = stream.getNext(v);
+					assert ( ok );
+					// v = stream.get();
+					bav = (CHAR_BIT*sizeof(stream_data_type));
 
-					code |= v >> (64-restbits);
+					code |= v >> ((CHAR_BIT*sizeof(stream_data_type))-restbits);
 					v <<= restbits;
 					bav -= restbits;
 
@@ -74,14 +79,14 @@ namespace libmaus2
 				}
 			}
 
-			uint64_t decode()
+			stream_data_type decode()
 			{
 				unsigned int cl;
 
 				// decode code length
-				if ( v )
+				if ( base_type::isNonNull(v) )
 				{
-					cl = clz(v);
+					cl = base_type::clz(v);
 					v <<= cl;
 					bav -= cl;
 				}
@@ -90,22 +95,23 @@ namespace libmaus2
 					cl = bav;
 
 					// read next word
-					v = stream.get();
-					bav = 64;
+					bool const ok = stream.getNext(v);
+					assert ( ok );
+					bav = (CHAR_BIT*sizeof(stream_data_type));
 
-					unsigned int const llz = clz(v);
+					unsigned int const llz = base_type::clz(v);
 					cl += llz;
 					v <<= llz;
 					bav -= llz;
 				}
 
-				uint64_t code;
+				stream_data_type code;
 				unsigned int cl1 = cl+1;
 
 				// is code completely in this word?
 				if ( bav >= cl+1 )
 				{
-					code = (v >> (64-(cl1)));
+					code = (v >> ((CHAR_BIT*sizeof(stream_data_type))-(cl1)));
 					bav -= cl1;
 					v <<= cl1;
 				}
@@ -113,15 +119,16 @@ namespace libmaus2
 				else
 				{
 					// take rest of current word
-					code = (v >> (64-(bav)));
+					code = (v >> ((CHAR_BIT*sizeof(stream_data_type))-(bav)));
 					cl1 -= bav;
 
 					// read next word
-					v = stream.get();
-					bav = 64;
+					bool const ok = stream.getNext(v);
+					assert ( ok );
+					bav = (CHAR_BIT*sizeof(stream_data_type));
 
 					code <<= cl1;
-					code |= (v >> (64-(cl1)));
+					code |= (v >> ((CHAR_BIT*sizeof(stream_data_type))-(cl1)));
 					v <<= cl1;
 					bav -= cl1;
 				}
