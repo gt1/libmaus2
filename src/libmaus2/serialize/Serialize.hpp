@@ -25,6 +25,8 @@
 #include <map>
 
 #include <libmaus2/types/types.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/util/Demangle.hpp>
 
 namespace libmaus2
 {
@@ -38,6 +40,7 @@ namespace libmaus2
 			static uint64_t serializeArray(std::ostream & out, N const * A, uint64_t const n);
 
 			static uint64_t deserialize(std::istream & in, N * p);
+			static uint64_t deserializeChecked(std::istream & in, N * p);
 			static uint64_t deserializeArray(std::istream & in, N * p, uint64_t const n);
 
 			static uint64_t ignore(std::istream & in);
@@ -47,9 +50,11 @@ namespace libmaus2
 			static uint64_t skipArray(std::istream & in, uint64_t const n);
 		};
 
-		template<typename N>
+		template<typename _N>
 		struct BuiltinLocalSerializer
 		{
+			typedef _N N;
+
 			static uint64_t serialize(std::ostream & out, N const & c)
 			{
 				out.write( reinterpret_cast<char const *>(&c) , sizeof(N) ); return sizeof(N);
@@ -61,6 +66,24 @@ namespace libmaus2
 			static uint64_t deserialize(std::istream & in, N * p)
 			{
 				in.read ( reinterpret_cast<char *>(p) , sizeof(N) ); return sizeof(N);
+			}
+			static uint64_t deserializeChecked(std::istream & in, N * p)
+			{
+				in.read ( reinterpret_cast<char *>(p) , sizeof(N) );
+				if ( in.gcount() != sizeof(N) )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "BuiltinLocalSerializer<"<< libmaus2::util::Demangle::demangle<N>() <<">::deserializeChecked(): failed to read " << sizeof(N) << " bytes." << std::endl;
+					lme.finish();
+					throw lme;
+				}
+				return sizeof(N);
+			}
+			static N deserializeChecked(std::istream & in)
+			{
+				N v;
+				deserializeChecked(in,&v);
+				return v;
 			}
 			static uint64_t deserializeArray(
 				std::istream & in, N * p, uint64_t const n
@@ -103,6 +126,7 @@ namespace libmaus2
 			static uint64_t serialize(std::ostream & out, N const & c) { return BuiltinLocalSerializer<N>::serialize(out,c); }
 			static uint64_t serializeArray(std::ostream & out, N const * A, uint64_t const n) { return BuiltinLocalSerializer<N>::serializeArray(out,A,n); }
 			static uint64_t deserialize(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserialize(in,p); }
+			static uint64_t deserializeChecked(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserializeChecked(in,p); }
 			static uint64_t deserializeArray(std::istream & in, N * p, uint64_t const n) { return BuiltinLocalSerializer<N>::deserializeArray(in,p,n); }
 			static uint64_t ignore(std::istream & in) { return BuiltinLocalSerializer<N>::ignore(in); }
 			static uint64_t ignoreArray(std::istream & in, uint64_t const n) { return BuiltinLocalSerializer<N>::ignoreArray(in,n); }
@@ -117,6 +141,7 @@ namespace libmaus2
 			static uint64_t serialize(std::ostream & out, N const & c) { return BuiltinLocalSerializer<N>::serialize(out,c); }
 			static uint64_t serializeArray(std::ostream & out, N const * A, uint64_t const n) { return BuiltinLocalSerializer<N>::serializeArray(out,A,n); }
 			static uint64_t deserialize(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserialize(in,p); }
+			static uint64_t deserializeChecked(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserializeChecked(in,p); }
 			static uint64_t deserializeArray(std::istream & in, N * p, uint64_t const n) { return BuiltinLocalSerializer<N>::deserializeArray(in,p,n); }
 			static uint64_t ignore(std::istream & in) { return BuiltinLocalSerializer<N>::ignore(in); }
 			static uint64_t ignoreArray(std::istream & in, uint64_t const n) { return BuiltinLocalSerializer<N>::ignoreArray(in,n); }
@@ -131,6 +156,7 @@ namespace libmaus2
 			static uint64_t serialize(std::ostream & out, N const & c) { return BuiltinLocalSerializer<N>::serialize(out,c); }
 			static uint64_t serializeArray(std::ostream & out, N const * A, uint64_t const n) { return BuiltinLocalSerializer<N>::serializeArray(out,A,n); }
 			static uint64_t deserialize(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserialize(in,p); }
+			static uint64_t deserializeChecked(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserializeChecked(in,p); }
 			static uint64_t deserializeArray(std::istream & in, N * p, uint64_t const n) { return BuiltinLocalSerializer<N>::deserializeArray(in,p,n); }
 			static uint64_t ignore(std::istream & in) { return BuiltinLocalSerializer<N>::ignore(in); }
 			static uint64_t ignoreArray(std::istream & in, uint64_t const n) { return BuiltinLocalSerializer<N>::ignoreArray(in,n); }
@@ -145,6 +171,7 @@ namespace libmaus2
 			static uint64_t serialize(std::ostream & out, N const & c) { return BuiltinLocalSerializer<N>::serialize(out,c); }
 			static uint64_t serializeArray(std::ostream & out, N const * A, uint64_t const n) { return BuiltinLocalSerializer<N>::serializeArray(out,A,n); }
 			static uint64_t deserialize(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserialize(in,p); }
+			static uint64_t deserializeChecked(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserializeChecked(in,p); }
 			static uint64_t deserializeArray(std::istream & in, N * p, uint64_t const n) { return BuiltinLocalSerializer<N>::deserializeArray(in,p,n); }
 			static uint64_t ignore(std::istream & in) { return BuiltinLocalSerializer<N>::ignore(in); }
 			static uint64_t ignoreArray(std::istream & in, uint64_t const n) { return BuiltinLocalSerializer<N>::ignoreArray(in,n); }
@@ -159,6 +186,7 @@ namespace libmaus2
 			static uint64_t serialize(std::ostream & out, N const & c) { return BuiltinLocalSerializer<N>::serialize(out,c); }
 			static uint64_t serializeArray(std::ostream & out, N const * A, uint64_t const n) { return BuiltinLocalSerializer<N>::serializeArray(out,A,n); }
 			static uint64_t deserialize(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserialize(in,p); }
+			static uint64_t deserializeChecked(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserializeChecked(in,p); }
 			static uint64_t deserializeArray(std::istream & in, N * p, uint64_t const n) { return BuiltinLocalSerializer<N>::deserializeArray(in,p,n); }
 			static uint64_t ignore(std::istream & in) { return BuiltinLocalSerializer<N>::ignore(in); }
 			static uint64_t ignoreArray(std::istream & in, uint64_t const n) { return BuiltinLocalSerializer<N>::ignoreArray(in,n); }
@@ -173,6 +201,7 @@ namespace libmaus2
 			static uint64_t serialize(std::ostream & out, N const & c) { return BuiltinLocalSerializer<N>::serialize(out,c); }
 			static uint64_t serializeArray(std::ostream & out, N const * A, uint64_t const n) { return BuiltinLocalSerializer<N>::serializeArray(out,A,n); }
 			static uint64_t deserialize(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserialize(in,p); }
+			static uint64_t deserializeChecked(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserializeChecked(in,p); }
 			static uint64_t deserializeArray(std::istream & in, N * p, uint64_t const n) { return BuiltinLocalSerializer<N>::deserializeArray(in,p,n); }
 			static uint64_t ignore(std::istream & in) { return BuiltinLocalSerializer<N>::ignore(in); }
 			static uint64_t ignoreArray(std::istream & in, uint64_t const n) { return BuiltinLocalSerializer<N>::ignoreArray(in,n); }
@@ -187,6 +216,7 @@ namespace libmaus2
 			static uint64_t serialize(std::ostream & out, N const & c) { return BuiltinLocalSerializer<N>::serialize(out,c); }
 			static uint64_t serializeArray(std::ostream & out, N const * A, uint64_t const n) { return BuiltinLocalSerializer<N>::serializeArray(out,A,n); }
 			static uint64_t deserialize(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserialize(in,p); }
+			static uint64_t deserializeChecked(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserializeChecked(in,p); }
 			static uint64_t deserializeArray(std::istream & in, N * p, uint64_t const n) { return BuiltinLocalSerializer<N>::deserializeArray(in,p,n); }
 			static uint64_t ignore(std::istream & in) { return BuiltinLocalSerializer<N>::ignore(in); }
 			static uint64_t ignoreArray(std::istream & in, uint64_t const n) { return BuiltinLocalSerializer<N>::ignoreArray(in,n); }
@@ -201,6 +231,7 @@ namespace libmaus2
 			static uint64_t serialize(std::ostream & out, N const & c) { return BuiltinLocalSerializer<N>::serialize(out,c); }
 			static uint64_t serializeArray(std::ostream & out, N const * A, uint64_t const n) { return BuiltinLocalSerializer<N>::serializeArray(out,A,n); }
 			static uint64_t deserialize(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserialize(in,p); }
+			static uint64_t deserializeChecked(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserializeChecked(in,p); }
 			static uint64_t deserializeArray(std::istream & in, N * p, uint64_t const n) { return BuiltinLocalSerializer<N>::deserializeArray(in,p,n); }
 			static uint64_t ignore(std::istream & in) { return BuiltinLocalSerializer<N>::ignore(in); }
 			static uint64_t ignoreArray(std::istream & in, uint64_t const n) { return BuiltinLocalSerializer<N>::ignoreArray(in,n); }
@@ -215,6 +246,7 @@ namespace libmaus2
 			static uint64_t serialize(std::ostream & out, N const & c) { return BuiltinLocalSerializer<N>::serialize(out,c); }
 			static uint64_t serializeArray(std::ostream & out, N const * A, uint64_t const n) { return BuiltinLocalSerializer<N>::serializeArray(out,A,n); }
 			static uint64_t deserialize(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserialize(in,p); }
+			static uint64_t deserializeChecked(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserializeChecked(in,p); }
 			static uint64_t deserializeArray(std::istream & in, N * p, uint64_t const n) { return BuiltinLocalSerializer<N>::deserializeArray(in,p,n); }
 			static uint64_t ignore(std::istream & in) { return BuiltinLocalSerializer<N>::ignore(in); }
 			static uint64_t ignoreArray(std::istream & in, uint64_t const n) { return BuiltinLocalSerializer<N>::ignoreArray(in,n); }
@@ -229,6 +261,7 @@ namespace libmaus2
 			static uint64_t serialize(std::ostream & out, N const & c) { return BuiltinLocalSerializer<N>::serialize(out,c); }
 			static uint64_t serializeArray(std::ostream & out, N const * A, uint64_t const n) { return BuiltinLocalSerializer<N>::serializeArray(out,A,n); }
 			static uint64_t deserialize(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserialize(in,p); }
+			static uint64_t deserializeChecked(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserializeChecked(in,p); }
 			static uint64_t deserializeArray(std::istream & in, N * p, uint64_t const n) { return BuiltinLocalSerializer<N>::deserializeArray(in,p,n); }
 			static uint64_t ignore(std::istream & in) { return BuiltinLocalSerializer<N>::ignore(in); }
 			static uint64_t ignoreArray(std::istream & in, uint64_t const n) { return BuiltinLocalSerializer<N>::ignoreArray(in,n); }
@@ -244,6 +277,7 @@ namespace libmaus2
 			static uint64_t serialize(std::ostream & out, N const & c) { return BuiltinLocalSerializer<N>::serialize(out,c); }
 			static uint64_t serializeArray(std::ostream & out, N const * A, uint64_t const n) { return BuiltinLocalSerializer<N>::serializeArray(out,A,n); }
 			static uint64_t deserialize(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserialize(in,p); }
+			static uint64_t deserializeChecked(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserializeChecked(in,p); }
 			static uint64_t deserializeArray(std::istream & in, N * p, uint64_t const n) { return BuiltinLocalSerializer<N>::deserializeArray(in,p,n); }
 			static uint64_t ignore(std::istream & in) { return BuiltinLocalSerializer<N>::ignore(in); }
 			static uint64_t ignoreArray(std::istream & in, uint64_t const n) { return BuiltinLocalSerializer<N>::ignoreArray(in,n); }
@@ -259,6 +293,7 @@ namespace libmaus2
 			static uint64_t serialize(std::ostream & out, N const & c) { return BuiltinLocalSerializer<N>::serialize(out,c); }
 			static uint64_t serializeArray(std::ostream & out, N const * A, uint64_t const n) { return BuiltinLocalSerializer<N>::serializeArray(out,A,n); }
 			static uint64_t deserialize(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserialize(in,p); }
+			static uint64_t deserializeChecked(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserializeChecked(in,p); }
 			static uint64_t deserializeArray(std::istream & in, N * p, uint64_t const n) { return BuiltinLocalSerializer<N>::deserializeArray(in,p,n); }
 			static uint64_t ignore(std::istream & in) { return BuiltinLocalSerializer<N>::ignore(in); }
 			static uint64_t ignoreArray(std::istream & in, uint64_t const n) { return BuiltinLocalSerializer<N>::ignoreArray(in,n); }
@@ -274,6 +309,7 @@ namespace libmaus2
 			static uint64_t serializeArray(std::ostream & out, N const * A, uint64_t const n) { return BuiltinLocalSerializer<N>::serializeArray(out,A,n); }
 			static uint64_t deserialize(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserialize(in,p); }
 			static uint64_t deserializeArray(std::istream & in, N * p, uint64_t const n) { return BuiltinLocalSerializer<N>::deserializeArray(in,p,n); }
+			static uint64_t deserializeChecked(std::istream & in, N * p) { return BuiltinLocalSerializer<N>::deserializeChecked(in,p); }
 			static uint64_t ignore(std::istream & in) { return BuiltinLocalSerializer<N>::ignore(in); }
 			static uint64_t ignoreArray(std::istream & in, uint64_t const n) { return BuiltinLocalSerializer<N>::ignoreArray(in,n); }
 			static uint64_t skip(std::istream & in) { return BuiltinLocalSerializer<N>::ignore(in); }
