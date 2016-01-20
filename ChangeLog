@@ -1,3 +1,13 @@
+libmaus2 (2.0.115-1) unstable; urgency=medium
+
+  *  fix instantiation of BidirectionalDnaIndexTemplate in SimpleLocalAligner
+  *  add todo note in FastAStreamSet
+  *  allowing passing flags and mode parameters to PosixFdOutputStreamBuffer
+  *  add rewriteRankPos and rewritePosRank functions in SampledISA class
+  *  add deserializeChecked function in BuiltinLocalSerializer class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 20 Jan 2016 10:40:12 +0100
+
 libmaus2 (2.0.114-1) unstable; urgency=medium
 
   * add getShortStringId method in Pattern class
