@@ -158,6 +158,7 @@ namespace libmaus2
 						// data not found in cache
 						if ( !found )
 						{
+							// fixme: USE LOCKING
 							libmaus2::aio::PosixFdOutputStream PFOS(E.back());
 							std::string const sdata = data.str();
 							PFOS.write(sdata.c_str(),sdata.size());
