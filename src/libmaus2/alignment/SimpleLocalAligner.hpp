@@ -38,7 +38,7 @@ namespace libmaus2
 		struct SimpleLocalAligner
 		{
 			typedef _lf_type lf_type;
-			typedef libmaus2::fm::BidirectionalDnaIndexTemplate<lf_type> index_type;
+			typedef libmaus2::fm::BidirectionalDnaIndexTemplate<lf_type, libmaus2::fm::SimpleSampledSA<lf_type> > index_type;
 
 			// default length for the kmer cache
 			static unsigned int getDefaultCacheLen()
