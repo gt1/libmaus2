@@ -23,6 +23,7 @@
 #include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/lf/LF.hpp>
 #include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
 
 namespace libmaus2
 {
@@ -65,6 +66,56 @@ namespace libmaus2
                         	}
                         	assert ( tisasamplingrate == 1 );
                         	assert ( (1ull << isasamplingshift) == isasamplingrate );
+                        }
+
+                        template<typename writer_type, typename encoder_type>
+                        static uint64_t rewriteRankPos(std::istream & istr, writer_type & writer, encoder_type const & encoder)
+                        {
+				typedef typename writer_type::value_type value_type;
+				uint64_t const samplingrate = libmaus2::serialize::BuiltinLocalSerializer<uint64_t>::deserializeChecked(istr);
+				uint64_t const nsamples = libmaus2::serialize::BuiltinLocalSerializer<uint64_t>::deserializeChecked(istr);
+				writer.writeSize(encoder,nsamples);
+				libmaus2::aio::SynchronousGenericInput<uint64_t> Sin(istr,8*1024,nsamples);
+				for ( uint64_t i = 0; i < nsamples; ++i )
+				{
+					uint64_t sample;
+					bool const ok = Sin.getNext(sample);
+					assert ( ok );
+					writer.write(encoder,value_type(sample /* rank */,i*samplingrate /* pos */));
+				}
+				return samplingrate;
+                        }
+
+                        template<typename writer_type, typename encoder_type>
+                        static uint64_t rewriteRankPos(std::string const & fn, writer_type & writer, encoder_type const & encoder)
+                        {
+				libmaus2::aio::InputStreamInstance ISI(fn);
+				return rewriteRankPos<writer_type,encoder_type>(fn,writer,encoder);
+                        }
+
+                        template<typename writer_type, typename encoder_type>
+                        static uint64_t rewritePosRank(std::istream & istr, writer_type & writer, encoder_type const & encoder)
+                        {
+				typedef typename writer_type::value_type value_type;
+				uint64_t const samplingrate = libmaus2::serialize::BuiltinLocalSerializer<uint64_t>::deserializeChecked(istr);
+				uint64_t const nsamples = libmaus2::serialize::BuiltinLocalSerializer<uint64_t>::deserializeChecked(istr);
+				writer.writeSize(encoder,nsamples);
+				libmaus2::aio::SynchronousGenericInput<uint64_t> Sin(istr,8*1024,nsamples);
+				for ( uint64_t i = 0; i < nsamples; ++i )
+				{
+					uint64_t sample;
+					bool const ok = Sin.getNext(sample);
+					assert ( ok );
+					writer.write(encoder,value_type(i*samplingrate /* pos */,sample /* rank */));
+				}
+				return samplingrate;
+                        }
+
+                        template<typename writer_type, typename encoder_type>
+                        static uint64_t rewritePosRank(std::string const & fn, writer_type & writer, encoder_type const & encoder)
+                        {
+				libmaus2::aio::InputStreamInstance ISI(fn);
+				return rewritePosRank<writer_type,encoder_type>(fn,writer,encoder);
                         }
 
                         static uint64_t readUnsignedInt(std::istream & in)

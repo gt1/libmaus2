@@ -121,11 +121,11 @@ namespace libmaus2
 				}
 			}
 
-			int doOpen(std::string const & filename)
+			static int doOpen(std::string const & filename, int const flags = O_WRONLY | O_CREAT | O_TRUNC, int const mode = 0644)
 			{
 				int fd = -1;
 
-				while ( (fd = open(filename.c_str(),O_WRONLY | O_CREAT | O_TRUNC,0644)) < 0 )
+				while ( (fd = open(filename.c_str(),flags,mode)) < 0 )
 				{
 					int const error = errno;
 
@@ -226,9 +226,9 @@ namespace libmaus2
 				setp(buffer.begin(),buffer.end()-1);
 			}
 
-			PosixFdOutputStreamBuffer(std::string const & fn, int64_t const rbuffersize)
+			PosixFdOutputStreamBuffer(std::string const & fn, int64_t const rbuffersize, int const rflags = O_WRONLY | O_CREAT | O_TRUNC, int const rmode = 0644)
 			:
-			  fd(doOpen(fn)),
+			  fd(doOpen(fn,rflags,rmode)),
 			  closefd(true),
 			  optblocksize(getOptimalIOBlockSize(fd,fn)),
 			  buffersize((rbuffersize <= 0) ? optblocksize : rbuffersize),

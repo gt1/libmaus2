@@ -1920,7 +1920,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testfragmentenvelope \
 	testdnarank \
 	testlowbits \
-	testfastaexplode
+	testfastaexplode \
+	testfaextract
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2431,3 +2432,7 @@ testlowbits_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testfastaexplode_SOURCES  = test/testfastaexplode.cpp
 testfastaexplode_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testfastaexplode_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testfaextract_SOURCES  = test/testfaextract.cpp
+testfaextract_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testfaextract_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
