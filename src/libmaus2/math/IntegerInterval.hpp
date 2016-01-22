@@ -26,6 +26,9 @@
 #include <algorithm>
 #include <cassert>
 #include <vector>
+#include <istream>
+#include <cstring>
+#include <libmaus2/exception/LibMausException.hpp>
 
 namespace libmaus2
 {
@@ -41,6 +44,125 @@ namespace libmaus2
 
 			IntegerInterval() : from(0), to(0) {}
 			IntegerInterval(N const rfrom, N const rto) : from(rfrom), to(rto) {}
+			IntegerInterval(std::istream & in)
+			{
+				int c = in.peek();
+				if ( c == std::istream::traits_type::eof() || c != '[' )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "IntegerInterval(std::istream &): first character is not [" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+				c = in.get();
+				assert ( c == '[' );
+
+				// empty interval?
+				if ( in.peek() != std::istream::traits_type::eof() && in.peek() == 'e' )
+				{
+					static char const * expt = "empty";
+					size_t const exptlen = ::std::strlen(expt);
+
+					for ( uint64_t i = 0; i < exptlen; ++i )
+					{
+						c = in.get();
+						if ( c == std::istream::traits_type::eof() || c != expt[i] )
+						{
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "IntegerInterval(std::istream &): unable to parse (empty)" << std::endl;
+							lme.finish();
+							throw lme;
+						}
+					}
+
+					*this = empty();
+				}
+				else if (
+					in.peek() != std::istream::traits_type::eof() &&
+						( in.peek() == '-' || isdigit(in.peek()) )
+				)
+				{
+					bool neg_a = false, neg_b = false;
+					N num_a = 0, num_b = 0;
+					unsigned int c_a = 0, c_b = 0;
+
+					if ( in.peek() == '-' )
+					{
+						neg_a = true;
+						in.get();
+					}
+					while ( in.peek() != std::istream::traits_type::eof() && isdigit(in.peek()) )
+					{
+						num_a *= 10;
+						num_a += in.get()-'0';
+						c_a += 1;
+					}
+					if ( neg_a )
+						num_a = -num_a;
+
+					if ( ! c_a )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "IntegerInterval(std::istream &): unable to parse (no numbers before comma)" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					if ( in.peek() == std::istream::traits_type::eof() || in.peek() != ',' )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "IntegerInterval(std::istream &): unable to parse (comma expected)" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					assert ( in.get() == ',' );
+
+					if ( in.peek() == '-' )
+					{
+						neg_b = true;
+						in.get();
+					}
+					while ( in.peek() != std::istream::traits_type::eof() && isdigit(in.peek()) )
+					{
+						num_b *= 10;
+						num_b += in.get()-'0';
+						c_b += 1;
+					}
+					if ( neg_b )
+						num_b = -num_b;
+
+					if ( ! c_b )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "IntegerInterval(std::istream &): unable to parse" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					from = num_a;
+					to = num_b;
+				}
+				else
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "IntegerInterval(std::istream &): unable to parse" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+
+				c = in.peek();
+
+				if ( c == std::istream::traits_type::eof() || c != ']' )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "IntegerInterval(std::istream &): last character is not ]" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+
+				in.get();
+			}
 
 			bool operator<(IntegerInterval<N> const & O) const
 			{
