@@ -65,6 +65,81 @@ namespace libmaus2
 				return true;
 			}
 
+			bool getStream(std::string const & name, FastAStream::shared_ptr_type & S)
+			{
+				std::pair<std::string,FastAStream::shared_ptr_type> P;
+
+				while ( getNextStream(P) )
+				{
+					if ( P.first == name )
+					{
+						S = P.second;
+						return true;
+					}
+					else
+					{
+						std::istream & in = *(P.second);
+						while ( in )
+							in.ignore(64*1024);
+					}
+				}
+				return false;
+			}
+
+			static std::string getStreamAsString(std::string const & fn, std::string const & name)
+			{
+				libmaus2::aio::InputStreamInstance ISI(fn);
+				FastAStreamSet FASS(ISI);
+				return FASS.getStreamAsString(name);
+			}
+
+			std::string getStreamAsString(std::string const & name)
+			{
+				FastAStream::shared_ptr_type S;
+				bool const ok = getStream(name,S);
+
+				if ( ok )
+				{
+					typedef libmaus2::autoarray::AutoArray<char>::shared_ptr_type as;
+					std::vector<as> ASV;
+					std::vector<uint64_t> ASN;
+					uint64_t na = 0;
+					std::istream & in = *S;
+
+					while ( in )
+					{
+						as A(new libmaus2::autoarray::AutoArray<char>(64*1024,false));
+						in.read(A->begin(),A->size());
+						uint64_t const n = in.gcount();
+						ASV.push_back(A);
+						ASN.push_back(n);
+						na += n;
+					}
+
+					std::string s(na,' ');
+
+					uint64_t c = 0;
+					for ( uint64_t i = 0; i < ASV.size(); ++i )
+					{
+						std::copy(
+							ASV[i]->begin(),
+							ASV[i]->begin()+ASN[i],
+							s.begin() + c
+						);
+						c += ASN[i];
+					}
+
+					return s;
+				}
+				else
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "FastAStreamSet::getStreamAsString: requested sequence " << name << " is not contained in file" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+			}
+
 			std::map<std::string,std::string> computeMD5(bool writedata = true, bool verify = true)
 			{
 				std::pair<std::string,FastAStream::shared_ptr_type> P;
