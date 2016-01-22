@@ -2280,7 +2280,7 @@ namespace libmaus2
 				return libmaus2::bambam::BamAlignmentDecoderBase::getPileVector(D.begin(),cigopin,readdata);
 			}
 
-			std::vector< PileVectorElement > getPileVector()
+			std::vector< PileVectorElement > getPileVector() const
 			{
 				libmaus2::autoarray::AutoArray<cigar_operation> cigopin;
 				libmaus2::autoarray::AutoArray<char> readdata;
