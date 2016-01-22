@@ -19,6 +19,7 @@
 #define LIBMAUS2_BAMBAM_PILEVECTORELEMENT_HPP
 
 #include <libmaus2/types/types.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 
 namespace libmaus2
 {
@@ -26,22 +27,51 @@ namespace libmaus2
 	{
 		struct PileVectorElement
 		{
+			int32_t refid;
 			int32_t readid;
 			int32_t refpos;
 			int32_t predif;
 			int32_t readpos;
+			int32_t readbackpos;
 			char sym;
 
 			PileVectorElement(
+				int32_t rrefid = 0,
 				int32_t rreadid = 0,
 				int32_t rrefpos = 0,
 				int32_t rpredif = 0,
 				int32_t rreadpos = 0,
+				int32_t rreadbackpos = 0,
 				char rsym = 0
 			)
-			: readid(rreadid), refpos(rrefpos), predif(rpredif), readpos(rreadpos), sym(rsym)
+			: refid(rrefid), readid(rreadid), refpos(rrefpos), predif(rpredif), readpos(rreadpos), readbackpos(rreadbackpos), sym(rsym)
 			{
 
+			}
+
+			PileVectorElement(std::istream & in)
+			{
+				deserialise(in);
+			}
+
+			void serialise(std::ostream & out) const
+			{
+				libmaus2::util::NumberSerialisation::serialiseSignedNumber(out,readid);
+				libmaus2::util::NumberSerialisation::serialiseSignedNumber(out,refpos);
+				libmaus2::util::NumberSerialisation::serialiseSignedNumber(out,predif);
+				libmaus2::util::NumberSerialisation::serialiseSignedNumber(out,readpos);
+				libmaus2::util::NumberSerialisation::serialiseSignedNumber(out,readbackpos);
+				libmaus2::util::NumberSerialisation::serialiseSignedNumber(out,sym);
+			}
+
+			void deserialise(std::istream & in)
+			{
+				readid = libmaus2::util::NumberSerialisation::deserialiseSignedNumber(in);
+				refpos = libmaus2::util::NumberSerialisation::deserialiseSignedNumber(in);
+				predif = libmaus2::util::NumberSerialisation::deserialiseSignedNumber(in);
+				readpos = libmaus2::util::NumberSerialisation::deserialiseSignedNumber(in);
+				readbackpos = libmaus2::util::NumberSerialisation::deserialiseSignedNumber(in);
+				sym = libmaus2::util::NumberSerialisation::deserialiseSignedNumber(in);
 			}
 
 			bool operator<(PileVectorElement const & o) const
@@ -58,6 +88,8 @@ namespace libmaus2
 					return readpos < o.readpos;
 			}
 		};
+
+		std::ostream & operator<<(std::ostream & out, PileVectorElement const & P);
 	}
 }
 #endif
