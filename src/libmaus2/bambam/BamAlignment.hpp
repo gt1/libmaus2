@@ -2269,6 +2269,11 @@ namespace libmaus2
 			{
 				return libmaus2::bambam::BamAlignmentDecoderBase::getNextUnclippedEnd(D.begin(),Aop.begin(),Aop.begin()+numcigop);
 			}
+
+			void getCigarStats(libmaus2::autoarray::AutoArray<uint64_t> & A, bool const erase = true) const
+			{
+				libmaus2::bambam::BamAlignmentDecoderBase::getCigarStats(D.begin(),A,erase);
+			}
 		};
 	}
 }

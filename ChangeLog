@@ -1,3 +1,14 @@
+libmaus2 (2.0.116-1) unstable; urgency=medium
+
+  * add getCigarStats in BamAlignment class
+  * add getCigarStats, getIdentityFraction, getIdentityFractionFromCigarStats, recalculateCigar (turn CIGAR M options to X and =) and getPileVector in BamAlignmentDecoderBase
+  * add getStream, getStreamAsString and getStreamAsString in FastAStreamSet
+  * add LIBMAUS2_BAMBAM_CTHRES constant for cigar operations in BamFlagBase
+  * add PileVectorElement class
+  * add IntegerInterval constructor parsing output of operator<< for IntegerInterval
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 22 Jan 2016 16:57:04 +0100
+
 libmaus2 (2.0.115-1) unstable; urgency=medium
 
   *  fix instantiation of BidirectionalDnaIndexTemplate in SimpleLocalAligner
