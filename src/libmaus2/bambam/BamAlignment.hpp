@@ -2274,6 +2274,18 @@ namespace libmaus2
 			{
 				libmaus2::bambam::BamAlignmentDecoderBase::getCigarStats(D.begin(),A,erase);
 			}
+
+			std::vector< PileVectorElement > getPileVector(libmaus2::autoarray::AutoArray<cigar_operation> & cigopin, libmaus2::autoarray::AutoArray<char> & readdata) const
+			{
+				return libmaus2::bambam::BamAlignmentDecoderBase::getPileVector(D.begin(),cigopin,readdata);
+			}
+
+			std::vector< PileVectorElement > getPileVector()
+			{
+				libmaus2::autoarray::AutoArray<cigar_operation> cigopin;
+				libmaus2::autoarray::AutoArray<char> readdata;
+				return getPileVector(cigopin,readdata);
+			}
 		};
 	}
 }
