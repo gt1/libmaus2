@@ -76,7 +76,9 @@ namespace libmaus2
 
 			bool operator<(PileVectorElement const & o) const
 			{
-				if ( refpos != o.refpos )
+				if ( refid != o.refid )
+					return refid < o.refid;	
+				else if ( refpos != o.refpos )
 					return refpos < o.refpos;
 				else if ( predif != o.predif )
 					return predif < o.predif;

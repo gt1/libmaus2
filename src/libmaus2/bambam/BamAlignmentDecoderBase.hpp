@@ -3635,7 +3635,8 @@ namespace libmaus2
 			static std::vector< PileVectorElement > getPileVector(
 				uint8_t const * B,
 				libmaus2::autoarray::AutoArray<cigar_operation> & cigopin,
-				libmaus2::autoarray::AutoArray<char> & readdata
+				libmaus2::autoarray::AutoArray<char> & readdata,
+				uint64_t const readid = 0
 			)
 			{
 				static const bool calmd_preterm[] =
@@ -3689,6 +3690,7 @@ namespace libmaus2
 					int32_t const op = cigopin[i].first;
 					int32_t const len = cigopin[i].second;
 					readpos += calmd_readadvance[op] * len;
+					it_r += calmd_readadvance[op] * len;
 				}
 
 				std::vector< PileVectorElement > Vout;
@@ -3707,6 +3709,7 @@ namespace libmaus2
 								PileVectorElement PP
 								(
 									refid,
+									readid,
 									refpos,
 									-len+i,
 									readpos+i,
@@ -3721,7 +3724,7 @@ namespace libmaus2
 						{
 							for ( int64_t i = 0; i < len; ++i )
 							{
-								PileVectorElement PP(refid,refpos+i,0,readpos,static_cast<int32_t>(readdata.size()-readpos)-1,'-');
+								PileVectorElement PP(refid,readid,refpos+i,0,readpos,static_cast<int32_t>(readdata.size()-readpos)-1,'-');
 								Vout.push_back(PP);
 							}
 							break;
@@ -3735,6 +3738,7 @@ namespace libmaus2
 								PileVectorElement PP
 								(
 									refid,
+									readid,
 									refpos+i,
 									0,
 									readpos+i,

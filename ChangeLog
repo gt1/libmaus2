@@ -1,3 +1,9 @@
+libmaus2 (2.0.118-1) unstable; urgency=medium
+
+  * add readid parameter in getPileVector function of BamAlignment
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sat, 23 Jan 2016 14:29:41 +0100
+
 libmaus2 (2.0.117-1) unstable; urgency=medium
 
   * fix endless recursion loops in SampledISA
