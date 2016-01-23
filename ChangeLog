@@ -1,3 +1,9 @@
+libmaus2 (2.0.119-1) unstable; urgency=medium
+
+  * add readSamplingRate function in SampledISABase class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sat, 23 Jan 2016 22:27:19 +0100
+
 libmaus2 (2.0.118-1) unstable; urgency=medium
 
   * add readid parameter in getPileVector function of BamAlignment
