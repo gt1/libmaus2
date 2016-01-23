@@ -1,3 +1,13 @@
+libmaus2 (2.0.117-1) unstable; urgency=medium
+
+  * fix endless recursion loops in SampledISA
+  * refactor SampledISA
+  * add getPileVector method in BamAlignment
+  * add more data to pile elements in BamAlignmentDecoderBase
+  * add I/O for PileVectorElement class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sat, 23 Jan 2016 13:36:38 +0100
+
 libmaus2 (2.0.116-1) unstable; urgency=medium
 
   * add getCigarStats in BamAlignment class
