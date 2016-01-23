@@ -31,6 +31,17 @@ namespace libmaus2
         {
         	struct SampledISABase
         	{
+        		static uint64_t readSamplingRate(std::istream & istr)
+        		{
+				return libmaus2::serialize::BuiltinLocalSerializer<uint64_t>::deserializeChecked(istr);
+        		}
+
+        		static uint64_t readSamplingRate(std::string const & fn)
+        		{
+				libmaus2::aio::InputStreamInstance ISI(fn);
+				return readSamplingRate(ISI);
+        		}
+
                         template<typename writer_type, typename encoder_type>
                         static uint64_t rewriteRankPos(std::istream & istr, writer_type const & writer, encoder_type & encoder)
                         {
@@ -106,9 +117,9 @@ namespace libmaus2
                         {
                         	libmaus2::aio::OutputStreamInstance OSI(fn);
                         	writeSampledInverseSuffixArray(OSI,a,n,samplingrate,inc);
-                        	OSI.flush();                        	
+                        	OSI.flush();
                         }
-                        
+
                         static uint64_t readUnsignedInt(std::istream & in)
                         {
                                 uint64_t i;
