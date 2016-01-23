@@ -29,47 +29,10 @@ namespace libmaus2
 {
         namespace fm
         {
-                template<typename lf_type>
-                struct SampledISA
-                {
-                        typedef SampledISA<lf_type> sampled_isa_type;
-                        typedef sampled_isa_type this_type;
-                        typedef typename ::libmaus2::util::unique_ptr < this_type >::type unique_ptr_type;
-
-                        lf_type const * lf;
-                        uint64_t isasamplingrate;
-                        uint64_t isasamplingmask;
-                        unsigned int isasamplingshift;
-                        ::libmaus2::autoarray::AutoArray<uint64_t> SISA;
-
-                        uint64_t byteSize() const
-                        {
-                        	return
-                        		sizeof(lf_type const *)+
-                        		2*sizeof(uint64_t)+
-                        		sizeof(unsigned int)+
-                        		SISA.byteSize();
-                        }
-
-                        void setSamplingRate(uint64_t samplingrate)
-                        {
-                        	isasamplingrate = samplingrate;
-                        	isasamplingmask = isasamplingrate-1;
-                        	isasamplingshift = 0;
-
-                        	uint64_t tisasamplingrate = isasamplingrate;
-
-                        	while ( ! (tisasamplingrate&1) )
-                        	{
-                        		tisasamplingrate >>= 1;
-                        		isasamplingshift++;
-                        	}
-                        	assert ( tisasamplingrate == 1 );
-                        	assert ( (1ull << isasamplingshift) == isasamplingrate );
-                        }
-
+        	struct SampledISABase
+        	{
                         template<typename writer_type, typename encoder_type>
-                        static uint64_t rewriteRankPos(std::istream & istr, writer_type & writer, encoder_type const & encoder)
+                        static uint64_t rewriteRankPos(std::istream & istr, writer_type const & writer, encoder_type & encoder)
                         {
 				typedef typename writer_type::value_type value_type;
 				uint64_t const samplingrate = libmaus2::serialize::BuiltinLocalSerializer<uint64_t>::deserializeChecked(istr);
@@ -87,14 +50,14 @@ namespace libmaus2
                         }
 
                         template<typename writer_type, typename encoder_type>
-                        static uint64_t rewriteRankPos(std::string const & fn, writer_type & writer, encoder_type const & encoder)
+                        static uint64_t rewriteRankPos(std::string const & fn, writer_type const & writer, encoder_type & encoder)
                         {
 				libmaus2::aio::InputStreamInstance ISI(fn);
-				return rewriteRankPos<writer_type,encoder_type>(fn,writer,encoder);
+				return rewriteRankPos<writer_type,encoder_type>(ISI,writer,encoder);
                         }
 
                         template<typename writer_type, typename encoder_type>
-                        static uint64_t rewritePosRank(std::istream & istr, writer_type & writer, encoder_type const & encoder)
+                        static uint64_t rewritePosRank(std::istream & istr, writer_type const & writer, encoder_type & encoder)
                         {
 				typedef typename writer_type::value_type value_type;
 				uint64_t const samplingrate = libmaus2::serialize::BuiltinLocalSerializer<uint64_t>::deserializeChecked(istr);
@@ -112,12 +75,40 @@ namespace libmaus2
                         }
 
                         template<typename writer_type, typename encoder_type>
-                        static uint64_t rewritePosRank(std::string const & fn, writer_type & writer, encoder_type const & encoder)
+                        static uint64_t rewritePosRank(std::string const & fn, writer_type const & writer, encoder_type & encoder)
                         {
 				libmaus2::aio::InputStreamInstance ISI(fn);
-				return rewritePosRank<writer_type,encoder_type>(fn,writer,encoder);
+				return rewritePosRank<writer_type,encoder_type>(ISI,writer,encoder);
                         }
 
+                        template<typename it>
+                        static void writeSampledInverseSuffixArray(
+                        	std::ostream & out, it a, uint64_t n, uint64_t samplingrate, uint64_t const inc
+			)
+                        {
+                        	libmaus2::aio::SynchronousGenericOutput<uint64_t> Sout(out,8*1024);
+                        	Sout.put(samplingrate);
+                        	uint64_t const nwrite = (n + samplingrate-1)/samplingrate;
+                        	Sout.put(nwrite);
+                        	for ( uint64_t i = 0; i < nwrite; ++i )
+				{
+					Sout.put(*a);
+					a += inc;
+				}
+				Sout.flush();
+				out.flush();
+                        }
+
+                        template<typename it>
+                        static void writeSampledInverseSuffixArray(
+                        	std::string const & fn, it a, uint64_t n, uint64_t samplingrate, uint64_t const inc
+			)
+                        {
+                        	libmaus2::aio::OutputStreamInstance OSI(fn);
+                        	writeSampledInverseSuffixArray(OSI,a,n,samplingrate,inc);
+                        	OSI.flush();                        	
+                        }
+                        
                         static uint64_t readUnsignedInt(std::istream & in)
                         {
                                 uint64_t i;
@@ -158,6 +149,46 @@ namespace libmaus2
                                 ::libmaus2::autoarray::AutoArray<uint64_t> A;
                                 s += A.deserialize(in);
                                 return A;
+                        }
+        	};
+
+                template<typename lf_type>
+                struct SampledISA : public SampledISABase
+                {
+                        typedef SampledISA<lf_type> sampled_isa_type;
+                        typedef sampled_isa_type this_type;
+                        typedef typename ::libmaus2::util::unique_ptr < this_type >::type unique_ptr_type;
+
+                        lf_type const * lf;
+                        uint64_t isasamplingrate;
+                        uint64_t isasamplingmask;
+                        unsigned int isasamplingshift;
+                        ::libmaus2::autoarray::AutoArray<uint64_t> SISA;
+
+                        uint64_t byteSize() const
+                        {
+                        	return
+                        		sizeof(lf_type const *)+
+                        		2*sizeof(uint64_t)+
+                        		sizeof(unsigned int)+
+                        		SISA.byteSize();
+                        }
+
+                        void setSamplingRate(uint64_t samplingrate)
+                        {
+                        	isasamplingrate = samplingrate;
+                        	isasamplingmask = isasamplingrate-1;
+                        	isasamplingshift = 0;
+
+                        	uint64_t tisasamplingrate = isasamplingrate;
+
+                        	while ( ! (tisasamplingrate&1) )
+                        	{
+                        		tisasamplingrate >>= 1;
+                        		isasamplingshift++;
+                        	}
+                        	assert ( tisasamplingrate == 1 );
+                        	assert ( (1ull << isasamplingshift) == isasamplingrate );
                         }
 
                         uint64_t serialize(std::ostream & out)
