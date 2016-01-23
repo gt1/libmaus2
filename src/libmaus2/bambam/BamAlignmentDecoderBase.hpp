@@ -3679,6 +3679,7 @@ namespace libmaus2
 				uint32_t const numcigin = getCigarOperations(B,cigopin);
 				uint64_t i = 0;
 				int64_t refpos = getPos(B);
+				int64_t const refid = getRefID(B);
 				decodeRead(B, readdata);
 				char const * it_r = readdata.begin();
 				uint64_t readpos = 0;
@@ -3705,9 +3706,11 @@ namespace libmaus2
 							{
 								PileVectorElement PP
 								(
+									refid,
 									refpos,
 									-len+i,
 									readpos+i,
+									static_cast<int32_t>(readdata.size() - (readpos+i)) - 1,
 									it_r[i]
 								);
 								Vout.push_back(PP);
@@ -3718,7 +3721,7 @@ namespace libmaus2
 						{
 							for ( int64_t i = 0; i < len; ++i )
 							{
-								PileVectorElement PP(refpos+i,0,readpos,'-');
+								PileVectorElement PP(refid,refpos+i,0,readpos,static_cast<int32_t>(readdata.size()-readpos)-1,'-');
 								Vout.push_back(PP);
 							}
 							break;
@@ -3731,9 +3734,11 @@ namespace libmaus2
 							{
 								PileVectorElement PP
 								(
+									refid,
 									refpos+i,
 									0,
 									readpos+i,
+									static_cast<int32_t>(readdata.size() - (readpos+i)) - 1,
 									it_r[i]
 								);
 								Vout.push_back(PP);

@@ -231,7 +231,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/lcs/FragmentEnvelopeYScore.cpp \
 	libmaus2/lcs/FragmentEnvelopeFragment.cpp \
 	libmaus2/fastx/DNAIndexMetaDataSequence.cpp \
-	libmaus2/fastx/DNAIndexMetaData.cpp
+	libmaus2/fastx/DNAIndexMetaData.cpp \
+	libmaus2/bambam/PileVectorElement.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
