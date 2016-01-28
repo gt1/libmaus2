@@ -83,26 +83,42 @@ namespace libmaus2
 				) : key()
 				{
 					// is this the left mapping end?
-					bool isleft;
+					bool has_mate_cigar;
 					
-					try
+					if ( algn.getAuxString("MC") )
+					{
+					    	has_mate_cigar = true;
+					}
+					else
+					{
+					    	has_mate_cigar = false;
+					}					
+					
+					int64_t const thisref   = algn.getRefID();
+					int64_t       thiscoord = algn.getCoordinate();
+					int64_t const otherref  = algn.getNextRefID();
+					int64_t       othercoord;
+
+					bool isleft;
+
+					if ( has_mate_cigar )
 					{
 					    	isleft = libmaus2::bambam::ReadEndsBase::isLeft(algn.D.begin(),algn.blocksize,Aop);
+						othercoord = algn.getNextCoordinate(Aop);
 					}
-					catch (libmaus2::exception::LibMausException lme)
+					else
 					{
 					    	// probably no MC:z entry, see if the older MC:i is there
-					    	alt_key(algn, header, tagid);
-					    	return;
+						othercoord = algn.getAuxAsNumberNC<int32_t>("mc");
+
+						 isleft =
+						(thisref < otherref) ||
+						(thisref == otherref && thiscoord < othercoord ) ||
+						(thisref == otherref && thiscoord == othercoord && algn.isRead1());
 					}
 
 					// as number for hash key
 					uint64_t const leftflag = isleft ? 0 : 1;
-
-					int64_t const thisref = algn.getRefID();
-					int64_t       thiscoord = algn.getCoordinate();
-					int64_t const otherref = algn.getNextRefID();
-					int64_t       othercoord = algn.getNextCoordinate(Aop);
 
 					pair_orientation_type orientation;
 
@@ -168,8 +184,6 @@ namespace libmaus2
 					// rewrite coordinates for FF and RR pairs
 					if ( orientation == pair_orientation_FF || orientation == pair_orientation_RR )
 					{
-						size_t const numcigop = algn.getNextCigarVector(Aop);
-
 						if ( algn.isReverse() )
 						{
 							if ( isleft )
@@ -178,14 +192,22 @@ namespace libmaus2
 							}
 							else
 							{
-								othercoord = libmaus2::bambam::BamAlignmentDecoderBase::getNextUnclippedStart(algn.D.begin(),Aop.begin(),Aop.begin()+numcigop);
+							    	if ( has_mate_cigar )
+								{
+								    	size_t const numcigop = algn.getNextCigarVector(Aop);
+								    	othercoord = libmaus2::bambam::BamAlignmentDecoderBase::getNextUnclippedStart(algn.D.begin(),Aop.begin(),Aop.begin()+numcigop);
+								}
 							}
 						}
 						else
 						{
 							if ( isleft )
 							{
-								othercoord = libmaus2::bambam::BamAlignmentDecoderBase::getNextUnclippedEnd(algn.D.begin(),Aop.begin(),Aop.begin()+numcigop);
+							    	if ( has_mate_cigar )
+								{
+								    	size_t const numcigop = algn.getNextCigarVector(Aop);  
+								    	othercoord = libmaus2::bambam::BamAlignmentDecoderBase::getNextUnclippedEnd(algn.D.begin(),Aop.begin(),Aop.begin()+numcigop);
+								}
 							}
 							else
 							{
@@ -193,7 +215,7 @@ namespace libmaus2
 							}
 						}
 					}
-
+				
 					// orientation as number
 					uint64_t uorientation = static_cast<uint64_t>(orientation);
 
@@ -215,82 +237,6 @@ namespace libmaus2
 					key.A[3] = tagid; // tag
 				}
 
-				void alt_key(libmaus2::bambam::BamAlignment const & algn,
-					libmaus2::bambam::BamHeader const & header,
-					uint64_t tagid)
-				{
-					int64_t const thisref = algn.getRefID();
-					int64_t const thiscoord = algn.getCoordinate();
-					int64_t const otherref = algn.getNextRefID();
-					int64_t const othercoord = algn.getAuxAsNumberNC<int32_t>("mc");
-					
-					// is this the left mapping end?
-					bool const isleft =
-						(thisref < otherref) ||
-						(thisref == otherref && thiscoord < othercoord ) ||
-						(thisref == otherref && thiscoord == othercoord && algn.isRead1());
-					
-					// as number for hash key
-					uint64_t leftflag = isleft ? 0 : 1;
-					
-					pair_orientation_type orientation;
-					
-					// orientation of end pair
-					if ( isleft )
-					{
-						if ( ! algn.isReverse() )
-						{
-							if ( ! algn.isMateReverse() )
-								orientation = pair_orientation_FF;
-							else
-								orientation = pair_orientation_FR;
-						}
-						else
-						{
-							if ( ! algn.isMateReverse() )
-								orientation = pair_orientation_RF;
-							else
-								orientation = pair_orientation_RR;
-						}
-					}
-					else
-					{
-						if ( ! algn.isMateReverse() )
-						{
-							if ( ! algn.isReverse() )
-								orientation = pair_orientation_FF;
-							else
-								orientation = pair_orientation_FR;
-						}
-						else
-						{
-							if ( ! algn.isReverse() )
-								orientation = pair_orientation_RF;
-							else
-								orientation = pair_orientation_RR;
-						}
-					}
-
-					// orientation as number		
-					uint64_t uorientation = static_cast<uint64_t>(orientation);
-
-					key.A[0] =
-						(static_cast<uint64_t>(signEncode(thisref)) << 32)
-						|
-						(static_cast<uint64_t>(signEncode(thiscoord)) << 0)
-						;
-					key.A[1] =
-						(static_cast<uint64_t>(signEncode(otherref)) << 32)
-						|
-						(static_cast<uint64_t>(signEncode(othercoord)) << 0)
-						;
-					key.A[2] =
-						(static_cast<uint64_t>(signEncode(algn.getLibraryId(header))) << 32)
-						|
-						(leftflag) | (uorientation << 1)
-						;
-					key.A[3] = tagid; // tag
-				}
 
 				bool operator==(this_type const & o) const
 				{
