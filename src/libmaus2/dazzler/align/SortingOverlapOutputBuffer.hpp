@@ -140,7 +140,7 @@ namespace libmaus2
 					libmaus2::dazzler::align::AlignmentFile algnfile(*PISI);
 					libmaus2::dazzler::align::Overlap OVL;
 
-					SortingOverlapOutputBuffer SOOB(tmpfilename,algnfile.small,n);
+					SortingOverlapOutputBuffer<comparator_type> SOOB(tmpfilename,algnfile.small,n);
 
 					while ( algnfile.getNextOverlap(*PISI,OVL) )
 						SOOB.put(OVL);
