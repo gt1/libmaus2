@@ -84,7 +84,7 @@ namespace libmaus2
 				{
 					// is this the left mapping end?
 					bool has_mate_cigar;
-					
+
 					if ( algn.getAuxString("MC") )
 					{
 					    	has_mate_cigar = true;
@@ -92,8 +92,8 @@ namespace libmaus2
 					else
 					{
 					    	has_mate_cigar = false;
-					}					
-					
+					}
+
 					int64_t const thisref   = algn.getRefID();
 					int64_t       thiscoord = algn.getCoordinate();
 					int64_t const otherref  = algn.getNextRefID();
@@ -205,7 +205,7 @@ namespace libmaus2
 							{
 							    	if ( has_mate_cigar )
 								{
-								    	size_t const numcigop = algn.getNextCigarVector(Aop);  
+								    	size_t const numcigop = algn.getNextCigarVector(Aop);
 								    	othercoord = libmaus2::bambam::BamAlignmentDecoderBase::getNextUnclippedEnd(algn.D.begin(),Aop.begin(),Aop.begin()+numcigop);
 								}
 							}
@@ -215,7 +215,7 @@ namespace libmaus2
 							}
 						}
 					}
-				
+
 					// orientation as number
 					uint64_t uorientation = static_cast<uint64_t>(orientation);
 
