@@ -30,9 +30,17 @@ libmaus2::util::TempFileNameGenerator::~TempFileNameGenerator()
 
 std::string libmaus2::util::TempFileNameGenerator::getFileName()
 {
+	return getFileName(false);
+}
+
+std::string libmaus2::util::TempFileNameGenerator::getFileName(bool const regAsTempFile)
+{
 	lock.lock();
 
 	std::string const fn = state.getFileName();
+
+	if ( regAsTempFile )
+		libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
 
 	lock.unlock();
 
