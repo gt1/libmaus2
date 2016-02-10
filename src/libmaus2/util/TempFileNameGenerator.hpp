@@ -58,6 +58,7 @@ namespace libmaus2
 			TempFileNameGenerator(std::string const rprefix, unsigned int const rdepth);
 			~TempFileNameGenerator();
 
+			std::string getFileName(bool const regAsTempFile);
 			std::string getFileName();
 			void cleanupDirs();
 		};

@@ -624,6 +624,63 @@ namespace libmaus2
 					}
 				}
 
+				Overlap getSwappedPreMapped(
+					int64_t const tspace,
+					uint8_t const * aptr,
+					int64_t const alen,
+					uint8_t const * bptr,
+					int64_t const blen,
+					libmaus2::lcs::AlignmentTraceContainer & ATC,
+					libmaus2::lcs::Aligner & aligner
+				) const
+				{
+					if ( ! isInverse() )
+					{
+						computeTracePreMapped(
+							path.path.begin(),
+							path.path.size(),
+							path.abpos,path.aepos,path.bbpos,path.bepos,aptr,bptr,tspace,
+							ATC,aligner);
+
+						ATC.swapRoles();
+						// std::reverse(ATC.ta,ATC.te);
+						Overlap OVL;
+						OVL.flags = flags;
+						OVL.aread = bread;
+						OVL.bread = aread;
+						OVL.path = computePath(
+							path.bbpos,
+							path.bepos,
+							path.abpos,
+							path.aepos,
+							tspace,ATC);
+						return OVL;
+					}
+					else
+					{
+						computeTracePreMapped(
+							path.path.begin(),
+							path.path.size(),
+							path.abpos,path.aepos,path.bbpos,path.bepos,aptr,bptr,tspace,
+							ATC,aligner);
+
+						ATC.swapRoles();
+						std::reverse(ATC.ta,ATC.te);
+						Overlap OVL;
+						OVL.flags = flags;
+						OVL.aread = bread;
+						OVL.bread = aread;
+						OVL.path = computePath(
+							blen - path.bepos,
+							blen - path.bbpos,
+							alen - path.aepos,
+							alen - path.abpos,
+							tspace,ATC);
+						return OVL;
+
+					}
+				}
+
 				Path getSwappedPath(int64_t const tspace) const
 				{
 					return computePath(getSwappedTraceBlocks(tspace));
@@ -946,6 +1003,29 @@ namespace libmaus2
 						return false;
 				}
 
+			};
+
+			struct OverlapFullComparator
+			{
+				bool operator()(Overlap const & lhs, Overlap const & rhs) const
+				{
+					if ( lhs.aread != rhs.aread )
+						return lhs.aread < rhs.aread;
+					else if ( lhs.bread != rhs.bread )
+						return lhs.bread < rhs.bread;
+					else if ( lhs.isInverse() != rhs.isInverse() )
+						return !lhs.isInverse();
+					else if ( lhs.path.abpos != rhs.path.abpos )
+						return lhs.path.abpos < rhs.path.abpos;
+					else if ( lhs.path.aepos != rhs.path.aepos )
+						return lhs.path.aepos < rhs.path.aepos;
+					else if ( lhs.path.bbpos != rhs.path.bbpos )
+						return lhs.path.bbpos < rhs.path.bbpos;
+					else if ( lhs.path.bepos != rhs.path.bepos )
+						return lhs.path.bepos < rhs.path.bepos;
+					else
+						return false;
+				}
 			};
 
 			struct OverlapComparatorBReadARead
