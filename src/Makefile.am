@@ -1459,7 +1459,8 @@ libmaus2digest_include_HEADERS=\
 	libmaus2/digest/DigestFactory_CRC32C_SSE42.hpp \
 	libmaus2/digest/DigestFactoryInterface.hpp \
 	libmaus2/digest/md5.hpp \
-	libmaus2/digest/md5.h
+	libmaus2/digest/md5.h \
+	libmaus2/digest/MurmurHash3_x64_128.hpp
 
 libmaus2lf_includedir=$(includedir)/libmaus2/lf
 libmaus2lf_include_HEADERS=\

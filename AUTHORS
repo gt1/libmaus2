@@ -14,5 +14,5 @@ CRC32 code in src/libmaus2/hashing/Crc3.{cpp/hpp} by Stephan Brumme (ZLib type l
 libmaus2/digest/sha(256|512)_*.asm (Intel license, see files)
 Part of CRC32{|C} code in src/libmaus2/digest/CRC32{|C}_Core.cpp by Mark Adler (see file for license)
 Part of CRC32{|C} code in src/libmaus2/digest/CRC32{|C}_Core.cpp by Cisco Systems, Inc. and Herbert Xu (GPLv2)
-Hash code in src/libmaus2/hashing/MurmurHash3.{cpp|h} by Austin Appleby (public domain)
+Hash code in src/libmaus2/hashing/MurmurHash3.{cpp|h} and libmaus2/digest/MurmurHash3_x64_128.hpp by Austin Appleby (public domain)
 Rest by German Tischler published under GPLv2/GPLv3 (some of it written while at Genome Research Limited/WTSI)
