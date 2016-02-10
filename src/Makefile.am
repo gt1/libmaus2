@@ -1926,7 +1926,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testdnarank \
 	testlowbits \
 	testfastaexplode \
-	testfaextract
+	testfaextract \
+	testmurmur3
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2441,3 +2442,7 @@ testfastaexplode_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testfaextract_SOURCES  = test/testfaextract.cpp
 testfaextract_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testfaextract_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testmurmur3_SOURCES  = test/testmurmur3.cpp
+testmurmur3_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testmurmur3_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
