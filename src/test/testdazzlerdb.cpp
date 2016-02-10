@@ -447,7 +447,7 @@ int main(int argc, char * argv[])
 		#endif
 
 		bool const printAlignments = arginfo.getValue<int>("print",1);
-		bool const loadall  = arginfo.getValue<int>("loadalla",false);
+		bool const loadall  = arginfo.getValue<int>("loadall",false);
 		bool loadalla = arginfo.getValue<int>("loadalla",loadall);
 		bool loadallb = arginfo.getValue<int>("loadallb",loadall);
 		double const eratelimit = arginfo.getValue<double>("eratelimit",1.0);

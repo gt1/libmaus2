@@ -1,3 +1,15 @@
+libmaus2 (2.0.120-1) unstable; urgency=medium
+
+  * add MurmurHash3_x64_128 based digest
+  * add getSwappedPreMapped method in Overlap class
+  * add temp file registration support in TempFileNameGenerator class
+  * import MurmurHash3 code
+  * use comparator_type parameter in sortFile function of SortingOverlapOutputBuffer
+  * add OverlapFullComparator class
+  * add handling of legacy tags for duplicate marking by Andrew Whitwham
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 10 Feb 2016 14:04:51 +0100
+
 libmaus2 (2.0.119-1) unstable; urgency=medium
 
   * add readSamplingRate function in SampledISABase class 

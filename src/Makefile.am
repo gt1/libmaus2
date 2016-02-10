@@ -173,6 +173,7 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/fastx/FastAIndex.cpp \
 	libmaus2/network/HttpAbsoluteUrl.cpp \
 	libmaus2/hashing/Crc32.cpp \
+	libmaus2/hashing/MurmurHash3.cpp \
 	libmaus2/lz/IGzipDeflate.cpp \
 	libmaus2/lcs/LocalBaseConstants.cpp \
 	libmaus2/lcs/LocalEditDistanceResult.cpp \
@@ -1429,7 +1430,8 @@ libmaus2hashing_include_HEADERS=\
 	libmaus2/hashing/hash.hpp \
 	libmaus2/hashing/CircularHash.hpp \
 	libmaus2/hashing/ConstantStringHash.hpp \
-	libmaus2/hashing/Crc32.hpp
+	libmaus2/hashing/Crc32.hpp \
+	libmaus2/hashing/MurmurHash3.h
 
 libmaus2digest_includedir=$(includedir)/libmaus2/digest
 libmaus2digest_include_HEADERS=\
@@ -1457,7 +1459,8 @@ libmaus2digest_include_HEADERS=\
 	libmaus2/digest/DigestFactory_CRC32C_SSE42.hpp \
 	libmaus2/digest/DigestFactoryInterface.hpp \
 	libmaus2/digest/md5.hpp \
-	libmaus2/digest/md5.h
+	libmaus2/digest/md5.h \
+	libmaus2/digest/MurmurHash3_x64_128.hpp
 
 libmaus2lf_includedir=$(includedir)/libmaus2/lf
 libmaus2lf_include_HEADERS=\
