@@ -1064,6 +1064,20 @@ namespace libmaus2
 				return c;
 			}
 
+			static void fillCigarHistogram(uint8_t const * D, uint64_t H[libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CTHRES])
+			{
+				uint32_t const numops = getNCigar(D);
+				uint8_t const * p = getCigar(D);
+
+				for ( uint64_t i = 0; i < numops; ++i, p += 4 )
+				{
+					uint32_t const lop = getLEInteger(p,4);
+					uint32_t const ll = lop >> 4;
+					uint32_t const op = lop & ((1ul<<4)-1);
+					H[op] += ll;
+				}
+			}
+
 			/**
 			 * put cigar string into string buffer
 			 **/
