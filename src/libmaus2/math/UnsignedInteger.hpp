@@ -94,6 +94,29 @@ namespace libmaus2
 			template<size_t l>
 			friend struct UnsignedInteger;
 
+			void getHexVector(std::vector<uint8_t> & H) const
+			{
+				if ( H.size() != 4*k )
+					H.resize(4*k);
+
+				unsigned int o = 0;
+				for ( unsigned int i = 0; i < k; ++i )
+				{
+					uint32_t v = A[k-i-1];
+					H[o++] = (v >> 24) & 0xFFUL;
+					H[o++] = (v >> 16) & 0xFFUL;
+					H[o++] = (v >>  8) & 0xFFUL;
+					H[o++] = (v >>  0) & 0xFFUL;
+				}
+			}
+
+			std::vector<uint8_t> getHexVector() const
+			{
+				std::vector<uint8_t> H;
+				getHexVector(H);
+				return H;
+			}
+
 			unsigned int clz() const
 			{
 				unsigned int lz = 0;
