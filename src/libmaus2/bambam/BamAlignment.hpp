@@ -28,6 +28,7 @@
 #include <libmaus2/hashing/hash.hpp>
 #include <libmaus2/util/utf8.hpp>
 #include <libmaus2/bitio/BitVector.hpp>
+#include <libmaus2/math/IntegerInterval.hpp>
 
 namespace libmaus2
 {
@@ -1481,6 +1482,17 @@ namespace libmaus2
 			}
 
 			/**
+			 * @return interval of mapping reference positions (pos,pos+getReferenceLength()-1) or empty if not mapped
+			 **/
+			libmaus2::math::IntegerInterval<int64_t> getReferenceInterval() const
+			{
+				if ( isUnmap() || (!getReferenceLength()) )
+					return libmaus2::math::IntegerInterval<int64_t>::empty();
+				else
+					return libmaus2::math::IntegerInterval<int64_t>(getPos(), getPos() + getReferenceLength() - 1);
+			}
+
+			/**
 			 * @return query sequence as string
 			 **/
 			std::string getRead() const
@@ -2290,6 +2302,37 @@ namespace libmaus2
 			void fillCigarHistogram(uint64_t H[libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CTHRES]) const
 			{
 				libmaus2::bambam::BamAlignmentDecoderBase::fillCigarHistogram(D.begin(),H);
+			}
+
+			std::pair<uint64_t,uint64_t> getErrorRatePair() const
+			{
+				uint64_t H[libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CTHRES];
+				std::fill(&H[0],&H[sizeof(H)/sizeof(H[0])],0ull);
+				fillCigarHistogram(H);
+
+				if ( H [ BamFlagBase::LIBMAUS2_BAMBAM_CMATCH ] )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "BamAlignment::getErrorRate(): cannot compute error rate in presence of M cigar operator (replace it by = and X)" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+
+				uint64_t const ins = H[BamFlagBase::LIBMAUS2_BAMBAM_CINS];
+				uint64_t const del = H[BamFlagBase::LIBMAUS2_BAMBAM_CINS];
+				uint64_t const dif = H[BamFlagBase::LIBMAUS2_BAMBAM_CDIFF];
+				uint64_t const eq = H[BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL];
+
+				uint64_t const totalops = ins + del + dif + eq;
+				uint64_t const errops = ins + del + dif;
+
+				return std::pair<uint64_t,uint64_t>(errops,totalops);
+			}
+
+			double getErrorRate() const
+			{
+				std::pair<uint64_t,uint64_t> const P = getErrorRatePair();
+				return static_cast<double>(P.first) / static_cast<double>(P.second);
 			}
 		};
 	}
