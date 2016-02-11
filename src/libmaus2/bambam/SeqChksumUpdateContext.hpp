@@ -61,6 +61,7 @@ namespace libmaus2
 		typedef SeqChksumUpdateContext<libmaus2::digest::SHA2_384> SHA2_384_SeqChksumUpdateContext;
 		typedef SeqChksumUpdateContext<libmaus2::digest::SHA2_512> SHA2_512_SeqChksumUpdateContext;
 		typedef SeqChksumUpdateContext<libmaus2::digest::SHA2_512_sse4> SHA2_512_sse4_SeqChksumUpdateContext;
+		typedef SeqChksumUpdateContext<libmaus2::digest::MurmurHash3_x64_128> MurmurHash3_x64_128_SeqChksumUpdateContext;
 	}
 }
 #endif

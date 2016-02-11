@@ -172,6 +172,15 @@ namespace libmaus2
 				U += libmaus2::math::UnsignedInteger<k>(75);
 				return U;
 			}
+
+			template<size_t k>
+			static libmaus2::math::UnsignedInteger<k> getNextPrime128()
+			{
+				libmaus2::math::UnsignedInteger<k> U(1);
+				U <<= 128;
+				U += libmaus2::math::UnsignedInteger<k>(51);
+				return U;
+			}
 		};
 	}
 }

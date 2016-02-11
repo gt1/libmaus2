@@ -64,6 +64,26 @@ struct SeqChksumsSimpleSums
 			b_seq_qual==other.b_seq_qual && b_seq_tags==other.b_seq_tags;
 	};
 
+	void get_b_seq(std::vector<uint8_t> & H) const
+	{
+		b_seq.getHexVector(H);
+	}
+
+	void get_name_b_seq(std::vector<uint8_t> & H) const
+	{
+		name_b_seq.getHexVector(H);
+	}
+
+	void get_b_seq_qual(std::vector<uint8_t> & H) const
+	{
+		b_seq_qual.getHexVector(H);
+	}
+
+	void get_b_seq_tags(std::vector<uint8_t> & H) const
+	{
+		b_seq_tags.getHexVector(H);
+	}
+
 	std::string get_b_seq() const
 	{
 		std::ostringstream ostr;
@@ -265,6 +285,50 @@ struct PrimeProduct
 			;
 	};
 
+	void get_b_seq(std::vector<uint8_t> & H) const
+	{
+		#if defined(LIBMAUS2_HAVE_GMP)
+		libmaus2::math::UnsignedInteger<primeWidth/32> U(convertNumber(gmpb_seq));
+		#else
+		libmaus2::math::UnsignedInteger<primeWidth/32> U(b_seq);
+		#endif
+
+		U.getHexVector(H);
+	}
+
+	void get_name_b_seq(std::vector<uint8_t> & H) const
+	{
+		#if defined(LIBMAUS2_HAVE_GMP)
+		libmaus2::math::UnsignedInteger<primeWidth/32> U(convertNumber(gmpname_b_seq));
+		#else
+		libmaus2::math::UnsignedInteger<primeWidth/32> U(name_b_seq);
+		#endif
+
+		U.getHexVector(H);
+	}
+
+	void get_b_seq_qual(std::vector<uint8_t> & H) const
+	{
+		#if defined(LIBMAUS2_HAVE_GMP)
+		libmaus2::math::UnsignedInteger<primeWidth/32> U(convertNumber(gmpb_seq_qual));
+		#else
+		libmaus2::math::UnsignedInteger<primeWidth/32> U(b_seq_qual);
+		#endif
+
+		U.getHexVector(H);
+	}
+
+	void get_b_seq_tags(std::vector<uint8_t> & H) const
+	{
+		#if defined(LIBMAUS2_HAVE_GMP)
+		libmaus2::math::UnsignedInteger<primeWidth/32> U(convertNumber(gmpb_seq_tags));
+		#else
+		libmaus2::math::UnsignedInteger<primeWidth/32> U(b_seq_tags);
+		#endif
+
+		U.getHexVector(H);
+	}
+
 	std::string get_b_seq() const
 	{
 		std::ostringstream ostr;
@@ -449,6 +513,30 @@ struct PrimeSums
 			;
 	};
 
+	void get_b_seq(std::vector<uint8_t> & H) const
+	{
+		libmaus2::math::UnsignedInteger<primeWidth/32> U(b_seq % prime);
+		U.getHexVector(H);
+	}
+
+	void get_name_b_seq(std::vector<uint8_t> & H) const
+	{
+		libmaus2::math::UnsignedInteger<primeWidth/32> U(name_b_seq % prime);
+		U.getHexVector(H);
+	}
+
+	void get_b_seq_qual(std::vector<uint8_t> & H) const
+	{
+		libmaus2::math::UnsignedInteger<primeWidth/32> U(b_seq_qual % prime);
+		U.getHexVector(H);
+	}
+
+	void get_b_seq_tags(std::vector<uint8_t> & H) const
+	{
+		libmaus2::math::UnsignedInteger<primeWidth/32> U(b_seq_tags % prime);
+		U.getHexVector(H);
+	}
+
 	std::string get_b_seq() const
 	{
 		std::ostringstream ostr;
@@ -492,6 +580,7 @@ typedef SeqChksumsSimpleSums<libmaus2::bambam::SHA2_256_sse4_SeqChksumUpdateCont
 typedef SeqChksumsSimpleSums<libmaus2::bambam::SHA2_384_SeqChksumUpdateContext> SHA2_384_SeqChksumsSimpleSums;
 typedef SeqChksumsSimpleSums<libmaus2::bambam::SHA2_512_SeqChksumUpdateContext> SHA2_512_SeqChksumsSimpleSums;
 typedef SeqChksumsSimpleSums<libmaus2::bambam::SHA2_512_sse4_SeqChksumUpdateContext> SHA2_512_sse4_SeqChksumsSimpleSums;
+typedef SeqChksumsSimpleSums<libmaus2::bambam::MurmurHash3_x64_128_SeqChksumUpdateContext> MurmurHash3_x64_128_SeqChksumsSimpleSums;
 
 typedef PrimeProduct<libmaus2::bambam::CRC32SeqChksumUpdateContext,32> CRC32PrimeProduct32;
 template<> libmaus2::math::UnsignedInteger<CRC32PrimeProduct32::productWidth> const CRC32PrimeProduct32::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getMersenne31<CRC32PrimeProduct32::productWidth>();
@@ -762,6 +851,10 @@ template<> libmaus2::math::UnsignedInteger<SHA2_512_sse4_PrimeSums512::sumWidth>
 typedef PrimeSums<libmaus2::bambam::SHA2_512_sse4_SeqChksumUpdateContext,544,0> SHA2_512_sse4_PrimeSums;
 template<> libmaus2::math::UnsignedInteger<SHA2_512_sse4_PrimeSums::sumWidth> const SHA2_512_sse4_PrimeSums::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getMersenne521<SHA2_512_sse4_PrimeSums::sumWidth>();
 
+typedef PrimeSums<libmaus2::bambam::MurmurHash3_x64_128_SeqChksumUpdateContext,160,128> MurmurHash3_x64_128_PrimeSums128;
+template<> libmaus2::math::UnsignedInteger<MurmurHash3_x64_128_PrimeSums128::sumWidth> const MurmurHash3_x64_128_PrimeSums128::prime =
+	libmaus2::bambam::SeqChksumPrimeNumbers::getNextPrime128<MurmurHash3_x64_128_PrimeSums128::sumWidth>();
+
 /**
 * Product checksums calculated based on basecalls and (multi segment, first
 * and last) bit info, and this combined with the query name, or the basecall
@@ -833,6 +926,30 @@ struct SeqChksumsCRC32Products
 	public:
 	SeqChksumsCRC32Products() : count(0), b_seq(1), name_b_seq(1), b_seq_qual(1), b_seq_tags(1)
 	{
+	}
+
+	void get_b_seq(std::vector<uint8_t> & H) const
+	{
+		libmaus2::math::UnsignedInteger<1> U(b_seq);
+		U.getHexVector(H);
+	}
+
+	void get_name_b_seq(std::vector<uint8_t> & H) const
+	{
+		libmaus2::math::UnsignedInteger<1> U(name_b_seq);
+		U.getHexVector(H);
+	}
+
+	void get_b_seq_qual(std::vector<uint8_t> & H) const
+	{
+		libmaus2::math::UnsignedInteger<1> U(b_seq_qual);
+		U.getHexVector(H);
+	}
+
+	void get_b_seq_tags(std::vector<uint8_t> & H) const
+	{
+		libmaus2::math::UnsignedInteger<1> U(b_seq_tags);
+		U.getHexVector(H);
 	}
 
 	uint64_t get_b_seq() const
@@ -914,6 +1031,30 @@ struct NullChecksums
 	public:
 	NullChecksums() : count(0)
 	{
+	}
+
+	void get_b_seq(std::vector<uint8_t> & H) const
+	{
+		libmaus2::math::UnsignedInteger<1> U(0);
+		U.getHexVector(H);
+	}
+
+	void get_name_b_seq(std::vector<uint8_t> & H) const
+	{
+		libmaus2::math::UnsignedInteger<1> U(0);
+		U.getHexVector(H);
+	}
+
+	void get_b_seq_qual(std::vector<uint8_t> & H) const
+	{
+		libmaus2::math::UnsignedInteger<1> U(0);
+		U.getHexVector(H);
+	}
+
+	void get_b_seq_tags(std::vector<uint8_t> & H) const
+	{
+		libmaus2::math::UnsignedInteger<1> U(0);
+		U.getHexVector(H);
 	}
 
 	uint64_t get_b_seq() const
@@ -1234,6 +1375,46 @@ struct Checksums : public libmaus2::bambam::ChecksumsInterface
 		update(algn.D.begin(),algn.blocksize);
 	}
 
+	void get_b_seq_all(std::vector<uint8_t> & H) const
+	{
+		chksums.all.get_b_seq(H);
+	}
+
+	void get_name_b_seq_all(std::vector<uint8_t> & H) const
+	{
+		chksums.all.get_name_b_seq(H);
+	}
+
+	void get_b_seq_qual_all(std::vector<uint8_t> & H) const
+	{
+		chksums.all.get_b_seq_qual(H);
+	}
+
+	void get_b_seq_tags_all(std::vector<uint8_t> & H) const
+	{
+		chksums.all.get_b_seq_tags(H);
+	}
+
+	void get_b_seq_pass(std::vector<uint8_t> & H) const
+	{
+		chksums.pass.get_b_seq(H);
+	}
+
+	void get_name_b_seq_pass(std::vector<uint8_t> & H) const
+	{
+		chksums.pass.get_name_b_seq(H);
+	}
+
+	void get_b_seq_qual_pass(std::vector<uint8_t> & H) const
+	{
+		chksums.pass.get_b_seq_qual(H);
+	}
+
+	void get_b_seq_tags_pass(std::vector<uint8_t> & H) const
+	{
+		chksums.pass.get_b_seq_tags(H);
+	}
+
 	void printVerbose(
 		std::ostream & log,
 		uint64_t const c,
@@ -1436,6 +1617,9 @@ std::vector<std::string> libmaus2::bambam::ChecksumsFactory::getSupportedHashVar
 	V.push_back("sha512primesums512");
 	#endif
 
+	V.push_back("murmur3");
+	V.push_back("murmur3primesums128");
+
 	return V;
 }
 
@@ -1522,6 +1706,16 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 		}
 	}
 	#endif
+	else if ( hash == "murmur3" )
+	{
+		libmaus2::bambam::ChecksumsInterface::unique_ptr_type tptr(new Checksums<MurmurHash3_x64_128_SeqChksumsSimpleSums,header_type>(hash,header));
+		return UNIQUE_PTR_MOVE(tptr);
+	}
+	else if ( hash == "murmur3primesums128" )
+	{
+		libmaus2::bambam::ChecksumsInterface::unique_ptr_type tptr(new Checksums<MurmurHash3_x64_128_PrimeSums128,header_type>(hash,header));
+		return UNIQUE_PTR_MOVE(tptr);
+	}
 	else if ( hash == "crc32prime32" )
 	{
 		libmaus2::bambam::ChecksumsInterface::unique_ptr_type tptr(new Checksums<CRC32PrimeProduct32,header_type>(hash,header));

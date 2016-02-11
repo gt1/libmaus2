@@ -38,6 +38,14 @@ namespace libmaus2
 			virtual void printVerbose(std::ostream & log, uint64_t const c,libmaus2::bambam::BamAlignment const & algn, double const etime) = 0;
 			virtual void printChecksums(std::ostream & out) = 0;
 			virtual void printChecksumsForBamHeader(std::ostream & out) = 0;
+			virtual void get_b_seq_all(std::vector<uint8_t> & H) const = 0;
+			virtual void get_name_b_seq_all(std::vector<uint8_t> & H) const = 0;
+			virtual void get_b_seq_qual_all(std::vector<uint8_t> & H) const = 0;
+			virtual void get_b_seq_tags_all(std::vector<uint8_t> & H) const = 0;
+			virtual void get_b_seq_pass(std::vector<uint8_t> & H) const = 0;
+			virtual void get_name_b_seq_pass(std::vector<uint8_t> & H) const = 0;
+			virtual void get_b_seq_qual_pass(std::vector<uint8_t> & H) const = 0;
+			virtual void get_b_seq_tags_pass(std::vector<uint8_t> & H) const = 0;
 		};
 	}
 }
