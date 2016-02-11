@@ -515,26 +515,58 @@ struct PrimeSums
 
 	void get_b_seq(std::vector<uint8_t> & H) const
 	{
-		libmaus2::math::UnsignedInteger<primeWidth/32> U(b_seq % prime);
-		U.getHexVector(H);
+		if ( truncate )
+		{
+			libmaus2::math::UnsignedInteger<truncate/32> U(b_seq % prime);
+			U.getHexVector(H);
+		}
+		else
+		{
+			libmaus2::math::UnsignedInteger<primeWidth/32> U(b_seq % prime);
+			U.getHexVector(H);
+		}
 	}
 
 	void get_name_b_seq(std::vector<uint8_t> & H) const
 	{
-		libmaus2::math::UnsignedInteger<primeWidth/32> U(name_b_seq % prime);
-		U.getHexVector(H);
+		if ( truncate )
+		{
+			libmaus2::math::UnsignedInteger<truncate/32> U(name_b_seq % prime);
+			U.getHexVector(H);
+		}
+		else
+		{
+			libmaus2::math::UnsignedInteger<primeWidth/32> U(name_b_seq % prime);
+			U.getHexVector(H);
+		}
 	}
 
 	void get_b_seq_qual(std::vector<uint8_t> & H) const
 	{
-		libmaus2::math::UnsignedInteger<primeWidth/32> U(b_seq_qual % prime);
-		U.getHexVector(H);
+		if ( truncate )
+		{
+			libmaus2::math::UnsignedInteger<truncate/32> U(b_seq_qual % prime);
+			U.getHexVector(H);
+		}
+		else
+		{
+			libmaus2::math::UnsignedInteger<primeWidth/32> U(b_seq_qual % prime);
+			U.getHexVector(H);
+		}
 	}
 
 	void get_b_seq_tags(std::vector<uint8_t> & H) const
 	{
-		libmaus2::math::UnsignedInteger<primeWidth/32> U(b_seq_tags % prime);
-		U.getHexVector(H);
+		if ( truncate )
+		{
+			libmaus2::math::UnsignedInteger<truncate/32> U(b_seq_tags % prime);
+			U.getHexVector(H);
+		}
+		else
+		{
+			libmaus2::math::UnsignedInteger<primeWidth/32> U(b_seq_tags % prime);
+			U.getHexVector(H);
+		}
 	}
 
 	std::string get_b_seq() const
