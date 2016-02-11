@@ -28,6 +28,7 @@
 #include <libmaus2/hashing/hash.hpp>
 #include <libmaus2/util/utf8.hpp>
 #include <libmaus2/bitio/BitVector.hpp>
+#include <libmaus2/math/IntegerInterval.hpp>
 
 namespace libmaus2
 {
@@ -1478,6 +1479,17 @@ namespace libmaus2
 			uint64_t getReferenceLength() const
 			{
 				return ::libmaus2::bambam::BamAlignmentDecoderBase::getReferenceLength(D.get());
+			}
+
+			/**
+			 * @return interval of mapping reference positions (pos,pos+getReferenceLength()-1) or empty if not mapped
+			 **/
+			libmaus2::math::IntegerInterval<int64_t> getReferenceInterval() const
+			{
+				if ( isUnmap() || (!getReferenceLength()) )
+					return libmaus2::math::IntegerInterval<int64_t>::empty();
+				else
+					return libmaus2::math::IntegerInterval<int64_t>(getPos(), getPos() + getReferenceLength() - 1);
 			}
 
 			/**
