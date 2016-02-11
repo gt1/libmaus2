@@ -851,6 +851,10 @@ template<> libmaus2::math::UnsignedInteger<SHA2_512_sse4_PrimeSums512::sumWidth>
 typedef PrimeSums<libmaus2::bambam::SHA2_512_sse4_SeqChksumUpdateContext,544,0> SHA2_512_sse4_PrimeSums;
 template<> libmaus2::math::UnsignedInteger<SHA2_512_sse4_PrimeSums::sumWidth> const SHA2_512_sse4_PrimeSums::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getMersenne521<SHA2_512_sse4_PrimeSums::sumWidth>();
 
+typedef PrimeSums<libmaus2::bambam::MurmurHash3_x64_128_SeqChksumUpdateContext,160,128> MurmurHash3_x64_128_PrimeSums128;
+template<> libmaus2::math::UnsignedInteger<MurmurHash3_x64_128_PrimeSums128::sumWidth> const MurmurHash3_x64_128_PrimeSums128::prime =
+	libmaus2::bambam::SeqChksumPrimeNumbers::getNextPrime128<MurmurHash3_x64_128_PrimeSums128::sumWidth>();
+
 /**
 * Product checksums calculated based on basecalls and (multi segment, first
 * and last) bit info, and this combined with the query name, or the basecall
@@ -1614,6 +1618,7 @@ std::vector<std::string> libmaus2::bambam::ChecksumsFactory::getSupportedHashVar
 	#endif
 
 	V.push_back("murmur3");
+	V.push_back("murmur3primesums128");
 
 	return V;
 }
@@ -1704,6 +1709,11 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 	else if ( hash == "murmur3" )
 	{
 		libmaus2::bambam::ChecksumsInterface::unique_ptr_type tptr(new Checksums<MurmurHash3_x64_128_SeqChksumsSimpleSums,header_type>(hash,header));
+		return UNIQUE_PTR_MOVE(tptr);
+	}
+	else if ( hash == "murmur3primesums128" )
+	{
+		libmaus2::bambam::ChecksumsInterface::unique_ptr_type tptr(new Checksums<MurmurHash3_x64_128_PrimeSums128,header_type>(hash,header));
 		return UNIQUE_PTR_MOVE(tptr);
 	}
 	else if ( hash == "crc32prime32" )
