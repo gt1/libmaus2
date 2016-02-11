@@ -1,3 +1,16 @@
+libmaus2 (2.0.121-1) unstable; urgency=medium
+
+  * add murmur3primesums128 hash in ChecksumsFactory
+  * add getNextPrime128 in SeqChksumPrimeNumbers
+  * add murmur3 hash for BAM seq checksum
+  * add methods for getting numerical hash values in ChecksumsInterface
+  * add MurmurHash3_x64_128 in list of digests in Digests.hpp
+  * add getHexVector method in UnsignedInteger class
+  * add fillCigarHistogram method/function in BamAlignment/BamAlignmentDecoderBase
+  * add test program for checking that block based murmur3 yields same results as non block based one
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 11 Feb 2016 14:02:04 +0100
+
 libmaus2 (2.0.120-1) unstable; urgency=medium
 
   * add MurmurHash3_x64_128 based digest
