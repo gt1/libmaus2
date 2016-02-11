@@ -128,14 +128,9 @@ namespace libmaus2
 			}
 
 			public:
-			MurmurHash3_x64_128()
+			static uint32_t getDefaultSeed()
 			{
-
-			}
-
-			MurmurHash3_x64_128(uint32_t const seed)
-			: h1(seed), h2(seed), f(0), numblocks(0)
-			{
+				return 0xb979379eul;
 			}
 
 			static void wordsToDigest(uint64_t const h1, uint64_t const h2, uint8_t * d)
@@ -147,22 +142,23 @@ namespace libmaus2
 					d[o++] = (h2 >> (8*(sizeof(h2)-i-1))) & 0xFFu;
 			}
 
-			void digest(uint8_t * d)
+			MurmurHash3_x64_128()
 			{
-				finish();
-				wordsToDigest(h1,h2,d);
+
 			}
 
-			void copyFrom(MurmurHash3_x64_128 const & O)
+			MurmurHash3_x64_128(uint32_t const seed)
+			: h1(seed), h2(seed), f(0), numblocks(0)
 			{
-				h1 = O.h1;
-				h2 = O.h2;
-				std::copy(&(O.B[0]),&(O.B[sizeof(B)/sizeof(B[0])]),&B[0]);
-				f = O.f;
-				numblocks = O.numblocks;
 			}
 
-			static size_t getDigestLength() { return digestlength; }
+			void init(uint32_t const seed = getDefaultSeed())
+			{
+				h1 = seed;
+				h2 = seed;
+				f = 0;
+				numblocks = 0;
+			}
 
 			void update(uint8_t const * p, size_t l)
 			{
@@ -237,6 +233,33 @@ namespace libmaus2
 				}
 
 				assert ( ! l );
+			}
+
+			void digest(uint8_t * d)
+			{
+				finish();
+				wordsToDigest(h1,h2,d);
+			}
+
+			void copyFrom(MurmurHash3_x64_128 const & O)
+			{
+				h1 = O.h1;
+				h2 = O.h2;
+				std::copy(&(O.B[0]),&(O.B[sizeof(B)/sizeof(B[0])]),&B[0]);
+				f = O.f;
+				numblocks = O.numblocks;
+			}
+
+			static size_t getDigestLength() { return digestlength; }
+
+			void vinit()
+			{
+				init();
+			}
+
+			void vupdate(uint8_t const * u, size_t l)
+			{
+				update(u,l);
 			}
 		};
 	}

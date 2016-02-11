@@ -30,4 +30,5 @@
 #include <libmaus2/digest/SHA2_512.hpp>
 #include <libmaus2/digest/SHA2_256_sse4.hpp>
 #include <libmaus2/digest/SHA2_512_sse4.hpp>
+#include <libmaus2/digest/MurmurHash3_x64_128.hpp>
 #endif

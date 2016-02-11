@@ -2286,6 +2286,11 @@ namespace libmaus2
 				libmaus2::autoarray::AutoArray<char> readdata;
 				return getPileVector(cigopin,readdata,readid);
 			}
+
+			void fillCigarHistogram(uint64_t H[libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CTHRES]) const
+			{
+				libmaus2::bambam::BamAlignmentDecoderBase::fillCigarHistogram(D.begin(),H);
+			}
 		};
 	}
 }
