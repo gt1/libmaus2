@@ -98,6 +98,31 @@ namespace libmaus2
 					*(--ATC.ta) = ATCV[ATCV.size()-i-1];
 			}
 
+			template<typename iterator>
+			static void cigarBlocksToString(std::ostream & out, iterator it, uint64_t n)
+			{
+				static char const C[] = "MIDNSHP=X";
+				static uint32_t const bound = sizeof(C)/sizeof(C[0])-1;
+
+				while ( n-- )
+				{
+					libmaus2::bambam::cigar_operation const op = *(it++);
+					out << op.second;
+					if ( op.first < bound )
+						out.put(C[op.first]);
+					else
+						out.put('?');
+				}
+			}
+
+			template<typename iterator>
+			static std::string cigarBlocksToString(iterator it, uint64_t n)
+			{
+				std::ostringstream ostr;
+				cigarBlocksToString(ostr,it,n);
+				return ostr.str();
+			}
+
 			/**
 			 * convert trace stored in ATC to cigar sequence. Add clipping on left and right as noted in (hard|soft)_clip_(left|right)
 			 * Aopblocks is used as a temporary array
