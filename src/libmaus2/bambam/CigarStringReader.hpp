@@ -31,32 +31,57 @@ namespace libmaus2
 			iterator it_e;
 			cigar_operation current;
 
+			::libmaus2::bambam::BamFlagBase::bam_cigar_ops peekslot;
+			bool peekslotactive;
+
 			CigarStringReader()
-			: it_c(iterator()), it_e(iterator()), current()
+			: it_c(iterator()), it_e(iterator()), current(), peekslot(), peekslotactive(false)
 			{
 
 			}
 
 			CigarStringReader(iterator rit_c, iterator rit_e)
-			: it_c(rit_c), it_e(rit_e), current(cigar_operation(0,0))
+			: it_c(rit_c), it_e(rit_e), current(cigar_operation(0,0)), peekslot(), peekslotactive(false)
 			{
 
 			}
 
 			bool getNext(::libmaus2::bambam::BamFlagBase::bam_cigar_ops & op)
 			{
+				if ( peekslotactive )
+				{
+					op = peekslot;
+					peekslotactive = false;
+					return true;
+				}
+
 				while ( (! current.second) && (it_c != it_e) )
 					current = *(it_c++);
 
 				if ( current.second )
 				{
 					current.second -= 1;
-					op = current.first;
+					op = static_cast<::libmaus2::bambam::BamFlagBase::bam_cigar_ops>(current.first);
 					return true;
 				}
 				else
 				{
 					return false;
+				}
+			}
+
+			bool peekNext(::libmaus2::bambam::BamFlagBase::bam_cigar_ops & op)
+			{
+				if ( peekslotactive )
+				{
+					op = peekslot;
+					return true;
+				}
+				else
+				{
+					peekslotactive = getNext(peekslot);
+					op = peekslot;
+					return peekslotactive;
 				}
 			}
 		};
