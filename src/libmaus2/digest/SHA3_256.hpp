@@ -16,20 +16,31 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_DIGEST_DIGESTS_HPP)
-#define LIBMAUS2_DIGEST_DIGESTS_HPP
+#if ! defined(LIBMAUS2_DIGEST_SHA3_256_HPP)
+#define LIBMAUS2_DIGEST_SHA3_256_HPP
 
-#include <libmaus2/digest/md5.hpp>
-#include <libmaus2/digest/CRC32.hpp>
-#include <libmaus2/digest/CRC32C.hpp>
-#include <libmaus2/digest/Null.hpp>
-#include <libmaus2/digest/SHA1.hpp>
-#include <libmaus2/digest/SHA2_224.hpp>
-#include <libmaus2/digest/SHA2_256.hpp>
-#include <libmaus2/digest/SHA2_384.hpp>
-#include <libmaus2/digest/SHA2_512.hpp>
-#include <libmaus2/digest/SHA2_256_sse4.hpp>
-#include <libmaus2/digest/SHA2_512_sse4.hpp>
-#include <libmaus2/digest/MurmurHash3_x64_128.hpp>
-#include <libmaus2/digest/SHA3_256.hpp>
+#include <libmaus2/digest/DigestBase.hpp>
+
+namespace libmaus2
+{
+	namespace digest
+	{
+		struct SHA3_256 : public DigestBase<32,6 /* block size 64 shift */, true /* need padding */, 8 /* number length */, false>
+		{
+			void * ctx;
+
+			SHA3_256();
+			~SHA3_256();
+
+			void init();
+			void update(uint8_t const * t, size_t l);
+			void digest(uint8_t * digest);
+			void copyFrom(SHA3_256 const & O);
+			static size_t getDigestLength() { return digestlength; }
+
+			void vinit();
+			void vupdate(uint8_t const * u, size_t l);
+		};
+	}
+}
 #endif

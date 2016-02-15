@@ -233,7 +233,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/lcs/FragmentEnvelopeFragment.cpp \
 	libmaus2/fastx/DNAIndexMetaDataSequence.cpp \
 	libmaus2/fastx/DNAIndexMetaData.cpp \
-	libmaus2/bambam/PileVectorElement.cpp
+	libmaus2/bambam/PileVectorElement.cpp \
+	libmaus2/digest/SHA3_256.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1461,7 +1462,8 @@ libmaus2digest_include_HEADERS=\
 	libmaus2/digest/DigestFactoryInterface.hpp \
 	libmaus2/digest/md5.hpp \
 	libmaus2/digest/md5.h \
-	libmaus2/digest/MurmurHash3_x64_128.hpp
+	libmaus2/digest/MurmurHash3_x64_128.hpp \
+	libmaus2/digest/SHA3_256.hpp
 
 libmaus2lf_includedir=$(includedir)/libmaus2/lf
 libmaus2lf_include_HEADERS=\

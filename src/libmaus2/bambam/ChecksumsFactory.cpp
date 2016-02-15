@@ -608,11 +608,13 @@ typedef SeqChksumsSimpleSums<libmaus2::bambam::MD5SeqChksumUpdateContext> MD5Seq
 typedef SeqChksumsSimpleSums<libmaus2::bambam::SHA1SeqChksumUpdateContext> SHA1SeqChksumsSimpleSums;
 typedef SeqChksumsSimpleSums<libmaus2::bambam::SHA2_224_SeqChksumUpdateContext> SHA2_224_SeqChksumsSimpleSums;
 typedef SeqChksumsSimpleSums<libmaus2::bambam::SHA2_256_SeqChksumUpdateContext> SHA2_256_SeqChksumsSimpleSums;
+typedef SeqChksumsSimpleSums<libmaus2::bambam::SHA3_256_SeqChksumUpdateContext> SHA3_256_SeqChksumsSimpleSums;
 typedef SeqChksumsSimpleSums<libmaus2::bambam::SHA2_256_sse4_SeqChksumUpdateContext> SHA2_256_sse4_SeqChksumsSimpleSums;
 typedef SeqChksumsSimpleSums<libmaus2::bambam::SHA2_384_SeqChksumUpdateContext> SHA2_384_SeqChksumsSimpleSums;
 typedef SeqChksumsSimpleSums<libmaus2::bambam::SHA2_512_SeqChksumUpdateContext> SHA2_512_SeqChksumsSimpleSums;
 typedef SeqChksumsSimpleSums<libmaus2::bambam::SHA2_512_sse4_SeqChksumUpdateContext> SHA2_512_sse4_SeqChksumsSimpleSums;
 typedef SeqChksumsSimpleSums<libmaus2::bambam::MurmurHash3_x64_128_SeqChksumUpdateContext> MurmurHash3_x64_128_SeqChksumsSimpleSums;
+typedef SeqChksumsSimpleSums<libmaus2::bambam::SHA3_256_SeqChksumUpdateContext> SHA3_256_SeqChksumsSimpleSums;
 
 typedef PrimeProduct<libmaus2::bambam::CRC32SeqChksumUpdateContext,32> CRC32PrimeProduct32;
 template<> libmaus2::math::UnsignedInteger<CRC32PrimeProduct32::productWidth> const CRC32PrimeProduct32::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getMersenne31<CRC32PrimeProduct32::productWidth>();
@@ -638,6 +640,10 @@ template<> libmaus2::math::UnsignedInteger<SHA2_224_PrimeProduct64::productWidth
 typedef PrimeProduct<libmaus2::bambam::SHA2_256_SeqChksumUpdateContext,64> SHA2_256_PrimeProduct64;
 template<> libmaus2::math::UnsignedInteger<SHA2_256_PrimeProduct64::productWidth> const SHA2_256_PrimeProduct64::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime64<SHA2_256_PrimeProduct64::productWidth>();
 template<> libmaus2::math::UnsignedInteger<SHA2_256_PrimeProduct64::productWidth> const SHA2_256_PrimeProduct64::foldprime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime64<SHA2_256_PrimeProduct64::productWidth>();
+
+typedef PrimeProduct<libmaus2::bambam::SHA3_256_SeqChksumUpdateContext,64> SHA3_256_PrimeProduct64;
+template<> libmaus2::math::UnsignedInteger<SHA3_256_PrimeProduct64::productWidth> const SHA3_256_PrimeProduct64::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime64<SHA3_256_PrimeProduct64::productWidth>();
+template<> libmaus2::math::UnsignedInteger<SHA3_256_PrimeProduct64::productWidth> const SHA3_256_PrimeProduct64::foldprime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime64<SHA3_256_PrimeProduct64::productWidth>();
 
 typedef PrimeProduct<libmaus2::bambam::SHA2_256_sse4_SeqChksumUpdateContext,64> SHA2_256_sse4_PrimeProduct64;
 template<> libmaus2::math::UnsignedInteger<SHA2_256_sse4_PrimeProduct64::productWidth> const SHA2_256_sse4_PrimeProduct64::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime64<SHA2_256_sse4_PrimeProduct64::productWidth>();
@@ -675,6 +681,10 @@ typedef PrimeProduct<libmaus2::bambam::SHA2_256_SeqChksumUpdateContext,96> SHA2_
 template<> libmaus2::math::UnsignedInteger<SHA2_256_PrimeProduct96::productWidth> const SHA2_256_PrimeProduct96::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime96<SHA2_256_PrimeProduct96::productWidth>();
 template<> libmaus2::math::UnsignedInteger<SHA2_256_PrimeProduct96::productWidth> const SHA2_256_PrimeProduct96::foldprime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime96<SHA2_256_PrimeProduct96::productWidth>();
 
+typedef PrimeProduct<libmaus2::bambam::SHA3_256_SeqChksumUpdateContext,96> SHA3_256_PrimeProduct96;
+template<> libmaus2::math::UnsignedInteger<SHA3_256_PrimeProduct96::productWidth> const SHA3_256_PrimeProduct96::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime96<SHA3_256_PrimeProduct96::productWidth>();
+template<> libmaus2::math::UnsignedInteger<SHA3_256_PrimeProduct96::productWidth> const SHA3_256_PrimeProduct96::foldprime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime96<SHA3_256_PrimeProduct96::productWidth>();
+
 typedef PrimeProduct<libmaus2::bambam::SHA2_256_sse4_SeqChksumUpdateContext,96> SHA2_256_sse4_PrimeProduct96;
 template<> libmaus2::math::UnsignedInteger<SHA2_256_sse4_PrimeProduct96::productWidth> const SHA2_256_sse4_PrimeProduct96::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime96<SHA2_256_sse4_PrimeProduct96::productWidth>();
 template<> libmaus2::math::UnsignedInteger<SHA2_256_sse4_PrimeProduct96::productWidth> const SHA2_256_sse4_PrimeProduct96::foldprime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime96<SHA2_256_sse4_PrimeProduct96::productWidth>();
@@ -710,6 +720,10 @@ template<> libmaus2::math::UnsignedInteger<SHA2_224_PrimeProduct128::productWidt
 typedef PrimeProduct<libmaus2::bambam::SHA2_256_SeqChksumUpdateContext,128> SHA2_256_PrimeProduct128;
 template<> libmaus2::math::UnsignedInteger<SHA2_256_PrimeProduct128::productWidth> const SHA2_256_PrimeProduct128::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime128<SHA2_256_PrimeProduct128::productWidth>();
 template<> libmaus2::math::UnsignedInteger<SHA2_256_PrimeProduct128::productWidth> const SHA2_256_PrimeProduct128::foldprime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime128<SHA2_256_PrimeProduct128::productWidth>();
+
+typedef PrimeProduct<libmaus2::bambam::SHA3_256_SeqChksumUpdateContext,128> SHA3_256_PrimeProduct128;
+template<> libmaus2::math::UnsignedInteger<SHA3_256_PrimeProduct128::productWidth> const SHA3_256_PrimeProduct128::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime128<SHA3_256_PrimeProduct128::productWidth>();
+template<> libmaus2::math::UnsignedInteger<SHA3_256_PrimeProduct128::productWidth> const SHA3_256_PrimeProduct128::foldprime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime128<SHA3_256_PrimeProduct128::productWidth>();
 
 typedef PrimeProduct<libmaus2::bambam::SHA2_256_sse4_SeqChksumUpdateContext,128> SHA2_256_sse4_PrimeProduct128;
 template<> libmaus2::math::UnsignedInteger<SHA2_256_sse4_PrimeProduct128::productWidth> const SHA2_256_sse4_PrimeProduct128::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime128<SHA2_256_sse4_PrimeProduct128::productWidth>();
@@ -747,6 +761,10 @@ typedef PrimeProduct<libmaus2::bambam::SHA2_256_SeqChksumUpdateContext,160> SHA2
 template<> libmaus2::math::UnsignedInteger<SHA2_256_PrimeProduct160::productWidth> const SHA2_256_PrimeProduct160::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime160<SHA2_256_PrimeProduct160::productWidth>();
 template<> libmaus2::math::UnsignedInteger<SHA2_256_PrimeProduct160::productWidth> const SHA2_256_PrimeProduct160::foldprime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime160<SHA2_256_PrimeProduct160::productWidth>();
 
+typedef PrimeProduct<libmaus2::bambam::SHA3_256_SeqChksumUpdateContext,160> SHA3_256_PrimeProduct160;
+template<> libmaus2::math::UnsignedInteger<SHA3_256_PrimeProduct160::productWidth> const SHA3_256_PrimeProduct160::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime160<SHA3_256_PrimeProduct160::productWidth>();
+template<> libmaus2::math::UnsignedInteger<SHA3_256_PrimeProduct160::productWidth> const SHA3_256_PrimeProduct160::foldprime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime160<SHA3_256_PrimeProduct160::productWidth>();
+
 typedef PrimeProduct<libmaus2::bambam::SHA2_256_sse4_SeqChksumUpdateContext,160> SHA2_256_sse4_PrimeProduct160;
 template<> libmaus2::math::UnsignedInteger<SHA2_256_sse4_PrimeProduct160::productWidth> const SHA2_256_sse4_PrimeProduct160::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime160<SHA2_256_sse4_PrimeProduct160::productWidth>();
 template<> libmaus2::math::UnsignedInteger<SHA2_256_sse4_PrimeProduct160::productWidth> const SHA2_256_sse4_PrimeProduct160::foldprime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime160<SHA2_256_sse4_PrimeProduct160::productWidth>();
@@ -782,6 +800,10 @@ template<> libmaus2::math::UnsignedInteger<SHA2_224_PrimeProduct192::productWidt
 typedef PrimeProduct<libmaus2::bambam::SHA2_256_SeqChksumUpdateContext,192> SHA2_256_PrimeProduct192;
 template<> libmaus2::math::UnsignedInteger<SHA2_256_PrimeProduct192::productWidth> const SHA2_256_PrimeProduct192::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime192<SHA2_256_PrimeProduct192::productWidth>();
 template<> libmaus2::math::UnsignedInteger<SHA2_256_PrimeProduct192::productWidth> const SHA2_256_PrimeProduct192::foldprime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime192<SHA2_256_PrimeProduct192::productWidth>();
+
+typedef PrimeProduct<libmaus2::bambam::SHA3_256_SeqChksumUpdateContext,192> SHA3_256_PrimeProduct192;
+template<> libmaus2::math::UnsignedInteger<SHA3_256_PrimeProduct192::productWidth> const SHA3_256_PrimeProduct192::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime192<SHA3_256_PrimeProduct192::productWidth>();
+template<> libmaus2::math::UnsignedInteger<SHA3_256_PrimeProduct192::productWidth> const SHA3_256_PrimeProduct192::foldprime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime192<SHA3_256_PrimeProduct192::productWidth>();
 
 typedef PrimeProduct<libmaus2::bambam::SHA2_256_sse4_SeqChksumUpdateContext,192> SHA2_256_sse4_PrimeProduct192;
 template<> libmaus2::math::UnsignedInteger<SHA2_256_sse4_PrimeProduct192::productWidth> const SHA2_256_sse4_PrimeProduct192::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime192<SHA2_256_sse4_PrimeProduct192::productWidth>();
@@ -819,6 +841,10 @@ typedef PrimeProduct<libmaus2::bambam::SHA2_256_SeqChksumUpdateContext,224> SHA2
 template<> libmaus2::math::UnsignedInteger<SHA2_256_PrimeProduct224::productWidth> const SHA2_256_PrimeProduct224::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime224<SHA2_256_PrimeProduct224::productWidth>();
 template<> libmaus2::math::UnsignedInteger<SHA2_256_PrimeProduct224::productWidth> const SHA2_256_PrimeProduct224::foldprime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime224<SHA2_256_PrimeProduct224::productWidth>();
 
+typedef PrimeProduct<libmaus2::bambam::SHA3_256_SeqChksumUpdateContext,224> SHA3_256_PrimeProduct224;
+template<> libmaus2::math::UnsignedInteger<SHA3_256_PrimeProduct224::productWidth> const SHA3_256_PrimeProduct224::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime224<SHA3_256_PrimeProduct224::productWidth>();
+template<> libmaus2::math::UnsignedInteger<SHA3_256_PrimeProduct224::productWidth> const SHA3_256_PrimeProduct224::foldprime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime224<SHA3_256_PrimeProduct224::productWidth>();
+
 typedef PrimeProduct<libmaus2::bambam::SHA2_256_sse4_SeqChksumUpdateContext,224> SHA2_256_sse4_PrimeProduct224;
 template<> libmaus2::math::UnsignedInteger<SHA2_256_sse4_PrimeProduct224::productWidth> const SHA2_256_sse4_PrimeProduct224::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime224<SHA2_256_sse4_PrimeProduct224::productWidth>();
 template<> libmaus2::math::UnsignedInteger<SHA2_256_sse4_PrimeProduct224::productWidth> const SHA2_256_sse4_PrimeProduct224::foldprime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime224<SHA2_256_sse4_PrimeProduct224::productWidth>();
@@ -854,6 +880,10 @@ template<> libmaus2::math::UnsignedInteger<SHA2_224_PrimeProduct256::productWidt
 typedef PrimeProduct<libmaus2::bambam::SHA2_256_SeqChksumUpdateContext,256> SHA2_256_PrimeProduct256;
 template<> libmaus2::math::UnsignedInteger<SHA2_256_PrimeProduct256::productWidth> const SHA2_256_PrimeProduct256::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime256<SHA2_256_PrimeProduct256::productWidth>();
 template<> libmaus2::math::UnsignedInteger<SHA2_256_PrimeProduct256::productWidth> const SHA2_256_PrimeProduct256::foldprime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime256<SHA2_256_PrimeProduct256::productWidth>();
+
+typedef PrimeProduct<libmaus2::bambam::SHA3_256_SeqChksumUpdateContext,256> SHA3_256_PrimeProduct256;
+template<> libmaus2::math::UnsignedInteger<SHA3_256_PrimeProduct256::productWidth> const SHA3_256_PrimeProduct256::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime256<SHA3_256_PrimeProduct256::productWidth>();
+template<> libmaus2::math::UnsignedInteger<SHA3_256_PrimeProduct256::productWidth> const SHA3_256_PrimeProduct256::foldprime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime256<SHA3_256_PrimeProduct256::productWidth>();
 
 typedef PrimeProduct<libmaus2::bambam::SHA2_256_sse4_SeqChksumUpdateContext,256> SHA2_256_sse4_PrimeProduct256;
 template<> libmaus2::math::UnsignedInteger<SHA2_256_sse4_PrimeProduct256::productWidth> const SHA2_256_sse4_PrimeProduct256::prime = libmaus2::bambam::SeqChksumPrimeNumbers::getPrime256<SHA2_256_sse4_PrimeProduct256::productWidth>();
@@ -1628,6 +1658,10 @@ std::vector<std::string> libmaus2::bambam::ChecksumsFactory::getSupportedHashVar
 	V.push_back("sha512primesums512");
 	#endif
 
+	#if defined(LIBMAUS2_HAVE_NETTLE) && defined(LIBMAUS2_NETTLE_HAVE_SHA3)
+	V.push_back("sha3_256");
+	#endif
+
 	#if (!defined(LIBMAUS2_HAVE_NETTLE)) && (defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386) && defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY))
 	V.push_back("sha256");
 	V.push_back("sha512");
@@ -1702,7 +1736,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 	}
 	else if ( hash == "sha256" )
 	{
-		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386) && defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 		{
 			// std::cerr << "[V] running sse4 SHA2_256" << std::endl;
@@ -1723,7 +1757,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 	}
 	else if ( hash == "sha512" )
 	{
-		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386) && defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 		{
 			// std::cerr << "[V] running sse4 SHA2_512" << std::endl;
@@ -1737,6 +1771,13 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 			return UNIQUE_PTR_MOVE(tptr);
 		}
 	}
+	#if defined(LIBMAUS2_NETTLE_HAVE_SHA3)
+	else if ( hash == "sha3_256" )
+	{
+		libmaus2::bambam::ChecksumsInterface::unique_ptr_type tptr(new Checksums<SHA3_256_SeqChksumsSimpleSums,header_type>(hash,header));
+		return UNIQUE_PTR_MOVE(tptr);
+	}
+	#endif
 	#endif
 	else if ( hash == "murmur3" )
 	{
