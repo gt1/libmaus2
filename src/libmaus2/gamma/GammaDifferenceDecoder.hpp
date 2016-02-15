@@ -158,6 +158,16 @@ namespace libmaus2
 					return false;
 				}
 			}
+
+			data_type decodeAbsolute()
+			{
+				return Gdec->decode();
+			}
+
+			data_type decodeWord(unsigned int const b)
+			{
+				return Gdec->decodeWord(b);
+			}
 		};
 	}
 }
