@@ -81,7 +81,7 @@ namespace libmaus2
 				if ( uncompdatasize > getBgzfMaxBlockSize() )
 				{
 					::libmaus2::exception::LibMausException se;
-					se.getStream() << "BgzfInflateBase::readData(): uncompressed size is too large";
+					se.getStream() << "BgzfInflateBase::readData(): uncompressed size is too large: " << uncompdatasize << " > " << getBgzfMaxBlockSize() << std::endl;
 					se.finish(false);
 					throw se;
 
