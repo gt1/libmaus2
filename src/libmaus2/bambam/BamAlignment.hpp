@@ -29,6 +29,7 @@
 #include <libmaus2/util/utf8.hpp>
 #include <libmaus2/bitio/BitVector.hpp>
 #include <libmaus2/math/IntegerInterval.hpp>
+#include <libmaus2/bambam/CigarStringReader.hpp>
 
 namespace libmaus2
 {
@@ -270,6 +271,116 @@ namespace libmaus2
 			uint32_t getCigarOperations(libmaus2::autoarray::AutoArray<cigar_operation> & cigop) const
 			{
 				return ::libmaus2::bambam::BamAlignmentDecoderBase::getCigarOperations(D.begin(),cigop);
+			}
+
+			void getMappingPositionPairs(std::vector<std::pair<int64_t,int64_t> > & V) const
+			{
+				if ( isUnmap() )
+					return;
+
+				libmaus2::autoarray::AutoArray<cigar_operation> Acigop, Bcigop;
+				uint64_t const numciga = getCigarOperations(Acigop);
+				libmaus2::bambam::CigarStringReader<cigar_operation const *> RA(Acigop.begin(),Acigop.begin()+numciga);
+				::libmaus2::bambam::BamFlagBase::bam_cigar_ops opA;
+
+				int64_t readposa = 0;
+				while (
+					RA.peekNext(opA) &&
+					opA != BamFlagBase::LIBMAUS2_BAMBAM_CMATCH &&
+					opA != BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL &&
+					opA != BamFlagBase::LIBMAUS2_BAMBAM_CDIFF
+				)
+				{
+					RA.getNext(opA);
+
+					switch ( opA )
+					{
+						case BamFlagBase::LIBMAUS2_BAMBAM_CMATCH:
+						case BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL:
+						case BamFlagBase::LIBMAUS2_BAMBAM_CDIFF:
+						case BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP:
+						case BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP:
+						case BamFlagBase::LIBMAUS2_BAMBAM_CINS:
+							readposa += 1;
+							break;
+						case BamFlagBase::LIBMAUS2_BAMBAM_CDEL:
+						case BamFlagBase::LIBMAUS2_BAMBAM_CREF_SKIP:
+						case BamFlagBase::LIBMAUS2_BAMBAM_CPAD:
+						default:
+							break;
+					}
+				}
+
+				int64_t refposa = getPos();
+
+				while ( RA.getNext(opA) )
+				{
+					switch ( opA )
+					{
+						case BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL:
+							V.push_back(std::pair<int64_t,int64_t>(refposa,readposa));
+						case BamFlagBase::LIBMAUS2_BAMBAM_CMATCH:
+						case BamFlagBase::LIBMAUS2_BAMBAM_CDIFF:
+							refposa += 1;
+							readposa += 1;
+							break;
+						case BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP:
+						case BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP:
+						case BamFlagBase::LIBMAUS2_BAMBAM_CINS:
+							readposa += 1;
+							break;
+						case BamFlagBase::LIBMAUS2_BAMBAM_CDEL:
+						case BamFlagBase::LIBMAUS2_BAMBAM_CREF_SKIP:
+						case BamFlagBase::LIBMAUS2_BAMBAM_CPAD:
+							refposa += 1;
+						default:
+							break;
+					}
+				}
+			}
+
+			/**
+			 *
+			 **/
+			static bool cross(
+				BamAlignment const & A,
+				BamAlignment const & B
+			)
+			{
+				if ( A.isUnmap() || B.isUnmap() )
+					return false;
+				assert ( A.isMapped() && B.isMapped() );
+
+				if ( A.getRefID() != B.getRefID() )
+					return false;
+				if ( A.isReverse() != B.isReverse() )
+					return false;
+
+				std::vector<std::pair<int64_t,int64_t> > VA;
+				std::vector<std::pair<int64_t,int64_t> > VB;
+				A.getMappingPositionPairs(VA);
+				B.getMappingPositionPairs(VB);
+				std::sort(VA.begin(),VA.end());
+				std::sort(VB.begin(),VB.end());
+				VA.resize(std::unique(VA.begin(),VA.end())-VA.begin());
+				VB.resize(std::unique(VB.begin(),VB.end())-VB.begin());
+				std::copy(VB.begin(),VB.end(),std::back_insert_iterator<std::vector<std::pair<int64_t,int64_t> > >(VA));
+				std::sort(VA.begin(),VA.end());
+
+				uint64_t low = 0;
+				while ( low < VA.size() )
+				{
+					uint64_t high = low+1;
+					while ( high < VA.size() && VA[low] == VA[high] )
+						++high;
+
+					if ( high-low > 1 )
+						return true;
+
+					low = high;
+				}
+
+				return false;
 			}
 
 			/**

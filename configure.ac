@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.123,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
-LIBRARY_VERSION=2:123:0
+AC_INIT(libmaus2,2.0.124,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
+LIBRARY_VERSION=2:124:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -2791,7 +2791,7 @@ if test "${with_nettle}" != "no" ; then
 		LIBS="${LIBS} ${nettle_LIBS}"
 		CPPFLAGSSAVE="${CPPFLAGS}"
 		CPPFLAGS="${CPPFLAGS} ${nettle_CFLAGS}"
-		
+
 		AC_MSG_CHECKING([whether we can compile a nettle program])
 		AC_TRY_LINK([#include <nettle/sha.h>
 	],[;],[nettle=yes],[nettle=no])
@@ -2812,6 +2812,27 @@ if test "${with_nettle}" != "no" ; then
 		fi
 	else
 		AC_MSG_ERROR([nettle not found in required version])
+	fi
+
+	if [[ ! -z "${NETTLE}" ]] ; then
+		AC_LANG_PUSH([C++])
+		LIBSSAVE="${LIBS}"
+		LIBS="${LIBS} ${nettle_LIBS}"
+		CPPFLAGSSAVE="${CPPFLAGS}"
+		CPPFLAGS="${CPPFLAGS} ${nettle_CFLAGS}"
+
+		AC_MSG_CHECKING([whether we can compile a program including nettle/sha3.h])
+		AC_TRY_LINK([#include <nettle/sha3.h>
+	],[;],[nettle_sha_3=yes],[nettle_sha_3=no])
+		AC_MSG_RESULT([${nettle_sha_3}])
+		LIBS="${LIBSSAVE}"
+		CPPFLAGS="${CPPFLAGSSAVE}"
+
+		AC_LANG_POP
+
+		if [[ "$nettle_sha_3" = "yes" ]] ; then
+			LIBMAUS2_NETTLE_HAVE_SHA3="#define LIBMAUS2_NETTLE_HAVE_SHA3"
+		fi
 	fi
 fi
 
@@ -3553,4 +3574,5 @@ AC_SUBST([LIBMAUS2_LZMA_LIBS])
 AC_SUBST([LIBMAUS2_LZMA_CPPFLAGS])
 AC_SUBST([LIBMAUS2_LZMA_REQ])
 AC_SUBST([LIBMAUS2_IRODS_NEED_PREFIX])
+AC_SUBST([LIBMAUS2_NETTLE_HAVE_SHA3])
 AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2lsf.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp)
