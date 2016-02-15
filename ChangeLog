@@ -1,3 +1,12 @@
+libmaus2 (2.0.124-1) unstable; urgency=medium
+
+  * add SHA3 hash for seq checksums
+  * add CigarStringReader class for reading block encoded cigar operations operation by operation
+  * add getMappingPositionPairs and cross methods in BamAlignment class
+  * add cigarBlocksToString function in CigarStringParser
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 15 Feb 2016 10:00:36 +0100
+
 libmaus2 (2.0.123-1) unstable; urgency=medium
 
   * add getReferenceInterval method in BamAlignment class
