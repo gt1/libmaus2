@@ -61,7 +61,7 @@ namespace libmaus2
 				if ( current.second )
 				{
 					current.second -= 1;
-					op = static_cast<::libmaus2::bambam::BamFlagBase::bam_cigar_ops>(current.first);
+					op = static_cast< ::libmaus2::bambam::BamFlagBase::bam_cigar_ops >(current.first);
 					return true;
 				}
 				else

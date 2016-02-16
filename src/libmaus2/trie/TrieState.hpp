@@ -220,10 +220,7 @@ namespace libmaus2
 			}
 
 			LinearHashTrie(uint64_t const rnumedges, double const lf = 0.7)
-			: V(),
-			  H(
-			  	new ::libmaus2::util::SimpleHashMap<uint64_t,id_type>(ensureSize(rnumedges,::libmaus2::math::ilog( rnumedges * (1.0/lf)) ) )
-			  )
+			: V(), H(new ::libmaus2::util::SimpleHashMap<uint64_t,id_type>(ensureSize(rnumedges,::libmaus2::math::ilog( static_cast<uint64_t>( rnumedges * (1.0/lf)) ) ) ))
 			{}
 
 			private:

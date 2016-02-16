@@ -1,3 +1,11 @@
+libmaus2 (2.0.125-1) unstable; urgency=medium
+
+  * add pointer types in PosixConditionSemaphore
+  * add encoding of absolute values in GammaDifference(Encoder|Decoder)
+  * fix compilation on gcc 4.1.2
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 16 Feb 2016 09:56:54 +0100
+
 libmaus2 (2.0.124-1) unstable; urgency=medium
 
   * add SHA3 hash for seq checksums

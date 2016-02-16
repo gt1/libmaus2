@@ -7,11 +7,11 @@
 #if ! defined(LIBMAUS2_DIGEST_MURMURHASH3_X64_128_CONTEXT_HPP)
 #define LIBMAUS2_DIGEST_MURMURHASH3_X64_128_CONTEXT_HPP
 
-#include <cstdint>
 #include <cstdlib>
 #include <algorithm>
 #include <utility>
 #include <libmaus2/digest/DigestBase.hpp>
+#include <libmaus2/types/types.hpp>
 
 namespace libmaus2
 {

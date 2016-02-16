@@ -104,6 +104,16 @@ namespace libmaus2
 				encode(GammaDifferenceEncoderNumberCast<data_type>::numberCast(v));
 			}
 
+			void encodeWord(data_type const v, unsigned int const b)
+			{
+				Genc->encodeWord(v,b);
+			}
+
+			void encodeAbsolute(data_type const v)
+			{
+				Genc->encode(v);
+			}
+
 			void flush()
 			{
 				if ( Genc )
