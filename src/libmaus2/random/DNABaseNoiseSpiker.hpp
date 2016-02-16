@@ -225,6 +225,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < sub.size(); ++i )
 				    errM[i] = std::vector<err_type_enum>(0);
 
+				errostr << "ERRINTV=[[";
 				uint64_t low = 0;
 				while ( low < sub.size() )
 				{
@@ -240,9 +241,12 @@ namespace libmaus2
 
 				    uint64_t const numerr = std::floor(erate * (high-low) + 0.5);
 
-				    errostr << "einterval(" << "[" << low << "," << high << ")" << ",erate=" << erate << ",numerr=" << numerr << ')' << ';';
+				    // errostr << "intv(" << "[" << low << "," << high << ")" << ",erate=" << erate << ",numerr=" << numerr << ')' << ';';
 
 				    uint64_t errplaced = 0;
+				    uint64_t insplaced = 0;
+				    uint64_t subplaced = 0;
+				    uint64_t delplaced = 0;
 
 				    while ( errplaced < numerr )
 				    {
@@ -256,6 +260,7 @@ namespace libmaus2
 					    {
 						errM[errpos].push_back(err_subst);
 						errplaced++;
+						subplaced++;
 					    }
 					    // no error so far a deletion or substitution?
 					    else if (
@@ -266,6 +271,7 @@ namespace libmaus2
 					    {
 						errM[errpos].push_back(err_subst);
 						errplaced++;
+						subplaced++;
 					    }
 					}
 					else if ( p < err_prob_cumul.find(err_del)->second )
@@ -275,6 +281,7 @@ namespace libmaus2
 					    {
 						errM[errpos].push_back(err_del);
 						errplaced++;
+						delplaced++;
 					    }
 					    // no error so far a deletion or substitution?
 					    else if (
@@ -285,17 +292,27 @@ namespace libmaus2
 					    {
 						errM[errpos].push_back(err_subst);
 						errplaced++;
+						subplaced++;
 					    }
 					}
 					else
 					{
 					    errM[errpos].push_back(err_ins);
 					    errplaced++;
+					    insplaced++;
 					}
 				    }
 
+				    errostr << "intv(" << "[" << low << "," << high << ")" << ",erate=" << erate
+				    	<< ",numerr=" << numerr
+				    	<< ",ins=" << insplaced
+				    	<< ",sub=" << subplaced
+				    	<< ",del=" << delplaced
+				    	<< ')' << ';';
+
 				    low = high;
 				}
+				errostr << "]]";
 
 				errostr << "pos=" << pos << ';';
 				errostr << "strand=" << strand << ';';
