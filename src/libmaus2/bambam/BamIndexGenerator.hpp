@@ -265,8 +265,31 @@ namespace libmaus2
 				return BC.refid;
 			}
 
+			template<typename stream_type>
+			static int64_t peekLinearChunk(stream_type & stream)
+			{
+				::libmaus2::bambam::BamIndexLinearChunk LC;
+
+				if ( stream.peek() == stream_type::traits_type::eof() )
+					return -1;
+
+				stream.read(
+					reinterpret_cast<char *>(&LC),
+					sizeof(::libmaus2::bambam::BamIndexLinearChunk)
+				);
+
+				assert ( stream.gcount() == sizeof(::libmaus2::bambam::BamIndexLinearChunk) );
+
+				stream.clear();
+				stream.seekg(-static_cast<int64_t>(sizeof(::libmaus2::bambam::BamIndexLinearChunk)),std::ios::cur);
+
+				return LC.refid;
+			}
+
 			static bool checkConsisteny(std::string const & binfn, std::string const & linfn, uint64_t const numrefseq)
 			{
+				bool consistent = true;
+
 				::libmaus2::aio::InputStream::unique_ptr_type PbinCIS(::libmaus2::aio::InputStreamFactoryContainer::constructUnique(binfn));
 				std::istream & binCIS = *PbinCIS;
 				::libmaus2::aio::InputStream::unique_ptr_type PlinCIS(::libmaus2::aio::InputStreamFactoryContainer::constructUnique(linfn));
@@ -274,32 +297,64 @@ namespace libmaus2
 
 				while (
 					binCIS.peek() != ::std::istream::traits_type::eof()
-					&&
+					||
 					linCIS.peek() != ::std::istream::traits_type::eof()
 				)
 				{
-					std::pair<int64_t,uint64_t> const L = countLinearChunks(linCIS);
-					std::pair<int64_t,uint64_t> const B = countDistinctBins(binCIS);
+					int64_t const nextlin = peekLinearChunk(linCIS);
+					int64_t const nextbin = peekBin(binCIS);
 
-					if ( L.first != B.first )
+					if ( binCIS.peek() == ::std::istream::traits_type::eof() )
 					{
-						std::cerr << "BamIndexGenerator::checkConsisteny(): inconsistent L.first=" << L.first << " != B.first=" << B.first << std::endl;
-						return false;
+						std::cerr << "[W] BamIndexGenerator::checkConsisteny(): warning, linear chunks for refid " << nextlin << " without corresponding bin chunks" << std::endl;
+						countLinearChunks(linCIS);
+						consistent = false;
 					}
-
-					if ( L.first >= static_cast<int64_t>(numrefseq) )
+					else if ( linCIS.peek() == ::std::istream::traits_type::eof() )
 					{
-						std::cerr << "BamIndexGenerator::checkConsisteny(): inconsistent L.first=" << L.first << " >= numrefseq=" << numrefseq << std::endl;
-						return false;
+						std::cerr << "[W] BamIndexGenerator::checkConsisteny(): warning, bin chunks for refid " << nextbin << " without corresponding linear chunks" << std::endl;
+						countDistinctBins(binCIS);
+						consistent = false;
+					}
+					else if ( nextlin < nextbin )
+					{
+						std::cerr << "[W] BamIndexGenerator::checkConsisteny(): warning, linear chunks for refid " << nextlin << " without corresponding bin chunks" << std::endl;
+						countLinearChunks(linCIS);
+						consistent = false;
+					}
+					else if ( nextbin < nextlin )
+					{
+						std::cerr << "[W] BamIndexGenerator::checkConsisteny(): warning, bin chunks for refid " << nextbin << " without corresponding linear chunks" << std::endl;
+						countDistinctBins(binCIS);
+						consistent = false;
+					}
+					else
+					{
+						assert ( binCIS.peek() != ::std::istream::traits_type::eof() );
+						assert ( linCIS.peek() != ::std::istream::traits_type::eof() );
+						assert ( nextlin == nextbin );
+
+						std::pair<int64_t,uint64_t> const L = countLinearChunks(linCIS);
+						std::pair<int64_t,uint64_t> const B = countDistinctBins(binCIS);
+
+						if ( L.first != B.first )
+						{
+							std::cerr << "BamIndexGenerator::checkConsisteny(): inconsistent L.first=" << L.first << " != B.first=" << B.first << std::endl;
+							consistent = false;
+						}
+
+						if ( L.first >= static_cast<int64_t>(numrefseq) )
+						{
+							std::cerr << "BamIndexGenerator::checkConsisteny(): inconsistent L.first=" << L.first << " >= numrefseq=" << numrefseq << std::endl;
+							consistent = false;
+						}
 					}
 				}
 
-				if ( binCIS.peek() != linCIS.peek() )
-				{
-					std::cerr << "BamIndexGenerator::checkConsisteny(): inconsistent binCIS.peek()=" << binCIS.peek() << " != linCIS.peek()=" << linCIS.peek() << std::endl;
-				}
+				assert ( binCIS.peek() == ::std::istream::traits_type::eof() );
+				assert ( linCIS.peek() == ::std::istream::traits_type::eof() );
 
-				return binCIS.peek() == linCIS.peek();
+				return consistent;
 			}
 
 
@@ -760,12 +815,7 @@ namespace libmaus2
 				bool const consistent = checkConsisteny(binchunktmpfilename,linchunktmpfilename,header.getNumRef());
 
 				if ( ! consistent )
-				{
-					::libmaus2::exception::LibMausException se;
-					se.getStream() << "bin index and linear index are inconsistent." << std::endl;
-					se.finish();
-					throw se;
-				}
+					std::cerr << "[W] BamIndexGenerator::flush: warning, bin index and linear index look inconsistent" << std::endl;
 
 				/* write index */
 				::libmaus2::aio::InputStream::unique_ptr_type PbinCIS(::libmaus2::aio::InputStreamFactoryContainer::constructUnique(binchunktmpfilename));
@@ -862,36 +912,51 @@ namespace libmaus2
 							::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.unmapped);
 						}
 
-						uint64_t const lprepos = linCIS.tellg();
-						std::pair<int64_t,int64_t> const Q = getLinearMaxChunk(linCIS);
-						assert ( Q.first == static_cast<int64_t>(i) );
-						linCIS.seekg(lprepos,std::ios::beg);
-						linCIS.clear();
-
-						uint64_t const numchunks = Q.second+1; // maximum chunk id + 1
-
-						// number of linear chunks bins
-						::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,numchunks);
-						// previous offset value
-						uint64_t prevoff = 0;
-
-						for ( uint64_t c = 0; c < numchunks; ++c )
+						while (
+							peekLinearChunk(linCIS) != -1
+							&&
+							peekLinearChunk(linCIS) < static_cast<int64_t>(i)
+						)
 						{
-							if ( peekLinearChunk(linCIS,P.first,c /*c*posperchunk,14*/) )
-							{
-								::libmaus2::bambam::BamIndexLinearChunk LC;
-								linCIS.read(reinterpret_cast<char *>(&LC),sizeof(::libmaus2::bambam::BamIndexLinearChunk));
-								prevoff = LC.getOffset();
-								::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,prevoff);
+							std::cerr << "[W] BamIndexGenerator::flush: warning, skipping data for linear chunk " << peekLinearChunk(linCIS) << std::endl;
+							std::pair<int64_t,uint64_t> const P = countLinearChunks(linCIS);
+							assert ( P.first != -1 );
+							assert ( P.first < static_cast<int64_t>(i) );
+						}
 
-								if ( debug )
-									std::cerr << "LC[" << c << "]=" << LC << " -> " << prevoff << std::endl;
-							}
-							else
+						if ( peekLinearChunk(linCIS) != -1 && peekLinearChunk(linCIS) == static_cast<int64_t>(i) )
+						{
+							uint64_t const lprepos = linCIS.tellg();
+							std::pair<int64_t,int64_t> const Q = getLinearMaxChunk(linCIS);
+							assert ( Q.first == static_cast<int64_t>(i) );
+							linCIS.seekg(lprepos,std::ios::beg);
+							linCIS.clear();
+
+							uint64_t const numchunks = Q.second+1; // maximum chunk id + 1
+
+							// number of linear chunks bins
+							::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,numchunks);
+							// previous offset value
+							uint64_t prevoff = 0;
+
+							for ( uint64_t c = 0; c < numchunks; ++c )
 							{
-								::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,prevoff);
-								if ( debug )
-									std::cerr << "LC[" << c << "]=" << "null -> " << prevoff << std::endl;
+								if ( peekLinearChunk(linCIS,P.first,c /*c*posperchunk,14*/) )
+								{
+									::libmaus2::bambam::BamIndexLinearChunk LC;
+									linCIS.read(reinterpret_cast<char *>(&LC),sizeof(::libmaus2::bambam::BamIndexLinearChunk));
+									prevoff = LC.getOffset();
+									::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,prevoff);
+
+									if ( debug )
+										std::cerr << "LC[" << c << "]=" << LC << " -> " << prevoff << std::endl;
+								}
+								else
+								{
+									::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,prevoff);
+									if ( debug )
+										std::cerr << "LC[" << c << "]=" << "null -> " << prevoff << std::endl;
+								}
 							}
 						}
 					}
