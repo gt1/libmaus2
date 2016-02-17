@@ -1,3 +1,9 @@
+libmaus2 (2.0.126-1) unstable; urgency=medium
+
+  * print warning when linear and bin index are inconsistent instead of failing in BamIndexGenerator 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 17 Feb 2016 09:49:25 +0100
+
 libmaus2 (2.0.125-1) unstable; urgency=medium
 
   * add pointer types in PosixConditionSemaphore
