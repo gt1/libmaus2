@@ -427,37 +427,74 @@ std::vector<std::string> parseCommand(std::string const & command)
 	return V;
 }
 
+static uint64_t tmpid = 0;
+
+static void fillId(char * p, uint64_t id, char const sym)
+{
+	// look for first Z
+	while ( *p && *p != sym )
+		++p;
+
+	// if any
+	if ( *p )
+	{
+		// this should be Z
+		assert ( *p == sym );
+
+		// cound number of Z
+		uint64_t numz = 0;
+		while ( *p && *p == sym )
+		{
+			++p;
+			++numz;
+		}
+
+		// fill Z area
+		while ( numz-- )
+		{
+			*(--p) = '0' + (id % 10);
+			id /= 10;
+		}
+	}
+}
+
 int libmaus2::util::PosixExecute::execute(std::string const & command, std::string & out, std::string & err, bool const donotthrow)
 {
+	std::vector<std::string> V = parseCommand(command);
+	std::ostringstream debugstr;
+
 	libmaus2::parallel::ScopePosixMutex slock(libmaus2::util::PosixExecute::lock);
-	char stderrfn[] = "/tmp/libmaus2::util::PosixExecute::execute_XXXXXX";
-	char stdoutfn[] = "/tmp/libmaus2::util::PosixExecute::execute_XXXXXX";
+	char stderrfn[] = "/tmp/libmaus2::util::PosixExecute::execute_err_IIIIIIIIIIIIIII_ZZZZZZZZZZZZ_XXXXXX";
+	char stdoutfn[] = "/tmp/libmaus2::util::PosixExecute::execute_out_IIIIIIIIIIIIIII_ZZZZZZZZZZZZ_XXXXXX";
+	int returncode = EXIT_SUCCESS;
 	bool stderrfnvalid = false;
 	bool stdoutfnvalid = false;
+
 	int stderrfd = -1;
 	int stdoutfd = -1;
 	int nullfd = -1;
-	int returncode = EXIT_SUCCESS;
-	pid_t child = -1;
+	char ** argptrs = NULL;
+
+	char * argmem = NULL;
+	size_t argmemsize = 0;
+	char * argmemt = NULL;
 	int error = 0;
+	char const * failedsyscall = NULL;
+	pid_t child = -1;
 	char * tempmemerr = NULL;
 	char * tempmemout = NULL;
 	struct stat staterr;
 	struct stat statout;
 	size_t errread = 0;
 	size_t outread = 0;
-	int stdindup = -1;
-	int stdoutdup = -1;
-	int stderrdup = -1;
-	bool copybackin = false;
-	bool copybackout = false;
-	bool copybackerr = false;
-	/* int r; */
-	std::vector<std::string> V = parseCommand(command);
-	char * argmem = NULL;
-	size_t argmemsize = 0;
-	char * argmemt = NULL;
-	char ** argptrs = NULL;
+
+	uint64_t thistmpid = tmpid++;
+	uint64_t mypid = getpid();
+
+	fillId(&stderrfn[0],thistmpid,'Z');
+	fillId(&stdoutfn[0],thistmpid,'Z');
+	fillId(&stderrfn[0],mypid,'I');
+	fillId(&stdoutfn[0],mypid,'I');
 
 	for ( uint64_t i = 0; i < V.size(); ++i )
 	{
@@ -471,6 +508,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = ENOMEM;
+		failedsyscall = "malloc";
 		goto cleanup;
 	}
 
@@ -482,6 +520,426 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = ENOMEM;
+		failedsyscall = "malloc";
+		goto cleanup;
+	}
+
+	memset(argptrs,0,(V.size()+1) * sizeof(char *));
+
+	argmemt = argmem;
+	for ( uint64_t i = 0; i < V.size(); ++i )
+	{
+		memcpy(argmemt,V[i].c_str(),V[i].size());
+		argptrs[i] = argmemt;
+		argmemt += V[i].size()+1;
+	}
+
+	if ( (stderrfd = mkstemp(&stderrfn[0])) < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		failedsyscall = "mkstemp";
+		goto cleanup;
+	}
+	else
+	{
+		stderrfnvalid = true;
+	}
+
+	if ( (stdoutfd = mkstemp(&stdoutfn[0])) < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		failedsyscall = "mkstemp";
+		goto cleanup;
+	}
+	else
+	{
+		stdoutfnvalid = true;
+	}
+
+	if ( (nullfd = open("/dev/null",O_RDONLY)) < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		failedsyscall = "open(/dev/null)";
+		goto cleanup;
+	}
+
+	child = fork();
+
+	if ( child < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		failedsyscall = "fork()";
+		goto cleanup;
+	}
+
+	if ( child == 0 )
+	{
+		try
+		{
+			if ( doClose(STDOUT_FILENO) < 0 )
+				return EXIT_FAILURE;
+			if ( doClose(STDERR_FILENO) < 0 )
+				return EXIT_FAILURE;
+			if ( dup2(nullfd,STDIN_FILENO) < 0 )
+				return EXIT_FAILURE;
+			if ( dup2(stdoutfd,STDOUT_FILENO) < 0 )
+				return EXIT_FAILURE;
+			if ( dup2(stderrfd,STDERR_FILENO) < 0 )
+				return EXIT_FAILURE;
+
+			execvp(argptrs[0], argptrs);
+
+			doClose(STDIN_FILENO);
+			doClose(STDOUT_FILENO);
+			doClose(STDERR_FILENO);
+
+			_exit(EXIT_FAILURE);
+		}
+		catch(...)
+		{
+			_exit(EXIT_FAILURE);
+		}
+	}
+
+	while ( true )
+	{
+		int status = 0;
+
+		pid_t const r = waitpid(child, &status, 0);
+
+		if ( r < 0 )
+		{
+			int const lerror = errno;
+
+			if ( lerror == EAGAIN || lerror == EINTR )
+			{
+
+			}
+			else
+			{
+				returncode = EXIT_FAILURE;
+				error = errno;
+				failedsyscall = "waitpid()";
+				goto cleanup;
+			}
+		}
+		if ( r == child )
+		{
+			if ( WIFEXITED(status) )
+			{
+				returncode = WEXITSTATUS(status);
+			}
+			else
+			{
+				returncode = EXIT_FAILURE;
+			}
+
+			break;
+		}
+	}
+
+	if ( lseek(stderrfd,0,SEEK_SET) != 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		failedsyscall = "lseek()";
+		goto cleanup;
+	}
+
+	if ( lseek(stdoutfd,0,SEEK_SET) != 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		failedsyscall = "lseek()";
+		goto cleanup;
+	}
+
+	if ( fstat(stderrfd,&staterr) < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		failedsyscall = "fstat()";
+		goto cleanup;
+	}
+	if ( fstat(stdoutfd,&statout) < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		failedsyscall = "fstat()";
+		goto cleanup;
+	}
+
+	if ( (tempmemerr = (char *)malloc(staterr.st_size)) == NULL )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		failedsyscall = "malloc()";
+		goto cleanup;
+	}
+	if ( (tempmemout = (char *)malloc(statout.st_size)) == NULL )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		failedsyscall = "malloc()";
+		goto cleanup;
+	}
+
+	while ( static_cast<ssize_t>(errread) < static_cast<ssize_t>(staterr.st_size) )
+	{
+		size_t toread = staterr.st_size - errread;
+		ssize_t const r = ::read(stderrfd,tempmemerr+errread,toread);
+
+		if ( r < 0 )
+		{
+			if ( errno == EAGAIN || errno == EINTR )
+			{
+
+			}
+			else
+			{
+				returncode = EXIT_FAILURE;
+				error = errno;
+				failedsyscall = "read(stderrfd,failed)";
+				goto cleanup;
+			}
+		}
+		else if ( r == 0 )
+		{
+			returncode = EXIT_FAILURE;
+			error = errno;
+			failedsyscall = "read(stderrfd,eof)";
+			goto cleanup;
+		}
+		else
+		{
+			errread += r;
+		}
+	}
+	while ( static_cast<ssize_t>(outread) < static_cast<ssize_t>(statout.st_size) )
+	{
+		size_t toread = statout.st_size - outread;
+		ssize_t const r = ::read(stdoutfd,tempmemout+outread,toread);
+
+		if ( r < 0 )
+		{
+			if ( errno == EAGAIN || errno == EINTR )
+			{
+
+			}
+			else
+			{
+				returncode = EXIT_FAILURE;
+				error = errno;
+				failedsyscall = "read(stdoutfd,failed)";
+				goto cleanup;
+			}
+		}
+		else if ( r == 0 )
+		{
+			returncode = EXIT_FAILURE;
+			error = errno;
+			failedsyscall = "read(stdoutfd,EOF)";
+			goto cleanup;
+		}
+		else
+		{
+			outread += r;
+		}
+	}
+
+	try
+	{
+		out = std::string(statout.st_size,' ');
+		err = std::string(staterr.st_size,' ');
+
+		for ( ssize_t i = 0; i < statout.st_size; ++i )
+			out[i] = tempmemout[i];
+		for ( ssize_t i = 0; i < staterr.st_size; ++i )
+			err[i] = tempmemerr[i];
+	}
+	catch(...)
+	{
+		returncode = EXIT_FAILURE;
+		error = ENOMEM;
+		failedsyscall = "std::string alloc/copy";
+		goto cleanup;
+	}
+
+	cleanup:
+	if ( argmem )
+	{
+		::free(argmem);
+		argmem = NULL;
+	}
+
+	if ( argptrs )
+	{
+		::free(argptrs);
+		argptrs = NULL;
+	}
+
+	if ( stderrfd >= 0 )
+	{
+		doClose(stderrfd);
+		stderrfd = -1;
+	}
+	if ( stdoutfd >= 0 )
+	{
+		doClose(stdoutfd);
+		stdoutfd = -1;
+	}
+	if ( nullfd >= 0 )
+	{
+		doClose(nullfd);
+		nullfd = -1;
+	}
+
+	if ( stderrfnvalid )
+		remove(&stderrfn[0]);
+	if ( stdoutfnvalid )
+		remove(&stdoutfn[0]);
+
+	if ( tempmemerr )
+	{
+		free(tempmemerr);
+		tempmemerr = NULL;
+	}
+	if ( tempmemout )
+	{
+		free(tempmemout);
+		tempmemout = NULL;
+	}
+
+	if ( returncode != EXIT_SUCCESS )
+	{
+		if ( donotthrow )
+		{
+			try
+			{
+				if ( error == 0 )
+				{
+					std::cerr << "libmaus2::util::PosixExecute::execute() donotthrow: \"" << command << "\" exited with status " << returncode << std::endl;
+					std::cerr << "libmaus2::util::PosixExecute::execute() donotthrow: failing command was " << command << std::endl;
+					std::cerr << "libmaus2::util::PosixExecute::execute() donotthrow: failed syscall " << failedsyscall << std::endl;
+				}
+				else
+				{
+					std::cerr << "libmaus2::util::PosixExecute::execute() donotthrow, failed: " << strerror(error) << std::endl;
+					std::cerr << "libmaus2::util::PosixExecute::execute() donotthrow: failing command was " << command << std::endl;
+					std::cerr << "libmaus2::util::PosixExecute::execute() donotthrow: failed syscall " << failedsyscall << std::endl;
+					std::cerr << "&stdoutfn[0]=" << &stdoutfn[0] << std::endl;
+					std::cerr << "debugstr\n" << debugstr.str() << std::endl;
+				}
+			}
+			catch(...)
+			{
+			}
+		}
+		else
+		{
+			libmaus2::exception::LibMausException lme;
+			if ( error == 0 )
+			{
+				lme.getStream() << "libmaus2::util::PosixExecute::execute() (!donotthrow): \"" << command << "\" exited with status " << returncode << std::endl;
+				lme.getStream() << "libmaus2::util::PosixExecute::execute() (!donotthrow): failing command was " << command << std::endl;
+				lme.getStream() << "libmaus2::util::PosixExecute::execute() donotthrow: failed syscall " << failedsyscall << std::endl;
+			}
+			else
+			{
+				lme.getStream() << "libmaus2::util::PosixExecute::execute() (!donotthrow) failed: " << strerror(error) << std::endl;
+				lme.getStream() << "libmaus2::util::PosixExecute::execute() (!donotthrow): failing command was " << command << std::endl;
+				lme.getStream() << "libmaus2::util::PosixExecute::execute() donotthrow: failed syscall " << failedsyscall << std::endl;
+			}
+			lme.finish();
+			throw lme;
+		}
+	}
+
+	return returncode;
+}
+
+#if 0
+static int stderrfd = -1;
+static int stdoutfd = -1;
+static int nullfd = -1;
+static int stdindup = -1;
+static int stdoutdup = -1;
+static int stderrdup = -1;
+static char ** argptrs = NULL;
+
+int libmaus2::util::PosixExecute::execute(std::string const & command, std::string & out, std::string & err, bool const donotthrow)
+{
+	std::vector<std::string> V = parseCommand(command);
+	std::ostringstream debugstr;
+
+	libmaus2::parallel::ScopePosixMutex slock(libmaus2::util::PosixExecute::lock);
+	char stderrfn[] = "/tmp/libmaus2::util::PosixExecute::execute_err_IIIIIIIIIIIIIII_ZZZZZZZZZZZZ_XXXXXX";
+	char stdoutfn[] = "/tmp/libmaus2::util::PosixExecute::execute_out_IIIIIIIIIIIIIII_ZZZZZZZZZZZZ_XXXXXX";
+	bool stderrfnvalid = false;
+	bool stdoutfnvalid = false;
+	int returncode = EXIT_SUCCESS;
+	pid_t child = -1;
+	int error = 0;
+	char * tempmemerr = NULL;
+	char * tempmemout = NULL;
+	struct stat staterr;
+	struct stat statout;
+	size_t errread = 0;
+	size_t outread = 0;
+	bool copybackin = false;
+	bool copybackout = false;
+	bool copybackerr = false;
+	/* int r; */
+	char * argmem = NULL;
+	size_t argmemsize = 0;
+	char * argmemt = NULL;
+	char const * failedsyscall = NULL;
+
+	uint64_t thistmpid = tmpid++;
+	uint64_t mypid = getpid();
+
+	fillId(&stderrfn[0],thistmpid,'Z');
+	fillId(&stdoutfn[0],thistmpid,'Z');
+	fillId(&stderrfn[0],mypid,'I');
+	fillId(&stdoutfn[0],mypid,'I');
+
+	stderrfd = -1;
+	stdoutfd = -1;
+	nullfd = -1;
+	stdindup = -1;
+	stdoutdup = -1;
+	stderrdup = -1;
+	argptrs = NULL;
+
+	for ( uint64_t i = 0; i < V.size(); ++i )
+	{
+		// std::cerr << "command[" << i << "]=" << V[i] << std::endl;
+		argmemsize += V[i].size()+1;
+	}
+
+	argmem = (char *)malloc(argmemsize);
+
+	if ( ! argmem )
+	{
+		returncode = EXIT_FAILURE;
+		error = ENOMEM;
+		failedsyscall = "malloc";
+		goto cleanup;
+	}
+
+	memset(argmem,0,argmemsize);
+
+	argptrs = (char **)malloc((V.size()+1) * sizeof(char *));
+
+	if ( ! argptrs )
+	{
+		returncode = EXIT_FAILURE;
+		error = ENOMEM;
+		failedsyscall = "malloc";
 		goto cleanup;
 	}
 
@@ -506,6 +964,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
+		failedsyscall = "mkstemp";
 		goto cleanup;
 	}
 	else
@@ -517,6 +976,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
+		failedsyscall = "mkstemp";
 		goto cleanup;
 	}
 	else
@@ -528,6 +988,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
+		failedsyscall = "open(/dev/null)";
 		goto cleanup;
 	}
 
@@ -535,6 +996,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
+		failedsyscall = "dup()";
 		goto cleanup;
 	}
 
@@ -542,6 +1004,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
+		failedsyscall = "dup(STDOUT_FILENO)";
 		goto cleanup;
 	}
 
@@ -549,6 +1012,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
+		failedsyscall = "dup(STDERR_FILENO)";
 		goto cleanup;
 	}
 
@@ -556,6 +1020,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
+		failedsyscall = "dup(STDIN_FILENO)";
 		goto cleanup;
 	}
 	else
@@ -567,6 +1032,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
+		failedsyscall = "doClose(STDOUT_FILENO)";
 		goto cleanup;
 	}
 	else
@@ -578,6 +1044,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
+		failedsyscall = "doClose(STDERR_FILENO)";
 		goto cleanup;
 	}
 	else
@@ -589,18 +1056,21 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
+		failedsyscall = "dup2(nullfd)";
 		goto cleanup;
 	}
 	if ( dup2(stdoutfd,STDOUT_FILENO) < 0 )
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
+		failedsyscall = "dup2(stdoutfd)";
 		goto cleanup;
 	}
 	if ( dup2(stderrfd,STDERR_FILENO) < 0 )
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
+		failedsyscall = "dup2(stderrfd)";
 		goto cleanup;
 	}
 
@@ -611,6 +1081,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
+		failedsyscall = "system()";
 		goto cleanup;
 	}
 	else
@@ -624,6 +1095,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
+		failedsyscall = "vfork()";
 		goto cleanup;
 	}
 
@@ -664,6 +1136,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 			{
 				returncode = EXIT_FAILURE;
 				error = errno;
+				failedsyscall = "waitpid()";
 				goto cleanup;
 			}
 		}
@@ -687,6 +1160,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
+		failedsyscall = "lseek()";
 		goto cleanup;
 	}
 
@@ -694,6 +1168,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
+		failedsyscall = "lseek()";
 		goto cleanup;
 	}
 
@@ -701,12 +1176,14 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
+		failedsyscall = "fstat()";
 		goto cleanup;
 	}
 	if ( fstat(stdoutfd,&statout) < 0 )
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
+		failedsyscall = "fstat()";
 		goto cleanup;
 	}
 
@@ -714,12 +1191,14 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
+		failedsyscall = "malloc()";
 		goto cleanup;
 	}
 	if ( (tempmemout = (char *)malloc(statout.st_size)) == NULL )
 	{
 		returncode = EXIT_FAILURE;
 		error = errno;
+		failedsyscall = "malloc()";
 		goto cleanup;
 	}
 
@@ -738,6 +1217,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 			{
 				returncode = EXIT_FAILURE;
 				error = errno;
+				failedsyscall = "read(stderrfd,failed)";
 				goto cleanup;
 			}
 		}
@@ -745,6 +1225,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 		{
 			returncode = EXIT_FAILURE;
 			error = errno;
+			failedsyscall = "read(stderrfd,eof)";
 			goto cleanup;
 		}
 		else
@@ -757,6 +1238,8 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 		size_t toread = statout.st_size - outread;
 		ssize_t const r = ::read(stdoutfd,tempmemout+outread,toread);
 
+		debugstr << "read(stdoutfd," << toread << ") outread=" << outread << " expected " << statout.st_size << " got " << r << std::endl;
+
 		if ( r < 0 )
 		{
 			if ( errno == EAGAIN || errno == EINTR )
@@ -767,6 +1250,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 			{
 				returncode = EXIT_FAILURE;
 				error = errno;
+				failedsyscall = "read(stdoutfd,failed)";
 				goto cleanup;
 			}
 		}
@@ -774,6 +1258,8 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 		{
 			returncode = EXIT_FAILURE;
 			error = errno;
+			debugstr << "libmaus2::util::PosixExecute::execute(): unexpected EOF while reading back stdout file, expected " << statout.st_size << " failed at " << outread << std::endl;
+			failedsyscall = "read(stdoutfd,EOF)";
 			goto cleanup;
 		}
 		else
@@ -796,6 +1282,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		returncode = EXIT_FAILURE;
 		error = ENOMEM;
+		failedsyscall = "std::string alloc/copy";
 		goto cleanup;
 	}
 
@@ -805,6 +1292,8 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		if ( dup2(stdindup,STDIN_FILENO) < 0 )
 		{
+			std::cerr << "libmaus2::util::PosixExecute::execute(): failed to restore STDIN_FILENO" << std::endl;
+
 			if ( returncode >= 0 )
 			{
 				returncode = EXIT_FAILURE;
@@ -816,6 +1305,8 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		if ( dup2(stdoutdup,STDOUT_FILENO) < 0 )
 		{
+			std::cerr << "libmaus2::util::PosixExecute::execute(): failed to restore STDOUT_FILENO" << std::endl;
+
 			if ( returncode >= 0 )
 			{
 				returncode = EXIT_FAILURE;
@@ -827,6 +1318,8 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		if ( dup2(stderrdup,STDERR_FILENO) < 0 )
 		{
+			std::cerr << "libmaus2::util::PosixExecute::execute(): failed to restore STDERR_FILENO" << std::endl;
+
 			if ( returncode >= 0 )
 			{
 				returncode = EXIT_FAILURE;
@@ -867,9 +1360,9 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	}
 
 	if ( stderrfnvalid )
-		libmaus2::aio::FileRemoval::removeFile(&stderrfn[0]);
+		remove(&stderrfn[0]);
 	if ( stdoutfnvalid )
-		libmaus2::aio::FileRemoval::removeFile(&stdoutfn[0]);
+		remove(&stdoutfn[0]);
 
 	if ( tempmemerr )
 	{
@@ -901,9 +1394,19 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 			try
 			{
 				if ( error == 0 )
-					std::cerr << "libmaus2::util::PosixExecute::execute(): \"" << command << "\" exited with status " << returncode << std::endl;
+				{
+					std::cerr << "libmaus2::util::PosixExecute::execute() donotthrow: \"" << command << "\" exited with status " << returncode << std::endl;
+					std::cerr << "libmaus2::util::PosixExecute::execute() donotthrow: failing command was " << command << std::endl;
+					std::cerr << "libmaus2::util::PosixExecute::execute() donotthrow: failed syscall " << failedsyscall << std::endl;
+				}
 				else
-					std::cerr << "libmaus2::util::PosixExecute::execute() failed: " << strerror(error) << std::endl;
+				{
+					std::cerr << "libmaus2::util::PosixExecute::execute() donotthrow, failed: " << strerror(error) << std::endl;
+					std::cerr << "libmaus2::util::PosixExecute::execute() donotthrow: failing command was " << command << std::endl;
+					std::cerr << "libmaus2::util::PosixExecute::execute() donotthrow: failed syscall " << failedsyscall << std::endl;
+					std::cerr << "&stdoutfn[0]=" << &stdoutfn[0] << std::endl;
+					std::cerr << "debugstr\n" << debugstr.str() << std::endl;
+				}
 			}
 			catch(...)
 			{
@@ -913,9 +1416,17 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 		{
 			libmaus2::exception::LibMausException lme;
 			if ( error == 0 )
-				lme.getStream() << "libmaus2::util::PosixExecute::execute(): \"" << command << "\" exited with status " << returncode << std::endl;
+			{
+				lme.getStream() << "libmaus2::util::PosixExecute::execute() (!donotthrow): \"" << command << "\" exited with status " << returncode << std::endl;
+				lme.getStream() << "libmaus2::util::PosixExecute::execute() (!donotthrow): failing command was " << command << std::endl;
+				lme.getStream() << "libmaus2::util::PosixExecute::execute() donotthrow: failed syscall " << failedsyscall << std::endl;
+			}
 			else
-				lme.getStream() << "libmaus2::util::PosixExecute::execute() failed: " << strerror(error) << std::endl;
+			{
+				lme.getStream() << "libmaus2::util::PosixExecute::execute() (!donotthrow) failed: " << strerror(error) << std::endl;
+				lme.getStream() << "libmaus2::util::PosixExecute::execute() (!donotthrow): failing command was " << command << std::endl;
+				lme.getStream() << "libmaus2::util::PosixExecute::execute() donotthrow: failed syscall " << failedsyscall << std::endl;
+			}
 			lme.finish();
 			throw lme;
 		}
@@ -923,6 +1434,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 
 	return returncode;
 }
+#endif
 
 #if 0
 int libmaus2::util::PosixExecute::execute(std::string const & command, std::string & out, std::string & err, bool const donotthrow)
