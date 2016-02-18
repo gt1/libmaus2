@@ -1,3 +1,12 @@
+libmaus2 (2.0.127-1) unstable; urgency=medium
+
+  * fix computePath method in Overlap class
+  * replace vfork based approach in PosixExecute by fork again.
+  * add lower case letters in reverseComplementUnmapped function of acgtnMap.hpp
+  * add pointer types in CompactArrayWriterFile class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 18 Feb 2016 13:30:23 +0100
+
 libmaus2 (2.0.126-1) unstable; urgency=medium
 
   * print warning when linear and bin index are inconsistent instead of failing in BamIndexGenerator 

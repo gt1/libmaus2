@@ -24,6 +24,7 @@
 #include <libmaus2/lf/LF.hpp>
 #include <libmaus2/util/unique_ptr.hpp>
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/aio/SynchronousGenericOutput.hpp>
 
 namespace libmaus2
 {
