@@ -2445,6 +2445,11 @@ namespace libmaus2
 				std::pair<uint64_t,uint64_t> const P = getErrorRatePair();
 				return static_cast<double>(P.first) / static_cast<double>(P.second);
 			}
+
+			libmaus2::math::IntegerInterval<int64_t> getCoveredReadInterval() const
+			{
+				return libmaus2::bambam::BamAlignmentDecoderBase::getCoveredReadInterval(D.begin());
+			}
 		};
 	}
 }

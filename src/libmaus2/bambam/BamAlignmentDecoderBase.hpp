@@ -34,6 +34,7 @@
 #include <libmaus2/bambam/CigarStringParser.hpp>
 #include <libmaus2/math/IPower.hpp>
 #include <libmaus2/bambam/PileVectorElement.hpp>
+#include <libmaus2/math/IntegerInterval.hpp>
 
 namespace libmaus2
 {
@@ -1117,6 +1118,19 @@ namespace libmaus2
 				}
 
 				return numops;
+			}
+
+			/**
+			 * get read interval covered by alignment in D
+			 *
+			 * @param D alignment block
+			 * @return number of reference sequence bases covered by alignment in D
+			 **/
+			static libmaus2::math::IntegerInterval<int64_t> getCoveredReadInterval(uint8_t const * D)
+			{
+				int64_t const beg = getFrontClipping(D);
+				int64_t const end = static_cast<int64_t>(getLseq(D)) - static_cast<int64_t>(getBackClipping(D)) - 1;
+				return libmaus2::math::IntegerInterval<int64_t>(beg,end);
 			}
 
 			/**
