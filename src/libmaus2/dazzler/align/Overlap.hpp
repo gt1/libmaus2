@@ -235,6 +235,33 @@ namespace libmaus2
 							}
 						}
 
+						// consume rest of operations if we reached end of alignment on A read
+						while ( a_c == static_cast<int64_t>(path.aepos) && tc != ATC.te )
+						{
+							switch ( *(tc++) )
+							{
+								case libmaus2::lcs::AlignmentTraceContainer::STEP_MATCH:
+									++a_c;
+									++bforw;
+									break;
+								case libmaus2::lcs::AlignmentTraceContainer::STEP_MISMATCH:
+									++a_c;
+									++bforw;
+									++err;
+									break;
+								case libmaus2::lcs::AlignmentTraceContainer::STEP_DEL:
+									++a_c;
+									++err;
+									break;
+								case libmaus2::lcs::AlignmentTraceContainer::STEP_INS:
+									++bforw;
+									++err;
+									break;
+								case libmaus2::lcs::AlignmentTraceContainer::STEP_RESET:
+									break;
+							}
+						}
+
 						path.diffs += err;
 						path.path.push_back(Path::tracepoint(err,bforw));
 
@@ -334,7 +361,7 @@ namespace libmaus2
 					int32_t const abpos,
 					int32_t const aepos,
 					int32_t const bbpos,
-					int32_t const /* bepos */,
+					int32_t const bepos,
 					uint8_t const * aptr,
 					uint8_t const * bptr,
 					int64_t const tspace,
@@ -350,8 +377,12 @@ namespace libmaus2
 					// reset trace container
 					ATC.reset();
 
+					int64_t bsum = 0;
 					for ( size_t i = 0; i < pathlen; ++i )
 					{
+						// update sum
+						bsum += path[i].second;
+
 						// block end point on A
 						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(aepos) );
 						// block end point on B
@@ -370,10 +401,24 @@ namespace libmaus2
 						// add trace to full alignment
 						ATC.push(aligner.getTraceContainer());
 
+						#if 0
+						libmaus2::lcs::AlignmentStatistics astats = aligner.getTraceContainer().getAlignmentStatistics();
+						assert ( astats.matches + astats.mismatches + astats.deletions  == (a_i_1 - std::max(a_i,abpos)) );
+						assert ( astats.matches + astats.mismatches + astats.insertions == (b_i_1 - b_i) );
+						#endif
+
 						// update start points
 						b_i = b_i_1;
 						a_i = a_i_1;
 					}
+
+					assert ( bsum == (bepos-bbpos) );
+
+					#if 0
+					libmaus2::lcs::AlignmentStatistics astats = ATC.getAlignmentStatistics();
+					assert ( astats.matches + astats.mismatches + astats.deletions  == (aepos-abpos) );
+					assert ( astats.matches + astats.mismatches + astats.insertions == (bepos-bbpos) );
+					#endif
 				}
 
 				static void computeTrace(

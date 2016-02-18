@@ -85,10 +85,10 @@ namespace libmaus2
                 {
                         switch ( a )
                         {
-                                case 'A': return 'T';
-                                case 'C': return 'G';
-                                case 'G': return 'C';
-                                case 'T': return 'A';
+                                case 'A': case 'a': return 'T';
+                                case 'C': case 'c': return 'G';
+                                case 'G': case 'g': return 'C';
+                                case 'T': case 't': return 'A';
                                 default: return 'N';
                         }
                 }

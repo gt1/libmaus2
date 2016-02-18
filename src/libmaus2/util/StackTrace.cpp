@@ -56,8 +56,16 @@ translate
                         std::string const comline = comlinestr.str();
 
                         std::string addrout,addrerr;
-                        ::libmaus2::util::PosixExecute::execute(comline,addrout,addrerr,true /* do not throw exceptions */);
-                        addrout = chomp(addrout);
+                        int const retcode = ::libmaus2::util::PosixExecute::execute(comline,addrout,addrerr,true /* do not throw exceptions */);
+
+                        if ( retcode == EXIT_SUCCESS )
+                        {
+	                        addrout = chomp(addrout);
+			}
+			else
+			{
+				addrout = "addr2line failed";
+			}
 
                         /*
                         ostr << ":::" << execname << ":::\n";

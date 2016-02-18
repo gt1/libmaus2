@@ -205,43 +205,8 @@ namespace libmaus2
 			}
 		};
 
-		template<typename lf_type>
-		struct SimpleSampledSA
+		struct SimpleSampledSABase
 		{
-			typedef SimpleSampledSA<lf_type> sampled_sa_type;
-			typedef sampled_sa_type this_type;
-			typedef typename ::libmaus2::util::unique_ptr < sampled_sa_type > :: type unique_ptr_type;
-
-			lf_type const * lf;
-
-			uint64_t sasamplingrate;
-			uint64_t sasamplingmask;
-			unsigned int sasamplingshift;
-			::libmaus2::autoarray::AutoArray<uint64_t> SSA;
-
-			uint64_t byteSize() const
-			{
-				return
-					sizeof(lf_type const *) +
-					2*sizeof(uint64_t) + sizeof(unsigned int) + SSA.byteSize();
-			}
-
-			void setSamplingRate(uint64_t const samplingrate)
-			{
-				sasamplingrate = samplingrate;
-				sasamplingmask = sasamplingrate-1;
-
-				sasamplingshift = 0;
-				uint64_t tsasamplingrate = sasamplingrate;
-				while ( !(tsasamplingrate & 1) )
-				{
-					tsasamplingrate >>= 1;
-					sasamplingshift++;
-				}
-				assert ( tsasamplingrate == 1 );
-				assert ( (1ull << sasamplingshift) == sasamplingrate );
-			}
-
 			static uint64_t readUnsignedInt(std::istream & in)
 			{
 				uint64_t i;
@@ -282,6 +247,44 @@ namespace libmaus2
 				::libmaus2::autoarray::AutoArray<uint32_t> A;
 				s += A.deserialize(in);
 				return A;
+			}
+		};
+
+		template<typename lf_type>
+		struct SimpleSampledSA : public SimpleSampledSABase
+		{
+			typedef SimpleSampledSA<lf_type> sampled_sa_type;
+			typedef sampled_sa_type this_type;
+			typedef typename ::libmaus2::util::unique_ptr < sampled_sa_type > :: type unique_ptr_type;
+
+			lf_type const * lf;
+
+			uint64_t sasamplingrate;
+			uint64_t sasamplingmask;
+			unsigned int sasamplingshift;
+			::libmaus2::autoarray::AutoArray<uint64_t> SSA;
+
+			uint64_t byteSize() const
+			{
+				return
+					sizeof(lf_type const *) +
+					2*sizeof(uint64_t) + sizeof(unsigned int) + SSA.byteSize();
+			}
+
+			void setSamplingRate(uint64_t const samplingrate)
+			{
+				sasamplingrate = samplingrate;
+				sasamplingmask = sasamplingrate-1;
+
+				sasamplingshift = 0;
+				uint64_t tsasamplingrate = sasamplingrate;
+				while ( !(tsasamplingrate & 1) )
+				{
+					tsasamplingrate >>= 1;
+					sasamplingshift++;
+				}
+				assert ( tsasamplingrate == 1 );
+				assert ( (1ull << sasamplingshift) == sasamplingrate );
 			}
 
 			uint64_t serialize(std::ostream & out)

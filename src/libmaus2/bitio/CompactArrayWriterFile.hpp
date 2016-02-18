@@ -33,6 +33,10 @@ namespace libmaus2
 		 **/
 		struct CompactArrayWriterFile
 		{
+			typedef CompactArrayWriterFile this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
 			::libmaus2::aio::OutputStreamInstance::unique_ptr_type COS;
 			::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type SGO;
 			::libmaus2::bitio::FastWriteBitWriterBuffer64Sync::unique_ptr_type FWBW;
