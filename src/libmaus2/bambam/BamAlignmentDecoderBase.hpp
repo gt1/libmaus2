@@ -34,6 +34,7 @@
 #include <libmaus2/bambam/CigarStringParser.hpp>
 #include <libmaus2/math/IPower.hpp>
 #include <libmaus2/bambam/PileVectorElement.hpp>
+#include <libmaus2/math/IntegerInterval.hpp>
 
 namespace libmaus2
 {
@@ -1120,6 +1121,22 @@ namespace libmaus2
 			}
 
 			/**
+			 * get read interval covered by alignment in D
+			 *
+			 * @param D alignment block
+			 * @return number of reference sequence bases covered by alignment in D
+			 **/
+			static libmaus2::math::IntegerInterval<int64_t> getCoveredReadInterval(uint8_t const * D)
+			{
+				int64_t const frontclipping = getFrontClipping(D);
+				int64_t const backclipping = getBackClipping(D);
+				int64_t const length = getReadLengthByCigar(D);
+				int64_t const beg = frontclipping;
+				int64_t const end = length - backclipping - 1;
+				return libmaus2::math::IntegerInterval<int64_t>(beg,end);
+			}
+
+			/**
 			 * get number of bytes before the encoded cigar string in alignment block D
 			 *
 			 * @param D alignment block
@@ -1234,6 +1251,40 @@ namespace libmaus2
 						case BamFlagBase::LIBMAUS2_BAMBAM_CMATCH: // M
 						case BamFlagBase::LIBMAUS2_BAMBAM_CINS: // I
 						case BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP: // S
+						case BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL: // =
+						case BamFlagBase::LIBMAUS2_BAMBAM_CDIFF: // X
+							seqlen += (v >> 4) & ((1ull<<(32-4))-1);
+							break;
+					}
+				}
+
+				return seqlen;
+			}
+
+			/**
+			 * get length of read sequence as encoded in the cigar string of the alignment block D
+			 *
+			 * @param D alignment block
+			 * @return length of query sequence as encoded in the cigar string of D
+			 **/
+			static uint64_t getReadLengthByCigar(uint8_t const * D)
+			{
+				uint64_t seqlen = 0;
+				uint64_t const ncigar = getNCigar(D);
+				uint8_t const * cigar = getCigar(D);
+
+				for ( uint32_t i = 0; i < ncigar; ++i, cigar+=4 )
+				{
+					uint32_t const v = getLEInteger(cigar,4);
+					uint8_t const op = v & ((1ull<<(4))-1);
+
+					// MISH=X
+					switch ( op )
+					{
+						case BamFlagBase::LIBMAUS2_BAMBAM_CMATCH: // M
+						case BamFlagBase::LIBMAUS2_BAMBAM_CINS: // I
+						case BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP: // S
+						case BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP: // S
 						case BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL: // =
 						case BamFlagBase::LIBMAUS2_BAMBAM_CDIFF: // X
 							seqlen += (v >> 4) & ((1ull<<(32-4))-1);

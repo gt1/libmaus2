@@ -1,3 +1,11 @@
+libmaus2 (2.0.128-1) unstable; urgency=medium
+
+  * add getReadLengthByCigar function in BamAlignmentDecoderBase and fix getCoveredReadInterval for reads with undefined query sequence
+  * add getCoveredReadInterval method in BamAlignment class
+  * add mergeTouchingOrOverlapping method in IntegerInterval class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 19 Feb 2016 10:47:02 +0100
+
 libmaus2 (2.0.127-1) unstable; urgency=medium
 
   * fix computePath method in Overlap class
