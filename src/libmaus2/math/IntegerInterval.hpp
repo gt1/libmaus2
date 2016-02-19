@@ -319,6 +319,37 @@ namespace libmaus2
 				return R;
 			}
 
+			static std::vector < IntegerInterval<N> > mergeTouchingOrOverlapping(std::vector< IntegerInterval<N> > IV)
+			{
+				std::sort(IV.begin(),IV.end(),IntegerIntervalComparator());
+				std::vector < IntegerInterval<N> > R;
+
+				uint64_t low = 0;
+				while ( low != IV.size() )
+				{
+					uint64_t high = low+1;
+					IntegerInterval<N> merged = IV[low];
+
+					while (
+						high != IV.size() &&
+						((!(merged.intersection(IV[high]).isEmpty()))
+						||
+						(merged.to+1 == IV[high].from))
+					)
+					{
+						// set new upper bound
+						merged.to = std::max(merged.to,IV[high].to);
+						++high;
+					}
+
+					R.push_back(merged);
+
+					low = high;
+				}
+
+				return R;
+			}
+
 			static std::vector < IntegerInterval<N> > mergeOverlappingFuzzy(std::vector< IntegerInterval<N> > IV, N const fuzz)
 			{
 				std::sort(IV.begin(),IV.end(),IntegerIntervalComparator());
