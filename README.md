@@ -24,6 +24,8 @@ Compilation
 libmaus2 uses the GNU autoconf/automake tool set. It can be compiled on Linux
 using:
 
+	libtoolize
+	aclocal
 	autoreconf -i -f
 	./configure
 	make
