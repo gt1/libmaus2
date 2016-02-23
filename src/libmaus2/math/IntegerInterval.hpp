@@ -282,6 +282,32 @@ namespace libmaus2
 				return intersection(*this,B);
 			}
 
+			static std::vector< IntegerInterval<N> > difference(IntegerInterval<N> const & A, std::vector<IntegerInterval<N> > VB)
+			{
+				// merge intervals
+				VB = mergeTouchingOrOverlapping(VB);
+				// intersect with A
+				for ( uint64_t i = 0; i < VB.size(); ++i )
+					VB[i] = intersection(A,VB[i]);
+
+				N l = A.from;
+				std::vector< IntegerInterval<N> > VR;
+
+				for ( uint64_t z = 0; z < VB.size(); ++z )
+				{
+					// any not covered by VB[z]?
+					if ( l < VB[z].from )
+						VR.push_back(IntegerInterval<N>(l,VB[z].from-1) );
+					// next not covered by VB[z]
+					l = VB[z].to+1;
+				}
+
+				if ( l <= A.to )
+					VR.push_back(IntegerInterval<N>(l,A.to) );
+
+				return VR;
+			}
+
 			struct IntegerIntervalComparator
 			{
 				bool operator()(IntegerInterval<N> const & A, IntegerInterval<N> const & B)

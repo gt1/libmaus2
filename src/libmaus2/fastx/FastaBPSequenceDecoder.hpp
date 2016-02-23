@@ -35,18 +35,21 @@ namespace libmaus2
 {
 	namespace fastx
 	{
-		struct FastaBPSequenceDecoder
+		template<typename _remap_type>
+		struct FastaBPSequenceDecoderTemplate
 		{
-			typedef FastaBPSequenceDecoder this_type;
-			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef _remap_type remap_type;
+			typedef FastaBPSequenceDecoderTemplate<remap_type> this_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			std::istream & in;
 			uint64_t const bs;
 			libmaus2::autoarray::AutoArray<char> Bin;
 			bool eof;
+			bool checkcrc;
 
-			FastaBPSequenceDecoder(std::istream & rin, uint64_t const rbs)
-			: in(rin), bs(rbs), Bin((bs+1)/2,false), eof(false)
+			FastaBPSequenceDecoderTemplate(std::istream & rin, uint64_t const rbs, bool rcheckcrc = false)
+			: in(rin), bs(rbs), Bin((bs+1)/2,false), eof(false), checkcrc(rcheckcrc)
 			{
 
 			}
@@ -100,10 +103,10 @@ namespace libmaus2
 						{
 							uint8_t const u = static_cast<uint8_t>(Bin[j]);
 
-							p[k++] = libmaus2::fastx::remapChar((u >> 6) & 3);
-							p[k++] = libmaus2::fastx::remapChar((u >> 4) & 3);
-							p[k++] = libmaus2::fastx::remapChar((u >> 2) & 3);
-							p[k++] = libmaus2::fastx::remapChar((u >> 0) & 3);
+							p[k++] = remap_type::remapChar((u >> 6) & 3);
+							p[k++] = remap_type::remapChar((u >> 4) & 3);
+							p[k++] = remap_type::remapChar((u >> 2) & 3);
+							p[k++] = remap_type::remapChar((u >> 0) & 3);
 						}
 
 						if ( (toread) % 4 )
@@ -111,7 +114,7 @@ namespace libmaus2
 							uint8_t const u = static_cast<uint8_t>(Bin[toread/4]);
 
 							for ( uint64_t j = 0; j < ((toread)%4); ++j )
-								p[k++] = libmaus2::fastx::remapChar((u >> (6-2*j)) & 3);
+								p[k++] = remap_type::remapChar((u >> (6-2*j)) & 3);
 						}
 						break;
 					}
@@ -132,9 +135,9 @@ namespace libmaus2
 						{
 							uint8_t const u = Bin[j];
 
-							p[k++] = libmaus2::fastx::remapChar((u/(5*5))%5);
-							p[k++] = libmaus2::fastx::remapChar((u/(5*1))%5);
-							p[k++] = libmaus2::fastx::remapChar((u/(1*1))%5);
+							p[k++] = remap_type::remapChar((u/(5*5))%5);
+							p[k++] = remap_type::remapChar((u/(5*1))%5);
+							p[k++] = remap_type::remapChar((u/(1*1))%5);
 						}
 						if ( toread % 3 )
 						{
@@ -143,11 +146,11 @@ namespace libmaus2
 							switch ( toread % 3 )
 							{
 								case 1:
-									p[k++] = libmaus2::fastx::remapChar((u/(5*5))%5);
+									p[k++] = remap_type::remapChar((u/(5*5))%5);
 									break;
 								case 2:
-									p[k++] = libmaus2::fastx::remapChar((u/(5*5))%5);
-									p[k++] = libmaus2::fastx::remapChar((u/(5*1))%5);
+									p[k++] = remap_type::remapChar((u/(5*5))%5);
+									p[k++] = remap_type::remapChar((u/(5*1))%5);
 									break;
 							}
 						}
@@ -231,27 +234,49 @@ namespace libmaus2
 					(static_cast<uint32_t>(crcbytes[6]) <<  8) |
 					(static_cast<uint32_t>(crcbytes[7]) <<  0);
 
-				uint32_t const crcincomp = libmaus2::hashing::Crc32::crc32_8bytes(p,toread,0 /*prev*/);
-				uint32_t const crcoutcomp = libmaus2::hashing::Crc32::crc32_8bytes(Bin.begin(),inputcount,0 /*prev*/);
+				if ( checkcrc )
+				{
+					uint32_t const crcincomp = libmaus2::hashing::Crc32::crc32_8bytes(p,toread,0 /*prev*/);
+					uint32_t const crcoutcomp = libmaus2::hashing::Crc32::crc32_8bytes(Bin.begin(),inputcount,0 /*prev*/);
 
-				if ( crcin != crcincomp )
-				{
-					libmaus2::exception::LibMausException lme;
-					lme.getStream() << "FastaBPSequenceDecoder::read(): crc error on uncompressed data" << std::endl;
-					lme.finish();
-					throw lme;
-				}
-				if ( crcout != crcoutcomp )
-				{
-					libmaus2::exception::LibMausException lme;
-					lme.getStream() << "FastaBPSequenceDecoder::read(): crc error on compressed data" << std::endl;
-					lme.finish();
-					throw lme;
+					if ( crcin != crcincomp )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "FastaBPSequenceDecoder::read(): crc error on uncompressed data" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					if ( crcout != crcoutcomp )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "FastaBPSequenceDecoder::read(): crc error on compressed data" << std::endl;
+						lme.finish();
+						throw lme;
+					}
 				}
 
 				return toread;
 			}
 		};
+
+		struct FastaBPSequenceDecoderRemap
+		{
+			static inline char remapChar(char const c)
+			{
+				return libmaus2::fastx::remapChar(c);
+			}
+		};
+
+		struct FastaBPSequenceDecoderRemapIdentity
+		{
+			static inline char remapChar(char const c)
+			{
+				return c;
+			}
+		};
+
+		typedef FastaBPSequenceDecoderTemplate<FastaBPSequenceDecoderRemap> FastaBPSequenceDecoder;
+		typedef FastaBPSequenceDecoderTemplate<FastaBPSequenceDecoderRemapIdentity> FastaBPSequenceDecoderIdentity;
 	}
 }
 #endif

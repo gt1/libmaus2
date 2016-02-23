@@ -21,13 +21,20 @@
 
 #include <libmaus2/fastx/FastaBPSequenceDecoder.hpp>
 #include <libmaus2/fastx/FastAInfo.hpp>
+#include <libmaus2/util/PrefixSums.hpp>
 
 namespace libmaus2
 {
 	namespace fastx
 	{
-		struct FastaBPDecoder
+		template<typename _remap_type>
+		struct FastaBPDecoderTemplate
 		{
+			typedef _remap_type remap_type;
+			typedef FastaBPDecoderTemplate<remap_type> this_type;
+			typedef libmaus2::fastx::FastaBPSequenceDecoderTemplate<remap_type> sequence_decoder_type;
+			typedef typename sequence_decoder_type::unique_ptr_type sequence_decoder_pointer_type;
+
 			private:
 			// block size
 			uint64_t bs;
@@ -35,6 +42,8 @@ namespace libmaus2
 			uint64_t metapos;
 			// number of sequences
 			uint64_t numseq;
+			// check crc
+			bool checkcrc;
 
 			//! read magic and block size
 			uint64_t readBlockSize(std::istream & in) const
@@ -44,14 +53,14 @@ namespace libmaus2
 				if ( in.gcount() != 8 )
 				{
 					libmaus2::exception::LibMausException lme;
-					lme.getStream() << "FastaBPDecoder::readBlockSize(): EOF/error while reading magic" << std::endl;
+					lme.getStream() << "FastaBPDecoderTemplate::readBlockSize(): EOF/error while reading magic" << std::endl;
 					lme.finish();
 					throw lme;
 				}
 				if ( std::string(&magic[0],&magic[8]) != std::string("FASTABP\0",8) )
 				{
 					libmaus2::exception::LibMausException lme;
-					lme.getStream() << "FastaBPDecoder::readBlockSize(): magic is wrong, this is not a fab file" << std::endl;
+					lme.getStream() << "FastaBPDecoderTemplate::readBlockSize(): magic is wrong, this is not a fab file" << std::endl;
 					lme.finish();
 					throw lme;
 				}
@@ -83,7 +92,7 @@ namespace libmaus2
 				if ( seq >= numseq )
 				{
 					libmaus2::exception::LibMausException lme;
-					lme.getStream() << "FastaBPDecoder::readSequencePointer: sequence id " << seq << " is out of range." << std::endl;
+					lme.getStream() << "FastaBPDecoderTemplate::readSequencePointer: sequence id " << seq << " is out of range." << std::endl;
 					lme.finish();
 					throw lme;
 				}
@@ -126,7 +135,7 @@ namespace libmaus2
 				if ( blockid >= numblocks )
 				{
 					libmaus2::exception::LibMausException lme;
-					lme.getStream() << "FastaBPDecoder::readSequencePointer: block id " << blockid << " is out of range for sequence " << seq << std::endl;
+					lme.getStream() << "FastaBPDecoderTemplate::readSequencePointer: block id " << blockid << " is out of range for sequence " << seq << std::endl;
 					lme.finish();
 					throw lme;
 				}
@@ -143,7 +152,7 @@ namespace libmaus2
 				if ( blockid >= numblocks )
 				{
 					libmaus2::exception::LibMausException lme;
-					lme.getStream() << "FastaBPDecoder::readSequencePointer: block id " << blockid << " is out of range for sequence " << seq << std::endl;
+					lme.getStream() << "FastaBPDecoderTemplate::readSequencePointer: block id " << blockid << " is out of range for sequence " << seq << std::endl;
 					lme.finish();
 					throw lme;
 				}
@@ -154,7 +163,7 @@ namespace libmaus2
 			void checkBlockPointers(std::istream & in, uint64_t const seq) const
 			{
 				libmaus2::autoarray::AutoArray<char> Bout(bs,false);
-				libmaus2::fastx::FastaBPSequenceDecoder::unique_ptr_type ptr(getSequenceDecoder(in,seq,0));
+				sequence_decoder_pointer_type ptr(getSequenceDecoder(in,seq,0));
 
 				uint64_t i = 0;
 
@@ -179,7 +188,8 @@ namespace libmaus2
 			}
 
 			public:
-			FastaBPDecoder(std::istream & in)
+			FastaBPDecoderTemplate(std::istream & in, bool const rcheckcrc = false)
+			: checkcrc(rcheckcrc)
 			{
 				bs = readBlockSize(in);
 				metapos = readMetaPos(in);
@@ -194,12 +204,12 @@ namespace libmaus2
 				return s;
 			}
 
-			libmaus2::fastx::FastaBPSequenceDecoder::unique_ptr_type getSequenceDecoder(std::istream & in, uint64_t const seqid, uint64_t const blockid) const
+			sequence_decoder_pointer_type getSequenceDecoder(std::istream & in, uint64_t const seqid, uint64_t const blockid) const
 			{
 				uint64_t const bp = getBlockPointer(in,seqid,blockid);
 				in.clear();
 				in.seekg(bp);
-				libmaus2::fastx::FastaBPSequenceDecoder::unique_ptr_type tptr(new libmaus2::fastx::FastaBPSequenceDecoder(in,bs));
+				sequence_decoder_pointer_type tptr(new sequence_decoder_type(in,bs,checkcrc));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 
@@ -215,7 +225,7 @@ namespace libmaus2
 				getSequenceName(in,seq);
 
 				libmaus2::autoarray::AutoArray<char> Bout(bs,false);
-				libmaus2::fastx::FastaBPSequenceDecoder::unique_ptr_type ptr(getSequenceDecoder(in,seq,0));
+				sequence_decoder_pointer_type ptr(getSequenceDecoder(in,seq,0));
 
 				uint64_t n = 0;
 				while ( (n = ptr->read(Bout.begin(),Bout.size())) )
@@ -229,12 +239,41 @@ namespace libmaus2
 					decodeSequenceNull(in,i);
 			}
 
+			void decodeSequencesNullParallel(std::string const & fn, uint64_t const numthreads) const
+			{
+				assert ( numthreads );
+
+				libmaus2::autoarray::AutoArray<libmaus2::aio::InputStreamInstance::unique_ptr_type> AISI(numthreads);
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
+				for ( uint64_t t = 0; t < numthreads; ++t )
+				{
+					libmaus2::aio::InputStreamInstance::unique_ptr_type Tptr(new libmaus2::aio::InputStreamInstance(fn));
+					AISI[t] = UNIQUE_PTR_MOVE(Tptr);
+				}
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
+				#endif
+				for ( uint64_t i = 0; i < numseq; ++i )
+				{
+					#if defined(_OPENMP)
+					uint64_t const t = omp_get_thread_num();
+					#else
+					uint64_t const t = 0;
+					#endif
+
+					decodeSequenceNull(*(AISI[t]),i);
+				}
+			}
+
 			void printSequence(std::istream & in, std::ostream & out, uint64_t const seq) const
 			{
 				out << ">" << getSequenceName(in,seq) << "\n";
 
 				libmaus2::autoarray::AutoArray<char> Bout(bs,false);
-				libmaus2::fastx::FastaBPSequenceDecoder::unique_ptr_type ptr(getSequenceDecoder(in,seq,0));
+				sequence_decoder_pointer_type ptr(getSequenceDecoder(in,seq,0));
 
 				uint64_t n = 0;
 				while ( (n = ptr->read(Bout.begin(),Bout.size())) )
@@ -256,7 +295,7 @@ namespace libmaus2
 				uint64_t n = A.size();
 				uint64_t r = 0;
 
-				libmaus2::fastx::FastaBPSequenceDecoder::unique_ptr_type ptr(getSequenceDecoder(in,seq,0));
+				sequence_decoder_pointer_type ptr(getSequenceDecoder(in,seq,0));
 				while ( (r = ptr->read(p,n) ) )
 				{
 					assert ( r <= n );
@@ -267,11 +306,107 @@ namespace libmaus2
 				return A;
 			}
 
+			void decodeSequence(std::istream & in, uint64_t const seq, char * p, uint64_t const seqlen) const
+			{
+				// uint64_t const seqlen = getSequenceLength(in,seq);
+				// libmaus2::autoarray::AutoArray<char> A(seqlen,false);
+				// char * p = A.begin();
+				uint64_t n = seqlen;
+				uint64_t r = 0;
+
+				sequence_decoder_pointer_type ptr(getSequenceDecoder(in,seq,0));
+				while ( (r = ptr->read(p,n) ) )
+				{
+					assert ( r <= n );
+					n -= r;
+					p += r;
+				}
+			}
+
+			struct SequenceMeta
+			{
+				uint64_t datastart;
+				uint64_t firstbase;
+				uint64_t length;
+			};
+
+			void decodeSequencesParallel(
+				std::string const & fn, uint64_t const numthreads,
+				libmaus2::autoarray::AutoArray<char> & Aseq,
+				std::vector<SequenceMeta> & Vseqmeta,
+				bool const pad = false,
+				char padsym = 4
+			) const
+			{
+				assert ( numthreads );
+
+				Vseqmeta.resize(numseq+1);
+
+				libmaus2::autoarray::AutoArray<libmaus2::aio::InputStreamInstance::unique_ptr_type> AISI(numthreads);
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
+				for ( uint64_t t = 0; t < numthreads; ++t )
+				{
+					libmaus2::aio::InputStreamInstance::unique_ptr_type Tptr(new libmaus2::aio::InputStreamInstance(fn));
+					AISI[t] = UNIQUE_PTR_MOVE(Tptr);
+				}
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
+				#endif
+				for ( uint64_t i = 0; i < numseq; ++i )
+				{
+					#if defined(_OPENMP)
+					uint64_t const t = omp_get_thread_num();
+					#else
+					uint64_t const t = 0;
+					#endif
+
+					Vseqmeta[i].length = getSequenceLength(*(AISI[t]),i);
+				}
+
+				uint64_t sum = 0;
+				for ( uint64_t i = 0; i < numseq; ++i )
+				{
+					Vseqmeta[i].datastart = sum;
+					Vseqmeta[i].firstbase = Vseqmeta[i].datastart + (pad ? 1 : 0);
+					sum += Vseqmeta[i].length + (pad ? 1 : 0);
+				}
+				sum += (pad ? 1 : 0);
+
+				Aseq.release();
+				Aseq = libmaus2::autoarray::AutoArray<char>(sum,false);
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
+				#endif
+				for ( uint64_t i = 0; i < numseq; ++i )
+				{
+					#if defined(_OPENMP)
+					uint64_t const t = omp_get_thread_num();
+					#else
+					uint64_t const t = 0;
+					#endif
+
+					if ( pad )
+						Aseq[Vseqmeta[i].datastart] = padsym;
+
+					decodeSequence(*(AISI[t]),i,Aseq.begin()+Vseqmeta[i].firstbase,Vseqmeta[i].length);
+				}
+
+				if ( pad )
+					Aseq[sum-1] = padsym;
+			}
+
 			uint64_t getNumSeq() const
 			{
 				return numseq;
 			}
 		};
+
+		typedef FastaBPDecoderTemplate<FastaBPSequenceDecoderRemap> FastaBPDecoder;
+		typedef FastaBPDecoderTemplate<FastaBPSequenceDecoderRemapIdentity> FastaBPDecoderIdentity;
 	}
 }
 #endif

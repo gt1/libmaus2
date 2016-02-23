@@ -1529,6 +1529,26 @@ namespace libmaus2
 				return std::numeric_limits<uint64_t>::max();
 			}
 
+			void bump()
+			{
+				uint64_t oldsize = size();
+				uint64_t const one = 1;
+				uint64_t newsize = std::max(oldsize<<1,one);
+				resize(newsize);
+			}
+
+			void ensureSize(uint64_t const s)
+			{
+				while ( size() < s )
+					bump();
+			}
+
+			void push(uint64_t & o, N const & v)
+			{
+				ensureSize(o+1);
+				(*this)[o++] = v;
+			}
+
 			/**
 			 * read portion of file as AutoArray. Does not deserialise a header
 			 * @param filename name of file

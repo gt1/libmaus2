@@ -36,8 +36,9 @@ namespace libmaus2
 			enum err_type_enum
 			{
 			    err_subst,
+			    err_del,
 			    err_ins,
-			    err_del
+			    err_ins_homopol
 			};
 
 			enum state_enum
@@ -66,6 +67,7 @@ namespace libmaus2
 				double substrate,
 				double delrate,
 				double insrate,
+				double inshomopolrate,
 				double eratelow,
 				double eratehigh,
 				double eratelowstddev,
@@ -75,19 +77,21 @@ namespace libmaus2
 				double startlowprob
 			)
 			{
-				double ratesum = substrate + delrate + insrate;
+				double ratesum = substrate + delrate + insrate + inshomopolrate;
 				substrate /= ratesum;
 				delrate /= ratesum;
 				insrate /= ratesum;
+				inshomopolrate /= ratesum;
 
 				err_prob_cumul[err_subst] = substrate;
 				err_prob_cumul[err_del] = substrate + delrate;
 				err_prob_cumul[err_ins] = substrate + delrate + insrate;
+				err_prob_cumul[err_ins_homopol] = substrate + delrate + insrate + inshomopolrate;
 
 				if ( std::abs ( err_prob_cumul.find(err_ins)->second - 1.0 ) > 1e-3 )
 				{
 				    libmaus2::exception::LibMausException lme;
-				    lme.getStream() << "subst, del and insrate cannot be normalised to sum 1" << std::endl;
+				    lme.getStream() << "subst, del and ins and inshomopol rate cannot be normalised to sum 1" << std::endl;
 				    lme.finish();
 				    throw lme;
 				}
@@ -170,28 +174,28 @@ namespace libmaus2
 
 			static std::string modify(
 				std::string const & sub,
-				double const substrate, double const delrate, double const insrate,
+				double const substrate, double const delrate, double const insrate, double inshomopolrate,
 				double const erateavg,
 				double const eratestddev,
 				ErrorStats * const estats = 0
 			)
 			{
 				DNABaseNoiseSpiker spiker(
-					substrate,delrate,insrate,erateavg,erateavg,eratestddev,eratestddev,1,0,1
+					substrate,delrate,insrate,inshomopolrate,erateavg,erateavg,eratestddev,eratestddev,1,0,1
 				);
 				return spiker.modify(sub,estats);
 			}
 
 			static std::pair<std::string,std::string> modifyAndComment(
 				std::string const & sub,
-				double const substrate, double const delrate, double const insrate,
+				double const substrate, double const delrate, double const insrate, double inshomopolrate,
 				double const erateavg,
 				double const eratestddev,
 				ErrorStats * const estats = 0
 			)
 			{
 				DNABaseNoiseSpiker spiker(
-					substrate,delrate,insrate,erateavg,erateavg,eratestddev,eratestddev,1,0,1
+					substrate,delrate,insrate,inshomopolrate,erateavg,erateavg,eratestddev,eratestddev,1,0,1
 				);
 				return spiker.modifyAndComment(sub,estats);
 			}
@@ -295,11 +299,15 @@ namespace libmaus2
 						subplaced++;
 					    }
 					}
-					else
+					else if ( p < err_prob_cumul.find(err_ins)->second )
 					{
 					    errM[errpos].push_back(err_ins);
 					    errplaced++;
 					    insplaced++;
+					}
+					else
+					{
+
 					}
 				    }
 
