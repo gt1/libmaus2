@@ -1,3 +1,15 @@
+libmaus2 (2.0.129-1) unstable; urgency=medium
+
+  * prepare noise spiker class for homopolymer error scenarios
+  * add DNAIndexMetaDataBigBand class
+  * parameterise FastaBPDecoder with mapping function 
+  * add parallel decoding method in FastaBPDecoder 
+  * add bump, ensureSize and push methods in AutoArray class
+  * update compilation instructions in README.md following hints by Erik Garrison
+  * add difference function in IntegerInterval class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 23 Feb 2016 19:02:15 +0100
+
 libmaus2 (2.0.128-1) unstable; urgency=medium
 
   * add getReadLengthByCigar function in BamAlignmentDecoderBase and fix getCoveredReadInterval for reads with undefined query sequence
