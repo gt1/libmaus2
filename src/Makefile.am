@@ -1275,7 +1275,8 @@ libmaus2aio_include_HEADERS=\
 	libmaus2/aio/OutputStreamPointerWrapper.hpp \
 	libmaus2/aio/OutputStreamInstance.hpp \
 	libmaus2/aio/ConcatInputStreamBuffer.hpp \
-	libmaus2/aio/ConcatInputStream.hpp
+	libmaus2/aio/ConcatInputStream.hpp \
+	libmaus2/aio/SplitWriter.hpp
 	
 libmaus2parallel_includedir=$(includedir)/libmaus2/parallel
 libmaus2parallel_include_HEADERS=\
