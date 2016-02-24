@@ -930,7 +930,8 @@ libmaus2rank_include_HEADERS=\
 	libmaus2/rank/RunLengthBitVectorGeneratorGammaBase.hpp \
 	libmaus2/rank/FastRank.hpp \
 	libmaus2/rank/BSwapBase.hpp \
-	libmaus2/rank/DNARank.hpp
+	libmaus2/rank/DNARank.hpp \
+	libmaus2/rank/DNARankKmerCache.hpp
 
 libmaus2geometry_includedir=$(includedir)/libmaus2/geometry
 libmaus2geometry_include_HEADERS=\
