@@ -285,7 +285,8 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/Tandem.hpp libmaus2/dazzler/align/TandemVector.hpp \
 	libmaus2/dazzler/align/TandemVectorPartContainer.hpp \
 	libmaus2/dazzler/align/TracePoint.hpp libmaus2/dazzler/align/OverlapParser.hpp \
-	libmaus2/dazzler/align/OverlapData.hpp libmaus2/dazzler/align/SimpleOverlapParser.hpp
+	libmaus2/dazzler/align/OverlapData.hpp libmaus2/dazzler/align/SimpleOverlapParser.hpp \
+	libmaus2/dazzler/align/LASToBamConverterBase.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
 libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp libmaus2/autoarray/AutoArrayMultiMap.hpp
@@ -930,7 +931,8 @@ libmaus2rank_include_HEADERS=\
 	libmaus2/rank/RunLengthBitVectorGeneratorGammaBase.hpp \
 	libmaus2/rank/FastRank.hpp \
 	libmaus2/rank/BSwapBase.hpp \
-	libmaus2/rank/DNARank.hpp
+	libmaus2/rank/DNARank.hpp \
+	libmaus2/rank/DNARankKmerCache.hpp
 
 libmaus2geometry_includedir=$(includedir)/libmaus2/geometry
 libmaus2geometry_include_HEADERS=\
@@ -1274,7 +1276,8 @@ libmaus2aio_include_HEADERS=\
 	libmaus2/aio/OutputStreamPointerWrapper.hpp \
 	libmaus2/aio/OutputStreamInstance.hpp \
 	libmaus2/aio/ConcatInputStreamBuffer.hpp \
-	libmaus2/aio/ConcatInputStream.hpp
+	libmaus2/aio/ConcatInputStream.hpp \
+	libmaus2/aio/SplitWriter.hpp
 	
 libmaus2parallel_includedir=$(includedir)/libmaus2/parallel
 libmaus2parallel_include_HEADERS=\
@@ -1405,7 +1408,9 @@ libmaus2fastx_include_HEADERS=\
 	libmaus2/fastx/RefPathLookup.hpp \
 	libmaus2/fastx/DNAIndexMetaDataSequence.hpp \
 	libmaus2/fastx/DNAIndexMetaData.hpp \
-	libmaus2/fastx/DNAIndexMetaDataBigBand.hpp
+	libmaus2/fastx/DNAIndexMetaDataBigBand.hpp \
+	libmaus2/fastx/CoordinateCache.hpp \
+	libmaus2/fastx/LineBufferFastAReader.hpp
 
 libmaus2timing_includedir=$(includedir)/libmaus2/timing
 libmaus2timing_include_HEADERS=\
