@@ -1405,7 +1405,8 @@ libmaus2fastx_include_HEADERS=\
 	libmaus2/fastx/RefPathLookup.hpp \
 	libmaus2/fastx/DNAIndexMetaDataSequence.hpp \
 	libmaus2/fastx/DNAIndexMetaData.hpp \
-	libmaus2/fastx/DNAIndexMetaDataBigBand.hpp
+	libmaus2/fastx/DNAIndexMetaDataBigBand.hpp \
+	libmaus2/fastx/CoordinateCache.hpp
 
 libmaus2timing_includedir=$(includedir)/libmaus2/timing
 libmaus2timing_include_HEADERS=\
