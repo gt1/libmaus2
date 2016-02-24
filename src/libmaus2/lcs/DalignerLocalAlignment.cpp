@@ -351,15 +351,19 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 	// compute dense dataobject->alignment
 	Compute_Trace_PTS(&(dataobject->align),dataobject->workdata,Trace_Spacing(dataobject->spec),GREEDIEST);
 
+	Path *npath = dataobject->align.path;
+	int align_a_len = npath->aepos - npath->abpos;
+	int align_b_len = npath->bepos - npath->bbpos;
+	int align_len_sum = align_a_len + align_b_len;
+
 	// check for output size
-	if ( EditDistanceTraceContainer::capacity() < n + m )
-		resize(n + m);
+	if ( static_cast<int>(EditDistanceTraceContainer::capacity()) < align_len_sum )
+		resize(align_len_sum);
 
 	ta = trace.begin();
 	te = trace.begin();
 
 	// extract edit operations
-	Path *npath = dataobject->align.path;
 	int const tlen = dataobject->align.path->tlen;
 	int const * trace = reinterpret_cast<int const *>(npath->trace);
 	int i = npath->abpos + 1;
