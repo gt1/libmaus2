@@ -23,6 +23,7 @@
 #include <libmaus2/dazzler/align/AlignmentFile.hpp>
 #include <libmaus2/dazzler/align/OverlapData.hpp>
 #include <libmaus2/lcs/AlignerFactory.hpp>
+#include <libmaus2/lcs/DalignerLocalAlignment.hpp>
 #include <libmaus2/lcs/EditDistanceTraceContainer.hpp>
 
 namespace libmaus2
@@ -133,11 +134,49 @@ namespace libmaus2
 
 				}
 
+				void computeTrace(
+					// the overlap
+					uint8_t const * OVL,
+					// ref
+					char const * aptr,
+					// ref length
+					uint64_t const reflen,
+					// read
+					char const * bptr,
+					//
+					uint64_t const readlen
+				)
+				{
+					int64_t const abpos = libmaus2::dazzler::align::OverlapData::getABPos(OVL);
+					int64_t const aepos = libmaus2::dazzler::align::OverlapData::getAEPos(OVL);
+					int64_t const bbpos = libmaus2::dazzler::align::OverlapData::getBBPos(OVL);
+					int64_t const bepos = libmaus2::dazzler::align::OverlapData::getBEPos(OVL);
+					uint64_t const tracelen = libmaus2::dazzler::align::OverlapData::decodeTraceVector(OVL,Apath,small);
+
+					#if defined(LIBMAUS2_HAVE_DALIGNER) && defined(USE_DALIGNER)
+					/* LocalEditDistanceResult const LEDR = */ DLA.computeDenseTracePreMapped(
+						reinterpret_cast<uint8_t const *>(aptr),reflen,
+						reinterpret_cast<uint8_t const *>(bptr),readlen,
+						tspace,
+						Apath.begin(),tracelen,
+						libmaus2::dazzler::align::OverlapData::getDiffs(OVL),
+						abpos,
+						bbpos,
+						aepos,
+						bepos);
+					#else
+					// compute dense alignment trace
+					libmaus2::dazzler::align::Overlap::computeTracePreMapped(Apath.begin(),tracelen,abpos,aepos,bbpos,bepos,reinterpret_cast<uint8_t const *>(aptr),reinterpret_cast<uint8_t const *>(bptr),tspace,ATC,ND);
+					#endif
+				}
+
 				void convert(
 					// the overlap
 					uint8_t const * OVL,
 					// ref
 					char const * aptr,
+					// length of ref seq
+					uint64_t const aseqlen,
 					// read
 					char const * bptr,
 					// read length
@@ -160,28 +199,12 @@ namespace libmaus2
 					int64_t const aepos = libmaus2::dazzler::align::OverlapData::getAEPos(OVL);
 					int64_t const bbpos = libmaus2::dazzler::align::OverlapData::getBBPos(OVL);
 					int64_t const bepos = libmaus2::dazzler::align::OverlapData::getBEPos(OVL);
-					uint64_t const tracelen = libmaus2::dazzler::align::OverlapData::decodeTraceVector(OVL,Apath,small);
-
 
 					int32_t const blen   = (bepos - bbpos);
 					int32_t const bclipleft = bbpos;
 					int32_t const bclipright = readlen - blen - bclipleft;
 
-					#if defined(LIBMAUS2_HAVE_DALIGNER) && defined(USE_DALIGNER)
-					/* LocalEditDistanceResult const LEDR = */ DLA.computeDenseTracePreMapped(
-						reinterpret_cast<uint8_t const *>(aptr),reflen,
-						reinterpret_cast<uint8_t const *>(bptr),readlen,
-						tspace,
-						Apath.begin(),tracelen,
-						libmaus2::dazzler::align::OverlapData::getDiffs(OVL),
-						abpos,
-						bbpos,
-						aepos,
-						bepos);
-					#else
-					// compute dense alignment trace
-					libmaus2::dazzler::align::Overlap::computeTracePreMapped(Apath.begin(),tracelen,abpos,aepos,bbpos,bepos,reinterpret_cast<uint8_t const *>(aptr),reinterpret_cast<uint8_t const *>(bptr),tspace,ATC,ND);
-					#endif
+					computeTrace(OVL,aptr,aseqlen,bptr,readlen);
 
 					// compute cigar operation blocks based on alignment trace
 					size_t const nopblocks = ATC.getOpBlocks(Aopblocks);
@@ -289,11 +312,16 @@ namespace libmaus2
 						}
 					}
 
+					char const * readnamee = readname;
+
+					while ( *readnamee && !isspace(*readnamee) )
+						++readnamee;
+
 					libmaus2::bambam::BamAlignmentEncoderBase::encodeAlignmentPreMapped(
 						tbuffer,
 						// seqenc,
 						readname,
-						strlen(readname),
+						readnamee-readname,
 						aread, // ref id
 						abpos, // pos
 						255, // mapq (none given)
@@ -310,7 +338,8 @@ namespace libmaus2
 						storeseqlen,
 						ASQ.begin(), /* quality (not given) */
 						0, /* quality offset */
-						true /* reset buffer */
+						true, /* reset buffer */
+						false /* encode rc */
 					);
 
 					libmaus2::bambam::libmaus2_bambam_alignment_validity val = libmaus2::bambam::BamAlignmentDecoderBase::valid(tbuffer.begin(),tbuffer.end() - tbuffer.begin());
@@ -410,9 +439,10 @@ namespace libmaus2
 					}
 					#endif
 
-					#if 0
+					#if defined(LASTOBAM_PRINT_SAM)
 					::libmaus2::bambam::BamFormatAuxiliary auxdata;
 					libmaus2::bambam::BamAlignmentDecoderBase::formatAlignment(std::cerr,tbuffer.begin(),tbuffer.end() - tbuffer.begin(),bamheader,auxdata);
+					std::cerr << std::endl;
 					#endif
 
 				}
