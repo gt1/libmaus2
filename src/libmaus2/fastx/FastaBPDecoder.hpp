@@ -340,7 +340,7 @@ namespace libmaus2
 			{
 				assert ( numthreads );
 
-				Vseqmeta.resize(numseq+1);
+				Vseqmeta.resize(numseq);
 
 				libmaus2::autoarray::AutoArray<libmaus2::aio::InputStreamInstance::unique_ptr_type> AISI(numthreads);
 				#if defined(_OPENMP)
