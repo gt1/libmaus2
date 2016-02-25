@@ -205,15 +205,20 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 	// compute dense dataobject->alignment
 	Compute_Trace_PTS(&(dataobject->align),dataobject->workdata,Trace_Spacing(dataobject->spec),GREEDIEST);
 
+	Path *npath    = (dataobject->align.path);
+
+	int align_a_len = npath->aepos - npath->abpos;
+	int align_b_len = npath->bepos - npath->bbpos;
+	int align_len_sum = align_a_len + align_b_len;
+
 	// check for output size
-	if ( EditDistanceTraceContainer::capacity() < n + m )
-		resize(n + m);
+	if ( static_cast<int>(EditDistanceTraceContainer::capacity()) < align_len_sum )
+		resize(align_len_sum);
 
 	ta = trace.begin();
 	te = trace.begin();
 
 	// extract edit operations
-	Path *npath = dataobject->align.path;
 	int const tlen = dataobject->align.path->tlen;
 	int const * trace = reinterpret_cast<int const *>(npath->trace);
 	int i = npath->abpos + 1;
@@ -294,6 +299,8 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 			nummis += 1;
 		}
 	}
+
+	assert ( te-ta <= static_cast<ptrdiff_t>(EditDistanceTraceContainer::capacity()) );
 
 	AlignmentStatistics const AS = getAlignmentStatistics();
 
@@ -351,15 +358,19 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 	// compute dense dataobject->alignment
 	Compute_Trace_PTS(&(dataobject->align),dataobject->workdata,Trace_Spacing(dataobject->spec),GREEDIEST);
 
+	Path *npath = dataobject->align.path;
+	int align_a_len = npath->aepos - npath->abpos;
+	int align_b_len = npath->bepos - npath->bbpos;
+	int align_len_sum = align_a_len + align_b_len;
+
 	// check for output size
-	if ( EditDistanceTraceContainer::capacity() < n + m )
-		resize(n + m);
+	if ( static_cast<int>(EditDistanceTraceContainer::capacity()) < align_len_sum )
+		resize(align_len_sum);
 
 	ta = trace.begin();
 	te = trace.begin();
 
 	// extract edit operations
-	Path *npath = dataobject->align.path;
 	int const tlen = dataobject->align.path->tlen;
 	int const * trace = reinterpret_cast<int const *>(npath->trace);
 	int i = npath->abpos + 1;
@@ -440,6 +451,8 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 			nummis += 1;
 		}
 	}
+
+	assert ( te-ta <= static_cast<ptrdiff_t>(EditDistanceTraceContainer::capacity()) );
 
 	AlignmentStatistics const AS = getAlignmentStatistics();
 
@@ -538,15 +551,20 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::co
 	// compute dense alignment trace
 	Compute_Trace_PTS(&(dataobject->align),dataobject->workdata,tspace,GREEDIEST);
 
+	Path *npath    = &(dataobject->path);
+
+	int align_a_len = npath->aepos - npath->abpos;
+	int align_b_len = npath->bepos - npath->bbpos;
+	int align_len_sum = align_a_len + align_b_len;
+
 	// check for output size
-	if ( EditDistanceTraceContainer::capacity() < n + m )
-		resize(n + m);
+	if ( static_cast<int>(EditDistanceTraceContainer::capacity()) < align_len_sum )
+		resize(align_len_sum);
 
 	ta = trace.begin();
 	te = trace.begin();
 
 	// extract edit operations
-	Path *npath    = &(dataobject->path);
 	int const tlen = npath->tlen;
 	int const * trace = reinterpret_cast<int const *>(npath->trace);
 	int i = npath->abpos + 1;
@@ -627,6 +645,8 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::co
 			nummis += 1;
 		}
 	}
+
+	assert ( te-ta <= static_cast<ptrdiff_t>(EditDistanceTraceContainer::capacity()) );
 
 	AlignmentStatistics const AS = getAlignmentStatistics();
 
@@ -670,6 +690,15 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::co
 )
 {
 	#if defined(LIBMAUS2_HAVE_DALIGNER)
+	assert ( abpos >= 0 );
+	assert ( bbpos >= 0 );
+	assert ( aepos <= static_cast<int64_t>(n) );
+	assert ( bepos <= static_cast<int64_t>(m) );
+	assert ( a[-1] == 4 );
+	assert ( a[n] == 4 );
+	assert ( b[-1] == 4 );
+	assert ( b[m] == 4 );
+
 	DalignerData * dataobject = reinterpret_cast<DalignerData *>(data);
 	assert ( dataobject->spec );
 
@@ -701,15 +730,20 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::co
 	// compute dense alignment trace
 	Compute_Trace_PTS(&(dataobject->align),dataobject->workdata,tspace,GREEDIEST);
 
+	Path *npath    = &(dataobject->path);
+
+	int align_a_len = npath->aepos - npath->abpos;
+	int align_b_len = npath->bepos - npath->bbpos;
+	int align_len_sum = align_a_len + align_b_len;
+
 	// check for output size
-	if ( EditDistanceTraceContainer::capacity() < n + m )
-		resize(n + m);
+	if ( static_cast<int>(EditDistanceTraceContainer::capacity()) < align_len_sum )
+		resize(align_len_sum);
 
 	ta = trace.begin();
 	te = trace.begin();
 
 	// extract edit operations
-	Path *npath    = &(dataobject->path);
 	int const tlen = npath->tlen;
 	int const * trace = reinterpret_cast<int const *>(npath->trace);
 	int i = npath->abpos + 1;
@@ -790,6 +824,8 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::co
 			nummis += 1;
 		}
 	}
+
+	assert ( te-ta <= static_cast<ptrdiff_t>(EditDistanceTraceContainer::capacity()) );
 
 	AlignmentStatistics const AS = getAlignmentStatistics();
 

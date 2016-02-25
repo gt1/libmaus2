@@ -1,3 +1,10 @@
+libmaus2 (2.0.131-1) unstable; urgency=medium
+
+  * implement homopolymer insertions in DNABaseNoiseSpiker
+  * improve memory use estimation in DalignerLocalAlignment interface
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 25 Feb 2016 14:51:09 +0100
+
 libmaus2 (2.0.130-1) unstable; urgency=medium
 
   * parameterise decodeSequencesParallel in FastaBPDecoder by memory allocation model

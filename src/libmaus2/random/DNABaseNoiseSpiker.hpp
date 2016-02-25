@@ -55,10 +55,20 @@ namespace libmaus2
 			std::map< int, std::map<int,double> > state_change_map;
 			std::map< int, double > state_start_map;
 
-			static bool contains(std::vector<err_type_enum> const & V, err_type_enum type)
+			struct ErrorDescriptor
+			{
+				err_type_enum type;
+				int length;
+				char repeatbase;
+
+				ErrorDescriptor(err_type_enum const rtype = err_subst, int const rlength = 1, char const rrepeatbase = 'A')
+				: type(rtype), length(rlength), repeatbase(rrepeatbase) {}
+			};
+
+			static bool contains(std::vector<ErrorDescriptor> const & V, err_type_enum type)
 			{
 			    for ( uint64_t i = 0; i < V.size(); ++i )
-				if ( V[i] == type )
+				if ( V[i].type == type )
 				    return true;
 			    return false;
 			}
@@ -88,7 +98,7 @@ namespace libmaus2
 				err_prob_cumul[err_ins] = substrate + delrate + insrate;
 				err_prob_cumul[err_ins_homopol] = substrate + delrate + insrate + inshomopolrate;
 
-				if ( std::abs ( err_prob_cumul.find(err_ins)->second - 1.0 ) > 1e-3 )
+				if ( std::abs ( err_prob_cumul.find(err_ins_homopol)->second - 1.0 ) > 1e-3 )
 				{
 				    libmaus2::exception::LibMausException lme;
 				    lme.getStream() << "subst, del and ins and inshomopol rate cannot be normalised to sum 1" << std::endl;
@@ -225,9 +235,9 @@ namespace libmaus2
 					state = state_error_high;
 				}
 
-				std::map<uint64_t,std::vector<err_type_enum> > errM;
+				std::map<uint64_t /* position */,std::vector< ErrorDescriptor > > errM;
 				for ( uint64_t i = 0; i < sub.size(); ++i )
-				    errM[i] = std::vector<err_type_enum>(0);
+				    errM[i] = std::vector< ErrorDescriptor >(0);
 
 				errostr << "ERRINTV=[[";
 				uint64_t low = 0;
@@ -262,7 +272,7 @@ namespace libmaus2
 					    // no error yet?
 					    if ( errM.find(errpos) == errM.end() || errM.find(errpos)->second.size() == 0 )
 					    {
-						errM[errpos].push_back(err_subst);
+						errM[errpos].push_back(ErrorDescriptor(err_subst,1));
 						errplaced++;
 						subplaced++;
 					    }
@@ -273,7 +283,7 @@ namespace libmaus2
 						!contains(errM.find(errpos)->second,err_subst)
 					    )
 					    {
-						errM[errpos].push_back(err_subst);
+						errM[errpos].push_back(ErrorDescriptor(err_subst,1));
 						errplaced++;
 						subplaced++;
 					    }
@@ -283,7 +293,7 @@ namespace libmaus2
 					    // no error yet?
 					    if ( errM.find(errpos) == errM.end() || errM.find(errpos)->second.size() == 0 )
 					    {
-						errM[errpos].push_back(err_del);
+						errM[errpos].push_back(ErrorDescriptor(err_del,1));
 						errplaced++;
 						delplaced++;
 					    }
@@ -294,20 +304,31 @@ namespace libmaus2
 						!contains(errM.find(errpos)->second,err_subst)
 					    )
 					    {
-						errM[errpos].push_back(err_subst);
+						errM[errpos].push_back(ErrorDescriptor(err_subst,1));
 						errplaced++;
 						subplaced++;
 					    }
 					}
 					else if ( p < err_prob_cumul.find(err_ins)->second )
 					{
-					    errM[errpos].push_back(err_ins);
+					    errM[errpos].push_back(ErrorDescriptor(err_ins,1));
 					    errplaced++;
 					    insplaced++;
 					}
-					else
+					else // homopolymer insertion
 					{
+						char const sym = sub[errpos];
+						double const pins = libmaus2::random::UniformUnitRandom::uniformUnitRandom();
+						double const base = 1.0/3.0;
+						// inverse of function 1-base^(x-1)
+						int const prenumins = static_cast<int>(::std::floor(::std::log(1-pins) / ::std::log(base) + 1.0));
+						int const errav = numerr - errplaced;
+						int const numins = std::min(prenumins,errav);
 
+						errM[errpos].push_back(ErrorDescriptor(err_ins_homopol,numins,sym));
+						errplaced += numins;
+						insplaced += numins;
+						// std::cerr << "inserting " << numins << std::endl;
 					}
 				    }
 
@@ -327,14 +348,14 @@ namespace libmaus2
 
 				uint64_t numins = 0, numdel = 0, numsubst = 0;
 
-				for ( std::map<uint64_t,std::vector<err_type_enum> >::const_iterator ita = errM.begin(); ita != errM.end(); ++ita )
+				for ( std::map<uint64_t,std::vector< ErrorDescriptor > >::const_iterator ita = errM.begin(); ita != errM.end(); ++ita )
 				{
 				    uint64_t const pos = ita->first;
-				    std::vector<err_type_enum> const & errV = ita->second;
+				    std::vector< ErrorDescriptor > const & errV = ita->second;
 
 				    // insertions
 				    for ( uint64_t i = 0; i < errV.size(); ++i )
-					if ( errV[i] == err_ins )
+					if ( errV[i].type == err_ins )
 					{
 					    int const v = libmaus2::random::Random::rand8() & 3;
 					    int insbase = -1;
@@ -349,6 +370,18 @@ namespace libmaus2
 					    errostr << 'i' << static_cast<char>(insbase);
 					    cigopstr.put('I');
 					    numins += 1;
+					}
+					else if ( errV[i].type == err_ins_homopol )
+					{
+						int const insbase = errV[i].repeatbase;
+
+						for ( int j = 0; j < errV[i].length; ++j )
+						{
+							baseostr.put(insbase);
+							errostr << 'i' << static_cast<char>(insbase);
+							cigopstr.put('I');
+							numins += 1;
+						}
 					}
 
 				    // base not deleted?
