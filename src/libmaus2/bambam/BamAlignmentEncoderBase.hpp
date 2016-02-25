@@ -346,6 +346,53 @@ namespace libmaus2
 			}
 
 			/**
+			 * encode reverse complement of pre mapped query sequence
+			 *
+			 * @param buffer output buffer
+			 * @param seq sequence iterator
+			 * @param seqlen length of query sequence
+			 **/
+			template<typename buffer_type, typename seq_iterator>
+			static void encodeSeqPreMappedRc(
+				buffer_type & buffer,
+				seq_iterator seq,
+				uint32_t const seqlen)
+			{
+				static uint8_t const enctable[256] = {
+					8,4,2,1,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
+					15,15,15,15,15,15,15,15,15,15,15,15,15,15,15};
+				// sequence
+				seq_iterator seqe = seq + seqlen;
+
+				for ( uint32_t i = 0; i < (seqlen >> 1); ++i )
+				{
+					uint8_t const high = enctable[static_cast<int>((*(--seqe)))];
+					uint8_t const low  = enctable[static_cast<int>((*(--seqe)))];
+					buffer.put( (high << 4) | low );
+				}
+				if ( seqlen & 1 )
+				{
+					uint8_t const high = enctable[static_cast<int>((*(--seqe)))];
+					buffer.put( high<<4 );
+				}
+			}
+
+			/**
 			 * encode a complete alignment block
 			 *
 			 * @param buffer output buffer
@@ -495,7 +542,8 @@ namespace libmaus2
 				uint32_t const seqlen,
 				qual_iterator qual,
 				uint8_t const qualoffset = 33,
-				bool const resetBuffer = true
+				bool const resetBuffer = true,
+				bool const encoderc = false
 			)
 			{
 				typedef ::libmaus2::fastx::EntityBuffer<uint8_t,alloc_type> buffer_type;
@@ -548,7 +596,10 @@ namespace libmaus2
 				encodeCigar(buffer,cigar,cigarlen);
 
 				// encode sequence
-				encodeSeqPreMapped(buffer,seq,seqlen);
+				if ( encoderc )
+					encodeSeqPreMappedRc(buffer,seq,seqlen);
+				else
+					encodeSeqPreMapped(buffer,seq,seqlen);
 
 				// encode quality
 				for ( uint32_t i = 0; i < seqlen; ++i )

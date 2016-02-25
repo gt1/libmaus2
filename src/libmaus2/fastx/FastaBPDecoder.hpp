@@ -330,9 +330,10 @@ namespace libmaus2
 				uint64_t length;
 			};
 
+			template<libmaus2::autoarray::alloc_type atype>
 			void decodeSequencesParallel(
 				std::string const & fn, uint64_t const numthreads,
-				libmaus2::autoarray::AutoArray<char> & Aseq,
+				libmaus2::autoarray::AutoArray<char,atype> & Aseq,
 				std::vector<SequenceMeta> & Vseqmeta,
 				bool const pad = false,
 				char padsym = 4
@@ -340,7 +341,7 @@ namespace libmaus2
 			{
 				assert ( numthreads );
 
-				Vseqmeta.resize(numseq+1);
+				Vseqmeta.resize(numseq);
 
 				libmaus2::autoarray::AutoArray<libmaus2::aio::InputStreamInstance::unique_ptr_type> AISI(numthreads);
 				#if defined(_OPENMP)
@@ -376,7 +377,7 @@ namespace libmaus2
 				sum += (pad ? 1 : 0);
 
 				Aseq.release();
-				Aseq = libmaus2::autoarray::AutoArray<char>(sum,false);
+				Aseq = libmaus2::autoarray::AutoArray<char,atype>(sum,false);
 
 				#if defined(_OPENMP)
 				#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
