@@ -300,6 +300,8 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 		}
 	}
 
+	assert ( te-ta <= static_cast<ptrdiff_t>(EditDistanceTraceContainer::capacity()) );
+
 	AlignmentStatistics const AS = getAlignmentStatistics();
 
 	// return counts
@@ -449,6 +451,8 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 			nummis += 1;
 		}
 	}
+
+	assert ( te-ta <= static_cast<ptrdiff_t>(EditDistanceTraceContainer::capacity()) );
 
 	AlignmentStatistics const AS = getAlignmentStatistics();
 
@@ -642,6 +646,8 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::co
 		}
 	}
 
+	assert ( te-ta <= static_cast<ptrdiff_t>(EditDistanceTraceContainer::capacity()) );
+
 	AlignmentStatistics const AS = getAlignmentStatistics();
 
 	// return counts
@@ -684,6 +690,15 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::co
 )
 {
 	#if defined(LIBMAUS2_HAVE_DALIGNER)
+	assert ( abpos >= 0 );
+	assert ( bbpos >= 0 );
+	assert ( aepos <= static_cast<int64_t>(n) );
+	assert ( bepos <= static_cast<int64_t>(m) );
+	assert ( a[-1] == 4 );
+	assert ( a[n] == 4 );
+	assert ( b[-1] == 4 );
+	assert ( b[m] == 4 );
+
 	DalignerData * dataobject = reinterpret_cast<DalignerData *>(data);
 	assert ( dataobject->spec );
 
@@ -809,6 +824,8 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::co
 			nummis += 1;
 		}
 	}
+
+	assert ( te-ta <= static_cast<ptrdiff_t>(EditDistanceTraceContainer::capacity()) );
 
 	AlignmentStatistics const AS = getAlignmentStatistics();
 
