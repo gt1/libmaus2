@@ -179,7 +179,9 @@ namespace libmaus2
 						{
 							libmaus2::parallel::ScopePosixSpinLock slock(L);
 							VO[i] = fn;
+							#if defined(SORTINGOVERLAPOUTPUTBUFFER_VERBOSE)
 							std::cerr << "[D] writing [" << low << "," << high << ") to " << fn << std::endl;
+							#endif
 						}
 
 						if ( regtmp )
@@ -344,7 +346,9 @@ namespace libmaus2
 
 						{
 							libmaus2::parallel::ScopePosixSpinLock slock(L);
+							#if defined(SORTINGOVERLAPOUTPUTBUFFER_VERBOSE)
 							std::cerr << "[D] writing [" << low << "," << high << ")" << std::endl;
+							#endif
 						}
 
 						// open output file
