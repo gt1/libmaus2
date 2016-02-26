@@ -171,6 +171,19 @@ namespace libmaus2
 				}
 			}
 
+			struct ReadMeta
+			{
+				uint64_t nameoff;
+				uint64_t dataoff;
+				uint64_t len;
+
+				ReadMeta(
+					uint64_t rnameoff = 0,
+					uint64_t rdataoff = 0,
+					uint64_t rlen = 0
+				) : nameoff(rnameoff), dataoff(rdataoff), len(rlen) {}
+			};
+
 			bool getNext(
 				libmaus2::autoarray::AutoArray<char> & name,
 				uint64_t & o_name,
@@ -233,6 +246,56 @@ namespace libmaus2
 				else
 				{
 					return false;
+				}
+			}
+
+			void pushReverseComplement(
+				libmaus2::autoarray::AutoArray<char> & data, uint64_t & o_data,
+				libmaus2::autoarray::AutoArray<ReadMeta> & readmeta,
+				uint64_t const numreads,
+				bool const termdata = true,
+				bool const mapdata = false,
+				bool const paddata = false,
+				char const padsym = 4
+			)
+			{
+				uint64_t onumreads = numreads;
+
+				for ( uint64_t i = 0; i < numreads; ++i )
+				{
+					ReadMeta const RM = readmeta[i];
+					uint64_t const readoffset = RM.dataoff;
+					uint64_t const readlen = RM.len;
+					uint64_t const nameoffset = RM.nameoff;
+
+					if ( paddata )
+						pushSymbol(data,o_data,padsym);
+
+					uint64_t const nextreadoffset = o_data;
+
+					// make sure we do not need to reallocate while pushing the base symbols
+					ensureSize(data,o_data + readlen);
+
+					char const * p = data.begin() + readoffset + readlen;
+
+					if ( mapdata )
+						for ( uint64_t j = 0; j < readlen; ++j )
+							pushSymbol(data,o_data,(*(--p))^3);
+					else
+						for ( uint64_t j = 0; j < readlen; ++j )
+							pushSymbol(data,o_data, libmaus2::fastx::invertUnmapped(*(--p)) );
+
+					if ( paddata )
+						pushSymbol(data,o_data,padsym);
+
+					if ( termdata )
+						pushSymbol(data,o_data,0);
+
+					ReadMeta NRM;
+					NRM.dataoff = nextreadoffset;
+					NRM.len = readlen;
+					NRM.nameoff = nameoffset;
+					readmeta.push(onumreads,NRM);
 				}
 			}
 		};
