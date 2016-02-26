@@ -196,7 +196,9 @@ namespace libmaus2
 					bool const bIsInverse = libmaus2::dazzler::align::OverlapData::getFlags(OVL) & 1;
 
 					int64_t const abpos = libmaus2::dazzler::align::OverlapData::getABPos(OVL);
+					#if defined(LASTOBAM_ALIGNMENT_PRINT_DEBUG)
 					int64_t const aepos = libmaus2::dazzler::align::OverlapData::getAEPos(OVL);
+					#endif
 					int64_t const bbpos = libmaus2::dazzler::align::OverlapData::getBBPos(OVL);
 					int64_t const bepos = libmaus2::dazzler::align::OverlapData::getBEPos(OVL);
 
