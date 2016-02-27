@@ -344,6 +344,69 @@ namespace libmaus2
 				return n;
 			}
 
+			uint64_t rankm(uint64_t i, unsigned int const c) const
+			{
+				switch ( c )
+				{
+					case 0:  return rankmTemplate<0>(i); break;
+					case 1:  return rankmTemplate<1>(i); break;
+					case 2:  return rankmTemplate<2>(i); break;
+					default: return rankmTemplate<3>(i); break;
+				}
+			}
+
+			template<int sym>
+			uint64_t rankmTemplate(uint64_t i) const
+			{
+				if ( sym < 3 )
+				{
+					uint64_t const * P = B.begin();
+					uint64_t const blockskip = i / getDataBasesPerBlock();
+					i -= blockskip * getDataBasesPerBlock();
+					P += (blockskip * getWordsPerBlock());
+
+					uint64_t r = P[sym];
+					P += getSigma()-1;
+
+					uint64_t wordskip = i / getBasesPerWord();
+
+					i -= wordskip * getBasesPerWord();
+
+					uint64_t w;
+					while ( wordskip-- )
+					{
+						w = *(P++);
+						switch ( sym )
+						{
+							case 0: r += symcnt(w,0x0000000000000000ULL); break;
+							case 1: r += symcnt(w,0x5555555555555555ULL); break;
+							case 2: r += symcnt(w,0xAAAAAAAAAAAAAAAAULL); break;
+						}
+					}
+
+					if ( i )
+					{
+						w = *(P++);
+						uint64_t const omask = (1ull << (getLogSigma()*i))-1;
+
+						switch ( sym )
+						{
+							case 0: r += symcnt(w,0x0000000000000000ULL,omask); break;
+							case 1: r += symcnt(w,0x5555555555555555ULL,omask); break;
+							case 2: r += symcnt(w,0xAAAAAAAAAAAAAAAAULL,omask); break;
+						}
+					}
+
+					return r;
+				}
+				else
+				{
+					uint64_t R[LIBMAUS2_RANK_DNARANK_SIGMA];
+					rankm(i,&R[0]);
+					return R[3];
+				}
+			}
+
 			void rankm(uint64_t i, uint64_t * r) const
 			{
 				uint64_t const * P = B.begin();
@@ -395,6 +458,12 @@ namespace libmaus2
 					R0[i] += D[i];
 					R1[i] += D[i];
 				}
+			}
+
+			std::pair<uint64_t,uint64_t> singleSymbolLF(uint64_t const l, uint64_t const r, unsigned int const sym) const
+			{
+				std::pair<uint64_t,uint64_t> const P(D[sym] + rankm(l,sym),D[sym] + rankm(r,sym));
+				return P;
 			}
 
 			std::pair<uint64_t,uint64_t> epsilon() const
@@ -511,9 +580,7 @@ namespace libmaus2
 
 			std::pair<uint64_t,uint64_t> backwardExtend(std::pair<uint64_t,uint64_t> const & P, unsigned int const sym) const
 			{
-				uint64_t R0[LIBMAUS2_RANK_DNARANK_SIGMA], R1[LIBMAUS2_RANK_DNARANK_SIGMA];
-				multiLF(P.first, P.second, &R0[0], &R1[0]);
-				return std::pair<uint64_t,uint64_t>(R0[sym],R1[sym]);
+				return singleSymbolLF(P.first,P.second,sym);
 			}
 
 			unsigned int inverseSelect(uint64_t i, uint64_t * r) const
