@@ -1,3 +1,9 @@
+libmaus2 (2.0.134-1) unstable; urgency=medium
+
+  * speed up rank/backward step functions in DNARank by specialising them
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sat, 27 Feb 2016 20:28:35 +0100
+
 libmaus2 (2.0.133-1) unstable; urgency=medium
 
   * allow lower case letters when encoding bases for BAM
