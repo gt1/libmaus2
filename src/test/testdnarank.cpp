@@ -66,7 +66,7 @@ int main(int argc, char * argv[])
 		std::cerr << "done." << std::endl;
 
 		Prank->testSearch(8);
-		return 0;
+		//return 0;
 		// Prank->testBackwardSearchConsistency(8);
 
 		std::string const hfn = arg[1];
@@ -112,7 +112,18 @@ int main(int argc, char * argv[])
 		t = rtc.getElapsedSeconds();
 		std::cerr << "DNArank random rank " << RA.size()/t << std::endl;
 
+		rtc.start();
+		for ( uint64_t i = 0; i < RA.size(); ++i )
+		{
+			Prank->rankm(RA[i], i%3);
 
+			#if 0
+			if ( i % (1024*1024) == 0 )
+				std::cerr.put('.');
+			#endif
+		}
+		t = rtc.getElapsedSeconds();
+		std::cerr << "DNArank random rank spec " << RA.size()/t << std::endl;
 
 		for ( uint64_t i = 0; i < Prank->size(); ++i )
 		{
@@ -123,7 +134,10 @@ int main(int argc, char * argv[])
 			hptr->enumerateSymbolsRank(i, &R0[0]);
 			Prank->rankm(i, &R1[0]);
 			for ( uint64_t j = 0; j < 4; ++j )
+			{
 				assert ( R0[j] == R1[j] );
+				assert ( Prank->rankm(i,j) == R0[j] );
+			}
 		}
 
 		rtc.start();
