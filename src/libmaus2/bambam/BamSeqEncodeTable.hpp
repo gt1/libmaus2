@@ -20,6 +20,7 @@
 #define LIBMAUS2_BAMBAM_BAMSEQENCODETABLE_HPP
 
 #include <libmaus2/autoarray/AutoArray.hpp>
+#include <cctype>
 
 namespace libmaus2
 {
@@ -44,6 +45,8 @@ namespace libmaus2
 					A[i] = strlen(s);
 				for ( uint64_t i = 0; i < strlen(s); ++i )
 					A [ s[i] ] = i;
+				for ( uint64_t i = 0; i < strlen(s); ++i )
+					A [ ::tolower(s[i]) ] = i;
 			}
 
 			/**
