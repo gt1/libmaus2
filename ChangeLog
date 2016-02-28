@@ -1,3 +1,9 @@
+libmaus2 (2.0.135-1) unstable; urgency=medium
+
+  * implement online adding of RC sequence in parallel decoding of FastaBPDecoder 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sun, 28 Feb 2016 11:44:25 +0100
+
 libmaus2 (2.0.134-1) unstable; urgency=medium
 
   * speed up rank/backward step functions in DNARank by specialising them
