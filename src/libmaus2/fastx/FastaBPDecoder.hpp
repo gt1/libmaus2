@@ -336,12 +336,13 @@ namespace libmaus2
 				libmaus2::autoarray::AutoArray<char,atype> & Aseq,
 				std::vector<SequenceMeta> & Vseqmeta,
 				bool const pad = false,
-				char padsym = 4
+				char padsym = 4,
+				bool const addrc = false
 			) const
 			{
 				assert ( numthreads );
 
-				Vseqmeta.resize(numseq);
+				Vseqmeta.resize(addrc ? (2*numseq) : numseq);
 
 				libmaus2::autoarray::AutoArray<libmaus2::aio::InputStreamInstance::unique_ptr_type> AISI(numthreads);
 				#if defined(_OPENMP)
@@ -364,11 +365,13 @@ namespace libmaus2
 					uint64_t const t = 0;
 					#endif
 
-					Vseqmeta[i].length = getSequenceLength(*(AISI[t]),i);
+					Vseqmeta.at(i).length = getSequenceLength(*(AISI[t]),i);
+					if ( addrc )
+						Vseqmeta.at(numseq+i) = Vseqmeta[i];
 				}
 
 				uint64_t sum = 0;
-				for ( uint64_t i = 0; i < numseq; ++i )
+				for ( uint64_t i = 0; i < Vseqmeta.size(); ++i )
 				{
 					Vseqmeta[i].datastart = sum;
 					Vseqmeta[i].firstbase = Vseqmeta[i].datastart + (pad ? 1 : 0);
@@ -393,7 +396,21 @@ namespace libmaus2
 					if ( pad )
 						Aseq[Vseqmeta[i].datastart] = padsym;
 
-					decodeSequence(*(AISI[t]),i,Aseq.begin()+Vseqmeta[i].firstbase,Vseqmeta[i].length);
+					char * const datastart = Aseq.begin()+Vseqmeta[i].firstbase;
+
+					decodeSequence(*(AISI[t]),i,datastart,Vseqmeta[i].length);
+
+					if ( addrc )
+					{
+						char * inp = datastart + Vseqmeta[i].length;
+						char * outp = Aseq.begin()+Vseqmeta[numseq + i].firstbase;
+
+						while ( inp != datastart )
+							*(outp++) = remap_type::invertBase(*(--inp));
+
+						if ( pad )
+							Aseq[Vseqmeta[numseq+i].datastart] = padsym;
+					}
 				}
 
 				if ( pad )

@@ -265,6 +265,11 @@ namespace libmaus2
 			{
 				return libmaus2::fastx::remapChar(c);
 			}
+
+			static inline char invertBase(char const c)
+			{
+				return libmaus2::fastx::invertUnmapped(c);
+			}
 		};
 
 		struct FastaBPSequenceDecoderRemapIdentity
@@ -272,6 +277,11 @@ namespace libmaus2
 			static inline char remapChar(char const c)
 			{
 				return c;
+			}
+
+			static inline char invertBase(char const c)
+			{
+				return (c ^ 3);
 			}
 		};
 
