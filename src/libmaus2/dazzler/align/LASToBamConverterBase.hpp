@@ -448,6 +448,77 @@ namespace libmaus2
 					#endif
 
 				}
+
+				void convertUnmapped(
+					// read
+					char const * bptr,
+					// read length
+					uint64_t const readlen,
+					// readname
+					char const * readname,
+					// buffer for storing bam record,
+					libmaus2::bambam::parallel::FragmentAlignmentBufferFragment & FABR,
+					// header
+					libmaus2::bambam::BamHeader const & bamheader
+				)
+				{
+					// reallocate quality value buffer if necessary
+					if ( readlen > ASQ.size() )
+					{
+						ASQ.resize(readlen);
+						std::fill(ASQ.begin(),ASQ.end(),255);
+					}
+
+					char const * readnamee = readname;
+					while ( *readnamee && !isspace(*readnamee) )
+						++readnamee;
+
+					libmaus2::bambam::BamAlignmentEncoderBase::encodeAlignmentPreMapped(
+						tbuffer,
+						readname,
+						readnamee-readname,
+						-1, // ref id
+						-1, // pos
+						255, // mapq (none given)
+						libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP,
+						Acigop.begin(),
+						0,
+						-1, // next ref id
+						-1, // next pos
+						0, // template length (not given)
+						bptr,
+						readlen,
+						ASQ.begin(), /* quality (not given) */
+						0, /* quality offset */
+						true, /* reset buffer */
+						false /* encode rc */
+					);
+
+					libmaus2::bambam::libmaus2_bambam_alignment_validity val = libmaus2::bambam::BamAlignmentDecoderBase::valid(tbuffer.begin(),tbuffer.end() - tbuffer.begin());
+
+					if ( val != libmaus2::bambam::libmaus2_bambam_alignment_validity_ok )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "LASToBAMConverter: constructed alignment is invalid: " << val << std::endl;
+						::libmaus2::bambam::BamFormatAuxiliary auxdata;
+						libmaus2::bambam::BamAlignmentDecoderBase::formatAlignment(lme.getStream(),tbuffer.begin(),tbuffer.end() - tbuffer.begin(),bamheader,auxdata);
+						lme.getStream() << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					if ( rgid.size() )
+						libmaus2::bambam::BamAlignmentEncoderBase::putAuxString(tbuffer,"RG",rgid.c_str());
+
+					FABR.pushAlignmentBlock(tbuffer.begin(),tbuffer.end() - tbuffer.begin());
+
+					#if defined(LASTOBAM_PRINT_SAM)
+					::libmaus2::bambam::BamFormatAuxiliary auxdata;
+					libmaus2::bambam::BamAlignmentDecoderBase::formatAlignment(std::cerr,tbuffer.begin(),tbuffer.end() - tbuffer.begin(),bamheader,auxdata);
+					std::cerr << std::endl;
+					#endif
+
+				}
 			};
 		}
 	}
