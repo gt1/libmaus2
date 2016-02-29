@@ -1,3 +1,9 @@
+libmaus2 (2.0.137-1) unstable; urgency=medium
+
+  * add convertUnmapped method in LASToBamConverterBase
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 29 Feb 2016 12:30:41 +0100
+
 libmaus2 (2.0.136-1) unstable; urgency=medium
 
   * add getSwappedPreMappedInv method in Overlap class
