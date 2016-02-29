@@ -726,6 +726,145 @@ namespace libmaus2
 					}
 				}
 
+				struct GetSwappedPreMappedInvAux
+				{
+					typedef GetSwappedPreMappedInvAux this_type;
+					typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+
+					libmaus2::autoarray::AutoArray<uint8_t> T;
+					libmaus2::autoarray::AutoArray<Path::tracepoint> TP;
+					uint64_t apadlen;
+					int64_t aread;
+
+					GetSwappedPreMappedInvAux() : apadlen(0), aread(-1) {}
+
+					void reset() { aread = -1; }
+
+					void computePaddedRC(
+						int const tspace,
+						uint8_t const * aptr,
+						int64_t const alen,
+						int64_t const raread
+					)
+					{
+						if ( raread != aread )
+						{
+							// padding to make length of a multiple of tspace
+							uint64_t const apadbytes = (tspace - (alen % tspace)) % tspace;
+							// padded length for a
+							apadlen = alen + apadbytes;
+							// allocate memory
+							T.ensureSize(apadlen + 2);
+
+							// end of allocated area
+							uint8_t * t = T.begin() + (apadlen + 2);
+
+							// terminator in back
+							*(--t) = 4;
+							// add reverse complement
+							uint8_t const * s = aptr;
+							uint8_t const * const se = s + alen;
+							while ( s != se )
+								*(--t) = (*(s++)) ^ 3;
+							// fill pad bytes and front terminator
+							while ( t != T.begin() )
+								*(--t) = 4;
+
+							#if 0
+							// check
+							uint8_t const * uc = T.begin() + 1 + apadbytes;
+							for ( int64_t i = 0; i < alen; ++i )
+								assert ( *(uc++) == (aptr[alen-i-1] ^ 3) );
+							#endif
+
+							aread = raread;
+						}
+					}
+
+					void computeReversePathVector(Path const & path)
+					{
+						// compute reverse trace vector
+						TP.ensureSize(path.path.size());
+						Path::tracepoint * tp = TP.begin() + path.path.size();
+						for ( uint64_t i = 0; i < path.path.size(); ++i )
+							*(--tp) = path.path[i];
+						assert ( tp == TP.begin() );
+					}
+				};
+
+				/*
+				 * aread assumed short
+				 */
+				Overlap getSwappedPreMappedInv(
+					int64_t const tspace,
+					uint8_t const * aptr,
+					int64_t const alen,
+					uint8_t const * bptr,
+					int64_t const blen,
+					libmaus2::lcs::AlignmentTraceContainer & ATC,
+					libmaus2::lcs::Aligner & aligner,
+					GetSwappedPreMappedInvAux & aux
+				) const
+				{
+					if ( ! isInverse() )
+					{
+						computeTracePreMapped(
+							path.path.begin(),
+							path.path.size(),
+							path.abpos,path.aepos,path.bbpos,path.bepos,aptr,bptr,tspace,
+							ATC,aligner);
+
+						ATC.swapRoles();
+						// std::reverse(ATC.ta,ATC.te);
+						Overlap OVL;
+						OVL.flags = flags;
+						OVL.aread = bread;
+						OVL.bread = aread;
+						OVL.path = computePath(
+							path.bbpos,
+							path.bepos,
+							path.abpos,
+							path.aepos,
+							tspace,ATC);
+						return OVL;
+					}
+					else
+					{
+						aux.computePaddedRC(tspace,aptr,alen,aread);
+						aux.computeReversePathVector(path);
+
+						// compute trace
+						computeTracePreMapped(
+							aux.TP.begin(),
+							path.path.size(),
+							aux.apadlen - path.aepos,
+							aux.apadlen - path.abpos,
+							blen - path.bepos,
+							blen - path.bbpos,
+							aux.T.begin() + 1 /* terminator */,
+							bptr,
+							tspace,
+							ATC,aligner
+						);
+
+						ATC.swapRoles();
+
+						Overlap OVL;
+						OVL.flags = flags;
+						OVL.aread = bread;
+						OVL.bread = aread;
+						OVL.path = computePath
+						(
+							blen - path.bepos,
+							blen - path.bbpos,
+							alen - path.aepos,
+							alen - path.abpos,
+							tspace,ATC
+						);
+						return OVL;
+					}
+				}
+
 				Path getSwappedPath(int64_t const tspace) const
 				{
 					return computePath(getSwappedTraceBlocks(tspace));
