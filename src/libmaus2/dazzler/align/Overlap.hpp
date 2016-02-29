@@ -200,6 +200,8 @@ namespace libmaus2
 
 					libmaus2::lcs::AlignmentTraceContainer::step_type const * tc = ATC.ta;
 
+					int64_t bsum = 0;
+
 					while ( a_i < aepos )
 					{
 						int64_t a_c = std::max(abpos,a_i);
@@ -264,11 +266,14 @@ namespace libmaus2
 
 						path.diffs += err;
 						path.path.push_back(Path::tracepoint(err,bforw));
+						bsum += bforw;
 
 						a_i = a_i_1;
 					}
 
 					path.tlen = path.path.size() << 1;
+
+					assert ( bsum == (bepos - bbpos) );
 
 					return path;
 				}
@@ -667,6 +672,14 @@ namespace libmaus2
 						return OVL;
 
 					}
+				}
+
+				bool bConsistent() const
+				{
+					int64_t bsum = 0;
+					for ( uint64_t i = 0; i < path.path.size(); ++i )
+						bsum += path.path[i].second;
+					return bsum == (path.bepos-path.bbpos);
 				}
 
 				Overlap getSwappedPreMapped(
