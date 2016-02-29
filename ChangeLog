@@ -1,3 +1,9 @@
+libmaus2 (2.0.136-1) unstable; urgency=medium
+
+  * add getSwappedPreMappedInv method in Overlap class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 29 Feb 2016 10:40:45 +0100
+
 libmaus2 (2.0.135-1) unstable; urgency=medium
 
   * implement online adding of RC sequence in parallel decoding of FastaBPDecoder 
