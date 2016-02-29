@@ -40,6 +40,17 @@ namespace libmaus2
 				int32_t aepos;
 				int32_t bepos;
 
+				bool pathValidSmall(bool const small) const
+				{
+					bool ok = true;
+					if ( small )
+					{
+						for ( uint64_t i = 0; ok && i < path.size(); ++i )
+							ok = ok && (path[i].first < 256) && (path[i].second < 256);
+					}
+					return ok;
+				}
+
 				double getErrorRateA() const
 				{
 					return static_cast<double>(diffs) / (aepos-abpos);

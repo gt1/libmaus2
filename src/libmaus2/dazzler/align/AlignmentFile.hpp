@@ -43,6 +43,13 @@ namespace libmaus2
 				Overlap putbackslot;
 				bool putbackslotactive;
 
+				static int32_t getMinimumNonSmallTspace()
+				{
+					int32_t const val = TRACE_XOVR + 1;
+					assert ( ! tspaceToSmall(val) );
+					return val;
+				}
+
 				static bool tspaceToSmall(int64_t const tspace)
 				{
 					if ( tspace <= TRACE_XOVR )
