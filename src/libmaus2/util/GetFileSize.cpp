@@ -115,7 +115,7 @@ uint64_t libmaus2::util::GetFileSize::getFileSize(std::vector< std::vector<std::
 #include <sys/stat.h>
 #include <unistd.h>
 
-bool isOlder(std::string const & fn_A, std::string const & fn_B)
+bool libmaus2::util::GetFileSize::isOlder(std::string const & fn_A, std::string const & fn_B)
 {
 	struct stat stat_a;
 	struct stat stat_b;
