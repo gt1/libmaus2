@@ -263,6 +263,10 @@ namespace libmaus2
 			 * @return sum of the file sizes of the files in filenames
 			 **/
 			static uint64_t getFileSize(std::vector< std::vector<std::string> > const & filenames);
+			/**
+			 * check whether file A is older than file B
+			 **/
+			static bool isOlder(std::string const & fn_A, std::string const & fn_B);
 		};
 	}
 }
