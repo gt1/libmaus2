@@ -688,9 +688,9 @@ namespace libmaus2
 				return l;
 			}
 
-			static unique_ptr_type loadFromRunLength(std::string const & rl)
+			static unique_ptr_type loadFromRunLength(std::string const & rl, uint64_t const numthreads = getDefaultThreads())
 			{
-				unique_ptr_type tptr(loadFromRunLength(std::vector<std::string>(1,rl)));
+				unique_ptr_type tptr(loadFromRunLength(std::vector<std::string>(1,rl),numthreads));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 
