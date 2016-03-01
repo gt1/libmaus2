@@ -688,23 +688,28 @@ namespace libmaus2
 				return l;
 			}
 
-			static unique_ptr_type loadFromRunLength(std::string const & rl)
+			static unique_ptr_type loadFromRunLength(std::string const & rl, uint64_t const numthreads = getDefaultThreads())
 			{
-				unique_ptr_type tptr(loadFromRunLength(std::vector<std::string>(1,rl)));
+				unique_ptr_type tptr(loadFromRunLength(std::vector<std::string>(1,rl),numthreads));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 
-			static unique_ptr_type loadFromRunLength(std::vector<std::string> const & rl)
+			static uint64_t getDefaultThreads()
 			{
-				unique_ptr_type P(new this_type);
-
-				uint64_t const n = libmaus2::huffman::RLDecoder::getLength(rl);
-
 				#if defined(_OPENMP)
 				uint64_t const numthreads = omp_get_max_threads();
 				#else
 				uint64_t const numthreads = 1;
 				#endif
+
+				return numthreads;
+			}
+
+			static unique_ptr_type loadFromRunLength(std::vector<std::string> const & rl, uint64_t const numthreads = getDefaultThreads())
+			{
+				unique_ptr_type P(new this_type);
+
+				uint64_t const n = libmaus2::huffman::RLDecoder::getLength(rl);
 
 				// number of blocks allocated
 				uint64_t const numallocblocks = ((n+1) + getDataBasesPerBlock() - 1)/getDataBasesPerBlock();
@@ -721,7 +726,7 @@ namespace libmaus2
 				libmaus2::autoarray::AutoArray<uint64_t> symacc((numpacks+1)*getSigma(),false);
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( int64_t t = 0; t < numpacks; ++t )
 				{
@@ -809,7 +814,7 @@ namespace libmaus2
 				}
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( int64_t t = 0; t < numpacks; ++t )
 				{

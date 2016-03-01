@@ -1,3 +1,11 @@
+libmaus2 (2.0.139-1) unstable; urgency=medium
+
+  * add numthreads parameter in file load function of DNARank 
+  * add isOlder function in GetFileSize
+  * add isRegularFileURL function in InputStreamFactoryContainer
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 01 Mar 2016 10:19:26 +0100
+
 libmaus2 (2.0.138-1) unstable; urgency=medium
 
   * add pathValidSmall method in Path class
