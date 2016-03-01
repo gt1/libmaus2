@@ -94,7 +94,7 @@ namespace libmaus2
 				#if 1
 				const_iterator itcheck = it;
 				itcheck++;
-				assert ( itcheck == M.end() || it->first > x );
+				assert ( itcheck == M.end() || itcheck->first > x );
 				#endif
 
 				int64_t const fragx = it->first;
