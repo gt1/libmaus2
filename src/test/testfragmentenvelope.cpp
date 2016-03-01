@@ -15,10 +15,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define LIBMAUS2_LCS_FRAGMENTENVELOPE_DEBUG
+//#define LIBMAUS2_LCS_FRAGMENTENVELOPE_DEBUG
 
 #include <libmaus2/lcs/EnvelopeFragment.hpp>
 #include <libmaus2/lcs/FragmentEnvelope.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 #include <vector>
 #include <algorithm>
 
@@ -43,17 +44,26 @@ int main()
 {
 	try
 	{
+		std::cerr << "[V] basic test" << std::endl;
 		testbasic();
+		std::cerr << "[V] basic test done" << std::endl;
 
 		typedef libmaus2::lcs::EnvelopeFragment fragment_type;
-		std::vector<fragment_type> Vfrag;
 
-		Vfrag.push_back(fragment_type(0,0,20));
-		Vfrag.push_back(fragment_type(1,1,20));
-		Vfrag.push_back(fragment_type(21,22,20));
-		Vfrag.push_back(fragment_type(101,102,20));
-
+		#if 0
 		typedef std::vector<fragment_type> container_type;
+		#else
+		typedef libmaus2::autoarray::AutoArray<fragment_type> container_type;
+
+		#endif
+
+		container_type Vfrag(4);
+
+		Vfrag[0] = fragment_type(0,0,20);
+		Vfrag[1] = fragment_type(1,1,20);
+		Vfrag[2] = fragment_type(21,22,20);
+		Vfrag[3] = fragment_type(101,102,20);
+
 		typedef container_type::iterator iterator;
 		typedef container_type::const_iterator const_iterator;
 
@@ -61,9 +71,11 @@ int main()
 		iterator rtop = Vfrag.end();
 
 		iterator rout = fragment_type::mergeOverlappingAndSort(rlow,rtop);
+		uint64_t const numfrag = rout-rlow;
 
 		// set id and back end vector
-		std::vector<const_iterator> Vbacksort(rout - rlow);
+		typedef libmaus2::autoarray::AutoArray<const_iterator> back_sort_vector_type;
+		back_sort_vector_type Vbacksort(numfrag);
 		for ( iterator it = rlow; it != rout; ++it )
 		{
 			it->id = it - rlow;
@@ -75,7 +87,7 @@ int main()
 
 		libmaus2::lcs::FragmentEnvelope FE(1,2/* x+y */ * 3 /* multiple of score allowed for distance */);
 
-		std::vector<const_iterator>::const_iterator itz = Vbacksort.begin();
+		back_sort_vector_type::const_iterator itz = Vbacksort.begin();
 		for ( iterator it = rlow; it != rout; ++it )
 		{
 			fragment_type const & frag = *it;
@@ -92,7 +104,10 @@ int main()
 			}
 
 			int64_t const best = FE.find(frag.x,frag.y);
-			std::cerr << "best " << best << " " << rlow[best] << std::endl;
+			std::cerr << "best " << best;
+			if ( best >= 0 )
+				std::cerr << " " << rlow[best];
+			std::cerr << std::endl;
 		}
 	}
 	catch(std::exception const & ex)
