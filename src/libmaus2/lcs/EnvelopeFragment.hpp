@@ -67,7 +67,7 @@ namespace libmaus2
 					if ( A.getDiagonal() != B.getDiagonal() )
 						return A.getDiagonal() < B.getDiagonal();
 					else
-						return A.x < B.x;
+						return A.y < B.y;
 				}
 			};
 
@@ -83,7 +83,7 @@ namespace libmaus2
 			template<typename iterator>
 			static iterator mergeOverlappingAndSort(iterator rlow, iterator rtop)
 			{
-				// sort range by diagonal
+				// sort range by diagonal and then y
 				std::sort(rlow,rtop,EnvelopeFragmentDiagComparator());
 
 				iterator ilow = rlow;
