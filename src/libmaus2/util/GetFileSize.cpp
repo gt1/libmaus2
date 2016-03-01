@@ -110,3 +110,37 @@ uint64_t libmaus2::util::GetFileSize::getFileSize(std::vector< std::vector<std::
 		s += getFileSize(filenames[i]);
 	return s;
 }
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+bool libmaus2::util::GetFileSize::isOlder(std::string const & fn_A, std::string const & fn_B)
+{
+	struct stat stat_a;
+	struct stat stat_b;
+
+	int const ret_a = stat(fn_A.c_str(),&stat_a);
+
+	if ( ret_a < 0 )
+	{
+		int const error = errno;
+		libmaus2::exception::LibMausException lme;
+		lme.getStream() << "libmaus2::util::GetFileSize::isOlder: stat failed for file " << fn_A << ": " << strerror(error) << std::endl;
+		lme.finish();
+		throw lme;
+	}
+
+	int const ret_b = stat(fn_B.c_str(),&stat_b);
+
+	if ( ret_b < 0 )
+	{
+		int const error = errno;
+		libmaus2::exception::LibMausException lme;
+		lme.getStream() << "libmaus2::util::GetFileSize::isOlder: stat failed for file " << fn_B << ": " << strerror(error) << std::endl;
+		lme.finish();
+		throw lme;
+	}
+
+	return stat_a.st_mtime < stat_b.st_mtime;
+}
