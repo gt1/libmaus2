@@ -208,6 +208,13 @@ namespace libmaus2
 			{
 				factories[protocol] = factory;
 			}
+
+			static bool isRegularFileURL(std::string const & url)
+			{
+				assert ( factories.find("file") != factories.end() );
+				libmaus2::aio::InputStreamFactory::shared_ptr_type ptr = getFactory(url);
+				return ptr.get() == factories.find("file")->second.get();
+			}
 		};
 	}
 }
