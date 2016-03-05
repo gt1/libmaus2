@@ -1153,7 +1153,8 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/LongestIncreasingSubsequenceExtendedResult.hpp \
 	libmaus2/util/ArgParser.hpp \
 	libmaus2/util/PrefixSums.hpp \
-	libmaus2/util/NumberToString.hpp
+	libmaus2/util/NumberToString.hpp \
+	libmaus2/util/SplayTree.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
@@ -1940,7 +1941,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testfastaexplode \
 	testfaextract \
 	testmurmur3 \
-	testpairalign
+	testpairalign \
+	testsplaytree
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2463,3 +2465,7 @@ testmurmur3_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testpairalign_SOURCES  = test/testpairalign.cpp
 testpairalign_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testpairalign_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testsplaytree_SOURCES  = test/testsplaytree.cpp
+testsplaytree_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testsplaytree_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
