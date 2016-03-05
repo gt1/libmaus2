@@ -43,7 +43,9 @@ void writeStringInColumn(std::ostream & out, std::string const & genome, uint64_
 	uint64_t p = 0;
 	while ( p < genome.size() )
 	{
-		uint64_t const towrite = std::min(genome.size()-p,static_cast<size_t>(cols));
+		uint64_t const towrite = std::min(
+			static_cast<size_t>(genome.size()-p),static_cast<size_t>(cols)
+		);
 		out.write(genome.c_str() + p,towrite);
 		out.put('\n');
 		p += towrite;
