@@ -26,13 +26,14 @@ namespace libmaus2
 {
 	namespace util
 	{
-		template<typename _key_type, typename _comparator_type = std::less<_key_type>, typename _node_id_type = int64_t >
-		struct SplayTree
+		template<typename _key_type, typename _node_id_type = int64_t >
+		struct SplayTreeBase
 		{
 			typedef _key_type key_type;
-			typedef _comparator_type comparator_type;
 			typedef _node_id_type node_id_type;
-			typedef SplayTree<key_type,comparator_type,node_id_type> this_type;
+			typedef SplayTreeBase<key_type,node_id_type> this_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			struct SplayTreeElement
 			{
@@ -42,11 +43,11 @@ namespace libmaus2
 				key_type key;
 			};
 
-			// key comparator
-			comparator_type const comparator;
+			SplayTreeBase()
+			: Aelements(), Afreelist(), freelisthigh(0)
+			{
 
-			// tree root
-			node_id_type root;
+			}
 
 			// tree nodes
 			libmaus2::autoarray::AutoArray<SplayTreeElement> Aelements;
@@ -55,6 +56,60 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray<node_id_type> Afreelist;
 			// high water in free list
 			uint64_t freelisthigh;
+
+			/**
+			 * get unused node (from free list or newly allocated)
+			 **/
+			node_id_type getNewNode()
+			{
+				if ( !freelisthigh )
+				{
+					uint64_t const oldsize = Aelements.size();
+					Aelements.bump();
+					uint64_t const newsize = Aelements.size();
+					uint64_t const dif = newsize - oldsize;
+					Afreelist.ensureSize(dif);
+					for ( uint64_t i = 0; i < dif; ++i )
+						Afreelist[freelisthigh++] = i+oldsize;
+				}
+
+				node_id_type const node = Afreelist[--freelisthigh];
+
+				return node;
+			}
+
+			/**
+			 * add node to the free list
+			 **/
+			void deleteNode(node_id_type node)
+			{
+				Afreelist.push(freelisthigh,node);
+			}
+		};
+
+		template<typename _key_type, typename _comparator_type = std::less<_key_type>, typename _node_id_type = int64_t >
+		struct SplayTree
+		{
+			typedef _key_type key_type;
+			typedef _comparator_type comparator_type;
+			typedef _node_id_type node_id_type;
+			typedef SplayTree<key_type,comparator_type,node_id_type> this_type;
+
+			typedef SplayTreeBase<key_type,node_id_type> base_type;
+			typedef typename base_type::unique_ptr_type base_pointer_type;
+			typedef typename base_type::SplayTreeElement SplayTreeElement;
+
+			base_pointer_type Pbase;
+			base_type & base;
+
+			// tree nodes
+			libmaus2::autoarray::AutoArray<SplayTreeElement> & Aelements;
+
+			// key comparator
+			comparator_type const comparator;
+
+			// tree root
+			node_id_type root;
 
 			void toStringStruct(std::ostream & out, node_id_type node) const
 			{
@@ -163,34 +218,6 @@ namespace libmaus2
 				return checkConsistency(root);
 			}
 
-			/**
-			 * get unused node (from free list or newly allocated)
-			 **/
-			node_id_type getNewNode()
-			{
-				if ( !freelisthigh )
-				{
-					uint64_t const oldsize = Aelements.size();
-					Aelements.bump();
-					uint64_t const newsize = Aelements.size();
-					uint64_t const dif = newsize - oldsize;
-					Afreelist.ensureSize(dif);
-					for ( uint64_t i = 0; i < dif; ++i )
-						Afreelist[freelisthigh++] = i+oldsize;
-				}
-
-				node_id_type const node = Afreelist[--freelisthigh];
-
-				return node;
-			}
-
-			/**
-			 * add node to the free list
-			 **/
-			void deleteNode(node_id_type node)
-			{
-				Afreelist.push(freelisthigh,node);
-			}
 
 			bool isLeftChild(node_id_type const x)
 			{
@@ -325,10 +352,10 @@ namespace libmaus2
 
 			public:
 			SplayTree(comparator_type const & rcomparator = comparator_type())
-			: comparator(rcomparator), root(-1), freelisthigh(0)
-			{
+			: Pbase(new base_type()), base(*Pbase), Aelements(base.Aelements), comparator(rcomparator), root(-1) {}
 
-			}
+			SplayTree(base_type & rbase, comparator_type const & rcomparator = comparator_type())
+			: Pbase(), base(rbase), Aelements(base.Aelements), comparator(rcomparator), root(-1) {}
 
 			node_id_type getParent(node_id_type const node) const
 			{
@@ -401,7 +428,7 @@ namespace libmaus2
 					// get key of parent node
 					key_type const c = getKey(parent);
 
-					node_id_type const child = getNewNode();
+					node_id_type const child = base.getNewNode();
 
 					setKey(child,v);
 					setLeft(child,-1);
@@ -417,7 +444,7 @@ namespace libmaus2
 				}
 				else
 				{
-					root = getNewNode();
+					root = base.getNewNode();
 					setParent(root,-1);
 					setLeft(root,-1);
 					setRight(root,-1);
@@ -574,7 +601,7 @@ namespace libmaus2
 							root = -1;
 
 						// add to free list
-						deleteNode(node);
+						base.deleteNode(node);
 						// quit loop
 						node = -1;
 					}
@@ -661,6 +688,63 @@ namespace libmaus2
 							break;
 					}
 				}
+			}
+
+			node_id_type folowLeft(node_id_type node) const
+			{
+				node_id_type parent = -1;
+
+				while ( node != -1 )
+				{
+					parent = node;
+					node = getLeft(node);
+				}
+
+				assert ( node == -1 );
+
+				return parent;
+			}
+
+			/**
+			 * clear the tree
+			 **/
+			void clear()
+			{
+				std::stack< std::pair<node_id_type,int> > todo;
+
+				if ( root != -1 )
+					todo.push(std::pair<node_id_type,int>(root,0));
+
+				while ( !todo.empty() )
+				{
+					std::pair<node_id_type,int> const P = todo.top();
+					todo.pop();
+
+					switch ( P.second )
+					{
+						case 0:
+						{
+							todo.push(std::pair<node_id_type,int>(P.first,1));
+							if ( getLeft(P.first) != -1 )
+								todo.push(std::pair<node_id_type,int>(getLeft(P.first),0));
+							break;
+						}
+						case 1:
+						{
+							node_id_type const right = getRight(P.first);
+
+							deleteNode(P.first);
+
+							if ( right != -1 )
+								todo.push(std::pair<node_id_type,int>(right,0));
+							break;
+						}
+						default:
+							break;
+					}
+				}
+
+				root = -1;
 			}
 
 			node_id_type getNext(node_id_type const node) const
