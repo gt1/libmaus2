@@ -80,6 +80,7 @@ namespace libmaus2
 				}
 			};
 
+			// caveat: this is not guaranteed to work for fragments with differing k values
 			template<typename iterator>
 			static iterator mergeOverlappingAndSort(iterator rlow, iterator rtop)
 			{
