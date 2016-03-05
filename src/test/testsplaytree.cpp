@@ -71,11 +71,10 @@ bool eraseElement(libmaus2::util::SplayTree<value_type> & ST, std::set<value_typ
 	#endif
 
 	if ( std::set<value_type>(V.begin(),V.end()) != S )
+	{
+		std::cerr << "sequence mismatch" << std::endl;
 		return false;
-
-	if ( S.size() )
-		if ( ST.getKey(ST.root) != v )
-			return false;
+	}
 
 	return true;
 }
@@ -153,6 +152,43 @@ void test2()
 
 		ok = ok && lok;
 	}
+
+	for ( std::set<value_type>::const_iterator ita = S.begin(); ita != S.end(); ++ita )
+	{
+		value_type const v = *ita;
+		assert ( ST.find(v) != -1 );
+		assert ( ST.getKey(ST.find(v)) == v );
+
+		std::set<value_type>::const_iterator itn = ita;
+		itn++;
+
+		if ( itn != S.end() )
+		{
+			assert ( ST.getNext(ST.find(v)) != -1 );
+			assert ( ST.getKey(ST.getNext(ST.find(v))) == *itn );
+		}
+		else
+		{
+			assert ( ST.getNext(ST.find(v)) == -1 );
+		}
+
+		if ( ita == S.begin() )
+			assert ( ST.getPrev(ST.find(v)) == -1 );
+		else
+		{
+			std::set<value_type>::const_iterator itp = ita;
+			--itp;
+			assert ( ST.getPrev(ST.find(v)) != -1 );
+			assert ( ST.getKey(ST.getPrev(ST.find(v))) == *itp );
+		}
+	}
+
+	for ( uint64_t i = 0; ok && i < V.size(); ++i )
+	{
+		bool const lok = eraseElement(ST,S,V[i]);
+		assert ( lok );
+		ok = ok && lok;
+	}
 }
 
 void test3()
@@ -174,12 +210,16 @@ int main()
 	try
 	{
 		test1();
-		#if 0
 		test3();
 
-		for ( uint64_t i = 0; i < 128; ++i )
-			test2();
+		#if defined(_OPENMP)
+		#pragma omp parallel for
 		#endif
+		for ( uint64_t i = 0; i < 128; ++i )
+		{
+			test2();
+			std::cerr.put('.');
+		}
 	}
 	catch(std::exception const & ex)
 	{

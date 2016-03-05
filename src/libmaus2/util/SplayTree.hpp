@@ -26,30 +26,37 @@ namespace libmaus2
 {
 	namespace util
 	{
-		template<typename _key_type, typename _comparator_type = std::less<_key_type> >
+		template<typename _key_type, typename _comparator_type = std::less<_key_type>, typename _node_id_type = int64_t >
 		struct SplayTree
 		{
 			typedef _key_type key_type;
 			typedef _comparator_type comparator_type;
-			typedef SplayTree<key_type,comparator_type> this_type;
+			typedef _node_id_type node_id_type;
+			typedef SplayTree<key_type,comparator_type,node_id_type> this_type;
 
 			struct SplayTreeElement
 			{
-				int64_t parent;
-				int64_t left;
-				int64_t right;
+				node_id_type parent;
+				node_id_type left;
+				node_id_type right;
 				key_type key;
 			};
 
+			// key comparator
 			comparator_type const comparator;
 
-			int64_t root;
+			// tree root
+			node_id_type root;
+
+			// tree nodes
 			libmaus2::autoarray::AutoArray<SplayTreeElement> Aelements;
 
-			libmaus2::autoarray::AutoArray<uint64_t> Afreelist;
+			// node free list
+			libmaus2::autoarray::AutoArray<node_id_type> Afreelist;
+			// high water in free list
 			uint64_t freelisthigh;
 
-			void toStringStruct(std::ostream & out, int64_t node) const
+			void toStringStruct(std::ostream & out, node_id_type node) const
 			{
 				out << "(";
 
@@ -66,26 +73,26 @@ namespace libmaus2
 
 			bool checkOrder() const
 			{
-				std::stack< std::pair<int64_t,int> > todo;
+				std::stack< std::pair<node_id_type,int> > todo;
 
 				if ( root != -1 )
-					todo.push(std::pair<int64_t,int>(root,0));
+					todo.push(std::pair<node_id_type,int>(root,0));
 
-				key_type prev;
+				key_type prev = key_type();
 				bool prevvalid = false;
 
 				while ( !todo.empty() )
 				{
-					std::pair<int64_t,int> const P = todo.top();
+					std::pair<node_id_type,int> const P = todo.top();
 					todo.pop();
 
 					switch ( P.second )
 					{
 						case 0:
 						{
-							todo.push(std::pair<int64_t,int>(P.first,1));
+							todo.push(std::pair<node_id_type,int>(P.first,1));
 							if ( getLeft(P.first) != -1 )
-								todo.push(std::pair<int64_t,int>(getLeft(P.first),0));
+								todo.push(std::pair<node_id_type,int>(getLeft(P.first),0));
 							break;
 						}
 						case 1:
@@ -107,7 +114,7 @@ namespace libmaus2
 							prevvalid = true;
 
 							if ( getRight(P.first) != -1 )
-								todo.push(std::pair<int64_t,int>(getRight(P.first),0));
+								todo.push(std::pair<node_id_type,int>(getRight(P.first),0));
 							break;
 						}
 						default:
@@ -118,9 +125,9 @@ namespace libmaus2
 				return true;
 			}
 
-			bool checkConsistency(int64_t const node) const
+			bool checkConsistency(node_id_type const node) const
 			{
-				std::deque<int64_t> todo;
+				std::deque<node_id_type> todo;
 				if ( node != -1 )
 					todo.push_back(node);
 
@@ -128,11 +135,11 @@ namespace libmaus2
 
 				while ( ok && todo.size() )
 				{
-					int64_t const cur = todo.front();
+					node_id_type const cur = todo.front();
 					todo.pop_front();
 
-					int64_t const left = getLeft(cur);
-					int64_t const right = getRight(cur);
+					node_id_type const left = getLeft(cur);
+					node_id_type const right = getRight(cur);
 
 					if ( left != -1 )
 					{
@@ -156,7 +163,10 @@ namespace libmaus2
 				return checkConsistency(root);
 			}
 
-			int64_t getNewNode()
+			/**
+			 * get unused node (from free list or newly allocated)
+			 **/
+			node_id_type getNewNode()
 			{
 				if ( !freelisthigh )
 				{
@@ -169,22 +179,20 @@ namespace libmaus2
 						Afreelist[freelisthigh++] = i+oldsize;
 				}
 
-				int64_t const node = Afreelist[--freelisthigh];
+				node_id_type const node = Afreelist[--freelisthigh];
 
 				return node;
 			}
 
-			void deleteNode(int64_t node)
+			/**
+			 * add node to the free list
+			 **/
+			void deleteNode(node_id_type node)
 			{
 				Afreelist.push(freelisthigh,node);
 			}
 
-			void freeNode(int64_t node)
-			{
-				Afreelist.push(freelisthigh,node);
-			}
-
-			bool isLeftChild(int64_t const x)
+			bool isLeftChild(node_id_type const x)
 			{
 				if ( getLeft(getParent(x)) == x )
 					return true;
@@ -192,7 +200,7 @@ namespace libmaus2
 					return false;
 			}
 
-			bool isRightChild(int64_t const x)
+			bool isRightChild(node_id_type const x)
 			{
 				if ( getRight(getParent(x)) == x )
 					return true;
@@ -200,19 +208,19 @@ namespace libmaus2
 					return false;
 			}
 
-			void setLeft(int64_t const node, int64_t const left)
+			void setLeft(node_id_type const node, node_id_type const left)
 			{
 				if ( node != -1 )
 					Aelements[node].left = left;
 			}
 
-			void setRight(int64_t const node, int64_t const right)
+			void setRight(node_id_type const node, node_id_type const right)
 			{
 				if ( node != -1 )
 					Aelements[node].right = right;
 			}
 
-			void setKey(int64_t const node, key_type const & key)
+			void setKey(node_id_type const node, key_type const & key)
 			{
 				if ( node != -1 )
 					Aelements[node].key = key;
@@ -221,7 +229,7 @@ namespace libmaus2
 			/**
 			 * replace child of node (left or right) by newchild
 			 **/
-			void replaceChild(int64_t node, int64_t child, int64_t newchild)
+			void replaceChild(node_id_type node, node_id_type child, node_id_type newchild)
 			{
 				if ( node != -1 )
 				{
@@ -235,21 +243,24 @@ namespace libmaus2
 			/**
 			 * set parent of node to parent
 			 **/
-			void setParent(int64_t node, int64_t parent)
+			void setParent(node_id_type node, node_id_type parent)
 			{
 				if ( node != -1 )
 					Aelements[node].parent = parent;
 			}
 
-			void rotateRight(int64_t x)
+			/**
+			 * right rotation around parent of x for moving x up the tree
+			 **/
+			void rotateRight(node_id_type x)
 			{
 				assert ( Aelements[x].parent != -1 );
 
-				int64_t const u = getLeft(x);
-				int64_t const v = getRight(x);
-				int64_t const p = getParent(x);
-				int64_t const pp = getParent(p);
-				int64_t const w = getRight(p);
+				node_id_type const u = getLeft(x);
+				node_id_type const v = getRight(x);
+				node_id_type const p = getParent(x);
+				node_id_type const pp = getParent(p);
+				node_id_type const w = getRight(p);
 				bool const pisroot = getParent(p) == -1;
 
 				setLeft(x,u);
@@ -269,15 +280,18 @@ namespace libmaus2
 					root = x;
 			}
 
-			void rotateLeft(int64_t x)
+			/**
+			 * left rotation around parent of x for moving x up the tree
+			 **/
+			void rotateLeft(node_id_type x)
 			{
 				assert ( Aelements[x].parent != -1 );
 
-				int64_t const u = getLeft(x);
-				int64_t const v = getRight(x);
-				int64_t const p = getParent(x);
-				int64_t const pp = getParent(p);
-				int64_t const w = getLeft(p);
+				node_id_type const u = getLeft(x);
+				node_id_type const v = getRight(x);
+				node_id_type const p = getParent(x);
+				node_id_type const pp = getParent(p);
+				node_id_type const w = getLeft(p);
 				bool const pisroot = getParent(p) == -1;
 
 				setLeft(p,w);
@@ -297,7 +311,10 @@ namespace libmaus2
 					root = x;
 			}
 
-			void splayUp(int64_t x)
+			/**
+			 * make x the root of the tree by rotations
+			 **/
+			void splayUp(node_id_type x)
 			{
 				while ( getParent(x) != -1 )
 					if ( isLeftChild(x) )
@@ -313,7 +330,7 @@ namespace libmaus2
 
 			}
 
-			int64_t getParent(int64_t const node) const
+			node_id_type getParent(node_id_type const node) const
 			{
 				if ( node != -1 )
 					return Aelements[node].parent;
@@ -321,7 +338,7 @@ namespace libmaus2
 					return -1;
 			}
 
-			int64_t getLeft(int64_t const node) const
+			node_id_type getLeft(node_id_type const node) const
 			{
 				if ( node != -1 )
 					return Aelements[node].left;
@@ -329,7 +346,7 @@ namespace libmaus2
 					return -1;
 			}
 
-			int64_t getRight(int64_t const node) const
+			node_id_type getRight(node_id_type const node) const
 			{
 				if ( node != -1 )
 					return Aelements[node].right;
@@ -337,15 +354,19 @@ namespace libmaus2
 					return -1;
 			}
 
-			key_type const & getKey(int64_t const node) const
+			key_type const & getKey(node_id_type const node) const
 			{
 				return Aelements[node].key;
 			}
 
+			/**
+			 * insert key v into the tree and make it the tree root.
+			 * If key is already in the tree then it is replaced by v
+			 **/
 			void insert(key_type const & v)
 			{
-				int64_t parent = -1;
-				int64_t node = root;
+				node_id_type parent = -1;
+				node_id_type node = root;
 
 				while ( node != -1 )
 				{
@@ -380,7 +401,7 @@ namespace libmaus2
 					// get key of parent node
 					key_type const c = getKey(parent);
 
-					int64_t const child = getNewNode();
+					node_id_type const child = getNewNode();
 
 					setKey(child,v);
 					setLeft(child,-1);
@@ -405,19 +426,19 @@ namespace libmaus2
 			}
 
 			/**
-			 * search for key and make it the root of the tree if found
+			 * search for key and make it the root of the tree if found. Returns -1 if value not found
 			 **/
-			int64_t find(key_type const & key)
+			node_id_type find(key_type const & key)
 			{
-				int64_t node = root;
+				node_id_type node = root;
 
 				while ( node != -1 )
 				{
 					key_type const & ref = getKey(node);
 
-					if ( comp(key,ref) )
+					if ( comparator(key,ref) )
 						node = getLeft(node);
-					else if ( comp(ref,key) )
+					else if ( comparator(ref,key) )
 						node = getRight(node);
 					else
 					{
@@ -430,18 +451,18 @@ namespace libmaus2
 			}
 
 			/**
-			 * search smallest >= key
+			 * search smallest >= key, return node id or -1 (none found)
 			 **/
-			int64_t lowerBound(key_type const & key)
+			node_id_type lowerBound(key_type const & key)
 			{
 				// tree empty?
 				if ( root == -1 )
 					return -1;
 
 				// parent of node
-				int64_t parent = -1;
+				node_id_type parent = -1;
 				// current node
-				int64_t node = root;
+				node_id_type node = root;
 
 				// follow path to key
 				while ( node != -1 )
@@ -481,7 +502,7 @@ namespace libmaus2
 			void erase(key_type const & key)
 			{
 				// search for key
-				int64_t node = root;
+				node_id_type node = root;
 
 				while ( node != -1 )
 				{
@@ -502,8 +523,8 @@ namespace libmaus2
 					if ( getLeft(node) != -1 )
 					{
 						// look for rightmost node in left subtree of node
-						int64_t parent = -1;
-						int64_t cur = getLeft(node);
+						node_id_type parent = -1;
+						node_id_type cur = getLeft(node);
 
 						while ( cur != -1 )
 						{
@@ -523,8 +544,8 @@ namespace libmaus2
 					else if ( getRight(node) != -1 )
 					{
 						// look for leftmost node in right subtree of node
-						int64_t parent = -1;
-						int64_t cur = getRight(node);
+						node_id_type parent = -1;
+						node_id_type cur = getRight(node);
 
 						while ( cur != -1 )
 						{
@@ -560,6 +581,9 @@ namespace libmaus2
 				}
 			}
 
+			/**
+			 * check consistency of tree (order and forward/reverse link consistency)
+			 **/
 			bool check() const
 			{
 				return checkOrder() && checkConsistency();
@@ -592,6 +616,9 @@ namespace libmaus2
 				return ostr.str();
 			}
 
+			/**
+			 * extract key set and return it as a vector
+			 **/
 			std::vector<key_type> extract() const
 			{
 				std::vector<key_type> V;
@@ -599,37 +626,118 @@ namespace libmaus2
 				return V;
 			}
 
+			/**
+			 * extract keys in ascending order into V. Keys are appended to V, i.e. V is not emptied before adding
+			 **/
 			void extract(std::vector<key_type> & V) const
 			{
-				std::stack< std::pair<int64_t,int> > todo;
+				std::stack< std::pair<node_id_type,int> > todo;
 
 				if ( root != -1 )
-					todo.push(std::pair<int64_t,int>(root,0));
+					todo.push(std::pair<node_id_type,int>(root,0));
 
 				while ( !todo.empty() )
 				{
-					std::pair<int64_t,int> const P = todo.top();
+					std::pair<node_id_type,int> const P = todo.top();
 					todo.pop();
 
 					switch ( P.second )
 					{
 						case 0:
 						{
-							todo.push(std::pair<int64_t,int>(P.first,1));
+							todo.push(std::pair<node_id_type,int>(P.first,1));
 							if ( getLeft(P.first) != -1 )
-								todo.push(std::pair<int64_t,int>(getLeft(P.first),0));
+								todo.push(std::pair<node_id_type,int>(getLeft(P.first),0));
 							break;
 						}
 						case 1:
 						{
 							V.push_back(getKey(P.first));
 							if ( getRight(P.first) != -1 )
-								todo.push(std::pair<int64_t,int>(getRight(P.first),0));
+								todo.push(std::pair<node_id_type,int>(getRight(P.first),0));
 							break;
 						}
 						default:
 							break;
 					}
+				}
+			}
+
+			node_id_type getNext(node_id_type const node) const
+			{
+				if ( getRight(node) != -1 )
+				{
+					node_id_type cur = getRight(node);
+					node_id_type parent = -1;
+
+					while ( cur != -1 )
+					{
+						parent = cur;
+						cur = getLeft(cur);
+					}
+
+					assert ( cur == -1 );
+					assert ( parent != -1 );
+					assert ( comparator(getKey(node),getKey(parent)) );
+
+					return parent;
+				}
+				else
+				{
+					// follow path to the root until cur is a left child
+					// or we can no longer go up
+					node_id_type cur = node;
+					node_id_type parent = getParent(cur);
+
+					while ( parent != -1 && getLeft(parent) != cur )
+					{
+						cur = parent;
+						parent = getParent(parent);
+					}
+
+					if ( parent != -1 )
+						assert ( comparator(getKey(node),getKey(parent)) );
+
+					return parent;
+				}
+			}
+
+			node_id_type getPrev(node_id_type const node) const
+			{
+				if ( getLeft(node) != -1 )
+				{
+					node_id_type cur = getLeft(node);
+					node_id_type parent = -1;
+
+					while ( cur != -1 )
+					{
+						parent = cur;
+						cur = getRight(cur);
+					}
+
+					assert ( cur == -1 );
+					assert ( parent != -1 );
+					assert ( comparator(getKey(parent),getKey(node)) );
+
+					return parent;
+				}
+				else
+				{
+					// follow path to the root until cur is a right child
+					// or we can no longer go up
+					node_id_type cur = node;
+					node_id_type parent = getParent(cur);
+
+					while ( parent != -1 && getRight(parent) != cur )
+					{
+						cur = parent;
+						parent = getParent(parent);
+					}
+
+					if ( parent != -1 )
+						assert ( comparator(getKey(parent),getKey(node)) );
+
+					return parent;
 				}
 			}
 		};
