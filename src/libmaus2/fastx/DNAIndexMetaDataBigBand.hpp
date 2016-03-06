@@ -15,8 +15,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_FASTX_DNAINDEXMETADATA_HPP)
-#define LIBMAUS2_FASTX_DNAINDEXMETADATA_HPP
+#if ! defined(LIBMAUS2_FASTX_DNAINDEXMETADATABIGBAND_HPP)
+#define LIBMAUS2_FASTX_DNAINDEXMETADATABIGBAND_HPP
 
 #include <libmaus2/fastx/DNAIndexMetaDataSequence.hpp>
 #include <libmaus2/math/numbits.hpp>
