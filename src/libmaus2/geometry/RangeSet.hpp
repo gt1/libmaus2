@@ -48,6 +48,11 @@ namespace libmaus2
 				return k-1;
 			}
 
+			void clear()
+			{
+				bins.clear();
+			}
+
 			RangeSet(uint64_t const rlen)
 			: k(length(rlen))
 			{
@@ -160,7 +165,12 @@ namespace libmaus2
 			std::vector<element_type const *> search(element_type const & elem) const
 			{
 				std::vector<element_type const *> R;
+				search(elem,R);
+				return R;
+			}
 
+			void search(element_type const & elem, std::vector<element_type const *> & R) const
+			{
 				typedef std::pair<uint64_t,uint64_t> upair;
 				typedef std::pair<int,upair> q_element;
 

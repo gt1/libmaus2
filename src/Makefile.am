@@ -235,7 +235,9 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/fastx/DNAIndexMetaData.cpp \
 	libmaus2/bambam/PileVectorElement.cpp \
 	libmaus2/digest/SHA3_256.cpp \
-	libmaus2/fastx/DNAIndexMetaDataBigBand.cpp
+	libmaus2/fastx/DNAIndexMetaDataBigBand.cpp \
+	libmaus2/fastx/DNAIndexMetaDataBigBandBiDir.cpp \
+	libmaus2/lcs/EnvelopeFragment.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1152,7 +1154,8 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/LongestIncreasingSubsequenceExtendedResult.hpp \
 	libmaus2/util/ArgParser.hpp \
 	libmaus2/util/PrefixSums.hpp \
-	libmaus2/util/NumberToString.hpp
+	libmaus2/util/NumberToString.hpp \
+	libmaus2/util/SplayTree.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
@@ -1409,6 +1412,7 @@ libmaus2fastx_include_HEADERS=\
 	libmaus2/fastx/DNAIndexMetaDataSequence.hpp \
 	libmaus2/fastx/DNAIndexMetaData.hpp \
 	libmaus2/fastx/DNAIndexMetaDataBigBand.hpp \
+	libmaus2/fastx/DNAIndexMetaDataBigBandBiDir.hpp \
 	libmaus2/fastx/CoordinateCache.hpp \
 	libmaus2/fastx/LineBufferFastAReader.hpp
 
@@ -1776,7 +1780,8 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/DalignerLocalAlignment.hpp \
 	libmaus2/lcs/FragmentEnvelopeYScore.hpp \
 	libmaus2/lcs/FragmentEnvelopeFragment.hpp \
-	libmaus2/lcs/FragmentEnvelope.hpp
+	libmaus2/lcs/FragmentEnvelope.hpp \
+	libmaus2/lcs/EnvelopeFragment.hpp
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp
@@ -1937,7 +1942,9 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testlowbits \
 	testfastaexplode \
 	testfaextract \
-	testmurmur3
+	testmurmur3 \
+	testpairalign \
+	testsplaytree
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2456,3 +2463,11 @@ testfaextract_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testmurmur3_SOURCES  = test/testmurmur3.cpp
 testmurmur3_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testmurmur3_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testpairalign_SOURCES  = test/testpairalign.cpp
+testpairalign_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testpairalign_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testsplaytree_SOURCES  = test/testsplaytree.cpp
+testsplaytree_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testsplaytree_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
