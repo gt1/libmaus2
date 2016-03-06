@@ -1549,6 +1549,18 @@ namespace libmaus2
 				(*this)[o++] = v;
 			}
 
+			void pushfront(uint64_t & o, N const & v)
+			{
+				if ( !o )
+				{
+					uint64_t const off = size();
+					bump();
+					o = size()-off;
+				}
+				assert ( o );
+				(*this)[--o] = v;
+			}
+
 			/**
 			 * read portion of file as AutoArray. Does not deserialise a header
 			 * @param filename name of file

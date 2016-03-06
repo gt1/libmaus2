@@ -15,8 +15,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_FASTX_DNAINDEXMETADATABIGBAND_HPP)
-#define LIBMAUS2_FASTX_DNAINDEXMETADATABIGBAND_HPP
+#if ! defined(LIBMAUS2_FASTX_DNAINDEXMETADATABIGBANDBIDIR_HPP)
+#define LIBMAUS2_FASTX_DNAINDEXMETADATABIGBANDBIDIR_HPP
 
 #include <libmaus2/fastx/DNAIndexMetaDataSequence.hpp>
 #include <libmaus2/math/numbits.hpp>
@@ -27,9 +27,9 @@ namespace libmaus2
 {
 	namespace fastx
 	{
-		struct DNAIndexMetaDataBigBand
+		struct DNAIndexMetaDataBigBandBiDir
 		{
-			typedef DNAIndexMetaDataBigBand this_type;
+			typedef DNAIndexMetaDataBigBandBiDir this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
@@ -37,7 +37,7 @@ namespace libmaus2
 			std::vector<uint64_t> L;
 			uint64_t maxl;
 
-			DNAIndexMetaDataBigBand(std::istream & in)
+			DNAIndexMetaDataBigBandBiDir(std::istream & in)
 			{
 				uint64_t const numseq = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				S.resize(numseq);
@@ -95,7 +95,7 @@ namespace libmaus2
 			}
 		};
 
-		std::ostream & operator<<(std::ostream & out, DNAIndexMetaDataBigBand const & D);
+		std::ostream & operator<<(std::ostream & out, DNAIndexMetaDataBigBandBiDir const & D);
 	}
 }
 #endif

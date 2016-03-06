@@ -561,6 +561,13 @@ namespace libmaus2
 
 			}
 
+			static unique_ptr_type load(std::string const & fn)
+			{
+				libmaus2::aio::InputStreamInstance ISI(fn);
+				unique_ptr_type ptr(new this_type(ISI));
+				return UNIQUE_PTR_MOVE(ptr);
+			}
+
 			uint64_t minparoffset() const
 			{
 				return ( b + quant() ) / b;

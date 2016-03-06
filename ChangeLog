@@ -1,3 +1,18 @@
+libmaus2 (2.0.140-1) unstable; urgency=medium
+
+  * add load function in CompactArray class
+  * add DNAIndexMetaDataBigBandBiDir
+  * fix include guard in DNAIndexMetaDataBigBand.hpp
+  * fix compilation on 32 bit platforms
+  * add warning comment in EnvelopeFragment about limits of fragment merging
+  * add reset/clear method in RangeSet class
+  * add pushTracePoints, computeDiagBand and computeDiagBandTracePoints functions in Overlap class
+  * add pushfront method in AutoArray class
+  * add basic splay tree implementation and test
+  * extend fragment envelope testing code
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sun, 06 Mar 2016 15:42:59 +0100
+
 libmaus2 (2.0.139-1) unstable; urgency=medium
 
   * add numthreads parameter in file load function of DNARank 

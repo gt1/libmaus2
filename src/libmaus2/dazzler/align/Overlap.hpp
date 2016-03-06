@@ -360,6 +360,172 @@ namespace libmaus2
 				}
 
 				template<typename path_iterator>
+				static std::pair<int32_t,int32_t> computeDiagBand(
+					path_iterator path,
+					size_t pathlen,
+					int32_t const abpos,
+					int32_t const aepos,
+					int32_t const bbpos,
+					int32_t const /* bepos */,
+					int32_t const tspace
+				)
+				{
+					// current point on A
+					int32_t a_i = ( abpos / tspace ) * tspace;
+					// current point on B
+					int32_t b_i = bbpos;
+
+					int32_t mindiag = abpos - bbpos;
+					int32_t maxdiag = mindiag;
+
+					for ( size_t i = 0; i < pathlen; ++i )
+					{
+						// actual block start in a
+						int32_t const a_i_0 = std::max(a_i,abpos);
+
+						// block end point on A
+						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(aepos) );
+						// block end point on B
+						int32_t const b_i_1 = b_i + path[i].second;
+
+						int32_t const blockstartdiag = a_i_0 - b_i;
+						// bounds, not actual values
+						int32_t const blockmindiag = blockstartdiag - path[i].second;
+						int32_t const blockmaxdiag = blockstartdiag + tspace;
+
+						mindiag = std::min(mindiag,blockmindiag);
+						maxdiag = std::max(maxdiag,blockmaxdiag);
+
+						// update start points
+						b_i = b_i_1;
+						a_i = a_i_1;
+					}
+
+					return std::pair<int32_t,int32_t>(mindiag,maxdiag);
+				}
+
+				template<typename path_iterator>
+				static std::pair<int32_t,int32_t> computeDiagBandTracePoints(
+					path_iterator path,
+					size_t pathlen,
+					int32_t const abpos,
+					int32_t const aepos,
+					int32_t const bbpos,
+					int32_t const bepos,
+					int32_t const tspace
+				)
+				{
+					// current point on A
+					int32_t a_i = ( abpos / tspace ) * tspace;
+					// current point on B
+					int32_t b_i = bbpos;
+
+					int32_t mindiag = abpos - bbpos;
+					int32_t maxdiag = mindiag;
+
+					for ( size_t i = 0; i < pathlen; ++i )
+					{
+						// actual block start in a
+						int32_t const a_i_0 = std::max(a_i,abpos);
+
+						int32_t const blockstartdiag = a_i_0 - b_i;
+						assert ( (i!=0) || (blockstartdiag==abpos-bbpos) );
+						mindiag = std::min(mindiag,blockstartdiag);
+						maxdiag = std::max(maxdiag,blockstartdiag);
+
+						int32_t const bforw = path[i].second;
+
+						// block end point on A
+						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(aepos) );
+						// block end point on B
+						int32_t const b_i_1 = b_i + bforw;
+
+						// update start points
+						b_i = b_i_1;
+						a_i = a_i_1;
+					}
+
+					int32_t const blockenddiag = aepos-bepos;
+					mindiag = std::min(mindiag,blockenddiag);
+					maxdiag = std::max(maxdiag,blockenddiag);
+
+					return std::pair<int32_t,int32_t>(mindiag,maxdiag);
+				}
+
+				struct TracePointId
+				{
+					int32_t apos;
+					int32_t bpos;
+					int32_t id;
+					int32_t subid;
+
+					bool operator<(TracePointId const & O) const
+					{
+						if ( apos != O.apos )
+							return apos < O.apos;
+						else if ( bpos != O.bpos )
+							return bpos < O.bpos;
+						else
+							return id < O.id;
+					}
+				};
+
+				template<typename path_iterator>
+				static uint64_t pushTracePoints(
+					path_iterator path,
+					size_t pathlen,
+					int32_t const abpos,
+					int32_t const aepos,
+					int32_t const bbpos,
+					int32_t const /* bepos */,
+					int32_t const tspace,
+					libmaus2::autoarray::AutoArray< TracePointId > & TP,
+					uint64_t o,
+					int32_t const id
+				)
+				{
+					TP.ensureSize(o+(pathlen+1));
+
+					// current point on A
+					int32_t a_i = ( abpos / tspace ) * tspace;
+					// current point on B
+					int32_t b_i = bbpos;
+
+					for ( size_t i = 0; i < pathlen; ++i )
+					{
+						// actual block start in a
+						int32_t const a_i_0 = std::max(a_i,abpos);
+
+						TracePointId TPI;
+						TPI.apos = a_i_0;
+						TPI.bpos = b_i;
+						TPI.id = id;
+						TPI.subid = i;
+						TP[o++] = TPI;
+
+						int32_t const bforw = path[i].second;
+
+						// block end point on A
+						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(aepos) );
+						// block end point on B
+						int32_t const b_i_1 = b_i + bforw;
+
+						// update start points
+						b_i = b_i_1;
+						a_i = a_i_1;
+					}
+
+					TracePointId TPI;
+					TPI.apos = a_i;
+					TPI.bpos = b_i;
+					TPI.id = id;
+					TPI.subid = pathlen;
+					TP[o++] = TPI;
+
+					return o;
+				}
+
+				template<typename path_iterator>
 				static void computeTracePreMapped(
 					path_iterator path,
 					size_t pathlen,

@@ -48,27 +48,6 @@ namespace libmaus2
 			int64_t const mu_num;
 			int64_t const mu_den;
 
-			/**
-			 * get adapted score
-			 *
-			 * @param x current x value
-			 * @param px previous x value at score
-			 * @param y current y value
-			 * @param py previous y value at score
-			 * @param score previous score
-			 * @return adapted score at (x,y) multiplied by 2^num_shift
-			 **/
-			int64_t getAdaptedPrevScore(
-				int64_t const x,
-				int64_t const px,
-				int64_t const y,
-				int64_t const py,
-				int64_t const score
-			) const
-			{
-				return (score << num_shift) - (( ((y-py) + (x-px)) * mu_num ) / mu_den);
-			}
-
 			public:
 			FragmentEnvelope(int64_t const r_mu_num = 1, int64_t const r_mu_den = 1)
 			: mu_num(r_mu_num << num_shift), mu_den(r_mu_den)
@@ -88,11 +67,23 @@ namespace libmaus2
 			 **/
 			std::pair<int64_t,int64_t> findScore(int64_t const x, int64_t const y) const
 			{
+				#if defined(LIBMAUS2_LCS_FRAGMENTENVELOPE_DEBUG)
+				std::cerr << "[D] FragmentEnvelope::findScore " << x << "," << y << std::endl;
+				#endif
+
+				// no fragments or x coordinate of all too large?
 				if ( ! M.size() || M.begin()->first > x)
+				{
+					#if defined(LIBMAUS2_LCS_FRAGMENTENVELOPE_DEBUG)
+					std::cerr << "no suitable fragments in database (empty or x wrong)" << std::endl;
+					#endif
+
 					return std::pair<int64_t,int64_t>(-1,-1);
+				}
 
 				assert ( M.begin() != M.end() && M.begin()->first <= x );
 
+				// find smallest >= x
 				const_iterator it = M.lower_bound(x);
 
 				if ( it == M.end() || it->first > x )
@@ -100,11 +91,30 @@ namespace libmaus2
 
 				assert ( it != M.end() && it->first <= x );
 
-				int64_t const fragx = it->first;
-				int64_t const fragy = it->second.y;
-				int64_t const fragscore = it->second.score;
-				int64_t const nscore = getAdaptedPrevScore(x,fragx,y,fragy,fragscore);
+				#if 1
+				const_iterator itcheck = it;
+				itcheck++;
+				assert ( itcheck == M.end() || itcheck->first > x );
+				#endif
 
+				int64_t const fragx = it->first;
+				assert ( fragx <= x );
+				int64_t const fragy = it->second.y;
+				assert ( fragy <= y );
+				int64_t const fragscore = it->second.score;
+				int64_t const nscore =
+					(fragscore << num_shift)
+					-
+					((
+						(x-fragx)
+						+
+						(y-fragy)
+					) * mu_num)/mu_den;
+
+				#if defined(LIBMAUS2_LCS_FRAGMENTENVELOPE_DEBUG)
+				std::cerr << "[D] FragmentEnvelope::findScore candidate " << it->first << "," << it->second << " score " << nscore << " fragscore " << fragscore << " fragscore<<" << (fragscore<<num_shift) << std::endl;
+				std::cerr << (x-fragx) << " " << (y-fragy) << std::endl;
+				#endif
 				// check whether remaining score when reaching x,y is non negative
 				if ( nscore >= 0 )
 					return std::pair<int64_t,int64_t>(it->second.id,nscore>>num_shift);
@@ -122,15 +132,34 @@ namespace libmaus2
 				return findScore(x,y).first;
 			}
 
+			bool isDominatedByOther(
+				int64_t const x,
+				int64_t const y,
+				int64_t const score,
+				int64_t const xo,
+				int64_t const yo,
+				int64_t const scoreo
+			) const
+			{
+				return
+					(scoreo<<num_shift) >
+					(score<<num_shift) +
+					(((x-xo) + (y-yo))*mu_num) / mu_den;
+			}
+
 			/**
 			 * insert fragment ending at (x,y) with best score up to fragment score
 			 **/
 			void insert(int64_t const x, int64_t const y, int64_t const score, uint64_t const id)
 			{
+				// fragment object for new fragment
 				FragmentEnvelopeYScore yscore(y,score,id);
+
 				#if defined(LIBMAUS2_LCS_FRAGMENTENVELOPE_DEBUG)
 				FragmentEnvelopeFragment frag(x,yscore);
-				std::cerr << "inserting " << frag << std::endl;
+
+				std::cerr << std::string(80,'-') << std::endl;
+				std::cerr << "inserting " << frag << " adp score " << (score<<num_shift) + ((x+y)*mu_num)/mu_den << std::endl;
 				#endif
 
 				// is M empty?
@@ -148,8 +177,6 @@ namespace libmaus2
 					#endif
 
 					bool cleaning = false;
-					// shifted score
-					int64_t const mscore = (score << num_shift);
 
 					// do we have values not exceeding x in M?
 					if ( M.begin()->first <= x )
@@ -158,39 +185,46 @@ namespace libmaus2
 						std::cerr << "have previous" << std::endl;
 						#endif
 
+						// find iterator to first element >= x in M
 						iterator it = M.lower_bound(x);
+						// we want the largest one not exceeding x
 						if ( it == M.end() || it->first > x )
 							--it;
 
 						assert ( it != M.end() && it->first <= x );
 
-						#if defined(LIBMAUS2_LCS_FRAGMENTENVELOPE_DEBUG)
-						std::cerr << "previos " << FragmentEnvelopeFragment(it->first,it->second) << " adapted score "
-							<< getAdaptedPrevScore(x,it->first,y,it->second.y,it->second.score) << " mscore " << mscore << std::endl;
+						#if 1
+						iterator itcheck = it;
+						itcheck++;
+						assert ( itcheck == M.end() || itcheck->first > x );
 						#endif
 
-						// if new fragment is not dominated by previous one
+						#if defined(LIBMAUS2_LCS_FRAGMENTENVELOPE_DEBUG)
+						std::cerr << "previous " << FragmentEnvelopeFragment(it->first,it->second)
+							<< " adp score prev " <<
+								(it->second.score<<num_shift) + ((it->first+it->second.y)*mu_num)/mu_den
+							<< std::endl;
+						#endif
+
+						// is new fragment dominated by one already present?
 						if (
-							mscore
-							>=
-							getAdaptedPrevScore(
-								x,it->first,
-								y,it->second.y,
-								it->second.score
+							isDominatedByOther(
+								x,y,score,
+								it->first,it->second.y,it->second.score
 							)
 						)
+						{
+							#if defined(LIBMAUS2_LCS_FRAGMENTENVELOPE_DEBUG)
+							std::cerr << "cur fragment " << frag << " dominated by " << FragmentEnvelopeFragment(it->first,it->second) << std::endl;
+							#endif
+						}
+						else
 						{
 							#if defined(LIBMAUS2_LCS_FRAGMENTENVELOPE_DEBUG)
 							std::cerr << "inserting fragment" << std::endl;
 							#endif
 							M [ x ] = yscore;
 							cleaning = true;
-						}
-						else
-						{
-							#if defined(LIBMAUS2_LCS_FRAGMENTENVELOPE_DEBUG)
-							std::cerr << "cur fragment " << frag << " dominated by " << FragmentEnvelopeFragment(it->first,it->second) << std::endl;
-							#endif
 						}
 					}
 					// all values in M are larger than x
@@ -222,14 +256,13 @@ namespace libmaus2
 						if (
 							it != M.end()
 							&&
-							(
-								mscore
-								>=
-								getAdaptedPrevScore(
-									x,it->first,
-									y,it->second.y,
-									it->second.score
-								)
+							isDominatedByOther(
+								it->first,
+								it->second.y,
+								it->second.score,
+								x,
+								y,
+								score
 							)
 						)
 						{
