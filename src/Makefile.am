@@ -236,6 +236,7 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/bambam/PileVectorElement.cpp \
 	libmaus2/digest/SHA3_256.cpp \
 	libmaus2/fastx/DNAIndexMetaDataBigBand.cpp \
+	libmaus2/fastx/DNAIndexMetaDataBigBandBiDir.cpp \
 	libmaus2/lcs/EnvelopeFragment.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
@@ -1411,6 +1412,7 @@ libmaus2fastx_include_HEADERS=\
 	libmaus2/fastx/DNAIndexMetaDataSequence.hpp \
 	libmaus2/fastx/DNAIndexMetaData.hpp \
 	libmaus2/fastx/DNAIndexMetaDataBigBand.hpp \
+	libmaus2/fastx/DNAIndexMetaDataBigBandBiDir.hpp \
 	libmaus2/fastx/CoordinateCache.hpp \
 	libmaus2/fastx/LineBufferFastAReader.hpp
 
