@@ -1,3 +1,12 @@
+libmaus2 (2.0.141-1) unstable; urgency=medium
+
+  * add bi directional DNA rank index
+  * use InputStreamInstance instead of factory call in ImpCompactHuffmanWaveletTree::load
+  * in BAM header rewriting add a  sort order field if none is present
+  * add getD, singleStep and multiRank methods in DNARank class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 07 Mar 2016 14:41:18 +0100
+
 libmaus2 (2.0.140-1) unstable; urgency=medium
 
   * add load function in CompactArray class
