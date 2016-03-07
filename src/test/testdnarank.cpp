@@ -16,6 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <libmaus2/rank/DNARank.hpp>
+#include <libmaus2/rank/DNARankBiDir.hpp>
 #include <libmaus2/util/ArgParser.hpp>
 #include <libmaus2/huffman/RLEncoder.hpp>
 #include <libmaus2/aio/OutputStreamInstance.hpp>
@@ -181,6 +182,10 @@ int main(int argc, char * argv[])
 			assert ( static_cast<char>((*Prank)[i]) == static_cast<char>(C[i]) );
 		t = rtc.getElapsedSeconds();
 		std::cerr << "DNARank access " << Prank->size()/t << std::endl;
+
+		std::string const fn1 = arg[2];
+		libmaus2::rank::DNARankBiDir::unique_ptr_type Pbidir(libmaus2::rank::DNARankBiDir::loadFromRunLength(fn,fn1));
+		Pbidir->testSearch(8);
 	}
 	catch(std::exception const & ex)
 	{
