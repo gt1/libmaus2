@@ -36,7 +36,6 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			private:
 			#define LIBMAUS2_RANK_DNARANK_SIGMA 4
 
 			static unsigned int getSigma() { return LIBMAUS2_RANK_DNARANK_SIGMA; }
@@ -50,6 +49,7 @@ namespace libmaus2
 			static unsigned int getBasesPerWord() { return (getBitsPerByte()*sizeof(uint64_t))/getLogSigma(); }
 			static unsigned int getDataBasesPerBlock() { return getDataBytesPerBlock() * (getBitsPerByte()/getLogSigma()); }
 
+			private:
 			uint64_t n;
 			libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_memalign_cacheline> B;
 			libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_memalign_cacheline> D;
@@ -202,7 +202,6 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < RV.size(); ++i )
 					rankm(RV[i],&racc[0]);
 				std::cerr << "done, " << (RV.size()/rtc.getElapsedSeconds()) << std::endl;
-
 
 				std::cerr << "[V] Checking select...";
 				#if defined(_OPENMP)
@@ -458,6 +457,17 @@ namespace libmaus2
 					R0[i] += D[i];
 					R1[i] += D[i];
 				}
+			}
+
+			void multiRank(uint64_t const l, uint64_t const r, uint64_t * const R0, uint64_t * const R1) const
+			{
+				rankm(l,&R0[0]);
+				rankm(r,&R1[0]);
+			}
+
+			uint64_t singleStep(uint64_t const l, unsigned int const sym) const
+			{
+				return D[sym] + rankm(l,sym);
 			}
 
 			std::pair<uint64_t,uint64_t> singleSymbolLF(uint64_t const l, uint64_t const r, unsigned int const sym) const
@@ -866,6 +876,10 @@ namespace libmaus2
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 
+			uint64_t getD(unsigned int const sym) const
+			{
+				return D[sym];
+			}
 		};
 	}
 }
