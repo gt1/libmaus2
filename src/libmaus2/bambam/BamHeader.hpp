@@ -775,8 +775,11 @@ namespace libmaus2
 				std::string const & rsortorder = std::string()
 			)
 			{
+				// get header lines vector
 				std::vector<HeaderLine> const hlv = ::libmaus2::bambam::HeaderLine::extractLines(header);
+				// pointer to line with HD identifier
 				HeaderLine const * hdline = 0;
+				// SQ map
 				std::map<std::string,HeaderLine const *> sqmap;
 				for ( uint64_t i = 0; i < hlv.size(); ++i )
 					if ( hlv[i].type == "HD" )
@@ -788,13 +791,23 @@ namespace libmaus2
 
 				if ( hdline )
 				{
+					// if we want to set a different sort order
 					if ( rsortorder.size() )
 					{
+						// tokenize the HD line
 						std::deque<std::string> tokens = ::libmaus2::util::stringFunctions::tokenize(hdline->line,std::string("\t"));
 
+						// check the tokens and search for the SO field
+						bool foundSO = false;
 						for ( uint64_t i = 1; i < tokens.size(); ++i )
 							if ( tokens[i].size() >= 3 && tokens[i].substr(0,3) == "SO:" )
+							{
 								tokens[i] = "SO:" + rsortorder;
+								foundSO = true;
+							}
+						// if there was no sort order previously then add one
+						if ( ! foundSO )
+							tokens.push_back(std::string("SO:") + rsortorder);
 
 						std::ostringstream hdlinestr;
 						for ( uint64_t i = 0; i < tokens.size(); ++i )

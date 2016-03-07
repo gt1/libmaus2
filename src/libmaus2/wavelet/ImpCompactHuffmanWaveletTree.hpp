@@ -254,13 +254,13 @@ namespace libmaus2
 			public:
 			static unique_ptr_type load(std::string const & filename)
 			{
-				libmaus2::aio::InputStream::unique_ptr_type Pistr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename));
-				std::istream & in = *Pistr;
+				libmaus2::aio::InputStreamInstance::unique_ptr_type in(new libmaus2::aio::InputStreamInstance(filename));
 
-				uint64_t const n = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
-				::libmaus2::huffman::HuffmanTree H(in);
-				uint64_t const numnodes = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
-				Pistr.reset();
+				uint64_t const n = ::libmaus2::util::NumberSerialisation::deserialiseNumber(*in);
+				::libmaus2::huffman::HuffmanTree H(*in);
+				uint64_t const numnodes = ::libmaus2::util::NumberSerialisation::deserialiseNumber(*in);
+
+				in.reset();
 
 				std::vector<uint64_t> const nodepos = loadIndex(filename);
 
