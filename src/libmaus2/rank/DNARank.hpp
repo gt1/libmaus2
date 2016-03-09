@@ -1021,16 +1021,10 @@ namespace libmaus2
 				double const probins,
 				double const probdel,
 				libmaus2::util::Queue<ApproximateSearchQueueElement> & todo,
-				libmaus2::util::Queue<ApproximateSearchQueueElement> & V,
-				libmaus2::autoarray::AutoArray<int64_t> Adiag
+				libmaus2::util::Queue<ApproximateSearchQueueElement> & V
 			)
 			{
 				V.clear();
-
-				Adiag.ensureSize(2*maxerr + 1);
-				std::fill(Adiag.begin(),Adiag.begin()+2*maxerr+1,-1);
-
-				// int64_t * const diag = Adiag.begin() + maxerr;
 
 				uint64_t R0[LIBMAUS2_RANK_DNARANK_SIGMA];
 				uint64_t R1[LIBMAUS2_RANK_DNARANK_SIGMA];
