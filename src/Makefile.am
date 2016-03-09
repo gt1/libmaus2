@@ -237,7 +237,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/digest/SHA3_256.cpp \
 	libmaus2/fastx/DNAIndexMetaDataBigBand.cpp \
 	libmaus2/fastx/DNAIndexMetaDataBigBandBiDir.cpp \
-	libmaus2/lcs/EnvelopeFragment.cpp
+	libmaus2/lcs/EnvelopeFragment.cpp \
+	libmaus2/rank/DNARankBiDirRange.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -935,7 +936,8 @@ libmaus2rank_include_HEADERS=\
 	libmaus2/rank/BSwapBase.hpp \
 	libmaus2/rank/DNARank.hpp \
 	libmaus2/rank/DNARankKmerCache.hpp \
-	libmaus2/rank/DNARankBiDir.hpp
+	libmaus2/rank/DNARankBiDir.hpp \
+	libmaus2/rank/DNARankBiDirRange.hpp
 
 libmaus2geometry_includedir=$(includedir)/libmaus2/geometry
 libmaus2geometry_include_HEADERS=\
@@ -1156,7 +1158,9 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/ArgParser.hpp \
 	libmaus2/util/PrefixSums.hpp \
 	libmaus2/util/NumberToString.hpp \
-	libmaus2/util/SplayTree.hpp
+	libmaus2/util/SplayTree.hpp \
+	libmaus2/util/Queue.hpp \
+	libmaus2/util/ContainerElementFreeList.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\

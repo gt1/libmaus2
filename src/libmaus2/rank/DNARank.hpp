@@ -26,6 +26,8 @@
 #include <libmaus2/random/Random.hpp>
 #include <libmaus2/parallel/PosixSpinLock.hpp>
 
+#include <libmaus2/util/Queue.hpp>
+
 namespace libmaus2
 {
 	namespace rank
@@ -476,6 +478,12 @@ namespace libmaus2
 				return P;
 			}
 
+			bool hasExtension(uint64_t const l, uint64_t const r, unsigned int const sym) const
+			{
+				std::pair<uint64_t,uint64_t> const P = singleSymbolLF(l,r,sym);
+				return P.second != P.first;
+			}
+
 			std::pair<uint64_t,uint64_t> epsilon() const
 			{
 				return std::pair<uint64_t,uint64_t>(0,n);
@@ -511,13 +519,36 @@ namespace libmaus2
 				return select(sym,r);
 			}
 
-			void decode(uint64_t rr, unsigned int k, char * C) const
+			template<typename iterator>
+			void decode(uint64_t rr, unsigned int k, iterator C) const
 			{
 				for ( unsigned int i = 0; i < k; ++i )
 				{
 					*(C++) = sortedSymbol(rr);
 					rr = phi(rr);
 				}
+			}
+
+			std::string decode(uint64_t rr, unsigned int k) const
+			{
+				std::string s(k,' ');
+				decode(rr,k,s.begin());
+				return s;
+			}
+
+			bool sufcmp(uint64_t r0, uint64_t r1, unsigned int k) const
+			{
+				for ( unsigned int i = 0; i < k; ++i )
+				{
+					unsigned int c0 = sortedSymbol(r0);
+					unsigned int c1 = sortedSymbol(r1);
+					if ( c0 != c1 )
+						return false;
+					r0 = phi(r0);
+					r1 = phi(r1);
+				}
+
+				return true;
 			}
 
 			/**
@@ -879,6 +910,181 @@ namespace libmaus2
 			uint64_t getD(unsigned int const sym) const
 			{
 				return D[sym];
+			}
+
+			struct ApproximateSearchQueueElement
+			{
+				uint64_t low;
+				uint64_t high;
+				uint64_t err;
+				uint64_t qlen;
+				uint64_t rlen;
+				double p;
+
+				ApproximateSearchQueueElement(
+					uint64_t const rlow = 0,
+					uint64_t const rhigh = 0,
+					uint64_t const rerr = 0,
+					uint64_t const rqlen = 0,
+					uint64_t const rrlen = 0,
+					double const rp = 0
+				) : low(rlow), high(rhigh), err(rerr), qlen(rqlen), rlen(rrlen), p(rp)
+				{
+				}
+			};
+
+			// return all matching intervals within an edit distance of at most maxerr for the query it[0],it[1],...,it[m-1]
+			// the actual edit may be smaller for some intervals in the output as we do not keep track of the type of
+			// error inserted (e.g. we may insert a character and immediately delete it)
+			template<typename iterator>
+			std::vector < ApproximateSearchQueueElement > approximateSearch(
+				iterator it,
+				uint64_t const m,
+				uint64_t const maxerr,
+				double const probcor,
+				double const probsubst,
+				double const probins,
+				double const probdel
+			)
+			{
+				std::deque<ApproximateSearchQueueElement> todo;
+				std::vector<ApproximateSearchQueueElement> V;
+
+				uint64_t R0[LIBMAUS2_RANK_DNARANK_SIGMA];
+				uint64_t R1[LIBMAUS2_RANK_DNARANK_SIGMA];
+
+				double const probincor = 1.0-probcor;
+
+				// push interval for empty word
+				todo.push_back(ApproximateSearchQueueElement(0,size(),0,0,0,1.0));
+
+				while ( todo.size() )
+				{
+					ApproximateSearchQueueElement const P = todo.front();
+					todo.pop_front();
+
+					// push interval if we reached the end of the query
+					if ( P.qlen == m )
+					{
+						V.push_back(P);
+					}
+
+					// compute possible extension intervals
+					multiLF(P.low,P.high,&R0[0],&R1[0]);
+
+					// if we have not yet reached the end of the query
+					if ( P.qlen < m )
+					{
+						// get extension symbol
+						unsigned int const sym = it[m-P.qlen-1];
+
+						// match
+						if ( R1[sym]-R0[sym] )
+						{
+							todo.push_back(ApproximateSearchQueueElement(R0[sym],R1[sym],P.err,P.qlen+1,P.rlen+1,P.p * probcor));
+						}
+
+						// more errors available?
+						if ( P.err < maxerr )
+						{
+							// mismatch
+							for ( unsigned int i = 0; i < LIBMAUS2_RANK_DNARANK_SIGMA; ++i )
+								 if ( R1[i]-R0[i] && i != sym )
+								 	todo.push_back(ApproximateSearchQueueElement(R0[i],R1[i],P.err+1,P.qlen+1,P.rlen+1, P.p * probincor * probsubst));
+
+							// insertion (consume query base without moving on reference)
+						 	todo.push_back(ApproximateSearchQueueElement(P.low,P.high,P.err+1,P.qlen+1,P.rlen, P.p * probincor * probins));
+						}
+					}
+
+					// more errors available
+					if ( P.err < maxerr )
+						// deletion (consume reference base without using query base)
+						for ( unsigned int i = 0; i < LIBMAUS2_RANK_DNARANK_SIGMA; ++i )
+							 if ( R1[i]-R0[i] )
+							 	todo.push_back(ApproximateSearchQueueElement(R0[i],R1[i],P.err+1,P.qlen,P.rlen+1, P.p * probincor * probdel));
+				}
+
+				return V;
+			}
+
+			// return all matching intervals within an edit distance of at most maxerr for the query it[0],it[1],...,it[m-1]
+			// the actual edit may be smaller for some intervals in the output as we do not keep track of the type of
+			// error inserted (e.g. we may insert a character and immediately delete it)
+			template<typename iterator>
+			void approximateSearch(
+				iterator it,
+				uint64_t const m,
+				uint64_t const maxerr,
+				double const probcor,
+				double const probsubst,
+				double const probins,
+				double const probdel,
+				libmaus2::util::Queue<ApproximateSearchQueueElement> & todo,
+				libmaus2::util::Queue<ApproximateSearchQueueElement> & V,
+				libmaus2::autoarray::AutoArray<int64_t> Adiag
+			)
+			{
+				V.clear();
+
+				Adiag.ensureSize(2*maxerr + 1);
+				std::fill(Adiag.begin(),Adiag.begin()+2*maxerr+1,-1);
+
+				// int64_t * const diag = Adiag.begin() + maxerr;
+
+				uint64_t R0[LIBMAUS2_RANK_DNARANK_SIGMA];
+				uint64_t R1[LIBMAUS2_RANK_DNARANK_SIGMA];
+
+				double const probincor = 1.0-probcor;
+
+				// push interval for empty word
+				todo.push(ApproximateSearchQueueElement(0,size(),0,0,0,1.0));
+
+				while ( ! (todo.empty()) )
+				{
+					ApproximateSearchQueueElement const P = todo.pop();
+
+					// push interval if we reached the end of the query
+					if ( P.qlen == m )
+					{
+						V.push(P);
+					}
+
+					// compute possible extension intervals
+					multiLF(P.low,P.high,&R0[0],&R1[0]);
+
+					// if we have not yet reached the end of the query
+					if ( P.qlen < m )
+					{
+						// get extension symbol
+						unsigned int const sym = it[m-P.qlen-1];
+
+						// match
+						if ( R1[sym]-R0[sym] )
+						{
+							todo.push(ApproximateSearchQueueElement(R0[sym],R1[sym],P.err,P.qlen+1,P.rlen+1,P.p * probcor));
+						}
+
+						// more errors available?
+						if ( P.err < maxerr )
+						{
+							// mismatch
+							for ( unsigned int i = 0; i < LIBMAUS2_RANK_DNARANK_SIGMA; ++i )
+								 if ( R1[i]-R0[i] && i != sym )
+								 	todo.push(ApproximateSearchQueueElement(R0[i],R1[i],P.err+1,P.qlen+1,P.rlen+1, P.p * probincor * probsubst));
+
+							// insertion (consume query base without moving on reference)
+						 	todo.push(ApproximateSearchQueueElement(P.low,P.high,P.err+1,P.qlen+1,P.rlen, P.p * probincor * probins));
+						}
+					}
+
+					// more errors available
+					if ( P.err < maxerr )
+						// deletion (consume reference base without using query base)
+						for ( unsigned int i = 0; i < LIBMAUS2_RANK_DNARANK_SIGMA; ++i )
+							 if ( R1[i]-R0[i] )
+							 	todo.push(ApproximateSearchQueueElement(R0[i],R1[i],P.err+1,P.qlen,P.rlen+1, P.p * probincor * probdel));
+				}
 			}
 		};
 	}
