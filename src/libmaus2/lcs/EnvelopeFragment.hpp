@@ -40,6 +40,16 @@ namespace libmaus2
 
 			}
 
+			EnvelopeFragment getBackFragment() const
+			{
+				return EnvelopeFragment(x+k,y+k,k,id);
+			}
+
+			EnvelopeFragment getFrontFragmentFromBack() const
+			{
+				return EnvelopeFragment(x-k,y-k,k,id);
+			}
+
 			coordinate_type getDiagonal() const
 			{
 				return x-y;
@@ -127,6 +137,17 @@ namespace libmaus2
 				return iout;
 			}
 
+		};
+
+		struct EnvelopeFragmentDiagonalComparator
+		{
+			bool operator()(EnvelopeFragment const & A, EnvelopeFragment const & B) const
+			{
+				if ( A.getDiagonal() != B.getDiagonal() )
+					return A.getDiagonal() < B.getDiagonal();
+				else
+					return A.y < B.y;
+			}
 		};
 
 		std::ostream & operator<<(std::ostream & out, EnvelopeFragment const & fragment);
