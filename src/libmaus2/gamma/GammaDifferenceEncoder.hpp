@@ -94,7 +94,7 @@ namespace libmaus2
 				int64_t const dif = v - prev;
 				int64_t const difenc = dif-static_cast<int64_t>(mindif);
 				data_type const d(difenc);
-				Genc->encode(d);
+				Genc->encodeSlow(d);
 				prev = v;
 				n += 1;
 			}
@@ -111,7 +111,7 @@ namespace libmaus2
 
 			void encodeAbsolute(data_type const v)
 			{
-				Genc->encode(v);
+				Genc->encodeSlow(v);
 			}
 
 			void flush()
