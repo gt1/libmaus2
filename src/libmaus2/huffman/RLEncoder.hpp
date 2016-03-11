@@ -27,6 +27,7 @@
 #include <libmaus2/math/bitsPerNum.hpp>
 #include <libmaus2/huffman/PairAddSecond.hpp>
 #include <libmaus2/huffman/IndexEntry.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 
 namespace libmaus2
 {

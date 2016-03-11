@@ -16,6 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <libmaus2/gamma/GammaPartitionEncoder.hpp>
+#include <libmaus2/gamma/GammaIntervalEncoder.hpp>
+
 #include <libmaus2/gamma/SimpleGammaEncoderArray.hpp>
 #include <libmaus2/gamma/SimpleGammaDecoder.hpp>
 #include <libmaus2/gamma/SimpleGammaEncoder.hpp>
