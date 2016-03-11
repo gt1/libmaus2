@@ -66,19 +66,21 @@ namespace libmaus2
 			int64_t prev;
 			uint64_t n;
 
-			typename libmaus2::aio::SynchronousGenericOutput<data_type>::unique_ptr_type Sout;
+			typename libmaus2::aio::SynchronousGenericOutput<data_type>::unique_ptr_type Psout;
+			libmaus2::aio::SynchronousGenericOutput<data_type> & sout;
+
 			typename libmaus2::gamma::GammaEncoder< libmaus2::aio::SynchronousGenericOutput<data_type> >::unique_ptr_type Genc;
 
 			GammaDifferenceEncoder(std::ostream & rout, int64_t const rprim = -1)
-			: Pout(), out(rout), prim(rprim), prev(prim), n(0), Sout(new libmaus2::aio::SynchronousGenericOutput<data_type>(out,8*1024)),
-			  Genc(new libmaus2::gamma::GammaEncoder< libmaus2::aio::SynchronousGenericOutput<data_type> >(*Sout))
+			: Pout(), out(rout), prim(rprim), prev(prim), n(0), Psout(new libmaus2::aio::SynchronousGenericOutput<data_type>(out,8*1024)),
+			  sout(*Psout), Genc(new libmaus2::gamma::GammaEncoder< libmaus2::aio::SynchronousGenericOutput<data_type> >(sout))
 			{
 
 			}
 
 			GammaDifferenceEncoder(std::string const & rfn, int64_t const rprim = -1)
-			: Pout(new libmaus2::aio::OutputStreamInstance(rfn)), out(*Pout), prim(rprim), prev(prim), n(0), Sout(new libmaus2::aio::SynchronousGenericOutput<data_type>(out,8*1024)),
-			  Genc(new libmaus2::gamma::GammaEncoder< libmaus2::aio::SynchronousGenericOutput<data_type> >(*Sout))
+			: Pout(new libmaus2::aio::OutputStreamInstance(rfn)), out(*Pout), prim(rprim), prev(prim), n(0), Psout(new libmaus2::aio::SynchronousGenericOutput<data_type>(out,8*1024)),
+			  sout(*Psout), Genc(new libmaus2::gamma::GammaEncoder< libmaus2::aio::SynchronousGenericOutput<data_type> >(sout))
 			{
 
 			}
@@ -120,9 +122,9 @@ namespace libmaus2
 				{
 					Genc->flush();
 					Genc.reset();
-					Sout->flush();
-					uint64_t const indexoff = Sout->getWrittenWords() * sizeof(data_type);
-					Sout.reset();
+					sout.flush();
+					uint64_t const indexoff = sout.getWrittenWords() * sizeof(data_type);
+					Psout.reset();
 					libmaus2::util::NumberSerialisation::serialiseNumber(out,n);
 					libmaus2::util::NumberSerialisation::serialiseSignedNumber(out,prim);
 					libmaus2::util::NumberSerialisation::serialiseNumber(out,indexoff);
