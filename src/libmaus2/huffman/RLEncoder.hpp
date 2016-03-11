@@ -90,9 +90,9 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < 64; ++i )
 					writer.writeBit( (indexpos & (1ull<<(63-i))) != 0 );
 				writer.flushBitStream();
-			}		
+			}
 		};
-	
+
 		template<typename _bit_writer_type>
 		struct RLEncoderBaseTemplate : public IndexWriter
 		{
