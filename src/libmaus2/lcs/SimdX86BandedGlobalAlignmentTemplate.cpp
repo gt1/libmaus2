@@ -141,7 +141,6 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::allocateMemory(
 	}
 }
 
-
 void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a, size_t const l_a, uint8_t const * b, size_t const l_b, size_t const d)
 {
 	// elements per SIMD word
@@ -205,11 +204,16 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 	while ( bcopy != querymem )
 		*(--bcopy) = bsub;
 
+	// initialise two diagonals
 	std::fill(diagmem,diagmem + 2 * words_necessary * elements_per_word, std::numeric_limits<LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE>::max());
+	// set (0,0) to 0
 	diagmem [ words_necessary * elements_per_word + d ] = 0;
 
+	// two diagonals back
 	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE * diag_1 = reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE *>(diagmem);
+	// one diagonal back
 	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE * diag_0 = diag_1 + words_necessary;
+	// next diagonal to be computed
 	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE * diag_n = diag_0 + words_necessary;
 
 	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const ff0 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const *>(&LIBMAUS2_LCS_SIMD_BANDED_FIRST_FF_REST_0[0]));
@@ -484,7 +488,9 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 
 	// trace back
 	if (
+		// (l_a,l_b) is on a valid diagonal
 		(cur.first >= 0 && cur.first <= static_cast<int64_t>(compdiag)) &&
+		// (l_a,l_b) is on a valid offset on that diagonal
 		(
 			(((cur.first & 1) == 0) && cur.second >= 0 && cur.second < static_cast<int64_t>(2*d+1))
 			||
@@ -492,21 +498,28 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 		)
 	)
 	{
+		// length of a diagonal in elements
 		size_t const diaglen = words_necessary * elements_per_word;
+		// pointer to current element
 		LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE * p = diagmem + (cur.first + 1) * diaglen + cur.second;
+		// position on a and p
 		size_t pa = l_a, pb = l_b;
 
+		// edit distance for full alignment
 		int64_t const editdistance = *p;
+		// check whether we have sufficient space
 		if ( libmaus2::lcs::AlignmentTraceContainer::capacity() < std::min(l_a,l_b) + editdistance )
 		{
 			libmaus2::lcs::AlignmentTraceContainer::resize(std::min(l_a,l_b) + editdistance);
 			libmaus2::lcs::AlignmentTraceContainer::reset();
 		}
 
+		// while we have not reached (0,0)
 		while ( cur.first != 0 || cur.second != static_cast<int64_t>(d) )
 		{
 			bool neq;
 
+			// if we can go back on both a and b and the best entry is on the diagonal
 			if ( pa && pb && *p == *(p-2*diaglen) + (neq=(a[pa-1] != b[pb-1])) )
 			{
 				pa -= 1;
@@ -519,7 +532,7 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 				else
 					*(--libmaus2::lcs::AlignmentTraceContainer::ta) = STEP_MATCH;
 			}
-			// even
+			// even diagonal
 			else if ( (cur.first & 1) == 0 )
 			{
 				// left
@@ -541,7 +554,7 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 					*(--libmaus2::lcs::AlignmentTraceContainer::ta) = STEP_INS;
 				}
 			}
-			// odd
+			// odd diagonal
 			else
 			{
 				// left
