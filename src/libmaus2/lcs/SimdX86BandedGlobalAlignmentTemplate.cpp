@@ -210,14 +210,14 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 	diagmem [ words_necessary * elements_per_word + d ] = 0;
 
 	// two diagonals back
-	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE * diag_1 = reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE *>(diagmem);
+	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE * edit_diag_1 = reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE *>(diagmem);
 	// one diagonal back
-	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE * diag_0 = diag_1 + words_necessary;
+	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE * edit_diag_0 = edit_diag_1 + words_necessary;
 	// next diagonal to be computed
-	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE * diag_n = diag_0 + words_necessary;
+	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE * edit_diag_n = edit_diag_0 + words_necessary;
 
-	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const ff0 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const *>(&LIBMAUS2_LCS_SIMD_BANDED_FIRST_FF_REST_0[0]));
-	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const zff = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const *>(&LIBMAUS2_LCS_SIMD_BANDED_LAST_FF_REST_0[0]));
+	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const edit_ff0 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const *>(&LIBMAUS2_LCS_SIMD_BANDED_FIRST_FF_REST_0[0]));
+	LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const edit_zff = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const *>(&LIBMAUS2_LCS_SIMD_BANDED_LAST_FF_REST_0[0]));
 
 	#if 0
 	LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE ffback[sizeof(LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE)/sizeof(LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE)] __attribute__((aligned(sizeof(LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE)))) = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -231,41 +231,15 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 
 	for ( int64_t di = 1; di <= static_cast<int64_t>(compdiag); ++di )
 	{
-		assert ( diag_1 == reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE *>(diagmem) + (di-1)*words_necessary );
-		// std::cerr << "di=" << di << " allocdiag=" << allocdiag << std::endl;
+		assert ( edit_diag_1 == reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE *>(diagmem) + (di-1)*words_necessary );
 
 		LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE const * t = textmem + (di>>1);
-		// LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE const * q = querymem + queryelements - (2*d+1) - ((di+1)>>1);
 		LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE const * q = querymem + queryelements - bpad - (d) - ((di+1)>>1);
 		LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const * wt = reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const *>(t);
 		LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const * wq = reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const *>(q);
 
 		assert ( t + words_necessary * elements_per_word <= textmem + textelementsalloc );
 		assert ( q + words_necessary * elements_per_word <= querymem + queryelementsalloc );
-		#if 0
-		if ( !( t + words_necessary * elements_per_word <= textmem + textelementsalloc ) )
-		{
-			std::cerr << "di=" << di << std::endl;
-			std::cerr << "t=" << t << std::endl;
-			assert ( t + words_necessary * elements_per_word <= textmem + textelementsalloc );
-		}
-		#endif
-		#if 0
-		if ( q + words_necessary * elements_per_word > querymem + queryelementsalloc )
-		{
-			std::cerr << "di=" << di << std::endl;
-			std::cerr << "q=" << q << std::endl;
-			assert ( q + words_necessary * elements_per_word <= querymem + queryelementsalloc );
-		}
-		#endif
-
-		#if 0
-		{
-			LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_t = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wt);
-			LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_q = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wq);
-			std::cerr << "di=" << di << " " << formatRegisterChar(v_t) << " " << formatRegisterChar(v_q) << std::endl;
-		}
-		#endif
 
 		// uneven row
 		if ( (di & 1) == 1 )
@@ -273,18 +247,13 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 			// everything fits in a single word
 			if ( words_necessary == 1 )
 			{
-				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE prev_0 = ff0;
+				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE edit_prev_0 = edit_ff0;
 
-				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_diag_1 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(diag_1++);
-				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_diag_0 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(diag_0++);
-
-				#if 0
-				// insert FF at back
-				v_diag_0 = LIBMAUS2_LCS_SIMD_BANDED_OR(v_diag_0,v_ffback);
-				#endif
+				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_edit_diag_1 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(edit_diag_1++);
+				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_edit_diag_0 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(edit_diag_0++);
 
 				// shift to right and insert ff at front
-				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE vdiag_0_shift = LIBMAUS2_LCS_SIMD_BANDED_OR(LIBMAUS2_LCS_SIMD_BANDED_SHIFTRIGHT(v_diag_0),prev_0);
+				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE vedit_diag_0_shift = LIBMAUS2_LCS_SIMD_BANDED_OR(LIBMAUS2_LCS_SIMD_BANDED_SHIFTRIGHT(v_edit_diag_0),edit_prev_0);
 
 				// load text
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_t = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wt++);
@@ -292,59 +261,59 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_q = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wq++);
 
 				// compare (1 iff symbols are not equal)
-				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_eq = LIBMAUS2_LCS_SIMD_BANDED_ANDNOT(LIBMAUS2_LCS_SIMD_BANDED_CMPEQ(v_t,v_q),v_all_one);
+				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_neq = LIBMAUS2_LCS_SIMD_BANDED_ANDNOT(LIBMAUS2_LCS_SIMD_BANDED_CMPEQ(v_t,v_q),v_all_one);
 
-				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_min =
+				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_edit_min =
 					LIBMAUS2_LCS_SIMD_BANDED_MIN(
 						LIBMAUS2_LCS_SIMD_BANDED_MIN(
-							LIBMAUS2_LCS_SIMD_BANDED_ADD(v_diag_0,v_all_one),
-							LIBMAUS2_LCS_SIMD_BANDED_ADD(vdiag_0_shift,v_all_one)
+							LIBMAUS2_LCS_SIMD_BANDED_ADD(v_edit_diag_0,v_all_one),
+							LIBMAUS2_LCS_SIMD_BANDED_ADD(vedit_diag_0_shift,v_all_one)
 						),
-						LIBMAUS2_LCS_SIMD_BANDED_ADD(v_diag_1,v_eq)
+						LIBMAUS2_LCS_SIMD_BANDED_ADD(v_edit_diag_1,v_neq)
 					);
 
-				LIBMAUS2_LCS_SIMD_BANDED_STORE(diag_n++,v_min);
+				LIBMAUS2_LCS_SIMD_BANDED_STORE(edit_diag_n++,v_edit_min);
 			}
 			// more than one word necessary
 			else if ( words_necessary > 1 )
 			{
-				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE prev = ff0;
+				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE edit_prev = edit_ff0;
 
 				for ( size_t z = 0; z < words_necessary; ++z )
 				{
 					// two diags back
-					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_diag_1 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(diag_1++);
+					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_edit_diag_1 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(edit_diag_1++);
 					// load text
 					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_t = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wt++);
 					// load query
 					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_q = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wq++);
 					// compare (1 iff symbols are not equal)
-					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_eq = LIBMAUS2_LCS_SIMD_BANDED_ANDNOT(LIBMAUS2_LCS_SIMD_BANDED_CMPEQ(v_t,v_q),v_all_one);
+					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_neq = LIBMAUS2_LCS_SIMD_BANDED_ANDNOT(LIBMAUS2_LCS_SIMD_BANDED_CMPEQ(v_t,v_q),v_all_one);
 
 					// next one back
-					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_diag_0 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(diag_0++);
+					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_edit_diag_0 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(edit_diag_0++);
 
-					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const left = v_diag_0;
-					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const top =
+					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const edit_left = v_edit_diag_0;
+					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const edit_top =
 						LIBMAUS2_LCS_SIMD_BANDED_OR(
-							LIBMAUS2_LCS_SIMD_BANDED_SHIFTRIGHT(v_diag_0),
-							prev
+							LIBMAUS2_LCS_SIMD_BANDED_SHIFTRIGHT(v_edit_diag_0),
+							edit_prev
 						);
 
 					// compute minimum over three
-					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_min =
+					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_edit_min =
 						LIBMAUS2_LCS_SIMD_BANDED_MIN(
 							LIBMAUS2_LCS_SIMD_BANDED_MIN(
-								LIBMAUS2_LCS_SIMD_BANDED_ADD(left,v_all_one),
-								LIBMAUS2_LCS_SIMD_BANDED_ADD(top ,v_all_one)
+								LIBMAUS2_LCS_SIMD_BANDED_ADD(edit_left,v_all_one),
+								LIBMAUS2_LCS_SIMD_BANDED_ADD(edit_top ,v_all_one)
 							),
-							LIBMAUS2_LCS_SIMD_BANDED_ADD(v_diag_1,v_eq)
+							LIBMAUS2_LCS_SIMD_BANDED_ADD(v_edit_diag_1,v_neq)
 						);
 
 					// store
-					LIBMAUS2_LCS_SIMD_BANDED_STORE(diag_n++,v_min);
+					LIBMAUS2_LCS_SIMD_BANDED_STORE(edit_diag_n++,v_edit_min);
 
-					prev = LIBMAUS2_LCS_SIMD_BANDED_SELECTLAST(v_diag_0);
+					edit_prev = LIBMAUS2_LCS_SIMD_BANDED_SELECTLAST(v_edit_diag_0);
 				}
 			}
 		}
@@ -354,103 +323,103 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 			// everything fits in a single machine word
 			if ( words_necessary == 1 )
 			{
-				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_diag_1 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(diag_1++);
-				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_diag_0 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(diag_0++);
-				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_diag_0_shift = LIBMAUS2_LCS_SIMD_BANDED_OR(LIBMAUS2_LCS_SIMD_BANDED_SHIFTLEFT(v_diag_0),zff);
+				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_edit_diag_1 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(edit_diag_1++);
+				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_edit_diag_0 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(edit_diag_0++);
+				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_edit_diag_0_shift = LIBMAUS2_LCS_SIMD_BANDED_OR(LIBMAUS2_LCS_SIMD_BANDED_SHIFTLEFT(v_edit_diag_0),edit_zff);
 
 				// load text
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_t = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wt++);
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_q = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wq++);
 
 				// compare (1 iff symbols are not equal)
-				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_eq = LIBMAUS2_LCS_SIMD_BANDED_ANDNOT(LIBMAUS2_LCS_SIMD_BANDED_CMPEQ(v_t,v_q),v_all_one);
+				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_neq = LIBMAUS2_LCS_SIMD_BANDED_ANDNOT(LIBMAUS2_LCS_SIMD_BANDED_CMPEQ(v_t,v_q),v_all_one);
 
-				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_min =
+				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_edit_min =
 					LIBMAUS2_LCS_SIMD_BANDED_MIN(
 						LIBMAUS2_LCS_SIMD_BANDED_MIN(
-							LIBMAUS2_LCS_SIMD_BANDED_ADD(v_diag_0,v_all_one),
-							LIBMAUS2_LCS_SIMD_BANDED_ADD(v_diag_0_shift,v_all_one)
+							LIBMAUS2_LCS_SIMD_BANDED_ADD(v_edit_diag_0,v_all_one),
+							LIBMAUS2_LCS_SIMD_BANDED_ADD(v_edit_diag_0_shift,v_all_one)
 						),
-						LIBMAUS2_LCS_SIMD_BANDED_ADD(v_diag_1,v_eq)
+						LIBMAUS2_LCS_SIMD_BANDED_ADD(v_edit_diag_1,v_neq)
 					);
 
-				LIBMAUS2_LCS_SIMD_BANDED_STORE(diag_n++,v_min);
+				LIBMAUS2_LCS_SIMD_BANDED_STORE(edit_diag_n++,v_edit_min);
 			}
 			// more than one word necessary
 			else if ( words_necessary > 1 )
 			{
 				// one diag back
-				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_diag_0_p = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(diag_0++);
+				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_edit_diag_0_p = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(edit_diag_0++);
 
 				for ( size_t z = 1; z < words_necessary; ++z )
 				{
 					// two diags back
-					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_diag_1 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(diag_1++);
+					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_edit_diag_1 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(edit_diag_1++);
 					// load text
 					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_t = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wt++);
 					// load query
 					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_q = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wq++);
 					// compare (1 iff symbols are not equal)
-					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_eq = LIBMAUS2_LCS_SIMD_BANDED_ANDNOT(LIBMAUS2_LCS_SIMD_BANDED_CMPEQ(v_t,v_q),v_all_one);
+					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_neq = LIBMAUS2_LCS_SIMD_BANDED_ANDNOT(LIBMAUS2_LCS_SIMD_BANDED_CMPEQ(v_t,v_q),v_all_one);
 
 					// next one back
-					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_diag_0_n = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(diag_0++);
+					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_edit_diag_0_n = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(edit_diag_0++);
 
-					// left
-					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const left = v_diag_0_p;
-					// top
-					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const top =
+					// edit_left
+					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const edit_left = v_edit_diag_0_p;
+					// edit_top
+					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const edit_top =
 						LIBMAUS2_LCS_SIMD_BANDED_OR(
-							LIBMAUS2_LCS_SIMD_BANDED_SHIFTLEFT(v_diag_0_p),
-							LIBMAUS2_LCS_SIMD_BANDED_FIRST_TO_BACK(v_diag_0_n)
+							LIBMAUS2_LCS_SIMD_BANDED_SHIFTLEFT(v_edit_diag_0_p),
+							LIBMAUS2_LCS_SIMD_BANDED_FIRST_TO_BACK(v_edit_diag_0_n)
 						);
 
 					// compute minimum over three
-					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_min =
+					LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_edit_min =
 						LIBMAUS2_LCS_SIMD_BANDED_MIN(
 							LIBMAUS2_LCS_SIMD_BANDED_MIN(
-								LIBMAUS2_LCS_SIMD_BANDED_ADD(left,v_all_one),
-								LIBMAUS2_LCS_SIMD_BANDED_ADD(top ,v_all_one)
+								LIBMAUS2_LCS_SIMD_BANDED_ADD(edit_left,v_all_one),
+								LIBMAUS2_LCS_SIMD_BANDED_ADD(edit_top ,v_all_one)
 							),
-							LIBMAUS2_LCS_SIMD_BANDED_ADD(v_diag_1,v_eq)
+							LIBMAUS2_LCS_SIMD_BANDED_ADD(v_edit_diag_1,v_neq)
 						);
 
 					// store
-					LIBMAUS2_LCS_SIMD_BANDED_STORE(diag_n++,v_min);
+					LIBMAUS2_LCS_SIMD_BANDED_STORE(edit_diag_n++,v_edit_min);
 
-					v_diag_0_p = v_diag_0_n;
+					v_edit_diag_0_p = v_edit_diag_0_n;
 				}
 
 				// two diags back
-				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_diag_1 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(diag_1++);
+				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_edit_diag_1 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(edit_diag_1++);
 				// load text
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_t = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wt++);
 				// load query
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_q = LIBMAUS2_LCS_SIMD_BANDED_LOAD_UNALIGNED(wq++);
 				// compare (1 iff symbols are not equal)
-				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_eq = LIBMAUS2_LCS_SIMD_BANDED_ANDNOT(LIBMAUS2_LCS_SIMD_BANDED_CMPEQ(v_t,v_q),v_all_one);
+				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_neq = LIBMAUS2_LCS_SIMD_BANDED_ANDNOT(LIBMAUS2_LCS_SIMD_BANDED_CMPEQ(v_t,v_q),v_all_one);
 
-				// left
-				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const left = v_diag_0_p;
-				// top
-				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const top =
+				// edit_left
+				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const edit_left = v_edit_diag_0_p;
+				// edit_top
+				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const edit_top =
 					LIBMAUS2_LCS_SIMD_BANDED_OR(
-						LIBMAUS2_LCS_SIMD_BANDED_SHIFTLEFT(v_diag_0_p),
-						zff
+						LIBMAUS2_LCS_SIMD_BANDED_SHIFTLEFT(v_edit_diag_0_p),
+						edit_zff
 					);
 
 				// compute minimum over three
-				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_min =
+				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const v_edit_min =
 					LIBMAUS2_LCS_SIMD_BANDED_MIN(
 						LIBMAUS2_LCS_SIMD_BANDED_MIN(
-							LIBMAUS2_LCS_SIMD_BANDED_ADD(left,v_all_one),
-							LIBMAUS2_LCS_SIMD_BANDED_ADD(top ,v_all_one)
+							LIBMAUS2_LCS_SIMD_BANDED_ADD(edit_left,v_all_one),
+							LIBMAUS2_LCS_SIMD_BANDED_ADD(edit_top ,v_all_one)
 						),
-						LIBMAUS2_LCS_SIMD_BANDED_ADD(v_diag_1,v_eq)
+						LIBMAUS2_LCS_SIMD_BANDED_ADD(v_edit_diag_1,v_neq)
 					);
 
 				// store
-				LIBMAUS2_LCS_SIMD_BANDED_STORE(diag_n++,v_min);
+				LIBMAUS2_LCS_SIMD_BANDED_STORE(edit_diag_n++,v_edit_min);
 			}
 		}
 	}
