@@ -23,6 +23,7 @@
 #include <libmaus2/util/ArgInfo.hpp>
 #include <libmaus2/lcs/ND.hpp>
 #include <libmaus2/lcs/NDextend.hpp>
+#include <libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16.hpp>
 
 #include <sys/ioctl.h>
 #include <stdio.h>
@@ -52,6 +53,33 @@ int main(int argc, char * argv[])
 	try
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
+		
+		{
+		libmaus2::lcs::SimdX86BandedGlobalAlignmentScoreY256_16 scoreal;
+
+		char const * a = "AAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGAT";
+		char const * b = "AAGTAAGTAAGTAAGTAAGTAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGAT";
+		
+		std::pair<int64_t,int64_t> const L = scoreal.align(
+			reinterpret_cast<uint8_t const *>(a),
+			strlen(a),
+			reinterpret_cast<uint8_t const *>(b),
+			strlen(b),
+			2
+		);
+		
+		std::cerr << scoreal.getTraceContainer().traceToString() << std::endl;
+
+		libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
+			a,L.first,
+			b,L.second,
+			80,
+			scoreal.getTraceContainer().ta,
+			scoreal.getTraceContainer().te
+		);
+		
+		return 0;
+		}
 
 		bool const loadall  = arginfo.getValue<int>("loadalla",false);
 		bool loadalla = arginfo.getValue<int>("loadalla",loadall);

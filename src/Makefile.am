@@ -7,7 +7,10 @@ EXTRA_DIST = \
 	libmaus2/digest/sha512_avx.asm \
 	libmaus2/digest/sha256_avx2_rorx2.asm \
 	libmaus2/digest/sha256_avx2_rorx8.asm \
-	libmaus2/digest/sha512_avx2_rorx.asm
+	libmaus2/digest/sha512_avx2_rorx.asm \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreTemplate.cpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentTemplate.cpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentTemplate.cpp
 
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
@@ -28,6 +31,7 @@ libmaus2_simd_align_256_la_SOURCES = \
 	libmaus2/lcs/SimdX86GlobalAlignmentConstants256.cpp \
 	libmaus2/lcs/SimdX86BandedGlobalAlignmentY256_8.cpp \
 	libmaus2/lcs/SimdX86BandedGlobalAlignmentY256_16.cpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16.cpp \
 	libmaus2/lcs/SimdX86GlobalAlignmentY256_8.cpp \
 	libmaus2/lcs/SimdX86GlobalAlignmentY256_16.cpp
 libmaus2_simd_align_256_la_CXXFLAGS = @MSSE2@ @MSSSE3@ @MSSE41@ @MAVX2@
@@ -238,7 +242,7 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/fastx/DNAIndexMetaDataBigBand.cpp \
 	libmaus2/fastx/DNAIndexMetaDataBigBandBiDir.cpp \
 	libmaus2/lcs/EnvelopeFragment.cpp \
-	libmaus2/rank/DNARankBiDirRange.cpp
+	libmaus2/rank/DNARankBiDirRange.cpp 
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -327,7 +331,7 @@ libmaus2gamma_include_HEADERS = libmaus2/gamma/GammaEncoder.hpp libmaus2/gamma/G
 	libmaus2/gamma/SimpleGammaDecoderData.hpp \
 	libmaus2/gamma/SimpleGammaDecoder.hpp \
 	libmaus2/gamma/SimpleGammaEncoderArray.hpp \
-	libmaus2/gamma/GammaPartitionEncoder.hpp
+	libmaus2/gamma/GammaPartitionEncoder.hpp \
 	libmaus2/gamma/GammaIntervalEncoder.hpp
 
 libmaus2regex_includedir=$(includedir)/libmaus2/regex/
@@ -1788,7 +1792,14 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/FragmentEnvelopeYScore.hpp \
 	libmaus2/lcs/FragmentEnvelopeFragment.hpp \
 	libmaus2/lcs/FragmentEnvelope.hpp \
-	libmaus2/lcs/EnvelopeFragment.hpp
+	libmaus2/lcs/EnvelopeFragment.hpp \
+	libmaus2/lcs/ScoreBandedAligner.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreTemplate.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16_def.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16_undef.hpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentScoreConstants256.hpp
+									
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp
