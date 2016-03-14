@@ -1370,6 +1370,140 @@ namespace libmaus2
 				}
 			}
 
+			struct Match
+			{
+				uint64_t apos;
+				uint64_t bpos;
+				uint64_t length;
+
+				Match(
+					uint64_t const rapos = 0,
+					uint64_t const rbpos = 0,
+					uint64_t const rlength = 0
+				) : apos(rapos), bpos(rbpos), length(rlength) {}
+
+				int64_t getDiagonal() const
+				{
+					return static_cast<int64_t>(apos) - static_cast<int64_t>(bpos);
+				}
+
+				uint64_t getAntiDiagonal() const
+				{
+					return apos + bpos;
+				}
+			};
+
+			static void getMatchOffsets(
+				step_type const * ta,
+				step_type const * te,
+				std::vector < Match > & R,
+				uint64_t const off_a = 0, uint64_t const off_b = 0
+			)
+			{
+				uint64_t apos = off_a, bpos = off_b;
+				uint64_t matchlen = 0;
+
+				for ( step_type const * tc = ta; tc != te; ++tc )
+				{
+					switch ( *tc )
+					{
+						case STEP_MISMATCH:
+						case STEP_INS:
+						case STEP_DEL:
+							if ( matchlen )
+							{
+								R.push_back(Match(apos-matchlen,bpos-matchlen,matchlen));
+								matchlen = 0;
+							}
+							break;
+						default:
+							break;
+					}
+					switch ( *tc )
+					{
+						case STEP_MATCH:
+							matchlen += 1;
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_MISMATCH:
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_INS:
+							bpos += 1;
+							break;
+						case STEP_DEL:
+							apos += 1;
+							break;
+						case STEP_RESET:
+							break;
+					}
+				}
+
+				if ( matchlen )
+				{
+					R.push_back(Match(apos-matchlen,bpos-matchlen,matchlen));
+					matchlen = 0;
+				}
+			}
+
+			static void getMatchOffsets(
+				step_type const * ta,
+				step_type const * te,
+				libmaus2::autoarray::AutoArray < Match > & R,
+				uint64_t & o,
+				uint64_t const off_a = 0, uint64_t const off_b = 0
+			)
+			{
+				uint64_t apos = off_a, bpos = off_b;
+				uint64_t matchlen = 0;
+
+				for ( step_type const * tc = ta; tc != te; ++tc )
+				{
+					switch ( *tc )
+					{
+						case STEP_MISMATCH:
+						case STEP_INS:
+						case STEP_DEL:
+							if ( matchlen )
+							{
+								R.push(o,Match(apos-matchlen,bpos-matchlen,matchlen));
+								matchlen = 0;
+							}
+							break;
+						default:
+							break;
+					}
+					switch ( *tc )
+					{
+						case STEP_MATCH:
+							matchlen += 1;
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_MISMATCH:
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_INS:
+							bpos += 1;
+							break;
+						case STEP_DEL:
+							apos += 1;
+							break;
+						case STEP_RESET:
+							break;
+					}
+				}
+
+				if ( matchlen )
+				{
+					R.push(o,Match(apos-matchlen,bpos-matchlen,matchlen));
+					matchlen = 0;
+				}
+			}
+
 			void
 				getKMatchOffsets(unsigned int const k, std::vector < std::pair<uint64_t,uint64_t> > & R,  uint64_t const off_a = 0, uint64_t const off_b = 0) const
 			{
