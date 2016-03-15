@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <libmaus2/gamma/GammaPartitionDecoder.hpp>
 #include <libmaus2/gamma/GammaPartitionEncoder.hpp>
 #include <libmaus2/gamma/GammaIntervalEncoder.hpp>
 
@@ -1613,11 +1614,104 @@ void testgammadifferencecoding2()
 	std::cerr << "done." << std::endl;
 }
 
+void testpartitionsingle()
+{
+	std::string const fn = "mem://tmp_part";
+	libmaus2::random::Random::setup();
+	//uint64_t const mod = 64*1024+27;
+	uint64_t const mod = 241;
+
+	for ( uint64_t z = 0; z < 16; ++z )
+	{
+		libmaus2::gamma::GammaPartitionEncoder::unique_ptr_type Genc(new libmaus2::gamma::GammaPartitionEncoder(fn));
+		uint64_t const n = 996 + libmaus2::random::Random::rand64() % 128;
+		std::cerr << n << std::endl;
+
+		std::vector<uint64_t> L;
+		std::vector< std::pair<uint64_t,uint64_t> > LV;
+		uint64_t low = 0;
+		for ( uint64_t i = 0; i < n; ++i )
+		{
+			uint64_t const w = (libmaus2::random::Random::rand64() % mod)+1;
+			L.push_back(w);
+			uint64_t const high = low+w;
+			LV.push_back(std::pair<uint64_t,uint64_t>(low,high));
+			Genc->put(std::pair<uint64_t,uint64_t>(low,high));
+			low = high;
+		}
+
+		Genc.reset();
+
+		libmaus2::gamma::GammaPartitionDecoder::unique_ptr_type Gdec(new libmaus2::gamma::GammaPartitionDecoder(std::vector<std::string>(1,fn)));
+		std::pair<uint64_t,uint64_t> P;
+		uint64_t c = 0;
+		while ( Gdec->getNext(P) )
+		{
+			assert ( P == LV[c] );
+			c += 1;
+		}
+		assert ( c == n );
+
+		Gdec.reset();
+
+		for ( uint64_t i = 0; i < n; ++i )
+		{
+			libmaus2::gamma::GammaPartitionDecoder::unique_ptr_type Tdec(
+				new libmaus2::gamma::GammaPartitionDecoder(std::vector<std::string>(1,fn),LV[i].first));
+			Gdec = UNIQUE_PTR_MOVE(Tdec);
+
+			bool const ok = Gdec->getNext(P);
+			assert ( ok );
+			bool vok = (P == LV[i]);
+			if ( ! vok )
+			{
+				libmaus2::gamma::GammaPartitionDecoder::unique_ptr_type Tdec(
+					new libmaus2::gamma::GammaPartitionDecoder(std::vector<std::string>(1,fn),LV[i].first));
+
+				std::cerr << "expect " << LV[i].first << "," << LV[i].second << " got " << P.first << "," << P.second << std::endl;
+				if ( i )
+					std::cerr << "prev " << LV[i-1].first << "," << LV[i-1].second << std::endl;
+				if ( i+1 < n )
+					std::cerr << "next " << LV[i+1].first << "," << LV[i+1].second << std::endl;
+				std::cerr << "i=" << i << std::endl;
+			}
+			assert ( P == LV[i] );
+
+			Gdec.reset();
+		}
+
+		{
+			libmaus2::gamma::GammaPartitionDecoder::unique_ptr_type Tdec(new libmaus2::gamma::GammaPartitionDecoder(std::vector<std::string>(1,fn),LV.back().second));
+			Gdec = UNIQUE_PTR_MOVE(Tdec);
+
+			bool const ok = Gdec->getNext(P);
+			assert ( !ok );
+
+			Gdec.reset();
+		}
+
+		for ( uint64_t i = 0; i < n; ++i )
+			for ( uint64_t j = LV[i].first; j < LV[i].second; ++j )
+			{
+				libmaus2::gamma::GammaPartitionDecoder::unique_ptr_type Tdec(new libmaus2::gamma::GammaPartitionDecoder(std::vector<std::string>(1,fn),j));
+				Gdec = UNIQUE_PTR_MOVE(Tdec);
+
+				bool const ok = Gdec->getNext(P);
+				assert ( ok );
+				assert ( P == LV[i] );
+
+				Gdec.reset();
+			}
+	}
+}
+
 int main()
 {
 	try
 	{
 		srand(time(0));
+
+		testpartitionsingle();
 
 		testRandom2(256*1024*1024);
 		testRandom(256*1024*1024);

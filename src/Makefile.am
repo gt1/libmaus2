@@ -332,7 +332,8 @@ libmaus2gamma_include_HEADERS = libmaus2/gamma/GammaEncoder.hpp libmaus2/gamma/G
 	libmaus2/gamma/SimpleGammaDecoder.hpp \
 	libmaus2/gamma/SimpleGammaEncoderArray.hpp \
 	libmaus2/gamma/GammaPartitionEncoder.hpp \
-	libmaus2/gamma/GammaIntervalEncoder.hpp
+	libmaus2/gamma/GammaIntervalEncoder.hpp \
+	libmaus2/gamma/GammaPartitionDecoder.hpp
 
 libmaus2regex_includedir=$(includedir)/libmaus2/regex/
 libmaus2regex_include_HEADERS = libmaus2/regex/PosixRegex.hpp
@@ -2160,6 +2161,7 @@ testbamdamage_LDFLAGS = @SNAPPYLDFLAGS@
 
 testgamma_SOURCES = test/testgamma.cpp
 testgamma_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
+testgamma_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 
 testcompact_SOURCES = test/testcompact.cpp
 testcompact_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la

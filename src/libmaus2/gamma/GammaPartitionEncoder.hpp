@@ -53,11 +53,13 @@ namespace libmaus2
 			std::vector<libmaus2::huffman::IndexEntry> Vindex;
 			uint64_t total;
 
+			// write one block to disk
 			void flushInternal()
 			{
 				// number of elements in block
 				ptrdiff_t const numintv = pc-pa;
 
+				// if block is not empty
 				if ( numintv )
 				{
 					// data bit offset
@@ -96,6 +98,8 @@ namespace libmaus2
 					Vindex.push_back(libmaus2::huffman::IndexEntry(offset,numintv,vsum));
 					// update total interval size
 					total += vsum;
+
+					pc = pa;
 				}
 			}
 
@@ -128,8 +132,9 @@ namespace libmaus2
 
 					// write index
 					uint64_t const indexpos = OSI.tellp();
-					libmaus2::huffman::HuffmanEncoderFileStd HEF(OSI);
-					libmaus2::huffman::IndexWriter::writeIndex(HEF,Vindex,indexpos,total);
+					libmaus2::huffman::HuffmanEncoderFileStd::unique_ptr_type PHEF(new libmaus2::huffman::HuffmanEncoderFileStd(OSI));
+					libmaus2::huffman::IndexWriter::writeIndex(*PHEF,Vindex,indexpos,total);
+					PHEF.reset();
 
 					OSI.flush();
 					POSI.reset();
