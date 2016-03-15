@@ -598,7 +598,7 @@ void testSparseGammaConcat()
 				A[i] = rand() % Amod;
 
 			// file name prefix
-			std::string const fnpref = "tmp_g";
+			std::string const fnpref = "mem://tmp_g";
 
 			// encode array
 			std::vector<std::string> concfn = libmaus2::gamma::SparseGammaGapBlockEncoder::encodeArray(
@@ -684,7 +684,7 @@ void testSparseGammaConcat2()
 				A[i] = rand() % Amod;
 
 			// file name prefix
-			std::string const fnpref = "tmp_g";
+			std::string const fnpref = "mem://tmp_g";
 
 			// encode array
 			std::vector<std::string> concfn = libmaus2::gamma::SparseGammaGapBlockEncoder2::encodeArray(
@@ -818,9 +818,9 @@ void testSparseGammaIndexing2()
 void testSparseGammaGapMergingSmall(uint64_t * A, uint64_t const An, uint64_t * B, uint64_t const Bn)
 {
 	// file name prefix
-	std::string const fnprefa = "tmp_a";
-	std::string const fnprefb = "tmp_b";
-	std::string const fnout = "tmp_o";
+	std::string const fnprefa = "mem://tmp_a";
+	std::string const fnprefb = "mem://tmp_b";
+	std::string const fnout = "mem://tmp_o";
 
 	// encode array
 	std::vector<std::string> concafn = libmaus2::gamma::SparseGammaGapBlockEncoder::encodeArray(&A[0], &A[An], fnprefa, 7 /* parts */, 2 /* block size */);
@@ -868,9 +868,9 @@ void testSparseGammaGapMergingSmall(uint64_t * A, uint64_t const An, uint64_t * 
 void testSparseGammaGapMergingSmall2(uint64_t * A, uint64_t const An, uint64_t * B, uint64_t const Bn)
 {
 	// file name prefix
-	std::string const fnprefa = "tmp_a";
-	std::string const fnprefb = "tmp_b";
-	std::string const fnout = "tmp_o";
+	std::string const fnprefa = "mem://tmp_a";
+	std::string const fnprefb = "mem://tmp_b";
+	std::string const fnout = "mem://tmp_o";
 
 	// encode array
 	std::vector<std::string> concafn = libmaus2::gamma::SparseGammaGapBlockEncoder2::encodeArray(&A[0], &A[An], fnprefa, 7 /* parts */, 2 /* block size */);
