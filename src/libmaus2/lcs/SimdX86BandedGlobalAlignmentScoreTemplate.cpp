@@ -56,7 +56,7 @@ static std::string formatRegisterChar(LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const r
 }
 #endif
 
-libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME() : diagmem(0), diagmemsize(0), negdiagmem(0), negdiagmemsize(0), difdiagmem(0), difdiagmemsize(0), 
+libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME() : diagmem(0), diagmemsize(0), negdiagmem(0), negdiagmemsize(0), difdiagmem(0), difdiagmemsize(0),
 	textmem(0), textmemsize(0), querymem(0), querymemsize(0)
 {
 
@@ -151,7 +151,7 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::allocateMemory(
 			memsize = nsize;
 		}
 		#endif
-	}	
+	}
 }
 
 std::pair<uint64_t,uint64_t> libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a, size_t const l_a, uint8_t const * b, size_t const l_b, size_t const d)
@@ -266,7 +266,7 @@ std::pair<uint64_t,uint64_t> libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME:
 	// LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_all_one = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const *>(&LIBMAUS2_LCS_SIMD_BANDED_ALL_ONE[0]));
 
 	LIBMAUS2_LCS_SIMD_BANDED_INIT
-	
+
 
 	for ( int64_t di = 1; di <= static_cast<int64_t>(compdiag); ++di )
 	{
@@ -295,7 +295,7 @@ std::pair<uint64_t,uint64_t> libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME:
 				 * score
 				 **/
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE pos_prev_0 = all0;
-				
+
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_pos_diag_1 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(pos_diag_1++);
 				LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE v_pos_diag_0 = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(pos_diag_0++);
 
@@ -343,7 +343,7 @@ std::pair<uint64_t,uint64_t> libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME:
 
 				LIBMAUS2_LCS_SIMD_BANDED_STORE(edit_diag_n++,v_edit_min);
 
-				LIBMAUS2_LCS_SIMD_BANDED_STORE(dif_diag_n++,LIBMAUS2_LCS_SIMD_BANDED_SUBS(LIBMAUS2_LCS_SIMD_BANDED_SUBS(v_max,all1),LIBMAUS2_LCS_SIMD_BANDED_AND(v_edit_min,all_signed_max)));				
+				LIBMAUS2_LCS_SIMD_BANDED_STORE(dif_diag_n++,LIBMAUS2_LCS_SIMD_BANDED_SUBS(LIBMAUS2_LCS_SIMD_BANDED_SUBS(v_max,all1),LIBMAUS2_LCS_SIMD_BANDED_AND(v_edit_min,all_signed_max)));
 			}
 			// more than one word necessary
 			else if ( words_necessary > 1 )
@@ -383,7 +383,7 @@ std::pair<uint64_t,uint64_t> libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME:
 					LIBMAUS2_LCS_SIMD_BANDED_STORE(pos_diag_n++,v_max);
 
 					pos_prev = LIBMAUS2_LCS_SIMD_BANDED_SELECTLAST(v_pos_diag_0);
-					
+
 					/**
 					 * edit distance
 					 **/
@@ -540,7 +540,7 @@ std::pair<uint64_t,uint64_t> libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME:
 
 					// store
 					LIBMAUS2_LCS_SIMD_BANDED_STORE(edit_diag_n++,v_edit_min);
-					
+
 					LIBMAUS2_LCS_SIMD_BANDED_STORE(dif_diag_n++,LIBMAUS2_LCS_SIMD_BANDED_SUBS(LIBMAUS2_LCS_SIMD_BANDED_SUBS(v_max,all1),LIBMAUS2_LCS_SIMD_BANDED_AND(v_edit_min,all_signed_max)));
 
 					v_edit_diag_0_p = v_edit_diag_0_n;
@@ -622,9 +622,9 @@ std::pair<uint64_t,uint64_t> libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME:
 			std::pair<int64_t,int64_t> const P = squareToDiag(std::pair<int64_t,int64_t>(i,j),d);
 
 			//std::cerr << i << "," << j << " -> " << P.first << "," << P.second << std::endl;
-			
+
 			bool const antidiagvalid = (P.first >= 0) && (P.first <= static_cast<int64_t>(compdiag));
-			bool const diagvalid = 
+			bool const diagvalid =
 				(P.second >= 0) &&
 				(
 					((P.first & 1)==0)
@@ -638,7 +638,7 @@ std::pair<uint64_t,uint64_t> libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME:
 			if ( valid )
 				std::cerr << std::setw(4) << static_cast<int>(diagmem [ words_necessary * elements_per_word * (P.first+1) + P.second ]) << std::setw(0);
 			else
-				std::cerr << std::setw(4) << '*' << std::setw(0);				
+				std::cerr << std::setw(4) << '*' << std::setw(0);
 		}
 		std::cerr << std::endl;
 	}
@@ -653,9 +653,9 @@ std::pair<uint64_t,uint64_t> libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME:
 			std::pair<int64_t,int64_t> const P = squareToDiag(std::pair<int64_t,int64_t>(i,j),d);
 
 			//std::cerr << i << "," << j << " -> " << P.first << "," << P.second << std::endl;
-			
+
 			bool const antidiagvalid = (P.first >= 0) && (P.first <= static_cast<int64_t>(compdiag));
-			bool const diagvalid = 
+			bool const diagvalid =
 				(P.second >= 0) &&
 				(
 					((P.first & 1)==0)
@@ -669,7 +669,7 @@ std::pair<uint64_t,uint64_t> libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME:
 			if ( valid )
 				std::cerr << std::setw(4) << static_cast<int>(negdiagmem [ words_necessary * elements_per_word * (P.first+1) + P.second ]) << std::setw(0);
 			else
-				std::cerr << std::setw(4) << '*' << std::setw(0);				
+				std::cerr << std::setw(4) << '*' << std::setw(0);
 		}
 		std::cerr << std::endl;
 	}
@@ -684,9 +684,9 @@ std::pair<uint64_t,uint64_t> libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME:
 			std::pair<int64_t,int64_t> const P = squareToDiag(std::pair<int64_t,int64_t>(i,j),d);
 
 			//std::cerr << i << "," << j << " -> " << P.first << "," << P.second << std::endl;
-			
+
 			bool const antidiagvalid = (P.first >= 0) && (P.first <= static_cast<int64_t>(compdiag));
-			bool const diagvalid = 
+			bool const diagvalid =
 				(P.second >= 0) &&
 				(
 					((P.first & 1)==0)
@@ -698,11 +698,11 @@ std::pair<uint64_t,uint64_t> libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME:
 			bool const valid = antidiagvalid && diagvalid;
 
 			if ( valid )
-				std::cerr << std::setw(7) << 
-					static_cast<LIBMAUS2_LCS_SIMD_BANDED_SIGNED_ELEMENT_TYPE>(difdiagmem [ words_necessary * elements_per_word * (P.first+1) + P.second ]) 
+				std::cerr << std::setw(7) <<
+					static_cast<LIBMAUS2_LCS_SIMD_BANDED_SIGNED_ELEMENT_TYPE>(difdiagmem [ words_necessary * elements_per_word * (P.first+1) + P.second ])
 				<< std::setw(0);
 			else
-				std::cerr << std::setw(7) << '*' << std::setw(0);				
+				std::cerr << std::setw(7) << '*' << std::setw(0);
 		}
 		std::cerr << std::endl;
 	}
@@ -717,7 +717,7 @@ std::pair<uint64_t,uint64_t> libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME:
 		LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE w = LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(max_score_it++);
 		for ( uint64_t i = 1; i < words_necessary; ++i )
 			w = LIBMAUS2_LCS_SIMD_BANDED_MAXS(w,LIBMAUS2_LCS_SIMD_BANDED_LOAD_ALIGNED(max_score_it++));
-		
+
 		// map top to bottom (reduce to low 128 bits)
 		w = LIBMAUS2_LCS_SIMD_BANDED_MAXS(w,_mm256_permute2f128_si256(w,w,0x1));
 		w = LIBMAUS2_LCS_SIMD_BANDED_MAXS(w,_mm256_shuffle_epi32(w,0xe));
@@ -726,14 +726,14 @@ std::pair<uint64_t,uint64_t> libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME:
 
 		LIBMAUS2_LCS_SIMD_BANDED_SIGNED_ELEMENT_TYPE sp[sizeof(LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE)/sizeof(LIBMAUS2_LCS_SIMD_BANDED_SIGNED_ELEMENT_TYPE)] __attribute__((aligned(sizeof(LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE))));
 		LIBMAUS2_LCS_SIMD_BANDED_STORE(reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE *>(&sp[0]),w);
-				
+
 		if ( sp[0] > maxscore )
 		{
 			maxscore = sp[0];
 			maxdi = di;
-		}		
+		}
 	}
-	
+
 	uint64_t maxoff = 0;
 	for ( uint64_t i = 0; i < words_necessary * elements_per_word; ++i )
 		if ( difdiagmem [ words_necessary * elements_per_word * (maxdi+1) + i ] == maxscore )
@@ -747,11 +747,11 @@ std::pair<uint64_t,uint64_t> libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME:
 
 	std::pair<int64_t,int64_t> curX = diagToSquare(cur,d);
 	std::pair<int64_t,int64_t> curY = squareToDiag(curX,d);
-	
+
 	assert ( curY.first == cur.first );
 	assert ( curY.second == cur.second );
 	assert ( curY == cur );
-	
+
 	// std::pair<int64_t,int64_t> cur = squareToDiag(std::pair<int64_t,int64_t>(l_b,l_a),d);
 	// std::cerr << "using " << cur.first << "," << cur.second << std::endl;
 
@@ -777,7 +777,7 @@ std::pair<uint64_t,uint64_t> libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME:
 
 		// score for full alignment
 		//int64_t const score = *p;
-		
+
 		// check whether we have sufficient space
 		if ( libmaus2::lcs::AlignmentTraceContainer::capacity() < 2*std::min(l_a,l_b) )
 		{
@@ -849,8 +849,8 @@ std::pair<uint64_t,uint64_t> libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME:
 			}
 		}
 	}
-	
-	return 
+
+	return
 		std::pair<uint64_t,uint64_t>(curX.second, curX.first);
 
 }
