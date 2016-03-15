@@ -50,7 +50,7 @@ namespace libmaus2
 
 			LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE * difdiagmem;
 			size_t difdiagmemsize;
-			
+
 			LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE * textmem;
 			size_t textmemsize;
 			LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE * querymem;
@@ -81,7 +81,7 @@ namespace libmaus2
 				std::pair<int64_t,int64_t> P;
 
 				int64_t const di = D.first;
-				
+
 				P.second = D.second + (di / 2) - d;
 				P.first = D.first - P.second;
 
