@@ -15,6 +15,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <libmaus2/lcs/NNP.hpp>
+
 #include <iostream>
 
 #include <libmaus2/dazzler/db/DatabaseFile.hpp>
@@ -32,6 +34,8 @@
 #include <libmaus2/fastx/CharBuffer.hpp>
 #include <libmaus2/lcs/AlignerFactory.hpp>
 #include <libmaus2/lcs/NP.hpp>
+
+#include <libmaus2/random/DNABaseNoiseSpiker.hpp>
 
 struct AlignInfo
 {
@@ -53,13 +57,170 @@ int main(int argc, char * argv[])
 	try
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
-		
+
+		{
+		libmaus2::lcs::NP al;
+
+		char const * a = "AAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGAT";
+		char const * b = "AAGTAAGTAAGTAAGTAAGTAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGAT";
+
+		al.align(
+			reinterpret_cast<uint8_t const *>(a),
+			strlen(a),
+			reinterpret_cast<uint8_t const *>(b),
+			strlen(b)
+		);
+
+		std::cerr << al.getTraceContainer().traceToString() << std::endl;
+
+		libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
+			a,strlen(a),
+			b,strlen(b),
+			80,
+			al.getTraceContainer().ta,
+			al.getTraceContainer().te
+		);
+
+		//return 0;
+		}
+
+
+		{
+			libmaus2::lcs::NNP nnp;
+
+			libmaus2::random::Random::setup();
+
+			//char const * a = "AAAAAAAA";
+			//char const * b = "AAAAAAAA";
+			//char const * a = "AAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGAT";
+			//char const * b = "AAGTAAGTAAGTAAGTAAGTAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGAT";
+
+			std::string randstr(16*1024,' ');
+			for ( uint64_t i = 0; i < randstr.size(); ++i )
+				switch ( rand() % 4 )
+				{
+					case 0: randstr[i] = 'A'; break;
+					case 1: randstr[i] = 'C'; break;
+					case 2: randstr[i] = 'G'; break;
+					case 3: randstr[i] = 'T'; break;
+				}
+
+			std::string randread = libmaus2::random::DNABaseNoiseSpiker::modify(
+				randstr.substr(0,randstr.size()/2),
+				0.2,0.3,0.5,0.0,0.10,0.02
+			);
+
+			#if 0
+			nnp.align(
+				a,a+strlen(a),
+				b,b+strlen(b)
+			);
+			#endif
+
+			libmaus2::lcs::NNPTraceContainer tracecontainer;
+
+			nnp.align(
+				randstr.begin(),
+				randstr.end(),
+				randread.begin(),
+				randread.end(),
+				tracecontainer
+			);
+
+			libmaus2::lcs::AlignmentTraceContainer ATC;
+			tracecontainer.computeTrace(ATC);
+			std::cerr << ATC.traceToString() << std::endl;
+
+			std::pair<uint64_t,uint64_t> const P = ATC.getStringLengthUsed();
+
+			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
+				randstr.begin(),
+				P.first,
+				randread.begin(),
+				P.second,
+				//a,strlen(a),
+				//b,strlen(b),
+				80,
+				ATC.ta,
+				ATC.te
+			);
+
+			std::cerr << P.first << std::endl;
+
+			// return 0;
+		}
+
+		{
+			libmaus2::lcs::NNP nnp;
+
+			libmaus2::random::Random::setup();
+
+			//char const * a = "AAAAAAAA";
+			//char const * b = "AAAAAAAA";
+			//char const * a = "AAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGAT";
+			//char const * b = "AAGTAAGTAAGTAAGTAAGTAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGAT";
+
+			std::string randstr(8*1024,' ');
+			for ( uint64_t i = 0; i < randstr.size(); ++i )
+				switch ( rand() % 4 )
+				{
+					case 0: randstr[i] = 'A'; break;
+					case 1: randstr[i] = 'C'; break;
+					case 2: randstr[i] = 'G'; break;
+					case 3: randstr[i] = 'T'; break;
+				}
+
+			std::string randread = libmaus2::random::DNABaseNoiseSpiker::modify(
+				randstr,
+				0.2,0.3,0.5,0.0,0.10,0.02
+			);
+
+			#if 0
+			nnp.align(
+				a,a+strlen(a),
+				b,b+strlen(b)
+			);
+			#endif
+
+			libmaus2::lcs::NNPTraceContainer tracecontainer;
+			nnp.align<std::string::const_iterator,false>(
+				randstr.begin(),
+				randstr.end(),
+				randread.begin(),
+				randread.end(),
+				tracecontainer
+			);
+
+			libmaus2::lcs::AlignmentTraceContainer ATC;
+			tracecontainer.computeTrace<false>(ATC);
+			std::cerr << ATC.traceToString() << std::endl;
+
+			std::pair<uint64_t,uint64_t> const P = ATC.getStringLengthUsed();
+
+			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
+				randstr.begin(),
+				P.first,
+				randread.begin(),
+				P.second,
+				//a,strlen(a),
+				//b,strlen(b),
+				80,
+				ATC.ta,
+				ATC.te
+			);
+
+			std::cerr << P.first << std::endl;
+
+			return 0;
+		}
+
+
 		{
 		libmaus2::lcs::SimdX86BandedGlobalAlignmentScoreY256_16 scoreal;
 
 		char const * a = "AAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGAT";
 		char const * b = "AAGTAAGTAAGTAAGTAAGTAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGAT";
-		
+
 		std::pair<int64_t,int64_t> const L = scoreal.align(
 			reinterpret_cast<uint8_t const *>(a),
 			strlen(a),
@@ -67,7 +228,7 @@ int main(int argc, char * argv[])
 			strlen(b),
 			2
 		);
-		
+
 		std::cerr << scoreal.getTraceContainer().traceToString() << std::endl;
 
 		libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
@@ -77,7 +238,7 @@ int main(int argc, char * argv[])
 			scoreal.getTraceContainer().ta,
 			scoreal.getTraceContainer().te
 		);
-		
+
 		return 0;
 		}
 
