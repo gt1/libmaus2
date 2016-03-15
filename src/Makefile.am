@@ -1787,6 +1787,7 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/BandedAligner.hpp \
 	libmaus2/lcs/BandedAlignerFactory.hpp \
 	libmaus2/lcs/NP.hpp \
+	libmaus2/lcs/NNP.hpp \
 	libmaus2/lcs/DalignerNP.hpp \
 	libmaus2/lcs/DalignerLocalAlignment.hpp \
 	libmaus2/lcs/FragmentEnvelopeYScore.hpp \
