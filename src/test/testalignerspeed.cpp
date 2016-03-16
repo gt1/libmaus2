@@ -128,13 +128,13 @@ int main(int argc, char * argv[])
 				-2
 			);
 
-			std::pair<uint64_t,uint64_t> const SL = tracecontainer.getStringLengthUsed();
 
 			libmaus2::lcs::AlignmentTraceContainer ATC;
 			tracecontainer.computeTrace(ATC);
 			std::cerr << ATC.traceToString() << std::endl;
 
 			#if 0
+			std::pair<uint64_t,uint64_t> const SL = tracecontainer.getStringLengthUsed();
 			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
 				a.end()-SL.first,
 				SL.first,
