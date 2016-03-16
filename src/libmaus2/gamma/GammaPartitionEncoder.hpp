@@ -39,7 +39,7 @@ namespace libmaus2
 
 			libmaus2::aio::OutputStreamInstance::unique_ptr_type POSI;
 			std::ostream & OSI;
-			typename stream_type::unique_ptr_type PSGO;
+			stream_type::unique_ptr_type PSGO;
 			stream_type & SGO;
 
 			libmaus2::gamma::GammaEncoder<stream_type>::unique_ptr_type PG;
