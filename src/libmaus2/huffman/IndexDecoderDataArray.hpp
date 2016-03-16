@@ -430,6 +430,14 @@ namespace libmaus2
 			::libmaus2::autoarray::AutoArray<uint64_t> kvec;
 			::libmaus2::autoarray::AutoArray<uint64_t> vvec;
 
+			uint64_t getVSum() const
+			{
+				if ( vvec.size() )
+					return vvec[vvec.size()-1];
+				else
+					return 0;
+			}
+
 			FileBlockOffset findKBlock(uint64_t const offset) const
 			{
 				uint64_t const * p = std::lower_bound(kvec.begin(),kvec.end(),offset);
