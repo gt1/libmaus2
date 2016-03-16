@@ -47,13 +47,15 @@ namespace libmaus2
 		{
 			libmaus2::autoarray::AutoArray<NNPTraceElement> Atrace;
 			int64_t traceid;
+			uint64_t otrace;
 
-			NNPTraceContainer() : traceid(-1)
+			NNPTraceContainer() : traceid(-1), otrace(0)
 			{}
 
 			void reset()
 			{
 				traceid = -1;
+				otrace = 0;
 			}
 
 			template<bool forward = true>
@@ -314,7 +316,7 @@ namespace libmaus2
 				ptrdiff_t const alen = ae-ab; // *S*
 				ptrdiff_t const blen = be-bb; // *S*
 				ptrdiff_t const mlen = std::min(alen,blen);
-				uint64_t otrace = 0;
+				uint64_t otrace = tracecontainer.otrace;
 
 				allocate(0,0,Acontrol,control);
 
@@ -677,6 +679,8 @@ namespace libmaus2
 					std::cerr << "traceid=" << curtraceid << " op " << Atrace[curtraceid].step << " slide " << Atrace[curtraceid].slide << std::endl;
 				}
 				#endif
+
+				tracecontainer.otrace = otrace;
 			}
 
 		};
