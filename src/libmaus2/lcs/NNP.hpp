@@ -192,10 +192,10 @@ namespace libmaus2
 
 			static int64_t getDefaultMaxDiag()
 			{
-				return std::numeric_limits<int64_t>::min();
+				return std::numeric_limits<int64_t>::max();
 			}
 
-			template<typename iterator, bool forward = true>
+			template<typename iterator, bool forward = true, bool self = false>
 			void align(
 				iterator ab,
 				iterator ae,
@@ -355,7 +355,6 @@ namespace libmaus2
 						// maximum offset on this diagonal
 						int64_t const maxoffset = std::min(alen-apre,blen-bpre);
 
-						#if 0
 						if ( self )
 						{
 							iterator acheck = forward ? (ab + apre) : (ae-apre);
@@ -367,7 +366,6 @@ namespace libmaus2
 								assert ( acheck != bcheck );
 							}
 						}
-						#endif
 
 						/*
 						 * find offset we will try to slide from
@@ -619,39 +617,45 @@ namespace libmaus2
 				iterator ab, iterator ae, uint64_t seedposa, iterator bb, iterator be, uint64_t seedposb,
 				NNPTraceContainer & tracecontainer,
 				// set valid diagonal band to avoid self matches when a and b are the same string
-				bool const self = false
+				bool const self = false,
+				int64_t minfdiag = getDefaultMinDiag(),
+				int64_t maxfdiag = getDefaultMaxDiag()
 			)
 			{
 				tracecontainer.reset();
 
 				// run backward alignment from seedpos
+				if ( self )
+				{
+					if ( seedposa >= seedposb )
+						minfdiag = std::max(static_cast<int64_t>(seedposb) - static_cast<int64_t>(seedposa) + 1,minfdiag);
+					if ( seedposb >= seedposa )
+						maxfdiag = std::min(static_cast<int64_t>(seedposb) - static_cast<int64_t>(seedposa) - 1,maxfdiag);
+
+					std::cerr << "minfdiag=" << minfdiag << " maxfdiag=" << maxfdiag << std::endl;
+				}
+
 				int64_t minrdiag = getDefaultMinDiag();
 				int64_t maxrdiag = getDefaultMaxDiag();
 
-				if ( self )
-				{
-					if ( seedposa <= seedposb )
-						minrdiag = seedposa - seedposb + 1;
-					if ( seedposb <= seedposa )
-						maxrdiag = seedposa - seedposb - 1;
-				}
+				if ( minfdiag != getDefaultMinDiag() )
+					maxrdiag = -minfdiag;
+				if ( maxfdiag != getDefaultMaxDiag() )
+					minrdiag = -maxfdiag;
 
-				align<iterator,false>(ab,ab+seedposa,bb,bb+seedposb,tracecontainer,minrdiag,maxrdiag);
+				if ( self )
+					align<iterator,false,true>(ab,ab+seedposa,bb,bb+seedposb,tracecontainer,minrdiag,maxrdiag);
+				else
+					align<iterator,false,false>(ab,ab+seedposa,bb,bb+seedposb,tracecontainer,minrdiag,maxrdiag);
+
 				int64_t const revroot = tracecontainer.traceid;
 				std::pair<uint64_t,uint64_t> const SLF = tracecontainer.getStringLengthUsed();
 
 				// run forward alignment from seedpos
-				int64_t minfdiag = getDefaultMinDiag();
-				int64_t maxfdiag = getDefaultMaxDiag();
-
 				if ( self )
-				{
-					if ( seedposa >= seedposb )
-						minfdiag = seedposb - seedposa + 1;
-					if ( seedposb >= seedposa )
-						maxfdiag = seedposb - seedposa - 1;
-				}
-				align<iterator,true>(ab+seedposa,ae,bb+seedposb,be,tracecontainer,minfdiag,maxfdiag);
+					align<iterator,true,true>(ab+seedposa,ae,bb+seedposb,be,tracecontainer,minfdiag,maxfdiag);
+				else
+					align<iterator,true,false>(ab+seedposa,ae,bb+seedposb,be,tracecontainer,minfdiag,maxfdiag);
 				int64_t const forroot = tracecontainer.traceid;
 				std::pair<uint64_t,uint64_t> const SLR = tracecontainer.getStringLengthUsed();
 
