@@ -195,8 +195,9 @@ namespace libmaus2
 				return std::numeric_limits<int64_t>::max();
 			}
 
-			template<typename iterator, bool forward = true, bool self = false>
-			void align(
+
+			template<typename iterator, bool forward, bool self>
+			void alignTemplate(
 				iterator ab,
 				iterator ae,
 				iterator bb,
@@ -613,6 +614,32 @@ namespace libmaus2
 			}
 
 			template<typename iterator>
+			void align(
+				iterator ab,
+				iterator ae,
+				iterator bb,
+				iterator be,
+				NNPTraceContainer & tracecontainer,
+				int64_t const minband = getDefaultMinDiag(),
+				int64_t const maxband = getDefaultMaxDiag(),
+				bool const forward = true,
+				bool const self = false
+			)
+			{
+				if ( forward )
+					if ( self )
+						alignTemplate<iterator,true,true>(ab,ae,bb,be,tracecontainer,minband,maxband);
+					else
+						alignTemplate<iterator,true,false>(ab,ae,bb,be,tracecontainer,minband,maxband);
+				else
+					if ( self )
+						alignTemplate<iterator,false,true>(ab,ae,bb,be,tracecontainer,minband,maxband);
+					else
+						alignTemplate<iterator,false,false>(ab,ae,bb,be,tracecontainer,minband,maxband);
+			}
+
+
+			template<typename iterator>
 			NNPAlignResult align(
 				iterator ab, iterator ae, uint64_t seedposa, iterator bb, iterator be, uint64_t seedposb,
 				NNPTraceContainer & tracecontainer,
@@ -643,19 +670,13 @@ namespace libmaus2
 				if ( maxfdiag != getDefaultMaxDiag() )
 					minrdiag = -maxfdiag;
 
-				if ( self )
-					align<iterator,false,true>(ab,ab+seedposa,bb,bb+seedposb,tracecontainer,minrdiag,maxrdiag);
-				else
-					align<iterator,false,false>(ab,ab+seedposa,bb,bb+seedposb,tracecontainer,minrdiag,maxrdiag);
+				align(ab,ab+seedposa,bb,bb+seedposb,tracecontainer,minrdiag,maxrdiag,false,self);
 
 				int64_t const revroot = tracecontainer.traceid;
 				std::pair<uint64_t,uint64_t> const SLF = tracecontainer.getStringLengthUsed();
 
 				// run forward alignment from seedpos
-				if ( self )
-					align<iterator,true,true>(ab+seedposa,ae,bb+seedposb,be,tracecontainer,minfdiag,maxfdiag);
-				else
-					align<iterator,true,false>(ab+seedposa,ae,bb+seedposb,be,tracecontainer,minfdiag,maxfdiag);
+				align(ab+seedposa,ae,bb+seedposb,be,tracecontainer,minfdiag,maxfdiag,true,self);
 				int64_t const forroot = tracecontainer.traceid;
 				std::pair<uint64_t,uint64_t> const SLR = tracecontainer.getStringLengthUsed();
 
