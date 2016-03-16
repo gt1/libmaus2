@@ -1,3 +1,9 @@
+libmaus2 (2.0.143-1) unstable; urgency=medium
+
+  * fix compilation on non x86 platforms and for older compilers 
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 16 Mar 2016 20:59:39 +0100
+
 libmaus2 (2.0.142-1) unstable; urgency=medium
 
   * add gamma code based interval decoder and tests
