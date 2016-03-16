@@ -450,17 +450,26 @@ namespace libmaus2
 
 				libmaus2::lru::SparseLRUFileBunch reorderfiles;
 
+				uint32_t const flagfilter;
+
+				static uint64_t getDefaultEntriesPerTmpFile()
+				{
+					return 16*1024;
+				}
+
 				OutputQueue(
 					writer_type & rwr,
 					libmaus2::util::GrowingFreeList<libmaus2::bambam::BamAlignment> & rBAFL,
 					std::string const & rtmpfileprefix,
 					std::vector<std::string> const & filtertagvec,
-					uint64_t const rentriespertmpfile = 16*1024
+					uint64_t const rentriespertmpfile = getDefaultEntriesPerTmpFile(),
+					uint32_t const rflagfilter = 0
 				)
 				: wr(rwr), BAFL(rBAFL), order(), OQ(), nextout(0),
 				  entriespertmpfile(rentriespertmpfile),
 				  OL(entriespertmpfile,false), olsizefill(0), tmpfileprefix(rtmpfileprefix),
-				  reorderfiles(tmpfileprefix,16)
+				  reorderfiles(tmpfileprefix,16),
+				  flagfilter(rflagfilter)
 				{
 					tagfilter.set('Z','R');
 					for ( uint64_t i = 0; i < filtertagvec.size(); ++i )
@@ -591,28 +600,31 @@ namespace libmaus2
 				// add alignment
 				void push(libmaus2::bambam::BamAlignment * algn)
 				{
-					// tmp file it is assigned to
-					uint64_t tmpfileindex;
-
-					if ( tmpFileFill.size() && tmpFileFill.find(tmpfileindex=(algn->getRank() / entriespertmpfile)) != tmpFileFill.end() )
+					if ( !(algn->getFlags() & flagfilter) )
 					{
-						addTmpFileEntry(algn,tmpfileindex);
-					}
-					else
-					{
-						int64_t const rank = algn->getRank();
-						assert ( rank >= 0 );
-						OQ.push(std::pair<uint64_t,libmaus2::bambam::BamAlignment *>(rank,algn));
-						flushInMemQueueInternal();
+						// tmp file it is assigned to
+						uint64_t tmpfileindex;
 
-						if ( OQ.size() >= 32*1024 )
+						if ( tmpFileFill.size() && tmpFileFill.find(tmpfileindex=(algn->getRank() / entriespertmpfile)) != tmpFileFill.end() )
 						{
-							outputListToTmpFiles();
+							addTmpFileEntry(algn,tmpfileindex);
+						}
+						else
+						{
+							int64_t const rank = algn->getRank();
+							assert ( rank >= 0 );
+							OQ.push(std::pair<uint64_t,libmaus2::bambam::BamAlignment *>(rank,algn));
+							flushInMemQueueInternal();
 
-							while ( OQ.size() )
+							if ( OQ.size() >= 32*1024 )
 							{
-								addTmpFileEntry(OQ.top().second);
-								OQ.pop();
+								outputListToTmpFiles();
+
+								while ( OQ.size() )
+								{
+									addTmpFileEntry(OQ.top().second);
+									OQ.pop();
+								}
 							}
 						}
 					}
