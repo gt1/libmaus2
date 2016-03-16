@@ -7,7 +7,10 @@ EXTRA_DIST = \
 	libmaus2/digest/sha512_avx.asm \
 	libmaus2/digest/sha256_avx2_rorx2.asm \
 	libmaus2/digest/sha256_avx2_rorx8.asm \
-	libmaus2/digest/sha512_avx2_rorx.asm
+	libmaus2/digest/sha512_avx2_rorx.asm \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreTemplate.cpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentTemplate.cpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentTemplate.cpp
 
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
@@ -28,6 +31,7 @@ libmaus2_simd_align_256_la_SOURCES = \
 	libmaus2/lcs/SimdX86GlobalAlignmentConstants256.cpp \
 	libmaus2/lcs/SimdX86BandedGlobalAlignmentY256_8.cpp \
 	libmaus2/lcs/SimdX86BandedGlobalAlignmentY256_16.cpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16.cpp \
 	libmaus2/lcs/SimdX86GlobalAlignmentY256_8.cpp \
 	libmaus2/lcs/SimdX86GlobalAlignmentY256_16.cpp
 libmaus2_simd_align_256_la_CXXFLAGS = @MSSE2@ @MSSSE3@ @MSSE41@ @MAVX2@
@@ -237,7 +241,11 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/digest/SHA3_256.cpp \
 	libmaus2/fastx/DNAIndexMetaDataBigBand.cpp \
 	libmaus2/fastx/DNAIndexMetaDataBigBandBiDir.cpp \
-	libmaus2/lcs/EnvelopeFragment.cpp
+	libmaus2/lcs/EnvelopeFragment.cpp \
+	libmaus2/rank/DNARankBiDirRange.cpp \
+	libmaus2/lcs/NNPTraceElement.cpp \
+	libmaus2/lcs/NNPTraceContainer.cpp \
+	libmaus2/lcs/NNPAlignResult.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -325,7 +333,11 @@ libmaus2gamma_include_HEADERS = libmaus2/gamma/GammaEncoder.hpp libmaus2/gamma/G
 	libmaus2/gamma/GammaDecoderBase.hpp \
 	libmaus2/gamma/SimpleGammaDecoderData.hpp \
 	libmaus2/gamma/SimpleGammaDecoder.hpp \
-	libmaus2/gamma/SimpleGammaEncoderArray.hpp
+	libmaus2/gamma/SimpleGammaEncoderArray.hpp \
+	libmaus2/gamma/GammaPartitionEncoder.hpp \
+	libmaus2/gamma/GammaIntervalEncoder.hpp \
+	libmaus2/gamma/GammaPartitionDecoder.hpp \
+	libmaus2/gamma/GammaIntervalDecoder.hpp
 
 libmaus2regex_includedir=$(includedir)/libmaus2/regex/
 libmaus2regex_include_HEADERS = libmaus2/regex/PosixRegex.hpp
@@ -935,7 +947,8 @@ libmaus2rank_include_HEADERS=\
 	libmaus2/rank/BSwapBase.hpp \
 	libmaus2/rank/DNARank.hpp \
 	libmaus2/rank/DNARankKmerCache.hpp \
-	libmaus2/rank/DNARankBiDir.hpp
+	libmaus2/rank/DNARankBiDir.hpp \
+	libmaus2/rank/DNARankBiDirRange.hpp
 
 libmaus2geometry_includedir=$(includedir)/libmaus2/geometry
 libmaus2geometry_include_HEADERS=\
@@ -1156,7 +1169,9 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/ArgParser.hpp \
 	libmaus2/util/PrefixSums.hpp \
 	libmaus2/util/NumberToString.hpp \
-	libmaus2/util/SplayTree.hpp
+	libmaus2/util/SplayTree.hpp \
+	libmaus2/util/Queue.hpp \
+	libmaus2/util/ContainerElementFreeList.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
@@ -1777,12 +1792,22 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/BandedAligner.hpp \
 	libmaus2/lcs/BandedAlignerFactory.hpp \
 	libmaus2/lcs/NP.hpp \
+	libmaus2/lcs/NNP.hpp \
+	libmaus2/lcs/NNPTraceElement.hpp \
+	libmaus2/lcs/NNPTraceContainer.hpp \
+	libmaus2/lcs/NNPAlignResult.hpp \
 	libmaus2/lcs/DalignerNP.hpp \
 	libmaus2/lcs/DalignerLocalAlignment.hpp \
 	libmaus2/lcs/FragmentEnvelopeYScore.hpp \
 	libmaus2/lcs/FragmentEnvelopeFragment.hpp \
 	libmaus2/lcs/FragmentEnvelope.hpp \
-	libmaus2/lcs/EnvelopeFragment.hpp
+	libmaus2/lcs/EnvelopeFragment.hpp \
+	libmaus2/lcs/ScoreBandedAligner.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreTemplate.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16_def.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16_undef.hpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentScoreConstants256.hpp
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp
@@ -2142,6 +2167,7 @@ testbamdamage_LDFLAGS = @SNAPPYLDFLAGS@
 
 testgamma_SOURCES = test/testgamma.cpp
 testgamma_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
+testgamma_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 
 testcompact_SOURCES = test/testcompact.cpp
 testcompact_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la

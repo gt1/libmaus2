@@ -27,47 +27,14 @@
 #include <libmaus2/math/bitsPerNum.hpp>
 #include <libmaus2/huffman/PairAddSecond.hpp>
 #include <libmaus2/huffman/IndexEntry.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 
 namespace libmaus2
 {
 	namespace huffman
 	{
-		template<typename _bit_writer_type>
-		struct RLEncoderBaseTemplate
+		struct IndexWriter
 		{
-			typedef _bit_writer_type bit_writer_type;
-
-			bit_writer_type & writer;
-			uint64_t const numsyms;
-
-			typedef std::pair<uint64_t,uint64_t> rl_pair;
-			::libmaus2::autoarray::AutoArray < rl_pair > rlbuffer;
-
-			rl_pair * const pa;
-			rl_pair *       pc;
-			rl_pair * const pe;
-
-			uint64_t cursym;
-			uint64_t curcnt;
-
-			::libmaus2::util::Histogram globalhist;
-			std::vector < IndexEntry > index;
-
-			bool indexwritten;
-
-			RLEncoderBaseTemplate(bit_writer_type & rwriter, uint64_t const rnumsyms, uint64_t const bufsize = 4ull*1024ull*1024ull)
-			: writer(rwriter), numsyms(rnumsyms), rlbuffer(bufsize), pa(rlbuffer.begin()), pc(pa), pe(rlbuffer.end()), cursym(0), curcnt(0),
-			  indexwritten(false)
-			{
-				// std::cerr << "Writing RL file of length " << numsyms << std::endl;
-				writer.writeElias2(numsyms);
-			}
-			~RLEncoderBaseTemplate()
-			{
-				flush();
-			}
-
-
 			template<typename writer_type>
 			static void writeIndex(
 				writer_type & writer,
@@ -89,9 +56,9 @@ namespace libmaus2
 				// write number of bits per file position
 				writer.writeElias2(posbits);
 
-				// write vbits
+				// write kbits
 				writer.writeElias2(kbits);
-				// write vacc
+				// write kacc
 				writer.writeElias2(kacc);
 
 				// write vbits
@@ -125,6 +92,43 @@ namespace libmaus2
 					writer.writeBit( (indexpos & (1ull<<(63-i))) != 0 );
 				writer.flushBitStream();
 			}
+		};
+
+		template<typename _bit_writer_type>
+		struct RLEncoderBaseTemplate : public IndexWriter
+		{
+			typedef _bit_writer_type bit_writer_type;
+
+			bit_writer_type & writer;
+			uint64_t const numsyms;
+
+			typedef std::pair<uint64_t,uint64_t> rl_pair;
+			::libmaus2::autoarray::AutoArray < rl_pair > rlbuffer;
+
+			rl_pair * const pa;
+			rl_pair *       pc;
+			rl_pair * const pe;
+
+			uint64_t cursym;
+			uint64_t curcnt;
+
+			::libmaus2::util::Histogram globalhist;
+			std::vector < IndexEntry > index;
+
+			bool indexwritten;
+
+			RLEncoderBaseTemplate(bit_writer_type & rwriter, uint64_t const rnumsyms, uint64_t const bufsize = 4ull*1024ull*1024ull)
+			: writer(rwriter), numsyms(rnumsyms), rlbuffer(bufsize), pa(rlbuffer.begin()), pc(pa), pe(rlbuffer.end()), cursym(0), curcnt(0),
+			  indexwritten(false)
+			{
+				// std::cerr << "Writing RL file of length " << numsyms << std::endl;
+				writer.writeElias2(numsyms);
+			}
+			~RLEncoderBaseTemplate()
+			{
+				flush();
+			}
+
 
 			void flush()
 			{

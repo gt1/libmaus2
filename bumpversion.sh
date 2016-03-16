@@ -4,7 +4,7 @@ FIRST=`echo $VERSION | awk -F'.' '{print $1}'`
 SECOND=`echo $VERSION | awk -F'.' '{print $2}'`
 THIRD=`echo $VERSION | awk -F'.' '{print $3}'`
 NEXTTHIRD=`expr ${THIRD} + 1`
-export DEBEMAIL=gt1@sanger.ac.uk
+export DEBEMAIL=tischler@mpi-cbg.de
 export DEBFULLNAME="German Tischler"
 
 function cleanup

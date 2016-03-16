@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.141,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
-LIBRARY_VERSION=2:141:0
+AC_INIT(libmaus2,2.0.142,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
+LIBRARY_VERSION=2:142:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -1054,6 +1054,26 @@ reg = _mm256_min_epu16(reg,reg);
 	AC_LANG_POP
 fi
 
+have_mm256_max_epu16=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${mavx2}" = "yes" -a "${have_mm256_load_si256}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MAVX2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm256_max_epu16])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t ymm[sizeof(__m256i)] __attribute__((aligned(sizeof(__m256i)))) = {
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+};
+__m256i reg = _mm256_load_si256(reinterpret_cast<__m256i const *>(&ymm[0]));
+reg = _mm256_max_epu16(reg,reg);
+],[have_mm256_max_epu16=yes],[have_mm256_max_epu16=no])
+	AC_MSG_RESULT([${have_mm256_max_epu16}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
 LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16=no
 AC_MSG_CHECKING([whether the C++ compiler supports all intrinsics required for SIMD global alignment (Y256/16 variant)])
 if test \
@@ -1066,6 +1086,7 @@ if test \
 	"${have_mm256_adds_epu16}" = "yes"  -a \
 	"${have_mm256_shuffle_epi8}" = "yes"  -a \
 	"${have_mm256_permute2f128_si256}" = "yes"  -a \
+	"${have_mm256_max_epu16}" = "yes"  -a \
 	"${have_mm256_min_epu16}" = "yes"  ; then
 	LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16=yes
 fi

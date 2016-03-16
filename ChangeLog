@@ -1,3 +1,41 @@
+libmaus2 (2.0.142-1) unstable; urgency=medium
+
+  * add gamma code based interval decoder and tests
+  * add getVSum function in IndexDecoderDataArray
+  * add test code for self match avoidance in NNP
+  * add self match avoidance in NNP
+  * add seeded local alignment variant in NNP class
+  * add checkAlignment function in AlignmentTraceContainer
+  * add rmdup option in streaming duplicate marking
+  * add flag filter (filter out alignments with any matching flag) in libmaus2::bambam::BamStreamingMarkDuplicatesSupport::OutputQueue
+  * use memory instead of disk files for testing in testgamma
+  * add GammaPartitionDecoder class
+  * add tests for partition encoder/decoder
+  * add test for NNP
+  * add NNP class
+  * add score banded alignment based on simd
+  * refactor SimdX86BandedGlobalAlignmentTemplate
+  * add comments in SimdX86BandedGlobalAlignmentTemplate.cpp
+  * add getMatchOffsets function in AlignmentTraceContainer
+  * add decodeWord function for SingleWordDNABitBuffer in HashCreationBase
+  * add missing include statement in RLEncoder.hpp
+  * add gamma code based interval and partition encoders
+  * add ostream based constructor for HuffmanEncoderFile
+  * factor out IndexWriter class from RLEncoder class
+  * switch to HuffmanEncoderFileStd in GapEncoder
+  * refactor GammaDifferenceEncoder
+  * add getLengthCode function in GammaEncoderBase and refactor getCodeLen
+  * allow for wider argument ranges in GammaDifferenceEncoder by using encodeSlow from GammaEncoder instead of encode
+  * add encodeSlow method in GammaEncoder (slower, but accepts a wider range of arguments)
+  * add getBackFragment and getFrontFragmentFromBack methods in EnvelopeFragment class
+  * add EnvelopeFragmentDiagonalComparator class
+  * remove unused parameter
+  * refactor SplayTree and extract common ContainerElementFreeList
+  * add Queue class based on ContainerElementFreeList
+  * refactor DNARank based classes
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 16 Mar 2016 17:36:12 +0100
+
 libmaus2 (2.0.141-1) unstable; urgency=medium
 
   * add bi directional DNA rank index

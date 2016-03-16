@@ -66,19 +66,21 @@ namespace libmaus2
 			int64_t prev;
 			uint64_t n;
 
-			typename libmaus2::aio::SynchronousGenericOutput<data_type>::unique_ptr_type Sout;
+			typename libmaus2::aio::SynchronousGenericOutput<data_type>::unique_ptr_type Psout;
+			libmaus2::aio::SynchronousGenericOutput<data_type> & sout;
+
 			typename libmaus2::gamma::GammaEncoder< libmaus2::aio::SynchronousGenericOutput<data_type> >::unique_ptr_type Genc;
 
 			GammaDifferenceEncoder(std::ostream & rout, int64_t const rprim = -1)
-			: Pout(), out(rout), prim(rprim), prev(prim), n(0), Sout(new libmaus2::aio::SynchronousGenericOutput<data_type>(out,8*1024)),
-			  Genc(new libmaus2::gamma::GammaEncoder< libmaus2::aio::SynchronousGenericOutput<data_type> >(*Sout))
+			: Pout(), out(rout), prim(rprim), prev(prim), n(0), Psout(new libmaus2::aio::SynchronousGenericOutput<data_type>(out,8*1024)),
+			  sout(*Psout), Genc(new libmaus2::gamma::GammaEncoder< libmaus2::aio::SynchronousGenericOutput<data_type> >(sout))
 			{
 
 			}
 
 			GammaDifferenceEncoder(std::string const & rfn, int64_t const rprim = -1)
-			: Pout(new libmaus2::aio::OutputStreamInstance(rfn)), out(*Pout), prim(rprim), prev(prim), n(0), Sout(new libmaus2::aio::SynchronousGenericOutput<data_type>(out,8*1024)),
-			  Genc(new libmaus2::gamma::GammaEncoder< libmaus2::aio::SynchronousGenericOutput<data_type> >(*Sout))
+			: Pout(new libmaus2::aio::OutputStreamInstance(rfn)), out(*Pout), prim(rprim), prev(prim), n(0), Psout(new libmaus2::aio::SynchronousGenericOutput<data_type>(out,8*1024)),
+			  sout(*Psout), Genc(new libmaus2::gamma::GammaEncoder< libmaus2::aio::SynchronousGenericOutput<data_type> >(sout))
 			{
 
 			}
@@ -94,7 +96,7 @@ namespace libmaus2
 				int64_t const dif = v - prev;
 				int64_t const difenc = dif-static_cast<int64_t>(mindif);
 				data_type const d(difenc);
-				Genc->encode(d);
+				Genc->encodeSlow(d);
 				prev = v;
 				n += 1;
 			}
@@ -111,7 +113,7 @@ namespace libmaus2
 
 			void encodeAbsolute(data_type const v)
 			{
-				Genc->encode(v);
+				Genc->encodeSlow(v);
 			}
 
 			void flush()
@@ -120,9 +122,9 @@ namespace libmaus2
 				{
 					Genc->flush();
 					Genc.reset();
-					Sout->flush();
-					uint64_t const indexoff = Sout->getWrittenWords() * sizeof(data_type);
-					Sout.reset();
+					sout.flush();
+					uint64_t const indexoff = sout.getWrittenWords() * sizeof(data_type);
+					Psout.reset();
 					libmaus2::util::NumberSerialisation::serialiseNumber(out,n);
 					libmaus2::util::NumberSerialisation::serialiseSignedNumber(out,prim);
 					libmaus2::util::NumberSerialisation::serialiseNumber(out,indexoff);

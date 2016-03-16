@@ -19,30 +19,12 @@
 #define LIBMAUS2_RANK_DNARANKBIDIR_HPP
 
 #include <libmaus2/rank/DNARank.hpp>
+#include <libmaus2/rank/DNARankBiDirRange.hpp>
 
 namespace libmaus2
 {
 	namespace rank
 	{
-		struct BiDirRange
-		{
-			uint64_t forw;
-			uint64_t reco;
-			uint64_t size;
-
-			void set(uint64_t const rforw, uint64_t rreco, uint64_t const rsize)
-			{
-				forw = rforw;
-				reco = rreco;
-				size = rsize;
-			}
-		};
-
-		inline std::ostream & operator<<(std::ostream & out, BiDirRange const & B)
-		{
-			return out << "BiDirRange(" << B.forw << "," << B.reco << "," << B.size << ")";
-		}
-
 		struct DNARankBiDir
 		{
 			typedef DNARankBiDir this_type;
@@ -145,9 +127,9 @@ namespace libmaus2
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 
-			BiDirRange epsilon() const
+			DNARankBiDirRange epsilon() const
 			{
-				BiDirRange range;
+				DNARankBiDirRange range;
 				range.size = forw->size();
 				range.forw = 0;
 				range.reco = 0;
@@ -157,13 +139,13 @@ namespace libmaus2
 			/**
 			 * extend interval on the left by sym
 			 **/
-			BiDirRange extendLeft(BiDirRange const & B, unsigned int const sym) const
+			DNARankBiDirRange extendLeft(DNARankBiDirRange const & B, unsigned int const sym) const
 			{
 				uint64_t R0[LIBMAUS2_RANK_DNARANK_SIGMA];
 				uint64_t R1[LIBMAUS2_RANK_DNARANK_SIGMA];
 				forw->multiRank(B.forw, B.forw + B.size, &R0[0], &R1[0]);
 
-				BiDirRange R;
+				DNARankBiDirRange R;
 				R.forw = R0[sym] + forw->getD(sym);
 				R.size = R1[sym]-R0[sym];
 				R.reco = B.reco;
@@ -178,13 +160,13 @@ namespace libmaus2
 			/**
 			 * extend interval on the right by sym
 			 **/
-			BiDirRange extendRight(BiDirRange const & B, unsigned int const sym) const
+			DNARankBiDirRange extendRight(DNARankBiDirRange const & B, unsigned int const sym) const
 			{
 				uint64_t R0[LIBMAUS2_RANK_DNARANK_SIGMA];
 				uint64_t R1[LIBMAUS2_RANK_DNARANK_SIGMA];
 				reco->multiRank(B.reco, B.reco + B.size, &R0[0], &R1[0]);
 
-				BiDirRange R;
+				DNARankBiDirRange R;
 				unsigned int const rsym = sym^3;
 				R.reco = R0[rsym] + reco->getD(rsym);
 				R.size = R1[rsym]-R0[rsym];
@@ -199,9 +181,9 @@ namespace libmaus2
 			/**
 			 * search s of length k by k calls to extendLeft
 			 **/
-			BiDirRange searchBackward(char const * s, uint64_t const k) const
+			DNARankBiDirRange searchBackward(char const * s, uint64_t const k) const
 			{
-				BiDirRange R = epsilon();
+				DNARankBiDirRange R = epsilon();
 				for ( uint64_t i = 0; i < k; ++i )
 					R = extendLeft(R,s[k-i-1]);
 				return R;
@@ -210,9 +192,9 @@ namespace libmaus2
 			/**
 			 * search s of length k by k calls to extendRight
 			 **/
-			BiDirRange searchForward(char const * s, uint64_t const k) const
+			DNARankBiDirRange searchForward(char const * s, uint64_t const k) const
 			{
-				BiDirRange R = epsilon();
+				DNARankBiDirRange R = epsilon();
 				for ( uint64_t i = 0; i < k; ++i )
 					R = extendRight(R,s[i]);
 				return R;
@@ -293,8 +275,8 @@ namespace libmaus2
 
 					assert ( PR.second-PR.first == P.second-P.first );
 
-					BiDirRange const BR = searchBackward(C,k);
-					BiDirRange const BF = searchForward(C,k);
+					DNARankBiDirRange const BR = searchBackward(C,k);
+					DNARankBiDirRange const BF = searchForward(C,k);
 
 					assert ( P.second-P.first == BR.size );
 					assert ( (!BR.size) || (P.first == BR.forw) );

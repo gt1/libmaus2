@@ -18,73 +18,27 @@
 #if ! defined(LIBMAUS2_UTIL_SPLAYTREE_HPP)
 #define LIBMAUS2_UTIL_SPLAYTREE_HPP
 
-#include <libmaus2/autoarray/AutoArray.hpp>
 #include <deque>
 #include <stack>
+#include <libmaus2/util/ContainerElementFreeList.hpp>
 
 namespace libmaus2
 {
 	namespace util
 	{
 		template<typename _key_type, typename _node_id_type = int64_t >
-		struct SplayTreeBase
+		struct SplayTreeElement
 		{
 			typedef _key_type key_type;
 			typedef _node_id_type node_id_type;
-			typedef SplayTreeBase<key_type,node_id_type> this_type;
+			typedef SplayTreeElement<key_type,node_id_type> this_type;
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			struct SplayTreeElement
-			{
-				node_id_type parent;
-				node_id_type left;
-				node_id_type right;
-				key_type key;
-			};
-
-			SplayTreeBase()
-			: Aelements(), Afreelist(), freelisthigh(0)
-			{
-
-			}
-
-			// tree nodes
-			libmaus2::autoarray::AutoArray<SplayTreeElement> Aelements;
-
-			// node free list
-			libmaus2::autoarray::AutoArray<node_id_type> Afreelist;
-			// high water in free list
-			uint64_t freelisthigh;
-
-			/**
-			 * get unused node (from free list or newly allocated)
-			 **/
-			node_id_type getNewNode()
-			{
-				if ( !freelisthigh )
-				{
-					uint64_t const oldsize = Aelements.size();
-					Aelements.bump();
-					uint64_t const newsize = Aelements.size();
-					uint64_t const dif = newsize - oldsize;
-					Afreelist.ensureSize(dif);
-					for ( uint64_t i = 0; i < dif; ++i )
-						Afreelist[freelisthigh++] = i+oldsize;
-				}
-
-				node_id_type const node = Afreelist[--freelisthigh];
-
-				return node;
-			}
-
-			/**
-			 * add node to the free list
-			 **/
-			void deleteNode(node_id_type node)
-			{
-				Afreelist.push(freelisthigh,node);
-			}
+			node_id_type parent;
+			node_id_type left;
+			node_id_type right;
+			key_type key;
 		};
 
 		template<typename _key_type, typename _comparator_type = std::less<_key_type>, typename _node_id_type = int64_t >
@@ -95,15 +49,15 @@ namespace libmaus2
 			typedef _node_id_type node_id_type;
 			typedef SplayTree<key_type,comparator_type,node_id_type> this_type;
 
-			typedef SplayTreeBase<key_type,node_id_type> base_type;
+			typedef SplayTreeElement<key_type,node_id_type> tree_element_type;
+			typedef ContainerElementFreeList<tree_element_type> base_type;
 			typedef typename base_type::unique_ptr_type base_pointer_type;
-			typedef typename base_type::SplayTreeElement SplayTreeElement;
 
 			base_pointer_type Pbase;
 			base_type & base;
 
 			// tree nodes
-			libmaus2::autoarray::AutoArray<SplayTreeElement> & Aelements;
+			libmaus2::autoarray::AutoArray<tree_element_type> & Aelements;
 
 			// key comparator
 			comparator_type const comparator;
@@ -352,10 +306,10 @@ namespace libmaus2
 
 			public:
 			SplayTree(comparator_type const & rcomparator = comparator_type())
-			: Pbase(new base_type()), base(*Pbase), Aelements(base.Aelements), comparator(rcomparator), root(-1) {}
+			: Pbase(new base_type()), base(*Pbase), Aelements(base.getElementsArray()), comparator(rcomparator), root(-1) {}
 
 			SplayTree(base_type & rbase, comparator_type const & rcomparator = comparator_type())
-			: Pbase(), base(rbase), Aelements(base.Aelements), comparator(rcomparator), root(-1) {}
+			: Pbase(), base(rbase), Aelements(base.getElementsArray()), comparator(rcomparator), root(-1) {}
 
 			node_id_type getParent(node_id_type const node) const
 			{
