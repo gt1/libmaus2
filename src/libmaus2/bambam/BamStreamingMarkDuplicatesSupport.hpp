@@ -483,7 +483,8 @@ namespace libmaus2
 					{
 						libmaus2::bambam::BamAlignment * palgn = OL[i];
 						palgn->filterOutAux(tagfilter);
-						wr.writeAlignment(*palgn);
+						if ( !(palgn->getFlags() & flagfilter) )
+							wr.writeAlignment(*palgn);
 						BAFL.put(palgn);
 					}
 
@@ -527,7 +528,8 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < n; ++i )
 					{
 						algns[i].second->filterOutAux(tagfilter);
-						wr.writeAlignment(*(algns[i].second));
+						if ( !(algns[i].second->getFlags() & flagfilter) )
+							wr.writeAlignment(*(algns[i].second));
 						BAFL.put(algns[i].second);
 					}
 
@@ -600,31 +602,28 @@ namespace libmaus2
 				// add alignment
 				void push(libmaus2::bambam::BamAlignment * algn)
 				{
-					if ( !(algn->getFlags() & flagfilter) )
+					// tmp file it is assigned to
+					uint64_t tmpfileindex;
+
+					if ( tmpFileFill.size() && tmpFileFill.find(tmpfileindex=(algn->getRank() / entriespertmpfile)) != tmpFileFill.end() )
 					{
-						// tmp file it is assigned to
-						uint64_t tmpfileindex;
+						addTmpFileEntry(algn,tmpfileindex);
+					}
+					else
+					{
+						int64_t const rank = algn->getRank();
+						assert ( rank >= 0 );
+						OQ.push(std::pair<uint64_t,libmaus2::bambam::BamAlignment *>(rank,algn));
+						flushInMemQueueInternal();
 
-						if ( tmpFileFill.size() && tmpFileFill.find(tmpfileindex=(algn->getRank() / entriespertmpfile)) != tmpFileFill.end() )
+						if ( OQ.size() >= 32*1024 )
 						{
-							addTmpFileEntry(algn,tmpfileindex);
-						}
-						else
-						{
-							int64_t const rank = algn->getRank();
-							assert ( rank >= 0 );
-							OQ.push(std::pair<uint64_t,libmaus2::bambam::BamAlignment *>(rank,algn));
-							flushInMemQueueInternal();
+							outputListToTmpFiles();
 
-							if ( OQ.size() >= 32*1024 )
+							while ( OQ.size() )
 							{
-								outputListToTmpFiles();
-
-								while ( OQ.size() )
-								{
-									addTmpFileEntry(OQ.top().second);
-									OQ.pop();
-								}
+								addTmpFileEntry(OQ.top().second);
+								OQ.pop();
 							}
 						}
 					}
