@@ -219,7 +219,6 @@ namespace libmaus2
 				#endif
 			}
 
-			template<bool forward = true>
 			void computeTrace(libmaus2::lcs::AlignmentTraceContainer & ATC) const
 			{
 				computeTrace(Atrace,traceid,ATC);
