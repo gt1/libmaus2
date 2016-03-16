@@ -185,6 +185,15 @@ namespace libmaus2
 				#endif
 			}
 
+			static int64_t getDefaultMinDiag()
+			{
+				return std::numeric_limits<int64_t>::min();
+			}
+
+			static int64_t getDefaultMaxDiag()
+			{
+				return std::numeric_limits<int64_t>::min();
+			}
 
 			template<typename iterator, bool forward = true>
 			void align(
@@ -192,37 +201,54 @@ namespace libmaus2
 				iterator ae,
 				iterator bb,
 				iterator be,
-				NNPTraceContainer & tracecontainer
+				NNPTraceContainer & tracecontainer,
+				int64_t const minband = getDefaultMinDiag(),
+				int64_t const maxband = getDefaultMaxDiag()
 			)
 			{
-				ptrdiff_t const alen = ae-ab; // *S*
-				ptrdiff_t const blen = be-bb; // *S*
-				ptrdiff_t const mlen = std::min(alen,blen);
-				uint64_t otrace = tracecontainer.otrace;
-
-				allocate(0,0,Acontrol,control);
-
-				control[0].offset = forward ? slide(ab,ae,bb,be) : slider(ab,ae,bb,be); // *S*
-				control[0].score = control[0].offset;
-				control[0].evec = 0;
-				control[0].id = otrace;
-
-				libmaus2::autoarray::AutoArray<NNPTraceElement> & Atrace = tracecontainer.Atrace;
-
-				Atrace.push(otrace,NNPTraceElement(libmaus2::lcs::BaseConstants::STEP_RESET,control[0].offset,-1));
-
-				bool foundalignment = (alen==blen) && (control[0].offset==alen);
-				bool active = true;
-
-				tracecontainer.traceid = foundalignment ? control[0].id : -1;
 				unsigned int const maxwerr = 24;
+				uint64_t oactivediag = 0;
+
+				ptrdiff_t const alen = ae-ab;
+				ptrdiff_t const blen = be-bb;
+				ptrdiff_t const mlen = std::min(alen,blen);
+				bool const startdiagonalvalid = (minband <= 0 && maxband >= 0);
 
 				int64_t maxscore = -1;
 				int64_t maxscoretraceid = -1;
 
-				uint64_t oactivediag = 0;
-				Aactivediag.ensureSize(1);
-				Aactivediag[oactivediag++] = 0;
+				uint64_t otrace = tracecontainer.otrace;
+
+				tracecontainer.traceid = -1;
+
+				libmaus2::autoarray::AutoArray<NNPTraceElement> & Atrace = tracecontainer.Atrace;
+
+				bool active = false;
+				bool foundalignment = false;
+
+				if ( startdiagonalvalid )
+				{
+					active = true;
+
+					allocate(0,0,Acontrol,control);
+					control[0].offset = forward ? slide(ab,ae,bb,be) : slider(ab,ae,bb,be);
+					control[0].score = control[0].offset;
+					control[0].evec = 0;
+					control[0].id = otrace;
+					Atrace.push(otrace,NNPTraceElement(libmaus2::lcs::BaseConstants::STEP_RESET,control[0].offset,-1));
+
+					foundalignment = (alen==blen) && (control[0].offset==alen);
+
+					if ( foundalignment )
+					{
+						tracecontainer.traceid = control[0].id;
+					}
+					else
+					{
+						Aactivediag.ensureSize(1);
+						Aactivediag[oactivediag++] = 0;
+					}
+				}
 
 				while ( !foundalignment && active )
 				{
@@ -277,7 +303,9 @@ namespace libmaus2
 						)
 						{
 							bool const prevprevactive = i && (Aactivediag[i-1] == Aactivediag[i]-2);
-							Acompdiag[compdiago++] = CompInfo(Aactivediag[i]-1,prevprevactive,false /* this active */,true);
+							int64_t canddiag = Aactivediag[i]-1;
+							if ( canddiag >= minband && canddiag <= maxband )
+								Acompdiag[compdiago++] = CompInfo(canddiag,prevprevactive,false /* this active */,true);
 						}
 
 						Acompdiag[compdiago++] = CompInfo(Aactivediag[i],prevactive,true /* this active */,nextactive);
@@ -285,7 +313,9 @@ namespace libmaus2
 						if ( ! nextactive )
 						{
 							bool const nextnextactive = i+1 < oactivediag && (Aactivediag[i+1] == Aactivediag[i]+2);
-							Acompdiag[compdiago++] = CompInfo(Aactivediag[i]+1,true,false /* this active */,nextnextactive);
+							int64_t const canddiag = Aactivediag[i]+1;
+							if ( canddiag >= minband && canddiag <= maxband )
+								Acompdiag[compdiago++] = CompInfo(canddiag,true,false /* this active */,nextnextactive);
 						}
 					}
 
@@ -295,6 +325,8 @@ namespace libmaus2
 					for ( uint64_t di = 0; di < compdiago; ++di )
 					{
 						int64_t const d = Acompdiag[di].d;
+
+						assert ( d >= minband && d <= maxband );
 
 						bool const prevactive = Acompdiag[di].prevactive;
 						bool const nextactive = Acompdiag[di].nextactive;
@@ -322,6 +354,20 @@ namespace libmaus2
 						assert ( bpre >= 0 );
 						// maximum offset on this diagonal
 						int64_t const maxoffset = std::min(alen-apre,blen-bpre);
+
+						#if 0
+						if ( self )
+						{
+							iterator acheck = forward ? (ab + apre) : (ae-apre);
+							iterator bcheck = forward ? (bb + bpre) : (be-bpre);
+
+							if ( acheck == bcheck )
+							{
+								std::cerr << "diag=" << d << " forw=" << forward << std::endl;
+								assert ( acheck != bcheck );
+							}
+						}
+						#endif
 
 						/*
 						 * find offset we will try to slide from
@@ -396,7 +442,7 @@ namespace libmaus2
 								{
 									int64_t const aoff = apre + offdiag;
 									int64_t const boff = bpre + offdiag;
-									int64_t const slidelen = forward ? slide(ab+aoff,ae,bb+boff,be) : slider(ab,ae-aoff,bb,be-boff); // *S*
+									int64_t const slidelen = forward ? slide(ab+aoff,ae,bb+boff,be) : slider(ab,ae-aoff,bb,be-boff);
 									uint64_t const newevec = (slidelen < 64) ? (((control[d].evec << 1) | 1) << slidelen) : 0;
 									unsigned int const numerr = popcnt(newevec);
 
@@ -426,7 +472,7 @@ namespace libmaus2
 									int64_t const aoff = apre + offtop;
 									int64_t const boff = bpre + offtop;
 
-									int64_t const slidelen = forward ? slide(ab+aoff,ae,bb+boff,be) : slider(ab,ae-aoff,bb,be-boff); // *S*
+									int64_t const slidelen = forward ? slide(ab+aoff,ae,bb+boff,be) : slider(ab,ae-aoff,bb,be-boff);
 									uint64_t const newevec = (slidelen < 64) ? (((control[d+1].evec << 1) | 1) << slidelen) : 0;
 									unsigned int const numerr = popcnt(newevec);
 
@@ -456,7 +502,7 @@ namespace libmaus2
 								{
 									int64_t const aoff = apre + offdiag;
 									int64_t const boff = bpre + offdiag;
-									int64_t const slidelen = forward ? slide(ab+aoff,ae,bb+boff,be) : slider(ab,ae-aoff,bb,be-boff); // *S*
+									int64_t const slidelen = forward ? slide(ab+aoff,ae,bb+boff,be) : slider(ab,ae-aoff,bb,be-boff);
 									uint64_t const newevec = (slidelen < 64) ? (((control[d].evec << 1) | 1) << slidelen) : 0;
 									unsigned int const numerr = popcnt(newevec);
 
@@ -484,7 +530,7 @@ namespace libmaus2
 									assert ( offleft >= 0 );
 									int64_t const aoff = apre + offleft;
 									int64_t const boff = bpre + offleft;
-									int64_t const slidelen = forward ? slide(ab+aoff,ae,bb+boff,be) : slider(ab,ae-aoff,bb,be-boff); // *S*
+									int64_t const slidelen = forward ? slide(ab+aoff,ae,bb+boff,be) : slider(ab,ae-aoff,bb,be-boff);
 									uint64_t const newevec = (slidelen < 64) ? (((control[d-1].evec << 1) | 1) << slidelen) : 0;
 									unsigned int const numerr = popcnt(newevec);
 
@@ -568,22 +614,44 @@ namespace libmaus2
 					tracecontainer.reverse();
 			}
 
-
 			template<typename iterator>
 			NNPAlignResult align(
 				iterator ab, iterator ae, uint64_t seedposa, iterator bb, iterator be, uint64_t seedposb,
-				NNPTraceContainer & tracecontainer
+				NNPTraceContainer & tracecontainer,
+				// set valid diagonal band to avoid self matches when a and b are the same string
+				bool const self = false
 			)
 			{
 				tracecontainer.reset();
 
 				// run backward alignment from seedpos
-				align<iterator,false>(ab,ab+seedposa,bb,bb+seedposb,tracecontainer);
+				int64_t minrdiag = getDefaultMinDiag();
+				int64_t maxrdiag = getDefaultMaxDiag();
+
+				if ( self )
+				{
+					if ( seedposa <= seedposb )
+						minrdiag = seedposa - seedposb + 1;
+					if ( seedposb <= seedposa )
+						maxrdiag = seedposa - seedposb - 1;
+				}
+
+				align<iterator,false>(ab,ab+seedposa,bb,bb+seedposb,tracecontainer,minrdiag,maxrdiag);
 				int64_t const revroot = tracecontainer.traceid;
 				std::pair<uint64_t,uint64_t> const SLF = tracecontainer.getStringLengthUsed();
 
 				// run forward alignment from seedpos
-				align<iterator,true>(ab+seedposa,ae,bb+seedposb,be,tracecontainer);
+				int64_t minfdiag = getDefaultMinDiag();
+				int64_t maxfdiag = getDefaultMaxDiag();
+
+				if ( self )
+				{
+					if ( seedposa >= seedposb )
+						minfdiag = seedposb - seedposa + 1;
+					if ( seedposb >= seedposa )
+						maxfdiag = seedposb - seedposa - 1;
+				}
+				align<iterator,true>(ab+seedposa,ae,bb+seedposb,be,tracecontainer,minfdiag,maxfdiag);
 				int64_t const forroot = tracecontainer.traceid;
 				std::pair<uint64_t,uint64_t> const SLR = tracecontainer.getStringLengthUsed();
 
