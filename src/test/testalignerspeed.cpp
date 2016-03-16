@@ -15,6 +15,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <libmaus2/lcs/NNP.hpp>
+
 #include <iostream>
 
 #include <libmaus2/dazzler/db/DatabaseFile.hpp>
@@ -23,6 +25,7 @@
 #include <libmaus2/util/ArgInfo.hpp>
 #include <libmaus2/lcs/ND.hpp>
 #include <libmaus2/lcs/NDextend.hpp>
+#include <libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16.hpp>
 
 #include <sys/ioctl.h>
 #include <stdio.h>
@@ -31,6 +34,8 @@
 #include <libmaus2/fastx/CharBuffer.hpp>
 #include <libmaus2/lcs/AlignerFactory.hpp>
 #include <libmaus2/lcs/NP.hpp>
+
+#include <libmaus2/random/DNABaseNoiseSpiker.hpp>
 
 struct AlignInfo
 {
@@ -47,11 +52,476 @@ struct AlignInfo
 	}
 };
 
+std::string randStr(uint64_t const n)
+{
+	std::string s(n,' ');
+	for ( uint64_t i = 0; i < n; ++i )
+		s[i] = libmaus2::fastx::remapChar(libmaus2::random::Random::rand8() % 4);
+	return s;
+}
+
 int main(int argc, char * argv[])
 {
 	try
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
+
+		libmaus2::random::Random::setup();
+
+		#if 0
+		{
+			std::string const a = "AGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAT";
+
+			for ( uint64_t seedposa = 0; seedposa < a.size(); ++seedposa )
+				for ( uint64_t seedposb = 0; seedposb < a.size(); ++seedposb )
+				{
+					libmaus2::lcs::NNP nnp;
+					libmaus2::lcs::NNPTraceContainer tracecontainer;
+					nnp.align(
+						a.begin(),
+						a.end(),
+						seedposa,
+						a.begin(),
+						a.end(),
+						seedposb,
+						tracecontainer,
+						true // self check
+					);
+
+					std::pair<uint64_t,uint64_t> const SL = tracecontainer.getStringLengthUsed();
+
+					libmaus2::lcs::AlignmentTraceContainer ATC;
+					tracecontainer.computeTrace(ATC);
+					std::cerr << ATC.traceToString() << std::endl;
+
+					#if 0
+					libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
+						a.end()-SL.first,
+						SL.first,
+						a.end()-SL.second,
+						SL.second,
+						80,
+						ATC.ta,
+						ATC.te
+					);
+					#endif
+				}
+
+			return 0;
+		}
+		#endif
+
+		{
+			std::string const a = "AGAATAGATAGAATAGATAGAATAGATAGAATAGATAGAATAGATAGAATAGATAGAATAGAT";
+
+			libmaus2::lcs::NNP nnp;
+			libmaus2::lcs::NNPTraceContainer tracecontainer;
+			nnp.align(
+				a.begin(),
+				a.end(),
+				0,
+				a.begin(),
+				a.end(),
+				5,
+				tracecontainer,
+				true, // self check
+				-2
+			);
+
+
+			libmaus2::lcs::AlignmentTraceContainer ATC;
+			tracecontainer.computeTrace(ATC);
+			std::cerr << ATC.traceToString() << std::endl;
+
+			#if 0
+			std::pair<uint64_t,uint64_t> const SL = tracecontainer.getStringLengthUsed();
+			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
+				a.end()-SL.first,
+				SL.first,
+				a.end()-SL.second,
+				SL.second,
+				80,
+				ATC.ta,
+				ATC.te
+			);
+			#endif
+
+			return 0;
+		}
+
+		#if 0
+		{
+			libmaus2::lcs::NNP nnp;
+			libmaus2::lcs::NNPTraceContainer tracecontainer;
+
+			std::string const a = "AGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAT";
+
+			// reverse
+			nnp.align<std::string::const_iterator,false>(
+				a.begin(),
+				a.end()-3,
+				a.begin(),
+				a.end(),
+				tracecontainer,
+				-2,
+				std::numeric_limits<int64_t>::max(),
+				true
+			);
+
+			std::pair<uint64_t,uint64_t> const SL = tracecontainer.getStringLengthUsed();
+
+			libmaus2::lcs::AlignmentTraceContainer ATC;
+			tracecontainer.computeTrace(ATC);
+			std::cerr << ATC.traceToString() << std::endl;
+
+			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
+				a.end()-3-SL.first,
+				SL.first,
+				a.end()-SL.second,
+				SL.second,
+				80,
+				ATC.ta,
+				ATC.te
+			);
+
+			//return 0;
+		}
+
+		{
+			libmaus2::lcs::NNP nnp;
+			libmaus2::lcs::NNPTraceContainer tracecontainer;
+
+			std::string const a = "AGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAT";
+
+			// reverse
+			nnp.align<std::string::const_iterator,false>(
+				a.begin(),
+				a.end(),
+				a.begin(),
+				a.end()-3,
+				tracecontainer,
+				std::numeric_limits<int64_t>::min(),
+				2,
+				true
+			);
+
+			std::pair<uint64_t,uint64_t> const SL = tracecontainer.getStringLengthUsed();
+
+			libmaus2::lcs::AlignmentTraceContainer ATC;
+			tracecontainer.computeTrace(ATC);
+			std::cerr << ATC.traceToString() << std::endl;
+
+			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
+				a.end()-SL.first,
+				SL.first,
+				a.end()-3-SL.second,
+				SL.second,
+				80,
+				ATC.ta,
+				ATC.te
+			);
+
+			return 0;
+		}
+		#endif
+
+
+		{
+			libmaus2::lcs::NP al;
+
+			char const * a = "AAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGAT";
+			char const * b = "AAGTAAGTAAGTAAGTAAGTAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGAT";
+
+			al.align(
+				reinterpret_cast<uint8_t const *>(a),
+				strlen(a),
+				reinterpret_cast<uint8_t const *>(b),
+				strlen(b)
+			);
+
+			std::cerr << al.getTraceContainer().traceToString() << std::endl;
+
+			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
+				a,strlen(a),
+				b,strlen(b),
+				80,
+				al.getTraceContainer().ta,
+				al.getTraceContainer().te
+			);
+
+			//return 0;
+		}
+
+		{
+			libmaus2::lcs::NNP nnp;
+			libmaus2::lcs::NNPTraceContainer tracecontainer;
+
+			std::string const a = "AGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAAT";
+			std::string const b = "AGATAGATAGATAGATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAAT";
+
+			nnp.align(
+				a.begin(),
+				a.end(),
+				b.begin(),
+				b.end(),
+				tracecontainer,
+				-3,
+				std::numeric_limits<int64_t>::max()
+			);
+
+			std::pair<uint64_t,uint64_t> const SL = tracecontainer.getStringLengthUsed();
+
+			libmaus2::lcs::AlignmentTraceContainer ATC;
+			tracecontainer.computeTrace(ATC);
+			std::cerr << ATC.traceToString() << std::endl;
+
+			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
+				a.begin(),
+				SL.first,
+				b.begin(),
+				SL.second,
+				80,
+				ATC.ta,
+				ATC.te
+			);
+
+			return 0;
+		}
+
+
+		{
+			libmaus2::lcs::NNP nnp;
+			libmaus2::lcs::NNPTraceContainer tracecontainer;
+
+			std::string const randa = randStr(1931);
+			std::string const randb = randStr(1192);
+			std::string const randc = randStr(2020);
+			std::string const randd = randStr(1911);
+
+			std::string const seed = randStr(32);
+
+			std::string const lefta = randStr(1911);
+			std::string const leftb = libmaus2::random::DNABaseNoiseSpiker::modify(lefta,0.2,0.3,0.5,0.0,0.15,0.02);
+
+			std::string const righta = randStr(1531);
+			std::string const rightb = libmaus2::random::DNABaseNoiseSpiker::modify(righta,0.2,0.3,0.5,0.0,0.15,0.02);
+
+			std::string const sa = randa + lefta + seed + righta + randb;
+			std::string const sb = randc + leftb + seed + rightb + randd;
+
+			libmaus2::lcs::NNPAlignResult algnres = nnp.align(
+				sa.begin(),sa.end(),randa.size()+lefta.size(),
+				sb.begin(),sb.end(),randc.size()+leftb.size(),
+				tracecontainer);
+
+			std::cerr << tracecontainer << std::endl;
+
+			libmaus2::lcs::AlignmentTraceContainer ATC;
+			tracecontainer.computeTrace(ATC);
+
+			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
+				sa.begin() + algnres.abpos,
+				algnres.aepos - algnres.abpos,
+				sb.begin() + algnres.bbpos,
+				algnres.bepos - algnres.bbpos,
+				80,
+				ATC.ta,
+				ATC.te
+			);
+
+			std::cerr << algnres.abpos << " " << randa.size() << std::endl;
+			std::cerr << algnres.aepos << " " << randa.size() + lefta.size() + seed.size() + righta.size() << std::endl;
+			std::cerr << algnres.bbpos << " " << randc.size() << std::endl;
+			std::cerr << algnres.bepos << " " << randc.size() + leftb.size() + seed.size() + rightb.size() << std::endl;
+			std::cerr << algnres << std::endl;
+
+			assert (
+				libmaus2::lcs::AlignmentTraceContainer::checkAlignment(
+					ATC.ta,
+					ATC.te,
+					sa.begin() + algnres.abpos,
+					sb.begin() + algnres.bbpos
+				)
+			);
+
+
+			return 0;
+		}
+
+		{
+			libmaus2::lcs::NNP nnp;
+
+			libmaus2::random::Random::setup();
+
+			//char const * a = "AAAAAAAA";
+			//char const * b = "AAAAAAAA";
+			//char const * a = "AAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGAT";
+			//char const * b = "AAGTAAGTAAGTAAGTAAGTAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGAT";
+
+			std::string randstr(16*1024,' ');
+			for ( uint64_t i = 0; i < randstr.size(); ++i )
+				switch ( rand() % 4 )
+				{
+					case 0: randstr[i] = 'A'; break;
+					case 1: randstr[i] = 'C'; break;
+					case 2: randstr[i] = 'G'; break;
+					case 3: randstr[i] = 'T'; break;
+				}
+
+			std::string randread = libmaus2::random::DNABaseNoiseSpiker::modify(
+				randstr.substr(0,randstr.size()/2),
+				0.2,0.3,0.5,0.0,0.10,0.02
+			);
+
+			#if 0
+			nnp.align(
+				a,a+strlen(a),
+				b,b+strlen(b)
+			);
+			#endif
+
+			libmaus2::lcs::NNPTraceContainer tracecontainer;
+
+			nnp.align(
+				randstr.begin(),
+				randstr.end(),
+				randread.begin(),
+				randread.end(),
+				tracecontainer
+			);
+
+			libmaus2::lcs::AlignmentTraceContainer ATC;
+			tracecontainer.computeTrace(ATC);
+			std::cerr << ATC.traceToString() << std::endl;
+
+			std::pair<uint64_t,uint64_t> const P = ATC.getStringLengthUsed();
+
+			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
+				randstr.begin(),
+				P.first,
+				randread.begin(),
+				P.second,
+				//a,strlen(a),
+				//b,strlen(b),
+				80,
+				ATC.ta,
+				ATC.te
+			);
+
+			std::cerr << P.first << std::endl;
+
+			assert (
+				libmaus2::lcs::AlignmentTraceContainer::checkAlignment(
+					ATC.ta,
+					ATC.te,
+					randstr.begin(),
+					randread.begin()
+				)
+			);
+
+			// return 0;
+		}
+
+		{
+			libmaus2::lcs::NNP nnp;
+
+			libmaus2::random::Random::setup();
+
+			//char const * a = "AAAAAAAA";
+			//char const * b = "AAAAAAAA";
+			//char const * a = "AAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGAT";
+			//char const * b = "AAGTAAGTAAGTAAGTAAGTAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGAT";
+
+			std::string randstr(8*1024,' ');
+			for ( uint64_t i = 0; i < randstr.size(); ++i )
+				switch ( rand() % 4 )
+				{
+					case 0: randstr[i] = 'A'; break;
+					case 1: randstr[i] = 'C'; break;
+					case 2: randstr[i] = 'G'; break;
+					case 3: randstr[i] = 'T'; break;
+				}
+
+			std::string randread = libmaus2::random::DNABaseNoiseSpiker::modify(
+				randstr,
+				0.2,0.3,0.5,0.0,0.10,0.02
+			);
+
+			#if 0
+			nnp.align(
+				a,a+strlen(a),
+				b,b+strlen(b)
+			);
+			#endif
+
+			libmaus2::lcs::NNPTraceContainer tracecontainer;
+			nnp.align<std::string::const_iterator,false>(
+				randstr.begin(),
+				randstr.end(),
+				randread.begin(),
+				randread.end(),
+				tracecontainer
+			);
+
+			std::pair<uint64_t,uint64_t> const P = tracecontainer.getStringLengthUsed();
+
+			libmaus2::lcs::AlignmentTraceContainer ATC;
+			tracecontainer.computeTrace(ATC);
+			std::pair<uint64_t,uint64_t> const PP = ATC.getStringLengthUsed();
+
+			assert ( P == PP );
+
+			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
+				randstr.end()-P.first,
+				P.first,
+				randread.end()-P.second,
+				P.second,
+				80,
+				ATC.ta,
+				ATC.te
+			);
+
+			std::cerr << P.first << std::endl;
+
+			assert (
+				libmaus2::lcs::AlignmentTraceContainer::checkAlignment(
+					ATC.ta,
+					ATC.te,
+					randstr.end()-P.first,
+					randread.end()-P.second
+				)
+			);
+
+			return 0;
+		}
+
+
+		{
+		libmaus2::lcs::SimdX86BandedGlobalAlignmentScoreY256_16 scoreal;
+
+		char const * a = "AAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGAT";
+		char const * b = "AAGTAAGTAAGTAAGTAAGTAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGAT";
+
+		std::pair<int64_t,int64_t> const L = scoreal.align(
+			reinterpret_cast<uint8_t const *>(a),
+			strlen(a),
+			reinterpret_cast<uint8_t const *>(b),
+			strlen(b),
+			2
+		);
+
+		std::cerr << scoreal.getTraceContainer().traceToString() << std::endl;
+
+		libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
+			a,L.first,
+			b,L.second,
+			80,
+			scoreal.getTraceContainer().ta,
+			scoreal.getTraceContainer().te
+		);
+
+		return 0;
+		}
 
 		bool const loadall  = arginfo.getValue<int>("loadalla",false);
 		bool loadalla = arginfo.getValue<int>("loadalla",loadall);

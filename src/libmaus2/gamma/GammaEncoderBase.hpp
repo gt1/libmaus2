@@ -36,10 +36,16 @@ namespace libmaus2
 		{
 			typedef uint64_t stream_data_type;
 
-			static inline unsigned int getCodeLen(stream_data_type const code)
+			static inline unsigned int getLengthCode(stream_data_type const code)
 			{
 				unsigned int const lz = clz(code); // number of leading zero bits
 				unsigned int const nd = ((CHAR_BIT*sizeof(stream_data_type))-1)-lz;
+				return nd;
+			}
+
+			static inline unsigned int getCodeLen(stream_data_type const code)
+			{
+				unsigned int const nd = getLengthCode(code);
 				return 1 + (nd<<1);
 			}
 		};
@@ -49,10 +55,15 @@ namespace libmaus2
 		{
 			typedef libmaus2::math::UnsignedInteger<k> stream_data_type;
 
-			static inline unsigned int getCodeLen(stream_data_type const code)
+			static inline unsigned int getLengthCode(stream_data_type const code)
 			{
 				unsigned int const lz = code.clz(); // number of leading zero bits
 				unsigned int const nd = ((CHAR_BIT*sizeof(stream_data_type))-1)-lz;
+				return nd;
+			}
+			static inline unsigned int getCodeLen(stream_data_type const code)
+			{
+				unsigned int const nd = getLengthCode(code);
 				return 1 + (nd<<1);
 			}
 		};
@@ -61,7 +72,7 @@ namespace libmaus2
 		template<>
 		struct GammaEncoderBase<libmaus2::uint128_t>
 		{
-			static inline unsigned int getCodeLen(libmaus2::uint128_t const code)
+			static inline unsigned int getLengthCode(libmaus2::uint128_t const code)
 			{
 				unsigned int const lz =
 					(code >> 64) ?
@@ -70,6 +81,11 @@ namespace libmaus2
 						(64+libmaus2::bitio::Clz::clz(static_cast<uint64_t>(code)))
 						; // number of leading zero bits
 				unsigned int const nd = ((CHAR_BIT*sizeof(libmaus2::uint128_t))-1)-lz;
+				return nd;
+			}
+			static inline unsigned int getCodeLen(libmaus2::uint128_t const code)
+			{
+				unsigned int const nd = getLengthCode(code);
 				return 1 + (nd<<1);
 			}
 		};

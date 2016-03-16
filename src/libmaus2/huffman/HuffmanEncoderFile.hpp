@@ -46,6 +46,12 @@ namespace libmaus2
 				output_type::iterator_type(static_cast< output_type & >(*this)),
 				bitwriter_type(static_cast< typename output_type::iterator_type & > (*this) )
 			{}
+
+			HuffmanEncoderFileTemplate(std::ostream & out, uint64_t const bufsize = 64*1024)
+			:  output_type(out,bufsize), output_type::iterator_type(static_cast< output_type & >(*this)),
+			   bitwriter_type(static_cast< typename output_type::iterator_type & > (*this) )
+			{}
+
 			~HuffmanEncoderFileTemplate()
 			{
 				flush();

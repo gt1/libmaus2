@@ -95,6 +95,14 @@ namespace libmaus2
 				encodeWord(code,codelen);
 			}
 
+			void encodeSlow(stream_data_type const q)
+			{
+				stream_data_type const code = q+static_cast<stream_data_type>(1);
+				unsigned int const nd = GammaEncoderBase<stream_data_type>::getLengthCode(code);
+				encodeWord(0,nd);
+				encodeWord(code,nd+1);
+			}
+
 			void flush()
 			{
 				if ( bav != (CHAR_BIT*sizeof(stream_data_type)) )

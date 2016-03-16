@@ -99,7 +99,9 @@ namespace libmaus2
 			libmaus2::util::GrowingFreeList<libmaus2::bambam::BamAlignment> BAFL;
 			libmaus2::util::FreeList<OpticalInfoListNode> OILNFL;
 
-			OutputQueue<libmaus2::bambam::BamBlockWriterBase> OQ;
+			typedef libmaus2::bambam::BamBlockWriterBase oq_writer_type;
+			typedef OutputQueue<oq_writer_type> oq_type;
+			oq_type OQ;
 
 			std::string const optfn;
 			libmaus2::sorting::SortingBufferedOutputFile<OpticalExternalInfoElement> optSBOF;
@@ -193,13 +195,29 @@ namespace libmaus2
 				return V;
 			}
 
+			static bool getDefaultPutRank()
+			{
+				return false;
+			}
+
+			static bool getDefaultFilterOld()
+			{
+				return false;
+			}
+
+			static bool getDefaultRmDup()
+			{
+				return false;
+			}
+
 			BamStreamingMarkDuplicates(
 				libmaus2::util::ArgInfo const & arginfo,
 				libmaus2::bambam::BamHeader const & rheader,
 				libmaus2::bambam::BamBlockWriterBase & rwr,
 				bool const rfilterdupmarktags,
-				bool const rputrank = false,
-				bool const filterold = false
+				bool const rputrank = getDefaultPutRank(),
+				bool const filterold = getDefaultFilterOld(),
+				bool const rmdup = getDefaultRmDup()
 			)
 			: optminpixeldif(arginfo.getValue<unsigned int>("optminpixeldif",getDefaultOptMinPixelDif())),
 			  maxreadlen(arginfo.getValue<uint64_t>("maxreadlen",getDefaultMaxReadLen())),
@@ -209,7 +227,7 @@ namespace libmaus2
 			  wr(rwr),
 			  BAFL(),
 			  OILNFL(32*1024),
-			  OQ(wr,BAFL,tmpfilenamebase,filterdupmarktags ? getFilterTags(filterold) : std::vector<std::string>()),
+			  OQ(wr,BAFL,tmpfilenamebase,filterdupmarktags ? getFilterTags(filterold) : std::vector<std::string>(),oq_type::getDefaultEntriesPerTmpFile(),rmdup ? libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FDUP : 0 /* flag filter */),
 			  optfn(tmpfilenamebase+"_opt"),
 			  optSBOF(optfn),
 			  Qpair(),

@@ -21,6 +21,7 @@
 #define HASHCREATIONBASE_HPP
 
 #include <libmaus2/fastx/MultiWordDNABitBuffer.hpp>
+#include <libmaus2/fastx/SingleWordDNABitBuffer.hpp>
 #include <libmaus2/fastx/acgtnMap.hpp>
 
 namespace libmaus2
@@ -72,6 +73,25 @@ namespace libmaus2
 			static std::string decodeBuffer(buffer_type const & reve)
 			{
 				std::string rstring = reve.toString();
+				for ( unsigned int i = 0; i < rstring.size(); ++i )
+				{
+					switch ( rstring[i] )
+					{
+						case '0': rstring[i] = 'A'; break;
+						case '1': rstring[i] = 'C'; break;
+						case '2': rstring[i] = 'G'; break;
+						case '3': rstring[i] = 'T'; break;
+					}
+				}
+				return rstring;
+			}
+
+			static std::string decodeWord(uint64_t const word, unsigned int const k)
+			{
+				::libmaus2::fastx::SingleWordDNABitBuffer B(k);
+				B.buffer = word;
+
+				std::string rstring = B.toString();
 				for ( unsigned int i = 0; i < rstring.size(); ++i )
 				{
 					switch ( rstring[i] )

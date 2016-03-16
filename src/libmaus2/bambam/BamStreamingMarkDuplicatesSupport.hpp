@@ -450,17 +450,26 @@ namespace libmaus2
 
 				libmaus2::lru::SparseLRUFileBunch reorderfiles;
 
+				uint32_t const flagfilter;
+
+				static uint64_t getDefaultEntriesPerTmpFile()
+				{
+					return 16*1024;
+				}
+
 				OutputQueue(
 					writer_type & rwr,
 					libmaus2::util::GrowingFreeList<libmaus2::bambam::BamAlignment> & rBAFL,
 					std::string const & rtmpfileprefix,
 					std::vector<std::string> const & filtertagvec,
-					uint64_t const rentriespertmpfile = 16*1024
+					uint64_t const rentriespertmpfile = getDefaultEntriesPerTmpFile(),
+					uint32_t const rflagfilter = 0
 				)
 				: wr(rwr), BAFL(rBAFL), order(), OQ(), nextout(0),
 				  entriespertmpfile(rentriespertmpfile),
 				  OL(entriespertmpfile,false), olsizefill(0), tmpfileprefix(rtmpfileprefix),
-				  reorderfiles(tmpfileprefix,16)
+				  reorderfiles(tmpfileprefix,16),
+				  flagfilter(rflagfilter)
 				{
 					tagfilter.set('Z','R');
 					for ( uint64_t i = 0; i < filtertagvec.size(); ++i )
@@ -474,7 +483,8 @@ namespace libmaus2
 					{
 						libmaus2::bambam::BamAlignment * palgn = OL[i];
 						palgn->filterOutAux(tagfilter);
-						wr.writeAlignment(*palgn);
+						if ( !(palgn->getFlags() & flagfilter) )
+							wr.writeAlignment(*palgn);
 						BAFL.put(palgn);
 					}
 
@@ -518,7 +528,8 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < n; ++i )
 					{
 						algns[i].second->filterOutAux(tagfilter);
-						wr.writeAlignment(*(algns[i].second));
+						if ( !(algns[i].second->getFlags() & flagfilter) )
+							wr.writeAlignment(*(algns[i].second));
 						BAFL.put(algns[i].second);
 					}
 

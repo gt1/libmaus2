@@ -35,7 +35,7 @@ namespace libmaus2
 		{
 			std::string const filename;
 			bool const needescape;
-			::libmaus2::huffman::HuffmanEncoderFile gapHEF;
+			::libmaus2::huffman::HuffmanEncoderFileStd gapHEF;
 			::libmaus2::huffman::CanonicalEncoder::unique_ptr_type GCE;
 			::libmaus2::huffman::EscapeCanonicalEncoder::unique_ptr_type GECE;
 			// (block position, sum in block)
