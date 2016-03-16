@@ -73,7 +73,7 @@ namespace libmaus2
 					G.encodeSlow((pa->second - pa->first)-1);
 
 					// sum over interval lengths
-					uint64_t vsum = 0;
+					uint64_t vsum = pa[0].second-pa[0].first;
 					// encode other intervals
 					for ( std::pair<uint64_t,uint64_t> * pp = pa+1; pp != pc; ++pp )
 					{
@@ -93,6 +93,9 @@ namespace libmaus2
 					Vindex.push_back(libmaus2::huffman::IndexEntry(offset,numintv,vsum));
 					// update total interval size
 					total += vsum;
+
+					// reset buffer
+					pc = pa;
 				}
 			}
 
@@ -125,8 +128,9 @@ namespace libmaus2
 
 					// write index
 					uint64_t const indexpos = OSI.tellp();
-					libmaus2::huffman::HuffmanEncoderFileStd HEF(OSI);
-					libmaus2::huffman::IndexWriter::writeIndex(HEF,Vindex,indexpos,total);
+					libmaus2::huffman::HuffmanEncoderFileStd::unique_ptr_type HEF(new libmaus2::huffman::HuffmanEncoderFileStd(OSI));
+					libmaus2::huffman::IndexWriter::writeIndex(*HEF,Vindex,indexpos,total);
+					HEF.reset();
 
 					OSI.flush();
 					POSI.reset();
