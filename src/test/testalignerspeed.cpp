@@ -25,7 +25,10 @@
 #include <libmaus2/util/ArgInfo.hpp>
 #include <libmaus2/lcs/ND.hpp>
 #include <libmaus2/lcs/NDextend.hpp>
+
+#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16)
 #include <libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16.hpp>
+#endif
 
 #include <sys/ioctl.h>
 #include <stdio.h>
@@ -455,12 +458,15 @@ int main(int argc, char * argv[])
 			#endif
 
 			libmaus2::lcs::NNPTraceContainer tracecontainer;
-			nnp.align<std::string::const_iterator,false>(
+			nnp.align(
 				randstr.begin(),
 				randstr.end(),
 				randread.begin(),
 				randread.end(),
-				tracecontainer
+				tracecontainer,
+				nnp.getDefaultMinDiag(),
+                                nnp.getDefaultMaxDiag(),
+                                false /* forward */
 			);
 
 			std::pair<uint64_t,uint64_t> const P = tracecontainer.getStringLengthUsed();
@@ -495,7 +501,7 @@ int main(int argc, char * argv[])
 			return 0;
 		}
 
-
+		#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16)
 		{
 		libmaus2::lcs::SimdX86BandedGlobalAlignmentScoreY256_16 scoreal;
 
@@ -522,6 +528,7 @@ int main(int argc, char * argv[])
 
 		return 0;
 		}
+		#endif
 
 		bool const loadall  = arginfo.getValue<int>("loadalla",false);
 		bool loadalla = arginfo.getValue<int>("loadalla",loadall);
