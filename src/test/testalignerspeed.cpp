@@ -68,6 +68,7 @@ int main(int argc, char * argv[])
 
 		libmaus2::random::Random::setup();
 
+		#if 0
 		{
 			std::string const a = "AGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAT";
 
@@ -105,6 +106,45 @@ int main(int argc, char * argv[])
 					);
 					#endif
 				}
+
+			return 0;
+		}
+		#endif
+
+		{
+			std::string const a = "AGAATAGATAGAATAGATAGAATAGATAGAATAGATAGAATAGATAGAATAGATAGAATAGAT";
+
+			libmaus2::lcs::NNP nnp;
+			libmaus2::lcs::NNPTraceContainer tracecontainer;
+			nnp.align(
+				a.begin(),
+				a.end(),
+				0,
+				a.begin(),
+				a.end(),
+				5,
+				tracecontainer,
+				true, // self check
+				-2
+			);
+
+			std::pair<uint64_t,uint64_t> const SL = tracecontainer.getStringLengthUsed();
+
+			libmaus2::lcs::AlignmentTraceContainer ATC;
+			tracecontainer.computeTrace(ATC);
+			std::cerr << ATC.traceToString() << std::endl;
+
+			#if 0
+			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
+				a.end()-SL.first,
+				SL.first,
+				a.end()-SL.second,
+				SL.second,
+				80,
+				ATC.ta,
+				ATC.te
+			);
+			#endif
 
 			return 0;
 		}
