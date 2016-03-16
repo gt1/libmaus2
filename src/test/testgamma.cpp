@@ -19,6 +19,7 @@
 #include <libmaus2/gamma/GammaPartitionDecoder.hpp>
 #include <libmaus2/gamma/GammaPartitionEncoder.hpp>
 #include <libmaus2/gamma/GammaIntervalEncoder.hpp>
+#include <libmaus2/gamma/GammaIntervalDecoder.hpp>
 
 #include <libmaus2/gamma/SimpleGammaEncoderArray.hpp>
 #include <libmaus2/gamma/SimpleGammaDecoder.hpp>
@@ -1705,12 +1706,95 @@ void testpartitionsingle()
 	}
 }
 
+void testintervalsingle()
+{
+	std::string const fn = "mem://tmp_part";
+	libmaus2::random::Random::setup();
+	//uint64_t const mod = 64*1024+27;
+	uint64_t const mod = 241;
+
+	for ( uint64_t z = 0; z < 16; ++z )
+	{
+		libmaus2::gamma::GammaIntervalEncoder::unique_ptr_type Genc(new libmaus2::gamma::GammaIntervalEncoder(fn));
+		uint64_t const n = 996 + libmaus2::random::Random::rand64() % 128;
+		std::cerr << n << std::endl;
+
+		std::vector< std::pair<uint64_t,uint64_t> > LV;
+		uint64_t offset = 0;
+		for ( uint64_t i = 0; i < n; ++i )
+		{
+			uint64_t const o = (libmaus2::random::Random::rand64() % mod)+1;
+			uint64_t const w = (libmaus2::random::Random::rand64() % mod)+1;
+
+			uint64_t const low = offset + o;
+			uint64_t const high = low + w;
+
+			LV.push_back(std::pair<uint64_t,uint64_t>(low,high));
+			Genc->put(std::pair<uint64_t,uint64_t>(low,high));
+
+			offset = high;
+		}
+
+		Genc.reset();
+
+		libmaus2::gamma::GammaIntervalDecoder::unique_ptr_type Gdec(new libmaus2::gamma::GammaIntervalDecoder(std::vector<std::string>(1,fn)));
+		std::pair<uint64_t,uint64_t> P;
+		uint64_t c = 0;
+		while ( Gdec->getNext(P) )
+		{
+			assert ( P == LV[c] );
+			c += 1;
+		}
+		assert ( c == n );
+
+		Gdec.reset();
+
+		uint64_t vsum = 0;
+		for ( uint64_t i = 0; i < n; ++i )
+		{
+			libmaus2::gamma::GammaIntervalDecoder::unique_ptr_type Tdec(
+				new libmaus2::gamma::GammaIntervalDecoder(std::vector<std::string>(1,fn),vsum));
+			Gdec = UNIQUE_PTR_MOVE(Tdec);
+
+			bool const ok = Gdec->getNext(P);
+			assert ( ok );
+			assert ( P == LV[i] );
+
+			Gdec.reset();
+
+			vsum += LV[i].second-LV[i].first;
+		}
+
+		vsum = 0;
+		for ( uint64_t i = 0; i < n; ++i )
+		{
+			uint64_t const w = LV[i].second-LV[i].first;
+
+			for ( uint64_t j = 0; j < w; ++j )
+			{
+				libmaus2::gamma::GammaIntervalDecoder::unique_ptr_type Tdec(
+					new libmaus2::gamma::GammaIntervalDecoder(std::vector<std::string>(1,fn),vsum+j));
+				Gdec = UNIQUE_PTR_MOVE(Tdec);
+
+				bool const ok = Gdec->getNext(P);
+				assert ( ok );
+				assert ( P == LV[i] );
+
+				Gdec.reset();
+			}
+
+			vsum += LV[i].second-LV[i].first;
+		}
+	}
+}
+
 int main()
 {
 	try
 	{
 		srand(time(0));
 
+		testintervalsingle();
 		testpartitionsingle();
 
 		testRandom2(256*1024*1024);
