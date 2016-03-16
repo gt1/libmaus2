@@ -69,6 +69,124 @@ int main(int argc, char * argv[])
 		libmaus2::random::Random::setup();
 
 		{
+			std::string const a = "AGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAT";
+
+			for ( uint64_t seedposa = 0; seedposa < a.size(); ++seedposa )
+				for ( uint64_t seedposb = 0; seedposb < a.size(); ++seedposb )
+				{
+					libmaus2::lcs::NNP nnp;
+					libmaus2::lcs::NNPTraceContainer tracecontainer;
+					nnp.align(
+						a.begin(),
+						a.end(),
+						seedposa,
+						a.begin(),
+						a.end(),
+						seedposb,
+						tracecontainer,
+						true // self check
+					);
+
+					std::pair<uint64_t,uint64_t> const SL = tracecontainer.getStringLengthUsed();
+
+					libmaus2::lcs::AlignmentTraceContainer ATC;
+					tracecontainer.computeTrace(ATC);
+					std::cerr << ATC.traceToString() << std::endl;
+
+					#if 0
+					libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
+						a.end()-SL.first,
+						SL.first,
+						a.end()-SL.second,
+						SL.second,
+						80,
+						ATC.ta,
+						ATC.te
+					);
+					#endif
+				}
+
+			return 0;
+		}
+
+		#if 0
+		{
+			libmaus2::lcs::NNP nnp;
+			libmaus2::lcs::NNPTraceContainer tracecontainer;
+
+			std::string const a = "AGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAT";
+
+			// reverse
+			nnp.align<std::string::const_iterator,false>(
+				a.begin(),
+				a.end()-3,
+				a.begin(),
+				a.end(),
+				tracecontainer,
+				-2,
+				std::numeric_limits<int64_t>::max(),
+				true
+			);
+
+			std::pair<uint64_t,uint64_t> const SL = tracecontainer.getStringLengthUsed();
+
+			libmaus2::lcs::AlignmentTraceContainer ATC;
+			tracecontainer.computeTrace(ATC);
+			std::cerr << ATC.traceToString() << std::endl;
+
+			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
+				a.end()-3-SL.first,
+				SL.first,
+				a.end()-SL.second,
+				SL.second,
+				80,
+				ATC.ta,
+				ATC.te
+			);
+
+			//return 0;
+		}
+
+		{
+			libmaus2::lcs::NNP nnp;
+			libmaus2::lcs::NNPTraceContainer tracecontainer;
+
+			std::string const a = "AGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAT";
+
+			// reverse
+			nnp.align<std::string::const_iterator,false>(
+				a.begin(),
+				a.end(),
+				a.begin(),
+				a.end()-3,
+				tracecontainer,
+				std::numeric_limits<int64_t>::min(),
+				2,
+				true
+			);
+
+			std::pair<uint64_t,uint64_t> const SL = tracecontainer.getStringLengthUsed();
+
+			libmaus2::lcs::AlignmentTraceContainer ATC;
+			tracecontainer.computeTrace(ATC);
+			std::cerr << ATC.traceToString() << std::endl;
+
+			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
+				a.end()-SL.first,
+				SL.first,
+				a.end()-3-SL.second,
+				SL.second,
+				80,
+				ATC.ta,
+				ATC.te
+			);
+
+			return 0;
+		}
+		#endif
+
+
+		{
 			libmaus2::lcs::NP al;
 
 			char const * a = "AAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGATAAGAT";
@@ -93,6 +211,43 @@ int main(int argc, char * argv[])
 
 			//return 0;
 		}
+
+		{
+			libmaus2::lcs::NNP nnp;
+			libmaus2::lcs::NNPTraceContainer tracecontainer;
+
+			std::string const a = "AGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAAT";
+			std::string const b = "AGATAGATAGATAGATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAAT";
+
+			nnp.align(
+				a.begin(),
+				a.end(),
+				b.begin(),
+				b.end(),
+				tracecontainer,
+				-3,
+				std::numeric_limits<int64_t>::max()
+			);
+
+			std::pair<uint64_t,uint64_t> const SL = tracecontainer.getStringLengthUsed();
+
+			libmaus2::lcs::AlignmentTraceContainer ATC;
+			tracecontainer.computeTrace(ATC);
+			std::cerr << ATC.traceToString() << std::endl;
+
+			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
+				a.begin(),
+				SL.first,
+				b.begin(),
+				SL.second,
+				80,
+				ATC.ta,
+				ATC.te
+			);
+
+			return 0;
+		}
+
 
 		{
 			libmaus2::lcs::NNP nnp;
