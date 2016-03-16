@@ -18,8 +18,10 @@
 #if ! defined(LIBMAUS2_LCS_NNP_HPP)
 #define LIBMAUS2_LCS_NNP_HPP
 
+#include <libmaus2/lcs/NNPAlignResult.hpp>
+#include <libmaus2/lcs/NNPTraceContainer.hpp>
+#include <libmaus2/lcs/NNPTraceElement.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
-#include <libmaus2/lcs/BaseConstants.hpp>
 #include <libmaus2/lcs/AlignmentTraceContainer.hpp>
 #include <libmaus2/rank/popcnt.hpp>
 #include <cstdlib>
@@ -28,132 +30,12 @@ namespace libmaus2
 {
 	namespace lcs
 	{
-		struct NNPTraceElement
+		struct NNP
 		{
-			libmaus2::lcs::BaseConstants::step_type step;
-			int32_t slide;
-			int32_t parent;
+			typedef NNP this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			NNPTraceElement(
-				libmaus2::lcs::BaseConstants::step_type rstep = libmaus2::lcs::BaseConstants::STEP_RESET,
-				int32_t rslide = 0,
-				int32_t rparent = -1
-			) : step(rstep), slide(rslide), parent(rparent)
-			{
-			}
-		};
-
-		struct NNPTraceContainer
-		{
-			libmaus2::autoarray::AutoArray<NNPTraceElement> Atrace;
-			int64_t traceid;
-			uint64_t otrace;
-
-			NNPTraceContainer() : traceid(-1), otrace(0)
-			{}
-
-			void reset()
-			{
-				traceid = -1;
-				otrace = 0;
-			}
-
-			template<bool forward = true>
-			static void computeTrace(libmaus2::autoarray::AutoArray<NNPTraceElement> const & Atrace, int64_t const traceid, libmaus2::lcs::AlignmentTraceContainer & ATC)
-			{
-				uint64_t reserve = 0;
-				for ( int64_t curtraceid = traceid ; curtraceid >= 0; curtraceid = Atrace[curtraceid].parent )
-				{
-					switch ( Atrace[curtraceid].step )
-					{
-						case libmaus2::lcs::BaseConstants::STEP_INS:
-						case libmaus2::lcs::BaseConstants::STEP_DEL:
-						case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
-							reserve += 1;
-							break;
-						default:
-							break;
-					}
-					reserve += Atrace[curtraceid].slide;
-				}
-
-				if ( ATC.capacity() < reserve )
-					ATC.resize(reserve);
-				ATC.reset();
-
-				// std::cerr << "reserve " << reserve << std::endl;
-
-				if ( forward )
-				{
-					for ( int64_t curtraceid = traceid ; curtraceid >= 0; curtraceid = Atrace[curtraceid].parent )
-					{
-						for ( int64_t i = 0; i < Atrace[curtraceid].slide; ++i )
-							*(--ATC.ta) = libmaus2::lcs::BaseConstants::STEP_MATCH;
-
-						switch ( Atrace[curtraceid].step )
-						{
-							case libmaus2::lcs::BaseConstants::STEP_INS:
-							case libmaus2::lcs::BaseConstants::STEP_DEL:
-							case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
-								*(--ATC.ta) = Atrace[curtraceid].step;
-								break;
-							default:
-								break;
-						}
-					}
-
-					assert ( ATC.ta >= ATC.trace.begin() );
-
-					#if 0
-					std::cerr << "here" << std::endl;
-					std::cerr << ATC.getStringLengthUsed().first << std::endl;
-					std::cerr << ATC.getStringLengthUsed().second << std::endl;
-					#endif
-				}
-				else
-				{
-					ATC.ta -= reserve;
-
-					BaseConstants::step_type * tc = ATC.ta;
-
-					for ( int64_t curtraceid = traceid ; curtraceid >= 0; curtraceid = Atrace[curtraceid].parent )
-					{
-						for ( int64_t i = 0; i < Atrace[curtraceid].slide; ++i )
-							*(tc++) = libmaus2::lcs::BaseConstants::STEP_MATCH;
-
-						switch ( Atrace[curtraceid].step )
-						{
-							case libmaus2::lcs::BaseConstants::STEP_INS:
-							case libmaus2::lcs::BaseConstants::STEP_DEL:
-							case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
-								*(tc++) = Atrace[curtraceid].step;
-								break;
-							default:
-								break;
-						}
-					}
-
-					ATC.te = tc;
-
-					#if 0
-					std::cerr << "here" << std::endl;
-					std::cerr << ATC.getStringLengthUsed().first << std::endl;
-					std::cerr << ATC.getStringLengthUsed().second << std::endl;
-					#endif
-
-				}
-			}
-
-			template<bool forward = true>
-			void computeTrace(libmaus2::lcs::AlignmentTraceContainer & ATC) const
-			{
-				computeTrace(Atrace,traceid,ATC);
-			}
-
-		};
-
-		struct NNP : public libmaus2::lcs::BaseConstants
-		{
 			typedef int32_t score_type;
 			typedef int32_t offset_type;
 
@@ -174,7 +56,6 @@ namespace libmaus2
 					return score == o.score && offset == o.offset && id == o.id && evec == o.evec;
 				}
 			};
-
 
 			libmaus2::autoarray::AutoArray<DiagElement> Acontrol;
 			DiagElement * control;
@@ -303,6 +184,7 @@ namespace libmaus2
 					);
 				#endif
 			}
+
 
 			template<typename iterator, bool forward = true>
 			void align(
@@ -681,8 +563,41 @@ namespace libmaus2
 				#endif
 
 				tracecontainer.otrace = otrace;
+
+				if ( ! forward )
+					tracecontainer.reverse();
 			}
 
+
+			template<typename iterator>
+			NNPAlignResult align(
+				iterator ab, iterator ae, uint64_t seedposa, iterator bb, iterator be, uint64_t seedposb,
+				NNPTraceContainer & tracecontainer
+			)
+			{
+				tracecontainer.reset();
+
+				// run backward alignment from seedpos
+				align<iterator,false>(ab,ab+seedposa,bb,bb+seedposb,tracecontainer);
+				int64_t const revroot = tracecontainer.traceid;
+				std::pair<uint64_t,uint64_t> const SLF = tracecontainer.getStringLengthUsed();
+
+				// run forward alignment from seedpos
+				align<iterator,true>(ab+seedposa,ae,bb+seedposb,be,tracecontainer);
+				int64_t const forroot = tracecontainer.traceid;
+				std::pair<uint64_t,uint64_t> const SLR = tracecontainer.getStringLengthUsed();
+
+				// concatenate traces
+				tracecontainer.traceid = tracecontainer.concat(revroot,forroot);
+
+				// count number of errors
+				uint64_t const dif = tracecontainer.getNumDif();
+				uint64_t const abpos = seedposa - SLF.first;
+				uint64_t const bbpos = seedposb - SLF.second;
+				uint64_t const aepos = seedposa + SLR.first;
+				uint64_t const bepos = seedposb + SLR.second;
+				return NNPAlignResult(abpos,aepos,bbpos,bepos,dif);
+			}
 		};
 	}
 }

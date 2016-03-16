@@ -242,7 +242,10 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/fastx/DNAIndexMetaDataBigBand.cpp \
 	libmaus2/fastx/DNAIndexMetaDataBigBandBiDir.cpp \
 	libmaus2/lcs/EnvelopeFragment.cpp \
-	libmaus2/rank/DNARankBiDirRange.cpp 
+	libmaus2/rank/DNARankBiDirRange.cpp \
+	libmaus2/lcs/NNPTraceElement.cpp \
+	libmaus2/lcs/NNPTraceContainer.cpp \
+	libmaus2/lcs/NNPAlignResult.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1789,6 +1792,9 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/BandedAlignerFactory.hpp \
 	libmaus2/lcs/NP.hpp \
 	libmaus2/lcs/NNP.hpp \
+	libmaus2/lcs/NNPTraceElement.hpp \
+	libmaus2/lcs/NNPTraceContainer.hpp \
+	libmaus2/lcs/NNPAlignResult.hpp \
 	libmaus2/lcs/DalignerNP.hpp \
 	libmaus2/lcs/DalignerLocalAlignment.hpp \
 	libmaus2/lcs/FragmentEnvelopeYScore.hpp \
@@ -1801,7 +1807,6 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16_def.hpp \
 	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16_undef.hpp \
 	libmaus2/lcs/SimdX86GlobalAlignmentScoreConstants256.hpp
-									
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp
