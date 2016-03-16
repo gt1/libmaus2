@@ -1179,6 +1179,39 @@ namespace libmaus2
 				return std::pair<uint64_t,uint64_t>(apos,bpos);
 			}
 
+			template<typename iterator>
+			static bool checkAlignment(step_type const * ta, step_type const * te, iterator a, iterator b)
+			{
+				bool ok = true;
+
+				for ( step_type const * tc = ta; tc != te; ++tc )
+				{
+					switch ( *tc )
+					{
+						case STEP_MATCH:
+							ok = ok && (*a == *b);
+							a += 1;
+							b += 1;
+							break;
+						case STEP_MISMATCH:
+							ok = ok && (*a != *b);
+							a += 1;
+							b += 1;
+							break;
+						case STEP_INS:
+							b += 1;
+							break;
+						case STEP_DEL:
+							a += 1;
+							break;
+						case STEP_RESET:
+							break;
+					}
+				}
+
+				return ok;
+			}
+
 			std::vector < std::pair<uint64_t,uint64_t> > getTracePoints() const
 			{
 				uint64_t apos = 0, bpos = 0;
