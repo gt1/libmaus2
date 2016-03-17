@@ -50,16 +50,10 @@ libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::
 	return UNIQUE_PTR_MOVE(UP);
 }
 
-libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::constructFromUtf8File(std::string const & fn, uint64_t const rblocksize)
+libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::constructFromUtf8File(std::string const & fn, uint64_t const rblocksize, uint64_t const numthreads)
 {
 	uint64_t const fs = ::libmaus2::util::GetFileSize::getFileSize(fn);
 
-
-	#if defined(_OPENMP)
-	uint64_t const numthreads = omp_get_max_threads();
-	#else
-	uint64_t const numthreads = 1;
-	#endif
 	uint64_t const numparts = 1024*numthreads;
 	uint64_t const bblocksize = (fs + numparts-1)/numparts;
 	uint64_t const numbblocks = (fs + bblocksize-1)/bblocksize;
@@ -114,7 +108,7 @@ libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::
 	}
 
 	#if defined(_OPENMP)
-	#pragma omp parallel for
+	#pragma omp parallel for num_threads(numthreads)
 	#endif
 	for ( int64_t b = 0; b < static_cast<int64_t>(numbblocks); ++b )
 	{
@@ -151,7 +145,7 @@ libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::
 	::libmaus2::autoarray::AutoArray<uint64_t> blockstarts(numblocks+1,false);
 
 	#if defined(_OPENMP)
-	#pragma omp parallel for
+	#pragma omp parallel for num_threads(numthreads)
 	#endif
 	for ( int64_t b = 0; b < static_cast<int64_t>(numbblocks); ++b )
 	{

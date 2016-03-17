@@ -39,29 +39,29 @@ namespace libmaus2
 		struct InPlaceParallelSort
 		{
 			template<typename iterator>
-			static void parallelreverse(iterator a, iterator e)
+			static void parallelreverse(iterator a, iterator e, uint64_t const numthreads)
 			{
 				uint64_t const n = e-a;
 				int64_t const l = n/2;
 				iterator e1 = e-1;
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( int64_t i = 0; i < l; ++i )
 					std::swap(a[i],e1[-i]);
 			}
 
 			template<typename iterator>
-			static void parallelblockswap(iterator a,  iterator m, iterator e)
+			static void parallelblockswap(iterator a,  iterator m, iterator e, uint64_t const numthreads)
 			{
-				parallelreverse(a,m);
-				parallelreverse(m,e);
-				parallelreverse(a,e);
+				parallelreverse(a,m,numthreads);
+				parallelreverse(m,e,numthreads);
+				parallelreverse(a,e,numthreads);
 			}
 
 			template<typename copy_type>
-			static void blockswap(void * pa, void * pb, uint64_t const s)
+			static void blockswap(void * pa, void * pb, uint64_t const s, uint64_t const numthreads)
 			{
 				static uint64_t const parthres = 4096;
 
@@ -88,7 +88,7 @@ namespace libmaus2
 				else
 				{
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t i = 0; i < static_cast<int64_t>(full); ++i )
 						std::swap(ca[i],cb[i]);
@@ -103,7 +103,7 @@ namespace libmaus2
 			}
 
 			template<typename copy_type>
-			static void blockswap(void * vpa, uint64_t s, uint64_t t)
+			static void blockswap(void * vpa, uint64_t s, uint64_t t, uint64_t const numthreads)
 			{
 				uint8_t * pa = reinterpret_cast<uint8_t *>(vpa);
 
@@ -111,14 +111,14 @@ namespace libmaus2
 				{
 					if ( s <= t )
 					{
-						blockswap<copy_type>(pa,pa+s,s);
+						blockswap<copy_type>(pa,pa+s,s,numthreads);
 						pa += s;
 						t -= s;
 					}
 					else // if ( t < s )
 					{
 						uint8_t * pe = pa+s+t;
-						blockswap<copy_type>(pe-2*t,pe-t,t);
+						blockswap<copy_type>(pe-2*t,pe-t,t,numthreads);
 						s -= t;
 					}
 				}
@@ -262,7 +262,8 @@ namespace libmaus2
 				uint64_t const s,
 				uint64_t const t,
 				order_type order,
-				base_sort & basesort
+				base_sort & basesort,
+				uint64_t const numthreads
 			)
 			{
 				if ( (!s) || (!t) )
@@ -326,12 +327,13 @@ namespace libmaus2
 					parallelblockswap(
 						p+l0,
 						p+l0+l1,
-						p+l0+l1+r0);
+						p+l0+l1+r0,
+						numthreads);
 
 					// std::cerr << "l1=" << l1 << " r0=" << r0 << std::endl;
 
-					mergestepRec(p,l0,r0,order,basesort);
-					mergestepRec(p+l0+r0,l1,r1,order,basesort);
+					mergestepRec(p,l0,r0,order,basesort,numthreads);
+					mergestepRec(p+l0+r0,l1,r1,order,basesort,numthreads);
 				}
 			}
 
@@ -344,7 +346,8 @@ namespace libmaus2
 				base_sort & basesort,
 				int const level,
 				int const levelthres,
-				std::vector< MergeStepRecSerialRequest<iterator,order_type,base_sort> > & reqvec
+				std::vector< MergeStepRecSerialRequest<iterator,order_type,base_sort> > & reqvec,
+				uint64_t const numthreads
 			)
 			{
 				if ( (!s) || (!t) )
@@ -408,12 +411,13 @@ namespace libmaus2
 					parallelblockswap(
 						p+l0,
 						p+l0+l1,
-						p+l0+l1+r0);
+						p+l0+l1+r0,
+						numthreads);
 
 					// std::cerr << "l1=" << l1 << " r0=" << r0 << std::endl;
 
-					mergestepRecLevel(p,l0,r0,order,basesort,level+1,levelthres,reqvec);
-					mergestepRecLevel(p+l0+r0,l1,r1,order,basesort,level+1,levelthres,reqvec);
+					mergestepRecLevel(p,l0,r0,order,basesort,level+1,levelthres,reqvec,numthreads);
+					mergestepRecLevel(p+l0+r0,l1,r1,order,basesort,level+1,levelthres,reqvec,numthreads);
 				}
 			}
 
@@ -423,19 +427,20 @@ namespace libmaus2
 				uint64_t const s,
 				uint64_t const t,
 				order_type order,
-				base_sort & basesort
+				base_sort & basesort,
+				uint64_t const numthreads
 			)
 			{
-				mergestepRec(p,s,t,order,basesort);
+				mergestepRec(p,s,t,order,basesort,numthreads);
 				basesort.flush();
 			}
 
 			template<typename iterator, typename base_sort>
-			static void mergestep(iterator p, uint64_t const s, uint64_t const t, base_sort & basesort)
+			static void mergestep(iterator p, uint64_t const s, uint64_t const t, base_sort & basesort, uint64_t const numthreads)
 			{
 				typedef typename ::std::iterator_traits<iterator>::value_type value_type;
 				typedef std::less<value_type> order_type;
-				mergestepRec<iterator,order_type>(p,s,t,order_type(),basesort);
+				mergestepRec<iterator,order_type>(p,s,t,order_type(),basesort,numthreads);
 				basesort.flush();
 			}
 
@@ -506,9 +511,10 @@ namespace libmaus2
 				MergePackage * const qa;
 				MergePackage *       qc;
 				MergePackage * const qe;
+				uint64_t const numthreads;
 
-				ParallelFixedSizeBaseSort(uint64_t const rthres, uint64_t const rqsize)
-				: thres(rthres), Q(rqsize,false), qa(Q.begin()), qc(qa), qe(Q.end()) {}
+				ParallelFixedSizeBaseSort(uint64_t const rthres, uint64_t const rqsize, uint64_t const rnumthreads)
+				: thres(rthres), Q(rqsize,false), qa(Q.begin()), qc(qa), qe(Q.end()), numthreads(rnumthreads) {}
 
 				bool operator()(iterator p, uint64_t const s, uint64_t const t, order_type order)
 				{
@@ -532,7 +538,7 @@ namespace libmaus2
 					int64_t const f = qc-qa;
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for schedule(dynamic,1)
+					#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 					#endif
 					for ( int64_t i = 0; i < f; ++i )
 					{
@@ -550,7 +556,8 @@ namespace libmaus2
 				iterator a,
 				iterator e,
 				order_type order,
-				base_sort & basesort
+				base_sort & basesort,
+				uint64_t const numthreads
 			)
 			{
 				uint64_t const n = e-a;
@@ -563,7 +570,7 @@ namespace libmaus2
 				uint64_t const b = (n+s0-1)/s0;
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for schedule(dynamic,1)
+				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 				#endif
 				for ( int64_t i = 0; i < static_cast<int64_t>(b); ++i )
 				{
@@ -586,7 +593,7 @@ namespace libmaus2
 						uint64_t const low1 = high0;
 						uint64_t const high1 = std::min(low1+s,n);
 
-						mergestep(a+low0,high0-low0,high1-low1,order,basesort);
+						mergestep(a+low0,high0-low0,high1-low1,order,basesort,numthreads);
 					}
 				}
 			}
@@ -596,7 +603,8 @@ namespace libmaus2
 				iterator a,
 				iterator e,
 				order_type order,
-				base_sort & basesort
+				base_sort & basesort,
+				uint64_t const numthreads
 			)
 			{
 				uint64_t const n = e-a;
@@ -609,7 +617,7 @@ namespace libmaus2
 				uint64_t const b = (n+s0-1)/s0;
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for schedule(dynamic,1)
+				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 				#endif
 				for ( int64_t i = 0; i < static_cast<int64_t>(b); ++i )
 				{
@@ -639,12 +647,12 @@ namespace libmaus2
 						while ( (1ull<<levelthres) < packsperthread*t )
 							++levelthres;
 
-						mergestepRecLevel(a+low0,high0-low0,high1-low1,order,basesort,0,levelthres,reqvec);
+						mergestepRecLevel(a+low0,high0-low0,high1-low1,order,basesort,0,levelthres,reqvec,numthreads);
 
 						// std::cerr << "Calling dispatch for " << reqvec.size() << std::endl;
 
 						#if defined(_OPENMP)
-						#pragma omp parallel for schedule(dynamic,1)
+						#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 						#endif
 						for ( int64_t i = 0; i < static_cast<int64_t>(reqvec.size()); ++i )
 							reqvec[i].dispatch();
@@ -654,21 +662,21 @@ namespace libmaus2
 
 
 			template<typename iterator>
-			static void inplacesort(iterator a, iterator e)
+			static void inplacesort(iterator a, iterator e, uint64_t const numthreads)
 			{
 				typedef typename ::std::iterator_traits<iterator>::value_type value_type;
 				typedef std::less<value_type> order_type;
-				ParallelFixedSizeBaseSort<iterator, order_type > basesort(512*1024, 4096);
-				inplacesort(a,e,order_type(),basesort);
+				ParallelFixedSizeBaseSort<iterator, order_type > basesort(512*1024, 4096,numthreads);
+				inplacesort(a,e,order_type(),basesort,numthreads);
 			}
 
 			template<typename iterator>
-			static void inplacesort2(iterator a, iterator e)
+			static void inplacesort2(iterator a, iterator e, uint64_t const numthreads)
 			{
 				typedef typename ::std::iterator_traits<iterator>::value_type value_type;
 				typedef std::less<value_type> order_type;
 				FixedSizeBaseSort basesort(512*1024);
-				inplacesort2(a,e,order_type(),basesort);
+				inplacesort2(a,e,order_type(),basesort,numthreads);
 			}
 
 		};

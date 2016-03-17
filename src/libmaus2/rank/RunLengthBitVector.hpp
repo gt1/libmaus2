@@ -81,13 +81,13 @@ namespace libmaus2
 				return (n+blocksize-1) / blocksize;
 			}
 
-			double getAvgBlockBitLength() const
+			double getAvgBlockBitLength(uint64_t const numthreads) const
 			{
 				uint64_t const nb = getNumBlocks();
 				libmaus2::parallel::SynchronousCounter<uint64_t> cnt;
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( int64_t b = 0; b < static_cast<int64_t>(nb); ++b )
 					cnt += getBlockBitLength(b);
@@ -159,19 +159,14 @@ namespace libmaus2
 				}
 			}
 
-			libmaus2::util::Histogram::unique_ptr_type getRunLengthHistogram() const
+			libmaus2::util::Histogram::unique_ptr_type getRunLengthHistogram(uint64_t const numthreads) const
 			{
 				uint64_t const nb = getNumBlocks();
-				#if defined(_OPENMP)
-				uint64_t const numthreads = omp_get_max_threads();
-				#else
-				uint64_t const numthreads = 1;
-				#endif
 
 				libmaus2::util::HistogramSet HS(numthreads,256);
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( int64_t b = 0; b < static_cast<int64_t>(nb); ++b )
 					#if defined(_OPENMP)

@@ -221,7 +221,7 @@ namespace libmaus2
 			}
 
 			template<typename stream_type>
-			uint64_t createFinalStream(stream_type & out)
+			uint64_t createFinalStream(stream_type & out, uint64_t const numthreads)
 			{
 				// add padding bit
 				for ( uint64_t i = 0; i < H.inner(); ++i )
@@ -243,7 +243,7 @@ namespace libmaus2
 				std::vector<std::string> concatTempFileNames(H.inner());
 				::libmaus2::autoarray::AutoArray<uint64_t> wordsv(H.inner());
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( int64_t i = 0; i < static_cast<int64_t>(H.inner()); ++i )
 				{
@@ -371,11 +371,11 @@ namespace libmaus2
 				return p;
 			}
 
-			void createFinalStream(std::string const & filename)
+			void createFinalStream(std::string const & filename, uint64_t const numthreads)
 			{
 				libmaus2::aio::OutputStream::unique_ptr_type Postr(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(filename));
 				std::ostream & ostr = *Postr;
-				createFinalStream(ostr);
+				createFinalStream(ostr,numthreads);
 				ostr.flush();
 				Postr.reset();
 			}

@@ -39,6 +39,8 @@ void testBin()
 {
 	for ( uint64_t n = 1; n <= 14; ++n )
 	{
+		uint64_t const numthreads = 1;
+		bool const verbose = false;
 		// unsigned int const n = 10;
 		typedef ::libmaus2::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int64_t *,int64_t const *,256,false /* parallel */> sort_type;
 		::libmaus2::autoarray::AutoArray<int64_t> SA(n+1,false);
@@ -82,7 +84,7 @@ void testBin()
 				::libmaus2::lf::LF,
 				::libmaus2::fm::SimpleSampledSA< ::libmaus2::lf::LF >,
 				::libmaus2::fm::SampledISA< ::libmaus2::lf::LF >
-			>::writeSuccinctLCP(LF,SISA,PhiLCP,oout,MTFC);
+			>::writeSuccinctLCP(LF,SISA,PhiLCP,oout,MTFC,numthreads,verbose);
 
 			std::istringstream iin(oout.str());
 			::libmaus2::lcp::SuccinctLCP<

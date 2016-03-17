@@ -75,14 +75,8 @@ namespace libmaus2
 				return libmaus2::rank::PopCnt8<sizeof(long)>::popcnt8(((~(wmask | (wmask>>1))) & 0x5555555555555555ULL)&omask);
 			}
 
-			void testFromRunLength(std::vector<std::string> const & rl) const
+			void testFromRunLength(std::vector<std::string> const & rl, uint64_t const numthreads) const
 			{
-				#if defined(_OPENMP)
-				uint64_t const numthreads = omp_get_max_threads();
-				#else
-				uint64_t const numthreads = 1;
-				#endif
-
 				// total number of blocks
 				uint64_t const numblocks = (n + getDataBasesPerBlock() - 1)/getDataBasesPerBlock();
 				// blocks per thread
@@ -102,7 +96,7 @@ namespace libmaus2
 
 				std::cerr << "checking...";
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( int64_t t = 0; t < numpacks; ++t )
 				{
@@ -129,7 +123,7 @@ namespace libmaus2
 
 				libmaus2::autoarray::AutoArray<char> C(n,false);
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( int64_t t = 0; t < numpacks; ++t )
 				{
@@ -207,7 +201,7 @@ namespace libmaus2
 
 				std::cerr << "[V] Checking select...";
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( int64_t t = 0; t < numpacks; ++t )
 				{
@@ -554,15 +548,9 @@ namespace libmaus2
 			/**
 			 * test searching for all k-mers
 			 **/
-			void testSearch(unsigned int k) const
+			void testSearch(unsigned int k, uint64_t const numthreads) const
 			{
 				uint64_t const lim = 1ull << (getLogSigma()*k);
-
-				#if defined(_OPENMP)
-				uint64_t const numthreads = omp_get_max_threads();
-				#else
-				uint64_t const numthreads = 1;
-				#endif
 
 				libmaus2::autoarray::AutoArray<libmaus2::autoarray::AutoArray<char > > AC(numthreads);
 				libmaus2::autoarray::AutoArray<libmaus2::autoarray::AutoArray<char > > AD(numthreads);
@@ -576,7 +564,7 @@ namespace libmaus2
 				libmaus2::parallel::PosixSpinLock cerrlock;
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for schedule(dynamic,1)
+				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 				#endif
 				for ( uint64_t z = 0; z < lim; ++z )
 				{
@@ -729,24 +717,13 @@ namespace libmaus2
 				return l;
 			}
 
-			static unique_ptr_type loadFromRunLength(std::string const & rl, uint64_t const numthreads = getDefaultThreads())
+			static unique_ptr_type loadFromRunLength(std::string const & rl, uint64_t const numthreads)
 			{
 				unique_ptr_type tptr(loadFromRunLength(std::vector<std::string>(1,rl),numthreads));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 
-			static uint64_t getDefaultThreads()
-			{
-				#if defined(_OPENMP)
-				uint64_t const numthreads = omp_get_max_threads();
-				#else
-				uint64_t const numthreads = 1;
-				#endif
-
-				return numthreads;
-			}
-
-			static unique_ptr_type loadFromRunLength(std::vector<std::string> const & rl, uint64_t const numthreads = getDefaultThreads())
+			static unique_ptr_type loadFromRunLength(std::vector<std::string> const & rl, uint64_t const numthreads)
 			{
 				unique_ptr_type P(new this_type);
 

@@ -83,7 +83,9 @@ namespace libmaus2
 			ReadEndsBlockDecoderBaseCollectionCountSmallerLongAccessor const countLongAccessor;
 
 			static std::vector<ReadEndsBlockDecoderBaseCollectionInfo> constructInfo(
-				std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase> const & rinfo, bool const parallelSetup
+				std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase> const & rinfo,
+				bool const parallelSetup,
+				uint64_t const numthreads
 			)
 			{
 				std::vector<ReadEndsBlockDecoderBaseCollectionInfo> info(rinfo.size());
@@ -91,7 +93,7 @@ namespace libmaus2
 				if ( parallelSetup )
 				{
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( uint64_t i = 0; i < rinfo.size(); ++i )
 						info[i] = ReadEndsBlockDecoderBaseCollectionInfo(rinfo[i]);
@@ -107,8 +109,9 @@ namespace libmaus2
 
 			ReadEndsBlockDecoderBaseCollection(
 				std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase> const & rinfo,
-				bool const parallelSetup = false
-			) : info(constructInfo(rinfo,parallelSetup)),
+				bool const parallelSetup,
+				uint64_t const numthreads
+			) : info(constructInfo(rinfo,parallelSetup,numthreads)),
 			    numblocks(computeNumBlocks()),
 			    Adecoders(numblocks,false),
 			    countShortAccessor(this),
@@ -684,7 +687,7 @@ namespace libmaus2
 					std::cerr << "checking...";
 					for ( uint64_t i = 0; (i+1) < numthreads; ++i )
 					{
-						this_type col(rinfo);
+						this_type col(rinfo,false /* par */,1 /* numthreads */);
 
 						::libmaus2::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[i];
 						::libmaus2::bambam::ReadEnds::hash_value_type const splithigh = splitPoints[i+1];
@@ -703,7 +706,7 @@ namespace libmaus2
 
 					if ( numthreads )
 					{
-						this_type col(rinfo);
+						this_type col(rinfo,false /* par */,1 /* numthreads */);
 
 						::libmaus2::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[numthreads-1];
 
@@ -1097,7 +1100,7 @@ namespace libmaus2
 					std::cerr << "checking...";
 					for ( uint64_t i = 0; (i+1) < numthreads; ++i )
 					{
-						this_type col(rinfo);
+						this_type col(rinfo,false /* par */, 1 /* numthreads */);
 
 						::libmaus2::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[i];
 						::libmaus2::bambam::ReadEnds::hash_value_type const splithigh = splitPoints[i+1];
@@ -1116,7 +1119,7 @@ namespace libmaus2
 
 					if ( numthreads )
 					{
-						this_type col(rinfo);
+						this_type col(rinfo,false /* par */, 1 /* numthreads */);
 
 						::libmaus2::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[numthreads-1];
 

@@ -128,9 +128,9 @@ namespace libmaus2
 				return UNIQUE_PTR_MOVE(ptr);
 			}
 
-			static unique_ptr_type load(std::string const & filename)
+			static unique_ptr_type load(std::string const & filename, uint64_t const numthreads)
 			{
-				unique_ptr_type ptr(new this_type(filename));
+				unique_ptr_type ptr(new this_type(filename,numthreads));
 				return UNIQUE_PTR_MOVE(ptr);
 			}
 
@@ -139,8 +139,8 @@ namespace libmaus2
 			{
 			}
 
-			ImpCompactHuffmanWaveletLFTemplate(std::string const & filename)
-			: W(wt_type::load(filename)), n(W->n), n0((n && W->haveSymbol(0)) ? W->rank(0,n-1) : 0), D(computeD())
+			ImpCompactHuffmanWaveletLFTemplate(std::string const & filename, uint64_t const numthreads)
+			: W(wt_type::load(filename,numthreads)), n(W->n), n0((n && W->haveSymbol(0)) ? W->rank(0,n-1) : 0), D(computeD())
 			{
 			}
 

@@ -70,17 +70,17 @@ namespace libmaus2
                                 lfrev.reset(0);
                         }
 
-                        bitio::CompactArray::unique_ptr_type toTextCompact() const
+                        bitio::CompactArray::unique_ptr_type toTextCompact(uint64_t const numthreads = 1) const
                         {
                                 bitio::CompactArray::unique_ptr_type text ( new bitio::CompactArray(lf->getN(),lf->getB()) );
 
                                 uint64_t const minoffset = text->minparoffset();
 
-                #if defined(_OPENMP)
+                                #if defined(_OPENMP)
                                 uint64_t const blocksize = std::max ( minoffset , static_cast<uint64_t>(1024*1024) );
-                #else
+                                #else
                                 uint64_t const blocksize = lf->getN();
-                #endif
+                                #endif
 
                                 std::cerr << "extracting text";
 
@@ -88,9 +88,9 @@ namespace libmaus2
                                 uint64_t blocksfinished = 0;
                                 int64_t const numblocks = static_cast<int64_t>((lf->getN() + blocksize-1)/blocksize);
 
-                #if defined(_OPENMP)
-                #pragma omp parallel for
-                #endif
+                                #if defined(_OPENMP)
+                                #pragma omp parallel for num_threads(numthreads)
+                                #endif
                                 for ( int64_t block = 0; block < numblocks; ++block )
                                 {
                                         uint64_t const low = block * blocksize;
@@ -293,9 +293,10 @@ namespace libmaus2
                         {
                                 #if 0
                                 std::cerr << "Checking phi function on LF...";
-                #if defined(_OPENMP)
-                #pragma omp parallel for
-                #endif
+		                #if defined(_OPENMP)
+		                uint64_t const numthreads = 1;
+		                #pragma omp parallel for num_threads(numthreads)
+		                #endif
                                 for ( unsigned int r = 0; r < getN(); ++r )
                                         assert ( lf->phi(r) == getISA((getSA(r) + 1) % getN()) );
                                 std::cerr << "done." << std::endl;
@@ -335,9 +336,10 @@ namespace libmaus2
                         {
                                 #if 0
                                 std::cerr << "Checking phi function on LF...";
-                #if defined(_OPENMP)
-                #pragma omp parallel for
-                #endif
+                                #if defined(_OPENMP)
+                                uint64_t const numthreads = 1;
+                                #pragma omp parallel for num_threads(numthreads)
+                                #endif
                                 for ( unsigned int r = 0; r < getN(); ++r )
                                         assert ( lf->phi(r) == getISA((getSA(r) + 1) % getN()) );
                                 std::cerr << "done." << std::endl;
@@ -384,11 +386,11 @@ namespace libmaus2
                                 return true;
                         }
 
-                        void checkLCP()
+                        void checkLCP(uint64_t const numthreads = 1)
                         {
-                #if defined(_OPENMP)
-                #pragma omp parallel for
-                #endif
+                        	#if defined(_OPENMP)
+                        	#pragma omp parallel for num_threads(numthreads)
+                        	#endif
                                 for ( uint64_t r = 1; r < getN(); ++r )
                                 {
                                         uint64_t i = getSA(r-1);

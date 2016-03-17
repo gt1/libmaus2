@@ -188,7 +188,7 @@ namespace libmaus2
 
 					#if defined(ARRAY864DEBUG)
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t i = 0; i < static_cast<int64_t>(n); ++i )
 						assert ( (*this)[i] == a[i] );

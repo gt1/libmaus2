@@ -22,11 +22,14 @@
 #include <libmaus2/wavelet/toWaveletTreeBits.hpp>
 #include <libmaus2/random/Random.hpp>
 #include <libmaus2/timing/RealTimeClock.hpp>
+#include <libmaus2/parallel/NumCpus.hpp>
 
 int main()
 {
 	try
 	{
+		uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
+
 		for ( uint64_t q = 0; q < 100; ++q )
 		{
 			uint64_t const n = ::libmaus2::random::Random::rand64() % (10*1024*1024) + 1;
@@ -48,11 +51,11 @@ int main()
 
 			::libmaus2::timing::RealTimeClock rtc;
 			rtc.start();
-			::libmaus2::autoarray::AutoArray<uint64_t> WC = ::libmaus2::wavelet::toWaveletTreeBits(C.get());
+			::libmaus2::autoarray::AutoArray<uint64_t> WC = ::libmaus2::wavelet::toWaveletTreeBits(C.get(),false /* verbose */);
 			std::cerr << ", time=" << rtc.getElapsedSeconds() << std::endl;
 
 			rtc.start();
-			::libmaus2::autoarray::AutoArray<uint64_t> WD = ::libmaus2::wavelet::toWaveletTreeBitsParallel(D.get());
+			::libmaus2::autoarray::AutoArray<uint64_t> WD = ::libmaus2::wavelet::toWaveletTreeBitsParallel(D.get(),false,numthreads);
 			std::cerr << ", time=" << rtc.getElapsedSeconds() << std::endl;
 
 			assert ( WC.getN() == WD.getN() );

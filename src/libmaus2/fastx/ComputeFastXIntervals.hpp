@@ -32,11 +32,13 @@ namespace libmaus2
 		{
 			static std::vector< ::libmaus2::fastx::FastInterval > computeFastXIntervals(
 				std::vector<std::string> const & filenames,
-				uint64_t const indexstep = 512ull*1024ull,
-				std::ostream & logfile = std::cerr)
+				uint64_t const indexstep, /* = 512ull*1024ull, */
+				std::ostream & logfile,
+				uint64_t const numthreads
+			)
 			{
 				#if defined(_OPENMP)
-				#pragma omp parallel for schedule(dynamic,1)
+				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 				#endif
 				for ( int64_t i = 0; i < static_cast<int64_t>(filenames.size()); ++i )
 					reader_type::buildIndex(filenames[i],indexstep);

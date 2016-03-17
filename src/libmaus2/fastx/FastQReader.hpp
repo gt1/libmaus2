@@ -743,7 +743,10 @@ namespace libmaus2
                          **/
                         static std::vector<FastInterval> parallelIndex(
                         	std::vector<std::string> const & filenames, uint64_t const fracs,
-                        	uint64_t const mod = 1, bool const verbose = false)
+                        	uint64_t const mod /* = 1 */,
+                        	bool const verbose /* = false */,
+                        	uint64_t const numthreads
+			)
                         {
                                 std::string hash;
                                 bool const havehash = ::libmaus2::util::MD5::md5(filenames,fracs,hash);
@@ -769,7 +772,7 @@ namespace libmaus2
                                         if ( verbose )
                                         	std::cerr << "Searching " << fracs << " frac starts...";
                                         #if defined(_OPENMP)
-                                        #pragma omp parallel for schedule(dynamic,1)
+                                        #pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
                                         #endif
                                         for ( int64_t i = 0; i < static_cast<int64_t>(fracs); ++i )
                                                 fracstarts[i] = searchNextStart(filenames,i*fracsize);
@@ -793,7 +796,7 @@ namespace libmaus2
                                         if ( verbose )
                                         	std::cerr << "Counting patterns...";
                                         #if defined(_OPENMP)
-                                        #pragma omp parallel for schedule(dynamic,1)
+                                        #pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
                                         #endif
                                         for ( int64_t i = 1; i < static_cast<int64_t>(fracstarts.size()); ++i )
                                         	intlen.at(i-1) = countPatternsInInterval(filenames,fracstarts.at(i-1),fracstarts.at(i));
@@ -859,7 +862,7 @@ namespace libmaus2
 
 					#if 0
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t i = 0; i < static_cast<int64_t>(FIV.size()); ++i )
 					{
@@ -984,12 +987,12 @@ namespace libmaus2
                                 }
                         }
 
-                        static std::vector<FastInterval> buildIndex(std::vector < std::string > const & filenames, uint64_t const steps = 1)
+                        static std::vector<FastInterval> buildIndex(std::vector < std::string > const & filenames, uint64_t const steps /* = 1 */, uint64_t const numthreads)
                         {
                                 std::vector < std::vector < FastInterval > > subintervalvec(filenames.size());
 
                                 #if defined(_OPENMP)
-                                #pragma omp parallel for
+                                #pragma omp parallel for num_threads(numthreads)
                                 #endif
                                 for ( int64_t i = 0; i < static_cast<int64_t>(filenames.size()); ++i )
                                         subintervalvec[i] = buildIndex(filenames[i], steps);
@@ -1034,14 +1037,14 @@ namespace libmaus2
 			        return UNIQUE_PTR_MOVE(Phist);
 			}
 
-			static ::libmaus2::util::Histogram::unique_ptr_type getHistogram(std::vector<std::string> const & filenames, std::vector<FastInterval> const & rinterval)
+			static ::libmaus2::util::Histogram::unique_ptr_type getHistogram(std::vector<std::string> const & filenames, std::vector<FastInterval> const & rinterval, uint64_t const numthreads)
 			{
 			        ::libmaus2::util::Histogram::unique_ptr_type Phist(new ::libmaus2::util::Histogram());
 			        ::libmaus2::util::Histogram & hist = *Phist;
 			        ::libmaus2::parallel::OMPLock lock;
 
                                 #if defined(_OPENMP)
-                                #pragma omp parallel for schedule(dynamic,1)
+                                #pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
                                 #endif
                                 for ( int64_t i = 0; i < static_cast<int64_t>(rinterval.size()); ++i )
                                 {

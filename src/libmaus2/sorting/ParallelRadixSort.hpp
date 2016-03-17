@@ -55,31 +55,26 @@ namespace libmaus2
 			static void radixSort(::libmaus2::autoarray::AutoArray<data_type> & AA, u_int64_t n, key_projector const & K, int const inumthreads = -1)
 			{
 				data_type * const A = AA.get();
-		#if defined(_OPENMP)
-				unsigned int const maxthreads = omp_get_max_threads();
-				if ( inumthreads > 0 )
-					omp_set_num_threads(inumthreads);
-				if ( single_thread )
-					omp_set_num_threads(1);
-				unsigned int const numthreads = omp_get_max_threads();
-		#else
+				#if defined(_OPENMP)
+				unsigned int numthreads = single_thread ? 1 : (inumthreads <= 0 ? omp_get_max_threads() : inumthreads);
+				#else
 				unsigned int const numthreads = 1;
-		#endif
+				#endif
 				::libmaus2::autoarray::AutoArray < u_int64_t > Ahist0(3 * numthreads * histsize,false);
 
 				u_int64_t * const ghist0 = Ahist0.get();
 				u_int64_t * const ghist1 = ghist0 + numthreads * histsize;
 				u_int64_t * const ghist2 = ghist1 + numthreads * histsize;
 
-		#if defined(_OPENMP)
-		#pragma omp parallel
-		#endif
+				#if defined(_OPENMP)
+				#pragma omp parallel num_threads(numthreads)
+				#endif
 				{
-		#if defined(_OPENMP)
+					#if defined(_OPENMP)
 					unsigned int const threadid = omp_get_thread_num();
-		#else
+					#else
 					unsigned int const threadid = 0;
-		#endif
+					#endif
 					u_int64_t * const hist0 = ghist0 + threadid * histsize;
 					u_int64_t * const hist1 = ghist1 + threadid * histsize;
 					u_int64_t * const hist2 = ghist2 + threadid * histsize;
@@ -116,15 +111,15 @@ namespace libmaus2
 					}
 				}
 
-		#if defined(_OPENMP)
-		#pragma omp parallel
-		#endif
+				#if defined(_OPENMP)
+				#pragma omp parallel num_threads(numthreads)
+				#endif
 				{
-		#if defined(_OPENMP)
+					#if defined(_OPENMP)
 					unsigned int const threadid = omp_get_thread_num();
-		#else
+					#else
 					unsigned int const threadid = 0;
-		#endif
+					#endif
 					u_int64_t const vpert = (histsize + (numthreads-1))/numthreads;
 					u_int64_t const vlow = threadid * vpert;
 					u_int64_t const vhigh = (vlow+vpert) < histsize ? (vlow+vpert):histsize;
@@ -149,15 +144,15 @@ namespace libmaus2
 
 				::libmaus2::autoarray::AutoArray<data_type> T(n,false);
 
-		#if defined(_OPENMP)
-		#pragma omp parallel
-		#endif
+				#if defined(_OPENMP)
+				#pragma omp parallel num_threads(numthreads)
+				#endif
 				{
-		#if defined(_OPENMP)
+					#if defined(_OPENMP)
 					unsigned int const threadid = omp_get_thread_num();
-		#else
+					#else
 					unsigned int const threadid = 0;
-		#endif
+					#endif
 					u_int64_t const vpert = (histsize + (numthreads-1))/numthreads;
 					u_int64_t const vlow = threadid * vpert;
 					u_int64_t const vhigh = (vlow+vpert)<histsize ? (vlow+vpert):histsize;
@@ -176,9 +171,9 @@ namespace libmaus2
 							T[ ++ghist0[k]  ] = A[i];
 						}
 					}
-		#if defined(_OPENMP)
-		#pragma omp barrier
-		#endif
+					#if defined(_OPENMP)
+					#pragma omp barrier
+					#endif
 					for ( u_int64_t i = 0; i < n; ++i )
 					{
 						key_type const k = mask1(T[i],K);
@@ -191,9 +186,9 @@ namespace libmaus2
 						else
 								A[ ++ghist1[k]  ] = T[i];
 					}
-		#if defined(_OPENMP)
-		#pragma omp barrier
-		#endif
+					#if defined(_OPENMP)
+					#pragma omp barrier
+					#endif
 					for ( u_int64_t i = 0; i < n; ++i )
 					{
 						key_type const k = mask2(A[i],K);
@@ -209,13 +204,6 @@ namespace libmaus2
 				}
 
 				AA = T;
-
-		#if defined(_OPENMP)
-				if ( (single_thread) || (inumthreads > 0) )
-				{
-					omp_set_num_threads(maxthreads);
-				}
-		#endif
 			}
 		};
 
@@ -259,16 +247,11 @@ namespace libmaus2
 				int inumthreads = -1)
 			{
 				data_type * const A = AA.get();
-		#if defined(_OPENMP)
-				unsigned int const maxthreads = omp_get_max_threads( );
-				if ( inumthreads > 0 )
-					omp_set_num_threads(inumthreads);
-				if ( single_thread )
-					omp_set_num_threads(1);
-				unsigned int const numthreads = omp_get_max_threads();
-		#else
+				#if defined(_OPENMP)
+				unsigned int numthreads = single_thread ? 1 : (inumthreads <= 0 ? omp_get_max_threads() : inumthreads);
+				#else
 				unsigned int const numthreads = 1;
-		#endif
+				#endif
 				::libmaus2::autoarray::AutoArray < u_int64_t > Ahist0(6 * numthreads * histsize,false);
 
 				u_int64_t * const ghist0 = Ahist0.get();
@@ -278,15 +261,15 @@ namespace libmaus2
 				u_int64_t * const ghist4 = ghist3 + numthreads * histsize;
 				u_int64_t * const ghist5 = ghist4 + numthreads * histsize;
 
-		#if defined(_OPENMP)
-		#pragma omp parallel
-		#endif
+				#if defined(_OPENMP)
+				#pragma omp parallel num_threads(numthreads)
+				#endif
 				{
-		#if defined(_OPENMP)
+					#if defined(_OPENMP)
 					unsigned int const threadid = omp_get_thread_num();
-		#else
+					#else
 					unsigned int const threadid = 0;
-		#endif
+					#endif
 					u_int64_t * const hist0 = ghist0 + threadid * histsize;
 					u_int64_t * const hist1 = ghist1 + threadid * histsize;
 					u_int64_t * const hist2 = ghist2 + threadid * histsize;
@@ -341,15 +324,15 @@ namespace libmaus2
 					}
 				}
 
-		#if defined(_OPENMP)
-		#pragma omp parallel
-		#endif
+				#if defined(_OPENMP)
+				#pragma omp parallel num_threads(numthreads)
+				#endif
 				{
-		#if defined(_OPENMP)
+					#if defined(_OPENMP)
 					unsigned int const threadid = omp_get_thread_num();
-		#else
+					#else
 					unsigned int const threadid = 0;
-		#endif
+					#endif
 					u_int64_t const vpert = (histsize + (numthreads-1))/numthreads;
 					u_int64_t const vlow = threadid * vpert;
 					u_int64_t const vhigh = (vlow+vpert) < histsize ? (vlow+vpert):histsize;
@@ -380,15 +363,15 @@ namespace libmaus2
 
 				::libmaus2::autoarray::AutoArray<data_type> T(n,false);
 
-		#if defined(_OPENMP)
-		#pragma omp parallel
-		#endif
+				#if defined(_OPENMP)
+				#pragma omp parallel num_threads(numthreads)
+				#endif
 				{
-		#if defined(_OPENMP)
+					#if defined(_OPENMP)
 					unsigned int const threadid = omp_get_thread_num();
-		#else
+					#else
 					unsigned int const threadid = 0;
-		#endif
+					#endif
 					u_int64_t const vpert = (histsize + (numthreads-1))/numthreads;
 					u_int64_t const vlow = threadid * vpert;
 					u_int64_t const vhigh = (vlow+vpert)<histsize ? (vlow+vpert):histsize;
@@ -407,9 +390,9 @@ namespace libmaus2
 							T[ ++ghist0[k]  ] = A[i];
 						}
 					}
-		#if defined(_OPENMP)
-		#pragma omp barrier
-		#endif
+					#if defined(_OPENMP)
+					#pragma omp barrier
+					#endif
 					for ( u_int64_t i = 0; i < n; ++i )
 					{
 						key_type const k = mask1(T[i],K);
@@ -422,9 +405,9 @@ namespace libmaus2
 						else
 								A[ ++ghist1[k]  ] = T[i];
 					}
-		#if defined(_OPENMP)
-		#pragma omp barrier
-		#endif
+					#if defined(_OPENMP)
+					#pragma omp barrier
+					#endif
 					for ( u_int64_t i = 0; i < n; ++i )
 					{
 						key_type const k = mask2(A[i],K);
@@ -437,9 +420,9 @@ namespace libmaus2
 						else
 								T[ ++ghist2[k]  ] = A[i];
 					}
-		#if defined(_OPENMP)
-		#pragma omp barrier
-		#endif
+					#if defined(_OPENMP)
+					#pragma omp barrier
+					#endif
 					for ( u_int64_t i = 0; i < n; ++i )
 					{
 						key_type const k = mask3(T[i],K);
@@ -452,9 +435,9 @@ namespace libmaus2
 						else
 								A[ ++ghist3[k]  ] = T[i];
 					}
-		#if defined(_OPENMP)
-		#pragma omp barrier
-		#endif
+					#if defined(_OPENMP)
+					#pragma omp barrier
+					#endif
 					for ( u_int64_t i = 0; i < n; ++i )
 					{
 						key_type const k = mask4(A[i],K);
@@ -467,9 +450,9 @@ namespace libmaus2
 						else
 								T[ ++ghist4[k]  ] = A[i];
 					}
-		#if defined(_OPENMP)
-		#pragma omp barrier
-		#endif
+					#if defined(_OPENMP)
+					#pragma omp barrier
+					#endif
 					for ( u_int64_t i = 0; i < n; ++i )
 					{
 						key_type const k = mask5(T[i],K);
@@ -483,13 +466,6 @@ namespace libmaus2
 								A[ ++ghist5[k]  ] = T[i];
 					}
 				}
-
-		#if defined(_OPENMP)
-				if ( (single_thread) || (inumthreads > 0) )
-				{
-					omp_set_num_threads(maxthreads);
-				}
-		#endif
 			}
 
 		};

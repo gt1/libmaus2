@@ -66,7 +66,10 @@ namespace libmaus2
 
 
 			template<typename lf_type>
-			static WaveletLCPResult::unique_ptr_type computeLCP(lf_type const * LF, bool const zdif = true)
+			static WaveletLCPResult::unique_ptr_type computeLCP(
+				lf_type const * LF,
+				uint64_t const numthreads,
+				bool const zdif /* = true */)
 			{
 				uint64_t const n = LF->getN();
 				WaveletLCPResult::small_elem_type const unset = std::numeric_limits< WaveletLCPResult::small_elem_type>::max();
@@ -151,7 +154,7 @@ namespace libmaus2
 					::libmaus2::autoarray::AutoArray < ::libmaus2::suffixsort::CompactQueue::DequeContext::unique_ptr_type > deqcontexts = PQ0->getContextList(numcontexts);
 
 					#if defined(_OPENMP) && defined(LIBMAUS2_HAVE_SYNC_OPS)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(num_threads)
 					#endif
 					for ( int64_t c = 0; c < static_cast<int64_t>(deqcontexts.size()); ++c )
 					{

@@ -245,7 +245,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/rank/DNARankBiDirRange.cpp \
 	libmaus2/lcs/NNPTraceElement.cpp \
 	libmaus2/lcs/NNPTraceContainer.cpp \
-	libmaus2/lcs/NNPAlignResult.cpp
+	libmaus2/lcs/NNPAlignResult.cpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeGapRequest.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1631,6 +1632,18 @@ libmaus2suffixsort_include_HEADERS=\
 	libmaus2/suffixsort/BwtMergeBlockSortRequestBase.hpp \
 	libmaus2/suffixsort/BwtMergeBlockSortRequest.hpp \
 	libmaus2/suffixsort/SmallestRotation.hpp
+
+libmaus2suffixsortbwtb3m_includedir=$(includedir)/libmaus2/suffixsort/bwtb3m
+libmaus2suffixsortbwtb3m_include_HEADERS=\
+	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeGapRequestQueryObject.hpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyBlock.hpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyBaseBlock.hpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeGapRequest.hpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeBlock.hpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeInternalBlock.hpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeInternalSmallBlock.hpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeExternalBlock.hpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyConstruction.hpp
 
 libmaus2suffixtree_includedir=$(includedir)/libmaus2/suffixtree
 libmaus2suffixtree_include_HEADERS=\

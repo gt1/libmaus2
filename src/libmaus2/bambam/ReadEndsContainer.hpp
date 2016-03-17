@@ -583,7 +583,9 @@ namespace libmaus2
 
 				ReadEndsBlockDecoderBaseCollection<true>::unique_ptr_type tptr(
 					new ReadEndsBlockDecoderBaseCollection<true>(
-						std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase>(1,getMergeInfo())
+						std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase>(1,getMergeInfo()),
+						false /* parallel */,
+						1 /* num threads */
 					)
 				);
 
@@ -596,7 +598,9 @@ namespace libmaus2
 
 				ReadEndsBlockDecoderBaseCollection<false>::unique_ptr_type tptr(
 					new ReadEndsBlockDecoderBaseCollection<false>(
-						std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase>(1,getMergeInfo())
+						std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase>(1,getMergeInfo()),
+						false /* parallel */,
+						1 /* num threads */
 					)
 				);
 

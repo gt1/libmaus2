@@ -318,15 +318,9 @@ namespace libmaus2
 			}
 
 			// compute run length histogram for run length values stored in file given by name
-			static libmaus2::util::Histogram::unique_ptr_type getRunLengthHistogram(std::string const & filename)
+			static libmaus2::util::Histogram::unique_ptr_type getRunLengthHistogram(std::string const & filename, uint64_t const numthreads)
 			{
 				libmaus2::huffman::IndexDecoderData IDD(filename);
-
-				#if defined(_OPENMP)
-				uint64_t const numthreads = omp_get_max_threads();
-				#else
-				uint64_t const numthreads = 1;
-				#endif
 
 				libmaus2::util::HistogramSet HS(numthreads,256);
 
@@ -335,7 +329,7 @@ namespace libmaus2
 				uint64_t const numpacks = ( numentries + entriesperthread - 1 ) / entriesperthread;
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( int64_t t = 0; t < static_cast<int64_t>(numpacks); ++t )
 				{
@@ -422,17 +416,12 @@ namespace libmaus2
 				std::string const & filename,
 				std::string const & outputfilename,
 				std::string const & tmpprefix, int64_t const minsym, int64_t const maxsym,
+				uint64_t const numthreads,
 				std::ostream * verbout = 0
 			)
 			{
 				libmaus2::parallel::SynchronousCounter<uint64_t> o_cnt;
 				libmaus2::huffman::IndexDecoderData IDD(filename);
-
-				#if defined(_OPENMP)
-				uint64_t const numthreads = omp_get_max_threads();
-				#else
-				uint64_t const numthreads = 1;
-				#endif
 
 				libmaus2::autoarray::AutoArray<libmaus2::aio::OutputStream::unique_ptr_type> Afiles(numthreads);
 				std::vector<std::string> Vfn;
@@ -453,7 +442,7 @@ namespace libmaus2
 				unsigned int const verbshift = 10;
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( int64_t t = 0; t < static_cast<int64_t>(numpacks); ++t )
 				{
@@ -588,17 +577,12 @@ namespace libmaus2
 				std::string const & outputfilename,
 				std::string const & tmpprefix, int64_t const minsym, int64_t const maxsym,
 				uint64_t const tnumpacks,
+				uint64_t const numthreads,
 				std::ostream * verbout = 0
 			)
 			{
 				libmaus2::parallel::SynchronousCounter<uint64_t> o_cnt;
 				libmaus2::huffman::IndexDecoderData IDD(filename);
-
-				#if defined(_OPENMP)
-				uint64_t const numthreads = omp_get_max_threads();
-				#else
-				uint64_t const numthreads = 1;
-				#endif
 
 				libmaus2::autoarray::AutoArray<libmaus2::aio::OutputStream::unique_ptr_type> Afiles(numthreads);
 				std::vector<std::string> Vfn;
@@ -622,7 +606,7 @@ namespace libmaus2
 				libmaus2::parallel::PosixSpinLock Plmexlock;
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( int64_t t = 0; t < static_cast<int64_t>(numpacks); ++t )
 				{

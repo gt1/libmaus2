@@ -56,7 +56,10 @@ namespace libmaus2
 			std::string serialise() const;
 
 			static unique_ptr_type constructFromSerialised(std::string const & fn);
-			static unique_ptr_type constructFromUtf8File(std::string const & fn, uint64_t const rblocksize = 16ull*1024ull);
+			static unique_ptr_type constructFromUtf8File(std::string const & fn,
+				uint64_t const rblocksize, /*  = 16ull*1024ull */
+				uint64_t const numthreads
+			);
 		};
 	}
 }

@@ -230,7 +230,7 @@ namespace libmaus2
 			}
 
 			template<typename ostream_type>
-			uint64_t createFinalStreamTemplate(ostream_type & out)
+			uint64_t createFinalStreamTemplate(ostream_type & out, uint64_t const numthreads)
 			{
 				for ( uint64_t i = 0; i < B.size(); ++i )
 					B[i]->flush(i+1==B.size());
@@ -257,7 +257,7 @@ namespace libmaus2
 				 * concatenate partial bit streams for each tree node
 				 */
 				#if defined(_OPENMP)
-				#pragma omp parallel for schedule(dynamic,1)
+				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 				#endif
 				for ( int64_t i = 0; i < static_cast<int64_t>(numnodes); ++i )
 				{
@@ -357,11 +357,11 @@ namespace libmaus2
 				return p;
 			}
 
-			void createFinalStream(std::string const & filename)
+			void createFinalStream(std::string const & filename, uint64_t const numthreads)
 			{
 				libmaus2::aio::OutputStream::unique_ptr_type Postr(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(filename));
 				libmaus2::aio::OutputStream & out = *Postr;
-				createFinalStreamTemplate< libmaus2::aio::OutputStream >(out);
+				createFinalStreamTemplate< libmaus2::aio::OutputStream >(out,numthreads);
 				out.flush();
 				Postr.reset();
 			}
