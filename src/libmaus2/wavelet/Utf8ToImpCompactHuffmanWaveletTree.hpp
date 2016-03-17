@@ -38,6 +38,11 @@ namespace libmaus2
 	{
 		struct Utf8ToImpCompactHuffmanWaveletTree
 		{
+			static uint64_t getDefaultTPartSizeMax()
+			{
+				return 1024ull*1024ull;
+			}
+
 			struct ImpWaveletStackElement
 			{
 				uint64_t bleft;
@@ -70,7 +75,6 @@ namespace libmaus2
 				uint64_t const numthreads
 			)
 			{
-				// ::libmaus2::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
 				::libmaus2::util::TempFileRemovalContainer::setup();
 
 				libmaus2::huffman::HuffmanTree::unique_ptr_type pH;
@@ -1134,13 +1138,14 @@ namespace libmaus2
 				}
 			}
 
+
 			template<typename rl_decoder, bool radixsort>
 			static void constructWaveletTreeFromRl(
 				std::string const & fn, std::string const & outputfilename,
 				std::string const & tmpfilenamebase,
 				libmaus2::huffman::HuffmanTree const & H,
-				uint64_t const tpartsizemax = 1024ull*1024ull,
-				uint64_t const numthreads = ::libmaus2::parallel::OMPNumThreadsScope::getMaxThreads()
+				uint64_t const tpartsizemax, // = getDefaultTPartSizeMax(),
+				uint64_t const numthreads // = ::libmaus2::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
 				if ( H.root()-H.leafs() != 0 )
@@ -1674,8 +1679,8 @@ namespace libmaus2
 				::libmaus2::huffman::HuffmanTree const & H,
 				uint64_t const termrank,
 				uint64_t const bwtterm,
-				uint64_t const tpartsizemax = 1024ull*1024ull,
-				uint64_t const numthreads = ::libmaus2::parallel::OMPNumThreadsScope::getMaxThreads()
+				uint64_t const tpartsizemax, // = getDefaultTPartSizeMax(),
+				uint64_t const numthreads // = ::libmaus2::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
 				// check tree order

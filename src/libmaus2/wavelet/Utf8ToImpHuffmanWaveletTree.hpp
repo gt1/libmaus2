@@ -1096,16 +1096,20 @@ namespace libmaus2
 				}
 			}
 
+			static uint64_t getDefaultTPartSizeMax()
+			{
+				return 1024*1024;
+			}
+
 			template<typename rl_decoder, bool radixsort>
 			static void constructWaveletTreeFromRl(
 				std::string const & fn, std::string const & outputfilename,
 				std::string const & tmpfilenamebase,
 				::libmaus2::huffman::HuffmanTreeNode const * htree,
-				uint64_t const tpartsizemax = 1024ull*1024ull,
-				uint64_t const numthreads = ::libmaus2::parallel::OMPNumThreadsScope::getMaxThreads()
+				uint64_t const tpartsizemax, // = 1024ull*1024ull,
+				uint64_t const numthreads // = ::libmaus2::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
-				// ::libmaus2::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
 				::libmaus2::util::TempFileRemovalContainer::setup();
 
 				::libmaus2::huffman::EncodeTable<1> ET(htree);
@@ -1616,12 +1620,11 @@ namespace libmaus2
 				::libmaus2::huffman::HuffmanTreeNode const * htree,
 				uint64_t const termrank,
 				uint64_t const bwtterm,
-				uint64_t const tpartsizemax = 1024ull*1024ull,
-				uint64_t const numthreads = ::libmaus2::parallel::OMPNumThreadsScope::getMaxThreads()
+				uint64_t const tpartsizemax, // = 1024ull*1024ull,
+				uint64_t const numthreads // = ::libmaus2::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
 				libmaus2::parallel::OMPLock cerrlock;
-				// ::libmaus2::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
 				::libmaus2::util::TempFileRemovalContainer::setup();
 
 				::libmaus2::huffman::EncodeTable<1> ET(htree);
