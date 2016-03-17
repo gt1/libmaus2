@@ -1646,7 +1646,9 @@ libmaus2suffixsortbwtb3m_include_HEADERS=\
 	libmaus2/suffixsort/bwtb3m/MergeStrategyConstruction.hpp \
 	libmaus2/suffixsort/bwtb3m/BWTB3MBase.hpp \
 	libmaus2/suffixsort/bwtb3m/BaseBlockSortThread.hpp \
-	libmaus2/suffixsort/bwtb3m/BaseBlockSorting.hpp
+	libmaus2/suffixsort/bwtb3m/BaseBlockSorting.hpp \
+	libmaus2/suffixsort/bwtb3m/BwtMergeSortOptions.hpp \
+	libmaus2/suffixsort/bwtb3m/BwtMergeSortTemplate.hpp
 
 libmaus2suffixtree_includedir=$(includedir)/libmaus2/suffixtree
 libmaus2suffixtree_include_HEADERS=\
