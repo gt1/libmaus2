@@ -64,11 +64,11 @@ namespace libmaus2
 				return S;
 			}
 
-			BidirectionalDnaIndexTemplate(std::string const & rdictname)
+			BidirectionalDnaIndexTemplate(std::string const & rdictname, uint64_t const numthreads)
 			: dictname(rdictname),
 			  basename(libmaus2::util::OutputFileNameTools::clipOff(dictname,rank_dictionary_info_type::getDictionaryFileSuffix())),
 			  saname(basename+rank_dictionary_info_type::getSampledSuffixArraySuffix()),
-			  LF(lf_type::load(dictname)),
+			  LF(lf_type::load(dictname,numthreads)),
 			  SA(sa_type::load(LF.get(),saname)),
 			  // symbols(LF->getSymbols())
 			  symbols(computeSymbolVector())
