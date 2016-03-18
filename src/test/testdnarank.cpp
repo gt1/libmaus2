@@ -21,12 +21,15 @@
 #include <libmaus2/huffman/RLEncoder.hpp>
 #include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/wavelet/ImpCompactHuffmanWaveletTree.hpp>
+#include <libmaus2/parallel/NumCpus.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
 		libmaus2::util::ArgParser const arg(argc,argv);
+
+		uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
 
 		{
 			std::string const memfn = "mem://file";
@@ -41,7 +44,7 @@ int main(int argc, char * argv[])
 			for ( uint64_t i = 0; i < n; ++i )
 				assert ( rldec.decode() == static_cast<int>(i&3) );
 			}
-			libmaus2::rank::DNARank::unique_ptr_type Prank(libmaus2::rank::DNARank::loadFromRunLength(memfn));
+			libmaus2::rank::DNARank::unique_ptr_type Prank(libmaus2::rank::DNARank::loadFromRunLength(memfn,numthreads));
 		}
 
 		libmaus2::timing::RealTimeClock rtc;
@@ -50,7 +53,7 @@ int main(int argc, char * argv[])
 		double t;
 
 		std::string const fn = arg[0];
-		libmaus2::rank::DNARank::unique_ptr_type Prank(libmaus2::rank::DNARank::loadFromRunLength(fn));
+		libmaus2::rank::DNARank::unique_ptr_type Prank(libmaus2::rank::DNARank::loadFromRunLength(fn,numthreads));
 
 		std::cerr << "[V] checking extract...";
 		libmaus2::autoarray::AutoArray<char> CC;
@@ -66,12 +69,13 @@ int main(int argc, char * argv[])
 		}
 		std::cerr << "done." << std::endl;
 
-		Prank->testSearch(8);
+		Prank->testSearch(8,numthreads);
 		//return 0;
 		// Prank->testBackwardSearchConsistency(8);
 
 		std::string const hfn = arg[1];
-		libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type hptr(libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(hfn));
+		//uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
+		libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type hptr(libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(hfn,numthreads));
 		libmaus2::autoarray::AutoArray<char> C(Prank->size());
 		#if defined(_OPENMP)
 		#pragma omp parallel for
@@ -184,8 +188,8 @@ int main(int argc, char * argv[])
 		std::cerr << "DNARank access " << Prank->size()/t << std::endl;
 
 		std::string const fn1 = arg[2];
-		libmaus2::rank::DNARankBiDir::unique_ptr_type Pbidir(libmaus2::rank::DNARankBiDir::loadFromRunLength(fn,fn1));
-		Pbidir->testSearch(8);
+		libmaus2::rank::DNARankBiDir::unique_ptr_type Pbidir(libmaus2::rank::DNARankBiDir::loadFromRunLength(fn,fn1,numthreads));
+		Pbidir->testSearch(8,numthreads);
 	}
 	catch(std::exception const & ex)
 	{

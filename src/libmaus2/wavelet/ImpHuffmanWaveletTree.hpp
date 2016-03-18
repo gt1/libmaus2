@@ -293,12 +293,13 @@ namespace libmaus2
 				uint64_t const rn,
 				::libmaus2::util::shared_ptr< ::libmaus2::huffman::HuffmanTreeNode >::type rsroot,
 				uint64_t const numnodes,
-				std::vector<uint64_t> const & rnodepos
+				std::vector<uint64_t> const & rnodepos,
+				uint64_t const numthreads
 			)
 			: n(rn), sroot(rsroot), dicts(numnodes), root(0), enctable(sroot.get()), maxdepth(0), nodepos(rnodepos)
 			{
 				#if defined(_OPENMP)
-				#pragma omp parallel for schedule(dynamic,1)
+				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 				#endif
 				for ( int64_t i = 0; i < static_cast<int64_t>(dicts.size()); ++i )
 				{
@@ -313,7 +314,7 @@ namespace libmaus2
 			}
 
 			public:
-			static unique_ptr_type load(std::string const & filename)
+			static unique_ptr_type load(std::string const & filename, uint64_t const numthreads)
 			{
 				libmaus2::aio::InputStream::unique_ptr_type Pistr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename));
 				std::istream & in = *Pistr;
@@ -324,7 +325,7 @@ namespace libmaus2
 
 				std::vector<uint64_t> const nodepos = loadIndex(filename);
 
-				unique_ptr_type p ( new this_type(filename,n,sroot,numnodes,nodepos) );
+				unique_ptr_type p ( new this_type(filename,n,sroot,numnodes,nodepos,numthreads) );
 
 				return UNIQUE_PTR_MOVE(p);
 			}

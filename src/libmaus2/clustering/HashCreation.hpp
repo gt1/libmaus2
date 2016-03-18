@@ -409,13 +409,12 @@ namespace libmaus2
 
 			::libmaus2::autoarray::AutoArray<uint64_t> computeHashFrequencies(
 				std::vector<std::string> const & filenames,
-				std::vector< ::libmaus2::fastx::FastInterval> const & V
+				std::vector< ::libmaus2::fastx::FastInterval> const & V,
+				uint64_t const numthreads
 				) const
 			{
 				// mutex for std err and histogram accumulation
 				::libmaus2::parallel::OMPLock cerrlock;
-
-				uint64_t const numthreads = getMaxThreads();
 
 				// typedef typename reader_type::block_type block_type;
 
@@ -424,7 +423,7 @@ namespace libmaus2
 				::libmaus2::autoarray::AutoArray< hashtableptrtype > hashtables(numthreads);
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for schedule(dynamic,1)
+				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 				#endif
 				for ( int64_t h = 0; h < static_cast<int64_t>(numthreads); ++h )
 				{
@@ -433,7 +432,7 @@ namespace libmaus2
 				}
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for schedule(dynamic,1)
+				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 				#endif
 				for ( int64_t zz = 0; zz < static_cast<int64_t>(V.size()); ++zz )
 				{
@@ -953,11 +952,10 @@ namespace libmaus2
 				::libmaus2::util::TempFileNameGenerator * rtmpgen,
 				::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t > > const & HI,
 				std::vector< ::libmaus2::fastx::FastInterval> const & V,
-				std::vector<std::string> const & filenames
+				std::vector<std::string> const & filenames,
+				uint64_t const numthreads
 				) const
 			{
-				uint64_t const numthreads = getMaxThreads();
-
 				::libmaus2::parallel::OMPLock cerrlock;
 
 				typedef ::libmaus2::aio::SynchronousOutputFile8Array output_file_array_type;
@@ -979,7 +977,7 @@ namespace libmaus2
 				}
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for schedule(dynamic,1)
+				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 				#endif
 				for ( int64_t i = 0; i < static_cast<int64_t>(numthreads); ++i )
 				{
@@ -992,8 +990,8 @@ namespace libmaus2
 				 * static scheduling is necessary for Phusion2 compatibility
 				 **/
 				#if defined(_OPENMP)
-				// #pragma omp parallel for schedule(dynamic,1)
-				#pragma omp parallel for schedule(static)
+				// #pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
+				#pragma omp parallel for schedule(static) num_threads(numthreads)
 				#endif
 				for ( int64_t zz = 0; zz < static_cast<int64_t>(V.size()); ++zz )
 				{

@@ -235,11 +235,11 @@ namespace libmaus2
 				rsize += sizeof(symsperblock);
 			}
 
-			void checkSelect() const
+			void checkSelect(uint64_t const numthreads) const
 			{
 				std::cerr << "checking next1na...";
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( int64_t r = 0; r < static_cast<int64_t>(ISS.n1-1); ++r )
 				{
@@ -251,7 +251,7 @@ namespace libmaus2
 
 				std::cerr << "comparing to slower...";
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( int64_t r = 0; r < static_cast<int64_t>(ISS.n1); ++r )
 				{

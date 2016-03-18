@@ -34,6 +34,7 @@
 #include <libmaus2/util/MemUsage.hpp>
 #include <libmaus2/wavelet/Utf8ToImpHuffmanWaveletTree.hpp>
 #include <libmaus2/util/FileTempFileContainer.hpp>
+#include <libmaus2/parallel/NumCpus.hpp>
 
 void testUtf8String(std::string const & fn)
 {
@@ -66,6 +67,8 @@ void testUtf8String(std::string const & fn)
 
 void testUtf8Bwt(std::string const & fn)
 {
+	uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
+
 	::libmaus2::util::Utf8String us(fn);
 
 	typedef ::libmaus2::util::Utf8String::saidx_t saidx_t;
@@ -94,7 +97,7 @@ void testUtf8Bwt(std::string const & fn)
 
 	// load huffman shaped wavelet tree of bwt
 	::libmaus2::wavelet::ImpHuffmanWaveletTree::unique_ptr_type IHWT
-		(::libmaus2::wavelet::ImpHuffmanWaveletTree::load(fn+".hwt"));
+		(::libmaus2::wavelet::ImpHuffmanWaveletTree::load(fn+".hwt",numthreads));
 
 	// check rank counts
 	for ( ::std::map<int64_t,uint64_t>::const_iterator ita = chist.begin(); ita != chist.end(); ++ita )
@@ -173,8 +176,9 @@ void testUtf8Seek(std::string const & fn)
 
 void testUtf8BlockIndexDecoder(std::string const & fn)
 {
+	uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
 	::libmaus2::util::Utf8BlockIndex::unique_ptr_type index =
-		(::libmaus2::util::Utf8BlockIndex::constructFromUtf8File(fn));
+		(::libmaus2::util::Utf8BlockIndex::constructFromUtf8File(fn,16*1024,numthreads));
 
 	std::string const idxfn = fn + ".idx";
 	{
@@ -198,10 +202,11 @@ void testUtf8BlockIndexDecoder(std::string const & fn)
 void testUtf8ToImpHuffmanWaveletTree(std::string const & fn)
 {
 	{
-		::libmaus2::wavelet::Utf8ToImpHuffmanWaveletTree::constructWaveletTree<true>(fn,fn+".hwt");
+		uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
+		::libmaus2::wavelet::Utf8ToImpHuffmanWaveletTree::constructWaveletTree<true>(fn,fn+".hwt",::libmaus2::huffman::HuffmanTreeNode::shared_ptr_type(),numthreads);
 		// load huffman shaped wavelet tree of bwt
 		::libmaus2::wavelet::ImpHuffmanWaveletTree::unique_ptr_type IHWT
-			(::libmaus2::wavelet::ImpHuffmanWaveletTree::load(fn+".hwt"));
+			(::libmaus2::wavelet::ImpHuffmanWaveletTree::load(fn+".hwt",numthreads));
 		::libmaus2::util::Utf8String::shared_ptr_type us = ::libmaus2::util::Utf8String::constructRaw(fn);
 		std::cerr << "checking length " << us->size() << std::endl;
 		for ( uint64_t i = 0; i < us->size(); ++i )
@@ -209,10 +214,12 @@ void testUtf8ToImpHuffmanWaveletTree(std::string const & fn)
 	}
 
 	{
-		::libmaus2::wavelet::Utf8ToImpCompactHuffmanWaveletTree::constructWaveletTree<true>(fn,fn+".hwt");
+		uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
+		libmaus2::huffman::HuffmanTree * H = 0;
+		::libmaus2::wavelet::Utf8ToImpCompactHuffmanWaveletTree::constructWaveletTree<true>(fn,fn+".hwt",H,numthreads);
 		// load huffman shaped wavelet tree of bwt
 		::libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type IHWT
-			(::libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(fn+".hwt"));
+			(::libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(fn+".hwt",numthreads));
 		::libmaus2::util::Utf8String::shared_ptr_type us = ::libmaus2::util::Utf8String::constructRaw(fn);
 		std::cerr << "checking length " << us->size() << "," << IHWT->size() << std::endl;
 		for ( uint64_t i = 0; i < us->size(); ++i )

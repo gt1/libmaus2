@@ -28,6 +28,8 @@
 #include <libmaus2/fastx/SingleWordDNABitBuffer.hpp>
 #include <libmaus2/lcs/NDextend.hpp>
 
+#include <libmaus2/parallel/NumCpus.hpp>
+
 uint64_t countLeafsByTraversal(libmaus2::suffixtree::CompressedSuffixTree const & CST)
 {
 	libmaus2::eta::LinearETA eta(CST.n);
@@ -179,10 +181,12 @@ struct MatchEntryAbsPosComparator
 
 void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & CST, uint64_t const k)
 {
+	uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
+
 	// get text
 	std::cerr << "Decoding text...";
 	libmaus2::autoarray::AutoArray<char> text;
-	uint64_t const textn = CST.extractTextParallel(text);
+	uint64_t const textn = CST.extractTextParallel(text,numthreads);
 	std::cerr << "done." << std::endl;
 
 	std::vector<uint64_t> tpos;
@@ -1104,7 +1108,8 @@ int main(int argc, char * argv[])
 		std::string const lcpname = prefix+".lcp";
 		std::string const rmmname = prefix+".rmm";
 		std::cerr << "Loading suffix tree...";
-		libmaus2::suffixtree::CompressedSuffixTree CST(hwtname,saname,isaname,lcpname,rmmname);
+		uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
+		libmaus2::suffixtree::CompressedSuffixTree CST(hwtname,saname,isaname,lcpname,rmmname,numthreads);
 		std::cerr << "done." << std::endl;
 
 		enumerateMulitpleKMers(CST,24);

@@ -211,7 +211,7 @@ namespace libmaus2
 			}
 		};
 
-		::libmaus2::autoarray::AutoArray<uint64_t> toWaveletTreeBitsParallel(::libmaus2::bitio::CompactArray * C, bool const verbose)
+		::libmaus2::autoarray::AutoArray<uint64_t> toWaveletTreeBitsParallel(::libmaus2::bitio::CompactArray * C, bool const verbose, uint64_t const numthreads)
 		{
 			uint64_t const pn = ((C->n + 63) / 64)*64;
 			::libmaus2::autoarray::AutoArray<uint64_t> B( pn/64 , false );
@@ -250,7 +250,7 @@ namespace libmaus2
 					if ( verbose )
 						std::cerr << "(c01/b";
 #if defined(_OPENMP)
-#pragma omp parallel for schedule(dynamic,1)
+#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 #endif
 					for ( int64_t h = 0; h < static_cast<int64_t>(numpackets); ++h )
 					{
@@ -372,7 +372,7 @@ namespace libmaus2
 					if ( verbose )
 						std::cerr << "(d";
 #if defined(_OPENMP)
-#pragma omp parallel for schedule(dynamic,1)
+#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 #endif
 					for ( int64_t h = 0; h < static_cast<int64_t>(numpackets); ++h )
 					{
@@ -463,7 +463,7 @@ namespace libmaus2
 						std::cerr << "(cb";
 					for ( uint64_t q = 0; q < zpackets.size(); ++q )
 #if defined(_OPENMP)
-#pragma omp parallel for schedule(dynamic,1)
+#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 #endif
 						for ( int64_t j = 0; j < static_cast<int64_t>(zpackets[q].size()); ++j )
 						{
@@ -477,7 +477,7 @@ namespace libmaus2
 
 					for ( uint64_t q = 0; q < opackets.size(); ++q )
 #if defined(_OPENMP)
-#pragma omp parallel for schedule(dynamic,1)
+#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 #endif
 						for ( int64_t j = 0; j < static_cast<int64_t>(opackets[q].size()); ++j )
 						{
@@ -532,7 +532,7 @@ namespace libmaus2
 
 				for ( uint64_t q = 0; q < packets.size(); ++q )
 #if defined(_OPENMP)
-#pragma omp parallel for schedule(dynamic,1)
+#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 #endif
 					for ( int64_t h = 0; h < static_cast<int64_t>(packets[q].size()); ++h )
 					{

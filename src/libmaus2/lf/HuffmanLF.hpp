@@ -170,10 +170,11 @@ namespace libmaus2
 					) );
 				std::cerr << "Constructing Huffman shaped wavelet tree done." << std::endl;
 
+				#if 0
 				std::cerr << "Checking wavelet tree...";
-#if defined(_OPENMP)
-#pragma omp parallel for
-#endif
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
 				for ( int64_t i = 0; i < static_cast<int64_t>(ABWT->n); ++i )
 					assert (
 						static_cast<int>(ABWT->get(i))
@@ -181,6 +182,7 @@ namespace libmaus2
 						(*W)[i]
 					);
 				std::cerr << "done." << std::endl;
+				#endif
 
 				std::cerr << "Computing D...";
 				minsym = W->enctable.minsym;

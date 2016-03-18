@@ -21,10 +21,12 @@
 #include <libmaus2/sorting/ParallelStableSort.hpp>
 #include <libmaus2/random/Random.hpp>
 #include <libmaus2/sorting/InterleavedRadixSort.hpp>
+#include <libmaus2/parallel/NumCpus.hpp>
 
 void testBlockSwapDifferent()
 {
 	uint8_t p[256];
+	uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
 
 	for ( uint64_t s = 0; s <= sizeof(p); ++s )
 	{
@@ -35,7 +37,7 @@ void testBlockSwapDifferent()
 		for ( uint64_t i = s; i < (s+t); ++i )
 			*(pp++) = 0;
 
-		libmaus2::sorting::InPlaceParallelSort::blockswap<uint64_t>(&p[0],s,t);
+		libmaus2::sorting::InPlaceParallelSort::blockswap<uint64_t>(&p[0],s,t,numthreads);
 
 		for ( uint64_t i = 0; i < t; ++i )
 			assert ( p[i] == 0 );
@@ -58,7 +60,8 @@ void testBlockSwap()
 		q[i   ] = (89-i-1);
 	}
 
-	libmaus2::sorting::InPlaceParallelSort::blockswap<uint64_t>(&p[0],&p[0]+89,89);
+	uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
+	libmaus2::sorting::InPlaceParallelSort::blockswap<uint64_t>(&p[0],&p[0]+89,89,numthreads);
 
 	for ( uint64_t i = 0; i < 2*89; ++i )
 	{
@@ -79,7 +82,8 @@ void testblockmerge()
 
 	// TrivialBaseSort TBS;
 	libmaus2::sorting::InPlaceParallelSort::FixedSizeBaseSort TBS(4);
-	libmaus2::sorting::InPlaceParallelSort::mergestep(&A[0],128,128,TBS);
+	uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
+	libmaus2::sorting::InPlaceParallelSort::mergestep(&A[0],128,128,TBS,numthreads);
 
 	for ( uint64_t i = 1; i < sizeof(A)/sizeof(A[0]); ++i )
 		assert ( A[i-1] <= A[i] );
@@ -93,7 +97,7 @@ void testblockmerge()
 	std::reverse(&A[0],&A[128]);
 	std::reverse(&A[128],&A[256]);
 
-	libmaus2::sorting::InPlaceParallelSort::mergestep(&A[0],128,128,std::greater<uint32_t>(),TBS);
+	libmaus2::sorting::InPlaceParallelSort::mergestep(&A[0],128,128,std::greater<uint32_t>(),TBS,numthreads);
 
 	for ( uint64_t i = 1; i < sizeof(A)/sizeof(A[0]); ++i )
 		assert ( A[i-1] >= A[i] );
@@ -119,7 +123,8 @@ void testinplacesort()
 	// FixedSizeBaseSort TBS(32*1024);
 	// TrivialBaseSort TBS;
 	// libmaus2::sorting::InPlaceParallelSort::inplacesort(&A[0],&A[n],std::less<uint32_t>(),TBS);
-	libmaus2::sorting::InPlaceParallelSort::inplacesort(&A[0],&A[n]);
+	uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
+	libmaus2::sorting::InPlaceParallelSort::inplacesort(&A[0],&A[n],numthreads);
 
 	#if 0
 	for ( uint64_t i = 0; i < n; ++i )
@@ -145,7 +150,8 @@ void testinplacesort2()
 	// FixedSizeBaseSort TBS(32*1024);
 	// TrivialBaseSort TBS;
 	// libmaus2::sorting::InPlaceParallelSort::inplacesort(&A[0],&A[n],std::less<uint32_t>(),TBS);
-	libmaus2::sorting::InPlaceParallelSort::inplacesort2(&A[0],&A[n]);
+	uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
+	libmaus2::sorting::InPlaceParallelSort::inplacesort2(&A[0],&A[n],numthreads);
 
 	#if 0
 	for ( uint64_t i = 0; i < n; ++i )
@@ -304,8 +310,6 @@ int main()
 	testParallelSortState(1u<<15);
 	testParallelSortState(1u<<16);
 	testParallelSortState(195911);
-
-	return 0;
 
 	testMultiMerge();
 	testMultiSort();

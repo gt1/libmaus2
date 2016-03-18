@@ -145,7 +145,8 @@ namespace libmaus2
 				lcp_type & LCP,
 				std::ostream & out,
 				libmaus2::util::TempFileContainer & tmpcont,
-				bool const verbose = false
+				uint64_t const numthreads,
+				bool const verbose
 			)
 			{
 				uint64_t const n = LF.getN();
@@ -159,12 +160,6 @@ namespace libmaus2
 				}
 				else
 				{
-					#if defined(_OPENMP)
-					uint64_t const numthreads = omp_get_max_threads();
-					#else
-					uint64_t const numthreads = 1;
-					#endif
-
 					for ( uint64_t i = 0; i < numthreads; ++i )
 						tmpcont.openOutputTempFile(i);
 
@@ -196,7 +191,7 @@ namespace libmaus2
 					bitswritten += (pdif0+1);
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t t = 0; t < static_cast<int64_t>(numthreads); ++t )
 					{
@@ -418,7 +413,8 @@ namespace libmaus2
 				sampled_isa_type const & ISA,
 				uint64_t const n,
 				text_type const & text,
-				bool const verbose = false
+				uint64_t const numthreads,
+				bool const verbose
 			)
 			{
 				::libmaus2::timing::RealTimeClock rtc; rtc.start();
@@ -451,7 +447,7 @@ namespace libmaus2
 					// uint64_t const superwidth = superhigh-superlow;
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t subblock = 0; subblock < static_cast<int64_t>(numsubblocks); ++subblock )
 					{

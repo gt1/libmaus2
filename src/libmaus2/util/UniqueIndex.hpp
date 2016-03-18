@@ -339,7 +339,7 @@ namespace libmaus2
 			};
 
 			template<typename lf_type>
-			static ::libmaus2::util::Array864::unique_ptr_type computeLCP(lf_type const * LF)
+			static ::libmaus2::util::Array864::unique_ptr_type computeLCP(lf_type const * LF, uint64_t const numthreads)
 			{
 				typedef uint32_t lcp_elem_type;
 				uint64_t const n = LF->getN();
@@ -400,17 +400,11 @@ namespace libmaus2
 
 					PQ1->reset();
 
-					#if defined(_OPENMP)
-					uint64_t const numthreads = omp_get_max_threads();
-					#else
-					uint64_t const numthreads = 1;
-					#endif
-
 					uint64_t const numcontexts = numthreads;
 					::libmaus2::autoarray::AutoArray < ::libmaus2::suffixsort::CompactQueue::DequeContext::unique_ptr_type > deqcontexts = PQ0->getContextList(numcontexts);
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t c = 0; c < static_cast<int64_t>(deqcontexts.size()); ++c )
 					{
@@ -510,32 +504,6 @@ namespace libmaus2
 					return dolrank->select1 ( dolrank->rank1(p) );
 			}
 
-			struct ThreadLimit
-			{
-				uint64_t numthreads;
-
-				ThreadLimit(uint64_t const setthreads)
-				:
-					numthreads(
-						#if defined(_OPENMP)
-						omp_get_max_threads()
-						#else
-						1
-						#endif
-					)
-				{
-					#if defined(_OPENMP)
-					omp_set_num_threads(setthreads);
-					#endif
-				}
-				~ThreadLimit()
-				{
-					#if defined(_OPENMP)
-					omp_set_num_threads(numthreads);
-					#endif
-				}
-			};
-
 			void readText(::libmaus2::util::ArgInfo const & arginfo, uint64_t & numc, uint64_t & numsep)
 			{
 				std::cerr << "Counting characters...";
@@ -572,7 +540,7 @@ namespace libmaus2
 			std::string const fsisafilename;
 			std::string const fufilename;
 
-			UniqueIndex2(::libmaus2::util::ArgInfo const & arginfo)
+			UniqueIndex2(::libmaus2::util::ArgInfo const & arginfo, uint64_t const numthreads)
 			: fbwtname("unique2.bwt"), flcpfilename("unique2.lcp"), fprevname("unique2.prev"),
 			  fnextname("unique2.next"), dolvecname("unique2.dolvec"), fsisafilename("unique2.sisa"),
 			  fufilename("unique2.uni")
@@ -623,7 +591,7 @@ namespace libmaus2
 							typedef ::libmaus2::bitio::SignedCompactArray::const_iterator compact_index_const_it;
 							typedef ::libmaus2::bitio::SignedCompactArray::iterator compact_index_it;
 							unsigned int const bitwidth = 64;
-							typedef ::libmaus2::suffixsort::DivSufSort<bitwidth,compact_it,compact_const_it,compact_index_it,compact_index_const_it> compact_index_sort_type;
+							typedef ::libmaus2::suffixsort::DivSufSort<bitwidth,compact_it,compact_const_it,compact_index_it,compact_index_const_it,256,false> compact_index_sort_type;
 
 							if ( (2*numsep+1)+5+1 > compact_index_sort_type::ALPHABET_SIZE )
 							{
@@ -637,10 +605,7 @@ namespace libmaus2
 							compact_index_it cii = CSA->begin();
 							std::cerr << "Running divsufsort on double compact representation using " << CSA->getB() << " bits per position...";
 							::libmaus2::timing::RealTimeClock rtc; rtc.start();
-							{
-								ThreadLimit TL(1); // no multi threading in here
-								compact_index_sort_type::divsufsort(cci, cii, n);
-							}
+							compact_index_sort_type::divsufsort(cci, cii, n);
 							std::cerr << "done, time " << rtc.getElapsedSeconds() << std::endl;
 
 							std::cerr << "Writing SA to disk...";
@@ -687,7 +652,7 @@ namespace libmaus2
 							std::cerr << "Computing sampled inverse suffix array...";
 							SISA = ::libmaus2::autoarray::AutoArray<uint64_t>( (numc+1+sasamplingrate-1)/sasamplingrate,false );
 							#if defined(_OPENMP)
-							#pragma omp parallel for
+							#pragma omp parallel for num_threads(numthreads)
 							#endif
 							for ( int64_t i = 0; i < static_cast<int64_t>(CSA->n); ++i )
 								if ( CSA->get(i) % sasamplingrate == 0 )
@@ -901,7 +866,7 @@ namespace libmaus2
 					U = ::libmaus2::autoarray::AutoArray<uint64_t>(n/2,false);
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t i = 0; i < static_cast<int64_t>(todo.size()); ++i )
 					{
@@ -965,9 +930,9 @@ namespace libmaus2
 		{
 			typedef uint8_t char_type;
 			enum { ALPHABET_SIZE=256 };
-			typedef ::libmaus2::suffixsort::DivSufSort<64,char_type *,char_type const *,int64_t *,int64_t const *,ALPHABET_SIZE> sort_type;
-			typedef ::libmaus2::suffixsort::DivSufSortUtils<64,char_type *,char_type const *,int64_t *,int64_t const *,ALPHABET_SIZE> sort_util_type;
-			typedef ::libmaus2::suffixsort::DivSufSortUtils<64,char_type *,char_type const *,uint32_t *,uint32_t const *,ALPHABET_SIZE> sort_util_post_type;
+			typedef ::libmaus2::suffixsort::DivSufSort<64,char_type *,char_type const *,int64_t *,int64_t const *,ALPHABET_SIZE,false> sort_type;
+			typedef ::libmaus2::suffixsort::DivSufSortUtils<64,char_type *,char_type const *,int64_t *,int64_t const *,ALPHABET_SIZE,false> sort_util_type;
+			typedef ::libmaus2::suffixsort::DivSufSortUtils<64,char_type *,char_type const *,uint32_t *,uint32_t const *,ALPHABET_SIZE,false> sort_util_post_type;
 			typedef sort_type::saidx_t saidx_t;
 
 			typedef UniqueIndex this_type;
@@ -1144,7 +1109,7 @@ namespace libmaus2
 				::libmaus2::autoarray::AutoArray<char_type> BWT(n,false);
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( int64_t i = 0; i < static_cast<int64_t>(n); ++i )
 					BWT[i] = B[i];
@@ -1648,7 +1613,7 @@ namespace libmaus2
 				std::cerr << "Computing forward ISA...";
 				ISA = ::libmaus2::autoarray::AutoArray<uint32_t>(n,false);
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( int64_t r = 0; r < static_cast<int64_t>(n); ++r )
 					ISA[SA[r]] = r;
@@ -1660,7 +1625,7 @@ namespace libmaus2
 				std::cerr << "Computing reverse ISA...";
 				RISA = ::libmaus2::autoarray::AutoArray<uint32_t>(n,false);
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( int64_t r = 0; r < static_cast<int64_t>(n); ++r )
 					RISA[RSA[r]] = r;
@@ -1991,7 +1956,7 @@ namespace libmaus2
 
 			static uint64_t const maxl = 1000;
 
-			void process(std::string const outfilename) const
+			void process(std::string const outfilename, uint64_t const numthreads) const
 			{
 				::libmaus2::util::TempFileNameGenerator tmpgen("uni_out_tmp",4);
 
@@ -2006,7 +1971,7 @@ namespace libmaus2
 
 				#if 1
 				#if defined(_OPENMP)
-				#pragma omp parallel for schedule(dynamic,1)
+				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 				#endif
 				#endif
 				for ( int64_t pp = 0 ; pp < static_cast<int64_t>(numblocks); ++pp )

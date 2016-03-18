@@ -454,7 +454,7 @@ namespace libmaus2
 			}
 
 			template<typename filename_container_type>
-			static std::vector<uint64_t> getSplitPoints(filename_container_type const & V, uint64_t const segments)
+			static std::vector<uint64_t> getSplitPoints(filename_container_type const & V, uint64_t const segments, uint64_t const numthreads)
 			{
 				std::vector<std::string> const VV(V.begin(),V.end());
 				uint64_t const n = BlockInflate::computeSize(VV);
@@ -464,7 +464,7 @@ namespace libmaus2
 				 * compute the split points
 				 */
 				#if defined(_OPENMP)
-				#pragma omp parallel for schedule(dynamic,1)
+				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 				#endif
 				for ( int64_t i = 0; i < static_cast<int64_t>(segments); ++i )
 				{
@@ -482,7 +482,7 @@ namespace libmaus2
 				 * check that positions lead to terminators
 				 */
 				#if defined(_OPENMP)
-				#pragma omp parallel for schedule(dynamic,1)
+				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 				#endif
 				for ( int64_t i = 0; i < static_cast<int64_t>(segments); ++i )
 					if ( points[i] != n )

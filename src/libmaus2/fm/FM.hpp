@@ -25,15 +25,17 @@
 #include <libmaus2/fm/SampledSA.hpp>
 #include <libmaus2/fm/SampledISA.hpp>
 #include <libmaus2/lcp/LCP.hpp>
+#include <libmaus2/lcp/SuccinctLCP.hpp>
 #include <libmaus2/util/shared_ptr.hpp>
 
 namespace libmaus2
 {
         namespace fm
         {
-                template<typename lf_type>
+                template<typename _lf_type>
                 struct FM
                 {
+                	typedef _lf_type lf_type;
                         typedef FM<lf_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
@@ -70,17 +72,17 @@ namespace libmaus2
                                 lfrev.reset(0);
                         }
 
-                        bitio::CompactArray::unique_ptr_type toTextCompact() const
+                        bitio::CompactArray::unique_ptr_type toTextCompact(uint64_t const numthreads = 1) const
                         {
                                 bitio::CompactArray::unique_ptr_type text ( new bitio::CompactArray(lf->getN(),lf->getB()) );
 
                                 uint64_t const minoffset = text->minparoffset();
 
-                #if defined(_OPENMP)
+                                #if defined(_OPENMP)
                                 uint64_t const blocksize = std::max ( minoffset , static_cast<uint64_t>(1024*1024) );
-                #else
+                                #else
                                 uint64_t const blocksize = lf->getN();
-                #endif
+                                #endif
 
                                 std::cerr << "extracting text";
 
@@ -88,9 +90,9 @@ namespace libmaus2
                                 uint64_t blocksfinished = 0;
                                 int64_t const numblocks = static_cast<int64_t>((lf->getN() + blocksize-1)/blocksize);
 
-                #if defined(_OPENMP)
-                #pragma omp parallel for
-                #endif
+                                #if defined(_OPENMP)
+                                #pragma omp parallel for num_threads(numthreads)
+                                #endif
                                 for ( int64_t block = 0; block < numblocks; ++block )
                                 {
                                         uint64_t const low = block * blocksize;
@@ -293,9 +295,10 @@ namespace libmaus2
                         {
                                 #if 0
                                 std::cerr << "Checking phi function on LF...";
-                #if defined(_OPENMP)
-                #pragma omp parallel for
-                #endif
+		                #if defined(_OPENMP)
+		                uint64_t const numthreads = 1;
+		                #pragma omp parallel for num_threads(numthreads)
+		                #endif
                                 for ( unsigned int r = 0; r < getN(); ++r )
                                         assert ( lf->phi(r) == getISA((getSA(r) + 1) % getN()) );
                                 std::cerr << "done." << std::endl;
@@ -335,9 +338,10 @@ namespace libmaus2
                         {
                                 #if 0
                                 std::cerr << "Checking phi function on LF...";
-                #if defined(_OPENMP)
-                #pragma omp parallel for
-                #endif
+                                #if defined(_OPENMP)
+                                uint64_t const numthreads = 1;
+                                #pragma omp parallel for num_threads(numthreads)
+                                #endif
                                 for ( unsigned int r = 0; r < getN(); ++r )
                                         assert ( lf->phi(r) == getISA((getSA(r) + 1) % getN()) );
                                 std::cerr << "done." << std::endl;
@@ -384,11 +388,11 @@ namespace libmaus2
                                 return true;
                         }
 
-                        void checkLCP()
+                        void checkLCP(uint64_t const numthreads = 1)
                         {
-                #if defined(_OPENMP)
-                #pragma omp parallel for
-                #endif
+                        	#if defined(_OPENMP)
+                        	#pragma omp parallel for num_threads(numthreads)
+                        	#endif
                                 for ( uint64_t r = 1; r < getN(); ++r )
                                 {
                                         uint64_t i = getSA(r-1);
@@ -434,6 +438,33 @@ namespace libmaus2
 
                                 for ( int64_t i = (len-1); i >= 0; --i, r = (*lf)(r) )
                                         A[i] = (*(lf->W))[r];
+                        }
+
+                        template<typename iter>
+                        void extractIteratorParallel(uint64_t pos, uint64_t len, iter A, uint64_t const numthreads) const
+                        {
+                        	uint64_t const n = getN();
+                        	uint64_t const sn = (len + numthreads-1)/numthreads;
+                        	uint64_t const numpacks = (len + sn - 1) / sn;
+
+                        	#if defined(_OPENMP)
+                        	#pragma omp parallel for num_threads(numpacks)
+                        	#endif
+                        	for ( uint64_t t = 0; t < numpacks; ++t )
+                        	{
+                        		uint64_t const low = pos + t*sn;
+                        		uint64_t const high = std::min(low+sn,pos+len);
+                        		uint64_t r = getISA( high % n );
+                        		uint64_t re = getISA(low % n);
+
+                        		iter B = A + high;
+                        		while ( r != re )
+                        		{
+                        			std::pair<int64_t,uint64_t> const P = lf->extendedLF(r);
+                        			*(--B) = P.first;
+                        			r = P.second;
+					}
+                        	}
                         }
 
                         template<typename iterator>

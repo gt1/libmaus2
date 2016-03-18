@@ -202,7 +202,7 @@ namespace libmaus2
 
 					if ( nonradixbits )
 					{
-						libmaus2::sorting::InPlaceParallelSort::inplacesort2(AS.begin(),AS.begin()+snum);
+						libmaus2::sorting::InPlaceParallelSort::inplacesort2(AS.begin(),AS.begin()+snum,tnumthreads);
 						// std::sort(AS.begin(),AS.begin()+snum);
 					}
 

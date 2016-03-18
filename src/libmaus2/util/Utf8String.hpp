@@ -103,12 +103,12 @@ namespace libmaus2
 				::libmaus2::autoarray::AutoArray<uint8_t> const & A, uint64_t const tnumparts
 			);
 			static ::libmaus2::autoarray::AutoArray<uint64_t> computePartStarts(std::string const & fn, uint64_t const tnumparts);
-			static ::libmaus2::autoarray::AutoArray< std::pair<int64_t,uint64_t> > getHistogramAsArray(::libmaus2::autoarray::AutoArray<uint8_t> const & A);
-			static ::libmaus2::autoarray::AutoArray< std::pair<int64_t,uint64_t> > getHistogramAsArray(std::string const & fn);
-			static ::libmaus2::util::Histogram::unique_ptr_type getHistogram(::libmaus2::autoarray::AutoArray<uint8_t> const & A);
+			static ::libmaus2::autoarray::AutoArray< std::pair<int64_t,uint64_t> > getHistogramAsArray(::libmaus2::autoarray::AutoArray<uint8_t> const & A, uint64_t const numthreads);
+			static ::libmaus2::autoarray::AutoArray< std::pair<int64_t,uint64_t> > getHistogramAsArray(std::string const & fn, uint64_t const numthreads);
+			static ::libmaus2::util::Histogram::unique_ptr_type getHistogram(::libmaus2::autoarray::AutoArray<uint8_t> const & A, uint64_t const numthreads);
 			::libmaus2::util::Histogram::unique_ptr_type getHistogram() const;
 			std::map<int64_t,uint64_t> getHistogramAsMap() const;
-			static std::map<int64_t,uint64_t> getHistogramAsMap(::libmaus2::autoarray::AutoArray<uint8_t> const & A);
+			static std::map<int64_t,uint64_t> getHistogramAsMap(::libmaus2::autoarray::AutoArray<uint8_t> const & A, uint64_t const numthreads);
 
 			// suffix sorting class
 			typedef ::libmaus2::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int32_t *,int32_t const *,256,true> sort_type_parallel;

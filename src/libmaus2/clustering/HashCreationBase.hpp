@@ -307,16 +307,6 @@ namespace libmaus2
 					}
 				}
 			}
-
-			static unsigned int getMaxThreads()
-			{
-				#if defined(_OPENMP)
-				uint64_t const numthreads = omp_get_max_threads();
-				#else
-				uint64_t const numthreads = 1;
-				#endif
-				return numthreads;
-			}
 		};
 	}
 }

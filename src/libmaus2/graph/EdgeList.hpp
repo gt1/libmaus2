@@ -59,7 +59,7 @@ namespace libmaus2
 				return sizeof(edge_target_type) + sizeof(edge_weight_type);
 			}
 
-			EdgeListTemplate(uint64_t const redgelow, uint64_t const redgehigh, uint64_t const rmaxedges)
+			EdgeListTemplate(uint64_t const redgelow, uint64_t const redgehigh, uint64_t const rmaxedges, uint64_t const numthreads)
 			: edgelow(redgelow), edgehigh(redgehigh), maxedges(rmaxedges),
 			  edges( (edgehigh-edgelow)*maxedges, false ),
 			  weights( (edgehigh-edgelow)*maxedges, false )
@@ -69,11 +69,11 @@ namespace libmaus2
 				::std::fill ( weights.get(), weights.get()+weights.getN(), 0 );
 				#else
 
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				for ( int64_t i = 0; i < static_cast<int64_t>(edges.getN()); ++i )
 					edges[i] = edge_list_term;
 
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				for ( int64_t i = 0; i < static_cast<int64_t>(weights.getN()); ++i )
 					weights[i] = 0;
 

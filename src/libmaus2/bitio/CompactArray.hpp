@@ -199,7 +199,8 @@ namespace libmaus2
 
 			static unique_ptr_type concat(
 				std::vector < std::string > const & filenames,
-				uint64_t const li, uint64_t const ri
+				uint64_t const li, uint64_t const ri,
+				uint64_t const numthreads
 			)
 			{
 				unique_ptr_type ptr;
@@ -229,7 +230,7 @@ namespace libmaus2
 					ptr = unique_ptr_type(new this_type(n,b));
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for schedule(dynamic,1)
+					#pragma omp parallel for schedule(dynamic,1), num_threads(numthreads)
 					#endif
 					for ( int64_t i = li; i < static_cast<int64_t>(ri); i += 2 )
 					{
@@ -290,7 +291,7 @@ namespace libmaus2
 						}
 					}
 					#if defined(_OPENMP)
-					#pragma omp parallel for schedule(dynamic,1)
+					#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 					#endif
 					for ( int64_t i = li+1; i < static_cast<int64_t>(ri); i += 2 )
 					{
@@ -435,7 +436,8 @@ namespace libmaus2
 			}
 
 			static unique_ptr_type concatOddEven(std::vector<std::string> const & filenames,
-				uint64_t const li, uint64_t const ri)
+				uint64_t const li, uint64_t const ri,
+				uint64_t const numthreads)
 			{
 				unique_ptr_type ptr;
 
@@ -466,7 +468,7 @@ namespace libmaus2
 					std::cerr << "Reading parallel." << std::endl;
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for schedule(dynamic,1)
+					#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 					#endif
 					for ( int64_t i = li; i < static_cast<int64_t>(ri); i += 2 )
 					{
@@ -480,7 +482,7 @@ namespace libmaus2
 							ptr->set ( p++, C.get(j) );
 					}
 					#if defined(_OPENMP)
-					#pragma omp parallel for schedule(dynamic,1)
+					#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 					#endif
 					for ( int64_t i = li+1; i < static_cast<int64_t>(ri); i += 2 )
 					{

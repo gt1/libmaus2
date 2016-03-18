@@ -108,17 +108,16 @@ namespace libmaus2
 			}
 
 			template<typename data_type>
-			uint64_t extractTextParallel(libmaus2::autoarray::AutoArray<data_type> & D) const
+			uint64_t extractTextParallel(libmaus2::autoarray::AutoArray<data_type> & D, uint64_t const numthreads) const
 			{
 				if ( D.size() < n )
 					D.resize(n);
 
-				uint64_t const numthreads = libmaus2::parallel::OMPNumThreadsScope::getMaxThreads();
 				uint64_t const blocksize = (n + numthreads-1)/numthreads;
 				uint64_t const numblocks = (n + blocksize-1)/blocksize;
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( uint64_t t = 0; t < numblocks; ++t )
 				{
@@ -342,9 +341,10 @@ namespace libmaus2
 				std::string const & saname,
 				std::string const & isaname,
 				std::string const & lcpname,
-				std::string const & rmmname
+				std::string const & rmmname,
+				uint64_t const numthreads
 			)
-			: LF(lf_type::load(hwtname)),
+			: LF(lf_type::load(hwtname,numthreads)),
 			  SSA(ssa_type::load(LF.get(),saname)),
 			  SISA(sisa_type::load(LF.get(),isaname)),
 			  LCP(lcp_type::load(*SSA,lcpname)),
