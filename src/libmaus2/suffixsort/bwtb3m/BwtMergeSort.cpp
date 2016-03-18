@@ -18,7 +18,7 @@
 **/
 #include <libmaus2/suffixsort/bwtb3m/BwtMergeSort.hpp>
 
-libmaus2::suffixsort::bwtb3m::BwtMergeSortResult libmaus2::suffixsort::bwtb3m::BwtMergeSort::computeBwt(BwtMergeSortOptions const & options)
+libmaus2::suffixsort::bwtb3m::BwtMergeSortResult libmaus2::suffixsort::bwtb3m::BwtMergeSort::computeBwt(BwtMergeSortOptions const & options, std::ostream * logstr)
 {
 	if ( options.inputtype == BwtMergeSortOptions::bwt_merge_input_type_utf_8 )
 	{
@@ -42,17 +42,17 @@ libmaus2::suffixsort::bwtb3m::BwtMergeSortResult libmaus2::suffixsort::bwtb3m::B
 	switch ( options.inputtype )
 	{
 		case BwtMergeSortOptions::bwt_merge_input_type_bytestream:
-			return BwtMergeSortTemplate<libmaus2::suffixsort::ByteInputTypes>::computeBwt(options);
+			return BwtMergeSortTemplate<libmaus2::suffixsort::ByteInputTypes>::computeBwt(options,logstr);
 		case BwtMergeSortOptions::bwt_merge_input_type_compactstream:
-			return BwtMergeSortTemplate<libmaus2::suffixsort::CompactInputTypes>::computeBwt(options);
+			return BwtMergeSortTemplate<libmaus2::suffixsort::CompactInputTypes>::computeBwt(options,logstr);
 		case BwtMergeSortOptions::bwt_merge_input_type_pac:
-			return BwtMergeSortTemplate<libmaus2::suffixsort::PacInputTypes>::computeBwt(options);
+			return BwtMergeSortTemplate<libmaus2::suffixsort::PacInputTypes>::computeBwt(options,logstr);
 		case BwtMergeSortOptions::bwt_merge_input_type_pacterm:
-			return BwtMergeSortTemplate<libmaus2::suffixsort::PacTermInputTypes>::computeBwt(options);
+			return BwtMergeSortTemplate<libmaus2::suffixsort::PacTermInputTypes>::computeBwt(options,logstr);
 		case BwtMergeSortOptions::bwt_merge_input_type_lz4:
-			return BwtMergeSortTemplate<libmaus2::suffixsort::Lz4InputTypes>::computeBwt(options);
+			return BwtMergeSortTemplate<libmaus2::suffixsort::Lz4InputTypes>::computeBwt(options,logstr);
 		case BwtMergeSortOptions::bwt_merge_input_type_utf_8:
-			return BwtMergeSortTemplate<libmaus2::suffixsort::Utf8InputTypes>::computeBwt(options);
+			return BwtMergeSortTemplate<libmaus2::suffixsort::Utf8InputTypes>::computeBwt(options,logstr);
 		default:
 		{
 			libmaus2::exception::LibMausException lme;

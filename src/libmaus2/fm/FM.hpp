@@ -25,15 +25,17 @@
 #include <libmaus2/fm/SampledSA.hpp>
 #include <libmaus2/fm/SampledISA.hpp>
 #include <libmaus2/lcp/LCP.hpp>
+#include <libmaus2/lcp/SuccinctLCP.hpp>
 #include <libmaus2/util/shared_ptr.hpp>
 
 namespace libmaus2
 {
         namespace fm
         {
-                template<typename lf_type>
+                template<typename _lf_type>
                 struct FM
                 {
+                	typedef _lf_type lf_type;
                         typedef FM<lf_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
@@ -436,6 +438,33 @@ namespace libmaus2
 
                                 for ( int64_t i = (len-1); i >= 0; --i, r = (*lf)(r) )
                                         A[i] = (*(lf->W))[r];
+                        }
+
+                        template<typename iter>
+                        void extractIteratorParallel(uint64_t pos, uint64_t len, iter A, uint64_t const numthreads) const
+                        {
+                        	uint64_t const n = getN();
+                        	uint64_t const sn = (len + numthreads-1)/numthreads;
+                        	uint64_t const numpacks = (len + sn - 1) / sn;
+
+                        	#if defined(_OPENMP)
+                        	#pragma omp parallel for num_threads(numpacks)
+                        	#endif
+                        	for ( uint64_t t = 0; t < numpacks; ++t )
+                        	{
+                        		uint64_t const low = pos + t*sn;
+                        		uint64_t const high = std::min(low+sn,pos+len);
+                        		uint64_t r = getISA( high % n );
+                        		uint64_t re = getISA(low % n);
+
+                        		iter B = A + high;
+                        		while ( r != re )
+                        		{
+                        			std::pair<int64_t,uint64_t> const P = lf->extendedLF(r);
+                        			*(--B) = P.first;
+                        			r = P.second;
+					}
+                        	}
                         }
 
                         template<typename iterator>

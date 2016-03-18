@@ -139,10 +139,12 @@ namespace libmaus2
 					std::vector<MergeStrategyBlock::shared_ptr_type> nodes,
 					uint64_t const mem,
 					uint64_t const numthreads,
-					uint64_t const exwordsperthread
+					uint64_t const exwordsperthread,
+					std::ostream * logstr
 				)
 				{
-					std::cerr << "[V] Number of input leaf nodes for merge tree construction is " << nodes.size() << std::endl;
+					if ( logstr )
+						*logstr << "[V] Number of input leaf nodes for merge tree construction is " << nodes.size() << std::endl;
 
 					MergeStrategyBlock::shared_ptr_type node = constructMergeTreeRec(nodes,mem,numthreads,exwordsperthread);
 

@@ -163,7 +163,7 @@ namespace libmaus2
 					// size of block
 					uint64_t const bs = ibs >= 0 ? ibs : ((p >  isapre.second) ? (p-isapre.second) : (fs - isapre.second));
 
-					// std::cerr << "bs=" << bs << std::endl;
+					// (*logstr) << "bs=" << bs << std::endl;
 
 					typename input_types_type::circular_reverse_wrapper CRWR(fn,p);
 
@@ -185,7 +185,7 @@ namespace libmaus2
 							int64_t syma = CRWR.get();
 							int64_t symb = IHWT[r];
 							assert ( syma == symb );
-							// std::cerr << "(" << syma << "," << symb << ")";
+							// (*logstr) << "(" << syma << "," << symb << ")";
 
 							r = IHWT(r);
 
@@ -212,7 +212,7 @@ namespace libmaus2
 							int64_t syma = CRWR.get();
 							int64_t symb = IHWT[r];
 							assert ( syma == symb );
-							// std::cerr << "(" << syma << "," << symb << ")";
+							// (*logstr) << "(" << syma << "," << symb << ")";
 
 							r = IHWT(r);
 
@@ -246,7 +246,8 @@ namespace libmaus2
 					// std::string const & tempfilenameprefix,
 					uint64_t const numthreads,
 					uint64_t const lfblockmult,
-					uint64_t const rlencoderblocksize
+					uint64_t const rlencoderblocksize,
+					std::ostream * logstr
 				)
 				{
 					// no bwt input files, create empty bwt file
@@ -317,7 +318,7 @@ namespace libmaus2
 						uint64_t actgparts = 0;
 						uint64_t gs = 0;
 
-						// std::cerr << "fs=" << fs << " tgparts=" << tgparts << " gpartsize=" << gpartsize << std::endl;
+						// (*logstr) << "fs=" << fs << " tgparts=" << tgparts << " gpartsize=" << gpartsize << std::endl;
 
 						// compute number of suffixes per gblock
 						while ( hlow != firstblockgapfilesize )
@@ -332,7 +333,7 @@ namespace libmaus2
 							{
 								kvinit.kvoffset = fs;
 								kvinit.koffset  = firstblockgapfilesize;
-								// std::cerr << "+++ end" << std::endl;
+								// (*logstr) << "+++ end" << std::endl;
 							}
 							// we did not end up on a gap array element, go to the next one
 							else if ( kvinit.kvtarget )
@@ -345,7 +346,7 @@ namespace libmaus2
 								if ( kvinit.koffset == firstblockgapfilesize )
 									kvinit.kvoffset -= 1;
 
-								// std::cerr << "intermediate partial" << std::endl;
+								// (*logstr) << "intermediate partial" << std::endl;
 							}
 
 							#if 1
@@ -374,7 +375,7 @@ namespace libmaus2
 								hhigh += 1;
 							}
 
-							std::cerr << "*** hhigh: " << hhigh << " kvinit.koffset: " << kvinit.koffset << " s=" << s << " kvinit.kvoffset-gs=" << kvinit.kvoffset-gs << std::endl;
+							// (*logstr) << "*** hhigh: " << hhigh << " kvinit.koffset: " << kvinit.koffset << " s=" << s << " kvinit.kvoffset-gs=" << kvinit.kvoffset-gs << std::endl;
 							// kvinit.koffset, kvinit.kvoffset, rest: kvinit.kvtarget
 
 							if ( actgparts >= maxgparts )
@@ -390,7 +391,7 @@ namespace libmaus2
 							// save interval on first gap array and number of suffixes on this interval
 							gmergepackets[actgparts++] = ::libmaus2::suffixsort::GapMergePacket(hlow,hhigh,s);
 
-							// std::cerr << "got packet " << gmergepackets[actgparts-1] << " firstblockgapfilesize=" << firstblockgapfilesize << std::endl;
+							// (*logstr) << "got packet " << gmergepackets[actgparts-1] << " firstblockgapfilesize=" << firstblockgapfilesize << std::endl;
 
 							// add suffixes in this block to global count
 							gs += s;
@@ -403,10 +404,10 @@ namespace libmaus2
 						assert ( gs == fs );
 
 						#if 0
-						std::cerr << "actgparts=" << actgparts << std::endl;
+						(*logstr) << "actgparts=" << actgparts << std::endl;
 
 						for ( uint64_t i = 0; i < actgparts; ++i )
-							std::cerr << gmergepackets[i] << std::endl;
+							(*logstr) << gmergepackets[i] << std::endl;
 						#endif
 
 						// compute prefix sums over number of suffixes per gblock
@@ -424,7 +425,7 @@ namespace libmaus2
 						for ( int64_t z = 0; z < static_cast<int64_t>(spref.size()); ++z )
 						{
 							#if 0
-							std::cerr << "proc first: " << gmergepackets[z] << ",spref=" << spref[z] << std::endl;
+							(*logstr) << "proc first: " << gmergepackets[z] << ",spref=" << spref[z] << std::endl;
 							#endif
 
 							// offset in first gap array
@@ -448,7 +449,7 @@ namespace libmaus2
 								bwtusedcntsacc [ j * (actgparts+1) + z ] = kvinitresult.koffset;
 
 								#if 0
-								std::cerr << "lspref=" << lspref << "," << kvinitresult << std::endl;
+								(*logstr) << "lspref=" << lspref << "," << kvinitresult << std::endl;
 								#endif
 
 								// we should be on a key if j is the first file
@@ -456,11 +457,12 @@ namespace libmaus2
 								{
 									if ( kvinitresult.kvtarget != 0 )
 									{
-										std::cerr << "j=0 " << " z=" << z << " lspref=" << lspref <<
-											" kvinitresult.koffset=" << kvinitresult.koffset <<
-											" kvinitresult.voffset=" << kvinitresult.voffset <<
-											" kvinitresult.kvoffset=" << kvinitresult.kvoffset <<
-											" kvinitresult.kvtarget=" << kvinitresult.kvtarget << std::endl;
+										if ( logstr )
+											(*logstr) << "j=0 " << " z=" << z << " lspref=" << lspref <<
+												" kvinitresult.koffset=" << kvinitresult.koffset <<
+												" kvinitresult.voffset=" << kvinitresult.voffset <<
+												" kvinitresult.kvoffset=" << kvinitresult.kvoffset <<
+												" kvinitresult.kvtarget=" << kvinitresult.kvtarget << std::endl;
 									}
 									assert ( kvinitresult.kvtarget == 0 );
 								}
@@ -472,7 +474,8 @@ namespace libmaus2
 							}
 
 							#if 0
-							std::cerr << "lspref=" << lspref << std::endl;
+							if ( logstr )
+								(*logstr) << "lspref=" << lspref << std::endl;
 							#endif
 
 							// set end pointer
@@ -508,7 +511,8 @@ namespace libmaus2
 							gpartfrags[z] = gpartfrag;
 
 							#if 0
-							std::cerr << gmergepackets[z] << ",spref=" << spref[z] << std::endl;
+							if ( logstr )
+								(*logstr) << gmergepackets[z] << ",spref=" << spref[z] << std::endl;
 							#endif
 							uint64_t lspref = spref[z];
 							::libmaus2::autoarray::AutoArray < gapfile_decoder_type::unique_ptr_type > gapdecoders(gapfilenames.size());
@@ -555,7 +559,8 @@ namespace libmaus2
 								bwtdecoders[j] = UNIQUE_PTR_MOVE(tbwtdecodersj);
 
 								#if 0
-								std::cerr << "block=" << j << " offset=" << bwtoffset << " bwttowrite=" << bwttowrite[j] << std::endl;
+								if ( logstr )
+									(*logstr) << "block=" << j << " offset=" << bwtoffset << " bwttowrite=" << bwttowrite[j] << std::endl;
 								#endif
 							}
 
@@ -610,7 +615,8 @@ namespace libmaus2
 										gapcur[i]--;
 									}
 							}
-							// std::cerr << "(1)";
+							//if ( logstr )
+								// (*logstr) << "(1)";
 
 							// all data should have been written now
 							for ( uint64_t i = 0; i < bwttowrite.size(); ++i )
@@ -630,13 +636,15 @@ namespace libmaus2
 					std::string const & mergedmergedisaname, // newmergedisaname
 					uint64_t const blockstart, // blockstart
 					gap_iterator & Gc,
-					uint64_t const gn
+					uint64_t const gn,
+					std::ostream * logstr
 				)
 				{
 					::libmaus2::timing::RealTimeClock rtc;
 
 					// merge sampled inverse suffix arrays
-					std::cerr << "[V] merging sampled inverse suffix arrays...";
+					if ( logstr )
+						(*logstr) << "[V] merging sampled inverse suffix arrays...";
 					rtc.start();
 					::libmaus2::aio::SynchronousGenericInput<uint64_t> SGIISAold(oldmergedisaname,16*1024);
 					::libmaus2::aio::SynchronousGenericInput<uint64_t> SGIISAnew(newmergedisaname,16*1024);
@@ -686,19 +694,22 @@ namespace libmaus2
 					assert ( SGIISAold.peek() < 0 );
 
 					SGOISA.flush();
-					std::cerr << "done, time " << rtc.getElapsedSeconds() << std::endl;
+					if ( logstr )
+						(*logstr) << "done, time " << rtc.getElapsedSeconds() << std::endl;
 
 					return blockp0rank;
 				}
 
 				static void saveGapFile(
 					::libmaus2::autoarray::AutoArray<uint32_t> const & G,
-					std::string const & gapfile
+					std::string const & gapfile,
+					std::ostream * logstr
 				)
 				{
 					::libmaus2::timing::RealTimeClock rtc;
 
-					std::cerr << "[V] saving gap file...";
+					if ( logstr )
+						(*logstr) << "[V] saving gap file...";
 					rtc.start();
 					#if defined(LIBMAUS2_SUFFIXSORT_BWTB3M_HUFGAP)
 					::libmaus2::util::Histogram gaphist;
@@ -711,13 +722,15 @@ namespace libmaus2
 					::libmaus2::gamma::GammaGapEncoder GE(gapfile);
 					GE.encode(G.begin(),G.end());
 					#endif
-					std::cerr << "done in time " << rtc.getElapsedSeconds() << std::endl;
+					if ( logstr )
+						(*logstr) << "done in time " << rtc.getElapsedSeconds() << std::endl;
 				}
 
 				static void concatenateGT(
 					std::vector<std::string> const & gtpartnames,
 					std::string const & newgtpart, // blockresults.files.gt
-					std::string const & newmergedgtname
+					std::string const & newmergedgtname,
+					std::ostream * logstr
 				)
 				{
 					::libmaus2::timing::RealTimeClock rtc;
@@ -826,7 +839,8 @@ namespace libmaus2
 					// flush gt stream
 					GTHEF.flush();
 
-					std::cerr << "[V] concatenated bit vectors in time " << rtc.getElapsedSeconds() << std::endl;
+					if ( logstr )
+						(*logstr) << "[V] concatenated bit vectors in time " << rtc.getElapsedSeconds() << std::endl;
 				}
 
 				struct GapArrayComputationResult
@@ -896,18 +910,23 @@ namespace libmaus2
 					: fn(rfn), gtpartnames(rgtpartnames), zactive(rzactive), zabsblockpos(rzabsblockpos) {}
 				};
 
-				static libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ensureWaveletTreeGenerated(::libmaus2::suffixsort::BwtMergeBlockSortResult const & blockresults)
+				static libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ensureWaveletTreeGenerated(
+					::libmaus2::suffixsort::BwtMergeBlockSortResult const & blockresults,
+					std::ostream * logstr
+				)
 				{
 					// generate wavelet tree from request if necessary
 					if ( ! libmaus2::util::GetFileSize::fileExists(blockresults.getFiles().getHWT()) )
 					{
 						libmaus2::timing::RealTimeClock rtc; rtc.start();
-						std::cerr << "[V] Generating HWT for gap file computation...";
+						if ( logstr )
+							(*logstr) << "[V] Generating HWT for gap file computation...";
 						assert ( libmaus2::util::GetFileSize::fileExists(blockresults.getFiles().getHWTReq() ) );
 						libmaus2::wavelet::RlToHwtTermRequest::unique_ptr_type ureq(libmaus2::wavelet::RlToHwtTermRequest::load(blockresults.getFiles().getHWTReq()));
 						libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type	ptr(ureq->dispatch<rl_decoder>());
 						libmaus2::aio::FileRemoval::removeFile ( blockresults.getFiles().getHWTReq().c_str() );
-						std::cerr << "done, time " << rtc.getElapsedSeconds() << std::endl;
+						if ( logstr )
+							(*logstr) << "done, time " << rtc.getElapsedSeconds() << std::endl;
 						return UNIQUE_PTR_MOVE(ptr);
 					}
 					else
@@ -930,7 +949,8 @@ namespace libmaus2
 					std::string const & newmergedgtname, // new gt file name
 					::libmaus2::lf::DArray * const accD, // accumulated symbol freqs for block
 					std::vector < ::libmaus2::suffixsort::BwtMergeZBlock > const & zblocks, // lf starting points
-					uint64_t const numthreads
+					uint64_t const numthreads,
+					std::ostream * logstr
 				)
 				{
 					// gap array
@@ -942,7 +962,7 @@ namespace libmaus2
 					#if 0
 					bool const hwtdelayed = ensureWaveletTreeGenerated(blockresults);
 					#endif
-					::libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ICHWL(ensureWaveletTreeGenerated(blockresults));
+					::libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ICHWL(ensureWaveletTreeGenerated(blockresults,logstr));
 					::libmaus2::lf::ImpCompactHuffmanWaveletLF IHWL(ICHWL);
 					IHWL.D = D.D;
 					assert ( cblocksize == IHWL.n );
@@ -1011,7 +1031,8 @@ namespace libmaus2
 
 						GTHEF.flush();
 					}
-					std::cerr << "[V] computed gap array in time " << rtc.getElapsedSeconds() << std::endl;
+					if ( logstr )
+						(*logstr) << "[V] computed gap array in time " << rtc.getElapsedSeconds() << std::endl;
 
 					return GapArrayComputationResult(G,gtpartnames,zactive,zabsblockpos);
 				}
@@ -1023,7 +1044,8 @@ namespace libmaus2
 					std::vector<std::string> const & mergedgtname, // previous gt file name
 					std::string const & newmergedgtname, // new gt file name
 					::libmaus2::lf::DArray * const accD, // accumulated symbol freqs for block
-					uint64_t const numthreads
+					uint64_t const numthreads,
+					std::ostream * logstr
 				)
 				{
 					uint64_t const into = msmgr.into;
@@ -1043,7 +1065,7 @@ namespace libmaus2
 					std::vector < ::libmaus2::suffixsort::BwtMergeZBlock > const & zblocks = msmgr.zblocks;
 
 					return computeGapArray(fn,fs,blockstart,cblocksize,nextblockstart,mergeprocrightend,
-						blockresults,mergedgtname,newmergedgtname,accD,zblocks,numthreads);
+						blockresults,mergedgtname,newmergedgtname,accD,zblocks,numthreads,logstr);
 				}
 
 				static GapArrayByteComputationResult computeGapArrayByte(
@@ -1059,7 +1081,8 @@ namespace libmaus2
 					std::string const & gapoverflowtmpfilename, // gap overflow tmp file
 					::libmaus2::lf::DArray * const accD, // accumulated symbol freqs for block
 					std::vector < ::libmaus2::suffixsort::BwtMergeZBlock > const & zblocks, // lf starting points
-					uint64_t const numthreads
+					uint64_t const numthreads,
+					std::ostream * logstr
 				)
 				{
 					// gap array
@@ -1079,7 +1102,7 @@ namespace libmaus2
 					#if 0
 					bool const hwtdelayed = ensureWaveletTreeGenerated(blockresults);
 					#endif
-					::libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ICHWL(ensureWaveletTreeGenerated(blockresults));
+					::libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ICHWL(ensureWaveletTreeGenerated(blockresults,logstr));
 					::libmaus2::lf::ImpCompactHuffmanWaveletLF IHWL(ICHWL);
 					IHWL.D = D.D;
 					assert ( cblocksize == IHWL.n );
@@ -1151,7 +1174,8 @@ namespace libmaus2
 
 						GTHEF.flush();
 					}
-					std::cerr << "[V] computed gap array in time " << rtc.getElapsedSeconds() << std::endl;
+					if ( logstr )
+						(*logstr) << "[V] computed gap array in time " << rtc.getElapsedSeconds() << std::endl;
 
 					G.flush();
 
@@ -1166,7 +1190,8 @@ namespace libmaus2
 					std::string const & newmergedgtname, // new gt file name
 					std::string const & gapoverflowtmpfilename, // gap overflow tmp file
 					::libmaus2::lf::DArray * const accD, // accumulated symbol freqs for block
-					uint64_t const numthreads
+					uint64_t const numthreads,
+					std::ostream * logstr
 				)
 				{
 					uint64_t const into = msmgr.into;
@@ -1186,7 +1211,7 @@ namespace libmaus2
 					std::vector < ::libmaus2::suffixsort::BwtMergeZBlock > const & zblocks = msmgr.zblocks;
 
 					return computeGapArrayByte(fn,fs,blockstart,cblocksize,nextblockstart,mergeprocrightend,
-						blockresults,mergedgtname,newmergedgtname,gapoverflowtmpfilename,accD,zblocks,numthreads);
+						blockresults,mergedgtname,newmergedgtname,gapoverflowtmpfilename,accD,zblocks,numthreads,logstr);
 				}
 
 				struct ZNext
@@ -1227,7 +1252,8 @@ namespace libmaus2
 					std::string const & tmpfileprefix,
 					uint64_t const maxmem,
 					std::vector < ::libmaus2::suffixsort::BwtMergeZBlock > const & zblocks,
-					uint64_t const numthreads
+					uint64_t const numthreads,
+					std::ostream * logstr
 				)
 				{
 					uint64_t const memperthread = (maxmem + numthreads-1)/numthreads;
@@ -1247,9 +1273,9 @@ namespace libmaus2
 					accD->merge(D);
 					#if 0
 					bool const hwtdelayed =
-						ensureWaveletTreeGenerated(blockresults);
+						ensureWaveletTreeGenerated(blockresults,logstr);
 					#endif
-					::libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ICHWL(ensureWaveletTreeGenerated(blockresults));
+					::libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ICHWL(ensureWaveletTreeGenerated(blockresults,logstr));
 					::libmaus2::lf::ImpCompactHuffmanWaveletLF IHWL(ICHWL);
 					IHWL.D = D.D;
 					assert ( cblocksize == IHWL.n );
@@ -1444,7 +1470,8 @@ namespace libmaus2
 
 					std::vector<std::string> const outputgapfilenames = SGGFS.mergeToDense(outputgapfilename,cblocksize+1,numthreads);
 
-					std::cerr << "[V] computed gap array in time " << rtc.getElapsedSeconds() << std::endl;
+					if ( logstr )
+						(*logstr) << "[V] computed gap array in time " << rtc.getElapsedSeconds() << std::endl;
 
 					return SparseGapArrayComputationResult(outputgapfilenames,gtpartnames,zactive,zabsblockpos);
 				}
@@ -1460,7 +1487,8 @@ namespace libmaus2
 					std::string const & outputgapfilename,
 					std::string const & tmpfileprefix,
 					uint64_t const maxmem,
-					uint64_t const numthreads
+					uint64_t const numthreads,
+					std::ostream * logstr
 				)
 				{
 					uint64_t const into = msmgr.into;
@@ -1484,7 +1512,8 @@ namespace libmaus2
 						tmpfileprefix,
 						maxmem-ihwtspace,
 						zblocks,
-						numthreads
+						numthreads,
+						logstr
 					);
 				}
 
@@ -1505,10 +1534,12 @@ namespace libmaus2
 					uint64_t const numthreads,
 					::std::map<int64_t,uint64_t> const & /* chist */,
 					uint64_t const bwtterm,
-					std::string const & huftreefilename
+					std::string const & huftreefilename,
+					std::ostream * logstr
 				)
 				{
-					std::cerr << "[V] Merging BWT blocks MergeStrategyMergeInternalBlock." << std::endl;
+					if ( logstr )
+						(*logstr) << "[V] Merging BWT blocks MergeStrategyMergeInternalBlock." << std::endl;
 
 					assert ( mergereq.children.size() > 1 );
 					assert ( mergereq.children.size() == mergereq.gaprequests.size()+1 );
@@ -1561,7 +1592,8 @@ namespace libmaus2
 							mergereq.children[1]->sortresult.getFiles().getGT(), // previous gt files
 							tmpfilenamebase + "_gparts", // new gt files
 							accD.get(),
-							numthreads
+							numthreads,
+							logstr
 						);
 
 						#if 0
@@ -1591,11 +1623,12 @@ namespace libmaus2
 						result.setBlockP0Rank( mergeIsa(
 							mergereq.children[1]->sortresult.getFiles().getSampledISA(), // old sampled isa
 							blockresults.getFiles().getSampledISA(), // new sampled isa
-							result.getFiles().getSampledISA(),blockstart,mergeGO/*GACR.G.begin()*/,cblocksize+1 /* GACR.G.size() */
+							result.getFiles().getSampledISA(),blockstart,mergeGO/*GACR.G.begin()*/,cblocksize+1 /* GACR.G.size() */,logstr
 						) );
 
 						::libmaus2::timing::RealTimeClock rtc; rtc.start();
-						std::cerr << "[V] merging BWTs...";
+						if ( logstr )
+							(*logstr) << "[V] merging BWTs...";
 
 						//
 						uint64_t const totalsuf = result.getCBlockSize();
@@ -1710,7 +1743,8 @@ namespace libmaus2
 								bwtenc.flush();
 							}
 						}
-						std::cerr << "done, time " << rtc.getElapsedSeconds() << std::endl;
+						if ( logstr )
+							(*logstr) << "done, time " << rtc.getElapsedSeconds() << std::endl;
 
 						#if 0
 						std::cerr << "[V] concatenating bwt parts...";
@@ -1789,7 +1823,8 @@ namespace libmaus2
 						{
 							// block we merge into
 							uint64_t const bx = mergereq.children.size()-bb-2;
-							std::cerr << "[V] merging blocks " << bx+1 << " to end into " << bx << std::endl;
+							if ( logstr )
+								(*logstr) << "[V] merging blocks " << bx+1 << " to end into " << bx << std::endl;
 							::libmaus2::suffixsort::BwtMergeBlockSortResult const & blockresults =
 								mergereq.children[bx]->sortresult;
 
@@ -1812,15 +1847,16 @@ namespace libmaus2
 								mergedgtname,
 								newmergedgtname,
 								accD.get(),
-								numthreads
+								numthreads,
+								logstr
 							);
 
 							// save the gap file
-							saveGapFile(GACR.G,gapfile);
+							saveGapFile(GACR.G,gapfile,logstr);
 
 							// merge sampled inverse suffix arrays, returns rank of position 0 (relative to block start)
 							libmaus2::util::GetObject<uint32_t const *> mergeGO(GACR.G.begin());
-							result.setBlockP0Rank( mergeIsa(mergedisaname,blockresults.getFiles().getSampledISA(),newmergedisaname,blockstart,mergeGO /*GACR.G.begin()*/,cblocksize+1 /*GACR.G.size()*/) );
+							result.setBlockP0Rank( mergeIsa(mergedisaname,blockresults.getFiles().getSampledISA(),newmergedisaname,blockstart,mergeGO /*GACR.G.begin()*/,cblocksize+1 /*GACR.G.size()*/,logstr) );
 
 							#if 0
 							// concatenate gt vectors
@@ -1870,7 +1906,8 @@ namespace libmaus2
 						// save histogram
 						accD->serialise(static_cast<std::string const & >(result.getFiles().getHist()));
 
-						std::cerr << "[V] merging parts...";
+						if ( logstr )
+							(*logstr) << "[V] merging parts...";
 						::libmaus2::timing::RealTimeClock mprtc;
 						mprtc.start();
 						result.setBWT(parallelGapFragMerge(
@@ -1879,8 +1916,9 @@ namespace libmaus2
 							// result.getFiles().getBWT(),
 							tmpfilenamebase+"_gpart",
 							numthreads,
-							lfblockmult,rlencoderblocksize));
-						std::cerr << "done, time " << mprtc.getElapsedSeconds() << std::endl;
+							lfblockmult,rlencoderblocksize,logstr));
+						if ( logstr )
+							(*logstr) << "done, time " << mprtc.getElapsedSeconds() << std::endl;
 
 						for ( uint64_t i = 0; i < gapfilenames.size(); ++i )
 							libmaus2::aio::FileRemoval::removeFile ( gapfilenames[i].c_str() );
@@ -1890,14 +1928,16 @@ namespace libmaus2
 					}
 
 					#if 0
-					std::cerr << "[V] computing term symbol hwt...";
+					if ( logstr )
+						(*logstr) << "[V] computing term symbol hwt...";
 					::libmaus2::timing::RealTimeClock mprtc;
 					mprtc.start();
 					if ( input_types_type::utf8Wavelet() )
 						libmaus2::wavelet::RlToHwtBase<true,rl_decoder>::rlToHwtTerm(result.getFiles().getBWT(),result.getFiles().getHWT(),tmpfilenamebase + "_wt",chist,bwtterm,result.getBlockP0Rank());
 					else
 						libmaus2::wavelet::RlToHwtBase<false,rl_decoder>::rlToHwtTerm(result.getFiles().getBWT(),result.getFiles().getHWT(),tmpfilenamebase + "_wt",chist,bwtterm,result.getBlockP0Rank());
-					std::cerr << "done, time " << mprtc.getElapsedSeconds() << std::endl;
+					if ( logstr )
+						(*logstr) << "done, time " << mprtc.getElapsedSeconds() << std::endl;
 					#endif
 
 					libmaus2::util::TempFileRemovalContainer::addTempFile(result.getFiles().getHWTReq());
@@ -1935,13 +1975,15 @@ namespace libmaus2
 					uint64_t const numthreads,
 					::std::map<int64_t,uint64_t> const & /* chist */,
 					uint64_t const bwtterm,
-					std::string const & huftreefilename
+					std::string const & huftreefilename,
+					std::ostream * logstr
 				)
 				{
 					assert ( mergereq.children.size() > 1 );
 					assert ( mergereq.children.size() == mergereq.gaprequests.size()+1 );
 
-					std::cerr << "[V] Merging BWT blocks MergeStrategyMergeInternalSmallBlock." << std::endl;
+					if ( logstr )
+						(*logstr) << "[V] Merging BWT blocks MergeStrategyMergeInternalSmallBlock." << std::endl;
 
 					/*
 					 * remove unused file
@@ -1990,7 +2032,8 @@ namespace libmaus2
 							tmpfilenamebase + "_gparts", // new gt files
 							tmpfilenamebase + "_gapoverflow",
 							accD.get(),
-							numthreads
+							numthreads,
+							logstr
 						);
 
 						#if 0
@@ -2022,13 +2065,14 @@ namespace libmaus2
 						result.setBlockP0Rank( mergeIsa(
 							mergereq.children[1]->sortresult.getFiles().getSampledISA(), // old sampled isa
 							blockresults.getFiles().getSampledISA(), // new sampled isa
-							result.getFiles().getSampledISA(),blockstart,*pgap0decbuf/*gap0decbufit*//*GACR.G.begin()*/,cblocksize+1 /* GACR.G.size() */
+							result.getFiles().getSampledISA(),blockstart,*pgap0decbuf/*gap0decbufit*//*GACR.G.begin()*/,cblocksize+1 /* GACR.G.size() */,logstr
 						) );
 						pgap0decbuf.reset();
 						pgap0dec.reset();
 
 						::libmaus2::timing::RealTimeClock rtc; rtc.start();
-						std::cerr << "[V] merging BWTs...";
+						if ( logstr )
+							(*logstr) << "[V] merging BWTs...";
 
 						//
 						uint64_t const totalsuf = result.getCBlockSize();
@@ -2176,7 +2220,8 @@ namespace libmaus2
 								bwtenc.flush();
 							}
 						}
-						std::cerr << "done, time " << rtc.getElapsedSeconds() << std::endl;
+						if ( logstr )
+							(*logstr) << "done, time " << rtc.getElapsedSeconds() << std::endl;
 
 						#if 0
 						std::cerr << "[V] concatenating bwt parts...";
@@ -2196,10 +2241,12 @@ namespace libmaus2
 						#endif
 
 						// save histogram
-						std::cerr << "[V] saving histogram...";
+						if ( logstr )
+							(*logstr) << "[V] saving histogram...";
 						rtc.start();
 						accD->serialise(static_cast<std::string const & >(result.getFiles().getHist()));
-						std::cerr << "done, time " << rtc.getElapsedSeconds() << std::endl;
+						if ( logstr )
+							(*logstr) << "done, time " << rtc.getElapsedSeconds() << std::endl;
 					}
 					else
 					{
@@ -2255,7 +2302,8 @@ namespace libmaus2
 						{
 							// block we merge into
 							uint64_t const bx = mergereq.children.size()-bb-2;
-							std::cerr << "[V] merging blocks " << bx+1 << " to end into " << bx << std::endl;
+							if ( logstr )
+								(*logstr) << "[V] merging blocks " << bx+1 << " to end into " << bx << std::endl;
 							::libmaus2::suffixsort::BwtMergeBlockSortResult const & blockresults =
 								mergereq.children[bx]->sortresult;
 
@@ -2281,7 +2329,8 @@ namespace libmaus2
 								newmergedgtname,
 								newmergedgapoverflow,
 								accD.get(),
-								numthreads
+								numthreads,
+								logstr
 							);
 
 							// save the gap file
@@ -2295,7 +2344,7 @@ namespace libmaus2
 							// libmaus2::util::GetObject<uint32_t const *> mergeGO(GACR.G.begin());
 							libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type pgap0dec(GACR.G->getDecoder());
 							libmaus2::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type pgap0decbuf(new libmaus2::suffixsort::GapArrayByteDecoderBuffer(*pgap0dec,8192));
-							result.setBlockP0Rank( mergeIsa(mergedisaname,blockresults.getFiles().getSampledISA(),newmergedisaname,blockstart,*pgap0decbuf/*mergeGO*/ /*GACR.G.begin()*/,cblocksize+1 /*GACR.G.size()*/) );
+							result.setBlockP0Rank( mergeIsa(mergedisaname,blockresults.getFiles().getSampledISA(),newmergedisaname,blockstart,*pgap0decbuf/*mergeGO*/ /*GACR.G.begin()*/,cblocksize+1 /*GACR.G.size()*/,logstr) );
 
 							#if 0
 							// concatenate gt vectors
@@ -2345,7 +2394,8 @@ namespace libmaus2
 						// save histogram
 						accD->serialise(static_cast<std::string const & >(result.getFiles().getHist()));
 
-						std::cerr << "[V] merging parts...";
+						if ( logstr )
+							(*logstr) << "[V] merging parts...";
 						::libmaus2::timing::RealTimeClock mprtc;
 						mprtc.start();
 						result.setBWT(parallelGapFragMerge(
@@ -2354,8 +2404,9 @@ namespace libmaus2
 							// result.getFiles().getBWT(),
 							tmpfilenamebase+"_gpart",
 							numthreads,
-							lfblockmult,rlencoderblocksize));
-						std::cerr << "done, time " << mprtc.getElapsedSeconds() << std::endl;
+							lfblockmult,rlencoderblocksize,logstr));
+						if ( logstr )
+							(*logstr) << "done, time " << mprtc.getElapsedSeconds() << std::endl;
 
 						for ( uint64_t i = 0; i < gapfilenames.size(); ++i )
 							libmaus2::aio::FileRemoval::removeFile ( gapfilenames[i].c_str() );
@@ -2412,10 +2463,12 @@ namespace libmaus2
 					::std::map<int64_t,uint64_t> const & /* chist */,
 					uint64_t const bwtterm,
 					uint64_t const mem,
-					std::string const & huftreefilename
+					std::string const & huftreefilename,
+					std::ostream * logstr
 				)
 				{
-					std::cerr << "[V] Merging BWT blocks MergeStrategyMergeExternalBlock." << std::endl;
+					if ( logstr )
+						(*logstr) << "[V] Merging BWT blocks MergeStrategyMergeExternalBlock." << std::endl;
 
 					assert ( mergereq.children.size() > 1 );
 					assert ( mergereq.children.size() == mergereq.gaprequests.size()+1 );
@@ -2495,7 +2548,8 @@ namespace libmaus2
 
 							// block we merge into
 							uint64_t const bx = mergereq.children.size()-bb-2;
-							std::cerr << "[V] merging blocks " << bx+1 << " to end into " << bx << std::endl;
+							if ( logstr )
+								(*logstr) << "[V] merging blocks " << bx+1 << " to end into " << bx << std::endl;
 							::libmaus2::suffixsort::BwtMergeBlockSortResult const & blockresults =
 								mergereq.children[bx]->sortresult;
 
@@ -2521,13 +2575,14 @@ namespace libmaus2
 								gapfilenameprefix,
 								sparsetmpfilenamebase+"_sparsegap",
 								mem,
-								numthreads
+								numthreads,
+								logstr
 							);
 							gapfilenames[bx] = GACR.fn;
 
 							// merge sampled inverse suffix arrays, returns rank of position 0 (relative to block start)
 							libmaus2::gamma::GammaGapDecoder GGD(gapfilenames[bx]);
-							result.setBlockP0Rank( mergeIsa(mergedisaname,blockresults.getFiles().getSampledISA(),newmergedisaname,blockstart,GGD,cblocksize+1 /*GACR.G.size()*/) );
+							result.setBlockP0Rank( mergeIsa(mergedisaname,blockresults.getFiles().getSampledISA(),newmergedisaname,blockstart,GGD,cblocksize+1 /*GACR.G.size()*/,logstr) );
 
 							// concatenate gt vectors
 							//concatenateGT(GACR.gtpartnames,blockresults.getFiles().getGT(),newmergedgtname);
@@ -2573,14 +2628,16 @@ namespace libmaus2
 						// save histogram
 						accD->serialise(static_cast<std::string const & >(result.getFiles().getHist()));
 
-						std::cerr << "[V] merging parts...";
+						if ( logstr )
+							(*logstr) << "[V] merging parts...";
 						::libmaus2::timing::RealTimeClock mprtc;
 						mprtc.start();
 						result.setBWT(
 							parallelGapFragMerge(bwtfilenames,gapfilenames,tmpfilenamebase+"_gpart",numthreads,
-								lfblockmult,rlencoderblocksize)
+								lfblockmult,rlencoderblocksize,logstr)
 						);
-						std::cerr << "done, time " << mprtc.getElapsedSeconds() << std::endl;
+						if ( logstr )
+							(*logstr) << "done, time " << mprtc.getElapsedSeconds() << std::endl;
 
 						for ( uint64_t i = 0; i < gapfilenames.size(); ++i )
 							for ( uint64_t j = 0; j < gapfilenames[i].size(); ++j )
@@ -2672,7 +2729,8 @@ namespace libmaus2
 					std::string const mergedsaname,
 					uint64_t const sasamplingrate,
 					uint64_t const numthreads,
-					uint64_t const lfblockmult
+					uint64_t const lfblockmult,
+					std::ostream * logstr
 				)
 				{
 					::libmaus2::parallel::OMPLock cerrlock;
@@ -2689,7 +2747,8 @@ namespace libmaus2
 						uint64_t const sacheckblocksize = (checkpos + satcheckpacks-1) / satcheckpacks;
 						uint64_t const sacheckpacks = ( checkpos + sacheckblocksize - 1 ) / sacheckblocksize;
 
-						std::cerr << "[V] checking suffix array on text...";
+						if ( logstr )
+							(*logstr) << "[V] checking suffix array on text...";
 						::libmaus2::parallel::SynchronousCounter<uint64_t> SC;
 						int64_t lastperc = -1;
 						#if defined(_OPENMP)
@@ -2731,12 +2790,14 @@ namespace libmaus2
 							cerrlock.lock();
 							if ( newperc != lastperc )
 							{
-								std::cerr << "(" << newperc << ")";
+								if ( logstr )
+									(*logstr) << "(" << newperc << ")";
 								lastperc = newperc;
 							}
 							cerrlock.unlock();
 						}
-						std::cerr << "done." << std::endl;
+						if ( logstr )
+							(*logstr) << "done." << std::endl;
 					}
 
 				}
@@ -2752,7 +2813,8 @@ namespace libmaus2
 					uint64_t const lfblockmult,
 					uint64_t const sasamplingrate,
 					uint64_t const isasamplingrate,
-					uint64_t const blockmem
+					uint64_t const blockmem,
+					std::ostream * logstr
 				)
 				{
 					// read size of sampled isa
@@ -2762,7 +2824,8 @@ namespace libmaus2
 					int64_t const fr = SGIsisasa->get(); assert ( fr != -1 );
 					int64_t const fp = SGIsisasa->get(); assert ( fp != -1 );
 
-					std::cerr << "[V] computing sampled suffix array parts...";
+					if ( logstr )
+						(*logstr) << "[V] computing sampled suffix array parts...";
 
 					std::pair<uint64_t,uint64_t> const isa0(fr,fp);
 					std::pair<uint64_t,uint64_t> isapre(isa0);
@@ -2827,7 +2890,8 @@ namespace libmaus2
 							int64_t const newperc = ((i)*100) / (nsisa);
 							if ( newperc != lastperc )
 							{
-								std::cerr << "(" << newperc << ")";
+								if ( logstr )
+									(*logstr) << "(" << newperc << ")";
 								lastperc = newperc;
 							}
 						}
@@ -2855,9 +2919,11 @@ namespace libmaus2
 						ISAF[i].reset();
 					}
 
-					std::cerr << "done." << std::endl;
+					if ( logstr )
+						(*logstr) << "done." << std::endl;
 
-					std::cerr << "[V] sorting and merging sampled suffix array parts...";
+					if ( logstr )
+						(*logstr) << "[V] sorting and merging sampled suffix array parts...";
 					std::string const mergedsaname = ::libmaus2::util::OutputFileNameTools::clipOff(outfn,".bwt") + ".sa";
 					{
 					::libmaus2::aio::OutputStreamInstance::unique_ptr_type pmergedsa(new ::libmaus2::aio::OutputStreamInstance(mergedsaname));
@@ -2880,9 +2946,11 @@ namespace libmaus2
 					pmergedsa.reset();
 					libmaus2::aio::FileRemoval::removeFile(mergesatmp.c_str());
 					}
-					std::cerr << "done." << std::endl;
+					if ( logstr )
+						(*logstr) << "done." << std::endl;
 
-					std::cerr << "[V] sorting and merging sampled inverse suffix array parts...";
+					if ( logstr )
+						(*logstr) << "[V] sorting and merging sampled inverse suffix array parts...";
 					std::string const mergedisaoutname = ::libmaus2::util::OutputFileNameTools::clipOff(outfn,".bwt") + ".isa";
 					::libmaus2::aio::OutputStreamInstance::unique_ptr_type pmergedisa(new ::libmaus2::aio::OutputStreamInstance(mergedisaoutname));
 					// write sampling rate
@@ -2900,7 +2968,8 @@ namespace libmaus2
 						true /* parallel */,
 						true /* delete input */
 					);
-					std::cerr << "done." << std::endl;
+					if ( logstr )
+						(*logstr) << "done." << std::endl;
 					libmaus2::aio::FileRemoval::removeFile(mergeisatmp.c_str());
 
 					#if 0
@@ -3135,37 +3204,9 @@ namespace libmaus2
 					return (b < fullblocks) ? blocksize : (blocksize-1);
 				}
 
-				static BwtMergeSortResult computeBwt(BwtMergeSortOptions const & options)
+				static BwtMergeSortResult computeBwt(BwtMergeSortOptions const & options, std::ostream * logstr)
 				{
 					std::string fn = options.fn;
-
-					#if 0
-					std::string fn = arginfo.getUnparsedRestArg(0);
-					// word available per computation thread
-					uint64_t const wordsperthread = std::max(static_cast<uint64_t>(1),arginfo.getValueUnsignedNumeric<uint64_t>("wordsperthread",getDefaultWordsPerThread()));
-					// compute BWT only? (no SA and ISA)
-					bool const bwtonly = arginfo.getValue<unsigned int>("bwtonly",getDefaultBWTOnly());
-					// total memory available
-					uint64_t const mem = std::max(static_cast<uint64_t>(1),arginfo.getValueUnsignedNumeric<uint64_t>("mem",getDefaultMem()));
-					// base for tmp file names
-					std::string const tmpfilenamebase = arginfo.getUnparsedValue("tmpprefix",arginfo.getDefaultTmpFileName());
-					// base for spare tmp file names
-					std::string const sparsetmpfilenamebase = arginfo.getUnparsedValue("sparsetmpprefix",tmpfilenamebase);
-					// final inverse suffix array sampling rate
-					uint64_t const isasamplingrate = ::libmaus2::math::nextTwoPow(arginfo.getValueUnsignedNumeric<uint64_t>("isasamplingrate",getDefaultIsaSamplingRate()));
-					// final suffix array sampling rate
-					uint64_t const sasamplingrate = ::libmaus2::math::nextTwoPow(arginfo.getValueUnsignedNumeric<uint64_t>("sasamplingrate",getDefaultSaSamplingRate()));
-					bool const copyinputtomemory = arginfo.getValue<uint64_t>("copyinputtomemory",getDefaultCopyInputToMemory());
-					bool const computeTermSymbolHwt = arginfo.getValue<int>("computeTermSymbolHwt",false);;
-					// maximum block size
-					uint64_t const maxblocksize = arginfo.getValueUnsignedNumeric<uint64_t>("maxblocksize", std::numeric_limits<uint64_t>::max());
-					// maximum for pre isa (merging stage) samplingr rate
-					uint64_t const maxpreisasamplingrate = ::libmaus2::math::nextTwoPow(arginfo.getValueUnsignedNumeric<uint64_t>("preisasamplingrate",bwtonly ? 64 : 256*1024));
-					// default output file name
-					std::string const defoutfn = computeDefaultOutputFileName(computeDefaultOutputFileName(fn));
-					// output file name
-					std::string const outfn = arginfo.getValue<std::string>("outputfilename",defoutfn);
-					#endif
 
 					/* get file size */
 					uint64_t const fs = input_types_type::linear_wrapper::getFileSize(fn);
@@ -3208,7 +3249,8 @@ namespace libmaus2
 						libmaus2::aio::OutputStreamInstance outinst(nfn);
 						uint64_t const fs = libmaus2::util::GetFileSize::getFileSize(ininst);
 						libmaus2::util::GetFileSize::copy(ininst,outinst,fs);
-						std::cerr << "[V] copied " << fn << " to " << nfn << std::endl;
+						if ( logstr )
+							(*logstr) << "[V] copied " << fn << " to " << nfn << std::endl;
 
 						if ( input_types_type::utf8Wavelet() )
 						{
@@ -3216,7 +3258,8 @@ namespace libmaus2
 							libmaus2::aio::OutputStreamInstance outinst(nfn + ".idx");
 							uint64_t const fs = libmaus2::util::GetFileSize::getFileSize(ininst);
 							libmaus2::util::GetFileSize::copy(ininst,outinst,fs);
-							std::cerr << "[V] copied " << fn+".idx" << " to " << nfn+".idx" << std::endl;
+							if ( *logstr )
+								*logstr << "[V] copied " << fn+".idx" << " to " << nfn+".idx" << std::endl;
 						}
 
 						fn = nfn;
@@ -3258,11 +3301,15 @@ namespace libmaus2
 					uint64_t const preisasamplingrate = std::min(options.maxpreisasamplingrate,blocksizeprevtwo);
 
 					#if defined(BWTB3M_MEMORY_DEBUG)
-					std::cerr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+					if ( logstr )
+						*logstr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 					#endif
 
-					std::cerr << "[V] sorting file " << fn << " of size " << fs << " with block size " << blocksize << " (" << numblocks << " blocks)" << " and " << options.numthreads << " threads" << std::endl;
-					std::cerr << "[V] full blocks " << fullblocks << " reduced blocks " << redblocks << std::endl;
+					if ( logstr )
+					{
+						*logstr << "[V] sorting file " << fn << " of size " << fs << " with block size " << blocksize << " (" << numblocks << " blocks)" << " and " << options.numthreads << " threads" << std::endl;
+						*logstr << "[V] full blocks " << fullblocks << " reduced blocks " << redblocks << std::endl;
+					}
 
 					// there should be at least one block
 					assert ( numblocks );
@@ -3291,7 +3338,8 @@ namespace libmaus2
 						textstr.read(&A[0],A.size());
 
 						block.lock();
-						std::cerr << "\r" << std::string(80,' ') << "\r[Checking " << (bb+1) << "/" << numblocks << "]\r";
+						if ( logstr )
+							*logstr << "\r" << std::string(80,' ') << "\r[Checking " << (bb+1) << "/" << numblocks << "]\r";
 						block.unlock();
 
 						libmaus2::util::BorderArray<uint32_t> SBA(A.begin(),A.size());
@@ -3309,7 +3357,8 @@ namespace libmaus2
 							)
 							{
 								block.lock();
-								std::cerr << "\nlen " << (i+1) << " block " << b << " period " << period << std::endl;
+								if ( logstr )
+									*logstr << "\nlen " << (i+1) << " block " << b << " period " << period << std::endl;
 								block.unlock();
 								minper = period;
 							}
@@ -3321,12 +3370,14 @@ namespace libmaus2
 							minblockperiods[b] = minper;
 
 					}
-					std::cerr << std::endl;
+					if ( logstr )
+						*logstr << std::endl;
 
 					exit(0);
 					#endif
 
-					std::cerr << "[V] computing LCP between block suffixes and the following block start: ";
+					if ( logstr )
+						*logstr << "[V] computing LCP between block suffixes and the following block start: ";
 					std::vector<uint64_t> largelcpblocks;
 					libmaus2::parallel::OMPLock largelcpblockslock;
 					uint64_t const largelcpthres = 16*1024;
@@ -3359,19 +3410,22 @@ namespace libmaus2
 						{
 						libmaus2::parallel::ScopeLock slock(largelcpblockslock);
 						uint64_t const finished = ++largelcpblockscomputed;
-						std::cerr << "(" << static_cast<double>(finished)/numblocks << ")";
+						if ( logstr )
+							*logstr << "(" << static_cast<double>(finished)/numblocks << ")";
 						}
 
 						boundedlcpblockvalues[b] = blcp;
 					}
-					std::cerr << "done." << std::endl;
+					if ( logstr )
+						*logstr << "done." << std::endl;
 
 					std::sort(largelcpblocks.begin(),largelcpblocks.end());
 					for ( uint64_t ib = 0; ib < largelcpblocks.size(); ++ib )
 					{
 						uint64_t const b = largelcpblocks[ib];
 
-						std::cerr << "[V] Recomputing lcp value for block " << b << std::endl;
+						if ( logstr )
+							*logstr << "[V] Recomputing lcp value for block " << b << std::endl;
 
 						// start of block in file
 						uint64_t const blockstart = getBlockStart(b,blocksize,fullblocks);
@@ -3392,10 +3446,12 @@ namespace libmaus2
 					::libmaus2::suffixsort::BwtMergeTempFileNameSetVector blocktmpnames(options.tmpfilenamebase, numblocks, options.numthreads /* bwt */, options.numthreads /* gt */);
 
 					#if defined(BWTB3M_MEMORY_DEBUG)
-					std::cerr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+					if ( logstr )
+						*logstr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 					#endif
 
-					std::cerr << "[V] computing symbol frequences" << std::endl;
+					if ( logstr )
+						*logstr << "[V] computing symbol frequences" << std::endl;
 					std::map<int64_t,uint64_t> chistnoterm;
 					// std::vector< std::map<int64_t,uint64_t> > blockfreqvec(numblocks);
 					libmaus2::timing::RealTimeClock rtc;
@@ -3431,8 +3487,11 @@ namespace libmaus2
 						getBlockSymFreqsHash(fn,blockstart,blockstart+cblocksize,HH,options.numthreads);
 						double const t1 = rtc.getElapsedSeconds();
 
-						std::cerr << "(" << blockfreqs.size() << "," << HH.p << ")";
-						std::cerr << "[" << t0 << "," << t1 << "]";
+						if ( logstr )
+						{
+							*logstr << "(" << blockfreqs.size() << "," << HH.p << ")";
+							*logstr << "[" << t0 << "," << t1 << "]";
+						}
 						#endif
 
 						chistnoterm = mergeMaps(chistnoterm,blockfreqs);
@@ -3451,7 +3510,8 @@ namespace libmaus2
 					uint64_t const maxsym = chist.size() ? chist.rbegin()->first : 0;
 
 					#if defined(BWTB3M_MEMORY_DEBUG)
-					std::cerr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+					if ( logstr )
+						*logstr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 					#endif
 
 					libmaus2::aio::OutputStreamInstance::unique_ptr_type chistCOS(new libmaus2::aio::OutputStreamInstance(chistfilename));
@@ -3460,12 +3520,15 @@ namespace libmaus2
 					// chistCOS->close();
 					chistCOS.reset();
 
-					std::cerr << "[V] computed symbol frequences, input alphabet size is " << chistnoterm.size() << std::endl;
-
-					std::cerr << "[V] bwtterm=" << bwtterm << std::endl;
+					if ( logstr )
+					{
+						*logstr << "[V] computed symbol frequences, input alphabet size is " << chistnoterm.size() << std::endl;
+						*logstr << "[V] bwtterm=" << bwtterm << std::endl;
+					}
 
 					#if defined(BWTB3M_MEMORY_DEBUG)
-					std::cerr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+					if ( logstr )
+						*logstr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 					#endif
 
 					libmaus2::huffman::HuffmanTree::unique_ptr_type uhnode(new libmaus2::huffman::HuffmanTree(chist.begin(),chist.size(),false,true,true));
@@ -3477,14 +3540,16 @@ namespace libmaus2
 					huftreeCOS.reset();
 
 					#if defined(BWTB3M_MEMORY_DEBUG)
-					std::cerr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+					if ( logstr )
+						*logstr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 					#endif
 
 					::libmaus2::huffman::HuffmanTree::EncodeTable::unique_ptr_type EC(
 						new ::libmaus2::huffman::HuffmanTree::EncodeTable(*uhnode));
 
 					#if defined(BWTB3M_MEMORY_DEBUG)
-					std::cerr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+					if ( logstr )
+						*logstr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 					#endif
 
 					std::vector < libmaus2::suffixsort::bwtb3m::MergeStrategyBlock::shared_ptr_type > stratleafs(numblocks);
@@ -3542,12 +3607,13 @@ namespace libmaus2
 								options.numthreads /* down stream threads */
 							);
 
-						// std::cerr << *PMSB;
+						// if ( logstr ) { *logstr << *PMSB; }
 
 						stratleafs[b] = PMSB;
 
 						#if defined(BWTB3M_MEMORY_DEBUG)
-						std::cerr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+						if ( logstr )
+							*logstr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 						#endif
 					}
 
@@ -3555,39 +3621,44 @@ namespace libmaus2
 					EC.reset();
 
 					#if defined(BWTB3M_MEMORY_DEBUG)
-					std::cerr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+					if ( logstr )
+						*logstr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 					#endif
 
-
-
-					std::cerr << "[V] constructing merge tree" << std::endl;
+					if ( logstr )
+						*logstr << "[V] constructing merge tree" << std::endl;
 
 					// construct merge tree and register z requests
-					libmaus2::suffixsort::bwtb3m::MergeStrategyBlock::shared_ptr_type mergetree = libmaus2::suffixsort::bwtb3m::MergeStrategyConstruction::constructMergeTree(stratleafs,options.mem,options.numthreads,options.wordsperthread);
+					libmaus2::suffixsort::bwtb3m::MergeStrategyBlock::shared_ptr_type mergetree = libmaus2::suffixsort::bwtb3m::MergeStrategyConstruction::constructMergeTree(stratleafs,options.mem,options.numthreads,options.wordsperthread,logstr);
 
 					#if defined(BWTB3M_MEMORY_DEBUG)
-					std::cerr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+					if ( logstr )
+						*logstr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 					#endif
 
 					// inner node queue
 					std::deque<libmaus2::suffixsort::bwtb3m::MergeStrategyBlock *> itodo;
 
-					std::cerr << "[V] sorting blocks" << std::endl;
+					if ( logstr )
+						(*logstr) << "[V] sorting blocks" << std::endl;
 
 					#if defined(BWTB3M_MEMORY_DEBUG)
-					std::cerr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+					if ( logstr )
+						(*logstr) << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 					#endif
 
 					// sort single blocks
-					libmaus2::suffixsort::bwtb3m::BaseBlockSorting::unique_ptr_type BBS(new libmaus2::suffixsort::bwtb3m::BaseBlockSorting(stratleafs,options.mem,options.numthreads,itodo));
+					libmaus2::suffixsort::bwtb3m::BaseBlockSorting::unique_ptr_type BBS(new libmaus2::suffixsort::bwtb3m::BaseBlockSorting(stratleafs,options.mem,options.numthreads,itodo,logstr));
 					BBS->start();
 					BBS->join();
 					BBS.reset();
 
-					std::cerr << "[V] sorted blocks" << std::endl;
+					if ( logstr )
+						(*logstr) << "[V] sorted blocks" << std::endl;
 
 					#if defined(BWTB3M_MEMORY_DEBUG)
-					std::cerr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+					if ( logstr )
+						(*logstr) << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 					#endif
 
 					#if 0
@@ -3596,16 +3667,21 @@ namespace libmaus2
 						maxhwtsize = std::max(maxhwtsize,::libmaus2::util::GetFileSize::getFileSize(stratleafs[i]->sortresult.getFiles().getHWT()));
 					#endif
 
-					std::cerr << "[V] filling gap request objects" << std::endl;
+					if ( logstr )
+						(*logstr) << "[V] filling gap request objects" << std::endl;
 					mergetree->fillGapRequestObjects(options.numthreads);
 
 					#if defined(BWTB3M_MEMORY_DEBUG)
-					std::cerr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+					if ( logstr )
+						(*logstr) << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 					#endif
 
-					std::cerr << "[V]" << std::string(80,'-') << std::endl;
-					std::cerr << *mergetree;
-					std::cerr << "[V]" << std::string(80,'-') << std::endl;
+					if ( logstr )
+					{
+						(*logstr) << "[V]" << std::string(80,'-') << std::endl;
+						(*logstr) << *mergetree;
+						(*logstr) << "[V]" << std::string(80,'-') << std::endl;
+					}
 
 					uint64_t mtmpid = 0;
 					uint64_t const lfblockmult = 1;
@@ -3618,9 +3694,12 @@ namespace libmaus2
 						libmaus2::suffixsort::bwtb3m::MergeStrategyBlock * p = itodo.front();
 						itodo.pop_front();
 
-						std::cerr << "[V] processing ";
-						p->printBase(std::cerr);
-						std::cerr << std::endl;
+						if ( logstr )
+						{
+							(*logstr) << "[V] processing ";
+							p->printBase((*logstr));
+							(*logstr) << std::endl;
+						}
 
 						std::ostringstream tmpstr;
 						tmpstr << options.tmpfilenamebase << "_" << std::setfill('0') << std::setw(6) << (mtmpid++);
@@ -3637,7 +3716,8 @@ namespace libmaus2
 								lfblockmult,
 								options.numthreads,
 								chist,bwtterm,
-								huftreefilename
+								huftreefilename,
+								logstr
 							);
 						}
 						else if ( dynamic_cast<libmaus2::suffixsort::bwtb3m::MergeStrategyMergeInternalSmallBlock *>(p) )
@@ -3650,7 +3730,8 @@ namespace libmaus2
 								lfblockmult,
 								options.numthreads,
 								chist,bwtterm,
-								huftreefilename
+								huftreefilename,
+								logstr
 							);
 						}
 						else if ( dynamic_cast<libmaus2::suffixsort::bwtb3m::MergeStrategyMergeExternalBlock *>(p) )
@@ -3665,7 +3746,8 @@ namespace libmaus2
 								options.numthreads,
 								chist,bwtterm,
 								options.mem,
-								huftreefilename
+								huftreefilename,
+								logstr
 							);
 						}
 
@@ -3675,7 +3757,8 @@ namespace libmaus2
 							itodo.push_back(p->parent);
 
 						#if defined(BWTB3M_MEMORY_DEBUG)
-						std::cerr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+						if ( logstr )
+							(*logstr) << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
 						#endif
 					}
 
@@ -3686,7 +3769,8 @@ namespace libmaus2
 					rl_encoder::concatenate(mergeresult.getFiles().getBWT(),options.outfn,true /* removeinput */);
 					// libmaus2::aio::OutputStreamFactoryContainer::rename ( mergeresult.getFiles().getBWT().c_str(), outfn.c_str() );
 
-					std::cerr << "[V] BWT computed in time " << bwtclock.formatTime(bwtclock.getElapsedSeconds()) << std::endl;
+					if ( logstr )
+						(*logstr) << "[V] BWT computed in time " << bwtclock.formatTime(bwtclock.getElapsedSeconds()) << std::endl;
 
 					// serialise character histogram
 					std::string const outhist = ::libmaus2::util::OutputFileNameTools::clipOff(options.outfn,".bwt") + ".hist";
@@ -3733,7 +3817,8 @@ namespace libmaus2
 					}
 					else
 					{
-						std::cerr << "[V] computing Huffman shaped wavelet tree of final BWT...";
+						if ( logstr )
+							(*logstr) << "[V] computing Huffman shaped wavelet tree of final BWT...";
 						std::string const outhwt = ::libmaus2::util::OutputFileNameTools::clipOff(options.outfn,".bwt") + ".hwt";
 						libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type pICHWT;
 						if ( input_types_type::utf8Wavelet() )
@@ -3750,11 +3835,14 @@ namespace libmaus2
 							);
 							pICHWT = UNIQUE_PTR_MOVE(tICHWT);
 						}
-						std::cerr << "done, " << std::endl;
+						if ( logstr )
+							(*logstr) << "done, " << std::endl;
 
-						std::cerr << "[V] loading Huffman shaped wavelet tree of final BWT...";
+						if ( logstr )
+							(*logstr) << "[V] loading Huffman shaped wavelet tree of final BWT...";
 						::libmaus2::lf::ImpCompactHuffmanWaveletLF IHWT(pICHWT);
-						std::cerr << "done." << std::endl;
+						if ( logstr )
+							(*logstr) << "done." << std::endl;
 
 						// sort the sampled isa file
 						uint64_t const blockmem = memperthread; // memory per thread
@@ -3764,7 +3852,8 @@ namespace libmaus2
 						// compute sampled suffix array and sampled inverse suffix array
 						computeSampledSA(
 							fn,fs,IHWT,mergedisaname,options.outfn,options.tmpfilenamebase,
-							options.numthreads,lfblockmult,options.sasamplingrate,options.isasamplingrate,blockmem
+							options.numthreads,lfblockmult,options.sasamplingrate,options.isasamplingrate,blockmem,
+							logstr
 						);
 
 						// std::cerr << "[V] mergeresult.blockp0rank=" << mergeresult.blockp0rank << std::endl;
@@ -3774,8 +3863,8 @@ namespace libmaus2
 							options.outfn,
 							outhist,
 							outhwt,
-							::libmaus2::util::OutputFileNameTools::clipOff(options.outfn,".bwt") + ".safn",
-							::libmaus2::util::OutputFileNameTools::clipOff(options.outfn,".bwt") + ".isafn"
+							::libmaus2::util::OutputFileNameTools::clipOff(options.outfn,".bwt") + ".sa",
+							::libmaus2::util::OutputFileNameTools::clipOff(options.outfn,".bwt") + ".isa"
 						);
 					}
 

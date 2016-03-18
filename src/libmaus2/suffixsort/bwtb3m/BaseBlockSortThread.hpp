@@ -61,6 +61,8 @@ namespace libmaus2
 				std::deque<libmaus2::suffixsort::bwtb3m::MergeStrategyBlock *> & itodo;
 				//! pending
 				std::deque<uint64_t> & pending;
+				//! log stream
+				std::ostream * logstr;
 
 				BaseBlockSortThread(
 					uint64_t rtid,
@@ -71,9 +73,10 @@ namespace libmaus2
 					uint64_t & rfinished,
 					libmaus2::parallel::PosixMutex & rfreememlock,
 					std::deque<libmaus2::suffixsort::bwtb3m::MergeStrategyBlock *> & ritodo,
-					std::deque<uint64_t> & rpending
+					std::deque<uint64_t> & rpending,
+					std::ostream * rlogstr
 				) : tid(rtid), P(rP), V(rV), next(rnext), freemem(rfreemem), finished(rfinished), freememlock(rfreememlock),
-				    itodo(ritodo), pending(rpending)
+				    itodo(ritodo), pending(rpending), logstr(rlogstr)
 				{
 
 				}
@@ -117,14 +120,16 @@ namespace libmaus2
 							catch(std::exception const & ex)
 							{
 								libmaus2::parallel::ScopePosixMutex scopelock(freememlock);
-								std::cerr << tid << " failed " << pack << " " << ex.what() << std::endl;
+								if ( logstr )
+									*logstr << tid << " failed " << pack << " " << ex.what() << std::endl;
 							}
 
 							{
 								// get lock
 								libmaus2::parallel::ScopePosixMutex scopelock(freememlock);
 
-								std::cerr << "[V] [" << tid << "] sorted block " << pack << std::endl;
+								if ( logstr )
+									*logstr << "[V] [" << tid << "] sorted block " << pack << std::endl;
 
 								if ( V[pack]->parent )
 								{

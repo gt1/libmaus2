@@ -29,7 +29,7 @@ namespace libmaus2
 		{
 			struct BwtMergeSort
 			{
-				static BwtMergeSortResult computeBwt(BwtMergeSortOptions const & options);
+				static BwtMergeSortResult computeBwt(BwtMergeSortOptions const & options, std::ostream * logstr);
 			};
 		}
 	}

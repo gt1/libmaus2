@@ -25,6 +25,9 @@
 #include <libmaus2/lf/ImpCompactHuffmanWaveletLF.hpp>
 #include <libmaus2/util/NumberMapSerialisation.hpp>
 #include <libmaus2/suffixsort/bwtb3m/BWTB3MBase.hpp>
+#include <libmaus2/fm/SampledSA.hpp>
+#include <libmaus2/fm/SampledISA.hpp>
+#include <libmaus2/fm/FM.hpp>
 
 namespace libmaus2
 {
@@ -98,6 +101,42 @@ namespace libmaus2
 					return UNIQUE_PTR_MOVE(pICHWT);
 				}
 
+				libmaus2::fm::SimpleSampledSA<libmaus2::lf::ImpCompactHuffmanWaveletLF>::unique_ptr_type loadSuffixArray(libmaus2::lf::ImpCompactHuffmanWaveletLF const * lf)
+				{
+					if ( safn.size() )
+					{
+						libmaus2::fm::SimpleSampledSA<libmaus2::lf::ImpCompactHuffmanWaveletLF>::unique_ptr_type ptr(
+							libmaus2::fm::SimpleSampledSA<libmaus2::lf::ImpCompactHuffmanWaveletLF>::load(lf,safn)
+						);
+						return UNIQUE_PTR_MOVE(ptr);
+					}
+					else
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::suffixsort::bwtb3m::BwtMergeSortResult::loadSuffixArray: suffix array has not been constructed" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+				}
+
+				libmaus2::fm::SampledISA<libmaus2::lf::ImpCompactHuffmanWaveletLF>::unique_ptr_type loadInverseSuffixArray(libmaus2::lf::ImpCompactHuffmanWaveletLF const * lf)
+				{
+					if ( isafn.size() )
+					{
+						libmaus2::fm::SampledISA<libmaus2::lf::ImpCompactHuffmanWaveletLF>::unique_ptr_type ptr(
+							libmaus2::fm::SampledISA<libmaus2::lf::ImpCompactHuffmanWaveletLF>::load(lf,isafn)
+						);
+						return UNIQUE_PTR_MOVE(ptr);
+					}
+					else
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::suffixsort::bwtb3m::BwtMergeSortResult::loadInverseSuffixArray: inverse suffix array has not been constructed" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+				}
+
 				libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type loadWaveletTree(
 					std::string const tmpfilenamebase,
 					uint64_t const numthreads
@@ -123,6 +162,18 @@ namespace libmaus2
 					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type hptr(loadWaveletTree(tmpfilenamebase,numthreads));
 					libmaus2::lf::ImpCompactHuffmanWaveletLF::unique_ptr_type lptr(new libmaus2::lf::ImpCompactHuffmanWaveletLF(hptr));
 					return UNIQUE_PTR_MOVE(lptr);
+				}
+
+				libmaus2::fm::FM<libmaus2::lf::ImpCompactHuffmanWaveletLF>::unique_ptr_type loadFM(std::string const tmpfilenamebase, uint64_t const numthreads)
+				{
+					libmaus2::lf::ImpCompactHuffmanWaveletLF::unique_ptr_type PLF(loadLF(tmpfilenamebase,numthreads));
+					libmaus2::lf::ImpCompactHuffmanWaveletLF::shared_ptr_type SLF(PLF.release());
+					libmaus2::fm::SimpleSampledSA<libmaus2::lf::ImpCompactHuffmanWaveletLF>::unique_ptr_type PSA(loadSuffixArray(SLF.get()));
+					libmaus2::fm::SampledISA<libmaus2::lf::ImpCompactHuffmanWaveletLF>::unique_ptr_type PISA(loadInverseSuffixArray(SLF.get()));
+					libmaus2::fm::FM<libmaus2::lf::ImpCompactHuffmanWaveletLF>::unique_ptr_type PFM(new
+						libmaus2::fm::FM<libmaus2::lf::ImpCompactHuffmanWaveletLF>(SLF,PSA,PISA)
+					);
+					return UNIQUE_PTR_MOVE(PFM);
 				}
 
 				static BwtMergeSortResult setupBwtSa(

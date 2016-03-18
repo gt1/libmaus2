@@ -53,7 +53,8 @@ namespace libmaus2
 					uint64_t const rfreemem,
 					uint64_t const numthreads,
 					//! inner node queue
-					std::deque<libmaus2::suffixsort::bwtb3m::MergeStrategyBlock *> & ritodo
+					std::deque<libmaus2::suffixsort::bwtb3m::MergeStrategyBlock *> & ritodo,
+					std::ostream * logstr
 				)
 				: V(rV), P(), next(0), freemem(rfreemem), finished(0), freememlock(), itodo(ritodo), threads(numthreads)
 				{
@@ -70,7 +71,7 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < numthreads; ++i )
 					{
 						BaseBlockSortThread::unique_ptr_type tthreadsi(
-							new BaseBlockSortThread(i,P,V,next,freemem,finished,freememlock,itodo,pending)
+							new BaseBlockSortThread(i,P,V,next,freemem,finished,freememlock,itodo,pending,logstr)
 						);
 						threads[i] = UNIQUE_PTR_MOVE(tthreadsi);
 
