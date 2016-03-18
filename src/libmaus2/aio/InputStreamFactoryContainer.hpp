@@ -209,6 +209,13 @@ namespace libmaus2
 				factories[protocol] = factory;
 			}
 
+			static void removeHandler(std::string const & protocol)
+			{
+				std::map<std::string,libmaus2::aio::InputStreamFactory::shared_ptr_type>::iterator it = factories.find(protocol);
+				if ( it != factories.end() )
+					factories.erase(it);
+			}
+
 			static bool isRegularFileURL(std::string const & url)
 			{
 				assert ( factories.find("file") != factories.end() );
