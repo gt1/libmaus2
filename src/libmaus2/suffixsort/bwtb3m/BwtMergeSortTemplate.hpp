@@ -44,6 +44,7 @@
 #include <libmaus2/suffixsort/bwtb3m/MergeStrategyBaseBlock.hpp>
 #include <libmaus2/suffixsort/bwtb3m/MergeStrategyConstruction.hpp>
 #include <libmaus2/suffixsort/bwtb3m/BaseBlockSorting.hpp>
+#include <libmaus2/suffixsort/bwtb3m/BwtMergeSortResult.hpp>
 
 namespace libmaus2
 {
@@ -3133,12 +3134,11 @@ namespace libmaus2
 				{
 					return (b < fullblocks) ? blocksize : (blocksize-1);
 				}
-				
-				
-				static int computeBwt(BwtMergeSortOptions const & options)
+
+				static BwtMergeSortResult computeBwt(BwtMergeSortOptions const & options)
 				{
 					std::string fn = options.fn;
-					
+
 					#if 0
 					std::string fn = arginfo.getUnparsedRestArg(0);
 					// word available per computation thread
@@ -3711,6 +3711,8 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < mergeresult.getFiles().getGT().size(); ++i )
 						libmaus2::aio::FileRemoval::removeFile ( mergeresult.getFiles().getGT()[i].c_str() );
 
+					BwtMergeSortResult result;
+
 					if ( options.bwtonly )
 					{
 						std::string const mergedisaname = mergeresult.getFiles().getSampledISA();
@@ -3720,6 +3722,14 @@ namespace libmaus2
 						std::string const outisameta = outisa + ".meta";
 						libmaus2::aio::OutputStreamInstance outisametaOSI(outisameta);
 						libmaus2::util::NumberSerialisation::serialiseNumber(outisametaOSI,preisasamplingrate);
+
+						result = BwtMergeSortResult::setupBwtOnly(
+							fn,
+							options.outfn,
+							outhist,
+							outisameta,
+							outisa
+						);
 					}
 					else
 					{
@@ -3758,9 +3768,18 @@ namespace libmaus2
 						);
 
 						// std::cerr << "[V] mergeresult.blockp0rank=" << mergeresult.blockp0rank << std::endl;
+
+						result = BwtMergeSortResult::setupBwtSa(
+							fn,
+							options.outfn,
+							outhist,
+							outhwt,
+							::libmaus2::util::OutputFileNameTools::clipOff(options.outfn,".bwt") + ".safn",
+							::libmaus2::util::OutputFileNameTools::clipOff(options.outfn,".bwt") + ".isafn"
+						);
 					}
 
-					return EXIT_SUCCESS;
+					return result;
 				}
 			};
 		}

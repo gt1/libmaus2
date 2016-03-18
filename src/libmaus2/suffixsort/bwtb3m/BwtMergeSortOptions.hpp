@@ -59,6 +59,7 @@ namespace libmaus2
 				std::string sinputtype;
 				bwt_merge_input_type inputtype;
 
+				// parse input type from string form to enum
 				static bwt_merge_input_type parseInputType(std::string const & sinputtype)
 				{
 					typedef std::pair<char const *, bwt_merge_input_type> pair_type;
@@ -82,41 +83,49 @@ namespace libmaus2
 					throw lme;
 				}
 
+				// default input type: bytestream
 				static std::string getDefaultInputType()
 				{
 					return "bytestream";
 				}
 
+				// default sa sampling rate 32
 				static uint64_t getDefaultSaSamplingRate()
 				{
 					return 32;
 				}
 
+				// default isa sampling rate 256k
 				static uint64_t getDefaultIsaSamplingRate()
 				{
 					return 256*1024;
 				}
 
+				// default copyinputtomemory: keep file where it is
 				static bool getDefaultCopyInputToMemory()
 				{
 					return false;
 				}
 
+				// default bwtonly setting false: compute BWT and sampled SA/ISA
 				static bool getDefaultBWTOnly()
 				{
 					return false;
 				}
 
+				// default words per thread: 64k*8 = 512k (for sparse file handling)
 				static uint64_t getDefaultWordsPerThread()
 				{
 					return 64ull*1024ull;
 				}
 
+				// default memory setting: 2GB
 				static uint64_t getDefaultMem()
 				{
 					return 2ull * 1024ull * 1024ull * 1024ull;
 				}
-				
+
+				// default number of threads to use
 				static uint64_t getDefaultNumThreads()
 				{
 					return libmaus2::parallel::NumCpus::getNumLogicalProcessors();
@@ -132,11 +141,11 @@ namespace libmaus2
 						endClipC[i] = endClipS[i].c_str();
 					endClipC[endClipS.size()] = 0;
 					std::string const defoutfn = libmaus2::util::OutputFileNameTools::endClip(fn,endClipC.begin()) + ".bwt";
-					return defoutfn;	
+					return defoutfn;
 				}
-				
+
 				BwtMergeSortOptions() {}
-				
+
 				BwtMergeSortOptions(libmaus2::util::ArgInfo const & arginfo) :
 				  numthreads(arginfo.getValueUnsignedNumeric<unsigned int>("numthreads", getDefaultNumThreads())),
 				  fn(arginfo.getUnparsedRestArg(0)),
@@ -156,7 +165,45 @@ namespace libmaus2
 				  sinputtype(arginfo.getValue<std::string>("inputtype",getDefaultInputType())),
 				  inputtype(parseInputType(sinputtype))
 				{
-				
+
+				}
+
+				BwtMergeSortOptions(
+					std::string rfn,
+					uint64_t rmem = getDefaultMem(),
+					uint64_t rnumthreads = getDefaultNumThreads(),
+					std::string rsinputtype = getDefaultInputType(),
+					bool const rbwtonly = getDefaultBWTOnly(),
+					std::string rtmpfilenamebase = std::string(),
+					std::string rsparsetmpfilenamebase = std::string(),
+					std::string routfn = std::string(),
+					uint64_t risasamplingrate = getDefaultIsaSamplingRate(),
+					uint64_t rsasamplingrate = getDefaultSaSamplingRate(),
+					int64_t rmaxpreisasamplingrate = -1,
+					bool rcopyinputtomemory = getDefaultCopyInputToMemory(),
+					uint64_t rmaxblocksize = std::numeric_limits<uint64_t>::max(),
+					bool rcomputeTermSymbolHwt = false,
+					uint64_t rwordsperthread = getDefaultWordsPerThread()
+				) :
+				  numthreads(rnumthreads),
+				  fn(rfn),
+				  wordsperthread(rwordsperthread),
+				  bwtonly(rbwtonly),
+				  mem(rmem),
+				  tmpfilenamebase(rtmpfilenamebase.size() ? rtmpfilenamebase : (fn + "_tmp")),
+				  sparsetmpfilenamebase(rsparsetmpfilenamebase.size() ? rsparsetmpfilenamebase : tmpfilenamebase),
+				  isasamplingrate(risasamplingrate),
+				  sasamplingrate(rsasamplingrate),
+				  copyinputtomemory(rcopyinputtomemory),
+				  computeTermSymbolHwt(rcomputeTermSymbolHwt),
+				  maxblocksize(rmaxblocksize),
+				  maxpreisasamplingrate((rmaxpreisasamplingrate <= 0) ? (bwtonly ? 64 : 256*1024) : rmaxpreisasamplingrate ),
+				  defoutfn(computeDefaultOutputFileName(computeDefaultOutputFileName(fn))),
+				  outfn(routfn.size() ? routfn : defoutfn),
+				  sinputtype(rsinputtype),
+				  inputtype(parseInputType(sinputtype))
+				{
+
 				}
 			};
 		}

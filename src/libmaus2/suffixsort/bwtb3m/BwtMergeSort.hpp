@@ -16,13 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
-#if ! defined(LIBMAUS2_SUFFIXSORT_BWTB3MBASE_HPP)
-#define LIBMAUS2_SUFFIXSORT_BWTB3MBASE_HPP
+#if ! defined(LIBMAUS2_SUFFIXSORT_BWTB3M_BWTMERGESORT_HPP)
+#define LIBMAUS2_SUFFIXSORT_BWTB3M_BWTMERGESORT_HPP
 
-#include <libmaus2/huffman/RLEncoder.hpp>
-#include <libmaus2/huffman/RLDecoder.hpp>
-#include <libmaus2/gamma/GammaRLEncoder.hpp>
-#include <libmaus2/gamma/GammaRLDecoder.hpp>
+#include <libmaus2/suffixsort/bwtb3m/BwtMergeSortTemplate.hpp>
 
 namespace libmaus2
 {
@@ -30,18 +27,9 @@ namespace libmaus2
 	{
 		namespace bwtb3m
 		{
-			struct BWTB3MBase
+			struct BwtMergeSort
 			{
-				// #define LIBMAUS2_SUFFIXSORT_BWTB3M_HUFGAP
-				#define LIBMAUS2_SUFFIXSORT_BWTB3M_HUFRL
-
-				#if defined(LIBMAUS2_SUFFIXSORT_BWTB3M_HUFRL)
-				typedef ::libmaus2::huffman::RLEncoderStd rl_encoder;
-				typedef ::libmaus2::huffman::RLDecoder rl_decoder;
-				#else
-				typedef ::libmaus2::gamma::GammaRLEncoder rl_encoder;
-				typedef ::libmaus2::gamma::GammaRLDecoder rl_decoder;
-				#endif
+				static BwtMergeSortResult computeBwt(BwtMergeSortOptions const & options);
 			};
 		}
 	}

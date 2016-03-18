@@ -246,7 +246,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/lcs/NNPTraceElement.cpp \
 	libmaus2/lcs/NNPTraceContainer.cpp \
 	libmaus2/lcs/NNPAlignResult.cpp \
-	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeGapRequest.cpp
+	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeGapRequest.cpp \
+	libmaus2/suffixsort/bwtb3m/BwtMergeSort.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1297,7 +1298,9 @@ libmaus2aio_include_HEADERS=\
 	libmaus2/aio/OutputStreamInstance.hpp \
 	libmaus2/aio/ConcatInputStreamBuffer.hpp \
 	libmaus2/aio/ConcatInputStream.hpp \
-	libmaus2/aio/SplitWriter.hpp
+	libmaus2/aio/SplitWriter.hpp \
+	libmaus2/aio/ArrayInputStreamBuffer.hpp \
+	libmaus2/aio/ArrayInputStream.hpp
 	
 libmaus2parallel_includedir=$(includedir)/libmaus2/parallel
 libmaus2parallel_include_HEADERS=\
@@ -1648,7 +1651,9 @@ libmaus2suffixsortbwtb3m_include_HEADERS=\
 	libmaus2/suffixsort/bwtb3m/BaseBlockSortThread.hpp \
 	libmaus2/suffixsort/bwtb3m/BaseBlockSorting.hpp \
 	libmaus2/suffixsort/bwtb3m/BwtMergeSortOptions.hpp \
-	libmaus2/suffixsort/bwtb3m/BwtMergeSortTemplate.hpp
+	libmaus2/suffixsort/bwtb3m/BwtMergeSortTemplate.hpp \
+	libmaus2/suffixsort/bwtb3m/BwtMergeSort.hpp \
+	libmaus2/suffixsort/bwtb3m/BwtMergeSortResult.hpp
 
 libmaus2suffixtree_includedir=$(includedir)/libmaus2/suffixtree
 libmaus2suffixtree_include_HEADERS=\
@@ -1988,7 +1993,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testfaextract \
 	testmurmur3 \
 	testpairalign \
-	testsplaytree
+	testsplaytree \
+	testbwtconstruction
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2516,3 +2522,7 @@ testpairalign_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testsplaytree_SOURCES  = test/testsplaytree.cpp
 testsplaytree_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testsplaytree_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testbwtconstruction_SOURCES  = test/testbwtconstruction.cpp
+testbwtconstruction_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testbwtconstruction_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
