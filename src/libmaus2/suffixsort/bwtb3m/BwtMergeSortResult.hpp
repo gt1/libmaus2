@@ -28,6 +28,7 @@
 #include <libmaus2/fm/SampledSA.hpp>
 #include <libmaus2/fm/SampledISA.hpp>
 #include <libmaus2/fm/FM.hpp>
+#include <libmaus2/lcp/WaveletLCP.hpp>
 
 namespace libmaus2
 {
@@ -174,6 +175,16 @@ namespace libmaus2
 						libmaus2::fm::FM<libmaus2::lf::ImpCompactHuffmanWaveletLF>(SLF,PSA,PISA)
 					);
 					return UNIQUE_PTR_MOVE(PFM);
+				}
+
+				libmaus2::lcp::WaveletLCPResult::unique_ptr_type computeLCP(
+					libmaus2::lf::ImpCompactHuffmanWaveletLF const * LF,
+					uint64_t const numthreads,
+					std::ostream * logstr
+				)
+				{
+					libmaus2::lcp::WaveletLCPResult::unique_ptr_type PLCP(libmaus2::lcp::WaveletLCP::computeLCP(LF,numthreads,false /* zdif */,logstr));
+					return UNIQUE_PTR_MOVE(PLCP);
 				}
 
 				static BwtMergeSortResult setupBwtSa(
