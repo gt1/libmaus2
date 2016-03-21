@@ -1,6 +1,6 @@
 /*
     libmaus2
-    Copyright (C) 2009-2013 German Tischler
+    Copyright (C) 2009-2016 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
     This program is free software: you can redistribute it and/or modify
@@ -30,13 +30,25 @@ namespace libmaus2
                 struct CompactQueue
                 {
                         uint64_t const n;
+
+                        #if defined(LIBMAUS2_HAVE_SYNC_OPS)
+                        ::libmaus2::bitio::SynchronousCompactArray Q;
+                        #else
                         ::libmaus2::bitio::CompactArray Q;
-                        uint64_t fill;
                         ::libmaus2::parallel::OMPLock batchlock;
+                        #endif
+                        uint64_t fill;
 
                         template<typename iterator>
                         void enqueBatch(iterator a, iterator e)
                         {
+	                        #if defined(LIBMAUS2_HAVE_SYNC_OPS)
+                                while ( a !=e )
+                                {
+                                        enque(a->first,a->second);
+                                        ++a;
+                                }
+	                        #else
                                 batchlock.lock();
                                 while ( a !=e )
                                 {
@@ -44,6 +56,7 @@ namespace libmaus2
                                         ++a;
                                 }
                                 batchlock.unlock();
+                                #endif
                         }
 
                         CompactQueue(uint64_t const rn)
