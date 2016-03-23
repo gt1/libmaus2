@@ -32,20 +32,29 @@ namespace libmaus2
                         uint64_t const n;
 
                         #if defined(LIBMAUS2_HAVE_SYNC_OPS)
+                        #define LIBMAUS2_SUFFIXSORT_COMPACTQUEUE_USE_SYNC_COMPACTARRAY
+                        #endif
+
+                        ::libmaus2::parallel::OMPLock batchlock;
+
+                        #if defined(LIBMAUS2_SUFFIXSORT_COMPACTQUEUE_USE_SYNC_COMPACTARRAY)
                         ::libmaus2::bitio::SynchronousCompactArray Q;
                         #else
                         ::libmaus2::bitio::CompactArray Q;
-                        ::libmaus2::parallel::OMPLock batchlock;
                         #endif
                         uint64_t fill;
 
                         template<typename iterator>
                         void enqueBatch(iterator a, iterator e)
                         {
-	                        #if defined(LIBMAUS2_HAVE_SYNC_OPS)
+	                        #if defined(LIBMAUS2_SUFFIXSORT_COMPACTQUEUE_USE_SYNC_COMPACTARRAY)
+                                batchlock.lock();
+                                fill += (e-a);
+                                batchlock.unlock();
+
                                 while ( a !=e )
                                 {
-                                        enque(a->first,a->second);
+                                        enqueInternal(a->first,a->second);
                                         ++a;
                                 }
 	                        #else
@@ -78,7 +87,7 @@ namespace libmaus2
                                 fill = 0;
                         }
 
-                        void enque(uint64_t const sp, uint64_t const ep)
+                        void enqueInternal(uint64_t const sp, uint64_t const ep)
                         {
                                 assert ( ep>sp);
 
@@ -87,7 +96,7 @@ namespace libmaus2
                                 #endif
 
                                 if ( ep-1 == sp )
-                                {
+	                                {
                                         Q.set(sp,3);
                                 }
                                 else
@@ -95,7 +104,11 @@ namespace libmaus2
                                         Q.set(sp,1);
                                         Q.set(ep-1,2);
                                 }
+                        }
 
+                        void enque(uint64_t const sp, uint64_t const ep)
+                        {
+                        	enqueInternal(sp,ep);
                                 fill += 1;
                         }
 
