@@ -133,8 +133,7 @@ void transform(iterator ita, iterator ite)
 		std::cerr << std::endl;
 		#endif
 
-
-		libmaus2::lcp::WaveletLCPResult::unique_ptr_type PLCP(res.computeLCP(PLF.get(),numthreads,&std::cerr));
+		libmaus2::suffixtree::CompressedSuffixTree::unique_ptr_type CST(res.loadSuffixTree(numthreads,"mem://tmp",32*1024*1024,&(std::cerr)));
 
 		libmaus2::aio::InputStreamFactoryContainer::removeHandler(prot);
 
