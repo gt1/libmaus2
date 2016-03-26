@@ -247,7 +247,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/lcs/NNPTraceContainer.cpp \
 	libmaus2/lcs/NNPAlignResult.cpp \
 	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeGapRequest.cpp \
-	libmaus2/suffixsort/bwtb3m/BwtMergeSort.cpp
+	libmaus2/suffixsort/bwtb3m/BwtMergeSort.cpp \
+	libmaus2/suffixsort/bwtb3m/BwtComputeSSA.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1653,7 +1654,8 @@ libmaus2suffixsortbwtb3m_include_HEADERS=\
 	libmaus2/suffixsort/bwtb3m/BwtMergeSortOptions.hpp \
 	libmaus2/suffixsort/bwtb3m/BwtMergeSortTemplate.hpp \
 	libmaus2/suffixsort/bwtb3m/BwtMergeSort.hpp \
-	libmaus2/suffixsort/bwtb3m/BwtMergeSortResult.hpp
+	libmaus2/suffixsort/bwtb3m/BwtMergeSortResult.hpp \
+	libmaus2/suffixsort/bwtb3m/BwtComputeSSA.hpp
 
 libmaus2suffixtree_includedir=$(includedir)/libmaus2/suffixtree
 libmaus2suffixtree_include_HEADERS=\
