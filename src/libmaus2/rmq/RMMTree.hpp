@@ -399,7 +399,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < numlevels; ++i )
 					S[i+1] = I[i]->size();
 
-				if ( 1 || rmmtreedebug )
+				if ( rmmtreedebug )
 				{
 					for ( uint64_t kk = k, level = 0; kk < n; kk *= k, ++level )
 					{
