@@ -33,6 +33,7 @@
 #include <libmaus2/rmq/RMMTree.hpp>
 #include <libmaus2/util/FileTempFileContainer.hpp>
 #include <libmaus2/suffixtree/CompressedSuffixTree.hpp>
+#include <libmaus2/suffixsort/bwtb3m/BwtComputeSSA.hpp>
 
 namespace libmaus2
 {
@@ -173,6 +174,37 @@ namespace libmaus2
 					hwtfn = outhwt;
 
 					return UNIQUE_PTR_MOVE(pICHWT);
+				}
+
+				void computeSampledSuffixArray(
+					uint64_t const sasamplingrate,
+					uint64_t const isasamplingrate,
+					std::string const tmpfilenamebase,
+					bool const copyinputtomemory,
+					uint64_t const numthreads,
+					uint64_t const maxsortmem,
+					uint64_t const maxtmpfiles,
+					std::ostream * logstr,
+					std::string const ref_isa_fn = std::string(),
+					std::string const ref_sa_fn = std::string()
+				)
+				{
+					libmaus2::suffixsort::bwtb3m::BwtComputeSSA::computeSSA(
+						bwtfn,
+						sasamplingrate,
+						isasamplingrate,
+						tmpfilenamebase,
+						copyinputtomemory,
+						numthreads,
+						maxsortmem,
+						maxtmpfiles,
+						logstr,
+						ref_isa_fn,
+						ref_sa_fn
+					);
+
+					safn = ::libmaus2::util::OutputFileNameTools::clipOff(bwtfn,".bwt") + ".sa";
+					isafn = ::libmaus2::util::OutputFileNameTools::clipOff(bwtfn,".bwt") + ".isa";
 				}
 
 				libmaus2::fm::SimpleSampledSA<libmaus2::lf::ImpCompactHuffmanWaveletLF>::unique_ptr_type loadSuffixArray(libmaus2::lf::ImpCompactHuffmanWaveletLF const * lf)
