@@ -22,6 +22,7 @@
 #include <libmaus2/bitio/CompactQueue.hpp>
 #include <libmaus2/lcp/WaveletLCPResult.hpp>
 #include <libmaus2/timing/RealTimeClock.hpp>
+#include <libmaus2/math/ilog.hpp>
 #include <stack>
 
 #if defined(_OPENMP)
@@ -144,9 +145,10 @@ namespace libmaus2
 				if ( logstr )
 					*logstr << "[V] Computing LCP...";
 				uint64_t cur_l = 1;
+				uint64_t maxfill = 0;
+				uint64_t const logn = std::max ( static_cast<int64_t> ( libmaus2::math::ilog(n) ), static_cast<int64_t>(1) );
 				while (
-					PQ0->fill &&
-					cur_l < unset
+					PQ0->fill && cur_l < unset
 				)
 				{
 					if ( logstr )
@@ -187,6 +189,11 @@ namespace libmaus2
 					std::swap(PQ0,PQ1);
 
 					cur_l ++;
+
+					if ( PQ0->fill > maxfill )
+						maxfill = PQ0->fill;
+					if ( PQ0->fill < maxfill && s >= n / logn && (PQ0->fill < n / logn) )
+						break;
 				}
 
 				// extract compact queues into non compact ones
@@ -194,6 +201,8 @@ namespace libmaus2
 
 				if ( PQ0->fill )
 				{
+					// assert ( cur_l == unset );
+
 					::libmaus2::suffixsort::CompactQueue::DequeContext::unique_ptr_type dcontext = PQ0->getGlobalDequeContext();
 					while ( dcontext->fill )
 						DQ0.push_back( PQ0->deque(dcontext.get()) );
@@ -221,16 +230,29 @@ namespace libmaus2
 
 						assert ( DQ1.size() == 0 );
 
-						while ( DQ0.size() )
-						{
-							std::pair<uint64_t,uint64_t> const qe = DQ0.front(); DQ0.pop_front();
-							uint64_t const locals = LF->W->multiRankLCPSetLarge(qe.first,qe.second,LF->D.get(),*res,cur_l,&DQ1);
-							#if defined(_OPENMP) && defined(LIBMAUS2_HAVE_SYNC_OPS)
-							__sync_fetch_and_add(&s,locals);
-							#else
-							s += locals;
-							#endif
-						}
+						if ( cur_l >= unset )
+							while ( DQ0.size() )
+							{
+								std::pair<uint64_t,uint64_t> const qe = DQ0.front(); DQ0.pop_front();
+								uint64_t const locals = LF->W->multiRankLCPSetLarge(qe.first,qe.second,LF->D.get(),*res,cur_l,&DQ1);
+								#if defined(_OPENMP) && defined(LIBMAUS2_HAVE_SYNC_OPS)
+								__sync_fetch_and_add(&s,locals);
+								#else
+								s += locals;
+								#endif
+							}
+						else
+							while ( DQ0.size() )
+							{
+								std::pair<uint64_t,uint64_t> const qe = DQ0.front(); DQ0.pop_front();
+								uint64_t const locals = LF->W->multiRankLCPSet(qe.first,qe.second,LF->D.get(),WLCP.get(),unset,cur_l,&DQ1);
+								#if defined(_OPENMP) && defined(LIBMAUS2_HAVE_SYNC_OPS)
+								__sync_fetch_and_add(&s,locals);
+								#else
+								s += locals;
+								#endif
+							}
+
 
 						assert ( ! DQ0.size() );
 						DQ0.swap(DQ1);
