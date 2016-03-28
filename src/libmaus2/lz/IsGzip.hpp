@@ -21,6 +21,7 @@
 
 #include <istream>
 #include <libmaus2/lz/GzipHeader.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 
 namespace libmaus2
 {
@@ -50,6 +51,12 @@ namespace libmaus2
 
 				return b0 == libmaus2::lz::GzipHeaderConstantsBase::ID1 &&
 				       b1 == libmaus2::lz::GzipHeaderConstantsBase::ID2;
+			}
+
+			static bool isGzip(std::string const & fn)
+			{
+				libmaus2::aio::InputStreamInstance ISI(fn);
+				return isGzip(fn);
 			}
 		};
 	}
