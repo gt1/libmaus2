@@ -1435,7 +1435,8 @@ libmaus2fastx_include_HEADERS=\
 	libmaus2/fastx/DNAIndexMetaDataBigBand.hpp \
 	libmaus2/fastx/DNAIndexMetaDataBigBandBiDir.hpp \
 	libmaus2/fastx/CoordinateCache.hpp \
-	libmaus2/fastx/LineBufferFastAReader.hpp
+	libmaus2/fastx/LineBufferFastAReader.hpp\
+	libmaus2/fastx/FastAToCompact4BigBand.hpp
 
 libmaus2timing_includedir=$(includedir)/libmaus2/timing
 libmaus2timing_include_HEADERS=\
@@ -1996,7 +1997,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testmurmur3 \
 	testpairalign \
 	testsplaytree \
-	testbwtconstruction
+	testbwtconstruction \
+	testbwtconstructionfasta
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2528,3 +2530,7 @@ testsplaytree_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testbwtconstruction_SOURCES  = test/testbwtconstruction.cpp
 testbwtconstruction_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testbwtconstruction_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testbwtconstructionfasta_SOURCES  = test/testbwtconstructionfasta.cpp
+testbwtconstructionfasta_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testbwtconstructionfasta_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
