@@ -101,9 +101,9 @@ namespace libmaus2
 					return H.getByType<int64_t>();
 				}
 
-				static ::std::map<int64_t,uint64_t> computeSymbolHistogramPlusTerm(std::string const & fn, int64_t & term)
+				static ::std::map<int64_t,uint64_t> computeSymbolHistogramPlusTerm(std::string const & fn, int64_t & term, uint64_t const numthreads)
 				{
-					::std::map<int64_t,uint64_t> M = computeSymbolHistogram(fn);
+					::std::map<int64_t,uint64_t> M = computeSymbolHistogram(fn,numthreads);
 
 					term = M.size() ? (M.rbegin()->first+1) : 0;
 					M [ term ] ++;
