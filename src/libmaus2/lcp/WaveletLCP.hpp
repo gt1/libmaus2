@@ -38,36 +38,6 @@ namespace libmaus2
 		 **/
 		struct WaveletLCP
 		{
-			struct TraversalNode
-			{
-				uint64_t sp;
-				uint64_t ep;
-
-				TraversalNode() : sp(0), ep(0) {}
-				TraversalNode(uint64_t const rsp, uint64_t const rep) : sp(rsp), ep(rep) {}
-			};
-
-			template<typename lf_type>
-			struct PrintMultiCallback
-			{
-				lf_type const & lf;
-				std::stack < TraversalNode > & S;
-				std::ostream * logstr;
-
-				PrintMultiCallback(lf_type const & rlf, std::stack<TraversalNode> & rS, std::ostream * rlogstr)
-				: lf(rlf), S(rS), logstr(rlogstr)
-				{
-
-				}
-
-				void operator()(uint64_t const sym, uint64_t const sp, uint64_t const ep)
-				{
-					if ( logstr )
-						*logstr << "[I] sym=" << sym << " sp=" << sp << " ep=" << ep << " B=" << std::endl;
-				}
-			};
-
-
 			template<typename lf_type>
 			static WaveletLCPResult::unique_ptr_type computeLCP(
 				lf_type const * LF,
@@ -76,25 +46,13 @@ namespace libmaus2
 				std::ostream * logstr
 			)
 			{
+				typename lf_type::D_type const & D = LF->getD();
+
 				uint64_t const n = LF->getN();
 				WaveletLCPResult::small_elem_type const unset = std::numeric_limits< WaveletLCPResult::small_elem_type>::max();
 				WaveletLCPResult::unique_ptr_type res(new WaveletLCPResult(n));
 
 				::libmaus2::autoarray::AutoArray< WaveletLCPResult::small_elem_type> & WLCP = *(res->WLCP);
-
-				std::stack < TraversalNode > st;
-				st.push( TraversalNode(0,n) );
-				// typedef PrintMultiCallback<lf_type> print_callback_type;
-				PrintMultiCallback<lf_type> PMC(*LF,st,logstr);
-
-				while ( ! st.empty() )
-				{
-					TraversalNode tn = st.top(); st.pop();
-					typedef typename lf_type::wt_type wt_type;
-					wt_type const & W = *(LF->W.get());
-					W.multiRankCallBack(tn.sp,tn.ep,LF->D.get(),PMC);
-				}
-
 				::libmaus2::autoarray::AutoArray<uint64_t> symfreq( LF->getSymbolThres() );
 
 				if ( logstr )
@@ -102,9 +60,12 @@ namespace libmaus2
 
 				// symbol frequencies
 				for ( uint64_t i = 0; i < symfreq.getN(); ++i )
-					symfreq[i] = n?LF->W->rank(i,n-1):0;
+				{
+					symfreq[i] = n?(LF->getW().rankm(i,n)):0;
+					// std::cerr << "sym " << i << " freq " << symfreq[i] << std::endl;
+				}
 
-				std::fill ( WLCP.get(), WLCP.get()+WLCP.getN(),unset);
+				std::fill (WLCP.begin(),WLCP.begin()+n,unset);
 
 				::libmaus2::suffixsort::CompactQueue Q0(n);
 				::libmaus2::suffixsort::CompactQueue Q1(n);
@@ -152,7 +113,7 @@ namespace libmaus2
 				)
 				{
 					if ( logstr )
-						*logstr << "(" << static_cast<uint64_t>(cur_l) << "," << PQ0->fill << "," << s << "(" << static_cast<double>(s)/LF->getN() << "))";
+						*logstr << "(" << static_cast<uint64_t>(cur_l) << "," << PQ0->fill << "," << s << "(" << static_cast<double>(s)/n << "))";
 
 					PQ1->reset();
 
@@ -176,7 +137,8 @@ namespace libmaus2
 						while ( !deqcontext->done() )
 						{
 							std::pair<uint64_t,uint64_t> const qe = PQ0->deque(deqcontext);
-							uint64_t const locals = LF->W->multiRankLCPSet(qe.first,qe.second,LF->D.get(),WLCP.get(),unset,cur_l,encbuf.get());
+
+							uint64_t const locals = (LF->getW()).multiRankLCPSet(qe.first,qe.second,D.get(),WLCP.get(),unset,cur_l,encbuf.get());
 							#if defined(_OPENMP) && defined(LIBMAUS2_HAVE_SYNC_OPS)
 							__sync_fetch_and_add(&s,locals);
 							#else
@@ -224,7 +186,7 @@ namespace libmaus2
 						if ( DQ0.size() != prefill )
 						{
 							if ( logstr )
-								*logstr << "(" << static_cast<uint64_t>(cur_l) << "," << DQ0.size() << "," << s << " (" << static_cast<double>(s)/LF->getN() << "))";
+								*logstr << "(" << static_cast<uint64_t>(cur_l) << "," << DQ0.size() << "," << s << " (" << static_cast<double>(s)/n << "))";
 							prefill = DQ0.size();
 						}
 
@@ -234,7 +196,7 @@ namespace libmaus2
 							while ( DQ0.size() )
 							{
 								std::pair<uint64_t,uint64_t> const qe = DQ0.front(); DQ0.pop_front();
-								uint64_t const locals = LF->W->multiRankLCPSetLarge(qe.first,qe.second,LF->D.get(),*res,cur_l,&DQ1);
+								uint64_t const locals = (LF->getW()).multiRankLCPSetLarge(qe.first,qe.second,D.get(),*res,cur_l,&DQ1);
 								#if defined(_OPENMP) && defined(LIBMAUS2_HAVE_SYNC_OPS)
 								__sync_fetch_and_add(&s,locals);
 								#else
@@ -245,7 +207,7 @@ namespace libmaus2
 							while ( DQ0.size() )
 							{
 								std::pair<uint64_t,uint64_t> const qe = DQ0.front(); DQ0.pop_front();
-								uint64_t const locals = LF->W->multiRankLCPSet(qe.first,qe.second,LF->D.get(),WLCP.get(),unset,cur_l,&DQ1);
+								uint64_t const locals = (LF->getW()).multiRankLCPSet(qe.first,qe.second,D.get(),WLCP.get(),unset,cur_l,&DQ1);
 								#if defined(_OPENMP) && defined(LIBMAUS2_HAVE_SYNC_OPS)
 								__sync_fetch_and_add(&s,locals);
 								#else
