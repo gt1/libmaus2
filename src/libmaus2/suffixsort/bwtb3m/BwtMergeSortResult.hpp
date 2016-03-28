@@ -34,6 +34,7 @@
 #include <libmaus2/util/FileTempFileContainer.hpp>
 #include <libmaus2/suffixtree/CompressedSuffixTree.hpp>
 #include <libmaus2/suffixsort/bwtb3m/BwtComputeSSA.hpp>
+#include <libmaus2/rank/DNARank.hpp>
 
 namespace libmaus2
 {
@@ -67,6 +68,25 @@ namespace libmaus2
 					::libmaus2::fm::SampledISA< ::libmaus2::lf::ImpCompactHuffmanWaveletLF >
 				> succinct_lcp_type;
 				typedef libmaus2::rmq::RMMTree<succinct_lcp_type,3> rmm_tree_type;
+
+				libmaus2::rank::DNARank::unique_ptr_type loadDNARank(uint64_t const numthreads)
+				{
+					std::map<int64_t,uint64_t> const H = loadSymbolHistogram();
+					bool const alvalid = H.empty() || H.rbegin()->first < 4;
+
+					if ( alvalid )
+					{
+						libmaus2::rank::DNARank::unique_ptr_type Prank(libmaus2::rank::DNARank::loadFromRunLength(bwtfn,numthreads));
+						return UNIQUE_PTR_MOVE(Prank);
+					}
+					else
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::suffixsort::bwtb3m::BwtMergeSortResult::loadDNARank: alphabet not suitable for DNARank index" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+				}
 
 				libmaus2::suffixtree::CompressedSuffixTree::unique_ptr_type loadSuffixTree(
 					uint64_t const numthreads,
