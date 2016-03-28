@@ -35,6 +35,29 @@ struct PairSecondProjectorType
 	}
 };
 
+struct QueueElement
+{
+	uint64_t r;
+	uint64_t p;
+	uint64_t id;
+
+	QueueElement(uint64_t const rr = 0, uint64_t const rp = 0, uint64_t const rid = 0)
+	: r(rr), p(rp), id(rid)
+	{
+
+	}
+
+	bool operator<(QueueElement const & O) const
+	{
+		if ( r != O.r )
+			return r > O.r;
+		else if ( p != O.p )
+			return p > O.p;
+		else
+			return id > O.id;
+	}
+};
+
 // load histogram map
 static std::vector<uint64_t> loadHMap(std::string const & hist)
 {
@@ -942,28 +965,6 @@ void libmaus2::suffixsort::bwtb3m::BwtComputeSSA::computeSSA(
 		for ( int64_t fileid = 0; fileid < numfiles; ++fileid )
 			if ( filemulti[fileid] )
 			{
-				struct QueueElement
-				{
-					uint64_t r;
-					uint64_t p;
-					uint64_t id;
-
-					QueueElement(uint64_t const rr = 0, uint64_t const rp = 0, uint64_t const rid = 0)
-					: r(rr), p(rp), id(rid)
-					{
-
-					}
-
-					bool operator<(QueueElement const & O) const
-					{
-						if ( r != O.r )
-							return r > O.r;
-						else if ( p != O.p )
-							return p > O.p;
-						else
-							return id > O.id;
-					}
-				};
 
 				std::priority_queue<QueueElement> Q;
 				libmaus2::autoarray::AutoArray<PreIsaInput::unique_ptr_type> Ain(piasplit.size()-1);
