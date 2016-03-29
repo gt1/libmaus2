@@ -46,6 +46,8 @@
 #include <libmaus2/gamma/GammaDifferenceMerge.hpp>
 #include <libmaus2/gamma/GammaDifferenceOutputBuffer.hpp>
 
+#include <libmaus2/parallel/NumCpus.hpp>
+
 template<typename T>
 struct VectorPut : public std::vector<T>
 {
@@ -1354,7 +1356,8 @@ void testsparsegammamultifilesetmerge()
 	}
 
 	std::string const ffn = tmpgen.getFileName();
-	std::vector<std::string> const fno = SGGF.merge(ffn);
+	uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
+	std::vector<std::string> const fno = SGGF.merge(ffn,numthreads);
 
 	// libmaus2::aio::InputStreamInstance CIS(ffn);
 	libmaus2::gamma::SparseGammaGapConcatDecoder SGGD(fno);
@@ -1408,7 +1411,8 @@ void testsparsegammamultifilesetmerge2()
 	}
 
 	std::string const ffn = tmpgen.getFileName();
-	std::vector<std::string> const fno = SGGF.merge(ffn);
+	uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
+	std::vector<std::string> const fno = SGGF.merge(ffn,numthreads);
 
 	// libmaus2::aio::InputStreamInstance CIS(ffn);
 	libmaus2::gamma::SparseGammaGapConcatDecoder2 SGGD(fno);
@@ -1464,7 +1468,8 @@ void testsparsegammamultifilesetmergedense()
 	uint64_t const maxval = refM.size() ? (refM.rbegin())->first : 0;
 
 	std::string const ffn = tmpgen.getFileName();
-	std::vector<std::string> const fno = SGGF.mergeToDense(ffn,maxval+1);
+	uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
+	std::vector<std::string> const fno = SGGF.mergeToDense(ffn,maxval+1,numthreads);
 
 	// libmaus2::aio::InputStreamInstance CIS(ffn);
 	libmaus2::gamma::GammaGapDecoder SGGD(fno);
@@ -1523,7 +1528,8 @@ void testsparsegammamultifilesetmergedense2()
 	uint64_t const maxval = refM.size() ? (refM.rbegin())->first : 0;
 
 	std::string const ffn = tmpgen.getFileName();
-	std::vector<std::string> const fno = SGGF.mergeToDense(ffn,maxval+1);
+	uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
+	std::vector<std::string> const fno = SGGF.mergeToDense(ffn,maxval+1,numthreads);
 
 	// libmaus2::aio::InputStreamInstance CIS(ffn);
 	libmaus2::gamma::GammaGapDecoder SGGD(fno);

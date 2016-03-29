@@ -69,7 +69,8 @@ namespace libmaus2
 			static uint64_t concatParallel(
 				std::vector < std::string > const & files,
 				std::string const & outputfilename,
-				bool const rem
+				bool const rem,
+				uint64_t const numthreads
 			);
 			/**
 			 * concatenate files given in files by filename in the file with name outputfilename
@@ -83,7 +84,8 @@ namespace libmaus2
 			static uint64_t concatParallel(
 				std::vector < std::vector < std::string > > const & files,
 				std::string const & outputfilename,
-				bool const rem
+				bool const rem,
+				uint64_t const numthreads
 			);
 			/**
 			 * concatenate files given in the list files by filename in the file with name outputfilename

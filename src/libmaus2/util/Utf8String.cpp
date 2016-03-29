@@ -234,14 +234,8 @@ struct HistogramThread : public ::libmaus2::parallel::PosixThread
 	}
 };
 
-::libmaus2::autoarray::AutoArray< std::pair<int64_t,uint64_t> > libmaus2::util::Utf8String::getHistogramAsArray(::libmaus2::autoarray::AutoArray<uint8_t> const & A)
+::libmaus2::autoarray::AutoArray< std::pair<int64_t,uint64_t> > libmaus2::util::Utf8String::getHistogramAsArray(::libmaus2::autoarray::AutoArray<uint8_t> const & A, uint64_t const numthreads)
 {
-	#if defined(_OPENMP)
-	uint64_t const numthreads = omp_get_max_threads();
-	#else
-	uint64_t const numthreads = 1;
-	#endif
-
 	::libmaus2::autoarray::AutoArray<uint64_t> const partstarts = computePartStarts(A,numthreads);
 	uint64_t const numparts = partstarts.size()-1;
 
@@ -282,14 +276,8 @@ struct HistogramThread : public ::libmaus2::parallel::PosixThread
 	return R;
 }
 
-::libmaus2::autoarray::AutoArray< std::pair<int64_t,uint64_t> > libmaus2::util::Utf8String::getHistogramAsArray(std::string const & fn)
+::libmaus2::autoarray::AutoArray< std::pair<int64_t,uint64_t> > libmaus2::util::Utf8String::getHistogramAsArray(std::string const & fn, uint64_t const numthreads)
 {
-	#if defined(_OPENMP)
-	uint64_t const numthreads = omp_get_max_threads();
-	#else
-	uint64_t const numthreads = 1;
-	#endif
-
 	::libmaus2::autoarray::AutoArray<uint64_t> const partstarts = computePartStarts(fn,numthreads);
 	uint64_t const numparts = partstarts.size()-1;
 
@@ -332,14 +320,8 @@ struct HistogramThread : public ::libmaus2::parallel::PosixThread
 	return R;
 }
 
-::libmaus2::util::Histogram::unique_ptr_type libmaus2::util::Utf8String::getHistogram(::libmaus2::autoarray::AutoArray<uint8_t> const & A)
+::libmaus2::util::Histogram::unique_ptr_type libmaus2::util::Utf8String::getHistogram(::libmaus2::autoarray::AutoArray<uint8_t> const & A, uint64_t const numthreads)
 {
-	#if defined(_OPENMP)
-	uint64_t const numthreads = omp_get_max_threads();
-	#else
-	uint64_t const numthreads = 1;
-	#endif
-
 	::libmaus2::autoarray::AutoArray<uint64_t> const partstarts = computePartStarts(A,numthreads);
 	uint64_t const numparts = partstarts.size()-1;
 
@@ -347,7 +329,7 @@ struct HistogramThread : public ::libmaus2::parallel::PosixThread
 	::libmaus2::parallel::OMPLock lock;
 
 	#if defined(_OPENMP)
-	#pragma omp parallel for
+	#pragma omp parallel for num_threads(numthreads)
 	#endif
 	for ( int64_t t = 0; t < static_cast<int64_t>(numparts); ++t )
 	{
@@ -389,9 +371,9 @@ std::map<int64_t,uint64_t> libmaus2::util::Utf8String::getHistogramAsMap() const
 	return hist->getByType<int64_t>();
 }
 
-std::map<int64_t,uint64_t> libmaus2::util::Utf8String::getHistogramAsMap(::libmaus2::autoarray::AutoArray<uint8_t> const & A)
+std::map<int64_t,uint64_t> libmaus2::util::Utf8String::getHistogramAsMap(::libmaus2::autoarray::AutoArray<uint8_t> const & A, uint64_t const numthreads)
 {
-	::libmaus2::util::Histogram::unique_ptr_type hist(getHistogram(A));
+	::libmaus2::util::Histogram::unique_ptr_type hist(getHistogram(A,numthreads));
 	return hist->getByType<int64_t>();
 }
 

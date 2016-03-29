@@ -179,7 +179,8 @@ namespace libmaus2
 				std::vector<std::string> const & bwt,
 				std::string const & huftreefilename,
 				uint64_t const bwtterm,
-				uint64_t const p0r
+				uint64_t const p0r,
+				uint64_t const numthreads
 				)
 			{
 				// std::cerr << "(" << libmaus2::util::Demangle::demangle<entity_type>() << ")";
@@ -255,12 +256,6 @@ namespace libmaus2
 				uint64_t const n_1 = 1;
 				// after
 				uint64_t const n_2 = n-(n_0+n_1);
-
-				#if defined(_OPENMP)
-				uint64_t const numthreads = omp_get_max_threads();
-				#else
-				uint64_t const numthreads = 1;
-				#endif
 
 				assert ( numthreads );
 
@@ -341,7 +336,7 @@ namespace libmaus2
 				}
 
 				#if defined(_OPENMP)
-				#pragma omp parallel
+				#pragma omp parallel num_threads(numthreads)
 				#endif
 				{
 					RlDecoderInfoObject dio;
@@ -439,7 +434,7 @@ namespace libmaus2
 					P[node] = R[node]->A.end() - nodedatawords;
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t i = 0; i < static_cast<int64_t>(nodedatawords); ++i )
 						P[node][i] = 0;
@@ -489,7 +484,7 @@ namespace libmaus2
 				}
 
 				#if defined(_OPENMP)
-				#pragma omp parallel
+				#pragma omp parallel num_threads(numthreads)
 				#endif
 				{
 					RlDecoderInfoObject dio;
@@ -687,7 +682,7 @@ namespace libmaus2
 
 				// set up rank dictionaries
 				#if defined(_OPENMP)
-				#pragma omp parallel for schedule(dynamic,1)
+				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 				#endif
 				for ( uint64_t node = 0; node < inner; ++node )
 				{
@@ -782,7 +777,8 @@ namespace libmaus2
 			template<typename entity_type>
 			static libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type rlToHwtSmallAlphabet(
 				std::string const & bwt,
-				::libmaus2::huffman::HuffmanTree const & H
+				::libmaus2::huffman::HuffmanTree const & H,
+				uint64_t const numthreads
 			)
 			{
 				// check depth is low
@@ -842,8 +838,6 @@ namespace libmaus2
 				}
 				assert ( symtonodesp = symtonodes.end() );
 
-
-
 				#if 0
 				// compute symbol to node mapping
 				std::vector < std::vector < uint32_t > > symtonodes(tablesize);
@@ -874,12 +868,6 @@ namespace libmaus2
 				::libmaus2::huffman::IndexDecoderDataArray IDD(std::vector<std::string>(1,bwt));
 				::libmaus2::huffman::IndexEntryContainerVector::unique_ptr_type IECV =
 					::libmaus2::huffman::IndexLoader::loadAccIndex(std::vector<std::string>(1,bwt));
-
-				#if defined(_OPENMP)
-				uint64_t const numthreads = omp_get_max_threads();
-				#else
-				uint64_t const numthreads = 1;
-				#endif
 
 				assert ( numthreads );
 
@@ -933,7 +921,7 @@ namespace libmaus2
 				}
 
 				#if defined(_OPENMP)
-				#pragma omp parallel
+				#pragma omp parallel num_threads(numthreads)
 				#endif
 				{
 					RlDecoderInfoObject dio;
@@ -1031,7 +1019,7 @@ namespace libmaus2
 					P[node] = R[node]->A.end() - nodedatawords;
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t i = 0; i < static_cast<int64_t>(nodedatawords); ++i )
 						P[node][i] = 0;
@@ -1061,7 +1049,7 @@ namespace libmaus2
 				}
 
 				#if defined(_OPENMP)
-				#pragma omp parallel
+				#pragma omp parallel num_threads(numthreads)
 				#endif
 				{
 					RlDecoderInfoObject dio;
@@ -1300,14 +1288,8 @@ namespace libmaus2
 				return UNIQUE_PTR_MOVE(pICHWT);
 			}
 
-			static ::libmaus2::util::Histogram::unique_ptr_type computeRlSymHist(std::string const & bwt)
+			static ::libmaus2::util::Histogram::unique_ptr_type computeRlSymHist(std::string const & bwt, uint64_t const numthreads)
 			{
-				#if defined(_OPENMP)
-				uint64_t const numthreads = omp_get_max_threads();
-				#else
-				uint64_t const numthreads = 1;
-				#endif
-
 				uint64_t const n = rl_decoder::getLength(bwt);
 
 				uint64_t const numpacks = 4*numthreads;
@@ -1316,7 +1298,7 @@ namespace libmaus2
 				::libmaus2::util::Histogram::unique_ptr_type mhist(new ::libmaus2::util::Histogram);
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for schedule(dynamic,1)
+				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 				#endif
 				for ( int64_t t = 0; t < static_cast<int64_t>(numpacks); ++t )
 				{
@@ -1363,10 +1345,11 @@ namespace libmaus2
 			static libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type rlToHwt(
 				std::string const & bwt,
 				std::string const & hwt,
-				std::string const tmpprefix
+				std::string const tmpprefix,
+				uint64_t const numthreads
 			)
 			{
-				::libmaus2::util::Histogram::unique_ptr_type mhist(computeRlSymHist(bwt));
+				::libmaus2::util::Histogram::unique_ptr_type mhist(computeRlSymHist(bwt,numthreads));
 				::std::map<int64_t,uint64_t> const chist = mhist->getByType<int64_t>();
 
 				::libmaus2::huffman::HuffmanTree H ( chist.begin(), chist.size(), false, true, true );
@@ -1378,11 +1361,11 @@ namespace libmaus2
 						utf8WaveletMaxPartMem() /* part size maximum */,
 						utf8WaveletMaxThreads());
 
-					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type IHWT(libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(hwt));
+					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type IHWT(libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(hwt,numthreads));
 					return UNIQUE_PTR_MOVE(IHWT);
 
 					#if 0
-					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type IHWT(libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(hwt));
+					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type IHWT(libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(hwt,numthreads));
 					libmaus2::lf::ImpCompactHuffmanWaveletLF IHWL(hwt);
 					rl_decoder rldec(std::vector<std::string>(1,bwt));
 					std::cerr << "Checking output bwt of length " << IHWT->size() << "...";
@@ -1409,7 +1392,7 @@ namespace libmaus2
 					// special case for very small alphabets
 					if ( H.maxDepth() <= 8*sizeof(uint8_t) && H.maxSymbol() <= std::numeric_limits<uint8_t>::max() )
 					{
-						libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ptr(rlToHwtSmallAlphabet<uint8_t>(bwt,H));
+						libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ptr(rlToHwtSmallAlphabet<uint8_t>(bwt,H,numthreads));
 						libmaus2::aio::OutputStreamInstance COS(hwt);
 						ptr->serialise(COS);
 						COS.flush();
@@ -1418,7 +1401,7 @@ namespace libmaus2
 					}
 					else if ( H.maxDepth() <= 8*sizeof(uint16_t) && H.maxSymbol() <= std::numeric_limits<uint16_t>::max() )
 					{
-						libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ptr(rlToHwtSmallAlphabet<uint16_t>(bwt,H));
+						libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ptr(rlToHwtSmallAlphabet<uint16_t>(bwt,H,numthreads));
 						libmaus2::aio::OutputStreamInstance COS(hwt);
 						ptr->serialise(COS);
 						COS.flush();
@@ -1427,7 +1410,7 @@ namespace libmaus2
 					}
 					else if ( H.maxDepth() <= 8*sizeof(uint32_t) && H.maxSymbol() <= std::numeric_limits<uint16_t>::max() )
 					{
-						libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ptr(rlToHwtSmallAlphabet<uint32_t>(bwt,H));
+						libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ptr(rlToHwtSmallAlphabet<uint32_t>(bwt,H,numthreads));
 						libmaus2::aio::OutputStreamInstance COS(hwt);
 						ptr->serialise(COS);
 						COS.flush();
@@ -1436,7 +1419,7 @@ namespace libmaus2
 					}
 					else if ( H.maxDepth() <= 8*sizeof(uint64_t) && H.maxSymbol() <= std::numeric_limits<uint16_t>::max() )
 					{
-						libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ptr(rlToHwtSmallAlphabet<uint64_t>(bwt,H));
+						libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ptr(rlToHwtSmallAlphabet<uint64_t>(bwt,H,numthreads));
 						libmaus2::aio::OutputStreamInstance COS(hwt);
 						ptr->serialise(COS);
 						COS.flush();
@@ -1447,12 +1430,6 @@ namespace libmaus2
 					{
 						::libmaus2::util::TempFileNameGenerator tmpgen(tmpprefix,3);
 
-						#if defined(_OPENMP)
-						uint64_t const numthreads = omp_get_max_threads();
-						#else
-						uint64_t const numthreads = 1;
-						#endif
-
 						uint64_t const n = rl_decoder::getLength(bwt);
 						uint64_t const packsize = (n + numthreads - 1)/numthreads;
 						uint64_t const numpacks = (n + packsize-1)/packsize;
@@ -1460,7 +1437,7 @@ namespace libmaus2
 						::libmaus2::wavelet::ImpExternalWaveletGeneratorCompactHuffmanParallel IEWGH(H,tmpgen,numthreads);
 
 						#if defined(_OPENMP)
-						#pragma omp parallel for
+						#pragma omp parallel for num_threads(numthreads)
 						#endif
 						for ( int64_t t = 0; t < static_cast<int64_t>(numpacks); ++t )
 						{
@@ -1491,9 +1468,9 @@ namespace libmaus2
 							}
 						}
 
-						IEWGH.createFinalStream(hwt);
+						IEWGH.createFinalStream(hwt,numthreads);
 
-						libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type IHWT(libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(hwt));
+						libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type IHWT(libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(hwt,numthreads));
 						return UNIQUE_PTR_MOVE(IHWT);
 					}
 				}
@@ -1505,7 +1482,8 @@ namespace libmaus2
 				std::string const tmpprefix,
 				::libmaus2::huffman::HuffmanTree & H,
 				uint64_t const bwtterm,
-				uint64_t const p0r
+				uint64_t const p0r,
+				uint64_t const numthreads
 				)
 			{
 				if ( utf8Wavelet() )
@@ -1517,7 +1495,7 @@ namespace libmaus2
 					);
 
 					#if 0
-					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type IHWT(libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(hwt));
+					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type IHWT(libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(hwt,numthreads));
 					rl_decoder rldec(bwt);
 
 					std::cerr << "Checking output bwt of length " << IHWT->size() << "...";
@@ -1533,12 +1511,6 @@ namespace libmaus2
 				{
 					::libmaus2::util::TempFileNameGenerator tmpgen(tmpprefix,3);
 
-					#if defined(_OPENMP)
-					uint64_t const numthreads = omp_get_max_threads();
-					#else
-					uint64_t const numthreads = 1;
-					#endif
-
 					uint64_t const n = rl_decoder::getLength(bwt);
 
 					assert ( p0r < n );
@@ -1553,7 +1525,7 @@ namespace libmaus2
 					::libmaus2::wavelet::ImpExternalWaveletGeneratorCompactHuffmanParallel IEWGH(H,tmpgen,2*numthreads+1);
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t t = 0; t < static_cast<int64_t>(numpackslow); ++t )
 					{
@@ -1587,7 +1559,7 @@ namespace libmaus2
 					IEWGH[numthreads].putSymbol(bwtterm);
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t t = 0; t < static_cast<int64_t>(numpackshigh); ++t )
 					{
@@ -1618,7 +1590,7 @@ namespace libmaus2
 						}
 					}
 
-					IEWGH.createFinalStream(hwt);
+					IEWGH.createFinalStream(hwt,numthreads);
 				}
 			}
 
@@ -1663,7 +1635,8 @@ namespace libmaus2
 				std::string const tmpprefix,
 				std::string const huftreefilename,
 				uint64_t const bwtterm,
-				uint64_t const p0r
+				uint64_t const p0r,
+				uint64_t const numthreads
 				)
 			{
 				::libmaus2::huffman::HuffmanTree::unique_ptr_type UH = loadCompactHuffmanTree(huftreefilename);
@@ -1674,32 +1647,32 @@ namespace libmaus2
 				if ( H.maxDepth() <= 8*sizeof(uint8_t) && H.maxSymbol() <= std::numeric_limits<uint8_t>::max() )
 				{
 					// std::cerr << "(small)";
-					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type tICHWT(rlToHwtTermSmallAlphabet<uint8_t>(bwt,huftreefilename,bwtterm,p0r));
+					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type tICHWT(rlToHwtTermSmallAlphabet<uint8_t>(bwt,huftreefilename,bwtterm,p0r,numthreads));
 					return UNIQUE_PTR_MOVE(tICHWT);
 				}
 				else if ( H.maxDepth() <= 8*sizeof(uint16_t) && H.maxSymbol() <= std::numeric_limits<uint16_t>::max() )
 				{
 					// std::cerr << "(small)";
-					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type tICHWT(rlToHwtTermSmallAlphabet<uint16_t>(bwt,huftreefilename,bwtterm,p0r));
+					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type tICHWT(rlToHwtTermSmallAlphabet<uint16_t>(bwt,huftreefilename,bwtterm,p0r,numthreads));
 					return UNIQUE_PTR_MOVE(tICHWT);
 				}
 				else if ( H.maxDepth() <= 8*sizeof(uint32_t) && H.maxSymbol() <= std::numeric_limits<uint16_t>::max() )
 				{
 					// std::cerr << "(small)";
-					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type tICHWT(rlToHwtTermSmallAlphabet<uint32_t>(bwt,huftreefilename,bwtterm,p0r));
+					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type tICHWT(rlToHwtTermSmallAlphabet<uint32_t>(bwt,huftreefilename,bwtterm,p0r,numthreads));
 					return UNIQUE_PTR_MOVE(tICHWT);
 				}
 				else if ( H.maxDepth() <= 8*sizeof(uint64_t) && H.maxSymbol() <= std::numeric_limits<uint16_t>::max() )
 				{
 					// std::cerr << "(small)";
-					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type tICHWT(rlToHwtTermSmallAlphabet<uint64_t>(bwt,huftreefilename,bwtterm,p0r));
+					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type tICHWT(rlToHwtTermSmallAlphabet<uint64_t>(bwt,huftreefilename,bwtterm,p0r,numthreads));
 					return UNIQUE_PTR_MOVE(tICHWT);
 				}
 				else
 				{
 
 					// std::cerr << "(large)";
-					rlToHwtTerm(bwt,hwt,tmpprefix,H,bwtterm,p0r);
+					rlToHwtTerm(bwt,hwt,tmpprefix,H,bwtterm,p0r,numthreads);
 					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type tICHWT(loadWaveletTree(hwt));
 					return UNIQUE_PTR_MOVE(tICHWT);
 				}

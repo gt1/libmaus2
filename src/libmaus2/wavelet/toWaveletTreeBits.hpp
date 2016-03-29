@@ -27,8 +27,8 @@ namespace libmaus2
 {
 	namespace wavelet
 	{
-		libmaus2::autoarray::AutoArray<uint64_t> toWaveletTreeBits(libmaus2::bitio::CompactArray * C, bool const verbose = true);
-		libmaus2::autoarray::AutoArray<uint64_t> toWaveletTreeBitsParallel(::libmaus2::bitio::CompactArray * C, bool const verbose = true);
+		libmaus2::autoarray::AutoArray<uint64_t> toWaveletTreeBits(libmaus2::bitio::CompactArray * C, bool const verbose);
+		libmaus2::autoarray::AutoArray<uint64_t> toWaveletTreeBitsParallel(::libmaus2::bitio::CompactArray * C, bool const verbose, uint64_t const numthreads);
 	}
 }
 #endif

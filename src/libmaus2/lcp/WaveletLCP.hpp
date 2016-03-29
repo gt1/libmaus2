@@ -22,6 +22,7 @@
 #include <libmaus2/bitio/CompactQueue.hpp>
 #include <libmaus2/lcp/WaveletLCPResult.hpp>
 #include <libmaus2/timing/RealTimeClock.hpp>
+#include <libmaus2/math/ilog.hpp>
 #include <stack>
 
 #if defined(_OPENMP)
@@ -37,65 +38,34 @@ namespace libmaus2
 		 **/
 		struct WaveletLCP
 		{
-			struct TraversalNode
-			{
-				uint64_t sp;
-				uint64_t ep;
-
-				TraversalNode() : sp(0), ep(0) {}
-				TraversalNode(uint64_t const rsp, uint64_t const rep) : sp(rsp), ep(rep) {}
-			};
-
 			template<typename lf_type>
-			struct PrintMultiCallback
+			static WaveletLCPResult::unique_ptr_type computeLCP(
+				lf_type const * LF,
+				uint64_t const rnumthreads,
+				bool const zdif,
+				std::ostream * logstr
+			)
 			{
-				lf_type const & lf;
-				std::stack < TraversalNode > & S;
+				typename lf_type::D_type const & D = LF->getD();
 
-				PrintMultiCallback(lf_type const & rlf, std::stack<TraversalNode> & rS)
-				: lf(rlf), S(rS)
-				{
-
-				}
-
-				void operator()(uint64_t const sym, uint64_t const sp, uint64_t const ep)
-				{
-					std::cerr << "sym=" << sym << " sp=" << sp << " ep=" << ep << " B=" << std::endl;
-				}
-			};
-
-
-			template<typename lf_type>
-			static WaveletLCPResult::unique_ptr_type computeLCP(lf_type const * LF, bool const zdif = true)
-			{
 				uint64_t const n = LF->getN();
 				WaveletLCPResult::small_elem_type const unset = std::numeric_limits< WaveletLCPResult::small_elem_type>::max();
 				WaveletLCPResult::unique_ptr_type res(new WaveletLCPResult(n));
 
 				::libmaus2::autoarray::AutoArray< WaveletLCPResult::small_elem_type> & WLCP = *(res->WLCP);
-
-				std::stack < TraversalNode > st;
-				st.push( TraversalNode(0,n) );
-				// typedef PrintMultiCallback<lf_type> print_callback_type;
-				PrintMultiCallback<lf_type> PMC(*LF,st);
-
-				while ( ! st.empty() )
-				{
-					TraversalNode tn = st.top(); st.pop();
-					typedef typename lf_type::wt_type wt_type;
-					wt_type const & W = *(LF->W.get());
-					W.multiRankCallBack(tn.sp,tn.ep,LF->D.get(),PMC);
-				}
-
 				::libmaus2::autoarray::AutoArray<uint64_t> symfreq( LF->getSymbolThres() );
 
-				std::cerr << "[V] symbol threshold is " << symfreq.size() << std::endl;
+				if ( logstr )
+					*logstr << "[V] symbol threshold is " << symfreq.size() << std::endl;
 
 				// symbol frequencies
 				for ( uint64_t i = 0; i < symfreq.getN(); ++i )
-					symfreq[i] = n?LF->W->rank(i,n-1):0;
+				{
+					symfreq[i] = n?(LF->getW().rankm(i,n)):0;
+					// std::cerr << "sym " << i << " freq " << symfreq[i] << std::endl;
+				}
 
-				std::fill ( WLCP.get(), WLCP.get()+WLCP.getN(),unset);
+				std::fill (WLCP.begin(),WLCP.begin()+n,unset);
 
 				::libmaus2::suffixsort::CompactQueue Q0(n);
 				::libmaus2::suffixsort::CompactQueue Q1(n);
@@ -133,25 +103,31 @@ namespace libmaus2
 				WLCP[n] = 0;
 
 				::libmaus2::timing::RealTimeClock lcprtc; lcprtc.start();
-				std::cerr << "Computing LCP...";
+				if ( logstr )
+					*logstr << "[V] Computing LCP...";
 				uint64_t cur_l = 1;
-				while ( PQ0->fill && cur_l < unset )
+				uint64_t maxfill = 0;
+				uint64_t const logn = std::max ( static_cast<int64_t> ( libmaus2::math::ilog(n) ), static_cast<int64_t>(1) );
+				while (
+					PQ0->fill && cur_l < unset
+				)
 				{
-					std::cerr << "cur_l=" << static_cast<uint64_t>(cur_l) << " fill=" << PQ0->fill << " set=" << s << " (" << static_cast<double>(s)/LF->getN() << ")" << std::endl;
+					if ( logstr )
+						*logstr << "(" << static_cast<uint64_t>(cur_l) << "," << PQ0->fill << "," << s << "(" << static_cast<double>(s)/n << "))";
 
 					PQ1->reset();
 
-					#if defined(_OPENMP) && defined(LIBMAUS2_HAVE_SYNC_OPS)
-					uint64_t const numthreads = omp_get_max_threads();
+					#if defined(LIBMAUS2_HAVE_SYNC_OPS)
+					uint64_t const numthreads = rnumthreads;
 					#else
 					uint64_t const numthreads = 1;
 					#endif
 
 					uint64_t const numcontexts = numthreads;
-					::libmaus2::autoarray::AutoArray < ::libmaus2::suffixsort::CompactQueue::DequeContext::unique_ptr_type > deqcontexts = PQ0->getContextList(numcontexts);
+					::libmaus2::autoarray::AutoArray < ::libmaus2::suffixsort::CompactQueue::DequeContext::unique_ptr_type > deqcontexts = PQ0->getContextList(numcontexts,numthreads);
 
 					#if defined(_OPENMP) && defined(LIBMAUS2_HAVE_SYNC_OPS)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t c = 0; c < static_cast<int64_t>(deqcontexts.size()); ++c )
 					{
@@ -161,7 +137,8 @@ namespace libmaus2
 						while ( !deqcontext->done() )
 						{
 							std::pair<uint64_t,uint64_t> const qe = PQ0->deque(deqcontext);
-							uint64_t const locals = LF->W->multiRankLCPSet(qe.first,qe.second,LF->D.get(),WLCP.get(),unset,cur_l,encbuf.get());
+
+							uint64_t const locals = (LF->getW()).multiRankLCPSet(qe.first,qe.second,D.get(),WLCP.get(),unset,cur_l,encbuf.get());
 							#if defined(_OPENMP) && defined(LIBMAUS2_HAVE_SYNC_OPS)
 							__sync_fetch_and_add(&s,locals);
 							#else
@@ -174,53 +151,81 @@ namespace libmaus2
 					std::swap(PQ0,PQ1);
 
 					cur_l ++;
+
+					if ( PQ0->fill > maxfill )
+						maxfill = PQ0->fill;
+					if ( PQ0->fill < maxfill && s >= n / logn && (PQ0->fill < n / logn) )
+						break;
 				}
-				std::cerr << "done, time " << lcprtc.getElapsedSeconds() << std::endl;
+
+				// extract compact queues into non compact ones
+				std::deque< std::pair<uint64_t,uint64_t> > DQ0, DQ1;
 
 				if ( PQ0->fill )
 				{
-					// cur_l should now be the largest value for the small type
-					assert ( cur_l == unset );
+					// assert ( cur_l == unset );
 
-					// extract compact queues into non compact ones
-					std::deque< std::pair<uint64_t,uint64_t> > Q0, Q1;
 					::libmaus2::suffixsort::CompactQueue::DequeContext::unique_ptr_type dcontext = PQ0->getGlobalDequeContext();
 					while ( dcontext->fill )
-						Q0.push_back( PQ0->deque(dcontext.get()) );
+						DQ0.push_back( PQ0->deque(dcontext.get()) );
+				}
 
-					// prepare result for storing "large" values
-					res->setupLargeValueVector(n, unset);
-
+				if ( DQ0.size() )
+				{
+					// unset == largest value for the small type
 					uint64_t prefill = 0;
 
-					while ( Q0.size() )
+					while ( DQ0.size() )
 					{
-						if ( Q0.size() != prefill )
+						if ( cur_l == unset )
 						{
-							std::cerr << "cur_l=" << static_cast<uint64_t>(cur_l) << " fill=" << Q0.size() << " set=" << s << " (" << static_cast<double>(s)/LF->getN() << ")" << std::endl;
-							prefill = Q0.size();
+							// prepare result for storing "large" values
+							res->setupLargeValueVector(n, unset);
 						}
 
-						assert ( Q1.size() == 0 );
-
-						while ( Q0.size() )
+						if ( DQ0.size() != prefill )
 						{
-							std::pair<uint64_t,uint64_t> const qe = Q0.front(); Q0.pop_front();
-							uint64_t const locals = LF->W->multiRankLCPSetLarge(qe.first,qe.second,LF->D.get(),*res,cur_l,&Q1);
-							#if defined(_OPENMP) && defined(LIBMAUS2_HAVE_SYNC_OPS)
-							__sync_fetch_and_add(&s,locals);
-							#else
-							s += locals;
-							#endif
+							if ( logstr )
+								*logstr << "(" << static_cast<uint64_t>(cur_l) << "," << DQ0.size() << "," << s << " (" << static_cast<double>(s)/n << "))";
+							prefill = DQ0.size();
 						}
 
-						assert ( ! Q0.size() );
-						Q0.swap(Q1);
+						assert ( DQ1.size() == 0 );
+
+						if ( cur_l >= unset )
+							while ( DQ0.size() )
+							{
+								std::pair<uint64_t,uint64_t> const qe = DQ0.front(); DQ0.pop_front();
+								uint64_t const locals = (LF->getW()).multiRankLCPSetLarge(qe.first,qe.second,D.get(),*res,cur_l,&DQ1);
+								#if defined(_OPENMP) && defined(LIBMAUS2_HAVE_SYNC_OPS)
+								__sync_fetch_and_add(&s,locals);
+								#else
+								s += locals;
+								#endif
+							}
+						else
+							while ( DQ0.size() )
+							{
+								std::pair<uint64_t,uint64_t> const qe = DQ0.front(); DQ0.pop_front();
+								uint64_t const locals = (LF->getW()).multiRankLCPSet(qe.first,qe.second,D.get(),WLCP.get(),unset,cur_l,&DQ1);
+								#if defined(_OPENMP) && defined(LIBMAUS2_HAVE_SYNC_OPS)
+								__sync_fetch_and_add(&s,locals);
+								#else
+								s += locals;
+								#endif
+							}
+
+
+						assert ( ! DQ0.size() );
+						DQ0.swap(DQ1);
 
 						cur_l ++;
 					}
 
 				}
+
+				if ( logstr )
+					*logstr << " done, time " << lcprtc.getElapsedSeconds() << std::endl;
 
 				return UNIQUE_PTR_MOVE(res);
 			}

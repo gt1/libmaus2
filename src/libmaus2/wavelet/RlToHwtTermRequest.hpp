@@ -38,6 +38,7 @@ namespace libmaus2
 			uint64_t bwtterm;
 			uint64_t p0r;
 			bool utf8;
+			uint64_t numthreads;
 
 			RlToHwtTermRequest() {}
 			RlToHwtTermRequest(
@@ -47,8 +48,9 @@ namespace libmaus2
 				std::string const & rhuftreefilename,
 				uint64_t const rbwtterm,
 				uint64_t const rp0r,
-				bool const rutf8
-			) : bwt(rbwt), hwt(rhwt), tmpprefix(rtmpprefix), huftreefilename(rhuftreefilename), bwtterm(rbwtterm), p0r(rp0r), utf8(rutf8) {}
+				bool const rutf8,
+				uint64_t const rnumthreads
+			) : bwt(rbwt), hwt(rhwt), tmpprefix(rtmpprefix), huftreefilename(rhuftreefilename), bwtterm(rbwtterm), p0r(rp0r), utf8(rutf8), numthreads(rnumthreads) {}
 
 			RlToHwtTermRequest(std::istream & in)
 			:
@@ -58,7 +60,8 @@ namespace libmaus2
 				huftreefilename(libmaus2::util::StringSerialisation::deserialiseString(in)),
 				bwtterm(libmaus2::util::NumberSerialisation::deserialiseSignedNumber(in)),
 				p0r(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
-				utf8(libmaus2::util::NumberSerialisation::deserialiseNumber(in))
+				utf8(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				numthreads(libmaus2::util::NumberSerialisation::deserialiseNumber(in))
 			{
 
 			}
@@ -79,6 +82,7 @@ namespace libmaus2
 				libmaus2::util::NumberSerialisation::serialiseSignedNumber(out,bwtterm);
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,p0r);
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,utf8);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,numthreads);
 				return out;
 			}
 
@@ -90,7 +94,8 @@ namespace libmaus2
 				std::string const & huftreefilename,
 				uint64_t const bwtterm,
 				uint64_t const p0r,
-				bool const utf8
+				bool const utf8,
+				uint64_t const numthreads
 			)
 			{
 				libmaus2::util::StringSerialisation::serialiseStringVector(out,bwt);
@@ -100,6 +105,7 @@ namespace libmaus2
 				libmaus2::util::NumberSerialisation::serialiseSignedNumber(out,bwtterm);
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,p0r);
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,utf8);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,numthreads);
 				return out;
 			}
 
@@ -109,14 +115,14 @@ namespace libmaus2
 				if ( utf8 )
 				{
 					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type tptr(
-						libmaus2::wavelet::RlToHwtBase<true,rl_decoder>::rlToHwtTerm(bwt,hwt,tmpprefix,huftreefilename,bwtterm,p0r)
+						libmaus2::wavelet::RlToHwtBase<true,rl_decoder>::rlToHwtTerm(bwt,hwt,tmpprefix,huftreefilename,bwtterm,p0r,numthreads)
 					);
 					return UNIQUE_PTR_MOVE(tptr);
 				}
 				else
 				{
 					libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type tptr(
-						libmaus2::wavelet::RlToHwtBase<false,rl_decoder>::rlToHwtTerm(bwt,hwt,tmpprefix,huftreefilename,bwtterm,p0r)
+						libmaus2::wavelet::RlToHwtBase<false,rl_decoder>::rlToHwtTerm(bwt,hwt,tmpprefix,huftreefilename,bwtterm,p0r,numthreads)
 					);
 					return UNIQUE_PTR_MOVE(tptr);
 				}

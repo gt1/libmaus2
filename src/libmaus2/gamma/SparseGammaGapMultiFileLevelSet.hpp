@@ -359,7 +359,7 @@ namespace libmaus2
 				addFile(std::vector<std::string>(1,fn));
 			}
 
-			std::vector<std::string> merge(std::string const & outputfilenameprefix)
+			std::vector<std::string> merge(std::string const & outputfilenameprefix, uint64_t const numthreads)
 			{
 				// set up merge queue Q
 				std::priority_queue<libmaus2::gamma::SparseGammaGapMultiFile> Q;
@@ -383,7 +383,7 @@ namespace libmaus2
 					nptr->initialise();
 
 					#if defined(_OPENMP)
-					#pragma omp parallel
+					#pragma omp parallel num_threads(numthreads)
 					#endif
 					{
 						uint64_t packetid = 0, subid = 0;
@@ -435,10 +435,10 @@ namespace libmaus2
 			/**
 			 * merge sparse gamma coded gap files to a set of dense files
 			 **/
-			std::vector<std::string> mergeToDense(std::string const & outputfilenameprefix, uint64_t const n)
+			std::vector<std::string> mergeToDense(std::string const & outputfilenameprefix, uint64_t const n, uint64_t const numthreads)
 			{
 				std::string const tmpfilename = tmpgen.getFileName();
-				std::vector<std::string> const fno = merge(tmpfilename);
+				std::vector<std::string> const fno = merge(tmpfilename,numthreads);
 				// uint64_t const lparts = 1;
 				uint64_t const lparts = parts;
 				uint64_t const partsize = (n+lparts-1)/lparts;
@@ -446,7 +446,7 @@ namespace libmaus2
 				std::vector<std::string> outputfilenames(aparts);
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for schedule(dynamic,1)
+				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 				#endif
 				for ( uint64_t p = 0; p < aparts; ++p )
 				{

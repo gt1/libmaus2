@@ -32,6 +32,10 @@ namespace libmaus2
 	{
 		struct CompressedSuffixTree
 		{
+			typedef CompressedSuffixTree this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
 			typedef libmaus2::lf::ImpCompactHuffmanWaveletLF lf_type;
 			typedef lf_type::unique_ptr_type lf_ptr_type;
 			typedef libmaus2::fm::SimpleSampledSA<lf_type> ssa_type;
@@ -53,8 +57,19 @@ namespace libmaus2
 			lcp_ptr_type LCP;
 			// RMM tree for rmq/psv/nsv
 			rmm_tree_ptr_type RMM;
-			// length of sequence
+			// length of text
 			uint64_t n;
+
+			CompressedSuffixTree(
+				lf_ptr_type & rLF,
+				ssa_ptr_type & rSSA,
+				sisa_ptr_type & rSISA,
+				lcp_ptr_type & rLCP,
+				rmm_tree_ptr_type & rRMM
+			)
+			: LF(UNIQUE_PTR_MOVE(rLF)), SSA(UNIQUE_PTR_MOVE(rSSA)), SISA(UNIQUE_PTR_MOVE(rSISA)), LCP(UNIQUE_PTR_MOVE(rLCP)), RMM(UNIQUE_PTR_MOVE(rRMM)),
+			  n(LF->getN())
+			{}
 
 			uint64_t getSigma() const
 			{
@@ -108,17 +123,16 @@ namespace libmaus2
 			}
 
 			template<typename data_type>
-			uint64_t extractTextParallel(libmaus2::autoarray::AutoArray<data_type> & D) const
+			uint64_t extractTextParallel(libmaus2::autoarray::AutoArray<data_type> & D, uint64_t const numthreads) const
 			{
 				if ( D.size() < n )
 					D.resize(n);
 
-				uint64_t const numthreads = libmaus2::parallel::OMPNumThreadsScope::getMaxThreads();
 				uint64_t const blocksize = (n + numthreads-1)/numthreads;
 				uint64_t const numblocks = (n + blocksize-1)/blocksize;
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( uint64_t t = 0; t < numblocks; ++t )
 				{
@@ -342,9 +356,10 @@ namespace libmaus2
 				std::string const & saname,
 				std::string const & isaname,
 				std::string const & lcpname,
-				std::string const & rmmname
+				std::string const & rmmname,
+				uint64_t const numthreads
 			)
-			: LF(lf_type::load(hwtname)),
+			: LF(lf_type::load(hwtname,numthreads)),
 			  SSA(ssa_type::load(LF.get(),saname)),
 			  SISA(sisa_type::load(LF.get(),isaname)),
 			  LCP(lcp_type::load(*SSA,lcpname)),

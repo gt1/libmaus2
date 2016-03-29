@@ -601,11 +601,11 @@ namespace libmaus2
 			 * return inverse array, if this is a permutation (undefined otherwise)
 			 * @return inverse array, if this is a permutation
 			 **/
-			this_type inverse() const
+			this_type inverse(uint64_t const numthreads = 1) const
 			{
 				this_type I(n,false);
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( int64_t i = 0; i < static_cast<int64_t>(n); ++i )
 					I [ array[i] ] = i;
@@ -674,21 +674,15 @@ namespace libmaus2
 			 * compute prefix sums in parallel
 			 * @return sum over all elements of the array before prefix sum computation
 			 **/
-			N prefixSumsParallel()
+			N prefixSumsParallel(uint64_t const numthreads)
 			{
-				#if defined(_OPENMP)
-				uint64_t const numthreads = omp_get_max_threads();
-				#else
-				uint64_t const numthreads = 1;
-				#endif
-
 				uint64_t const elperthread = (getN() + numthreads-1)/numthreads;
 				uint64_t const parts = (getN() + elperthread-1)/elperthread;
 
 				libmaus2::autoarray::AutoArray<N> partial(parts+1,false);
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( int64_t t = 0; t < static_cast<int64_t>(parts); ++t )
 				{
@@ -704,7 +698,7 @@ namespace libmaus2
 				partial.prefixSums();
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( int64_t t = 0; t < static_cast<int64_t>(parts); ++t )
 				{

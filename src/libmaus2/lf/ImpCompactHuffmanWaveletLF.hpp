@@ -35,11 +35,17 @@ namespace libmaus2
 			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			typedef typename wt_type::unique_ptr_type wt_ptr_type;
+			typedef libmaus2::autoarray::AutoArray<uint64_t> D_type;
 
 			wt_ptr_type const W;
 			uint64_t const n;
 			uint64_t const n0;
-			::libmaus2::autoarray::AutoArray<uint64_t> D;
+			D_type D;
+
+			wt_type const & getW() const
+			{
+				return *W;
+			}
 
 			uint64_t byteSize() const
 			{
@@ -47,6 +53,11 @@ namespace libmaus2
 					W->byteSize()+
 					2*sizeof(uint64_t)+
 					D.byteSize();
+			}
+
+			D_type const & getD() const
+			{
+				return D;
 			}
 
 			uint64_t getN() const
@@ -128,9 +139,9 @@ namespace libmaus2
 				return UNIQUE_PTR_MOVE(ptr);
 			}
 
-			static unique_ptr_type load(std::string const & filename)
+			static unique_ptr_type load(std::string const & filename, uint64_t const numthreads)
 			{
-				unique_ptr_type ptr(new this_type(filename));
+				unique_ptr_type ptr(new this_type(filename,numthreads));
 				return UNIQUE_PTR_MOVE(ptr);
 			}
 
@@ -139,8 +150,8 @@ namespace libmaus2
 			{
 			}
 
-			ImpCompactHuffmanWaveletLFTemplate(std::string const & filename)
-			: W(wt_type::load(filename)), n(W->n), n0((n && W->haveSymbol(0)) ? W->rank(0,n-1) : 0), D(computeD())
+			ImpCompactHuffmanWaveletLFTemplate(std::string const & filename, uint64_t const numthreads)
+			: W(wt_type::load(filename,numthreads)), n(W->n), n0((n && W->haveSymbol(0)) ? W->rank(0,n-1) : 0), D(computeD())
 			{
 			}
 

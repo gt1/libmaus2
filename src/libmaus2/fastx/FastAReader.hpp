@@ -807,7 +807,7 @@ namespace libmaus2
 
 
 
-                        static std::vector<FastInterval> parallelIndex(std::vector<std::string> const & filenames, uint64_t const fracs)
+                        static std::vector<FastInterval> parallelIndex(std::vector<std::string> const & filenames, uint64_t const fracs, uint64_t const numthreads)
                         {
                                 uint64_t const flen = ::libmaus2::util::GetFileSize::getFileSize(filenames);
                                 uint64_t const fracsize = (flen+fracs-1)/fracs;
@@ -815,7 +815,7 @@ namespace libmaus2
                                 fracstarts.back() = flen;
 
                                 #if defined(_OPENMP)
-                                #pragma omp parallel for schedule(dynamic,1)
+                                #pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
                                 #endif
                                 for ( int64_t i = 0; i < static_cast<int64_t>(fracs); ++i )
                                         fracstarts[i] = searchNextStart(filenames,i*fracsize);
@@ -823,7 +823,7 @@ namespace libmaus2
                                 std::vector< PatternCount > intlen(fracs);
 
                                 #if defined(_OPENMP)
-                                #pragma omp parallel for schedule(dynamic,1)
+                                #pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
                                 #endif
                                 for ( int64_t i = 0; i < static_cast<int64_t>(fracs); ++i )
                                         intlen[i] = countPatternsInInterval(filenames,fracstarts.at(i),fracstarts.at(i+1));
@@ -859,14 +859,14 @@ namespace libmaus2
 			        return UNIQUE_PTR_MOVE(Phist);
 			}
 
-			static ::libmaus2::util::Histogram::unique_ptr_type getHistogram(std::vector<std::string> const & filenames, std::vector<FastInterval> const & rinterval)
+			static ::libmaus2::util::Histogram::unique_ptr_type getHistogram(std::vector<std::string> const & filenames, std::vector<FastInterval> const & rinterval, uint64_t const numthreads)
 			{
 			        ::libmaus2::util::Histogram::unique_ptr_type Phist(new ::libmaus2::util::Histogram());
 			        ::libmaus2::util::Histogram & hist = *Phist;
 			        ::libmaus2::parallel::OMPLock lock;
 
                                 #if defined(_OPENMP)
-                                #pragma omp parallel for schedule(dynamic,1)
+                                #pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
                                 #endif
                                 for ( int64_t i = 0; i < static_cast<int64_t>(rinterval.size()); ++i )
                                 {

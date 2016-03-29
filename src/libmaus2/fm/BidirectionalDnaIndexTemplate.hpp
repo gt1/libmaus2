@@ -64,11 +64,11 @@ namespace libmaus2
 				return S;
 			}
 
-			BidirectionalDnaIndexTemplate(std::string const & rdictname)
+			BidirectionalDnaIndexTemplate(std::string const & rdictname, uint64_t const numthreads)
 			: dictname(rdictname),
 			  basename(libmaus2::util::OutputFileNameTools::clipOff(dictname,rank_dictionary_info_type::getDictionaryFileSuffix())),
 			  saname(basename+rank_dictionary_info_type::getSampledSuffixArraySuffix()),
-			  LF(lf_type::load(dictname)),
+			  LF(lf_type::load(dictname,numthreads)),
 			  SA(sa_type::load(LF.get(),saname)),
 			  // symbols(LF->getSymbols())
 			  symbols(computeSymbolVector())
@@ -777,7 +777,7 @@ namespace libmaus2
 				}
 			}
 			template<typename iterator>
-			void extractTextParallel(iterator const it)
+			void extractTextParallel(iterator const it, uint64_t const numthreads)
 			{
 				typedef std::pair<uint64_t,uint64_t> upair;
 				std::vector<upair> V;
@@ -792,7 +792,7 @@ namespace libmaus2
 				std::sort(V.begin(),V.end());
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for schedule(dynamic,1)
+				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 				#endif
 				for ( uint64_t i = 0; i < V.size(); ++i )
 				{

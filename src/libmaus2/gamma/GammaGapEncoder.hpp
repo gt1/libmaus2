@@ -75,7 +75,7 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < bcnt; ++i )
 					{
 						uint64_t const v = *(ita++);
-						GE.encode(v);
+						GE.encodeSlow(v);
 						vacc += v;
 					}
 					GE.flush();
@@ -224,7 +224,7 @@ namespace libmaus2
 							for ( uint64_t j = 0; j < GGD.size(); ++j )
 								v += GGD[j]->decode();
 							vacc += v;
-							GE->encode(v);
+							GE->encodeSlow(v);
 						}
 						GE->flush();
 

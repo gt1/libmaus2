@@ -43,15 +43,9 @@ namespace libmaus2
 			}
 
 			template<typename rank_type, typename index_type>
-			FA4CompactSampledSuffixArray(rank_type const & Prank, index_type const & Pindex, std::string const & isaname)
+			FA4CompactSampledSuffixArray(rank_type const & Prank, index_type const & Pindex, std::string const & isaname, uint64_t const numthreads)
 			: samplingrate(1), samplingmask(samplingrate-1), CA(Prank.size(),Pindex.coordbits,0 /* no padding */,false /* do not erase */)
 			{
-				#if defined(_OPENMP)
-				uint64_t const numthreads = omp_get_max_threads();
-				#else
-				uint64_t const numthreads = 1;
-				#endif
-
 				libmaus2::aio::InputStreamInstance::unique_ptr_type PISAISI(new libmaus2::aio::InputStreamInstance(isaname));
 				uint64_t isasamplingrate;
 				libmaus2::serialize::Serialize<uint64_t>::deserialize(*PISAISI,&isasamplingrate);
@@ -76,7 +70,7 @@ namespace libmaus2
 				assert ( Visa.size() == 0 || Visa[0].first == 0 );
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( uint64_t i = 0; i < Visa.size(); ++i )
 				{

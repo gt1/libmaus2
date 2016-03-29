@@ -59,7 +59,9 @@ int testRMMTree()
 		std::vector<uint64_t> V;
 		for ( uint64_t i = 0; i < n; ++i )
 			V.push_back(libmaus2::random::Random::rand64() % 128);
-		libmaus2::rmq::RMMTree< std::vector<uint64_t>, 5, true /* debug */> RMM(V,V.size());
+		uint64_t const numthreads = 1;
+		uint64_t const rmmbuildblocksize = 32*1024;
+		libmaus2::rmq::RMMTree< std::vector<uint64_t>, 5, true /* debug */> RMM(V,V.size(),numthreads,rmmbuildblocksize,&(std::cerr));
 
 		#if defined(_OPENMP)
 		#pragma omp parallel for

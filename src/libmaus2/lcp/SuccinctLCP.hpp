@@ -145,7 +145,8 @@ namespace libmaus2
 				lcp_type & LCP,
 				std::ostream & out,
 				libmaus2::util::TempFileContainer & tmpcont,
-				bool const verbose = false
+				uint64_t const numthreads,
+				std::ostream * logstr
 			)
 			{
 				uint64_t const n = LF.getN();
@@ -159,12 +160,6 @@ namespace libmaus2
 				}
 				else
 				{
-					#if defined(_OPENMP)
-					uint64_t const numthreads = omp_get_max_threads();
-					#else
-					uint64_t const numthreads = 1;
-					#endif
-
 					for ( uint64_t i = 0; i < numthreads; ++i )
 						tmpcont.openOutputTempFile(i);
 
@@ -190,13 +185,17 @@ namespace libmaus2
 					uint64_t const isasamplingrate = SISA.isasamplingrate;
 
 					uint64_t bitswritten = 0;
-					if ( verbose )
-						std::cerr << pdif0 << std::endl;
+					if ( logstr )
+					{
+						(*logstr) << pdif0 << std::endl;
+					}
 					writePlcpDif(FWBW,pdif0+1);
 					bitswritten += (pdif0+1);
 
+					libmaus2::parallel::PosixSpinLock slock;
+
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t t = 0; t < static_cast<int64_t>(numthreads); ++t )
 					{
@@ -213,7 +212,12 @@ namespace libmaus2
 						::libmaus2::aio::SynchronousGenericOutput<uint64_t>::iterator_type lSGOit(lSGO);
 						::libmaus2::bitio::FastWriteBitWriterBuffer64Sync lFWBW(lSGOit);
 
-						// std::cerr << "[" << loopstart << "," << loopend << ")" << " size " << numisa << std::endl;
+						if ( logstr )
+						{
+							slock.lock();
+							*logstr << "[" << loopstart << "," << loopend << ")" << " size " << numisa << std::endl;
+							slock.unlock();
+						}
 
 						for ( uint64_t i = loopstart; i < loopend; ++i )
 						{
@@ -232,14 +236,21 @@ namespace libmaus2
 							op = plcpbuf.end()-1;
 
 							while ( op-- != plcpbuf.begin() )
+							{
+								assert ( op[1]+1 >= op[0] );
 								op[1] = (op[1]+1)-op[0];
+							}
 
 							// 1 ...
 
 							for ( op = opa; op != plcpbuf.end(); ++op )
 							{
-								if ( verbose )
-									std::cerr << *op << std::endl;
+								#if 0
+								if ( logstr )
+								{
+									(*logstr) << *op << std::endl;
+								}
+								#endif
 								writePlcpDif(lFWBW,*op+1);
 								lbitswritten += (*op)+1;
 							}
@@ -262,7 +273,9 @@ namespace libmaus2
 						uint64_t const restbits = bitsperthread[t] - (8*sizeof(uint64_t)*completeWords);
 						uint64_t v = 0;
 
-						// std::cerr << "thread " << t << " complete " << completeWords << " restbits " << restbits << " total bits " << bitsperthread[t] << std::endl;
+
+						if ( logstr )
+							(*logstr) << "thread " << t << " complete " << completeWords << " restbits " << restbits << " total bits " << bitsperthread[t] << std::endl;
 
 						for ( uint64_t i = 0; i < completeWords; ++i )
 						{
@@ -294,8 +307,10 @@ namespace libmaus2
 					uint64_t const rest = LF.getN() - processed;
 					::libmaus2::autoarray::AutoArray<uint64_t> plcpbuf(isasamplingrate+1,false);
 
-					if ( verbose )
-						std::cerr << "rest=" << rest << std::endl;
+					if ( logstr )
+					{
+						(*logstr) << "rest=" << rest << std::endl;
+					}
 
 					// LF on rank of position 0
 					uint64_t rr = LF(rp0);
@@ -310,8 +325,8 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < rest; ++i )
 					{
 						uint64_t pdif = plcpbuf[plcpbuf.size()-rest+i] + 1 - plcpbuf[plcpbuf.size()-rest+i-1];
-						if ( verbose )
-							std::cerr << "pdif=" << pdif << std::endl;
+						if ( logstr )
+							(*logstr) << "pdif=" << pdif << std::endl;
 						writePlcpDif(FWBW,pdif+1);
 						bitswritten += pdif+1;
 					}
@@ -418,7 +433,8 @@ namespace libmaus2
 				sampled_isa_type const & ISA,
 				uint64_t const n,
 				text_type const & text,
-				bool const verbose = false
+				uint64_t const numthreads,
+				bool const verbose
 			)
 			{
 				::libmaus2::timing::RealTimeClock rtc; rtc.start();
@@ -451,7 +467,7 @@ namespace libmaus2
 					// uint64_t const superwidth = superhigh-superlow;
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t subblock = 0; subblock < static_cast<int64_t>(numsubblocks); ++subblock )
 					{

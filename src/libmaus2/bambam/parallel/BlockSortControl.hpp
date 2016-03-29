@@ -1270,11 +1270,12 @@ namespace libmaus2
 				static void verifyReadEndsFragments(
 					std::vector< ::libmaus2::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > const & fraginfo,
 					libmaus2::parallel::PosixSpinLock & globallock,
-					size_t const cachesize = 16*1024*1024
+					size_t const cachesize, // = 16*1024*1024
+					uint64_t const numthreads
 				)
 				{
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( uint64_t z = 0; z < fraginfo.size(); ++z )
 					{
@@ -1415,11 +1416,12 @@ namespace libmaus2
 				static void verifyReadEndsPairs(
 					std::vector< ::libmaus2::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > const & pairinfo,
 					libmaus2::parallel::PosixSpinLock & globallock,
-					size_t const cachesize = 16*1024*1024
+					size_t const cachesize, // = 16*1024*1024
+					uint64_t const numthreads
 				)
 				{
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( uint64_t z = 0; z < pairinfo.size(); ++z )
 					{
@@ -1601,7 +1603,7 @@ namespace libmaus2
 							sfraginfo = getFragMergeInfo();
 						std::vector< ::libmaus2::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > const & fraginfo = *sfraginfo;
 
-						verifyReadEndsFragments(fraginfo);
+						verifyReadEndsFragments(fraginfo,16*1024*1024,numthreads);
 
 						std::cerr << "done." << std::endl;
 					}
@@ -1613,7 +1615,7 @@ namespace libmaus2
 							spairinfo = getPairMergeInfo();
 						std::vector< ::libmaus2::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > const & pairinfo = *spairinfo;
 
-						verifyReadEndsPairs(pairinfo);
+						verifyReadEndsPairs(pairinfo,16*1024*1024,numthreads);
 
 						std::cerr << "done." << std::endl;
 					}

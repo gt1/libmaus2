@@ -245,7 +245,10 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/rank/DNARankBiDirRange.cpp \
 	libmaus2/lcs/NNPTraceElement.cpp \
 	libmaus2/lcs/NNPTraceContainer.cpp \
-	libmaus2/lcs/NNPAlignResult.cpp
+	libmaus2/lcs/NNPAlignResult.cpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeGapRequest.cpp \
+	libmaus2/suffixsort/bwtb3m/BwtMergeSort.cpp \
+	libmaus2/suffixsort/bwtb3m/BwtComputeSSA.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1296,7 +1299,9 @@ libmaus2aio_include_HEADERS=\
 	libmaus2/aio/OutputStreamInstance.hpp \
 	libmaus2/aio/ConcatInputStreamBuffer.hpp \
 	libmaus2/aio/ConcatInputStream.hpp \
-	libmaus2/aio/SplitWriter.hpp
+	libmaus2/aio/SplitWriter.hpp \
+	libmaus2/aio/ArrayInputStreamBuffer.hpp \
+	libmaus2/aio/ArrayInputStream.hpp
 	
 libmaus2parallel_includedir=$(includedir)/libmaus2/parallel
 libmaus2parallel_include_HEADERS=\
@@ -1430,7 +1435,8 @@ libmaus2fastx_include_HEADERS=\
 	libmaus2/fastx/DNAIndexMetaDataBigBand.hpp \
 	libmaus2/fastx/DNAIndexMetaDataBigBandBiDir.hpp \
 	libmaus2/fastx/CoordinateCache.hpp \
-	libmaus2/fastx/LineBufferFastAReader.hpp
+	libmaus2/fastx/LineBufferFastAReader.hpp\
+	libmaus2/fastx/FastAToCompact4BigBand.hpp
 
 libmaus2timing_includedir=$(includedir)/libmaus2/timing
 libmaus2timing_include_HEADERS=\
@@ -1631,6 +1637,26 @@ libmaus2suffixsort_include_HEADERS=\
 	libmaus2/suffixsort/BwtMergeBlockSortRequestBase.hpp \
 	libmaus2/suffixsort/BwtMergeBlockSortRequest.hpp \
 	libmaus2/suffixsort/SmallestRotation.hpp
+
+libmaus2suffixsortbwtb3m_includedir=$(includedir)/libmaus2/suffixsort/bwtb3m
+libmaus2suffixsortbwtb3m_include_HEADERS=\
+	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeGapRequestQueryObject.hpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyBlock.hpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyBaseBlock.hpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeGapRequest.hpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeBlock.hpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeInternalBlock.hpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeInternalSmallBlock.hpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeExternalBlock.hpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyConstruction.hpp \
+	libmaus2/suffixsort/bwtb3m/BWTB3MBase.hpp \
+	libmaus2/suffixsort/bwtb3m/BaseBlockSortThread.hpp \
+	libmaus2/suffixsort/bwtb3m/BaseBlockSorting.hpp \
+	libmaus2/suffixsort/bwtb3m/BwtMergeSortOptions.hpp \
+	libmaus2/suffixsort/bwtb3m/BwtMergeSortTemplate.hpp \
+	libmaus2/suffixsort/bwtb3m/BwtMergeSort.hpp \
+	libmaus2/suffixsort/bwtb3m/BwtMergeSortResult.hpp \
+	libmaus2/suffixsort/bwtb3m/BwtComputeSSA.hpp
 
 libmaus2suffixtree_includedir=$(includedir)/libmaus2/suffixtree
 libmaus2suffixtree_include_HEADERS=\
@@ -1970,7 +1996,9 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testfaextract \
 	testmurmur3 \
 	testpairalign \
-	testsplaytree
+	testsplaytree \
+	testbwtconstruction \
+	testbwtconstructionfasta
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2498,3 +2526,11 @@ testpairalign_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testsplaytree_SOURCES  = test/testsplaytree.cpp
 testsplaytree_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testsplaytree_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testbwtconstruction_SOURCES  = test/testbwtconstruction.cpp
+testbwtconstruction_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testbwtconstruction_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testbwtconstructionfasta_SOURCES  = test/testbwtconstructionfasta.cpp
+testbwtconstructionfasta_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testbwtconstructionfasta_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@

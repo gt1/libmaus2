@@ -1,6 +1,6 @@
 /*
     libmaus2
-    Copyright (C) 2009-2013 German Tischler
+    Copyright (C) 2009-2016 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
     This program is free software: you can redistribute it and/or modify
@@ -30,13 +30,34 @@ namespace libmaus2
                 struct CompactQueue
                 {
                         uint64_t const n;
-                        ::libmaus2::bitio::CompactArray Q;
-                        uint64_t fill;
+
+                        #if defined(LIBMAUS2_HAVE_SYNC_OPS)
+                        #define LIBMAUS2_SUFFIXSORT_COMPACTQUEUE_USE_SYNC_COMPACTARRAY
+                        #endif
+
                         ::libmaus2::parallel::OMPLock batchlock;
+
+                        #if defined(LIBMAUS2_SUFFIXSORT_COMPACTQUEUE_USE_SYNC_COMPACTARRAY)
+                        ::libmaus2::bitio::SynchronousCompactArray Q;
+                        #else
+                        ::libmaus2::bitio::CompactArray Q;
+                        #endif
+                        uint64_t fill;
 
                         template<typename iterator>
                         void enqueBatch(iterator a, iterator e)
                         {
+	                        #if defined(LIBMAUS2_SUFFIXSORT_COMPACTQUEUE_USE_SYNC_COMPACTARRAY)
+                                batchlock.lock();
+                                fill += (e-a);
+                                batchlock.unlock();
+
+                                while ( a !=e )
+                                {
+                                        enqueInternal(a->first,a->second);
+                                        ++a;
+                                }
+	                        #else
                                 batchlock.lock();
                                 while ( a !=e )
                                 {
@@ -44,6 +65,7 @@ namespace libmaus2
                                         ++a;
                                 }
                                 batchlock.unlock();
+                                #endif
                         }
 
                         CompactQueue(uint64_t const rn)
@@ -65,7 +87,7 @@ namespace libmaus2
                                 fill = 0;
                         }
 
-                        void enque(uint64_t const sp, uint64_t const ep)
+                        void enqueInternal(uint64_t const sp, uint64_t const ep)
                         {
                                 assert ( ep>sp);
 
@@ -74,7 +96,7 @@ namespace libmaus2
                                 #endif
 
                                 if ( ep-1 == sp )
-                                {
+	                                {
                                         Q.set(sp,3);
                                 }
                                 else
@@ -82,7 +104,11 @@ namespace libmaus2
                                         Q.set(sp,1);
                                         Q.set(ep-1,2);
                                 }
+                        }
 
+                        void enque(uint64_t const sp, uint64_t const ep)
+                        {
+                        	enqueInternal(sp,ep);
                                 fill += 1;
                         }
 
@@ -111,13 +137,13 @@ namespace libmaus2
                                 return DequeContext::unique_ptr_type(new DequeContext(0,fill));
                         }
 
-                        ::libmaus2::autoarray::AutoArray< DequeContext::unique_ptr_type > getContextList(uint64_t numcontexts) const
+                        ::libmaus2::autoarray::AutoArray< DequeContext::unique_ptr_type > getContextList(uint64_t numcontexts, uint64_t const numthreads) const
                         {
                                 uint64_t const intervalsize = (n+numcontexts-1)/numcontexts;
                                 ::libmaus2::autoarray::AutoArray< DequeContext::unique_ptr_type > contexts(numcontexts);
 
                                 #if defined(_OPENMP)
-                                #pragma omp parallel for
+                                #pragma omp parallel for num_threads(numthreads)
                                 #endif
                                 for ( int64_t z = 0; z < static_cast<int64_t>(numcontexts); ++z )
                                 {

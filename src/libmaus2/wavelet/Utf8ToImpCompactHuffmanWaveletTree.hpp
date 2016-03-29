@@ -38,6 +38,11 @@ namespace libmaus2
 	{
 		struct Utf8ToImpCompactHuffmanWaveletTree
 		{
+			static uint64_t getDefaultTPartSizeMax()
+			{
+				return 1024ull*1024ull;
+			}
+
 			struct ImpWaveletStackElement
 			{
 				uint64_t bleft;
@@ -66,18 +71,17 @@ namespace libmaus2
 			template<bool radixsort>
 			static void constructWaveletTree(
 				std::string const & fn, std::string const & outputfilename,
-				libmaus2::huffman::HuffmanTree const * H = 0,
-				uint64_t const numthreads = getDefaultMaxThreads()
+				libmaus2::huffman::HuffmanTree const * H /* = 0 */,
+				uint64_t const numthreads
 			)
 			{
-				// ::libmaus2::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
 				::libmaus2::util::TempFileRemovalContainer::setup();
 
 				libmaus2::huffman::HuffmanTree::unique_ptr_type pH;
 				if ( ! H )
 				{
 					::libmaus2::autoarray::AutoArray< std::pair<int64_t,uint64_t> > const ahist =
-						::libmaus2::util::Utf8String::getHistogramAsArray(fn);
+						::libmaus2::util::Utf8String::getHistogramAsArray(fn,numthreads);
 					libmaus2::huffman::HuffmanTree::unique_ptr_type tH(new ::libmaus2::huffman::HuffmanTree(ahist.begin(),ahist.size(),false,true,true));
 					pH = UNIQUE_PTR_MOVE(tH);
 					H = pH.get();
@@ -607,8 +611,8 @@ namespace libmaus2
 			static void constructWaveletTree(
 				::libmaus2::autoarray::AutoArray<uint8_t> & A, std::string const & outputfilename,
 				std::string const & tmpfilenamebase,
-				::libmaus2::huffman::HuffmanTree const * H = 0,
-				uint64_t const numthreads = ::libmaus2::parallel::OMPNumThreadsScope::getMaxThreads()
+				::libmaus2::huffman::HuffmanTree const * H /* = 0 */,
+				uint64_t const numthreads
 			)
 			{
 				// ::libmaus2::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
@@ -618,7 +622,7 @@ namespace libmaus2
 				if ( ! H )
 				{
 					::libmaus2::autoarray::AutoArray< std::pair<int64_t,uint64_t> > const ahist =
-						::libmaus2::util::Utf8String::getHistogramAsArray(A);
+						::libmaus2::util::Utf8String::getHistogramAsArray(A,numthreads);
 					::libmaus2::huffman::HuffmanTree::unique_ptr_type tH(
 						new ::libmaus2::huffman::HuffmanTree(ahist.begin(),ahist.size(),false,true,true)
 					);
@@ -1134,13 +1138,14 @@ namespace libmaus2
 				}
 			}
 
+
 			template<typename rl_decoder, bool radixsort>
 			static void constructWaveletTreeFromRl(
 				std::string const & fn, std::string const & outputfilename,
 				std::string const & tmpfilenamebase,
 				libmaus2::huffman::HuffmanTree const & H,
-				uint64_t const tpartsizemax = 1024ull*1024ull,
-				uint64_t const numthreads = ::libmaus2::parallel::OMPNumThreadsScope::getMaxThreads()
+				uint64_t const tpartsizemax, // = getDefaultTPartSizeMax(),
+				uint64_t const numthreads // = ::libmaus2::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
 				if ( H.root()-H.leafs() != 0 )
@@ -1674,8 +1679,8 @@ namespace libmaus2
 				::libmaus2::huffman::HuffmanTree const & H,
 				uint64_t const termrank,
 				uint64_t const bwtterm,
-				uint64_t const tpartsizemax = 1024ull*1024ull,
-				uint64_t const numthreads = ::libmaus2::parallel::OMPNumThreadsScope::getMaxThreads()
+				uint64_t const tpartsizemax, // = getDefaultTPartSizeMax(),
+				uint64_t const numthreads // = ::libmaus2::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
 				// check tree order

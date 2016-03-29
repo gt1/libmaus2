@@ -181,12 +181,12 @@ namespace libmaus2
                                 }
                         }
 
-                        static std::vector<FastInterval> buildIndex(std::vector < std::string > const & filenames, uint64_t const steps = 1)
+                        static std::vector<FastInterval> buildIndex(std::vector < std::string > const & filenames, uint64_t const steps /* = 1 */, uint64_t const numthreads)
                         {
                                 std::vector < FastInterval > intervals;
 
                                 #if defined(_OPENMP)
-                                #pragma omp parallel for schedule(dynamic,1)
+                                #pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
                                 #endif
                                 for ( int64_t i = 0; i < static_cast<int64_t>(filenames.size()); ++i )
                                         buildIndex(filenames[i], steps);

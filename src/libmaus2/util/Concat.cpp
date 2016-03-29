@@ -72,7 +72,8 @@ uint64_t libmaus2::util::Concat::concat(std::vector < std::string > const & file
 uint64_t libmaus2::util::Concat::concatParallel(
 	std::vector < std::string > const & files,
 	std::string const & outputfilename,
-	bool const rem
+	bool const rem,
+	uint64_t const numthreads
 )
 {
 	::libmaus2::autoarray::AutoArray<uint64_t> P(files.size()+1);
@@ -86,7 +87,7 @@ uint64_t libmaus2::util::Concat::concatParallel(
 	}
 
 	#if defined(_OPENMP)
-	#pragma omp parallel for schedule(dynamic,1)
+	#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 	#endif
 	for ( int64_t i = 0; i < static_cast<int64_t>(files.size()); ++i )
 	{
@@ -105,7 +106,8 @@ uint64_t libmaus2::util::Concat::concatParallel(
 uint64_t libmaus2::util::Concat::concatParallel(
 	std::vector < std::vector < std::string > > const & files,
 	std::string const & outputfilename,
-	bool const rem
+	bool const rem,
+	uint64_t const numthreads
 )
 {
 	std::vector<std::string> sfiles;
@@ -114,7 +116,7 @@ uint64_t libmaus2::util::Concat::concatParallel(
 		for ( uint64_t j = 0; j < files[i].size(); ++j )
 			sfiles.push_back(files[i][j]);
 
-	return concatParallel(sfiles,outputfilename,rem);
+	return concatParallel(sfiles,outputfilename,rem,numthreads);
 }
 
 uint64_t libmaus2::util::Concat::concat(std::vector < std::string > const & files, std::string const & outputfile, bool const rem)

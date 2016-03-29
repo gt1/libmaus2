@@ -659,7 +659,7 @@ namespace libmaus2
 					if ( seedposb >= seedposa )
 						maxfdiag = std::min(static_cast<int64_t>(seedposb) - static_cast<int64_t>(seedposa) - 1,maxfdiag);
 
-					std::cerr << "minfdiag=" << minfdiag << " maxfdiag=" << maxfdiag << std::endl;
+					//std::cerr << "minfdiag=" << minfdiag << " maxfdiag=" << maxfdiag << std::endl;
 				}
 
 				int64_t minrdiag = getDefaultMinDiag();

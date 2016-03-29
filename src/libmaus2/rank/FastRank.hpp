@@ -88,7 +88,7 @@ namespace libmaus2
 					int64_t  packs = (n + nperpack - 1)/nperpack;
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t p = 0; p < packs; ++p )
 					{
@@ -145,7 +145,7 @@ namespace libmaus2
 					libmaus2::autoarray::AutoArray<uint64_t> Alhist(mod * packs,false);
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t p = 0; p < packs; ++p )
 					{
@@ -193,7 +193,7 @@ namespace libmaus2
 					R = libmaus2::autoarray::AutoArray<rank_type>(n,false);
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t p = 0; p < packs; ++p )
 					{
@@ -227,7 +227,7 @@ namespace libmaus2
 
 					// copy data and compute histograms
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t p = 0; p < packs; ++p )
 					{
@@ -268,7 +268,7 @@ namespace libmaus2
 					R = libmaus2::autoarray::AutoArray<rank_type>(n,false);
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t p = 0; p < packs; ++p )
 					{

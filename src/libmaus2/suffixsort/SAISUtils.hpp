@@ -196,7 +196,7 @@ namespace libmaus2
 				#endif
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(threads)
 				#endif
 				for ( int64_t j = 0; j < static_cast<int64_t>(intervals.size()); j += 2 )
 				{
@@ -212,7 +212,7 @@ namespace libmaus2
 				#endif
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(threads)
 				#endif
 				for ( int64_t j = 1; j < static_cast<int64_t>(intervals.size()); j += 2 )
 				{
@@ -278,14 +278,14 @@ namespace libmaus2
 				intervals = mergeParIntervals(intervals);
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(threads)
 				#endif
 				for ( int64_t j = 0; j < static_cast<int64_t>(intervals.size()); j += 2 )
 					for ( uint64_t i = intervals[j].second; i > intervals[j].first; --i )
 						stype [ i ] = stype[i] && (!stype[i-1]);
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(threads)
 				#endif
 				for ( int64_t j = 1; j < static_cast<int64_t>(intervals.size()); j += 2 )
 					for ( uint64_t i = intervals[j].second; i > intervals[j].first; --i )

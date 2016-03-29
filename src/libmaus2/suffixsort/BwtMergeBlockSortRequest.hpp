@@ -67,6 +67,7 @@ namespace libmaus2
 			::libmaus2::suffixsort::BwtMergeZBlockRequestVector zreqvec; // vector of positions in file where rank in this block is requested
 			bool computeTermSymbolHwt;
 			uint64_t lcpnext;
+			uint64_t numdownstreamthreads;
 
 			static bwt_merge_sort_input_type decodeInputType(uint64_t const i)
 			{
@@ -111,6 +112,7 @@ namespace libmaus2
 				zreqvec.serialise(stream);
 				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,computeTermSymbolHwt);
 				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,lcpnext);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,numdownstreamthreads);
 			}
 
 			std::string serialise() const
@@ -142,7 +144,8 @@ namespace libmaus2
 				cblocksize(::libmaus2::util::NumberSerialisation::deserialiseNumber(stream)),
 				zreqvec(stream),
 				computeTermSymbolHwt(::libmaus2::util::NumberSerialisation::deserialiseNumber(stream)),
-				lcpnext(::libmaus2::util::NumberSerialisation::deserialiseNumber(stream))
+				lcpnext(::libmaus2::util::NumberSerialisation::deserialiseNumber(stream)),
+				numdownstreamthreads(::libmaus2::util::NumberSerialisation::deserialiseNumber(stream))
 			{
 			}
 
@@ -162,7 +165,8 @@ namespace libmaus2
 				uint64_t rcblocksize,
 				::libmaus2::suffixsort::BwtMergeZBlockRequestVector const & rzreqvec,
 				bool const rcomputeTermSymbolHwt,
-				uint64_t const rlcpnext
+				uint64_t const rlcpnext,
+				uint64_t const rnumdownstreamthreads
 			)
 			:
 				inputtype(rinputtype),
@@ -180,7 +184,8 @@ namespace libmaus2
 				cblocksize(rcblocksize),
 				zreqvec(rzreqvec),
 				computeTermSymbolHwt(rcomputeTermSymbolHwt),
-				lcpnext(rlcpnext)
+				lcpnext(rlcpnext),
+				numdownstreamthreads(rnumdownstreamthreads)
 			{
 			}
 
@@ -456,7 +461,7 @@ namespace libmaus2
 				::libmaus2::timing::RealTimeClock sufsertc; sufsertc.start();
 				result.resizeZBlocks(zreqvec.size());
 				#if defined(_OPENMP)
-				// #pragma omp parallel for schedule(dynamic,1)
+				// #pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 				#endif
 				for ( uint64_t z = 0; z < zreqvec.size(); ++z )
 				{
@@ -824,7 +829,8 @@ namespace libmaus2
 						huftreefilename,
 						bwtterm,
 						r0,
-						input_types_type::utf8Wavelet()
+						input_types_type::utf8Wavelet(),
+						numdownstreamthreads
 					);
 					hwtReqCOS.flush();
 					//hwtReqCOS.close();

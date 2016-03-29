@@ -60,9 +60,9 @@ namespace libmaus2
 			LF( std::istream & istr ) : base_type ( istr ) {}
 			LF( std::istream & istr, uint64_t & s ) : base_type(istr,s) {}
 			LF( wt_ptr_type & rW ) : base_type(rW) {}
-			LF( bitio::CompactArray::unique_ptr_type & ABWT, bool const verbose = false, bool const parallel = true ) : base_type(ABWT,verbose,parallel) {}
-			LF( bitio::CompactArray::unique_ptr_type & ABWT, ::libmaus2::util::shared_ptr < huffman::HuffmanTreeNode >::type ahnode, bool const verbose = false, bool const parallel = true )
-			: base_type(ABWT,ahnode,verbose,parallel) {}
+			LF( bitio::CompactArray::unique_ptr_type & ABWT, bool const verbose, bool const parallel, uint64_t const numthreads ) : base_type(ABWT,verbose,parallel,numthreads) {}
+			LF( bitio::CompactArray::unique_ptr_type & ABWT, ::libmaus2::util::shared_ptr < huffman::HuffmanTreeNode >::type ahnode, bool const verbose, bool const parallel, uint64_t const numthreads )
+			: base_type(ABWT,ahnode,verbose,parallel,numthreads) {}
 		};
 	}
 }

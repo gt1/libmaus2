@@ -18,6 +18,7 @@
 */
 
 #include <libmaus2/huffman/RLDecoder.hpp>
+#include <libmaus2/parallel/NumCpus.hpp>
 
 int main(int argc, char * argv[])
 {
@@ -25,7 +26,8 @@ int main(int argc, char * argv[])
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		std::string const fn = arginfo.getRestArg<std::string>(0);
-		libmaus2::util::Histogram::unique_ptr_type thist(libmaus2::huffman::RLDecoder::getRunLengthHistogram(fn));
+		uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
+		libmaus2::util::Histogram::unique_ptr_type thist(libmaus2::huffman::RLDecoder::getRunLengthHistogram(fn,numthreads));
 		std::map<uint64_t,uint64_t> const M = thist->getByType<uint64_t>();
 
 		uint64_t runtotal = 0;

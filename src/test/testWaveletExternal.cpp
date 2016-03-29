@@ -89,9 +89,12 @@ void testImpExternalWaveletGenerator()
 }
 
 #include <libmaus2/huffman/huffman.hpp>
+#include <libmaus2/parallel/NumCpus.hpp>
 
 void testHuffmanWavelet()
 {
+	uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
+
 	// std::string text = "Hello world.";
 	std::string text = "fischers fritze fischt frische fische der biber schwimmt im fluss und bleibt immer treu";
 
@@ -119,7 +122,7 @@ void testHuffmanWavelet()
 	#endif
 
 	#if defined(PAR) && defined(_OPENMP)
-	#pragma omp parallel for
+	#pragma omp parallel for num_threads(numthreads)
 	#endif
 	for ( int64_t f = 0; f < static_cast<int64_t>(numfrags); ++f )
 	{
@@ -136,9 +139,9 @@ void testHuffmanWavelet()
 			exgen.putSymbol(text[i]);
 			#endif
 	}
-	exgen.createFinalStream("hufwuf");
+	exgen.createFinalStream("mem://hufwuf",numthreads);
 
-	std::ifstream istr("hufwuf",std::ios::binary);
+	libmaus2::aio::InputStreamInstance istr("mem://hufwuf");
 	::libmaus2::wavelet::ImpHuffmanWaveletTree IHWT(istr);
 	::libmaus2::autoarray::AutoArray<int64_t> symar = sroot->symbolArray();
 
@@ -227,6 +230,8 @@ void testHuffmanWavelet()
 
 void testHuffmanWaveletSer()
 {
+	uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
+
 	// std::string text = "Hello world.";
 	std::string text = "fischers fritze fischt frische fische";
 	::libmaus2::util::shared_ptr< ::libmaus2::huffman::HuffmanTreeNode >::type sroot = ::libmaus2::huffman::HuffmanBase::createTree(text.begin(),text.end());
@@ -237,9 +242,9 @@ void testHuffmanWaveletSer()
 	for ( uint64_t i = 0; i < text.size(); ++i )
 		exgen[0].putSymbol(text[i]);
 		// exgen.putSymbol(text[i]);
-	exgen.createFinalStream("hufwuf");
+	exgen.createFinalStream("mem://hufwuf",numthreads);
 
-	std::ifstream istr("hufwuf",std::ios::binary);
+	libmaus2::aio::InputStreamInstance istr("mem://hufwuf");
 	::libmaus2::wavelet::ImpHuffmanWaveletTree IHWT(istr);
 
 	for ( uint64_t i = 0; i < IHWT.size(); ++i )
@@ -325,6 +330,8 @@ void testCompactHuffman()
 
 void testCompactHuffmanPar()
 {
+	uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
+
 	std::vector<uint8_t> A;
 	std::map<int64_t,uint64_t> F;
 	// uint64_t const n = 1024*1024;
@@ -341,11 +348,6 @@ void testCompactHuffmanPar()
 	libmaus2::util::MemTempFileContainer MTFC;
 	// libmaus2::wavelet::ImpExternalWaveletGeneratorCompactHuffman IEWGHN(H,MTFC);
 	libmaus2::util::TempFileNameGenerator tmpgen("tmpdir",2);
-	#if defined(_OPENMP)
-	uint64_t const numthreads = omp_get_max_threads();
-	#else
-	uint64_t const numthreads = 1;
-	#endif
 	libmaus2::wavelet::ImpExternalWaveletGeneratorCompactHuffmanParallel IEWGHN(H,tmpgen,numthreads);
 
 	// std::cerr << "left construction." << std::endl;
@@ -373,16 +375,16 @@ void testCompactHuffmanPar()
 		IEWGHN[tid].putSymbol(A[i]);
 	}
 
-	std::string tmpfilename = "tmp.hwt";
+	std::string tmpfilename = "mem://tmp.hwt";
 	// std::ostringstream ostr;
 	{
 		libmaus2::aio::OutputStreamInstance COS(tmpfilename);
-		IEWGHN.createFinalStream(COS);
+		IEWGHN.createFinalStream(COS,numthreads);
 	}
 
 	// std::istringstream istr(ostr.str());
 	// libmaus2::wavelet::ImpCompactHuffmanWaveletTree IHWTN(tmpfilename);
-	libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type pIHWTN(libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(tmpfilename));
+	libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type pIHWTN(libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(tmpfilename,numthreads));
 	libmaus2::wavelet::ImpCompactHuffmanWaveletTree const & IHWTN = *pIHWTN;
 	// libmaus2::wavelet::ImpCompactHuffmanWaveletTree IHWTN(istr);
 	libmaus2::aio::FileRemoval::removeFile(tmpfilename);

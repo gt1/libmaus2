@@ -112,7 +112,7 @@ namespace libmaus2
 			static unique_ptr_type loadFromRunLength(
 				std::string const & rl0,
 				std::string const & rl1,
-				uint64_t const numthreads = DNARank::getDefaultThreads())
+				uint64_t const numthreads)
 			{
 				unique_ptr_type tptr(new this_type);
 
@@ -203,15 +203,9 @@ namespace libmaus2
 			/**
 			 * test searching for all k-mers
 			 **/
-			void testSearch(unsigned int k) const
+			void testSearch(unsigned int k, uint64_t const numthreads) const
 			{
 				uint64_t const lim = 1ull << (DNARank::getLogSigma()*k);
-
-				#if defined(_OPENMP)
-				uint64_t const numthreads = omp_get_max_threads();
-				#else
-				uint64_t const numthreads = 1;
-				#endif
 
 				libmaus2::autoarray::AutoArray<libmaus2::autoarray::AutoArray<char > > AC(numthreads);
 				libmaus2::autoarray::AutoArray<libmaus2::autoarray::AutoArray<char > > AD(numthreads);
@@ -227,7 +221,7 @@ namespace libmaus2
 				libmaus2::parallel::PosixSpinLock cerrlock;
 
 				#if defined(_OPENMP)
-				#pragma omp parallel for schedule(dynamic,1)
+				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 				#endif
 				for ( uint64_t z = 0; z < lim; ++z )
 				{
