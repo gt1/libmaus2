@@ -71,7 +71,7 @@ namespace libmaus2
 
 				if ( arginfo.hasArg(key) )
 					return arginfo.getUnparsedValue(key,std::string());
-				else if ( arginfo.hasArg("O") )
+				else if ( arginfo.hasArg("O") && arginfo.getUnparsedValue("O",std::string()) != std::string() )
 				{
 					std::string const O = arginfo.getUnparsedValue("O",std::string());
 
@@ -91,7 +91,7 @@ namespace libmaus2
 
 				if ( arginfo.hasArg(key) )
 					return arginfo.getUnparsedValue(key,std::string());
-				else if ( arginfo.hasArg("O") )
+				else if ( arginfo.hasArg("O") && arginfo.getUnparsedValue("O",std::string()) != std::string() )
 				{
 					std::string const O = arginfo.getUnparsedValue("O",std::string());
 					std::string const fn = O + ".md5";
