@@ -1,3 +1,23 @@
+libmaus2 (2.0.145-1) unstable; urgency=medium
+
+  * add getIndexFileName and getMD5FileName functions in BamBlockWriterBaseFactory
+  * add testbwtconstructionfasta program
+  * remove dead code and adapt to DNARank class in WaveletLCP
+  * add loadDNARank method in BwtMergeSortResult
+  * add isGzip function for filenames in IsGzip class
+  * add LCP computation support functions in DNARank clas
+  * add getD method in ImpCompactHuffmanWaveletLF class
+  * add computeSampledSuffixArray method in BwtMergeSortResult
+  * import semi external memory SA/ISA computation routine from bwtb3m
+  * add construction of succinct lcp array, rmm tree and suffix tree in BwtMergeSortResult
+  * implement parallel construction for RMMTree
+  * implement support for queue switching before hitting byte bound in WaveletLCP class 
+  * change verbose parameter of writeSuccinct function in SuccinctLCP to ostream pointer
+  * add LCP array construction in BwtMergeSortResult class
+  * implement quiet mode in WaveletLCP class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 29 Mar 2016 10:05:45 +0200
+
 libmaus2 (2.0.144-1) unstable; urgency=medium
 
   * add ArrayFileContainer and ArrayInputStreamFactory classes
