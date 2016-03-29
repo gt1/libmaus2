@@ -84,7 +84,7 @@ void testBin()
 				::libmaus2::lf::LF,
 				::libmaus2::fm::SimpleSampledSA< ::libmaus2::lf::LF >,
 				::libmaus2::fm::SampledISA< ::libmaus2::lf::LF >
-			>::writeSuccinctLCP(LF,SISA,PhiLCP,oout,MTFC,numthreads,verbose);
+			>::writeSuccinctLCP(LF,SISA,PhiLCP,oout,MTFC,numthreads,verbose ? (&std::cerr) : 0);
 
 			std::istringstream iin(oout.str());
 			::libmaus2::lcp::SuccinctLCP<

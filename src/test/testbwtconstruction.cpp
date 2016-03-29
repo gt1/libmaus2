@@ -62,6 +62,21 @@ void transform(iterator ita, iterator ite)
 	// add protocol handler
 	libmaus2::aio::InputStreamFactoryContainer::addHandler(prot, factory);
 
+	double divsufsorttime;
+
+	std::cerr << "[V] running divsufsort...";
+	{
+		libmaus2::timing::RealTimeClock rtc;
+		rtc.start();
+		libmaus2::autoarray::AutoArray<uint8_t> A(ite-ita,false);
+		std::copy(ita,ite,A.begin());
+		typedef ::libmaus2::suffixsort::DivSufSort<64,uint8_t *,uint8_t const *,int64_t *,int64_t const *,256,false /* parallel */> sort_type;
+		libmaus2::autoarray::AutoArray<int64_t> SA(ite-ita,false);
+		sort_type::divsufsort(A.begin(),SA.begin(),ite-ita);
+		divsufsorttime = rtc.getElapsedSeconds();
+	}
+	std::cerr << std::endl;
+
 	try
 	{
 		// file url
@@ -77,7 +92,8 @@ void transform(iterator ita, iterator ite)
 		uint64_t const numthreads = libmaus2::suffixsort::bwtb3m::BwtMergeSortOptions::getDefaultNumThreads();
 		libmaus2::suffixsort::bwtb3m::BwtMergeSortOptions options(
 			url,
-			libmaus2::suffixsort::bwtb3m::BwtMergeSortOptions::getDefaultMem(),
+			16*1024ull*1024ull*1024ull,
+			// libmaus2::suffixsort::bwtb3m::BwtMergeSortOptions::getDefaultMem(),
 			numthreads,
 			"bytestream",
 			false /* bwtonly */,
@@ -117,7 +133,11 @@ void transform(iterator ita, iterator ite)
 		std::cerr << std::endl;
 		#endif
 
+		libmaus2::suffixtree::CompressedSuffixTree::unique_ptr_type CST(res.loadSuffixTree(numthreads,"mem://tmp",32*1024*1024,&(std::cerr)));
+
 		libmaus2::aio::InputStreamFactoryContainer::removeHandler(prot);
+
+		std::cerr << "[S] time for divsufsort " << divsufsorttime << std::endl;
 	}
 	catch(...)
 	{

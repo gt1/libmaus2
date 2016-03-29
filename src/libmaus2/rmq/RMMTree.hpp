@@ -141,15 +141,55 @@ namespace libmaus2
 			template<typename in_iterator>
 			static libmaus2::util::Histogram::unique_ptr_type fillSubHistogram(
 				in_iterator in_it,
-				uint64_t const in
+				uint64_t const in,
+				uint64_t const numthreads
 			)
 			{
 				libmaus2::util::Histogram::unique_ptr_type phist(new libmaus2::util::Histogram);
 				libmaus2::util::Histogram & hist = *phist;
+				libmaus2::parallel::PosixSpinLock lock;
 
 				uint64_t const full = in >> klog;
 				uint64_t const rest = in-full*k;
 
+				uint64_t const fullperthread = (full + numthreads - 1)/numthreads;
+				uint64_t const numpacks = full ? ((full + fullperthread - 1)/fullperthread) : 0;
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
+				for ( uint64_t t = 0; t < numpacks; ++t )
+				{
+					uint64_t const ilow = t * fullperthread;
+					uint64_t const ihigh = std::min(ilow + fullperthread,full);
+
+					in_iterator it_a = in_it + ilow*k;
+					in_iterator it = it_a;
+					libmaus2::util::Histogram lhist;
+
+					for ( uint64_t i = ilow; i < ihigh; ++i )
+					{
+						uint64_t vmin = *(it++);
+						for ( unsigned int j = 1; j < k; ++j )
+						{
+							uint64_t const vj = *(it++);
+							if ( vj < vmin )
+								vmin = vj;
+						}
+
+						lhist(libmaus2::math::bitsPerNum(vmin));
+					}
+
+					assert ( (it - in_it) % k == 0 );
+					assert ( (it - it_a) == (ihigh-ilow)*k );
+
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(lock);
+						hist.merge(lhist);
+					}
+				}
+
+				#if 0
 				for ( uint64_t i = 0; i < full; ++i )
 				{
 					uint64_t vmin = *(in_it++);
@@ -162,12 +202,16 @@ namespace libmaus2
 
 					hist(libmaus2::math::bitsPerNum(vmin));
 				}
+				#endif
+
 				if ( rest )
 				{
-					uint64_t vmin = *(in_it++);
+					in_iterator it = in_it + full*k;
+
+					uint64_t vmin = *(it++);
 					for ( unsigned int j = 1; j < rest; ++j )
 					{
-						uint64_t const vj = *(in_it++);
+						uint64_t const vj = *(it++);
 						if ( vj < vmin )
 							vmin = vj;
 					}
@@ -180,10 +224,10 @@ namespace libmaus2
 
 			template<typename in_iterator>
 			static libmaus2::huffman::HuffmanTreeNode::shared_ptr_type fillSubNode(
-				in_iterator in_it, uint64_t in
+				in_iterator in_it, uint64_t in, uint64_t const numthreads
 			)
 			{
-				libmaus2::util::Histogram::unique_ptr_type phist = UNIQUE_PTR_MOVE(fillSubHistogram(in_it,in));
+				libmaus2::util::Histogram::unique_ptr_type phist = UNIQUE_PTR_MOVE(fillSubHistogram(in_it,in,numthreads));
 				std::map<int64_t,uint64_t> const probs = phist->getByType<int64_t>();
 				libmaus2::huffman::HuffmanTreeNode::shared_ptr_type snode = libmaus2::huffman::HuffmanBase::createTree(probs);
 				return snode;
@@ -194,12 +238,71 @@ namespace libmaus2
 				in_iterator in_it,
 				uint64_t const in,
 				libmaus2::bitio::CompactArray & I,
-				C_generator_type & impgen
+				C_generator_type & impgen,
+				uint64_t const numthreads,
+				libmaus2::autoarray::AutoArray<uint64_t> & L,
+				libmaus2::autoarray::AutoArray<uint8_t> & J
 			)
 			{
+				assert ( L.size() == J.size() );
+				assert ( L.size() != 0 );
+
 				uint64_t const full = in >> klog;
 				uint64_t const rest = in-full*k;
 
+				uint64_t const blocksize = L.size();
+				uint64_t const numblocks = (full + blocksize-1)/blocksize;
+
+				for ( uint64_t bb = 0; bb < numblocks; ++bb )
+				{
+					uint64_t const ilow = bb * blocksize;
+					uint64_t const ihigh = std::min(ilow+blocksize,full);
+					uint64_t const irange = (ihigh-ilow);
+					assert ( irange );
+					uint64_t const iperthread = (irange + numthreads - 1) / numthreads;
+					uint64_t const numpacks = (irange + iperthread - 1)/iperthread;
+
+					#if defined(_OPENMP)
+					#pragma omp parallel for num_threads(numthreads)
+					#endif
+					for ( uint64_t t = 0; t < numpacks; ++t )
+					{
+						uint64_t const tlow = ilow + t*iperthread;
+						uint64_t const thigh = std::min(tlow+iperthread,ihigh);
+						uint64_t const trange = thigh-tlow;
+
+						in_iterator const it_a = in_it + tlow * k;
+						in_iterator it = it_a;
+
+						for ( uint64_t i = tlow; i < thigh; ++i )
+						{
+							uint64_t vmin = *(it++);
+							unsigned int jmin = 0;
+							for ( unsigned int j = 1; j < k; ++j )
+							{
+								uint64_t const vj = *(it++);
+								if ( vj < vmin )
+								{
+									vmin = vj;
+									jmin = j;
+								}
+							}
+
+							J[i-ilow] = jmin;
+							L[i-ilow] = vmin;
+						}
+
+						assert ( it == it_a + (trange*k) );
+					}
+
+					for ( uint64_t i = ilow; i < ihigh; ++i )
+					{
+						I.set(i,J[i-ilow]);
+						impgen.add(L[i-ilow]);
+					}
+				}
+
+				#if 0
 				for ( uint64_t i = 0; i < full; ++i )
 				{
 					uint64_t vmin = *(in_it++);
@@ -217,13 +320,16 @@ namespace libmaus2
 					I.set(i,jmin);
 					impgen.add(vmin);
 				}
+				#endif
+
 				if ( rest )
 				{
-					uint64_t vmin = *(in_it++);
+					in_iterator it = in_it + full*k;
+					uint64_t vmin = *(it++);
 					unsigned int jmin = 0;
 					for ( unsigned int j = 1; j < rest; ++j )
 					{
-						uint64_t const vj = *(in_it++);
+						uint64_t const vj = *(it++);
 						if ( vj < vmin )
 						{
 							vmin = vj;
@@ -236,14 +342,20 @@ namespace libmaus2
 				}
 			}
 
-			RMMTree(base_layer_type const & rB, uint64_t const rn)
+			RMMTree(base_layer_type const & rB, uint64_t const rn, uint64_t const numthreads, uint64_t const blocksize, std::ostream * logstr)
 			: B(rB), n(rn), numlevels(computeNumLevels(n)), I(numlevels), C(numlevels), S(numlevels+1)
 			{
 				uint64_t in = n;
 				unsigned int level = 0;
 
+				libmaus2::autoarray::AutoArray<uint64_t> L(blocksize,false);
+				libmaus2::autoarray::AutoArray<uint8_t> J(blocksize,false);
+
 				while ( in > 1 )
 				{
+					libmaus2::timing::RealTimeClock rtc;
+					rtc.start();
+
 					uint64_t const out = (in+k-1) >> klog;
 
 					// minimal indices for next level
@@ -255,24 +367,29 @@ namespace libmaus2
 
 					if ( level == 0 )
 					{
-						libmaus2::util::Histogram::unique_ptr_type tsubhist(fillSubHistogram(B.begin(),in));
+						libmaus2::util::Histogram::unique_ptr_type tsubhist(fillSubHistogram(B.begin(),in,numthreads));
 						subhist = UNIQUE_PTR_MOVE(tsubhist);
 					}
 					else
 					{
-						libmaus2::util::Histogram::unique_ptr_type tsubhist(fillSubHistogram(C[level-1]->begin(),in));
+						libmaus2::util::Histogram::unique_ptr_type tsubhist(fillSubHistogram(C[level-1]->begin(),in,numthreads));
 						subhist = UNIQUE_PTR_MOVE(tsubhist);
 					}
 
 					C_type::generator_type impgen(*subhist);
 
 					if ( level == 0 )
-						fillSubArrays(B.begin(),in,*(I[level]),impgen);
+						fillSubArrays(B.begin(),in,*(I[level]),impgen,numthreads,L,J);
 					else
-						fillSubArrays(C[level-1]->begin(),in,*(I[level]),impgen);
+						fillSubArrays(C[level-1]->begin(),in,*(I[level]),impgen,numthreads,L,J);
 
 					C_ptr_type tClevel(impgen.createFinal());
 					C[level] = UNIQUE_PTR_MOVE(tClevel);
+
+					if ( logstr )
+					{
+						std::cerr << "[V] rmm level " << level << " size " << in << " full time " << rtc.getElapsedSeconds() << std::endl;
+					}
 
 					in = out;
 					++level;
@@ -283,6 +400,7 @@ namespace libmaus2
 					S[i+1] = I[i]->size();
 
 				if ( rmmtreedebug )
+				{
 					for ( uint64_t kk = k, level = 0; kk < n; kk *= k, ++level )
 					{
 						uint64_t low = 0;
@@ -307,6 +425,7 @@ namespace libmaus2
 							low = high;
 						}
 					}
+				}
 			}
 
 			/*

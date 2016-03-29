@@ -37,6 +37,7 @@ namespace libmaus2
 			typedef DNARank this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_memalign_cacheline> D_type;
 
 			#define LIBMAUS2_RANK_DNARANK_SIGMA 4
 
@@ -54,7 +55,7 @@ namespace libmaus2
 			private:
 			uint64_t n;
 			libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_memalign_cacheline> B;
-			libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_memalign_cacheline> D;
+			D_type D;
 
 			void computeD()
 			{
@@ -339,7 +340,7 @@ namespace libmaus2
 				return n;
 			}
 
-			uint64_t rankm(uint64_t i, unsigned int const c) const
+			uint64_t rankm(unsigned int const c, uint64_t i) const
 			{
 				switch ( c )
 				{
@@ -455,6 +456,76 @@ namespace libmaus2
 				}
 			}
 
+			template<typename lcp_iterator, typename queue_type, typename iterator_D>
+			inline uint64_t multiRankLCPSet(
+				uint64_t const l,
+				uint64_t const r,
+				iterator_D /* D */,
+				lcp_iterator WLCP,
+				typename std::iterator_traits<lcp_iterator>::value_type const unset,
+				typename std::iterator_traits<lcp_iterator>::value_type const cur_l,
+				queue_type * PQ1
+				) const
+			{
+				uint64_t R0[LIBMAUS2_RANK_DNARANK_SIGMA];
+				uint64_t R1[LIBMAUS2_RANK_DNARANK_SIGMA];
+				uint64_t s = 0;
+
+				multiLF(l,r,&R0[0],&R1[0]);
+
+				for ( uint64_t sym = 0; sym < LIBMAUS2_RANK_DNARANK_SIGMA; ++sym )
+				{
+					uint64_t const sp = R0[sym];
+					uint64_t const ep = R1[sym];
+
+					if ( (ep-sp) && WLCP[ep] == unset )
+					{
+						WLCP[ep] = cur_l;
+						PQ1->push_back(std::pair<uint64_t,uint64_t>(sp,ep));
+						s += 1;
+					}
+				}
+
+				return s;
+			}
+
+			template<typename lcp_iterator, typename queue_type, typename iterator_D>
+			inline uint64_t multiRankLCPSetLarge(
+				uint64_t const l,
+				uint64_t const r,
+				iterator_D /* D */,
+				lcp_iterator & WLCP,
+				uint64_t const cur_l,
+				queue_type * PQ1
+				) const
+			{
+				uint64_t R0[LIBMAUS2_RANK_DNARANK_SIGMA];
+				uint64_t R1[LIBMAUS2_RANK_DNARANK_SIGMA];
+				uint64_t s = 0;
+
+				multiLF(l,r,&R0[0],&R1[0]);
+
+				for ( uint64_t sym = 0; sym < LIBMAUS2_RANK_DNARANK_SIGMA; ++sym )
+				{
+					uint64_t const sp = R0[sym];
+					uint64_t const ep = R1[sym];
+
+					if ( (ep-sp) && WLCP.isUnset(ep) )
+					{
+						WLCP.set(ep, cur_l);
+						PQ1->push_back(std::pair<uint64_t,uint64_t>(sp,ep));
+						s += 1;
+					}
+				}
+
+				return s;
+			}
+
+			uint64_t getN() const
+			{
+				return n;
+			}
+
 			void multiRank(uint64_t const l, uint64_t const r, uint64_t * const R0, uint64_t * const R1) const
 			{
 				rankm(l,&R0[0]);
@@ -463,12 +534,12 @@ namespace libmaus2
 
 			uint64_t singleStep(uint64_t const l, unsigned int const sym) const
 			{
-				return D[sym] + rankm(l,sym);
+				return D[sym] + rankm(sym,l);
 			}
 
 			std::pair<uint64_t,uint64_t> singleSymbolLF(uint64_t const l, uint64_t const r, unsigned int const sym) const
 			{
-				std::pair<uint64_t,uint64_t> const P(D[sym] + rankm(l,sym),D[sym] + rankm(r,sym));
+				std::pair<uint64_t,uint64_t> const P(D[sym] + rankm(sym,l),D[sym] + rankm(sym,r));
 				return P;
 			}
 
@@ -721,6 +792,11 @@ namespace libmaus2
 			{
 				unique_ptr_type tptr(loadFromRunLength(std::vector<std::string>(1,rl),numthreads));
 				return UNIQUE_PTR_MOVE(tptr);
+			}
+
+			DNARank const & getW() const
+			{
+				return *this;
 			}
 
 			static unique_ptr_type loadFromRunLength(std::vector<std::string> const & rl, uint64_t const numthreads)
@@ -1056,6 +1132,16 @@ namespace libmaus2
 							 if ( R1[i]-R0[i] )
 							 	todo.push(ApproximateSearchQueueElement(R0[i],R1[i],P.err+1,P.qlen,P.rlen+1, P.p * probincor * probdel));
 				}
+			}
+
+			static int64_t getSymbolThres()
+			{
+				return LIBMAUS2_RANK_DNARANK_SIGMA;
+			}
+
+			D_type const & getD() const
+			{
+				return D;
 			}
 		};
 	}

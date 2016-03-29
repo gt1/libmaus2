@@ -24,6 +24,7 @@
 #include <libmaus2/bambam/ScramEncoder.hpp>
 #endif
 #include <libmaus2/bambam/SamEncoder.hpp>
+#include <libmaus2/util/OutputFileNameTools.hpp>
 
 namespace libmaus2
 {
@@ -62,6 +63,42 @@ namespace libmaus2
 						throw se;
 					}
 				}
+			}
+
+			static std::string getIndexFileName(libmaus2::util::ArgInfo const & arginfo)
+			{
+				std::string const key = "indexfilename";
+
+				if ( arginfo.hasArg(key) )
+					return arginfo.getUnparsedValue(key,std::string());
+				else if ( arginfo.hasArg("O") && arginfo.getUnparsedValue("O",std::string()) != std::string() )
+				{
+					std::string const O = arginfo.getUnparsedValue("O",std::string());
+
+					char const * const suffixes[] = { ".sam", ".bam", ".cram", 0 };
+
+					std::string const fn = libmaus2::util::OutputFileNameTools::endClip(O,&suffixes[0]) + ".bai";
+
+					return fn;
+				}
+				else
+					return std::string();
+			}
+
+			static std::string getMD5FileName(libmaus2::util::ArgInfo const & arginfo)
+			{
+				std::string const key = "md5filename";
+
+				if ( arginfo.hasArg(key) )
+					return arginfo.getUnparsedValue(key,std::string());
+				else if ( arginfo.hasArg("O") && arginfo.getUnparsedValue("O",std::string()) != std::string() )
+				{
+					std::string const O = arginfo.getUnparsedValue("O",std::string());
+					std::string const fn = O + ".md5";
+					return fn;
+				}
+				else
+					return std::string();
 			}
 
 			static std::string getLevelHelpText()
