@@ -191,7 +191,7 @@ namespace libmaus2
 							}
 						}
 
-						assert ( seqtmpOut->tellp() == static_cast<int64_t>(seqoff) );
+						assert ( static_cast<int64_t>(seqtmpOut->tellp()) == static_cast<int64_t>(seqoff) );
 						seqtmpOut->write(spattern.c_str(),seqlen);
 						seqoff += seqlen;
 
