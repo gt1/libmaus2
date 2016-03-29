@@ -28,7 +28,7 @@ namespace libmaus2
 	{
 		struct FastAToCompact4BigBand
 		{
-			static int fagzToCompact4BigBand(
+			static int fastaToCompact4BigBand(
 				std::vector<std::string> const & inputfilenames,
 				bool const rc,
 				bool const replrc,

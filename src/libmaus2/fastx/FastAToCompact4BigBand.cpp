@@ -82,7 +82,7 @@ static std::string stripAfterDot(std::string const s)
 	return s;
 }
 
-int libmaus2::fastx::FastAToCompact4BigBand::fagzToCompact4BigBand(
+int libmaus2::fastx::FastAToCompact4BigBand::fastaToCompact4BigBand(
 	std::vector<std::string> const & inputfilenames,
 	bool const rc,
 	bool const replrc,
