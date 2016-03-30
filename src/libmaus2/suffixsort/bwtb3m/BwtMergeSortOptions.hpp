@@ -64,12 +64,19 @@ namespace libmaus2
 				{
 					typedef std::pair<char const *, bwt_merge_input_type> pair_type;
 					pair_type valid[] = {
+						// byte sequence (alphabet 0-255)
 						std::pair<char const *, bwt_merge_input_type>("bytestream",bwt_merge_input_type_bytestream),
+						// compact array (block code) with up to 8 bits per symbol (see CompactArrayWriter for creating such files)
 						std::pair<char const *, bwt_merge_input_type>("compactstream",bwt_merge_input_type_compactstream),
+						// BWA pac format
 						std::pair<char const *, bwt_merge_input_type>("pac",bwt_merge_input_type_pac),
+						// BWA pac format with explicit terminator symbol
 						std::pair<char const *, bwt_merge_input_type>("pacterm",bwt_merge_input_type_pacterm),
+						// lz4 compressed file (see libmaus2::lz::Lz4Compress for creating such files)
 						std::pair<char const *, bwt_merge_input_type>("lz4",bwt_merge_input_type_lz4),
+						// utf-8 coded unicode sequence (alphabet can contain symbols > 255)
 						std::pair<char const *, bwt_merge_input_type>("utf-8",bwt_merge_input_type_utf_8),
+						// array terminator (not a file format)
 						std::pair<char const *, bwt_merge_input_type>(0,bwt_merge_input_type_bytestream),
 					};
 
@@ -131,6 +138,7 @@ namespace libmaus2
 					return libmaus2::parallel::NumCpus::getNumLogicalProcessors();
 				}
 
+				// compute default output file name from input file name
 				static std::string computeDefaultOutputFileName(std::string const & fn)
 				{
 					std::vector<std::string> endClipS;
@@ -146,28 +154,32 @@ namespace libmaus2
 
 				BwtMergeSortOptions() {}
 
-				BwtMergeSortOptions(libmaus2::util::ArgInfo const & arginfo) :
-				  numthreads(arginfo.getValueUnsignedNumeric<unsigned int>("numthreads", getDefaultNumThreads())),
-				  fn(arginfo.getUnparsedRestArg(0)),
-				  wordsperthread(std::max(static_cast<uint64_t>(1),arginfo.getValueUnsignedNumeric<uint64_t>("wordsperthread",getDefaultWordsPerThread()))),
-				  bwtonly(arginfo.getValue<unsigned int>("bwtonly",getDefaultBWTOnly())),
-				  mem(std::max(static_cast<uint64_t>(1),arginfo.getValueUnsignedNumeric<uint64_t>("mem",getDefaultMem()))),
-				  tmpfilenamebase(arginfo.getUnparsedValue("tmpprefix",arginfo.getDefaultTmpFileName())),
-				  sparsetmpfilenamebase(arginfo.getUnparsedValue("sparsetmpprefix",tmpfilenamebase)),
-				  isasamplingrate(::libmaus2::math::nextTwoPow(arginfo.getValueUnsignedNumeric<uint64_t>("isasamplingrate",getDefaultIsaSamplingRate()))),
-				  sasamplingrate(::libmaus2::math::nextTwoPow(arginfo.getValueUnsignedNumeric<uint64_t>("sasamplingrate",getDefaultSaSamplingRate()))),
-				  copyinputtomemory(arginfo.getValue<uint64_t>("copyinputtomemory",getDefaultCopyInputToMemory())),
-				  computeTermSymbolHwt(arginfo.getValue<int>("computeTermSymbolHwt",false)),
-				  maxblocksize(arginfo.getValueUnsignedNumeric<uint64_t>("maxblocksize", std::numeric_limits<uint64_t>::max())),
-				  maxpreisasamplingrate(::libmaus2::math::nextTwoPow(arginfo.getValueUnsignedNumeric<uint64_t>("preisasamplingrate",bwtonly ? 64 : 256*1024))),
-				  defoutfn(computeDefaultOutputFileName(computeDefaultOutputFileName(fn))),
-				  outfn(arginfo.getValue<std::string>("outputfilename",defoutfn)),
-				  sinputtype(arginfo.getValue<std::string>("inputtype",getDefaultInputType())),
-				  inputtype(parseInputType(sinputtype))
-				{
-
-				}
-
+				/**
+				 * constructor given single parameters
+				 *
+				 * @param rfn input text file name
+				 * @param rmem memory usage guide in bytes (default 2GB)
+				 * @param rnumthreads number of threads used during BWT/sampled SA/sampled ISA construction
+				 * @param rsinputtype input file format (see parseInputType function above for possible choices)
+				 * @param rbwtonly construct BWT only and not sampled SA/sampled ISA if set.
+				 *                 This avoid loading the final BWT to memory in the form of a
+				 *                 huffman shaped wavelet tree for constructing the sampled suffix array and sampled inverse suffix array
+				 * @param rtmpfilenamebase prefix of temporary files produced (input directory if not set)
+				 * @param rsparsetmpfilenamebase prefix of temporary files produced for sparse gap array (same as rtmpfilenamebase if unset)
+				 * @param routfn file name for run length encoded output BWT (see libmaus2::huffman::RLDecoder for reading it)
+				 * @param risasamplingrate sampling rate for sampled inverse suffix array (only relevant for rbwtonly=false)
+				 * @param rsasamplingrate sampling rate for sampled suffix array (only relevant for rbwtonly=false)
+				 * @param rmaxpreisasamplingrate maximum pre isa sampling rate. This influences the construction
+				 *                               of a quasi sampled inverse suffix array during BWT construction. Constructing a sampled SA/ISA
+				 *                               based on scans of the BWT in external memory uses up to rmaxpreisasamplingrate scans. In the case
+				 *                               of rbwtonly=true the quasi sampled inverse suffix array is used to obtain starting points for
+				 *                               parallel construction of the sampled SA/ISA in memory, so sampling can be much more sparse,
+				 *                               as we only need numthreads sample points. By default this is 64 if rbwtonly=true and 256k otherwise.
+				 * @param rcopyinputtomemory copy input text to a memory file for processing if true (may speed up construction, but uses more memory)
+				 * @param rmaxblocksize maximum block size for base blocks in BWT construction
+				 * @param rcomputeTermSymbolHwt do not set
+				 * @param rwordsperthread words used per thread for buffering output in sparse gap array construction
+				 **/
 				BwtMergeSortOptions(
 					std::string rfn,
 					uint64_t rmem = getDefaultMem(),
@@ -201,6 +213,31 @@ namespace libmaus2
 				  defoutfn(computeDefaultOutputFileName(computeDefaultOutputFileName(fn))),
 				  outfn(routfn.size() ? routfn : defoutfn),
 				  sinputtype(rsinputtype),
+				  inputtype(parseInputType(sinputtype))
+				{
+
+				}
+
+				/**
+				 * constructor based on arginfo object
+				 **/
+				BwtMergeSortOptions(libmaus2::util::ArgInfo const & arginfo) :
+				  numthreads(arginfo.getValueUnsignedNumeric<unsigned int>("numthreads", getDefaultNumThreads())),
+				  fn(arginfo.getUnparsedRestArg(0)),
+				  wordsperthread(std::max(static_cast<uint64_t>(1),arginfo.getValueUnsignedNumeric<uint64_t>("wordsperthread",getDefaultWordsPerThread()))),
+				  bwtonly(arginfo.getValue<unsigned int>("bwtonly",getDefaultBWTOnly())),
+				  mem(std::max(static_cast<uint64_t>(1),arginfo.getValueUnsignedNumeric<uint64_t>("mem",getDefaultMem()))),
+				  tmpfilenamebase(arginfo.getUnparsedValue("tmpprefix",arginfo.getDefaultTmpFileName())),
+				  sparsetmpfilenamebase(arginfo.getUnparsedValue("sparsetmpprefix",tmpfilenamebase)),
+				  isasamplingrate(::libmaus2::math::nextTwoPow(arginfo.getValueUnsignedNumeric<uint64_t>("isasamplingrate",getDefaultIsaSamplingRate()))),
+				  sasamplingrate(::libmaus2::math::nextTwoPow(arginfo.getValueUnsignedNumeric<uint64_t>("sasamplingrate",getDefaultSaSamplingRate()))),
+				  copyinputtomemory(arginfo.getValue<uint64_t>("copyinputtomemory",getDefaultCopyInputToMemory())),
+				  computeTermSymbolHwt(arginfo.getValue<int>("computeTermSymbolHwt",false)),
+				  maxblocksize(arginfo.getValueUnsignedNumeric<uint64_t>("maxblocksize", std::numeric_limits<uint64_t>::max())),
+				  maxpreisasamplingrate(::libmaus2::math::nextTwoPow(arginfo.getValueUnsignedNumeric<uint64_t>("preisasamplingrate",bwtonly ? 64 : 256*1024))),
+				  defoutfn(computeDefaultOutputFileName(computeDefaultOutputFileName(fn))),
+				  outfn(arginfo.getValue<std::string>("outputfilename",defoutfn)),
+				  sinputtype(arginfo.getValue<std::string>("inputtype",getDefaultInputType())),
 				  inputtype(parseInputType(sinputtype))
 				{
 

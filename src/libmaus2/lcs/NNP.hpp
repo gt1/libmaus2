@@ -608,6 +608,7 @@ namespace libmaus2
 				#endif
 
 				tracecontainer.otrace = otrace;
+				tracecontainer.suffixPositive();
 
 				if ( ! forward )
 					tracecontainer.reverse();
@@ -670,13 +671,13 @@ namespace libmaus2
 				if ( maxfdiag != getDefaultMaxDiag() )
 					minrdiag = -maxfdiag;
 
-				align(ab,ab+seedposa,bb,bb+seedposb,tracecontainer,minrdiag,maxrdiag,false,self);
+				align(ab,ab+seedposa,bb,bb+seedposb,tracecontainer,minrdiag,maxrdiag,false /* forward */,self);
 
 				int64_t const revroot = tracecontainer.traceid;
 				std::pair<uint64_t,uint64_t> const SLF = tracecontainer.getStringLengthUsed();
 
 				// run forward alignment from seedpos
-				align(ab+seedposa,ae,bb+seedposb,be,tracecontainer,minfdiag,maxfdiag,true,self);
+				align(ab+seedposa,ae,bb+seedposb,be,tracecontainer,minfdiag,maxfdiag,true /* forward */,self);
 				int64_t const forroot = tracecontainer.traceid;
 				std::pair<uint64_t,uint64_t> const SLR = tracecontainer.getStringLengthUsed();
 

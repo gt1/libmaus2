@@ -1,3 +1,11 @@
+libmaus2 (2.0.146-1) unstable; urgency=medium
+
+  * adding comments in BwtMergeSortOptions and BwtMergeSortResult
+  * adding FastAToCompact4BigBand class               
+  * using suffixPositive on end of alignment prodecure to clip alignment in NNP class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 30 Mar 2016 10:58:08 +0200
+
 libmaus2 (2.0.145-1) unstable; urgency=medium
 
   * add getIndexFileName and getMD5FileName functions in BamBlockWriterBaseFactory

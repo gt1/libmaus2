@@ -21,11 +21,11 @@
 #include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <libmaus2/suffixsort/bwtb3m/BwtMergeSort.hpp>
 #include <libmaus2/util/ArgParser.hpp>
-#include <libmaus2/fastx/FastAToCompact4BigBand.hpp>
+#include <libmaus2/fastx/FastAToCompact4BigBandBiDir.hpp>
 
 void transform(std::string const & fn)
 {
-	libmaus2::fastx::FastAToCompact4BigBand::fastaToCompact4BigBand(
+	libmaus2::fastx::FastAToCompact4BigBandBiDir::fastaToCompact4BigBandBiDir(
 		std::vector<std::string>(1,fn),
 		&(std::cerr),
 		false /* single strand */,

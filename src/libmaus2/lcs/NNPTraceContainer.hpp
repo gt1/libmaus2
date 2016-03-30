@@ -110,6 +110,43 @@ namespace libmaus2
 				return dif;
 			}
 
+			void suffixPositive(
+				int64_t const match_score    = PenaltyConstants::gain_match,
+			        int64_t const mismatch_score = PenaltyConstants::penalty_subst,
+			        int64_t const ins_score      = PenaltyConstants::penalty_ins,
+			        int64_t const del_score      = PenaltyConstants::penalty_del
+			)
+			{
+				int64_t score = 0;
+				int64_t cur = traceid;
+				while ( cur >= 0 )
+				{
+					score += match_score * Atrace[cur].slide;
+
+					switch ( Atrace[cur].step )
+					{
+						case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
+							score -= mismatch_score;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_DEL:
+							score -= del_score;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_INS:
+							score -= ins_score;
+							break;
+						default:
+							break;
+					}
+
+					if ( score < 0 )
+					{
+						score = 0;
+						traceid = Atrace[cur].parent;
+					}
+
+					cur = Atrace[cur].parent;
+				}
+			}
 
 			int64_t concat(int64_t node1, int64_t node2)
 			{
