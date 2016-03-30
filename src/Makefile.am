@@ -2002,7 +2002,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testpairalign \
 	testsplaytree \
 	testbwtconstruction \
-	testbwtconstructionfasta
+	testbwtconstructionfasta \
+	testarrayinput
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2538,3 +2539,7 @@ testbwtconstruction_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testbwtconstructionfasta_SOURCES  = test/testbwtconstructionfasta.cpp
 testbwtconstructionfasta_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testbwtconstructionfasta_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testarrayinput_SOURCES  = test/testarrayinput.cpp
+testarrayinput_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testarrayinput_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
