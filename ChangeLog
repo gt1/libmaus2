@@ -1,3 +1,9 @@
+libmaus2 (2.0.147-1) unstable; urgency=medium
+
+  * add ArrayFile class 
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 30 Mar 2016 12:05:35 +0200
+
 libmaus2 (2.0.146-1) unstable; urgency=medium
 
   * adding comments in BwtMergeSortOptions and BwtMergeSortResult
