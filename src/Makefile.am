@@ -1303,7 +1303,8 @@ libmaus2aio_include_HEADERS=\
 	libmaus2/aio/ConcatInputStream.hpp \
 	libmaus2/aio/SplitWriter.hpp \
 	libmaus2/aio/ArrayInputStreamBuffer.hpp \
-	libmaus2/aio/ArrayInputStream.hpp
+	libmaus2/aio/ArrayInputStream.hpp \
+	libmaus2/aio/ArrayFile.hpp
 	
 libmaus2parallel_includedir=$(includedir)/libmaus2/parallel
 libmaus2parallel_include_HEADERS=\
@@ -2001,7 +2002,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testpairalign \
 	testsplaytree \
 	testbwtconstruction \
-	testbwtconstructionfasta
+	testbwtconstructionfasta \
+	testarrayinput
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2537,3 +2539,7 @@ testbwtconstruction_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testbwtconstructionfasta_SOURCES  = test/testbwtconstructionfasta.cpp
 testbwtconstructionfasta_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testbwtconstructionfasta_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testarrayinput_SOURCES  = test/testarrayinput.cpp
+testarrayinput_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testarrayinput_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
