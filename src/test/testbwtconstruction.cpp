@@ -15,53 +15,13 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus2/aio/ArrayInputStream.hpp>
-#include <libmaus2/aio/ArrayFileContainer.hpp>
-#include <libmaus2/aio/ArrayInputStreamFactory.hpp>
-#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
+#include <libmaus2/aio/ArrayFile.hpp>
 #include <libmaus2/suffixsort/bwtb3m/BwtMergeSort.hpp>
 #include <libmaus2/util/ArgParser.hpp>
-
-std::string pointerToString(void * vp)
-{
-	std::ostringstream protstr;
-	protstr << vp;
-	std::string prot = protstr.str();
-	assert ( prot.size() >= 2 && prot.substr(0,2) == "0x" );
-	prot = prot.substr(2);
-	for ( uint64_t i = 0; i < prot.size(); ++i )
-		if ( ::std::isalpha(prot[i]) )
-		{
-			prot[i] = ::std::tolower(prot[i]);
-			assert ( prot[i] >= 'a' );
-			assert ( prot[i] <= 'f' );
-			char const dig = prot[i] - 'a' + 10;
-			prot[i] = dig + 'a';
-		}
-		else
-		{
-			assert ( ::std::isdigit(prot[i]) );
-			char const dig = prot[i] - '0';
-			prot[i] = dig + 'a';
-		}
-	return prot;
-}
 
 template<typename iterator>
 void transform(iterator ita, iterator ite)
 {
-	// protocol (alpha characters only)
-	std::string const prot = std::string("array") + pointerToString(&ita);
-	// container
-	libmaus2::aio::ArrayFileContainer<iterator> container;
-	// add file
-	container.add("file",ita,ite);
-	// set up factory
-	typename libmaus2::aio::ArrayInputStreamFactory<iterator>::shared_ptr_type factory(
-		new libmaus2::aio::ArrayInputStreamFactory<iterator>(container));
-	// add protocol handler
-	libmaus2::aio::InputStreamFactoryContainer::addHandler(prot, factory);
-
 	double divsufsorttime;
 
 	std::cerr << "[V] running divsufsort...";
@@ -77,107 +37,63 @@ void transform(iterator ita, iterator ite)
 	}
 	std::cerr << std::endl;
 
-	try
-	{
-		// file url
-		std::string const url = prot + ":file";
+	// create file from array
+	libmaus2::aio::ArrayFile<iterator> AF(ita,ite);
 
-		{
+	{
 		// check file
-		libmaus2::aio::InputStreamInstance ISI(url);
+		libmaus2::aio::InputStreamInstance::unique_ptr_type ISI(AF.open());
 		for ( uint64_t i = 0; i < ite-ita; ++i )
-			assert ( ISI.peek() != std::istream::traits_type::eof() && ISI.get() == ita[i] );
-		}
-
-		uint64_t const numthreads = libmaus2::suffixsort::bwtb3m::BwtMergeSortOptions::getDefaultNumThreads();
-		libmaus2::suffixsort::bwtb3m::BwtMergeSortOptions options(
-			url,
-			16*1024ull*1024ull*1024ull,
-			// libmaus2::suffixsort::bwtb3m::BwtMergeSortOptions::getDefaultMem(),
-			numthreads,
-			"bytestream",
-			false /* bwtonly */,
-			std::string("mem:tmp_"),
-			std::string(), // sparse
-			std::string("mem:file.bwt"),
-			32 /* isa */,
-			32 /* sa */
-		);
-
-		libmaus2::suffixsort::bwtb3m::BwtMergeSortResult res = libmaus2::suffixsort::bwtb3m::BwtMergeSort::computeBwt(options,&std::cerr);
-
-		libmaus2::lf::ImpCompactHuffmanWaveletLF::unique_ptr_type PLF = res.loadLF("mem://tmp_",numthreads);
-		uint64_t const n = PLF->W->size();
-
-		#if 0
-		// print the BWT
-		for ( uint64_t i = 0; i < n; ++i )
-			std::cerr << static_cast<char>((*PLF)[i]);
-		std::cerr << std::endl;
-		#endif
-
-		libmaus2::fm::FM<libmaus2::lf::ImpCompactHuffmanWaveletLF>::unique_ptr_type PFM(res.loadFM("mem://tmp",numthreads));
-
-		// extract text
-		std::string r(n,' ');
-		PFM->extractIteratorParallel(0,n,r.begin(),numthreads);
-
-		assert ( r == std::string(ita,ite) );
-
-		assert ( ::std::equal(ita,ite,r.begin()) );
-
-		#if 0
-		libmaus2::fm::SampledISA<libmaus2::lf::ImpCompactHuffmanWaveletLF>::unique_ptr_type SISA(res.loadInverseSuffixArray(PLF.get()));
-		for ( uint64_t i = 0; i < n; ++i )
-			std::cerr << static_cast<char>((*PLF)[ (*SISA)[(i+1)%n] ]);
-		std::cerr << std::endl;
-		#endif
-
-		libmaus2::suffixtree::CompressedSuffixTree::unique_ptr_type CST(res.loadSuffixTree(numthreads,"mem://tmp",32*1024*1024,&(std::cerr)));
-
-		libmaus2::aio::InputStreamFactoryContainer::removeHandler(prot);
-
-		std::cerr << "[S] time for divsufsort " << divsufsorttime << std::endl;
-	}
-	catch(...)
-	{
-		libmaus2::aio::InputStreamFactoryContainer::removeHandler(prot);
-		throw;
-	}
-}
-
-void testArrayInput(std::string const & s)
-{
-	libmaus2::aio::ArrayInputStream<std::string::const_iterator> AIS(s.begin(),s.end());
-
-	for ( uint64_t i = 0; i < s.size(); ++i )
-		assert ( AIS.peek() != std::istream::traits_type::eof() && AIS.get() == s[i] );
-
-	for ( uint64_t i = 0; i < s.size(); ++i )
-	{
-		AIS.clear();
-		AIS.seekg(i);
-		for ( uint64_t j = i; j < s.size(); ++j )
-			assert ( AIS.peek() != std::istream::traits_type::eof() && AIS.get() == s[j] );
+			assert ( ISI->peek() != std::istream::traits_type::eof() && ISI->get() == ita[i] );
 	}
 
-	libmaus2::aio::ArrayFileContainer<std::string::const_iterator> container;
-	container.add("file",s.begin(),s.end());
-	libmaus2::aio::ArrayInputStreamFactory<std::string::const_iterator>::shared_ptr_type factory(
-		new libmaus2::aio::ArrayInputStreamFactory<std::string::const_iterator>(container));
+	uint64_t const numthreads = libmaus2::suffixsort::bwtb3m::BwtMergeSortOptions::getDefaultNumThreads();
+	libmaus2::suffixsort::bwtb3m::BwtMergeSortOptions options(
+		AF.getURL(),
+		16*1024ull*1024ull*1024ull, /* memory 16GB */
+		numthreads,
+		"bytestream",
+		false /* bwtonly */,
+		std::string("mem:tmp_"),
+		std::string(), // sparse
+		std::string("mem:file.bwt"),
+		32 /* isa */,
+		32 /* sa */
+	);
 
-	libmaus2::aio::InputStream::unique_ptr_type Pistr(factory->constructUnique("file"));
-	for ( uint64_t i = 0; i < s.size(); ++i )
-		assert ( Pistr->peek() != std::istream::traits_type::eof() && Pistr->get() == s[i] );
-	libmaus2::aio::InputStream::shared_ptr_type Sistr(factory->constructShared("file"));
-	for ( uint64_t i = 0; i < s.size(); ++i )
-		assert ( Sistr->peek() != std::istream::traits_type::eof() && Sistr->get() == s[i] );
+	// construct BWT, SA and ISA
+	libmaus2::suffixsort::bwtb3m::BwtMergeSortResult res = libmaus2::suffixsort::bwtb3m::BwtMergeSort::computeBwt(options,&std::cerr);
 
-	libmaus2::aio::InputStreamFactoryContainer::addHandler("array", factory);
-	libmaus2::aio::InputStreamInstance ISI("array:file");
-	for ( uint64_t i = 0; i < s.size(); ++i )
-		assert ( ISI.peek() != std::istream::traits_type::eof() && ISI.get() == s[i] );
-	libmaus2::aio::InputStreamFactoryContainer::removeHandler("array");
+	// load LF object
+	libmaus2::lf::ImpCompactHuffmanWaveletLF::unique_ptr_type PLF = res.loadLF("mem://tmp_",numthreads);
+	uint64_t const n = PLF->W->size();
+
+	// construct FM object
+	libmaus2::fm::FM<libmaus2::lf::ImpCompactHuffmanWaveletLF>::unique_ptr_type PFM(res.loadFM("mem://tmp",numthreads));
+
+	// extract text
+	std::string r(n,' ');
+	PFM->extractIteratorParallel(0,n,r.begin(),numthreads);
+
+	// check text
+	assert ( ::std::equal(ita,ite,r.begin()) );
+
+	#if 0
+	// print the BWT
+	for ( uint64_t i = 0; i < n; ++i )
+		std::cerr << static_cast<char>((*PLF)[i]);
+	std::cerr << std::endl;
+	
+	// print the text
+	libmaus2::fm::SampledISA<libmaus2::lf::ImpCompactHuffmanWaveletLF>::unique_ptr_type SISA(res.loadInverseSuffixArray(PLF.get()));
+	for ( uint64_t i = 0; i < n; ++i )
+		std::cerr << static_cast<char>((*PLF)[ (*SISA)[(i+1)%n] ]);
+	std::cerr << std::endl;
+	#endif
+
+	libmaus2::suffixtree::CompressedSuffixTree::unique_ptr_type CST(res.loadSuffixTree(numthreads,"mem://tmp",32*1024*1024,&(std::cerr)));
+
+	std::cerr << "[S] time for divsufsort " << divsufsorttime << std::endl;
 }
 
 int main(int argc, char * argv[])
@@ -185,7 +101,6 @@ int main(int argc, char * argv[])
 	try
 	{
 		std::string const s = "hello world, hello moon";
-		testArrayInput(s);
 		transform(s.begin(),s.end());
 
 		libmaus2::util::ArgParser arg(argc,argv);
