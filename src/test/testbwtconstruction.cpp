@@ -22,9 +22,11 @@
 template<typename iterator>
 void transform(iterator ita, iterator ite)
 {
-	double divsufsorttime;
-
+	/**
+	 * run divsufsort for speed comparison, not because we use the result for the BWT construction
+	 **/
 	std::cerr << "[V] running divsufsort...";
+	double divsufsorttime;
 	{
 		libmaus2::timing::RealTimeClock rtc;
 		rtc.start();
