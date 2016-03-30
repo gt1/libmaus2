@@ -248,7 +248,9 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/lcs/NNPAlignResult.cpp \
 	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeGapRequest.cpp \
 	libmaus2/suffixsort/bwtb3m/BwtMergeSort.cpp \
-	libmaus2/suffixsort/bwtb3m/BwtComputeSSA.cpp
+	libmaus2/suffixsort/bwtb3m/BwtComputeSSA.cpp \
+	libmaus2/fastx/FastAToCompact4BigBand.cpp \
+	libmaus2/suffixsort/bwtb3m/BwtMergeSortResult.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1436,6 +1438,7 @@ libmaus2fastx_include_HEADERS=\
 	libmaus2/fastx/DNAIndexMetaDataBigBandBiDir.hpp \
 	libmaus2/fastx/CoordinateCache.hpp \
 	libmaus2/fastx/LineBufferFastAReader.hpp\
+	libmaus2/fastx/FastAToCompact4BigBandBiDir.hpp \
 	libmaus2/fastx/FastAToCompact4BigBand.hpp
 
 libmaus2timing_includedir=$(includedir)/libmaus2/timing

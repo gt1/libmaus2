@@ -29,6 +29,13 @@ namespace libmaus2
 		{
 			struct BwtMergeSort
 			{
+				/**
+				 * Compute BWT using the specified parameters.
+				 *
+				 * @param options BWT construction parameters
+				 * @param logstr stream used for printing progress information. Can be set to NULL to obtain a quiet mode
+				 * @return BwtMergeSortResult object
+				 **/
 				static BwtMergeSortResult computeBwt(BwtMergeSortOptions const & options, std::ostream * logstr);
 			};
 		}
