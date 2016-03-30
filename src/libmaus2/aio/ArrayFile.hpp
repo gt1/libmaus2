@@ -68,7 +68,7 @@ namespace libmaus2
 
 			public:
 			ArrayFile(iterator rita, iterator rite)
-			: ita(rita), ite(rite), prot(std::string("array") + pointerToString(this)), container(), url(prot + "file")
+			: ita(rita), ite(rite), prot(std::string("array") + pointerToString(this)), container(), url(prot + ":" + "file")
 			{
 				// add file
 				container.add("file",ita,ite);
