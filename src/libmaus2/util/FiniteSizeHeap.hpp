@@ -48,6 +48,11 @@ namespace libmaus2
 
 			}
 
+			void ensureSize(uint64_t const s)
+			{
+				H.ensureSize(s);
+			}
+
 			bool empty() const
 			{
 				return (!f);

@@ -1,3 +1,10 @@
+libmaus2 (2.0.148-1) unstable; urgency=medium
+
+  * add ensureSize method in FiniteSizeHeap
+  * add checkTrace method in NNPTraceContainer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 31 Mar 2016 10:07:40 +0200
+
 libmaus2 (2.0.147-1) unstable; urgency=medium
 
   * add ArrayFile class 

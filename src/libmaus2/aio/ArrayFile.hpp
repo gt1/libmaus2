@@ -78,18 +78,18 @@ namespace libmaus2
 				// add protocol handler
 				libmaus2::aio::InputStreamFactoryContainer::addHandler(prot, factory);
 			}
-			
+
 			~ArrayFile()
 			{
-				libmaus2::aio::InputStreamFactoryContainer::removeHandler(prot);	
+				libmaus2::aio::InputStreamFactoryContainer::removeHandler(prot);
 			}
-			
+
 			libmaus2::aio::InputStreamInstance::unique_ptr_type open() const
 			{
 				libmaus2::aio::InputStreamInstance::unique_ptr_type tptr(new libmaus2::aio::InputStreamInstance(url));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
-			
+
 			std::string const & getURL() const
 			{
 				return url;
