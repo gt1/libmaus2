@@ -87,6 +87,44 @@ namespace libmaus2
 				return std::pair<uint64_t,uint64_t>(alen,blen);
 			}
 
+			template<typename iterator>
+			bool checkTrace(iterator a, iterator b) const
+			{
+				std::pair<uint64_t,uint64_t> const P = getStringLengthUsed();
+				iterator ac = a + P.first;
+				iterator bc = b + P.second;
+
+				int64_t cur = traceid;
+				bool ok = true;
+				while ( cur >= 0 )
+				{
+					for ( uint64_t i = 0; i < Atrace[cur].slide; ++i )
+						ok = ok && ((*(--ac)) == (*(--bc)));
+
+					switch ( Atrace[cur].step )
+					{
+						case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
+							ok = ok && ((*(--ac)) != (*(--bc)));
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_DEL:
+							--ac;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_INS:
+							--bc;
+							break;
+						default:
+							break;
+					}
+
+					cur = Atrace[cur].parent;
+				}
+
+				ok = ok && (ac == a);
+				ok = ok && (bc == b);
+
+				return ok;
+			}
+
 			uint64_t getNumDif() const
 			{
 				uint64_t dif = 0;
