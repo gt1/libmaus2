@@ -20,14 +20,17 @@
 #include <libmaus2/util/ArgParser.hpp>
 
 template<typename iterator>
-void transform(iterator ita, iterator ite)
+void transform(iterator ita, iterator ite, bool timediv)
 {
-	/**
-	 * run divsufsort for speed comparison, not because we use the result for the BWT construction
-	 **/
-	std::cerr << "[V] running divsufsort...";
-	double divsufsorttime;
+	double divsufsorttime = 0;
+
+	if ( timediv )
 	{
+		/**
+		 * run divsufsort for speed comparison, not because we use the result for the BWT construction
+		 **/
+		std::cerr << "[V] running divsufsort...";
+
 		libmaus2::timing::RealTimeClock rtc;
 		rtc.start();
 		libmaus2::autoarray::AutoArray<uint8_t> A(ite-ita,false);
@@ -36,8 +39,9 @@ void transform(iterator ita, iterator ite)
 		libmaus2::autoarray::AutoArray<int64_t> SA(ite-ita,false);
 		sort_type::divsufsort(A.begin(),SA.begin(),ite-ita);
 		divsufsorttime = rtc.getElapsedSeconds();
+
+		std::cerr << std::endl;
 	}
-	std::cerr << std::endl;
 
 	// create file from array
 	libmaus2::aio::ArrayFile<iterator> AF(ita,ite);
@@ -46,7 +50,7 @@ void transform(iterator ita, iterator ite)
 		// check file
 		libmaus2::aio::InputStreamInstance::unique_ptr_type ISI(AF.open());
 		for ( uint64_t i = 0; i < ite-ita; ++i )
-			assert ( ISI->peek() != std::istream::traits_type::eof() && ISI->get() == ita[i] );
+			assert ( ISI->peek() != std::istream::traits_type::eof() && static_cast<char>(ISI->get()) == ita[i] );
 	}
 
 	uint64_t const numthreads = libmaus2::suffixsort::bwtb3m::BwtMergeSortOptions::getDefaultNumThreads();
@@ -85,7 +89,7 @@ void transform(iterator ita, iterator ite)
 	for ( uint64_t i = 0; i < n; ++i )
 		std::cerr << static_cast<char>((*PLF)[i]);
 	std::cerr << std::endl;
-	
+
 	// print the text
 	libmaus2::fm::SampledISA<libmaus2::lf::ImpCompactHuffmanWaveletLF>::unique_ptr_type SISA(res.loadInverseSuffixArray(PLF.get()));
 	for ( uint64_t i = 0; i < n; ++i )
@@ -95,21 +99,25 @@ void transform(iterator ita, iterator ite)
 
 	libmaus2::suffixtree::CompressedSuffixTree::unique_ptr_type CST(res.loadSuffixTree(numthreads,"mem://tmp",32*1024*1024,&(std::cerr)));
 
-	std::cerr << "[S] time for divsufsort " << divsufsorttime << std::endl;
+	if ( timediv )
+		std::cerr << "[S] time for divsufsort " << divsufsorttime << std::endl;
 }
 
 int main(int argc, char * argv[])
 {
 	try
 	{
-		std::string const s = "hello world, hello moon";
-		transform(s.begin(),s.end());
-
 		libmaus2::util::ArgParser arg(argc,argv);
+
+		bool const timediv = arg.uniqueArgPresent("timediv");
+
+		std::string const s = "hello world, hello moon";
+		transform(s.begin(),s.end(),timediv);
+
 		for ( uint64_t i = 0; i < arg.size(); ++i )
 		{
 			libmaus2::autoarray::AutoArray<char> const A = libmaus2::autoarray::AutoArray<char>::readFile(arg[i]);
-			transform(A.begin(),A.end());
+			transform(A.begin(),A.end(),timediv);
 		}
 	}
 	catch(std::exception const & ex)
