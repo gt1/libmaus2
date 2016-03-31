@@ -840,8 +840,8 @@ namespace libmaus2
 			}
 
 			/**
-			 * resize array to rn elements. This only works for alloc_type_c arrays. If this method is
-			 * called for other types of arrays, then an exception is thrown.
+			 * resize array to rn elements. This calls realloc for c alloced arrays and uses a copy of the array otherwise
+			 *
 			 * @param rn new size of array
 			 **/
 			void resize(uint64_t const rn)
