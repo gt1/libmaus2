@@ -629,6 +629,23 @@ namespace libmaus2
 					}
 				}
 
+				void push(uint8_t const * D, uint64_t const l)
+				{
+					libmaus2::bambam::BamAlignment * algn = BAFL.get();
+
+					try
+					{
+						algn->copyFrom(D,l);
+					}
+					catch(...)
+					{
+						BAFL.put(algn);
+						throw;
+					}
+
+					push(algn);
+				}
+
 				void flush()
 				{
 					flushInMemQueueInternal();
