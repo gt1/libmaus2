@@ -35,6 +35,8 @@
 #include <sys/mman.h>
 #endif
 
+#include <cstdlib>
+
 namespace libmaus2
 {
 	namespace util
@@ -131,7 +133,35 @@ namespace libmaus2
 					if ( p )
 						return p;
 
-					p = ::malloc(s);
+					#if defined(LIBMAUS2_HAVE_POSIX_MEMALIGN)
+					if ( ::posix_memalign(&p, align, s) )
+						return NULL;
+					#else
+
+					// allocate memory + padding
+					uint64_t const spad = s + sizeof(uint64_t) + align - 1;
+					p = ::malloc(spad);
+
+					if ( ! p )
+						return NULL;
+
+					// skip sizeof(uint64_t) bytes
+					p = reinterpret_cast<void *>(reinterpret_cast<char *>(p) + sizeof(uint64_t));
+					// get modulus
+					uint64_t const mod = reinterpret_cast<uint64_t>(p) % align;
+					// compute shift to get aligned
+					uint64_t const shift = mod ? align-mod : 0;
+					// shift
+					p = reinterpret_cast<void *>(reinterpret_cast<char *>(p) + shift);
+
+					// get shift store pointer
+					unsigned char * u = reinterpret_cast<unsigned char *>(p);
+					u -= sizeof(uint64_t);
+
+					// store shift
+					for ( unsigned int i = 0; i < sizeof(uint64_t); ++i )
+						u[i] = (shift >> (64-((i+1)*8))) & 0xFF;
+					#endif
 
 					return p;
 				}
@@ -322,7 +352,20 @@ namespace libmaus2
 					// not in used list, assume it is conventional memory
 					else
 					{
+						#if defined(LIBMAUS2_HAVE_POSIX_MEMALIGN)
 						::free(p);
+						#else
+						unsigned char * u = reinterpret_cast<unsigned char *>(p);
+						u -= sizeof(uint64_t);
+						uint64_t shift = 0;
+						for ( unsigned int i = 0; i < sizeof(uint64_t); ++i )
+						{
+							shift <<= 8;
+							shift |= u[i];
+						}
+						u -= shift;
+						::free(u);
+						#endif
 					}
 				}
 			}
