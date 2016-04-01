@@ -16,6 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <libmaus2/util/HugePageAllocator.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
 int main()
 {
@@ -91,6 +92,23 @@ int main()
 
 		HP.print(std::cerr);
 		std::cerr << std::endl;
+
+		{
+			libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_hugepages> A_HG(127,false);
+
+			HP.print(std::cerr);
+			std::cerr << std::endl;
+
+			libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_hugepages_memalign_pagesize> A_HG_PG(437,false);
+
+			HP.print(std::cerr);
+			std::cerr << std::endl;
+
+			libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_hugepages_memalign_cacheline> A_HG_CL(64,false);
+
+			HP.print(std::cerr);
+			std::cerr << std::endl;
+		}
 	}
 	catch(std::exception const & ex)
 	{
