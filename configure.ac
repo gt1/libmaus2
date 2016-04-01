@@ -3130,7 +3130,7 @@ TESTPROGS="${TESTPROGS} testunsignedinteger testmd5 testsha testsinglefileserver
 TESTPROGS="${TESTPROGS} testparallelbamvalidation testparallelbamrewrite testbammateerase testparallelbamblocksort"
 TESTPROGS="${TESTPROGS} testmapperm testexternalmemoryindex testfastqtobam testsamrecoding testdazzlerdb testnd testfastashred testalignerspeed testfastasingleline testdazzleralignmentrewrite"
 TESTPROGS="${TESTPROGS} testxz testdazzlerindex testargparser testfragmentenvelope testdnarank testlowbits testfastaexplode testfaextract testmurmur3 testpairalign testsplaytree testbwtconstruction testbwtconstructionfasta"
-TESTPROGS="${TESTPROGS} testarrayinput"
+TESTPROGS="${TESTPROGS} testarrayinput testhugepages"
 
 HDF5CPPFLAGS=
 HDF5CXXFLAGS=
