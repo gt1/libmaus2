@@ -39,6 +39,7 @@
 #include <libmaus2/util/I386CacheLineSize.hpp>
 #include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/aio/OutputStreamInstance.hpp>
+#include <libmaus2/util/HugePages.hpp>
 
 // #define AUTOARRAY_TRACE 7
 #if defined(AUTOARRAY_TRACE)
@@ -85,7 +86,15 @@ namespace libmaus2
 		extern ::libmaus2::parallel::OMPLock AutoArray_lock;
 		#endif
 
-		enum alloc_type { alloc_type_cxx = 0, alloc_type_c = 1, alloc_type_memalign_cacheline = 2, alloc_type_memalign_pagesize = 3 };
+		enum alloc_type {
+			alloc_type_cxx = 0,
+			alloc_type_c = 1,
+			alloc_type_memalign_cacheline = 2,
+			alloc_type_memalign_pagesize = 3,
+			alloc_type_hugepages = 4,
+			alloc_type_hugepages_memalign_cacheline = 5,
+			alloc_type_hugepages_memalign_pagesize = 6
+		};
 
 		#if defined(AUTOARRAY_TRACE)
 		template<unsigned int n>
@@ -541,6 +550,31 @@ namespace libmaus2
 							#endif
 							break;
 						}
+						case alloc_type_hugepages:
+						{
+							array = reinterpret_cast<N *>(libmaus2::util::HugePages::getHugePageObject().malloc( n * sizeof(N), sizeof(N) ));
+							if ( ! array )
+								throw std::bad_alloc();
+							break;
+						}
+						case alloc_type_hugepages_memalign_cacheline:
+						{
+							uint64_t const cachelinesize = getCacheLineSize();
+							array = reinterpret_cast<N *>(libmaus2::util::HugePages::getHugePageObject().malloc( n * sizeof(N), cachelinesize ));
+							if ( ! array )
+								throw std::bad_alloc();
+							break;
+
+						}
+						case alloc_type_hugepages_memalign_pagesize:
+						{
+							uint64_t const cachelinesize = getpagesize();
+							array = reinterpret_cast<N *>(libmaus2::util::HugePages::getHugePageObject().malloc( n * sizeof(N), cachelinesize ));
+							if ( ! array )
+								throw std::bad_alloc();
+							break;
+
+						}
 					}
 				}
 				catch(std::bad_alloc const & ex)
@@ -637,6 +671,12 @@ namespace libmaus2
 					case alloc_type_memalign_cacheline:
 						return "alloc_type_memalign_cacheline";
 					case alloc_type_memalign_pagesize:
+						return "alloc_type_memalign_pagesize";
+					case alloc_type_hugepages:
+						return "alloc_type_hugepages";
+					case alloc_type_hugepages_memalign_cacheline:
+						return "alloc_type_memalign_cacheline";
+					case alloc_type_hugepages_memalign_pagesize:
 						return "alloc_type_memalign_pagesize";
 					default:
 						return "alloc_type_unknown";
@@ -878,6 +918,9 @@ namespace libmaus2
 					case alloc_type_cxx:
 					case alloc_type_memalign_cacheline:
 					case alloc_type_memalign_pagesize:
+					case alloc_type_hugepages:
+					case alloc_type_hugepages_memalign_cacheline:
+					case alloc_type_hugepages_memalign_pagesize:
 						{
 							this_type C(rn,false);
 							uint64_t const copy = std::min(size(),C.size());
@@ -992,6 +1035,11 @@ namespace libmaus2
 						#else
 						AlignedAllocation<N,alloc_type_memalign_pagesize>::freeAligned(array);
 						#endif
+						break;
+					case alloc_type_hugepages:
+					case alloc_type_hugepages_memalign_cacheline:
+					case alloc_type_hugepages_memalign_pagesize:
+						libmaus2::util::HugePages::getHugePageObject().free(array);
 						break;
 				}
 
