@@ -458,6 +458,13 @@ namespace libmaus2
                         		uint64_t re = getISA(low % n);
 
                         		iter B = A + high;
+                        		if ( high-low )
+                        		{
+                        			std::pair<int64_t,uint64_t> const P = lf->extendedLF(r);
+                        			*(--B) = P.first;
+                        			r = P.second;
+                        		}
+
                         		while ( r != re )
                         		{
                         			std::pair<int64_t,uint64_t> const P = lf->extendedLF(r);
