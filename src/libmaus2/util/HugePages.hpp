@@ -133,11 +133,6 @@ namespace libmaus2
 					if ( p )
 						return p;
 
-					#if defined(LIBMAUS2_HAVE_POSIX_MEMALIGN)
-					if ( ::posix_memalign(&p, align, s) )
-						return NULL;
-					#else
-
 					// allocate memory + padding
 					uint64_t const spad = s + sizeof(uint64_t) + align - 1;
 					p = ::malloc(spad);
@@ -161,7 +156,6 @@ namespace libmaus2
 					// store shift
 					for ( unsigned int i = 0; i < sizeof(uint64_t); ++i )
 						u[i] = (shift >> (64-((i+1)*8))) & 0xFF;
-					#endif
 
 					return p;
 				}
@@ -352,9 +346,6 @@ namespace libmaus2
 					// not in used list, assume it is conventional memory
 					else
 					{
-						#if defined(LIBMAUS2_HAVE_POSIX_MEMALIGN)
-						::free(p);
-						#else
 						unsigned char * u = reinterpret_cast<unsigned char *>(p);
 						u -= sizeof(uint64_t);
 						uint64_t shift = 0;
@@ -365,7 +356,6 @@ namespace libmaus2
 						}
 						u -= shift;
 						::free(u);
-						#endif
 					}
 				}
 			}
