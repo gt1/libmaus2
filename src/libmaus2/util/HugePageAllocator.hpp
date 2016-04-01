@@ -54,7 +54,7 @@ namespace libmaus2
 			// allocate object without initialising them
 			pointer allocate (size_type n, void const * = 0)
 			{
-				void * v = HP.malloc(n * sizeof(value_type));
+				void * v = HP.malloc(n * sizeof(value_type), std::min(sizeof(value_type),static_cast< ::std::size_t>(4096ull)));
 
 				if ( ! v )
 					throw ::std::bad_alloc();
