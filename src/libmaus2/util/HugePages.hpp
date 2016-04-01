@@ -94,17 +94,39 @@ namespace libmaus2
 				assert ( numblocks == blocks.size() + usedblocks.size() );
 				assert ( blocks.size() == sizeblocks.size() );
 
+				pblock = getFirstBlock();
+				uint64_t s = 0;
+				while ( pblock )
+				{
+					if ( pblock->prev )
+					{
+						assert ( pblock->prev->next );
+						assert ( pblock->prev->next.get() == pblock.get() );
+					}
+					if ( pblock->next )
+					{
+						assert ( pblock->next->prev );
+						assert ( pblock->next->prev.get() == pblock.get() );
+					}
+
+					s += pblock->n;
+
+					pblock = pblock->next;
+				}
+
+				assert ( s == alloc );
+
 				return out;
 			}
 
 			/**
 			 * allocate memory, prefer huge page memory over conventional
 			 **/
-			void * malloc(size_t const s)
+			void * malloc(size_t const s, size_t const align = sizeof(uint64_t))
 			{
 				if ( s )
 				{
-					void * p = hpmalloc(s);
+					void * p = hpmalloc(s,align);
 
 					if ( p )
 						return p;
@@ -119,27 +141,30 @@ namespace libmaus2
 				}
 			}
 
+			static bool checkAligned(void * p, ::std::size_t align)
+			{
+				return ( (reinterpret_cast< ::std::size_t >(reinterpret_cast<char * >(p)) % align) == 0 );
+			}
+
 			/**
 			 * allocate block of size rs in huge pages
 			 **/
-			void * hpmalloc(size_t const rs)
+			void * hpmalloc(size_t const rs, size_t const align = sizeof(uint64_t))
 			{
 				libmaus2::parallel::ScopePosixMutex slock(lock);
 
 				#if defined(__linux__)
 				init();
 
-				// align to this size (8 bytes)
-				static size_t const align = sizeof(uint64_t);
 				// go to next larger multiple of s
-				size_t const s = ( (rs + align - 1) / align ) * align;
+				size_t const s = rs;
 
 				// empty block? return NULL
 				if ( ! s )
 					return NULL;
 
-				// search for smallest block matching request
-				cmpblock->n = s;
+				// search for smallest block matching request suitable for producing alignment
+				cmpblock->n = s + align - 1;
 				std::multiset<MemoryBlock::shared_ptr_type>::iterator it = sizeblocks.lower_bound(cmpblock);
 
 				// no suitable block, return NULL
@@ -150,7 +175,46 @@ namespace libmaus2
 				MemoryBlock::shared_ptr_type pblock = *it;
 
 				// this is supposed to be sufficiently large
-				assert ( pblock->n >= s );
+				assert ( pblock->n >= (s + align - 1) );
+
+				// check whether block is aligned correctly
+				if ( ! checkAligned(pblock->p,align) )
+				{
+					// compute shift needed for alignment
+					::std::size_t const shift = align - (reinterpret_cast< ::std::size_t >(reinterpret_cast<char * >(pblock->p)) % align);
+					// check that shift sets alignment right
+					assert ( (reinterpret_cast< ::std::size_t >(reinterpret_cast<char * >(pblock->p)+shift) % align) == 0 );
+
+					// create new block by splitting pblock
+					MemoryBlock::shared_ptr_type newblock(new MemoryBlock(reinterpret_cast<void *>(reinterpret_cast<char *>(pblock->p) + shift),pblock->n - shift));
+					pblock->n = shift;
+
+					MemoryBlock::shared_ptr_type oldprev = pblock->prev;
+					MemoryBlock::shared_ptr_type oldnext = pblock->next;
+
+					// adapt prev and next pointers in newblock and pblock
+					newblock->prev = pblock;
+					newblock->next = pblock->next;
+					pblock->next = newblock;
+
+					if ( oldprev )
+						oldprev->next = pblock;
+					if ( oldnext )
+						oldnext->prev = newblock;
+
+					// insert newly created block
+					sizeblocks.insert(newblock);
+					blocks.insert(newblock);
+
+					// go to split block
+					pblock = newblock;
+					it = sizeblocks.find(pblock);
+					assert ( it != sizeblocks.end() );
+					assert ( (*it)->p == pblock->p );
+				}
+
+				// check block is aligned now
+				assert ( (reinterpret_cast< ::std::size_t >(reinterpret_cast<char * >(pblock->p)) % align) == 0 );
 
 				if ( pblock->n != s )
 				{
@@ -158,10 +222,18 @@ namespace libmaus2
 					MemoryBlock::shared_ptr_type newblock(new MemoryBlock(reinterpret_cast<void *>(reinterpret_cast<char *>(pblock->p) + s),pblock->n - s));
 					pblock->n = s;
 
+					MemoryBlock::shared_ptr_type oldprev = pblock->prev;
+					MemoryBlock::shared_ptr_type oldnext = pblock->next;
+
 					// adapt prev and next pointers in newblock and pblock
 					newblock->prev = pblock;
 					newblock->next = pblock->next;
 					pblock->next = newblock;
+
+					if ( oldprev )
+						oldprev->next = pblock;
+					if ( oldnext )
+						oldnext->prev = newblock;
 
 					// insert newly created block
 					sizeblocks.insert(newblock);
@@ -201,23 +273,31 @@ namespace libmaus2
 
 						if ( pblock->prev && blocks.find(pblock->prev) != blocks.end() )
 						{
+							assert ( pblock->prev->next );
+							assert ( pblock->prev->next == pblock );
+
 							// get prev block
 							MemoryBlock::shared_ptr_type prevblock = pblock->prev;
 							// erase prev block from free lists
 							blocks.erase ( blocks.find(prevblock) );
 							sizeblocks.erase ( sizeblocks.find(prevblock) );
 
-							assert (
-								(reinterpret_cast<char *>(prevblock->p) + prevblock->n) ==
-								reinterpret_cast<char *>(pblock->p)
-							);
+							assert ( (reinterpret_cast<char *>(prevblock->p) + prevblock->n) == reinterpret_cast<char *>(pblock->p) );
 
 							prevblock->n += pblock->n;
 							prevblock->next = pblock->next;
+
+							if ( prevblock->next )
+								prevblock->next->prev = prevblock;
+
 							pblock = prevblock;
 						}
+
 						if ( pblock->next && blocks.find(pblock->next) != blocks.end() )
 						{
+							assert ( pblock->next->prev );
+							assert ( pblock->next->prev == pblock );
+
 							// get next block
 							MemoryBlock::shared_ptr_type nextblock = pblock->next;
 							// erase next block from free lists
@@ -231,6 +311,9 @@ namespace libmaus2
 
 							pblock->n += nextblock->n;
 							pblock->next = nextblock->next;
+
+							if ( pblock->next )
+								pblock->next->prev = pblock;
 						}
 
 						blocks.insert(pblock);

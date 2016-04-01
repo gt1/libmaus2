@@ -27,26 +27,43 @@ int main()
 		HP.print(std::cerr);
 		std::cerr << std::endl;
 
+		std::cerr << "alloc0" << std::endl;
 		void * block0 = HP.malloc(1024);
 
 		HP.print(std::cerr);
 		std::cerr << std::endl;
 
+		std::cerr << "alloc7" << std::endl;
+		void * block7 = HP.malloc(7,7);
+
+		HP.print(std::cerr);
+		std::cerr << std::endl;
+
+		std::cerr << "free7" << std::endl;
+		HP.free(block7);
+
+		HP.print(std::cerr);
+		std::cerr << std::endl;
+
+		std::cerr << "alloc1" << std::endl;
 		void * block1 = HP.malloc(1024);
 
 		HP.print(std::cerr);
 		std::cerr << std::endl;
 
+		std::cerr << "free0" << std::endl;
 		HP.free(block0);
 
 		HP.print(std::cerr);
 		std::cerr << std::endl;
 
+		std::cerr << "alloc2" << std::endl;
 		void * block2 = HP.malloc(1024);
 
 		HP.print(std::cerr);
 		std::cerr << std::endl;
 
+		std::cerr << "free1" << std::endl;
 		HP.free(block1);
 
 		HP.print(std::cerr);
