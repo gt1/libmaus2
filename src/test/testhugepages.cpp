@@ -75,6 +75,7 @@ int main()
 		HP.print(std::cerr);
 		std::cerr << std::endl;
 
+
 		typedef uint64_t key_type;
 		typedef uint64_t value_type;
 		typedef libmaus2::util::HugePageAllocator< std::pair<key_type const, value_type> > allocator_type;
@@ -94,6 +95,7 @@ int main()
 		std::cerr << std::endl;
 
 		{
+
 			libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_hugepages> A_HG(127,false);
 
 			HP.print(std::cerr);
@@ -104,11 +106,15 @@ int main()
 			HP.print(std::cerr);
 			std::cerr << std::endl;
 
+
 			libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_hugepages_memalign_cacheline> A_HG_CL(64,false);
 
 			HP.print(std::cerr);
 			std::cerr << std::endl;
 		}
+
+		HP.print(std::cerr);
+		std::cerr << std::endl;
 	}
 	catch(std::exception const & ex)
 	{
