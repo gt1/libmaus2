@@ -75,7 +75,8 @@ int main()
 		HP.print(std::cerr);
 		std::cerr << std::endl;
 
-
+		#if defined(__GNUC__)
+		#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 3)
 		typedef uint64_t key_type;
 		typedef uint64_t value_type;
 		typedef libmaus2::util::HugePageAllocator< std::pair<key_type const, value_type> > allocator_type;
@@ -93,6 +94,8 @@ int main()
 
 		HP.print(std::cerr);
 		std::cerr << std::endl;
+		#endif
+		#endif
 
 		{
 
@@ -103,11 +106,20 @@ int main()
 
 			libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_hugepages_memalign_pagesize> A_HG_PG(437,false);
 
+			std::fill(A_HG_PG.begin(),A_HG_PG.end(),0);
+			for ( uint64_t i = 0; i < A_HG_PG.size(); ++i )
+				assert ( A_HG_PG[i] == 0 );
+
+
 			HP.print(std::cerr);
 			std::cerr << std::endl;
 
 
 			libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_hugepages_memalign_cacheline> A_HG_CL(64,false);
+
+			std::fill(A_HG_CL.begin(),A_HG_CL.end(),0);
+			for ( uint64_t i = 0; i < A_HG_CL.size(); ++i )
+				assert ( A_HG_CL[i] == 0 );
 
 			HP.print(std::cerr);
 			std::cerr << std::endl;

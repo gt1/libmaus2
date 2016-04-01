@@ -44,7 +44,12 @@ namespace libmaus2
 			uint64_t const datawords;
 			uint64_t const indexwords;
 			uint64_t const numblocks;
-			::libmaus2::autoarray::AutoArray<uint64_t, ::libmaus2::autoarray::alloc_type_memalign_cacheline> A;
+
+			enum {
+				alloc_type = ::libmaus2::autoarray::alloc_type_hugepages_memalign_cacheline
+			};
+
+			::libmaus2::autoarray::AutoArray<uint64_t, static_cast< ::libmaus2::autoarray::alloc_type >(alloc_type)> A;
 
 			#define LIBMAUS2_RANK_IMPCACHELINERANK_STORENODEPOINTERS
 			#if defined(LIBMAUS2_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
@@ -74,7 +79,7 @@ namespace libmaus2
 			void serialise(::libmaus2::network::SocketBase * socket) const
 			{
 				socket->writeSingle<uint64_t>(n);
-				socket->writeMessageInBlocks<uint64_t,::libmaus2::autoarray::alloc_type_memalign_cacheline>(A);
+				socket->writeMessageInBlocks<uint64_t,static_cast< ::libmaus2::autoarray::alloc_type >(alloc_type)>(A);
 			}
 
 			uint64_t serialisedSize() const
@@ -101,7 +106,7 @@ namespace libmaus2
 			ImpCacheLineRank(::libmaus2::network::SocketBase * in)
 			: n(in->readSingle<uint64_t>()), datawords( (n+63)/64 ), indexwords( 2 * ((datawords+5)/6) ),
 			  numblocks( (n+bitsperblock-1)/bitsperblock ),
-			  A(in->readMessageInBlocks<uint64_t,::libmaus2::autoarray::alloc_type_memalign_cacheline>())
+			  A(in->readMessageInBlocks<uint64_t,static_cast< ::libmaus2::autoarray::alloc_type >(alloc_type)>())
 			  #if defined(LIBMAUS2_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
 			  , left(0), right(0), parent(0)
 			  #endif
@@ -152,7 +157,6 @@ namespace libmaus2
 					}
 				}
 			}
-
 
 			struct WriteContext
 			{

@@ -327,7 +327,7 @@ namespace libmaus2
 				#endif
 
 				typedef typename string_type::saidx_t saidx_t;
-				::libmaus2::autoarray::AutoArray<saidx_t, ::libmaus2::autoarray::alloc_type_c> SA =
+				::libmaus2::autoarray::AutoArray<saidx_t, static_cast<libmaus2::autoarray::alloc_type>(libmaus2::util::StringAllocTypes::sa_atype)> SA =
 					T.computeSuffixArray32();
 
 				#if defined(BWTB3M_DEBUG)

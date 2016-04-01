@@ -250,7 +250,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/suffixsort/bwtb3m/BwtMergeSort.cpp \
 	libmaus2/suffixsort/bwtb3m/BwtComputeSSA.cpp \
 	libmaus2/fastx/FastAToCompact4BigBand.cpp \
-	libmaus2/suffixsort/bwtb3m/BwtMergeSortResult.cpp
+	libmaus2/suffixsort/bwtb3m/BwtMergeSortResult.cpp \
+	libmaus2/util/HugePages.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1178,7 +1179,8 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/Queue.hpp \
 	libmaus2/util/ContainerElementFreeList.hpp \
 	libmaus2/util/HugePages.hpp \
-	libmaus2/util/HugePageAllocator.hpp
+	libmaus2/util/HugePageAllocator.hpp \
+	libmaus2/util/StringAllocTypes.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\

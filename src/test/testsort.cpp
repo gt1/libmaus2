@@ -259,6 +259,82 @@ void testParallelSortState(uint64_t const rn = (1ull << 14) )
 
 int main()
 {
+	{
+		typedef uint64_t value_type;
+		unsigned int keybytes[sizeof(value_type)];
+
+		for ( unsigned int i = 0; i < sizeof(value_type); ++i )
+			keybytes[i] = i;
+		unsigned int const rounds = sizeof(value_type);
+
+		std::cerr << "[V] generating random number array...";
+		libmaus2::autoarray::AutoArray<value_type> Vrand(1ull<<30,false);
+		#if defined(_OPENMP)
+		#pragma omp parallel for
+		#endif
+		for ( uint64_t i = 0; i < Vrand.size(); ++i )
+			// Vrand[i] = libmaus2::random::Random::rand64();
+			Vrand[i] = i*(i % 37);
+		std::cerr << "done." << std::endl;
+
+		libmaus2::timing::RealTimeClock rtc;
+		double t[2] = {0,0};
+		uint64_t const runs = 10;
+		uint64_t const numthreads = 32;
+
+		for ( uint64_t j = 0; j < 10; ++j )
+		{
+			for ( uint64_t i = 0; i < 2; ++i )
+			{
+
+				if ( i == 0 )
+				{
+					static const libmaus2::autoarray::alloc_type atype = libmaus2::autoarray::alloc_type_cxx;
+
+					libmaus2::autoarray::AutoArray<value_type,atype> V0(Vrand.size(),false);
+					libmaus2::autoarray::AutoArray<value_type,atype> V1(Vrand.size(),false);
+
+					#if defined(_OPENMP)
+					#pragma omp parallel for
+					#endif
+					for ( uint64_t i = 0; i < Vrand.size(); ++i )
+						V0[i] = Vrand[i];
+
+					rtc.start();
+					// radixsort_uint64_t(V0.begin(),V1.begin(),V0.size(),numthreads,rounds,&keybytes[0],0 /* interleave */);
+					libmaus2::sorting::InterleavedRadixSort::byteradixsortTemplate<uint64_t,uint64_t>(V0.begin(),V0.end(),V1.begin(),V1.end(),numthreads);
+				}
+				else if ( i == 1 )
+				{
+					static const libmaus2::autoarray::alloc_type atype = libmaus2::autoarray::alloc_type_hugepages;
+
+					libmaus2::autoarray::AutoArray<value_type,atype> V0(Vrand.size(),false);
+					libmaus2::autoarray::AutoArray<value_type,atype> V1(Vrand.size(),false);
+
+					#if defined(_OPENMP)
+					#pragma omp parallel for
+					#endif
+					for ( uint64_t i = 0; i < Vrand.size(); ++i )
+						V0[i] = Vrand[i];
+
+					rtc.start();
+
+					//radixsort_uint64_t(V0.begin(),V1.begin(),V0.size(),numthreads,rounds,&keybytes[0],0 /* interleave */);
+					libmaus2::sorting::InterleavedRadixSort::byteradixsortTemplate<uint64_t,uint64_t>(V0.begin(),V0.end(),V1.begin(),V1.end(),numthreads);
+				}
+
+				t[i] += rtc.getElapsedSeconds();
+			}
+
+			std::cerr << t[0] << " " << t[1] << std::endl;
+		}
+
+		std::cerr << "4k " << t[0] / runs << std::endl;
+		std::cerr << "1g " << t[1] / runs << std::endl;
+	}
+
+	return 0;
+
 	std::cerr << "[V] generating random number array...";
 	libmaus2::autoarray::AutoArray<uint64_t> Vrand(1ull<<30,false);
 	for ( uint64_t i = 0; i < Vrand.size(); ++i )
