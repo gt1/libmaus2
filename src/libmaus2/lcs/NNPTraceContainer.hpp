@@ -21,6 +21,7 @@
 #include <libmaus2/lcs/NNPTraceElement.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/lcs/AlignmentTraceContainer.hpp>
+#include <stack>
 
 namespace libmaus2
 {
@@ -43,6 +44,16 @@ namespace libmaus2
 			{
 				traceid = -1;
 				otrace = 0;
+			}
+
+			void swap(NNPTraceContainer & O)
+			{
+				if ( this != &O )
+				{
+					Atrace.swap(O.Atrace);
+					std::swap(traceid,O.traceid);
+					std::swap(otrace,O.otrace);
+				}
 			}
 
 			std::ostream & print(std::ostream & out) const
@@ -246,6 +257,108 @@ namespace libmaus2
 				traceid = reverse(traceid);
 			}
 
+			template<typename value_type>
+			static value_type defaultRemapFunction(value_type c)
+			{
+				return c;
+			}
+
+			template<typename iterator>
+			void printTraceLines(
+				std::ostream & out,
+				iterator a, iterator b,
+				uint64_t const linelength = 80,
+				std::string const & indent = std::string(),
+				std::string const & linesep = std::string(),
+				typename ::std::iterator_traits<iterator>::value_type (*remapFunction)(typename ::std::iterator_traits<iterator>::value_type) = defaultRemapFunction
+			) const
+			{
+				std::stack < int64_t > S;
+				bool firstline = true;
+
+				for ( int64_t curtraceid = traceid ; curtraceid >= 0; curtraceid = Atrace[curtraceid].parent )
+					S.push(curtraceid);
+
+				std::string aline(linelength,' ');
+				std::string bline(linelength,' ');
+				std::string opline(linelength,' ');
+				uint64_t o = 0;
+
+				while ( ! S.empty() )
+				{
+					NNPTraceElement const & E = Atrace[S.top()];
+					S.pop();
+
+					switch ( E.step )
+					{
+						case libmaus2::lcs::BaseConstants::STEP_INS:
+							aline[o] = '-';
+							bline[o] = remapFunction(*(b++));
+							opline[o] = 'I';
+							o += 1;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_DEL:
+							aline[o] = remapFunction(*(a++));
+							bline[o] = '-';
+							opline[o] = 'D';
+							o += 1;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
+							aline[o] = remapFunction(*(a++));
+							bline[o] = remapFunction(*(b++));
+							opline[o] = '-';
+							o += 1;
+							break;
+						default:
+							break;
+					}
+
+					if ( o == linelength )
+					{
+						if ( !firstline )
+							out << linesep;
+						firstline = false;
+
+						out << indent << aline << "\n";
+						out << indent << bline << "\n";
+						out << indent << opline << "\n";
+						o = 0;
+					}
+
+					for ( uint64_t i = 0; i < E.slide; ++i )
+					{
+						aline[o] = remapFunction(*(a++));
+						bline[o] = remapFunction(*(b++));
+						opline[o] = '+';
+						o += 1;
+
+						if ( o == linelength )
+						{
+							if ( !firstline )
+								out << linesep;
+							firstline = false;
+
+							out << indent << aline << "\n";
+							out << indent << bline << "\n";
+							out << indent << opline << "\n";
+							o = 0;
+						}
+					}
+				}
+
+				if ( o )
+				{
+					if ( !firstline )
+						out << linesep;
+					firstline = false;
+
+					out << indent << aline << "\n";
+					out << indent << bline << "\n";
+					out << indent << opline << "\n";
+					o = 0;
+				}
+			}
+
 			static void computeTrace(libmaus2::autoarray::AutoArray<NNPTraceElement> const & Atrace, int64_t const traceid, libmaus2::lcs::AlignmentTraceContainer & ATC)
 			{
 				uint64_t reserve = 0;
@@ -301,6 +414,35 @@ namespace libmaus2
 		};
 
 		std::ostream & operator<<(std::ostream & out, NNPTraceContainer const & T);
+
+		struct NNPTraceContainerAllocator
+		{
+			NNPTraceContainerAllocator() {}
+
+			NNPTraceContainer::shared_ptr_type operator()()
+			{
+				NNPTraceContainer::shared_ptr_type tptr(new NNPTraceContainer);
+				return tptr;
+			}
+		};
+
+		struct NNPTraceContainerTypeInfo
+		{
+			typedef NNPTraceContainerTypeInfo this_type;
+
+			typedef libmaus2::lcs::NNPTraceContainer::shared_ptr_type pointer_type;
+
+			static pointer_type getNullPointer()
+			{
+				pointer_type p;
+				return p;
+			}
+
+			static pointer_type deallocate(pointer_type /* p */)
+			{
+				return getNullPointer();
+			}
+		};
 	}
 }
 #endif
