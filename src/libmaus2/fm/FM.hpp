@@ -16,8 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
 #if ! defined(FM_HPP)
 #define FM_HPP
 
@@ -363,17 +361,22 @@ namespace libmaus2
                                 #endif
                         }
 
+                        // get length of text
                         uint64_t getN() const { return lf->getN(); }
+                        // get alphabet width in bits
                         uint64_t getB() const { return lf->getB(); }
+                        // get suffix array value at rank r
                         uint64_t getSA(uint64_t const r) const { return (*sa)[r]; }
+                        // get inverse suffix array value at position r
                         uint64_t getISA(uint64_t const r) const { return (*isa)[r]; }
+                        // get LCP value for rank r
                         uint64_t getLCP(uint64_t const r) const { return (*lcp)[r]; }
 
+                        // extract symbol at position pos
                         int64_t operator[](uint64_t pos) const
                         {
-                                return (*lf)[getISA( (pos+1 ) % getN())];
-                                // return (*(lf->W))[getISA( (pos+1 ) % getN())];
-                        }
+                        	return (*lf)[getISA( (pos+1 ) % getN())];
+			}
 
                         template<typename iterator>
                         bool mapAlphabet(iterator a, iterator b)
@@ -388,6 +391,9 @@ namespace libmaus2
                                 return true;
                         }
 
+                        /**
+                         * check the LCP array (quadratic time)
+                         **/
                         void checkLCP(uint64_t const numthreads = 1)
                         {
                         	#if defined(_OPENMP)
@@ -422,6 +428,9 @@ namespace libmaus2
                                 }
                         }
 
+                        /**
+                         * extract a segment of text starting at position pos with length len to A
+                         **/
                         template<typename iter>
                         void extract(uint64_t pos, uint64_t len, iter * A) const
                         {
@@ -431,6 +440,9 @@ namespace libmaus2
                                         A[i] = (*(lf->W))[r];
                         }
 
+                        /**
+                         * extract a segment of text starting at position pos with length len to A
+                         **/
                         template<typename iter>
                         void extractIterator(uint64_t pos, uint64_t len, iter A) const
                         {
@@ -440,6 +452,9 @@ namespace libmaus2
                                         A[i] = (*(lf->W))[r];
                         }
 
+                        /**
+                         * extract a segment of text starting at position pos with length len to A using numthreads
+                         **/
                         template<typename iter>
                         void extractIteratorParallel(uint64_t pos, uint64_t len, iter A, uint64_t const numthreads) const
                         {
