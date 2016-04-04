@@ -103,6 +103,10 @@ namespace libmaus2
 			 * @return true if CPU supports avx
 			 **/
 			static bool hasAVX2();
+			/**
+			 * @return true if CPU supports pclmuldq
+			 **/
+			static bool hasPCLMULDQ();
 		};
 		#endif
 	}
