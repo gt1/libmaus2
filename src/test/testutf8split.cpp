@@ -72,7 +72,7 @@ void testUtf8Bwt(std::string const & fn)
 	::libmaus2::util::Utf8String us(fn);
 
 	typedef ::libmaus2::util::Utf8String::saidx_t saidx_t;
-	::libmaus2::autoarray::AutoArray<saidx_t,::libmaus2::autoarray::alloc_type_c> SA = us.computeSuffixArray32();
+	::libmaus2::autoarray::AutoArray<saidx_t,static_cast<libmaus2::autoarray::alloc_type>(libmaus2::util::StringAllocTypes::sa_atype)> SA = us.computeSuffixArray32();
 
 	// produce bwt
 	for ( uint64_t i = 0; i < SA.size(); ++i )

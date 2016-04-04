@@ -250,7 +250,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/suffixsort/bwtb3m/BwtMergeSort.cpp \
 	libmaus2/suffixsort/bwtb3m/BwtComputeSSA.cpp \
 	libmaus2/fastx/FastAToCompact4BigBand.cpp \
-	libmaus2/suffixsort/bwtb3m/BwtMergeSortResult.cpp
+	libmaus2/suffixsort/bwtb3m/BwtMergeSortResult.cpp \
+	libmaus2/util/HugePages.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1176,7 +1177,10 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/NumberToString.hpp \
 	libmaus2/util/SplayTree.hpp \
 	libmaus2/util/Queue.hpp \
-	libmaus2/util/ContainerElementFreeList.hpp
+	libmaus2/util/ContainerElementFreeList.hpp \
+	libmaus2/util/HugePages.hpp \
+	libmaus2/util/HugePageAllocator.hpp \
+	libmaus2/util/StringAllocTypes.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
@@ -2003,7 +2007,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testsplaytree \
 	testbwtconstruction \
 	testbwtconstructionfasta \
-	testarrayinput
+	testarrayinput \
+	testhugepages
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2543,3 +2548,7 @@ testbwtconstructionfasta_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testarrayinput_SOURCES  = test/testarrayinput.cpp
 testarrayinput_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testarrayinput_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testhugepages_SOURCES  = test/testhugepages.cpp
+testhugepages_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testhugepages_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@

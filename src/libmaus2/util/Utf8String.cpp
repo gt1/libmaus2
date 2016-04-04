@@ -79,7 +79,7 @@ libmaus2::util::Utf8String::Utf8String(
 	blength = std::min(blength,fs-offset);
 
 	CIS.seekg(offset);
-	A = ::libmaus2::autoarray::AutoArray<uint8_t>(blength,false);
+	A = A_type(blength,false);
 	CIS.read(reinterpret_cast<char *>(A.begin()),blength);
 
 	setup();
@@ -377,7 +377,7 @@ std::map<int64_t,uint64_t> libmaus2::util::Utf8String::getHistogramAsMap(::libma
 	return hist->getByType<int64_t>();
 }
 
-::libmaus2::autoarray::AutoArray<libmaus2::util::Utf8String::saidx_t,::libmaus2::autoarray::alloc_type_c>
+::libmaus2::autoarray::AutoArray<libmaus2::util::Utf8String::saidx_t,static_cast<libmaus2::autoarray::alloc_type>(libmaus2::util::StringAllocTypes::sa_atype)>
 	libmaus2::util::Utf8String::computeSuffixArray32(bool const parallel) const
 {
 	if ( A.size() > static_cast<uint64_t>(::std::numeric_limits<saidx_t>::max()) )
@@ -388,7 +388,7 @@ std::map<int64_t,uint64_t> libmaus2::util::Utf8String::getHistogramAsMap(::libma
 		throw se;
 	}
 
-	::libmaus2::autoarray::AutoArray<saidx_t,::libmaus2::autoarray::alloc_type_c> SA(A.size());
+	::libmaus2::autoarray::AutoArray<saidx_t,static_cast<libmaus2::autoarray::alloc_type>(libmaus2::util::StringAllocTypes::sa_atype)> SA(A.size());
 	if ( parallel )
 		sort_type_parallel::divsufsort ( A.begin() , SA.begin() , A.size() );
 	else

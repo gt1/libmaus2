@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.148,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
-LIBRARY_VERSION=2:148:0
+AC_INIT(libmaus2,2.0.149,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
+LIBRARY_VERSION=2:149:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -3130,7 +3130,7 @@ TESTPROGS="${TESTPROGS} testunsignedinteger testmd5 testsha testsinglefileserver
 TESTPROGS="${TESTPROGS} testparallelbamvalidation testparallelbamrewrite testbammateerase testparallelbamblocksort"
 TESTPROGS="${TESTPROGS} testmapperm testexternalmemoryindex testfastqtobam testsamrecoding testdazzlerdb testnd testfastashred testalignerspeed testfastasingleline testdazzleralignmentrewrite"
 TESTPROGS="${TESTPROGS} testxz testdazzlerindex testargparser testfragmentenvelope testdnarank testlowbits testfastaexplode testfaextract testmurmur3 testpairalign testsplaytree testbwtconstruction testbwtconstructionfasta"
-TESTPROGS="${TESTPROGS} testarrayinput"
+TESTPROGS="${TESTPROGS} testarrayinput testhugepages"
 
 HDF5CPPFLAGS=
 HDF5CXXFLAGS=

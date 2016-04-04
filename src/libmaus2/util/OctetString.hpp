@@ -21,6 +21,7 @@
 
 #include <libmaus2/util/Histogram.hpp>
 #include <libmaus2/suffixsort/divsufsort.hpp>
+#include <libmaus2/util/StringAllocTypes.hpp>
 
 namespace libmaus2
 {
@@ -33,7 +34,8 @@ namespace libmaus2
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			typedef uint8_t const * const_iterator;
 
-			::libmaus2::autoarray::AutoArray<uint8_t> A;
+			typedef ::libmaus2::autoarray::AutoArray<uint8_t,libmaus2::autoarray::alloc_type_hugepages> A_type;
+			A_type A;
 
 			const_iterator begin() const
 			{
@@ -88,7 +90,7 @@ namespace libmaus2
 			typedef ::libmaus2::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int32_t *,int32_t const *,256,false> sort_type_serial;
 			typedef sort_type_serial::saidx_t saidx_t;
 
-			::libmaus2::autoarray::AutoArray<saidx_t,::libmaus2::autoarray::alloc_type_c>
+			::libmaus2::autoarray::AutoArray<saidx_t,static_cast<libmaus2::autoarray::alloc_type>(libmaus2::util::StringAllocTypes::sa_atype)>
 				computeSuffixArray32(bool const parallel = false) const;
 		};
 	}
