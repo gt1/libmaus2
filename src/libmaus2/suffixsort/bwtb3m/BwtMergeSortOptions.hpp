@@ -63,6 +63,8 @@ namespace libmaus2
 				static bwt_merge_input_type parseInputType(std::string const & sinputtype)
 				{
 					typedef std::pair<char const *, bwt_merge_input_type> pair_type;
+					char const * cnull = 0;
+
 					pair_type valid[] = {
 						// byte sequence (alphabet 0-255)
 						std::pair<char const *, bwt_merge_input_type>("bytestream",bwt_merge_input_type_bytestream),
@@ -77,7 +79,7 @@ namespace libmaus2
 						// utf-8 coded unicode sequence (alphabet can contain symbols > 255)
 						std::pair<char const *, bwt_merge_input_type>("utf-8",bwt_merge_input_type_utf_8),
 						// array terminator (not a file format)
-						std::pair<char const *, bwt_merge_input_type>(0,bwt_merge_input_type_bytestream),
+						std::pair<char const *, bwt_merge_input_type>(cnull,bwt_merge_input_type_bytestream),
 					};
 
 					for ( pair_type const * p = &valid[0]; p->first; ++p )

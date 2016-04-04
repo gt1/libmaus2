@@ -54,6 +54,7 @@ void transform(iterator ita, iterator ite, bool timediv)
 	}
 
 	uint64_t const numthreads = libmaus2::suffixsort::bwtb3m::BwtMergeSortOptions::getDefaultNumThreads();
+	// uint64_t const numthreads = 1; // libmaus2::suffixsort::bwtb3m::BwtMergeSortOptions::getDefaultNumThreads();
 	libmaus2::suffixsort::bwtb3m::BwtMergeSortOptions options(
 		AF.getURL(),
 		16*1024ull*1024ull*1024ull, /* memory 16GB */

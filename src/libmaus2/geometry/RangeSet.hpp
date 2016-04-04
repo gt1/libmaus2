@@ -253,8 +253,6 @@ namespace libmaus2
 				std::set < element_type const * > SB(RR.begin(),RR.end());
 				assert ( SA == SB );
 				#endif
-
-				return R;
 			}
 		};
 	}

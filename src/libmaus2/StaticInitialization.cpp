@@ -25,6 +25,10 @@
 #include <cstdlib>
 #include <sstream>
 #include <iostream>
+#include <libmaus2/util/HugePages.hpp>
+
+libmaus2::parallel::PosixSpinLock libmaus2::util::HugePages::createLock;
+libmaus2::util::HugePages::unique_ptr_type libmaus2::util::HugePages::sObject;
 
 #if defined(LIBMAUS2_HAVE_POSIX_SPINLOCKS)
 libmaus2::parallel::PosixSpinLock libmaus2::autoarray::AutoArray_lock;

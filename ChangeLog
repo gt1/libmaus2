@@ -1,3 +1,17 @@
+libmaus2 (2.0.149-1) unstable; urgency=medium
+
+  * add swap and printTraceLines functions in NNPTraceContainer class
+  * add NNPTraceContainerTypeInfo and Allocator classes 
+  * use hugepages mem if available in DNARank
+  * fix parallel decoding for single thread usage in FM class
+  * add hugepages based storage classes in AutoArray framework
+  * add simple huge page allocator
+  * fix RangeSet function by removing extraneous return statement
+  * fix compilation on gcc 4.3
+  * add push method for data blocks in OutputQueue of BamStreamingMarkDuplicatesSupport
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 04 Apr 2016 15:14:33 +0200
+
 libmaus2 (2.0.148-1) unstable; urgency=medium
 
   * add ensureSize method in FiniteSizeHeap
