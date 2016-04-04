@@ -26,6 +26,6 @@ std::ostream & libmaus2::lcs::operator<<(std::ostream & out, libmaus2::lcs::NNPA
 			<< "," << O.bbpos
 			<< "," << O.bepos
 			<< "," << O.dif
-			<< "," << (static_cast<double>(O.dif) / static_cast<double>(O.aepos-O.abpos))
+			<< "," << O.getErrorRate()
 			<< ")";
 }
