@@ -67,6 +67,83 @@ namespace libmaus2
 				return out;
 			}
 
+			struct MatMisDelResult
+			{
+				uint64_t mat;
+				uint64_t mis;
+				uint64_t del;
+				uint64_t ins;
+
+				MatMisDelResult() {}
+			};
+
+			MatMisDelResult countMatMisDel(uint64_t matmisdel, uint64_t matmisdelskip = 0) const
+			{
+				std::stack < int64_t > S;
+
+				for ( int64_t curtraceid = traceid ; curtraceid >= 0; curtraceid = Atrace[curtraceid].parent )
+					S.push(curtraceid);
+
+				uint64_t mat = 0, mis = 0, del = 0, ins = 0;
+				while (
+					(matmisdel || matmisdelskip)
+					&&
+					(! S.empty())
+				)
+				{
+					NNPTraceElement const & E = Atrace[S.top()];
+					S.pop();
+
+					if ( matmisdelskip )
+						switch ( E.step )
+						{
+							case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
+							case libmaus2::lcs::BaseConstants::STEP_DEL:
+								matmisdelskip -= 1;
+								matmisdelskip -= 1;
+								break;
+							default:
+								break;
+						}
+					else
+						switch ( E.step )
+						{
+							case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
+								mis += 1;
+								matmisdel -= 1;
+								break;
+							case libmaus2::lcs::BaseConstants::STEP_DEL:
+								del += 1;
+								matmisdel -= 1;
+								break;
+							case libmaus2::lcs::BaseConstants::STEP_INS:
+								ins += 1;
+								break;
+							default:
+								break;
+						}
+
+					for ( int64_t i = 0; i < E.slide && (matmisdel || matmisdelskip); ++i )
+					{
+						if ( matmisdelskip )
+							matmisdelskip -= 1;
+						else
+						{
+							mat += 1;
+							matmisdel -= 1;
+						}
+					}
+				}
+
+				MatMisDelResult DMR;
+				DMR.mat = mat;
+				DMR.mis = mis;
+				DMR.ins = ins;
+				DMR.del = del;
+
+				return DMR;
+			}
+
 			std::map<int64_t, uint64_t> getDiagonalHistogram() const
 			{
 				std::stack < int64_t > S;
@@ -393,6 +470,185 @@ namespace libmaus2
 					out << indent << opline << "\n";
 					o = 0;
 				}
+			}
+
+			struct NNPTraceContainerDecoder
+			{
+				NNPTraceContainer const & A;
+				std::stack < int64_t > SA;
+
+				std::deque< std::pair < libmaus2::lcs::BaseConstants::step_type, uint64_t > > Q;
+
+				libmaus2::lcs::BaseConstants::step_type peekslot;
+				bool peekslotfilled;
+
+				NNPTraceContainerDecoder(NNPTraceContainer const & rA) : A(rA), peekslotfilled(false)
+				{
+					for ( int64_t curtraceid = A.traceid ; curtraceid >= 0; curtraceid = A.Atrace[curtraceid].parent )
+						SA.push(curtraceid);
+				}
+
+				bool peekNext(libmaus2::lcs::BaseConstants::step_type & step)
+				{
+					if ( ! peekslotfilled )
+						peekslotfilled = getNext(peekslot);
+
+					step = peekslot;
+					return peekslotfilled;
+				}
+
+				bool getNext(libmaus2::lcs::BaseConstants::step_type & step)
+				{
+					if ( peekslotfilled )
+					{
+						step = peekslot;
+						peekslotfilled = false;
+						return true;
+					}
+
+					while ( ! Q.size() )
+					{
+						if ( SA.empty() )
+							return false;
+
+						NNPTraceElement const & E = A.Atrace[SA.top()];
+						SA.pop();
+
+						switch ( E.step )
+						{
+							case libmaus2::lcs::BaseConstants::STEP_INS:
+							case libmaus2::lcs::BaseConstants::STEP_DEL:
+							case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
+								Q.push_back(std::pair < libmaus2::lcs::BaseConstants::step_type, uint64_t >(E.step,1));
+								break;
+							default:
+								break;
+						}
+
+						if ( E.slide )
+							Q.push_back(std::pair < libmaus2::lcs::BaseConstants::step_type, uint64_t >(libmaus2::lcs::BaseConstants::STEP_MATCH,E.slide));
+					}
+
+					assert ( Q.size() );
+					assert ( Q.front().second );
+
+					step = Q.front().first;
+
+					if ( ! (--(Q.front().second)) )
+						Q.pop_front();
+
+					return true;
+				}
+			};
+
+			static bool cross(
+				NNPTraceContainer const & A, int64_t aapos, int64_t abpos,
+				NNPTraceContainer const & B, int64_t bapos, int64_t bbpos
+			)
+			{
+				NNPTraceContainerDecoder decA(A);
+				NNPTraceContainerDecoder decB(B);
+
+				libmaus2::lcs::BaseConstants::step_type stepA;
+				libmaus2::lcs::BaseConstants::step_type stepB;
+
+				while ( (! (aapos == bapos && abpos == bbpos)) && decA.peekNext(stepA) && decB.peekNext(stepB) )
+				{
+					if ( (aapos < bapos) || (aapos == bapos && abpos < bbpos) )
+					{
+						decA.getNext(stepA);
+
+						switch ( stepA )
+						{
+							case ::libmaus2::lcs::BaseConstants::STEP_INS:
+								abpos += 1;
+								break;
+							case libmaus2::lcs::BaseConstants::STEP_DEL:
+								aapos += 1;
+								break;
+							case libmaus2::lcs::BaseConstants::STEP_MATCH:
+							case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
+								aapos += 1;
+								abpos += 1;
+							default:
+								break;
+						}
+					}
+					else
+					{
+						assert ( (bapos < aapos) || (bapos == aapos && bbpos < abpos) );
+
+						decB.getNext(stepB);
+
+						switch ( stepB )
+						{
+							case libmaus2::lcs::BaseConstants::STEP_INS:
+								bbpos += 1;
+								break;
+							case libmaus2::lcs::BaseConstants::STEP_DEL:
+								bapos += 1;
+								break;
+							case libmaus2::lcs::BaseConstants::STEP_MATCH:
+							case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
+								bapos += 1;
+								bbpos += 1;
+							default:
+								break;
+						}
+					}
+				}
+
+				while ( (! (aapos == bapos && abpos == bbpos)) && decA.peekNext(stepA) )
+				{
+					decA.getNext(stepA);
+
+					switch ( stepA )
+					{
+						case ::libmaus2::lcs::BaseConstants::STEP_INS:
+							abpos += 1;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_DEL:
+							aapos += 1;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_MATCH:
+						case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
+							aapos += 1;
+							abpos += 1;
+						default:
+							break;
+					}
+				}
+
+				while ( (! (aapos == bapos && abpos == bbpos)) && decB.peekNext(stepB) )
+				{
+					decB.getNext(stepB);
+
+					switch ( stepB )
+					{
+						case libmaus2::lcs::BaseConstants::STEP_INS:
+							bbpos += 1;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_DEL:
+							bapos += 1;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_MATCH:
+						case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
+							bapos += 1;
+							bbpos += 1;
+						default:
+							break;
+					}
+
+				}
+
+				bool const cr = (aapos == bapos && abpos == bbpos);
+
+				#if 0
+				if ( cr )
+					std::cerr << "cross at (" << aapos << "," << abpos << "),(" << bapos << "," << bbpos << ")" << std::endl;
+				#endif
+
+				return cr;
 			}
 
 			static void computeTrace(libmaus2::autoarray::AutoArray<NNPTraceElement> const & Atrace, int64_t const traceid, libmaus2::lcs::AlignmentTraceContainer & ATC)
