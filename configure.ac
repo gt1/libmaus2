@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.150,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
-LIBRARY_VERSION=2:150:0
+AC_INIT(libmaus2,2.0.151,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
+LIBRARY_VERSION=2:151:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -1136,6 +1136,33 @@ AC_TRY_COMPILE([],[__builtin_popcount(4ul)],[sse4flag=yes],[sse4flag=no])
 AC_MSG_RESULT([${sse4flag}])
 CXXFLAGS="${CXXFLAGS_SAVE}"
 AC_LANG_POP
+
+LIBMAUS2_HAVE_MMAP=
+LIBMAUS2_HAVE_MMAP_HUGEPAGES=
+
+AC_LANG_PUSH([C++])
+CXXFLAGS_SAVE="${CXXFLAGS}"
+AC_MSG_CHECKING([for mmap])
+AC_TRY_COMPILE([#include <sys/mman.h>],[void *p = 0; mmap(p,0,0,0,-1,0);],[have_mmap=yes],[have_mmap=no])
+AC_MSG_RESULT([${have_mmap}])
+CXXFLAGS="${CXXFLAGS_SAVE}"
+AC_LANG_POP
+
+if test ${have_mmap} = "yes" ; then
+	LIBMAUS2_HAVE_MMAP="#define LIBMAUS2_HAVE_MMAP"
+
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	AC_MSG_CHECKING([for mmap flag MAP_HUGETLB])
+	AC_TRY_COMPILE([#include <sys/mman.h>],[void *p = 0; mmap(p,0,0,MAP_HUGETLB,-1,0);],[have_mmap_huge=yes],[have_mmap_huge=no])
+	AC_MSG_RESULT([${have_mmap_huge}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+	
+	if test ${have_mmap_huge} = "yes" ; then
+		LIBMAUS2_HAVE_MMAP_HUGEPAGES="#define LIBMAUS2_HAVE_MMAP_HUGEPAGES"
+	fi
+fi
 
 WARNCPPFLAGS=
 
@@ -3597,4 +3624,6 @@ AC_SUBST([LIBMAUS2_LZMA_CPPFLAGS])
 AC_SUBST([LIBMAUS2_LZMA_REQ])
 AC_SUBST([LIBMAUS2_IRODS_NEED_PREFIX])
 AC_SUBST([LIBMAUS2_NETTLE_HAVE_SHA3])
+AC_SUBST([LIBMAUS2_HAVE_MMAP])
+AC_SUBST([LIBMAUS2_HAVE_MMAP_HUGEPAGES])
 AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2lsf.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp)
