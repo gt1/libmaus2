@@ -38,8 +38,10 @@ namespace libmaus2
 		{
 			static unsigned int const input_buffer_size = 64*1024;
 
+			private:
 			z_stream strm;
 
+			public:
 			typedef libmaus2::aio::InputStreamInstance istr_file_type;
 			typedef ::libmaus2::util::unique_ptr<istr_file_type>::type istr_file_ptr_type;
 

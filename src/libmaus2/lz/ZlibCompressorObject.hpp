@@ -34,8 +34,11 @@ namespace libmaus2
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			int const level;
+
+			private:
 			z_stream strm;
 
+			public:
 			uint64_t inputBound;
 			uint64_t outputBound;
 

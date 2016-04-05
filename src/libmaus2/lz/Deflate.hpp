@@ -39,7 +39,10 @@ namespace libmaus2
 
 			typedef libmaus2::aio::OutputStreamInstance::unique_ptr_type out_file_ptr_type;
 
+			private:
 			z_stream strm;
+
+			public:
 			out_file_ptr_type out_ptr;
 			std::ostream & out;
 			::libmaus2::autoarray::AutoArray<Bytef> Bin;
