@@ -67,6 +67,42 @@ namespace libmaus2
 				return out;
 			}
 
+			std::map<int64_t, uint64_t> getDiagonalHistogram() const
+			{
+				std::stack < int64_t > S;
+
+				for ( int64_t curtraceid = traceid ; curtraceid >= 0; curtraceid = Atrace[curtraceid].parent )
+					S.push(curtraceid);
+
+				std::map<int64_t,uint64_t> M;
+
+				int64_t apos = 0, bpos = 0;
+
+				while ( ! S.empty() )
+				{
+					NNPTraceElement const & E = Atrace[S.top()];
+					S.pop();
+
+					switch ( E.step )
+					{
+						case libmaus2::lcs::BaseConstants::STEP_DEL:
+							apos += 1;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_INS:
+							bpos += 1;
+							break;
+						default:
+							break;
+					}
+
+					int64_t const d = apos-bpos;
+
+					M [ d ] += E.slide;
+				}
+
+				return M;
+			}
+
 			std::pair<uint64_t,uint64_t> getStringLengthUsed() const
 			{
 				uint64_t alen = 0, blen = 0;

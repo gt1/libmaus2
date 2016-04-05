@@ -479,4 +479,28 @@ bool libmaus2::util::I386CacheLineSize::hasAVX2()
 
 	return true;
 }
+/**
+ * @return true if CPU supports PCLMULDQ
+ **/
+bool libmaus2::util::I386CacheLineSize::hasPCLMULDQ()
+{
+	uint32_t eax, ebx, ecx, edx;
+
+	eax = 0;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+
+	if ( 1 > eax )
+		return false;
+
+	eax = 1;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+
+	return ((ecx>>1)&1) == 1;
+}
 #endif

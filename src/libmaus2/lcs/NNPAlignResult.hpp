@@ -43,6 +43,11 @@ namespace libmaus2
 			{
 
 			}
+
+			double getErrorRate() const
+			{
+				return (static_cast<double>(dif) / static_cast<double>(aepos-abpos));
+			}
 		};
 
 		std::ostream & operator<<(std::ostream & out, NNPAlignResult const & O);
