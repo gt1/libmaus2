@@ -58,6 +58,48 @@ namespace libmaus2
 
 			}
 
+			static std::vector<uint64_t> periods(step_type const * ta, step_type const * te, uint64_t first)
+			{
+				std::vector<uint64_t> V;
+
+				while ( ta != te )
+				{
+					V.push_back(first);
+
+					uint64_t mat = 0, mis = 0, ins = 0, del = 0;
+
+					while ( ta != te && mat+mis+del < first )
+					{
+						switch ( *(ta++) )
+						{
+							case STEP_MATCH:
+								mat += 1;
+								break;
+							case STEP_MISMATCH:
+								mis += 1;
+								break;
+							case STEP_DEL:
+								del += 1;
+								break;
+							case STEP_INS:
+								ins += 1;
+								break;
+							default:
+								break;
+						}
+					}
+
+					first = mat + mis + ins;
+				}
+
+				return V;
+			}
+
+			std::vector<uint64_t> periods(uint64_t first) const
+			{
+				return periods(ta,te,first);
+			}
+
 			std::vector < std::pair<step_type,uint64_t> > getOpBlocks() const
 			{
 				std::vector < std::pair<step_type,uint64_t> > R;
