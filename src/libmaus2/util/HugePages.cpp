@@ -19,7 +19,7 @@
 
 libmaus2::util::HugePages::~HugePages()
 {
-	#if defined(__linux__)
+	#if defined(__linux__) && defined(LIBMAUS2_HAVE_MMAP_HUGEPAGES)
 	if ( base )
 	{
 		munmap(base,alloc);
@@ -170,8 +170,7 @@ void * libmaus2::util::HugePages::hpmalloc(size_t const rs, size_t const align)
 	#endif
 
 	// check();
-
-	#if defined(__linux__)
+	#if defined(__linux__) && defined(LIBMAUS2_HAVE_MMAP_HUGEPAGES)
 	init();
 
 	size_t const s = rs;
@@ -445,7 +444,7 @@ uint64_t libmaus2::util::HugePages::parseUnitNumber(std::string const & value)
 
 void libmaus2::util::HugePages::init()
 {
-	#if defined(__linux__)
+	#if defined(__linux__) && defined(LIBMAUS2_HAVE_MMAP_HUGEPAGES)
 	if ( ! setup )
 	{
 		if ( meminfo.find("Hugepagesize") == meminfo.end() )
@@ -571,7 +570,7 @@ std::map<std::string,std::string> libmaus2::util::HugePages::getFileMap(std::str
 
 libmaus2::util::HugePages::HugePages() : setup(false), alloc(0), base(0), cmpblock(new MemoryBlock())
 {
-	#if defined(__linux__)
+	#if defined(__linux__) && defined(LIBMAUS2_HAVE_MMAP_HUGEPAGES)
 	meminfo = getFileMap("/proc/meminfo");
 	#endif
 }
