@@ -180,6 +180,48 @@ namespace libmaus2
 				return M;
 			}
 
+			std::pair<int64_t,int64_t> getDiagonalBand(int64_t apos, int64_t bpos) const
+			{
+				std::stack < int64_t > S;
+
+				for ( int64_t curtraceid = traceid ; curtraceid >= 0; curtraceid = Atrace[curtraceid].parent )
+					S.push(curtraceid);
+
+				std::map<int64_t,uint64_t> M;
+
+				int64_t dmin = apos-bpos;
+				int64_t dmax = dmin;
+
+				while ( ! S.empty() )
+				{
+					NNPTraceElement const & E = Atrace[S.top()];
+					S.pop();
+
+					switch ( E.step )
+					{
+						case libmaus2::lcs::BaseConstants::STEP_DEL:
+							apos += 1;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_INS:
+							bpos += 1;
+							break;
+						default:
+							break;
+					}
+
+					int64_t const d = apos-bpos;
+
+					if ( d < dmin )
+						dmin = d;
+					if ( dmax < d )
+						dmax = d;
+
+					M [ d ] += E.slide;
+				}
+
+				return std::pair<int64_t,int64_t>(dmin,dmax);
+			}
+
 			std::pair<uint64_t,uint64_t> getStringLengthUsed() const
 			{
 				uint64_t alen = 0, blen = 0;
