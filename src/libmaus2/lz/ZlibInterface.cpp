@@ -53,7 +53,7 @@ struct ZlibFunctions
 	unsigned long (*p_deflateBound)(z_stream *, unsigned long);
 
 	ZlibFunctions(std::string const & libname) :
-		zlib(libname),
+		zlib(libname, RTLD_LOCAL),
 		zlib_inflateReset(zlib,"inflateReset"),
 		zlib_inflateInit(zlib,"inflateInit_"),
 		zlib_inflateInit2(zlib,"inflateInit2_"),

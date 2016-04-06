@@ -55,7 +55,7 @@ namespace libmaus2
 			 *
 			 * @param rmodname name of module to be opened
 			 **/
-			DynamicLibrary(std::string const & rmodname);
+			DynamicLibrary(std::string const & rmodname, int addflags = 0);
 			/**
 			 * destructor, unloads module
 			 **/

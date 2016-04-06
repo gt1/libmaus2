@@ -74,14 +74,14 @@ static std::string getLibraryName()
 }
 #endif
 
-libmaus2::util::DynamicLibrary::DynamicLibrary(std::string const & rmodname)
+libmaus2::util::DynamicLibrary::DynamicLibrary(std::string const & rmodname, int addflags)
 : modname(rmodname), lib(0)
 {
 	// try without subdirectory (uninstalled module)
 	#if defined(__linux__)
-	lib = dlopen(modname.c_str(),RTLD_LAZY | RTLD_NODELETE);
+	lib = dlopen(modname.c_str(),RTLD_LAZY | RTLD_NODELETE | addflags);
 	#else
-	lib = dlopen(modname.c_str(),RTLD_LAZY);
+	lib = dlopen(modname.c_str(),RTLD_LAZY | addflags);
 	#endif
 
 	// if not found then try with directory (installed module)
@@ -89,9 +89,9 @@ libmaus2::util::DynamicLibrary::DynamicLibrary(std::string const & rmodname)
 	{
 		std::string const instmodname = getLibraryPath() + std::string("/") + std::string(PACKAGE_NAME)+std::string("/")+std::string(PACKAGE_VERSION)+std::string("/")+modname;
 		#if defined(__linux__)
-		lib = dlopen(instmodname.c_str(),RTLD_LAZY | RTLD_NODELETE);
+		lib = dlopen(instmodname.c_str(),RTLD_LAZY | RTLD_NODELETE | addflags);
 		#else
-		lib = dlopen(instmodname.c_str(),RTLD_LAZY);
+		lib = dlopen(instmodname.c_str(),RTLD_LAZY | addflags);
 		#endif
 	}
 
