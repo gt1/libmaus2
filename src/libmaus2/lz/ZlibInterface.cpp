@@ -265,7 +265,10 @@ static libmaus2::util::Destructable::shared_ptr_type getFunctionSet(std::string 
 						{
 							#if defined(LIBMAUS2_HAVE_i386)
 							reqok = reqok && libmaus2::util::I386CacheLineSize::hasFeature(feature.c_str());
-							std::cerr << "checked " << feature << " for platform " << platform << " reqok=" << reqok << std::endl;
+							// std::cerr << "checked " << feature << " for platform " << platform << " reqok=" << reqok << std::endl;
+							#else
+							// wrong platform
+							reqok = false;
 							#endif
 						}
 					}
