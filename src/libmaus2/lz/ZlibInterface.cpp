@@ -21,24 +21,30 @@
 #include <cassert>
 #include <libmaus2/util/DynamicLoading.hpp>
 #include <zlib.h>
+#include <libmaus2/util/stringFunctions.hpp>
+#include <libmaus2/util/I386CacheLineSize.hpp>
 
 libmaus2::parallel::PosixMutex libmaus2::lz::ZlibInterface::initlock;
 
 #if defined(LIBMAUS2_HAVE_DL_FUNCS)
+#include <dlfcn.h>
+#endif
+
+#if defined(LIBMAUS2_HAVE_DL_FUNCS) && defined(RTLD_DEEPBIND) && defined(RTLD_LOCAL)
 struct ZlibFunctions
 {
-	libmaus2::util::DynamicLibrary zlib;
-	libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_inflateReset;
-	libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_inflateInit;
-	libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_inflateInit2;
-	libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_inflateEnd;
-	libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_inflate;
-	libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_deflateReset;
-	libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_deflateInit;
-	libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_deflateInit2;
-	libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_deflateEnd;
-	libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_deflate;
-	libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_deflateBound;
+	libmaus2::util::DynamicLibrary::unique_ptr_type zlib;
+	libmaus2::util::DynamicLibraryFunction< void (*)(void) >::unique_ptr_type zlib_inflateReset;
+	libmaus2::util::DynamicLibraryFunction< void (*)(void) >::unique_ptr_type zlib_inflateInit;
+	libmaus2::util::DynamicLibraryFunction< void (*)(void) >::unique_ptr_type zlib_inflateInit2;
+	libmaus2::util::DynamicLibraryFunction< void (*)(void) >::unique_ptr_type zlib_inflateEnd;
+	libmaus2::util::DynamicLibraryFunction< void (*)(void) >::unique_ptr_type zlib_inflate;
+	libmaus2::util::DynamicLibraryFunction< void (*)(void) >::unique_ptr_type zlib_deflateReset;
+	libmaus2::util::DynamicLibraryFunction< void (*)(void) >::unique_ptr_type zlib_deflateInit;
+	libmaus2::util::DynamicLibraryFunction< void (*)(void) >::unique_ptr_type zlib_deflateInit2;
+	libmaus2::util::DynamicLibraryFunction< void (*)(void) >::unique_ptr_type zlib_deflateEnd;
+	libmaus2::util::DynamicLibraryFunction< void (*)(void) >::unique_ptr_type zlib_deflate;
+	libmaus2::util::DynamicLibraryFunction< void (*)(void) >::unique_ptr_type zlib_deflateBound;
 
 	int (*p_inflateReset)(z_stream *);
 	int (*p_inflateEnd)(z_stream *);
@@ -52,30 +58,44 @@ struct ZlibFunctions
 	int (*p_deflate)(z_stream *, int);
 	unsigned long (*p_deflateBound)(z_stream *, unsigned long);
 
+	ZlibFunctions() :
+		p_inflateReset(reinterpret_cast< int (*)(z_stream *) >(::inflateReset)),
+		p_inflateEnd(reinterpret_cast< int (*)(z_stream *) >(::inflateEnd)),
+		p_inflateInit(reinterpret_cast< int (*)(z_stream *, char const *, int) >(::inflateInit_)),
+		p_inflateInit2(reinterpret_cast< int (*)(z_stream *, int, char const *, int) >(::inflateInit2_)),
+		p_inflate(reinterpret_cast< int (*)(z_stream *, int) >(::inflate)),
+		p_deflateReset(reinterpret_cast< int (*)(z_stream *) >(::deflateReset)),
+		p_deflateEnd(reinterpret_cast< int (*)(z_stream *) >(::deflateEnd)),
+		p_deflateInit(reinterpret_cast< int (*)(z_stream *, int, char const *, int) >(::deflateInit_)),
+		p_deflateInit2(reinterpret_cast< int (*)(z_stream *, int, int, int, int, int, char const *, int) >(::deflateInit2_)),
+		p_deflate(reinterpret_cast< int (*)(z_stream *, int) >(::deflate)),
+		p_deflateBound(reinterpret_cast< unsigned long (*)(z_stream *, unsigned long) >(deflateBound))
+	{}
+
 	ZlibFunctions(std::string const & libname) :
-		zlib(libname, RTLD_LOCAL),
-		zlib_inflateReset(zlib,"inflateReset"),
-		zlib_inflateInit(zlib,"inflateInit_"),
-		zlib_inflateInit2(zlib,"inflateInit2_"),
-		zlib_inflateEnd(zlib,"inflateEnd"),
-		zlib_inflate(zlib,"inflate"),
-		zlib_deflateReset(zlib,"deflateReset"),
-		zlib_deflateInit(zlib,"deflateInit_"),
-		zlib_deflateInit2(zlib,"deflateInit2_"),
-		zlib_deflateEnd(zlib,"deflateEnd"),
-		zlib_deflate(zlib,"deflate"),
-		zlib_deflateBound(zlib,"deflateBound"),
-		p_inflateReset(reinterpret_cast< int (*)(z_stream *) >(zlib_inflateReset.func)),
-		p_inflateEnd(reinterpret_cast< int (*)(z_stream *) >(zlib_inflateEnd.func)),
-		p_inflateInit(reinterpret_cast< int (*)(z_stream *, char const *, int) >(zlib_inflateInit.func)),
-		p_inflateInit2(reinterpret_cast< int (*)(z_stream *, int, char const *, int) >(zlib_inflateInit2.func)),
-		p_inflate(reinterpret_cast< int (*)(z_stream *, int) >(zlib_inflate.func)),
-		p_deflateReset(reinterpret_cast< int (*)(z_stream *) >(zlib_deflateReset.func)),
-		p_deflateEnd(reinterpret_cast< int (*)(z_stream *) >(zlib_deflateEnd.func)),
-		p_deflateInit(reinterpret_cast< int (*)(z_stream *, int, char const *, int) >(zlib_deflateInit.func)),
-		p_deflateInit2(reinterpret_cast< int (*)(z_stream *, int, int, int, int, int, char const *, int) >(zlib_deflateInit2.func)),
-		p_deflate(reinterpret_cast< int (*)(z_stream *, int) >(zlib_deflate.func)),
-		p_deflateBound(reinterpret_cast< unsigned long (*)(z_stream *, unsigned long) >(zlib_deflateBound.func))
+		zlib(new libmaus2::util::DynamicLibrary(libname, RTLD_LOCAL | RTLD_DEEPBIND)),
+		zlib_inflateReset(new libmaus2::util::DynamicLibraryFunction< void (*)(void) >(*zlib,"inflateReset")),
+		zlib_inflateInit(new libmaus2::util::DynamicLibraryFunction< void (*)(void) >(*zlib,"inflateInit_")),
+		zlib_inflateInit2(new libmaus2::util::DynamicLibraryFunction< void (*)(void) >(*zlib,"inflateInit2_")),
+		zlib_inflateEnd(new libmaus2::util::DynamicLibraryFunction< void (*)(void) >(*zlib,"inflateEnd")),
+		zlib_inflate(new libmaus2::util::DynamicLibraryFunction< void (*)(void) >(*zlib,"inflate")),
+		zlib_deflateReset(new libmaus2::util::DynamicLibraryFunction< void (*)(void) >(*zlib,"deflateReset")),
+		zlib_deflateInit(new libmaus2::util::DynamicLibraryFunction< void (*)(void) >(*zlib,"deflateInit_")),
+		zlib_deflateInit2(new libmaus2::util::DynamicLibraryFunction< void (*)(void) >(*zlib,"deflateInit2_")),
+		zlib_deflateEnd(new libmaus2::util::DynamicLibraryFunction< void (*)(void) >(*zlib,"deflateEnd")),
+		zlib_deflate(new libmaus2::util::DynamicLibraryFunction< void (*)(void) >(*zlib,"deflate")),
+		zlib_deflateBound(new libmaus2::util::DynamicLibraryFunction< void (*)(void) >(*zlib,"deflateBound")),
+		p_inflateReset(reinterpret_cast< int (*)(z_stream *) >(zlib_inflateReset->func)),
+		p_inflateEnd(reinterpret_cast< int (*)(z_stream *) >(zlib_inflateEnd->func)),
+		p_inflateInit(reinterpret_cast< int (*)(z_stream *, char const *, int) >(zlib_inflateInit->func)),
+		p_inflateInit2(reinterpret_cast< int (*)(z_stream *, int, char const *, int) >(zlib_inflateInit2->func)),
+		p_inflate(reinterpret_cast< int (*)(z_stream *, int) >(zlib_inflate->func)),
+		p_deflateReset(reinterpret_cast< int (*)(z_stream *) >(zlib_deflateReset->func)),
+		p_deflateEnd(reinterpret_cast< int (*)(z_stream *) >(zlib_deflateEnd->func)),
+		p_deflateInit(reinterpret_cast< int (*)(z_stream *, int, char const *, int) >(zlib_deflateInit->func)),
+		p_deflateInit2(reinterpret_cast< int (*)(z_stream *, int, int, int, int, int, char const *, int) >(zlib_deflateInit2->func)),
+		p_deflate(reinterpret_cast< int (*)(z_stream *, int) >(zlib_deflate->func)),
+		p_deflateBound(reinterpret_cast< unsigned long (*)(z_stream *, unsigned long) >(zlib_deflateBound->func))
 	{
 
 	}
@@ -161,7 +181,7 @@ struct ZlibFunctions
 
 		try
 		{
-			f = new ZlibFunctions(s);
+			f = s.size() ? new ZlibFunctions(s)  : new ZlibFunctions();
 			libmaus2::util::Destructable::unique_ptr_type tptr(libmaus2::util::Destructable::construct(f,destruct));
 			return UNIQUE_PTR_MOVE(tptr);
 		}
@@ -178,7 +198,7 @@ struct ZlibFunctions
 
 		try
 		{
-			f = new ZlibFunctions(s);
+			f = s.size() ? new ZlibFunctions(s) : new ZlibFunctions();
 			libmaus2::util::Destructable::shared_ptr_type tptr(libmaus2::util::Destructable::sconstruct(f,destruct));
 			return tptr;
 		}
@@ -197,16 +217,114 @@ static std::map < std::string, libmaus2::util::Destructable::shared_ptr_type > f
 static libmaus2::util::Destructable::shared_ptr_type getFunctionSet(std::string const & fn)
 {
 	libmaus2::parallel::ScopePosixMutex slock(libmaus2::lz::ZlibInterface::initlock);
-	if ( fmap.find(fn) == fmap.end() )
+
+	std::deque<std::string> libs = libmaus2::util::stringFunctions::tokenize<std::string>(fn,std::string(1,'\n'));
+
+	for ( uint64_t i = 0; i < libs.size(); ++i )
 	{
-		libmaus2::util::Destructable::shared_ptr_type tptr = ZlibFunctions::sconstruct(fn);
-		fmap[fn] = tptr;
+		std::string const libline = libs[i];
+
+		// no text in line?
+		if ( ! libline.size() )
+			continue;
+
+		std::deque<std::string> liblinetokens = libmaus2::util::stringFunctions::tokenize<std::string>(libline,std::string(1,'\t'));
+
+		// no name? try next
+		if ( ! liblinetokens.size() )
+			continue;
+
+		// library name
+		std::string const libname = liblinetokens.at(0);
+
+		// if library is not yet loaded
+		if ( fmap.find(libname) == fmap.end() )
+		{
+			bool reqok = true;
+
+			// check, whether library requirements are fulfilled
+			if ( liblinetokens.size() > 1 )
+			{
+				std::string const libreqs = liblinetokens.at(1);
+
+				std::deque<std::string> libreqtokens = libmaus2::util::stringFunctions::tokenize<std::string>(libreqs,std::string(1,','));
+
+				for ( uint64_t i = 0; i < libreqtokens.size(); ++i )
+				{
+					std::string const libreqtoken = libreqtokens[i];
+
+					// fail if we cannot parse the requested features
+					if ( libreqtoken.find(':') == std::string::npos )
+						reqok = false;
+					else
+					{
+						std::string const platform = libreqtoken.substr(0,libreqtoken.find(':'));
+						std::string const feature = libreqtoken.substr(libreqtoken.find(':')+1);
+
+						if ( platform == "i386" )
+						{
+							#if defined(LIBMAUS2_HAVE_i386)
+							reqok = reqok && libmaus2::util::I386CacheLineSize::hasFeature(feature.c_str());
+							std::cerr << "checked " << feature << " for platform " << platform << " reqok=" << reqok << std::endl;
+							#endif
+						}
+					}
+				}
+			}
+
+			// requirements not fulfilled, mark as unavailable by inserting null pointer
+			if ( ! reqok )
+			{
+				fmap[libname] = libmaus2::util::Destructable::shared_ptr_type();
+				continue;
+			}
+
+			try
+			{
+				libmaus2::util::Destructable::shared_ptr_type tptr = ZlibFunctions::sconstruct(libname);
+				fmap[libname] = tptr;
+				std::cerr << "got " << libname << std::endl;
+			}
+			catch(...)
+			{
+				// failed to load, insert null pointer
+				fmap[libname] = libmaus2::util::Destructable::shared_ptr_type();
+			}
+		}
+		assert ( fmap.find(libname) != fmap.end() );
+
+		libmaus2::util::Destructable::shared_ptr_type tptr = fmap.find(libname)->second;
+
+		if ( tptr )
+			return tptr;
 	}
-	assert ( fmap.find(fn) != fmap.end() );
 
-	libmaus2::util::Destructable::shared_ptr_type tptr = fmap.find(fn)->second;
+	// try builtin
+	if ( fmap.find(std::string()) == fmap.end() )
+	{
+		try
+		{
+			libmaus2::util::Destructable::shared_ptr_type tptr = ZlibFunctions::sconstruct(std::string());
+			fmap[std::string()] = tptr;
+		}
+		catch(...)
+		{
+			fmap[std::string()] = libmaus2::util::Destructable::shared_ptr_type();
+		}
+	}
 
-	return tptr;
+	if ( fmap.find(std::string()) == fmap.end() )
+	{
+		libmaus2::exception::LibMausException lme;
+		lme.getStream() << "ZlibInterface: no suitable library available" << std::endl;
+		lme.finish();
+		throw lme;
+	}
+	else
+	{
+		libmaus2::util::Destructable::shared_ptr_type tptr = fmap.find(std::string())->second;
+		return tptr;
+	}
 }
 
 libmaus2::lz::ZlibInterface::ZlibInterface(std::string const & libname) : context(createContext()), intf(getFunctionSet(libname))

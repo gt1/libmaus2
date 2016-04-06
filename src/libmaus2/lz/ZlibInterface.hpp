@@ -48,7 +48,12 @@ namespace libmaus2
 			public:
 			~ZlibInterface();
 
-			static std::string getDefaultZLibName() { return "libz.so"; }
+			// static std::string getDefaultZLibName() { return std::string(); } // return "../lib/libz_cf.so\nlibz.so\n"; }
+			static std::string getDefaultZLibName() {
+				return
+					"../lib/libz_cf.so\ti386:sse4_2,i386:pclmulqdq\n"
+					"libz.so\t\n";
+			}
 			static unique_ptr_type construct(std::string const & libname = getDefaultZLibName());
 
 			void eraseContext();
