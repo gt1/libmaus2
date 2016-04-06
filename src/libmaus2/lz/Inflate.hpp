@@ -25,10 +25,12 @@
 #include <libmaus2/exception/LibMausException.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/util/NumberSerialisation.hpp>
-#include <zlib.h>
 #include <cassert>
 
 #include <libmaus2/timing/RealTimeClock.hpp>
+
+#include <zlib.h>
+#include <libmaus2/lz/ZlibInterface.hpp>
 
 namespace libmaus2
 {
@@ -39,7 +41,7 @@ namespace libmaus2
 			static unsigned int const input_buffer_size = 64*1024;
 
 			private:
-			z_stream strm;
+			libmaus2::lz::ZlibInterface::unique_ptr_type strm;
 
 			public:
 			typedef libmaus2::aio::InputStreamInstance istr_file_type;
@@ -55,7 +57,7 @@ namespace libmaus2
 
 			void zreset()
 			{
-				if ( (ret=inflateReset(&strm)) != Z_OK )
+				if ( (ret=strm->z_inflateReset()) != Z_OK )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Inflate::zreset(): inflateReset failed";
@@ -70,18 +72,17 @@ namespace libmaus2
 
 			void init(int windowSizeLog)
 			{
-				memset(&strm,0,sizeof(z_stream));
-
-				strm.zalloc = Z_NULL;
-				strm.zfree = Z_NULL;
-				strm.opaque = Z_NULL;
-				strm.avail_in = 0;
-				strm.next_in = Z_NULL;
+				strm->eraseContext();
+				strm->setZAlloc(Z_NULL);
+				strm->setZFree(Z_NULL);
+				strm->setOpaque(Z_NULL);
+				strm->setAvailIn(0);
+				strm->setNextIn(Z_NULL);
 
 				if ( windowSizeLog )
-					ret = inflateInit2(&strm,windowSizeLog);
+					ret = strm->z_inflateInit2(windowSizeLog);
 				else
-					ret = inflateInit(&strm);
+					ret = strm->z_inflateInit();
 
 				if (ret != Z_OK)
 				{
@@ -93,19 +94,21 @@ namespace libmaus2
 			}
 
 			Inflate(std::istream & rin, int windowSizeLog = 0)
-			: in(rin), inbuf(input_buffer_size,false), outbuf(16*1024,false), outbuffill(0), op(0)
+			: strm(libmaus2::lz::ZlibInterface::construct()), in(rin), inbuf(input_buffer_size,false), outbuf(16*1024,false), outbuffill(0), op(0)
 			{
 				init(windowSizeLog);
 			}
 			Inflate(std::string const & filename, int windowSizeLog = 0)
-			: pin(new istr_file_type(filename)),
+			:
+			  strm(libmaus2::lz::ZlibInterface::construct()),
+			  pin(new istr_file_type(filename)),
 			  in(*pin), inbuf(input_buffer_size,false), outbuf(16*1024,false), outbuffill(0), op(0)
 			{
 				init(windowSizeLog);
 			}
 			~Inflate()
 			{
-				inflateEnd(&strm);
+				strm->z_inflateEnd();
 			}
 
 			int get()
@@ -164,8 +167,8 @@ namespace libmaus2
 					if ( ! read )
 					{
 						// std::cerr << "Found EOF in fillBuffer()" << std::endl;
-						strm.avail_in = 0;
-						strm.next_in = 0;
+						strm->setAvailIn(0);
+						strm->setNextIn(0);
 						return false;
 					}
 					else
@@ -173,21 +176,21 @@ namespace libmaus2
 						// std::cerr << "Got " << read << " in fillBuffer()" << std::endl;
 					}
 
-					strm.avail_in = read;
-					strm.next_in = reinterpret_cast<Bytef *>(inbuf.get());
+					strm->setAvailIn(read);
+					strm->setNextIn(reinterpret_cast<Bytef *>(inbuf.get()));
 
-					while ( (strm.avail_in != 0) && (ret == Z_OK) )
+					while ( (strm->getAvailIn() != 0) && (ret == Z_OK) )
 					{
 						if ( outbuffill == outbuf.size() )
 							outbuf.resize(outbuf.size() + 16*1024);
 
 						uint64_t const avail_out = outbuf.size() - outbuffill;
-						strm.avail_out = avail_out;
-						strm.next_out = reinterpret_cast<Bytef *>(outbuf.get() + outbuffill);
-						ret = inflate(&strm, Z_NO_FLUSH);
+						strm->setAvailOut(avail_out);
+						strm->setNextOut(reinterpret_cast<Bytef *>(outbuf.get() + outbuffill));
+						ret = strm->z_inflate(Z_NO_FLUSH);
 
 						if ( ret == Z_OK || ret == Z_STREAM_END )
-							outbuffill += (avail_out - strm.avail_out);
+							outbuffill += (avail_out - strm->getAvailOut());
 					}
 				}
 
@@ -221,7 +224,7 @@ namespace libmaus2
 			std::pair<uint8_t const *, uint8_t const *> getRest() const
 			{
 				return std::pair<uint8_t const *, uint8_t const *>(
-					strm.next_in,strm.next_in+strm.avail_in
+					strm->getNextIn(),strm->getNextIn()+strm->getAvailIn()
 				);
 			}
 
@@ -230,8 +233,8 @@ namespace libmaus2
 				if ( in.eof() )
 					in.clear();
 
-				for ( uint64_t i = 0; i < strm.avail_in; ++i )
-					in.putback(strm.next_in[strm.avail_in-i-1]);
+				for ( uint64_t i = 0; i < strm->getAvailIn(); ++i )
+					in.putback(strm->getNextIn()[strm->getAvailIn()-i-1]);
 			}
 		};
 	}

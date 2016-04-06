@@ -251,7 +251,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/suffixsort/bwtb3m/BwtComputeSSA.cpp \
 	libmaus2/fastx/FastAToCompact4BigBand.cpp \
 	libmaus2/suffixsort/bwtb3m/BwtMergeSortResult.cpp \
-	libmaus2/util/HugePages.cpp
+	libmaus2/util/HugePages.cpp \
+	libmaus2/lz/ZlibInterface.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -465,7 +466,8 @@ libmaus2lz_include_HEADERS = libmaus2/lz/Inflate.hpp libmaus2/lz/Deflate.hpp lib
 	libmaus2/lz/XzInputStreamBuffer.hpp \
 	libmaus2/lz/XzInputStream.hpp \
 	libmaus2/lz/BlockInflate.hpp \
-	libmaus2/lz/ConcatBlockInflate.hpp
+	libmaus2/lz/ConcatBlockInflate.hpp \
+	libmaus2/lz/ZlibInterface.hpp
 
 libmaus2bambam_includedir=$(includedir)/libmaus2/bambam/
 libmaus2bambam_include_HEADERS = libmaus2/bambam/DecoderBase.hpp libmaus2/bambam/Chromosome.hpp \
@@ -1182,7 +1184,8 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/ContainerElementFreeList.hpp \
 	libmaus2/util/HugePages.hpp \
 	libmaus2/util/HugePageAllocator.hpp \
-	libmaus2/util/StringAllocTypes.hpp
+	libmaus2/util/StringAllocTypes.hpp \
+	libmaus2/util/Destructable.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
