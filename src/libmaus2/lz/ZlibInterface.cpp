@@ -368,77 +368,66 @@ char const * libmaus2::lz::ZlibInterface::getMsg() const
 
 int libmaus2::lz::ZlibInterface::z_inflateReset()
 {
-	//int (*p_inflateReset)(z_stream *) = reinterpret_cast< int (*)(z_stream *) >(zlib_inflateReset.func);
 	z_stream * strm = reinterpret_cast<z_stream *>(context->getObject());
 	return reinterpret_cast<ZlibFunctions *>(intf->getObject())->p_inflateReset(strm);
 }
 
 int libmaus2::lz::ZlibInterface::z_inflateEnd()
 {
-	//int (*p_inflateEnd)(z_stream *) = reinterpret_cast< int (*)(z_stream *) >(zlib_inflateEnd.func);
 	z_stream * strm = reinterpret_cast<z_stream *>(context->getObject());
 	return reinterpret_cast<ZlibFunctions *>(intf->getObject())->p_inflateEnd(strm);
 }
 
 int libmaus2::lz::ZlibInterface::z_inflateInit()
 {
-	//int (*p_inflateInit)(z_stream *, char const *, int) = reinterpret_cast< int (*)(z_stream *, char const *, int) >(zlib_inflateInit.func);
 	z_stream * strm = reinterpret_cast<z_stream *>(context->getObject());
 	return reinterpret_cast<ZlibFunctions *>(intf->getObject())->p_inflateInit(strm, ZLIB_VERSION, static_cast<int>(sizeof(z_stream)));
 }
 
 int libmaus2::lz::ZlibInterface::z_inflateInit2(int windowbits)
 {
-	//int (*p_inflateInit2)(z_stream *, int, char const *, int) = reinterpret_cast< int (*)(z_stream *, int, char const *, int) >(zlib_inflateInit2.func);
 	z_stream * strm = reinterpret_cast<z_stream *>(context->getObject());
 	return reinterpret_cast<ZlibFunctions *>(intf->getObject())->p_inflateInit2(strm, windowbits, ZLIB_VERSION, static_cast<int>(sizeof(z_stream)));
 }
 
 int libmaus2::lz::ZlibInterface::z_inflate(int flush)
 {
-	//int (*p_inflate)(z_stream *, int) = reinterpret_cast< int (*)(z_stream *, int) >(zlib_inflate.func);
 	z_stream * strm = reinterpret_cast<z_stream *>(context->getObject());
 	return reinterpret_cast<ZlibFunctions *>(intf->getObject())->p_inflate(strm,flush);
 }
 
 int libmaus2::lz::ZlibInterface::z_deflateReset()
 {
-	//int (*p_deflateReset)(z_stream *) = reinterpret_cast< int (*)(z_stream *) >(zlib_deflateReset.func);
 	z_stream * strm = reinterpret_cast<z_stream *>(context->getObject());
 	return reinterpret_cast<ZlibFunctions *>(intf->getObject())->p_deflateReset(strm);
 }
 
 int libmaus2::lz::ZlibInterface::z_deflateEnd()
 {
-	//int (*p_deflateEnd)(z_stream *) = reinterpret_cast< int (*)(z_stream *) >(zlib_deflateEnd.func);
 	z_stream * strm = reinterpret_cast<z_stream *>(context->getObject());
 	return reinterpret_cast<ZlibFunctions *>(intf->getObject())->p_deflateEnd(strm);
 }
 
 int libmaus2::lz::ZlibInterface::z_deflateInit(int level)
 {
-	//int (*p_deflateInit)(z_stream *, int, char const *, int) = reinterpret_cast< int (*)(z_stream *, int, char const *, int) >(zlib_deflateInit.func);
 	z_stream * strm = reinterpret_cast<z_stream *>(context->getObject());
 	return reinterpret_cast<ZlibFunctions *>(intf->getObject())->p_deflateInit(strm, level, ZLIB_VERSION, static_cast<int>(sizeof(z_stream)));
 }
 
 int libmaus2::lz::ZlibInterface::z_deflateInit2(int level, int method, int windowBits, int memLevel, int strategy)
 {
-	// int (*p_deflateInit2)(z_stream *, int, int, int, int, int, char const *, int) = reinterpret_cast< int (*)(z_stream *, int, int, int, int, int, char const *, int) >(zlib_deflateInit2.func);
 	z_stream * strm = reinterpret_cast<z_stream *>(context->getObject());
 	return reinterpret_cast<ZlibFunctions *>(intf->getObject())->p_deflateInit2(strm, level, method, windowBits, memLevel, strategy, ZLIB_VERSION, static_cast<int>(sizeof(z_stream)));
 }
 
 int libmaus2::lz::ZlibInterface::z_deflate(int flush)
 {
-	// int (*p_deflate)(z_stream *, int) = reinterpret_cast< int (*)(z_stream *, int) >(zlib_deflate.func);
 	z_stream * strm = reinterpret_cast<z_stream *>(context->getObject());
 	return reinterpret_cast<ZlibFunctions *>(intf->getObject())->p_deflate(strm,flush);
 }
 
 unsigned long libmaus2::lz::ZlibInterface::z_deflateBound(unsigned long in)
 {
-	//unsigned long (*p_deflateBound)(z_stream *, unsigned long) = reinterpret_cast< unsigned long (*)(z_stream *, unsigned long) >(zlib_deflateBound.func);
 	z_stream * strm = reinterpret_cast<z_stream *>(context->getObject());
 	return reinterpret_cast<ZlibFunctions *>(intf->getObject())->p_deflateBound(strm,in);
 }
