@@ -655,10 +655,10 @@ namespace libmaus2
 				// run backward alignment from seedpos
 				if ( self )
 				{
-					if ( seedposa >= seedposb )
-						minfdiag = std::max(static_cast<int64_t>(seedposb) - static_cast<int64_t>(seedposa) + 1,minfdiag);
-					if ( seedposb >= seedposa )
-						maxfdiag = std::min(static_cast<int64_t>(seedposb) - static_cast<int64_t>(seedposa) - 1,maxfdiag);
+					if ( seedposa+ab >= seedposb+bb )
+						minfdiag = std::max(static_cast<int64_t>(((seedposb+bb) - (seedposa+ab)) + 1),minfdiag);
+					if ( seedposb+bb >= seedposa+ab )
+						maxfdiag = std::min(static_cast<int64_t>(((seedposb+bb) - (seedposa+ab)) - 1),maxfdiag);
 
 					//std::cerr << "minfdiag=" << minfdiag << " maxfdiag=" << maxfdiag << std::endl;
 				}

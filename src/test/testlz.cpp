@@ -26,6 +26,8 @@
 #include <libmaus2/util/GetFileSize.hpp>
 #include <libmaus2/lz/Deflate.hpp>
 #include <libmaus2/lz/Inflate.hpp>
+#include <libmaus2/lz/BlockInflate.hpp>
+#include <libmaus2/lz/ConcatBlockInflate.hpp>
 #include <libmaus2/lz/BgzfInflateStream.hpp>
 #include <libmaus2/lz/BgzfDeflate.hpp>
 #include <libmaus2/lz/BgzfDeflateParallel.hpp>

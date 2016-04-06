@@ -23,6 +23,7 @@
 #include <ostream>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/lz/GzipHeader.hpp>
+#include <libmaus2/lz/ZlibInterface.hpp>
 
 namespace libmaus2
 {
@@ -35,7 +36,7 @@ namespace libmaus2
 			uint64_t const buffersize;
 			::libmaus2::autoarray::AutoArray<char> inbuffer;
 			::libmaus2::autoarray::AutoArray<char> outbuffer;
-			z_stream strm;
+			libmaus2::lz::ZlibInterface::unique_ptr_type zintf;
 			uint32_t crc;
 			uint32_t isize;
 
@@ -44,11 +45,11 @@ namespace libmaus2
 
 			void init(int const level)
 			{
-				memset ( &strm , 0, sizeof(z_stream) );
-				strm.zalloc = Z_NULL;
-				strm.zfree = Z_NULL;
-				strm.opaque = Z_NULL;
-				int ret = deflateInit2(&strm, level, Z_DEFLATED, -15 /* window size */,
+				zintf->eraseContext();
+				zintf->setZAlloc(Z_NULL);
+				zintf->setZFree(Z_NULL);
+				zintf->setOpaque(Z_NULL);
+				int ret = zintf->z_deflateInit2(level, Z_DEFLATED, -15 /* window size */,
 					8 /* mem level, gzip default */, Z_DEFAULT_STRATEGY);
 				if ( ret != Z_OK )
 				{
@@ -66,17 +67,17 @@ namespace libmaus2
 
 				if ( ! terminated )
 				{
-					strm.avail_in = n;
-					strm.next_in  = reinterpret_cast<Bytef *>(pbase());
+					zintf->setAvailIn(n);
+					zintf->setNextIn(reinterpret_cast<Bytef *>(pbase()));
 
-					crc = crc32(crc, strm.next_in, strm.avail_in);
-					isize += strm.avail_in;
+					crc = crc32(crc, zintf->getNextIn(), zintf->getAvailIn());
+					isize += zintf->getAvailIn();
 
 					do
 					{
-						strm.avail_out = outbuffer.size();
-						strm.next_out  = reinterpret_cast<Bytef *>(outbuffer.begin());
-						int ret = deflate(&strm,Z_NO_FLUSH);
+						zintf->setAvailOut(outbuffer.size());
+						zintf->setNextOut(reinterpret_cast<Bytef *>(outbuffer.begin()));
+						int ret = zintf->z_deflate(Z_NO_FLUSH);
 						if ( ret == Z_STREAM_ERROR )
 						{
 							::libmaus2::exception::LibMausException se;
@@ -84,13 +85,13 @@ namespace libmaus2
 							se.finish();
 							throw se;
 						}
-						uint64_t const have = outbuffer.size() - strm.avail_out;
+						uint64_t const have = outbuffer.size() - zintf->getAvailOut();
 						out.write(reinterpret_cast<char const *>(outbuffer.begin()),have);
 						compressedwritten += have;
 					}
-					while (strm.avail_out == 0);
+					while (zintf->getAvailOut() == 0);
 
-					assert ( strm.avail_in == 0);
+					assert ( zintf->getAvailIn() == 0);
 				}
 				else if ( n )
 				{
@@ -109,11 +110,11 @@ namespace libmaus2
 
 					do
 					{
-						strm.avail_in = 0;
-						strm.next_in = 0;
-						strm.avail_out = outbuffer.size();
-						strm.next_out = reinterpret_cast<Bytef *>(outbuffer.begin());
-						ret = deflate(&strm,Z_FULL_FLUSH);
+						zintf->setAvailIn(0);
+						zintf->setNextIn(Z_NULL);
+						zintf->setAvailOut(outbuffer.size());
+						zintf->setNextOut(reinterpret_cast<Bytef *>(outbuffer.begin()));
+						ret = zintf->z_deflate(Z_FULL_FLUSH);
 						if ( ret == Z_STREAM_ERROR )
 						{
 							::libmaus2::exception::LibMausException se;
@@ -121,12 +122,12 @@ namespace libmaus2
 							se.finish();
 							throw se;
 						}
-						uint64_t have = outbuffer.size() - strm.avail_out;
+						uint64_t have = outbuffer.size() - zintf->getAvailOut();
 						out.write(reinterpret_cast<char const *>(outbuffer.begin()),have);
 						compressedwritten += have;
 
 						// std::cerr << "Writing " << have << " bytes in flush" << std::endl;
-					} while (strm.avail_out == 0);
+					} while (zintf->getAvailOut() == 0);
 
 					assert ( ret == Z_OK );
 				}
@@ -141,11 +142,11 @@ namespace libmaus2
 
 					do
 					{
-						strm.avail_in = 0;
-						strm.next_in = 0;
-						strm.avail_out = outbuffer.size();
-						strm.next_out = reinterpret_cast<Bytef *>(outbuffer.begin());
-						ret = deflate(&strm,Z_FINISH );
+						zintf->setAvailIn(0);
+						zintf->setNextIn(Z_NULL);
+						zintf->setAvailOut(outbuffer.size());
+						zintf->setNextOut(reinterpret_cast<Bytef *>(outbuffer.begin()));
+						ret = zintf->z_deflate(Z_FINISH);
 						if ( ret == Z_STREAM_ERROR )
 						{
 							::libmaus2::exception::LibMausException se;
@@ -153,12 +154,12 @@ namespace libmaus2
 							se.finish();
 							throw se;
 						}
-						uint64_t have = outbuffer.size() - strm.avail_out;
+						uint64_t have = outbuffer.size() - zintf->getAvailOut();
 						out.write(reinterpret_cast<char const *>(outbuffer.begin()),have);
 						compressedwritten += have;
 
 						// std::cerr << "Writing " << have << " bytes in flush" << std::endl;
-					} while (strm.avail_out == 0);
+					} while (zintf->getAvailOut() == 0);
 
 					assert ( ret == Z_STREAM_END );
 				}
@@ -171,7 +172,7 @@ namespace libmaus2
 					doSync();
 					doFinish();
 
-					deflateEnd(&strm);
+					zintf->z_deflateEnd();
 
 					// crc
 					out . put ( (crc >> 0)  & 0xFF );
@@ -197,6 +198,7 @@ namespace libmaus2
 			public:
 			GzipOutputStreamBuffer(std::ostream & rout, uint64_t const rbuffersize, int const level = Z_DEFAULT_COMPRESSION)
 			: out(rout), buffersize(rbuffersize), inbuffer(buffersize,false), outbuffer(buffersize,false),
+			  zintf(libmaus2::lz::ZlibInterface::construct()),
 			  crc(crc32(0,0,0)), isize(0), compressedwritten(0), terminated(false)
 			{
 				compressedwritten += libmaus2::lz::GzipHeaderConstantsBase::writeSimpleHeader(out);

@@ -20,6 +20,7 @@
 #define LIBMAUS2_LZ_RAZFDECODERBUFFER_HPP
 
 #include <libmaus2/lz/RAZFIndex.hpp>
+#include <libmaus2/lz/ZlibInterface.hpp>
 #include <streambuf>
 #include <istream>
 
@@ -35,7 +36,7 @@ namespace libmaus2
 
 			libmaus2::lz::RAZFIndex const index;
 
-			z_stream zstream;
+			libmaus2::lz::ZlibInterface::unique_ptr_type zintf;
 
 			::libmaus2::autoarray::AutoArray<char> inbuffer;
 			::libmaus2::autoarray::AutoArray<char> outbuffer;
@@ -47,15 +48,16 @@ namespace libmaus2
 
 			void init()
 			{
-				zstream.zalloc = Z_NULL;
-				zstream.zfree = Z_NULL;
-				zstream.opaque = Z_NULL;
-				zstream.avail_in = 0;
-				zstream.next_in = Z_NULL;
-				zstream.avail_out = 0;
-				zstream.next_out = Z_NULL;
+				zintf->eraseContext();
+				zintf->setZAlloc(Z_NULL);
+				zintf->setZFree(Z_NULL);
+				zintf->setOpaque(Z_NULL);
+				zintf->setAvailIn(0);
+				zintf->setNextIn(Z_NULL);
+				zintf->setAvailOut(0);
+				zintf->setNextOut(Z_NULL);
 
-				int const ok = inflateInit2(&zstream,-static_cast<int>(razf_window_bits));
+				int const ok = zintf->z_inflateInit2(-static_cast<int>(razf_window_bits));
 
 				if ( ok != Z_OK )
 				{
@@ -72,12 +74,12 @@ namespace libmaus2
 				stream.clear();
 				stream.seekg(index[symsread / razf_block_size],std::ios::beg);
 
-				zstream.avail_in = 0;
-				zstream.next_in = Z_NULL;
-				zstream.avail_out = 0;
-				zstream.next_out = Z_NULL;
+				zintf->setAvailIn(0);
+				zintf->setNextIn(Z_NULL);
+				zintf->setAvailOut(0);
+				zintf->setNextOut(Z_NULL);
 
-				if ( inflateReset(&zstream) != Z_OK )
+				if ( zintf->z_inflateReset() != Z_OK )
 				{
 					libmaus2::exception::LibMausException se;
 					se.getStream() << "RAZFDecoderBuffer::setup(): inflateReset() failed" << std::endl;
@@ -91,6 +93,7 @@ namespace libmaus2
 			: Pfilestream(new ::libmaus2::aio::InputStreamInstance(filename)),
 			  stream(*Pfilestream),
 			  index(stream),
+			  zintf(libmaus2::lz::ZlibInterface::construct()),
 			  inbuffer(razf_block_size,false),
 			  outbuffer(razf_block_size,false),
 			  symsread(0)
@@ -103,6 +106,7 @@ namespace libmaus2
 			: Pfilestream(),
 			  stream(rstream),
 			  index(stream),
+			  zintf(libmaus2::lz::ZlibInterface::construct()),
 			  inbuffer(razf_block_size,false),
 			  outbuffer(razf_block_size,false),
 			  symsread(0)
@@ -113,7 +117,7 @@ namespace libmaus2
 
 			~RAZFDecoderBuffer()
 			{
-				inflateEnd(&zstream);
+				zintf->z_inflateEnd();
 			}
 
 			private:
@@ -209,14 +213,14 @@ namespace libmaus2
 				//
 				uint64_t const toread = std::min(symsleft,razf_block_size);
 
-				zstream.next_out = reinterpret_cast<Bytef *>(outbuffer.begin());
-				zstream.avail_out = toread;
+				zintf->setNextOut(reinterpret_cast<Bytef *>(outbuffer.begin()));
+				zintf->setAvailOut(toread);
 
-				while ( zstream.avail_out )
+				while ( zintf->getAvailOut() )
 				{
-					if ( ! zstream.avail_in )
+					if ( ! zintf->getAvailIn() )
 					{
-						zstream.next_in = reinterpret_cast<Bytef *>(inbuffer.begin());
+						zintf->setNextIn(reinterpret_cast<Bytef *>(inbuffer.begin()));
 
 						stream.read(inbuffer.begin(),inbuffer.size());
 
@@ -228,10 +232,10 @@ namespace libmaus2
 							throw se;
 						}
 
-						zstream.avail_in = stream.gcount();
+						zintf->setAvailIn(stream.gcount());
 					}
 
-					int const r = inflate(&zstream,Z_NO_FLUSH);
+					int const r = zintf->z_inflate(Z_NO_FLUSH);
 
 					switch ( r )
 					{

@@ -17,18 +17,20 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(INFLATE_HPP)
-#define INFLATE_HPP
+#if ! defined(LIBMAUS2_LZ_INFLATE_HPP)
+#define LIBMAUS2_LZ_INFLATE_HPP
 
 #include <libmaus2/types/types.hpp>
 #include <libmaus2/util/unique_ptr.hpp>
 #include <libmaus2/exception/LibMausException.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/util/NumberSerialisation.hpp>
-#include <zlib.h>
 #include <cassert>
 
 #include <libmaus2/timing/RealTimeClock.hpp>
+
+#include <zlib.h>
+#include <libmaus2/lz/ZlibInterface.hpp>
 
 namespace libmaus2
 {
@@ -38,8 +40,10 @@ namespace libmaus2
 		{
 			static unsigned int const input_buffer_size = 64*1024;
 
-			z_stream strm;
+			private:
+			libmaus2::lz::ZlibInterface::unique_ptr_type strm;
 
+			public:
 			typedef libmaus2::aio::InputStreamInstance istr_file_type;
 			typedef ::libmaus2::util::unique_ptr<istr_file_type>::type istr_file_ptr_type;
 
@@ -53,7 +57,7 @@ namespace libmaus2
 
 			void zreset()
 			{
-				if ( (ret=inflateReset(&strm)) != Z_OK )
+				if ( (ret=strm->z_inflateReset()) != Z_OK )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Inflate::zreset(): inflateReset failed";
@@ -68,18 +72,17 @@ namespace libmaus2
 
 			void init(int windowSizeLog)
 			{
-				memset(&strm,0,sizeof(z_stream));
-
-				strm.zalloc = Z_NULL;
-				strm.zfree = Z_NULL;
-				strm.opaque = Z_NULL;
-				strm.avail_in = 0;
-				strm.next_in = Z_NULL;
+				strm->eraseContext();
+				strm->setZAlloc(Z_NULL);
+				strm->setZFree(Z_NULL);
+				strm->setOpaque(Z_NULL);
+				strm->setAvailIn(0);
+				strm->setNextIn(Z_NULL);
 
 				if ( windowSizeLog )
-					ret = inflateInit2(&strm,windowSizeLog);
+					ret = strm->z_inflateInit2(windowSizeLog);
 				else
-					ret = inflateInit(&strm);
+					ret = strm->z_inflateInit();
 
 				if (ret != Z_OK)
 				{
@@ -91,19 +94,21 @@ namespace libmaus2
 			}
 
 			Inflate(std::istream & rin, int windowSizeLog = 0)
-			: in(rin), inbuf(input_buffer_size,false), outbuf(16*1024,false), outbuffill(0), op(0)
+			: strm(libmaus2::lz::ZlibInterface::construct()), in(rin), inbuf(input_buffer_size,false), outbuf(16*1024,false), outbuffill(0), op(0)
 			{
 				init(windowSizeLog);
 			}
 			Inflate(std::string const & filename, int windowSizeLog = 0)
-			: pin(new istr_file_type(filename)),
+			:
+			  strm(libmaus2::lz::ZlibInterface::construct()),
+			  pin(new istr_file_type(filename)),
 			  in(*pin), inbuf(input_buffer_size,false), outbuf(16*1024,false), outbuffill(0), op(0)
 			{
 				init(windowSizeLog);
 			}
 			~Inflate()
 			{
-				inflateEnd(&strm);
+				strm->z_inflateEnd();
 			}
 
 			int get()
@@ -162,8 +167,8 @@ namespace libmaus2
 					if ( ! read )
 					{
 						// std::cerr << "Found EOF in fillBuffer()" << std::endl;
-						strm.avail_in = 0;
-						strm.next_in = 0;
+						strm->setAvailIn(0);
+						strm->setNextIn(0);
 						return false;
 					}
 					else
@@ -171,21 +176,21 @@ namespace libmaus2
 						// std::cerr << "Got " << read << " in fillBuffer()" << std::endl;
 					}
 
-					strm.avail_in = read;
-					strm.next_in = reinterpret_cast<Bytef *>(inbuf.get());
+					strm->setAvailIn(read);
+					strm->setNextIn(reinterpret_cast<Bytef *>(inbuf.get()));
 
-					while ( (strm.avail_in != 0) && (ret == Z_OK) )
+					while ( (strm->getAvailIn() != 0) && (ret == Z_OK) )
 					{
 						if ( outbuffill == outbuf.size() )
 							outbuf.resize(outbuf.size() + 16*1024);
 
 						uint64_t const avail_out = outbuf.size() - outbuffill;
-						strm.avail_out = avail_out;
-						strm.next_out = reinterpret_cast<Bytef *>(outbuf.get() + outbuffill);
-						ret = inflate(&strm, Z_NO_FLUSH);
+						strm->setAvailOut(avail_out);
+						strm->setNextOut(reinterpret_cast<Bytef *>(outbuf.get() + outbuffill));
+						ret = strm->z_inflate(Z_NO_FLUSH);
 
 						if ( ret == Z_OK || ret == Z_STREAM_END )
-							outbuffill += (avail_out - strm.avail_out);
+							outbuffill += (avail_out - strm->getAvailOut());
 					}
 				}
 
@@ -219,7 +224,7 @@ namespace libmaus2
 			std::pair<uint8_t const *, uint8_t const *> getRest() const
 			{
 				return std::pair<uint8_t const *, uint8_t const *>(
-					strm.next_in,strm.next_in+strm.avail_in
+					strm->getNextIn(),strm->getNextIn()+strm->getAvailIn()
 				);
 			}
 
@@ -228,322 +233,8 @@ namespace libmaus2
 				if ( in.eof() )
 					in.clear();
 
-				for ( uint64_t i = 0; i < strm.avail_in; ++i )
-					in.putback(strm.next_in[strm.avail_in-i-1]);
-			}
-		};
-
-		struct BlockInflate
-		{
-			typedef BlockInflate this_type;
-			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-
-			typedef libmaus2::aio::InputStreamInstance istream_type;
-			typedef ::libmaus2::util::unique_ptr<istream_type>::type istream_ptr_type;
-
-			std::vector < std::pair<uint64_t,uint64_t> > index;
-			uint64_t blockptr;
-			uint64_t n;
-
-			istream_ptr_type Pistr;
-			istream_type & istr;
-
-			::libmaus2::autoarray::AutoArray<uint8_t,::libmaus2::autoarray::alloc_type_c> B;
-			uint8_t * pa;
-			uint8_t * pc;
-			uint8_t * pe;
-
-			static std::vector < std::pair<uint64_t,uint64_t> > loadIndex(std::string const & filename)
-			{
-				libmaus2::aio::InputStreamInstance istr(filename);
-				std::vector < std::pair<uint64_t,uint64_t> > index;
-
-				istr.seekg(-8,std::ios::end);
-				uint64_t const indexpos = ::libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
-				// std::cerr << "index at position " << indexpos << std::endl;
-				istr.seekg(indexpos,std::ios::beg);
-				uint64_t const indexlen = ::libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
-				// std::cerr << "indexlen " << indexlen << std::endl;
-				for ( uint64_t i = 0; i < indexlen; ++i )
-				{
-					uint64_t const blockpos = ::libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
-					uint64_t const blocklen = ::libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
-					index.push_back(std::pair<uint64_t,uint64_t>(blockpos,blocklen));
-					// std::cerr << "blockpos=" << blockpos << " blocklen=" << blocklen << std::endl;
-				}
-				istr.seekg(0,std::ios::beg);
-
-				return index;
-			}
-
-			static uint64_t computeSize(std::vector < std::pair<uint64_t,uint64_t> > const & index)
-			{
-				uint64_t n = 0;
-				for ( uint64_t i = 0; i < index.size(); ++i )
-					n += index[i].second;
-				return n;
-			}
-
-			static uint64_t computeSize(std::string const & filename)
-			{
-				return computeSize(loadIndex(filename));
-			}
-
-			static uint64_t computeSize(std::vector<std::string> const & filenames)
-			{
-				uint64_t n = 0;
-				for ( uint64_t i = 0; i < filenames.size(); ++i )
-					n += computeSize(filenames[i]);
-				return n;
-			}
-
-			static std::vector<uint64_t> computeSizeVector(std::vector<std::string> const & filenames)
-			{
-				std::vector<uint64_t> sizes;
-				for ( uint64_t i = 0; i < filenames.size(); ++i )
-					sizes.push_back ( computeSize(filenames[i]) );
-				return sizes;
-			}
-
-			BlockInflate(std::string const & filename, uint64_t pos = 0)
-			: index(loadIndex(filename)), blockptr(0), n(computeSize(index)),
-			  Pistr(new istream_type(filename)), istr(*Pistr),
-			  B(), pa(0), pc(0), pe(0)
-			{
-				// std::cerr << "pos=" << pos << std::endl;
-				while ( blockptr < index.size() && pos >= index[blockptr].second )
-				{
-					pos -= index[blockptr].second;
-					blockptr++;
-				}
-				// std::cerr << "pos=" << pos << std::endl;
-				decodeBlock();
-				assert ( pc + pos <= pe );
-				pc += pos;
-			}
-
-			uint64_t read(uint8_t * p, uint64_t n)
-			{
-				uint64_t red = 0;
-
-				while ( n )
-				{
-					// std::cerr << "n=" << n << " red=" << red << std::endl;
-
-					if ( pc == pe )
-					{
-						if ( ! decodeBlock() )
-							return red;
-					}
-
-					uint64_t const toread = std::min(static_cast<uint64_t>(pe-pc),n);
-					std::copy ( pc, pc + toread, p );
-					pc += toread;
-					p += toread;
-					red += toread;
-					n -= toread;
-				}
-
-				return red;
-			}
-
-			int get()
-			{
-				if ( pc == pe )
-				{
-					if ( ! decodeBlock() )
-						return -1;
-				}
-				assert ( pc != pe );
-				return *(pc++);
-			}
-
-			bool decodeBlock()
-			{
-				if ( blockptr >= index.size() )
-					return false;
-
-				istr.clear();
-				istr.seekg ( index[blockptr].first, std::ios::beg );
-				uint64_t const blocklen = ::libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
-				if ( B.size() < blocklen )
-				{
-					B.resize(blocklen);
-				}
-				pa = B.begin();
-				pc = pa;
-				pe = pa + blocklen;
-				Inflate inflate(istr);
-				inflate.read(reinterpret_cast<char *>(pa),blocklen);
-
-				blockptr++;
-				return true;
-			}
-
-			::libmaus2::autoarray::AutoArray<uint8_t> getReverse()
-			{
-				::libmaus2::autoarray::AutoArray<uint8_t> A(n,false);
-				uint8_t * outptr = A.begin();
-
-				for ( uint64_t i = 0; i < index.size(); ++i )
-				{
-					blockptr = index.size()-i-1;
-					decodeBlock();
-					std::reverse(pa,pe);
-					while ( pc != pe )
-						*(outptr++) = *(pc++);
-				}
-
-				assert ( outptr == A.end() );
-
-				return A;
-			}
-		};
-
-		struct ConcatBlockInflate
-		{
-			typedef ConcatBlockInflate this_type;
-			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-
-			std::vector<std::string> const filenames;
-			uint64_t fileptr;
-			std::vector < uint64_t > sizevec;
-
-			BlockInflate::unique_ptr_type BI;
-
-			uint64_t n;
-
-			template<typename filename_container_type>
-			ConcatBlockInflate(filename_container_type const & rfilenames, uint64_t offset)
-			: filenames(rfilenames.begin(),rfilenames.end()), fileptr(0),
-			  sizevec(BlockInflate::computeSizeVector(filenames)), n(0)
-			{
-				for ( uint64_t i = 0; i < sizevec.size(); ++i )
-				{
-					n += sizevec[i];
-				}
-
-				while ( fileptr < sizevec.size() && offset >= sizevec[fileptr] )
-				{
-					offset -= sizevec[fileptr];
-					fileptr++;
-				}
-
-				if ( fileptr < sizevec.size() )
-				{
-					assert ( offset < sizevec[fileptr] );
-					BlockInflate::unique_ptr_type tBI(new BlockInflate(filenames[fileptr],offset));
-					BI = UNIQUE_PTR_MOVE(tBI);
-					// BI->ignore(offset);
-				}
-				else
-				{
-					#if 0
-					std::cerr << "fileptr=" << fileptr << " offset=" << offset
-						<< " sizevec.size()=" << sizevec.size()
-						<< " filenames.size()=" << filenames.size()
-						<< std::endl;
-					#endif
-				}
-			}
-			template<typename filename_container_type>
-			static uint64_t size(filename_container_type const & rfilenames)
-			{
-				this_type CBI(rfilenames,0);
-				return CBI.n;
-			}
-
-			template<typename filename_container_type>
-			static std::vector<uint64_t> getSplitPoints(filename_container_type const & V, uint64_t const segments, uint64_t const numthreads)
-			{
-				std::vector<std::string> const VV(V.begin(),V.end());
-				uint64_t const n = BlockInflate::computeSize(VV);
-				std::vector < uint64_t > points(segments);
-
-				/*
-				 * compute the split points
-				 */
-				#if defined(_OPENMP)
-				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
-				#endif
-				for ( int64_t i = 0; i < static_cast<int64_t>(segments); ++i )
-				{
-					uint64_t const scanstart = std::min ( i * ((n+segments-1)/segments), n );
-					// std::cerr << "scanstart " << scanstart << std::endl;
-					this_type CD(VV,scanstart);
-					uint64_t offset = 0;
-					while ( (scanstart+offset < n) && (CD.get() != 0) )
-						offset++;
-					points[i] = scanstart + offset;
-					// std::cerr << "offset " << offset << std::endl;
-				}
-
-				/*
-				 * check that positions lead to terminators
-				 */
-				#if defined(_OPENMP)
-				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
-				#endif
-				for ( int64_t i = 0; i < static_cast<int64_t>(segments); ++i )
-					if ( points[i] != n )
-					{
-						this_type CD(VV,points[i]);
-						int const val = CD.get();
-						if ( val != 0 )
-						{
-							::libmaus2::exception::LibMausException se;
-							se.getStream() << "Failed to set correct split point at " << points[i]
-								<< " expected 0 got " << val
-								<< " point " << i << " points.size()=" << points.size()
-								<< std::endl;
-							se.finish();
-							throw se;
-						}
-					}
-
-				/*
-				 * add end of file
-				 */
-				points.push_back(n);
-
-				return points;
-			}
-
-			uint64_t read(uint8_t * p, uint64_t n)
-			{
-				uint64_t red = 0;
-
-				while ( n && BI )
-				{
-					uint64_t const lred = BI->read ( p, n );
-					p += lred;
-					n -= lred;
-					red += lred;
-
-					if ( ! lred )
-					{
-						fileptr++;
-						BI.reset();
-						if ( fileptr < filenames.size() )
-						{
-							BlockInflate::unique_ptr_type tBI(new BlockInflate(filenames[fileptr]));
-							BI = UNIQUE_PTR_MOVE(tBI);
-						}
-					}
-				}
-
-				return red;
-			}
-
-			int get()
-			{
-				uint8_t c;
-				uint64_t const red = read(&c,1);
-				// std::cerr << "c=" << c << " red=" << red << std::endl;
-				if ( red )
-					return c;
-				else
-					return -1;
+				for ( uint64_t i = 0; i < strm->getAvailIn(); ++i )
+					in.putback(strm->getNextIn()[strm->getAvailIn()-i-1]);
 			}
 		};
 	}

@@ -48,6 +48,30 @@ namespace libmaus2
 			{
 				return (static_cast<double>(dif) / static_cast<double>(aepos-abpos));
 			}
+
+			void shiftA(int64_t const s)
+			{
+				abpos = static_cast<uint64_t>(static_cast<int64_t>(abpos) + s);
+				aepos = static_cast<uint64_t>(static_cast<int64_t>(aepos) + s);
+			}
+
+			void shiftB(int64_t const s)
+			{
+				bbpos = static_cast<uint64_t>(static_cast<int64_t>(bbpos) + s);
+				bepos = static_cast<uint64_t>(static_cast<int64_t>(bepos) + s);
+			}
+
+			void shift(int64_t const s)
+			{
+				shiftA(s);
+				shiftB(s);
+			}
+
+			void shift(int64_t const sa, int64_t const sb)
+			{
+				shiftA(sa);
+				shiftB(sb);
+			}
 		};
 
 		std::ostream & operator<<(std::ostream & out, NNPAlignResult const & O);

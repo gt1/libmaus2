@@ -22,6 +22,7 @@
 #include <libmaus2/types/types.hpp>
 #include <libmaus2/lz/BgzfConstants.hpp>
 #include <libmaus2/lz/GzipHeader.hpp>
+#include <libmaus2/lz/ZlibInterface.hpp>
 #include <libmaus2/exception/LibMausException.hpp>
 #include <cstring>
 #include <zlib.h>
@@ -39,7 +40,7 @@ namespace libmaus2
 				if ( level >= Z_DEFAULT_COMPRESSION && level <= Z_BEST_COMPRESSION )
 				{
 					LocalDeflateInfo LDI(level);
-					return deflateBound(&(LDI.strm),blocksize);
+					return LDI.zintf->z_deflateBound(blocksize);
 				}
 				else
 				{
@@ -53,13 +54,14 @@ namespace libmaus2
 			}
 
 			public:
-			static void deflateinitz(z_stream * strm, int const level)
+			static void deflateinitz(libmaus2::lz::ZlibInterface * p, int const level)
 			{
-				memset ( strm , 0, sizeof(z_stream) );
-				strm->zalloc = Z_NULL;
-				strm->zfree = Z_NULL;
-				strm->opaque = Z_NULL;
-				int ret = deflateInit2(strm, level, Z_DEFLATED, -15 /* window size */,
+				p->eraseContext();
+
+				p->setZAlloc(Z_NULL);
+				p->setZFree(Z_NULL);
+				p->setOpaque(Z_NULL);
+				int ret = p->z_deflateInit2(level, Z_DEFLATED, -15 /* window size */,
 					8 /* mem level, gzip default */, Z_DEFAULT_STRATEGY);
 				if ( ret != Z_OK )
 				{
@@ -70,22 +72,23 @@ namespace libmaus2
 				}
 			}
 
-			static void deflatedestroyz(z_stream * strm)
+			static void deflatedestroyz(libmaus2::lz::ZlibInterface * p)
 			{
-				deflateEnd(strm);
+				p->z_deflateEnd();
 			}
 
 			struct LocalDeflateInfo
 			{
-				z_stream strm;
+				libmaus2::lz::ZlibInterface::unique_ptr_type zintf;
 
 				LocalDeflateInfo(int const level)
+				: zintf(libmaus2::lz::ZlibInterface::construct())
 				{
-					deflateinitz(&strm,level);
+					deflateinitz(zintf.get(),level);
 				}
 				~LocalDeflateInfo()
 				{
-					deflatedestroyz(&strm);
+					deflatedestroyz(zintf.get());
 				}
 			};
 
