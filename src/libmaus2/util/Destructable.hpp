@@ -44,6 +44,12 @@ namespace libmaus2
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 
+			static shared_ptr_type sconstruct(void * robject, void (*rdestruct)(void *))
+			{
+				shared_ptr_type tptr(new Destructable(robject,rdestruct));
+				return tptr;
+			}
+
 			virtual ~Destructable()
 			{
 				if ( destruct )

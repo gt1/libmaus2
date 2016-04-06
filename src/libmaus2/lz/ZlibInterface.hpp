@@ -19,9 +19,7 @@
 #define LIBMAUS2_LZ_ZLIBINTERFACE_HPP
 
 #include <libmaus2/util/Destructable.hpp>
-#include <libmaus2/util/DynamicLoading.hpp>
-
-#include <zlib.h>
+#include <libmaus2/parallel/PosixMutex.hpp>
 
 namespace libmaus2
 {
@@ -36,20 +34,11 @@ namespace libmaus2
 			typedef void * (*alloc_function)(void *,unsigned int, unsigned int);
 			typedef void (*free_function)(void *,void *);
 
+			static libmaus2::parallel::PosixMutex initlock;
+
 			private:
 			libmaus2::util::Destructable::unique_ptr_type context;
-			libmaus2::util::DynamicLibrary zlib;
-			libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_inflateReset;
-			libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_inflateInit;
-			libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_inflateInit2;
-			libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_inflateEnd;
-			libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_inflate;
-			libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_deflateReset;
-			libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_deflateInit;
-			libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_deflateInit2;
-			libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_deflateEnd;
-			libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_deflate;
-			libmaus2::util::DynamicLibraryFunction< void (*)(void) > zlib_deflateBound;
+			libmaus2::util::Destructable::shared_ptr_type intf;
 
 			ZlibInterface(std::string const & libname);
 
@@ -89,6 +78,7 @@ namespace libmaus2
 			unsigned char * getNextIn();
 			uint64_t getAvailIn() const;
 			uint64_t getTotalIn() const;
+			char const * getMsg() const;
 			void setZAlloc(alloc_function alloc);
 			alloc_function getZAlloc();
 			void setZFree(free_function f);

@@ -33,48 +33,46 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
+			libmaus2::lz::ZlibInterface::unique_ptr_type zintf;
 			int const level;
-
-			private:
-			z_stream strm;
 
 			public:
 			uint64_t inputBound;
 			uint64_t outputBound;
 
-			ZlibCompressorObject(int const rlevel = Z_DEFAULT_COMPRESSION) : level(rlevel), inputBound(0), outputBound(0)
+			ZlibCompressorObject(int const rlevel = Z_DEFAULT_COMPRESSION) : zintf(libmaus2::lz::ZlibInterface::construct()), level(rlevel), inputBound(0), outputBound(0)
 			{
-				BgzfDeflateHeaderFunctions::deflateinitz(&strm,level);
-				outputBound = deflateBound(&strm,inputBound);
+				BgzfDeflateHeaderFunctions::deflateinitz(zintf.get(),level);
+				outputBound = zintf->z_deflateBound(inputBound);
 			}
 			~ZlibCompressorObject()
 			{
-				BgzfDeflateHeaderFunctions::deflatedestroyz(&strm);
+				BgzfDeflateHeaderFunctions::deflatedestroyz(zintf.get());
 			}
 
 			virtual size_t compress(char const * input, size_t inputLength, libmaus2::autoarray::AutoArray<char> & output)
 			{
-				deflateReset(&strm);
+				zintf->z_deflateReset();
 
 				if ( inputLength > inputBound )
 				{
 					inputBound = inputLength;
-					outputBound = deflateBound(&strm,inputBound);
+					outputBound = zintf->z_deflateBound(inputBound);
 				}
 
 				if ( outputBound > output.size() )
 					output = libmaus2::autoarray::AutoArray<char>(outputBound,false);
 
 				// maximum number of output bytes
-				strm.avail_out = output.size();
+				zintf->setAvailOut(output.size());
 				// next compressed output byte
-				strm.next_out  = reinterpret_cast<Bytef *>(output.begin());
+				zintf->setNextOut(reinterpret_cast<Bytef *>(output.begin()));
 				// number of bytes to be compressed
-				strm.avail_in  = inputLength;
+				zintf->setAvailIn(inputLength);
 				// data to be compressed
-				strm.next_in   = const_cast<Bytef *>(reinterpret_cast<Bytef const *>(input));
+				zintf->setNextIn(const_cast<Bytef *>(reinterpret_cast<Bytef const *>(input)));
 
-				int const retcode = deflate(&strm,Z_FINISH);
+				int const retcode = zintf->z_deflate(Z_FINISH);
 
 				// std::cerr << "avail_out=" << strm.avail_out << std::endl;
 				// std::cerr << "avail_in=" << strm.avail_in << std::endl;
@@ -88,7 +86,7 @@ namespace libmaus2
 					throw se;
 				}
 
-				uint64_t const compsize = output.size() - strm.avail_out;
+				uint64_t const compsize = output.size() - zintf->getAvailOut();
 
 				return compsize;
 			}

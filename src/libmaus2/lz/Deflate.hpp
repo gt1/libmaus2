@@ -40,7 +40,7 @@ namespace libmaus2
 			typedef libmaus2::aio::OutputStreamInstance::unique_ptr_type out_file_ptr_type;
 
 			private:
-			z_stream strm;
+			libmaus2::lz::ZlibInterface::unique_ptr_type zintf;
 
 			public:
 			out_file_ptr_type out_ptr;
@@ -50,11 +50,12 @@ namespace libmaus2
 
 			void initNoHeader(int const level)
 			{
-				memset ( &strm , 0, sizeof(z_stream) );
-				strm.zalloc = Z_NULL;
-				strm.zfree = Z_NULL;
-				strm.opaque = Z_NULL;
-				int ret = deflateInit2(&strm, level, Z_DEFLATED, -15 /* window size */,
+				zintf->eraseContext();
+
+				zintf->setZAlloc(Z_NULL);
+				zintf->setZFree(Z_NULL);
+				zintf->setOpaque(Z_NULL);
+				int ret = zintf->z_deflateInit2(level, Z_DEFLATED, -15 /* window size */,
 					8 /* mem level, gzip default */, Z_DEFAULT_STRATEGY);
 				if ( ret != Z_OK )
 				{
@@ -69,11 +70,13 @@ namespace libmaus2
 
 			void init(int const level)
 			{
-				memset ( &strm , 0, sizeof(z_stream) );
-				strm.zalloc = Z_NULL;
-				strm.zfree = Z_NULL;
-				strm.opaque = Z_NULL;
-				int ret = deflateInit(&strm,level);
+				zintf->eraseContext();
+
+				zintf->setZAlloc(Z_NULL);
+				zintf->setZFree(Z_NULL);
+				zintf->setOpaque(Z_NULL);
+
+				int ret = zintf->z_deflateInit(level);
 				if ( ret != Z_OK )
 				{
 					::libmaus2::exception::LibMausException se;
@@ -89,7 +92,7 @@ namespace libmaus2
 				std::ostream & rout,
 				int level = Z_DEFAULT_COMPRESSION,
 				bool const addHeader = true
-			) : out(rout)
+			) : zintf(libmaus2::lz::ZlibInterface::construct()), out(rout)
 			{
 				if ( addHeader )
 					init(level);
@@ -101,7 +104,8 @@ namespace libmaus2
 				std::string const & filename,
 				int level = Z_DEFAULT_COMPRESSION,
 				bool const addHeader = true
-			) : out_ptr ( new libmaus2::aio::OutputStreamInstance(filename) ),
+			) : zintf(libmaus2::lz::ZlibInterface::construct()),
+			    out_ptr ( new libmaus2::aio::OutputStreamInstance(filename) ),
 			    out(*out_ptr)
 			{
 				if ( addHeader )
@@ -213,9 +217,9 @@ namespace libmaus2
 				while ( len )
 				{
 					uint64_t const clen = std::min(Bin.size(),len);
-					strm.avail_in = clen;
+					zintf->setAvailIn(clen);
 					std::copy(p,p+clen,Bin.begin());
-					strm.next_in = Bin.begin();
+					zintf->setNextIn(Bin.begin());
 
 					#if 0
 					std::cerr << "Feeding " <<
@@ -227,9 +231,9 @@ namespace libmaus2
 
 					do
 					{
-						strm.avail_out = Bout.size();
-						strm.next_out = Bout.begin();
-						int ret = deflate(&strm,Z_NO_FLUSH);
+						zintf->setAvailOut(Bout.size());
+						zintf->setNextOut(Bout.begin());
+						int ret = zintf->z_deflate(Z_NO_FLUSH);
 						if ( ret == Z_STREAM_ERROR )
 						{
 							::libmaus2::exception::LibMausException se;
@@ -237,11 +241,11 @@ namespace libmaus2
 							se.finish();
 							throw se;
 						}
-						uint64_t const have = Bout.size() - strm.avail_out;
+						uint64_t const have = Bout.size() - zintf->getAvailOut();
 						out.write(reinterpret_cast<char const *>(Bout.begin()),have);
-					} while (strm.avail_out == 0);
+					} while (zintf->getAvailOut() == 0);
 
-					assert ( strm.avail_in == 0);
+					assert ( zintf->getAvailIn() == 0);
 
 					len -= clen;
 					p += clen;
@@ -256,11 +260,11 @@ namespace libmaus2
 
 				do
 				{
-					strm.avail_in = 0;
-					strm.next_in = Bin.begin();
-					strm.avail_out = Bout.size();
-					strm.next_out = Bout.begin();
-					ret = deflate(&strm,Z_FINISH );
+					zintf->setAvailIn(0);
+					zintf->setNextIn(Bin.begin());
+					zintf->setAvailOut(Bout.size());
+					zintf->setNextOut(Bout.begin());
+					ret = zintf->z_deflate(Z_FINISH );
 					if ( ret == Z_STREAM_ERROR )
 					{
 						::libmaus2::exception::LibMausException se;
@@ -268,15 +272,15 @@ namespace libmaus2
 						se.finish();
 						throw se;
 					}
-					uint64_t have = Bout.size() - strm.avail_out;
+					uint64_t have = Bout.size() - zintf->getAvailOut();
 					out.write(reinterpret_cast<char const *>(Bout.begin()),have);
 
 					// std::cerr << "Writing " << have << " bytes in flush" << std::endl;
-				} while (strm.avail_out == 0);
+				} while (zintf->getAvailOut() == 0);
 
 				assert ( ret == Z_STREAM_END );
 
-				deflateEnd(&strm);
+				zintf->z_deflateEnd();
 				out.flush();
 
 				if ( out_ptr.get() )

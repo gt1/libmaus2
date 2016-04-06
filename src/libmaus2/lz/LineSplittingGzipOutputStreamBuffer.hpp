@@ -25,6 +25,7 @@
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/lz/GzipHeader.hpp>
 #include <libmaus2/aio/FileRemoval.hpp>
+#include <libmaus2/lz/ZlibInterface.hpp>
 
 namespace libmaus2
 {
@@ -44,7 +45,7 @@ namespace libmaus2
 			uint64_t const buffersize;
 			::libmaus2::autoarray::AutoArray<char> inbuffer;
 			::libmaus2::autoarray::AutoArray<char> outbuffer;
-			z_stream strm;
+			libmaus2::lz::ZlibInterface::unique_ptr_type zintf;
 			uint32_t crc;
 			uint32_t isize;
 			uint64_t usize;
@@ -55,7 +56,7 @@ namespace libmaus2
 
 			std::string openfilename;
 
-			static int doDeflate(z_stream * strm, int flush)
+			static int doDeflate(libmaus2::lz::ZlibInterface * zintf, int flush)
 			{
 				#if defined(LINESPLITTINGGZIPOUTPUTSTREAMDEBUG)
 				std::cerr << "deflate(";
@@ -72,7 +73,7 @@ namespace libmaus2
 				std::cerr << ")\n";
 				#endif
 
-				return ::deflate(strm,flush);
+				return zintf->z_deflate(flush);
 			}
 
 			void doInit(int const level)
@@ -86,11 +87,11 @@ namespace libmaus2
 				flushed = true;
 				crc = crc32(0,0,0);
 
-				memset ( &strm , 0, sizeof(z_stream) );
-				strm.zalloc = Z_NULL;
-				strm.zfree = Z_NULL;
-				strm.opaque = Z_NULL;
-				int ret = deflateInit2(&strm, level, Z_DEFLATED, -15 /* window size */,
+				zintf->eraseContext();
+				zintf->setZAlloc(Z_NULL);
+				zintf->setZFree(Z_NULL);
+				zintf->setOpaque(Z_NULL);
+				int ret = zintf->z_deflateInit2(level, Z_DEFLATED, -15 /* window size */,
 					8 /* mem level, gzip default */, Z_DEFAULT_STRATEGY);
 				if ( ret != Z_OK )
 				{
@@ -107,18 +108,18 @@ namespace libmaus2
 
 			void doSync(char * p, int64_t const n)
 			{
-				strm.avail_in = n;
-				strm.next_in  = reinterpret_cast<Bytef *>(p);
+				zintf->setAvailIn(n);
+				zintf->setNextIn(reinterpret_cast<Bytef *>(p));
 
-				crc = crc32(crc, strm.next_in, strm.avail_in);
-				isize += strm.avail_in;
-				usize += strm.avail_in;
+				crc = crc32(crc, zintf->getNextIn(), zintf->getAvailIn());
+				isize += zintf->getAvailIn();
+				usize += zintf->getAvailIn();
 
 				do
 				{
-					strm.avail_out = outbuffer.size();
-					strm.next_out  = reinterpret_cast<Bytef *>(outbuffer.begin());
-					int ret = doDeflate(&strm,Z_NO_FLUSH);
+					zintf->setAvailOut(outbuffer.size());
+					zintf->setNextOut(reinterpret_cast<Bytef *>(outbuffer.begin()));
+					int ret = doDeflate(zintf.get(),Z_NO_FLUSH);
 					if ( ret < 0 )
 					{
 						#if defined(LINESPLITTINGGZIPOUTPUTSTREAMDEBUG)
@@ -126,17 +127,17 @@ namespace libmaus2
 						#endif
 
 						::libmaus2::exception::LibMausException se;
-						se.getStream() << "LineSplittingGzipOutputStreamBuffer::doSync: deflate failed: " << ret << " (" << strm.msg << ")";
+						se.getStream() << "LineSplittingGzipOutputStreamBuffer::doSync: deflate failed: " << ret << " (" << zintf->getMsg() << ")";
 						se.finish();
 						throw se;
 					}
 					flushed = false;
-					uint64_t const have = outbuffer.size() - strm.avail_out;
+					uint64_t const have = outbuffer.size() - zintf->getAvailOut();
 					Pout->write(reinterpret_cast<char const *>(outbuffer.begin()),have);
 				}
-				while (strm.avail_out == 0);
+				while (zintf->getAvailOut() == 0);
 
-				assert ( strm.avail_in == 0);
+				assert ( zintf->getAvailIn() == 0);
 			}
 
 			void doSync()
@@ -182,11 +183,11 @@ namespace libmaus2
 
 					do
 					{
-						strm.avail_in = 0;
-						strm.next_in = 0;
-						strm.avail_out = outbuffer.size();
-						strm.next_out = reinterpret_cast<Bytef *>(outbuffer.begin());
-						ret = doDeflate(&strm,Z_FULL_FLUSH);
+						zintf->setAvailIn(0);
+						zintf->setNextIn(Z_NULL);
+						zintf->setAvailOut(outbuffer.size());
+						zintf->setNextOut(reinterpret_cast<Bytef *>(outbuffer.begin()));
+						ret = doDeflate(zintf.get(),Z_FULL_FLUSH);
 						if ( ret < 0 )
 						{
 							#if defined(LINESPLITTINGGZIPOUTPUTSTREAMDEBUG)
@@ -194,15 +195,15 @@ namespace libmaus2
 							#endif
 
 							::libmaus2::exception::LibMausException se;
-							se.getStream() << "LineSplittingGzipOutputStreamBuffer::doFullFlush: deflate failed with error " << ret << " (" << strm.msg << ")";
+							se.getStream() << "LineSplittingGzipOutputStreamBuffer::doFullFlush: deflate failed with error " << ret << " (" << zintf->getMsg() << ")";
 							se.finish();
 							throw se;
 						}
 						flushed = true;
-						uint64_t have = outbuffer.size() - strm.avail_out;
+						uint64_t have = outbuffer.size() - zintf->getAvailOut();
 						Pout->write(reinterpret_cast<char const *>(outbuffer.begin()),have);
 
-					} while (strm.avail_out == 0);
+					} while (zintf->getAvailOut() == 0);
 
 					assert ( ret == Z_OK );
 				}
@@ -214,11 +215,11 @@ namespace libmaus2
 
 				do
 				{
-					strm.avail_in = 0;
-					strm.next_in = 0;
-					strm.avail_out = outbuffer.size();
-					strm.next_out = reinterpret_cast<Bytef *>(outbuffer.begin());
-					ret = doDeflate(&strm,Z_FINISH);
+					zintf->setAvailIn(0);
+					zintf->setNextIn(Z_NULL);
+					zintf->setAvailOut(outbuffer.size());
+					zintf->setNextOut(reinterpret_cast<Bytef *>(outbuffer.begin()));
+					ret = doDeflate(zintf.get(),Z_FINISH);
 					if ( ret == Z_STREAM_ERROR )
 					{
 						#if defined(LINESPLITTINGGZIPOUTPUTSTREAMDEBUG)
@@ -226,15 +227,15 @@ namespace libmaus2
 						#endif
 
 						::libmaus2::exception::LibMausException se;
-						se.getStream() << "LineSplittingGzipOutputStreamBuffer::doFinish(): deflate failed: " << ret << " (" << strm.msg << ")";
+						se.getStream() << "LineSplittingGzipOutputStreamBuffer::doFinish(): deflate failed: " << ret << " (" << zintf->getMsg() << ")";
 						se.finish();
 						throw se;
 					}
 					flushed = true;
-					uint64_t have = outbuffer.size() - strm.avail_out;
+					uint64_t have = outbuffer.size() - zintf->getAvailOut();
 					Pout->write(reinterpret_cast<char const *>(outbuffer.begin()),have);
 
-				} while (strm.avail_out == 0);
+				} while (zintf->getAvailOut() == 0);
 
 				assert ( ret == Z_STREAM_END );
 			}
@@ -243,7 +244,7 @@ namespace libmaus2
 			{
 				doFinish();
 
-				deflateEnd(&strm);
+				zintf->z_deflateEnd();
 
 				// crc
 				Pout->put ( (crc >> 0)  & 0xFF );
@@ -295,7 +296,9 @@ namespace libmaus2
 				uint64_t const rbuffersize,
 				int const rlevel = Z_DEFAULT_COMPRESSION
 			)
-			: fn(rfn), level(rlevel), fileno(0), linemod(rlinemod), linecnt(0), buffersize(rbuffersize), inbuffer(buffersize,false), outbuffer(buffersize,false), reopenpending(false), terminated(true), flushed(false)
+			: fn(rfn), level(rlevel), fileno(0), linemod(rlinemod), linecnt(0), buffersize(rbuffersize), inbuffer(buffersize,false), outbuffer(buffersize,false),
+			  zintf(libmaus2::lz::ZlibInterface::construct()),
+			  reopenpending(false), terminated(true), flushed(false)
 			{
 				doOpen();
 				setp(inbuffer.begin(),inbuffer.end()-1);
