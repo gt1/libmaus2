@@ -1,3 +1,18 @@
+libmaus2 (2.0.152-1) unstable; urgency=medium
+
+  * apply new zlib interface throughout libmaus2
+  * add hasFeature function in I386CacheLineSize class
+  * allow additional flags for dlload
+  * add getDiagonalBand method in NNPTraceContainer class
+  * add shift* methods in NNPAlignResult class  
+  * improve check for self matching in NNP class
+  * add dlopen based zlib interface
+  * add NNPTraceContainerDecoderReverse in NNPTraceContainer and rewrite cross function
+  * add NNPTraceContainerDecoder class and cross function in NNPTraceContainer
+  * add periods method in AlignmentTraceContainer class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 06 Apr 2016 18:40:53 +0200
+
 libmaus2 (2.0.151-1) unstable; urgency=medium
 
   * check whether mmap supports the huge page flag during configure 
