@@ -24,7 +24,7 @@
 
 #include <zlib.h>
 
-libmaus2::digest::CRC32::CRC32() : initial(crc32(0L, Z_NULL, 0)), ctx(0) {}
+libmaus2::digest::CRC32::CRC32() : zintf(libmaus2::lz::ZlibInterface::construct()), initial(zintf->z_crc32(0L, Z_NULL, 0)), ctx(0) {}
 libmaus2::digest::CRC32::~CRC32() {}
 
 void libmaus2::digest::CRC32::init() { ctx = initial; }
@@ -33,7 +33,7 @@ void libmaus2::digest::CRC32::update(uint8_t const * t, size_t l)
 #if defined(LIBMAUS2_HAVE_x86_64)
 	ctx = libmaus2::digest::CRC32_Core::crc32_core(ctx,t,l);
 #else
-	ctx = crc32(ctx,t,l);
+	ctx = zintf->z_crc32(ctx,t,l);
 #endif
 }
 void libmaus2::digest::CRC32::digest(uint8_t * digest)

@@ -35,7 +35,6 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			private:
 			libmaus2::lz::ZlibInterface::unique_ptr_type zintf;
 
 			public:

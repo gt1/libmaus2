@@ -117,6 +117,7 @@ namespace libmaus2
 			}
 
 			static uint8_t const * fillHeaderFooter(
+				libmaus2::lz::ZlibInterface * zintf,
 				uint8_t const * const pa,
 				uint8_t * const outbuf,
 				unsigned int const payloadsize,
@@ -132,8 +133,8 @@ namespace libmaus2
 				uint8_t * footptr = outbuf + getBgzfHeaderSize() + payloadsize;
 
 				// compute crc of uncompressed data
-				uint32_t crc = crc32(0,0,0);
-				crc = crc32(crc, reinterpret_cast<Bytef const *>(pa), uncompsize);
+				uint32_t crc = zintf->z_crc32(0,0,0);
+				crc = zintf->z_crc32(crc, reinterpret_cast<Bytef const *>(pa), uncompsize);
 
 				// crc
 				*(footptr++) = (crc >> 0)  & 0xFF;

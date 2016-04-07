@@ -73,7 +73,7 @@ namespace libmaus2
 						BP->outputblocks[z]->decompressBlock(zdecoder.get(),BP->inputblocks[z].get());
 
 						// compute crc of uncompressed data
-						uint32_t const crc = BP->outputblocks[z]->computeCrc();
+						uint32_t const crc = BP->outputblocks[z]->computeCrc(zdecoder.get());
 
 						// check crc
 						if ( crc != BP->inputblocks[z]->crc )

@@ -85,7 +85,7 @@ namespace libmaus2
 				isize = 0;
 				usize = 0;
 				flushed = true;
-				crc = crc32(0,0,0);
+				crc = zintf->z_crc32(0,0,0);
 
 				zintf->eraseContext();
 				zintf->setZAlloc(Z_NULL);
@@ -111,7 +111,7 @@ namespace libmaus2
 				zintf->setAvailIn(n);
 				zintf->setNextIn(reinterpret_cast<Bytef *>(p));
 
-				crc = crc32(crc, zintf->getNextIn(), zintf->getAvailIn());
+				crc = zintf->z_crc32(crc, zintf->getNextIn(), zintf->getAvailIn());
 				isize += zintf->getAvailIn();
 				usize += zintf->getAvailIn();
 

@@ -93,7 +93,7 @@ namespace libmaus2
 					// set stream id
 					data.db->streamid = data.mib->streamid;
 					// compute crc32
-					uint32_t const crc = data.db->computeCrc();
+					uint32_t const crc = data.db->computeCrc(deccont);
 
 					if ( crc != data.mib->crc )
 					{
