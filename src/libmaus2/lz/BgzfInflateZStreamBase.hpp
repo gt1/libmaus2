@@ -23,6 +23,7 @@
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/lz/BgzfConstants.hpp>
 #include <libmaus2/lz/BgzfInflateHeaderBase.hpp>
+#include <libmaus2/lz/ZlibInterface.hpp>
 
 namespace libmaus2
 {
@@ -34,19 +35,19 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			z_stream inflatestrm;
+			libmaus2::lz::ZlibInterface::unique_ptr_type zintf;
 
+			public:
 			void zinit()
 			{
-				memset(&inflatestrm,0,sizeof(z_stream));
+				zintf->eraseContext();
+				zintf->setZAlloc(Z_NULL);
+				zintf->setZFree(Z_NULL);
+				zintf->setOpaque(Z_NULL);
+				zintf->setAvailIn(0);
+				zintf->setNextIn(Z_NULL);
 
-				inflatestrm.zalloc = Z_NULL;
-				inflatestrm.zfree = Z_NULL;
-				inflatestrm.opaque = Z_NULL;
-				inflatestrm.avail_in = 0;
-				inflatestrm.next_in = Z_NULL;
-
-				int const ret = inflateInit2(&inflatestrm,-15);
+				int const ret = zintf->z_inflateInit2(-15);
 
 				if (ret != Z_OK)
 				{
@@ -58,18 +59,19 @@ namespace libmaus2
 			}
 
 			BgzfInflateZStreamBase()
+			: zintf(libmaus2::lz::ZlibInterface::construct())
 			{
 				zinit();
 			}
 
 			~BgzfInflateZStreamBase()
 			{
-				inflateEnd(&inflatestrm);
+				zintf->z_inflateEnd();
 			}
 
 			void zreset()
 			{
-				if ( inflateReset(&inflatestrm) != Z_OK )
+				if ( zintf->z_inflateReset() != Z_OK )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): inflateReset failed";
@@ -87,16 +89,16 @@ namespace libmaus2
 			{
 				zreset();
 
-				inflatestrm.avail_in = inlen;
-				inflatestrm.next_in = in;
-				inflatestrm.avail_out = outlen;
-				inflatestrm.next_out = reinterpret_cast<Bytef *>(out);
+				zintf->setAvailIn(inlen);
+				zintf->setNextIn(in);
+				zintf->setAvailOut(outlen);
+				zintf->setNextOut(reinterpret_cast<Bytef *>(out));
 
-				int const r = inflate(&inflatestrm,Z_FINISH);
+				int const r = zintf->z_inflate(Z_FINISH);
 
 				bool ok = (r == Z_STREAM_END)
-				     && (inflatestrm.avail_out == 0)
-				     && (inflatestrm.avail_in == 0);
+				     && (zintf->getAvailOut() == 0)
+				     && (zintf->getAvailIn() == 0);
 
 				if ( !ok )
 				{

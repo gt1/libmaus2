@@ -174,10 +174,27 @@ namespace libmaus2
 				/**
 				 * computes and returns the crc32 of the block
 				 **/
-				uint32_t computeCrc() const
+				uint32_t computeCrc(libmaus2::lz::BgzfInflateZStreamBase * decoder) const
 				{
-					uint32_t crc = crc32(0L,Z_NULL,0);
-					crc = crc32(crc,reinterpret_cast<Bytef const*>(P),uncompdatasize);
+					uint32_t crc = decoder->zintf->z_crc32(0L,Z_NULL,0);
+					crc = decoder->zintf->z_crc32(crc,reinterpret_cast<Bytef const*>(P),uncompdatasize);
+					return crc;
+				}
+
+				/**
+				 * computes and returns the crc32 of the block
+				 **/
+				uint32_t computeCrc(
+					libmaus2::parallel::LockedFreeList<
+						libmaus2::lz::BgzfInflateZStreamBase,
+						libmaus2::lz::BgzfInflateZStreamBaseAllocator,
+						libmaus2::lz::BgzfInflateZStreamBaseTypeInfo
+						> & deccont
+				)
+				{
+					libmaus2::lz::BgzfInflateZStreamBase::shared_ptr_type decoder = deccont.get();
+					uint32_t const crc = computeCrc(decoder.get());
+					deccont.put(decoder);
 					return crc;
 				}
 

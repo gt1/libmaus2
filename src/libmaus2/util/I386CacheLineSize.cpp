@@ -18,6 +18,7 @@
 */
 
 #include <libmaus2/util/I386CacheLineSize.hpp>
+#include <cstring>
 
 #if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)
 void libmaus2::util::I386CacheLineSize::cpuid(
@@ -502,5 +503,31 @@ bool libmaus2::util::I386CacheLineSize::hasPCLMULDQ()
 	cpuid(eax,ebx,ecx,edx);
 
 	return ((ecx>>1)&1) == 1;
+}
+
+bool libmaus2::util::I386CacheLineSize::hasFeature(char const * name)
+{
+	typedef bool (*func_type)();
+	typedef std::pair<char const *, func_type> feature_func;
+	static char const * cnull = 0;
+	func_type nullfun = 0;
+	static feature_func sup[] = {
+		feature_func("sse", hasSSE),
+		feature_func("sse2", hasSSE2),
+		feature_func("sse3", hasSSE3),
+		feature_func("ssse3", hasSSSE3),
+		feature_func("sse4_1", hasSSE41),
+		feature_func("sse4_2", hasSSE42),
+		feature_func("avx", hasAVX),
+		feature_func("avx2", hasAVX2),
+		feature_func("pclmulqdq", hasPCLMULDQ),
+		feature_func(cnull,nullfun)
+	};
+
+	for ( feature_func * p = &sup[0]; p->first; ++p )
+		if ( strcmp(name,p->first) == 0 )
+			return p->second();
+
+	return false;
 }
 #endif

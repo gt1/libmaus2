@@ -40,14 +40,14 @@ namespace libmaus2
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			private:
-			z_stream strm;
+			libmaus2::lz::ZlibInterface::unique_ptr_type zintf;
 			unsigned int deflbound;
 			int level;
 
 			void deflatedestroy()
 			{
 				if ( level >= Z_DEFAULT_COMPRESSION && level <= Z_BEST_COMPRESSION )
-					deflatedestroyz(&strm);
+					deflatedestroyz(zintf.get());
 			}
 
 			void deflateinit(int const rlevel)
@@ -56,12 +56,12 @@ namespace libmaus2
 
 				if ( level >= Z_DEFAULT_COMPRESSION && level <= Z_BEST_COMPRESSION )
 				{
-					deflateinitz(&strm,level);
+					deflateinitz(zintf.get(),level);
 
 					// search for number of bytes that will never produce more compressed space than we have
 					unsigned int bound = getBgzfMaxBlockSize();
 
-					while ( deflateBound(&strm,bound) > (getBgzfMaxBlockSize()-(getBgzfHeaderSize()+getBgzfFooterSize())) )
+					while ( zintf->z_deflateBound(bound) > (getBgzfMaxBlockSize()-(getBgzfHeaderSize()+getBgzfFooterSize())) )
 						--bound;
 
 					deflbound = bound;
@@ -85,7 +85,7 @@ namespace libmaus2
 
 			void resetz()
 			{
-				if ( deflateReset(&strm) != Z_OK )
+				if ( zintf->z_deflateReset() != Z_OK )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "deflateReset failed." << std::endl;
@@ -104,16 +104,16 @@ namespace libmaus2
 					resetz();
 
 					// maximum number of output bytes
-					strm.avail_out = getBgzfMaxPayLoad();
+					zintf->setAvailOut(getBgzfMaxPayLoad());
 					// next compressed output byte
-					strm.next_out  = reinterpret_cast<Bytef *>(outbuf) + getBgzfHeaderSize();
+					zintf->setNextOut(reinterpret_cast<Bytef *>(outbuf) + getBgzfHeaderSize());
 					// number of bytes to be compressed
-					strm.avail_in  = len;
+					zintf->setAvailIn(len);
 					// data to be compressed
-					strm.next_in   = reinterpret_cast<Bytef *>(pa);
+					zintf->setNextIn(reinterpret_cast<Bytef *>(pa));
 
 					// call deflate
-					if ( deflate(&strm,Z_FINISH) != Z_STREAM_END )
+					if ( zintf->z_deflate(Z_FINISH) != Z_STREAM_END )
 					{
 						libmaus2::exception::LibMausException se;
 						se.getStream() << "deflate() failed." << std::endl;
@@ -121,7 +121,7 @@ namespace libmaus2
 						throw se;
 					}
 
-					return getBgzfMaxPayLoad() - strm.avail_out;
+					return getBgzfMaxPayLoad() - zintf->getAvailOut();
 				}
 				#if defined(LIBMAUS2_HAVE_IGZIP)
 				else if ( level == libmaus2::lz::IGzipDeflate::getCompressionLevel() )
@@ -165,12 +165,12 @@ namespace libmaus2
 
 					/* compress first half of data */
 					uint64_t const payload0 = compressBlock(in.pa,flush0,out.outbuf.begin());
-					fillHeaderFooter(in.pa,out.outbuf.begin(),payload0,flush0);
+					fillHeaderFooter(zintf.get(),in.pa,out.outbuf.begin(),payload0,flush0);
 
 					/* compress second half of data */
 					setupHeader(out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize());
 					uint64_t const payload1 = compressBlock(in.pa+flush0,flush1,out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize());
-					fillHeaderFooter(in.pa+flush0,out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize(),payload1,flush1);
+					fillHeaderFooter(zintf.get(),in.pa+flush0,out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize(),payload1,flush1);
 
 					assert ( 2*getBgzfHeaderSize()+2*getBgzfFooterSize()+payload0+payload1 <= out.outbuf.size() );
 
@@ -193,7 +193,7 @@ namespace libmaus2
 					 * write out compressed data
 					 */
 					uint64_t const payloadsize = compressBlock(in.pa,toflush,out.outbuf.begin());
-					fillHeaderFooter(in.pa,out.outbuf.begin(),payloadsize,toflush);
+					fillHeaderFooter(zintf.get(),in.pa,out.outbuf.begin(),payloadsize,toflush);
 
 					#if 0
 					/*
@@ -221,14 +221,14 @@ namespace libmaus2
 			public:
 			static uint64_t computeDeflateBound(int const rlevel)
 			{
-				z_stream strm;
-				deflateinitz(&strm,rlevel);
+				libmaus2::lz::ZlibInterface::unique_ptr_type zintf(libmaus2::lz::ZlibInterface::construct());
+				deflateinitz(zintf.get(),rlevel);
 
 				// search for number of bytes that will never produce more compressed space than we have
 				unsigned int bound = getBgzfMaxBlockSize();
 
 				while (
-					deflateBound(&strm,bound) >
+					zintf->z_deflateBound(bound) >
 					(getBgzfMaxBlockSize()-(getBgzfHeaderSize()+getBgzfFooterSize()))
 				)
 					--bound;
@@ -237,6 +237,7 @@ namespace libmaus2
 			}
 
 			BgzfDeflateZStreamBase(int const rlevel = Z_DEFAULT_COMPRESSION)
+			: zintf(libmaus2::lz::ZlibInterface::construct())
 			{
 				#if defined(LIBMAUS2_HAVE_IGZIP)
 				if ( rlevel == libmaus2::lz::IGzipDeflate::getCompressionLevel() )
@@ -270,7 +271,7 @@ namespace libmaus2
 				{
 					uint64_t const uncompressedsize = in.pc-in.pa;
 					uint64_t const payloadsize = compressBlock(in.pa,uncompressedsize,out.outbuf.begin());
-					fillHeaderFooter(in.pa,out.outbuf.begin(),payloadsize,uncompressedsize);
+					fillHeaderFooter(zintf.get(),in.pa,out.outbuf.begin(),payloadsize,uncompressedsize);
 
 					in.pc = in.pa;
 
@@ -297,7 +298,7 @@ namespace libmaus2
 				{
 					uint64_t const uncompressedsize = pe-pa;
 					uint64_t const payloadsize = compressBlock(pa,uncompressedsize,out.outbuf.begin());
-					fillHeaderFooter(pa,out.outbuf.begin(),payloadsize,uncompressedsize);
+					fillHeaderFooter(zintf.get(),pa,out.outbuf.begin(),payloadsize,uncompressedsize);
 					return BgzfDeflateZStreamBaseFlushInfo(uncompressedsize,getBgzfHeaderSize()+getBgzfFooterSize()+payloadsize);
 				}
 				catch(...)
@@ -308,12 +309,12 @@ namespace libmaus2
 
 					/* compress first half of data */
 					uint64_t const payload0 = compressBlock(pa,flush0,out.outbuf.begin());
-					fillHeaderFooter(pa,out.outbuf.begin(),payload0,flush0);
+					fillHeaderFooter(zintf.get(),pa,out.outbuf.begin(),payload0,flush0);
 
 					/* compress second half of data */
 					setupHeader(out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize());
 					uint64_t const payload1 = compressBlock(pa+flush0,flush1,out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize());
-					fillHeaderFooter(pa+flush0,out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize(),payload1,flush1);
+					fillHeaderFooter(zintf.get(),pa+flush0,out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize(),payload1,flush1);
 
 					assert ( 2*getBgzfHeaderSize()+2*getBgzfFooterSize()+payload0+payload1 <= out.outbuf.size() );
 

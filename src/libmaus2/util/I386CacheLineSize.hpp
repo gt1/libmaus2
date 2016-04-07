@@ -22,6 +22,7 @@
 
 #include <libmaus2/LibMausConfig.hpp>
 #include <iostream>
+#include <utility>
 #include <numeric>
 
 namespace libmaus2
@@ -107,6 +108,10 @@ namespace libmaus2
 			 * @return true if CPU supports pclmuldq
 			 **/
 			static bool hasPCLMULDQ();
+			/**
+			 * check whether CPU has a given feature from the list above
+			 **/
+			static bool hasFeature(char const * name);
 		};
 		#endif
 	}
