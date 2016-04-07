@@ -71,6 +71,8 @@ namespace libmaus2
 			int z_deflate(int flush);
 			unsigned long z_deflateBound(unsigned long in);
 
+			unsigned long z_crc32(unsigned long crc, unsigned char const * buf, unsigned int length);
+
 			void setNextIn(unsigned char * p);
 			void setAvailIn(uint64_t const s);
 			void setTotalIn(uint64_t const s);

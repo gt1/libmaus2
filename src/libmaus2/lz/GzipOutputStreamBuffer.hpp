@@ -70,7 +70,7 @@ namespace libmaus2
 					zintf->setAvailIn(n);
 					zintf->setNextIn(reinterpret_cast<Bytef *>(pbase()));
 
-					crc = crc32(crc, zintf->getNextIn(), zintf->getAvailIn());
+					crc = zintf->z_crc32(crc, zintf->getNextIn(), zintf->getAvailIn());
 					isize += zintf->getAvailIn();
 
 					do
@@ -199,7 +199,7 @@ namespace libmaus2
 			GzipOutputStreamBuffer(std::ostream & rout, uint64_t const rbuffersize, int const level = Z_DEFAULT_COMPRESSION)
 			: out(rout), buffersize(rbuffersize), inbuffer(buffersize,false), outbuffer(buffersize,false),
 			  zintf(libmaus2::lz::ZlibInterface::construct()),
-			  crc(crc32(0,0,0)), isize(0), compressedwritten(0), terminated(false)
+			  crc(zintf->z_crc32(0,0,0)), isize(0), compressedwritten(0), terminated(false)
 			{
 				compressedwritten += libmaus2::lz::GzipHeaderConstantsBase::writeSimpleHeader(out);
 				init(level);

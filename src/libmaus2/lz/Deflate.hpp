@@ -125,8 +125,8 @@ namespace libmaus2
 				defl.write(p,len);
 				defl.flush();
 
-				uint32_t crc = crc32(0,0,0);
-				crc = crc32(crc, reinterpret_cast<Bytef const *>(p), len);
+				uint32_t crc = defl.zintf->z_crc32(0,0,0);
+				crc = defl.zintf->z_crc32(crc, reinterpret_cast<Bytef const *>(p), len);
 
 				return crc;
 			}

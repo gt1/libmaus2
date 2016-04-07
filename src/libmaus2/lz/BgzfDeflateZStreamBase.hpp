@@ -165,12 +165,12 @@ namespace libmaus2
 
 					/* compress first half of data */
 					uint64_t const payload0 = compressBlock(in.pa,flush0,out.outbuf.begin());
-					fillHeaderFooter(in.pa,out.outbuf.begin(),payload0,flush0);
+					fillHeaderFooter(zintf.get(),in.pa,out.outbuf.begin(),payload0,flush0);
 
 					/* compress second half of data */
 					setupHeader(out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize());
 					uint64_t const payload1 = compressBlock(in.pa+flush0,flush1,out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize());
-					fillHeaderFooter(in.pa+flush0,out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize(),payload1,flush1);
+					fillHeaderFooter(zintf.get(),in.pa+flush0,out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize(),payload1,flush1);
 
 					assert ( 2*getBgzfHeaderSize()+2*getBgzfFooterSize()+payload0+payload1 <= out.outbuf.size() );
 
@@ -193,7 +193,7 @@ namespace libmaus2
 					 * write out compressed data
 					 */
 					uint64_t const payloadsize = compressBlock(in.pa,toflush,out.outbuf.begin());
-					fillHeaderFooter(in.pa,out.outbuf.begin(),payloadsize,toflush);
+					fillHeaderFooter(zintf.get(),in.pa,out.outbuf.begin(),payloadsize,toflush);
 
 					#if 0
 					/*
@@ -271,7 +271,7 @@ namespace libmaus2
 				{
 					uint64_t const uncompressedsize = in.pc-in.pa;
 					uint64_t const payloadsize = compressBlock(in.pa,uncompressedsize,out.outbuf.begin());
-					fillHeaderFooter(in.pa,out.outbuf.begin(),payloadsize,uncompressedsize);
+					fillHeaderFooter(zintf.get(),in.pa,out.outbuf.begin(),payloadsize,uncompressedsize);
 
 					in.pc = in.pa;
 
@@ -298,7 +298,7 @@ namespace libmaus2
 				{
 					uint64_t const uncompressedsize = pe-pa;
 					uint64_t const payloadsize = compressBlock(pa,uncompressedsize,out.outbuf.begin());
-					fillHeaderFooter(pa,out.outbuf.begin(),payloadsize,uncompressedsize);
+					fillHeaderFooter(zintf.get(),pa,out.outbuf.begin(),payloadsize,uncompressedsize);
 					return BgzfDeflateZStreamBaseFlushInfo(uncompressedsize,getBgzfHeaderSize()+getBgzfFooterSize()+payloadsize);
 				}
 				catch(...)
@@ -309,12 +309,12 @@ namespace libmaus2
 
 					/* compress first half of data */
 					uint64_t const payload0 = compressBlock(pa,flush0,out.outbuf.begin());
-					fillHeaderFooter(pa,out.outbuf.begin(),payload0,flush0);
+					fillHeaderFooter(zintf.get(),pa,out.outbuf.begin(),payload0,flush0);
 
 					/* compress second half of data */
 					setupHeader(out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize());
 					uint64_t const payload1 = compressBlock(pa+flush0,flush1,out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize());
-					fillHeaderFooter(pa+flush0,out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize(),payload1,flush1);
+					fillHeaderFooter(zintf.get(),pa+flush0,out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize(),payload1,flush1);
 
 					assert ( 2*getBgzfHeaderSize()+2*getBgzfFooterSize()+payload0+payload1 <= out.outbuf.size() );
 

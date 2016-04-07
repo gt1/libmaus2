@@ -20,6 +20,7 @@
 #define LIBMAUS2_DIGEST_CRC32_HPP
 
 #include <libmaus2/digest/DigestBase.hpp>
+#include <libmaus2/lz/ZlibInterface.hpp>
 
 namespace libmaus2
 {
@@ -27,6 +28,7 @@ namespace libmaus2
 	{
 		struct CRC32 : public DigestBase<4 /* digest length */, 0 /* block size shift */, 0 /* need padding */, 0 /* number length */, false>
 		{
+			libmaus2::lz::ZlibInterface::unique_ptr_type zintf;
 			uint32_t const initial;
 			uint32_t ctx;
 
