@@ -293,7 +293,6 @@ static libmaus2::util::Destructable::shared_ptr_type getFunctionSet(std::string 
 			{
 				libmaus2::util::Destructable::shared_ptr_type tptr = ZlibFunctions::sconstruct(libname);
 				fmap[libname] = tptr;
-				std::cerr << "got " << libname << std::endl;
 			}
 			catch(...)
 			{
