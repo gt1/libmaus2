@@ -158,8 +158,9 @@ struct ZlibFunctions
 	int (*p_deflateInit2)(z_stream *, int, int, int, int, int, char const *, int);
 	int (*p_deflate)(z_stream *, int);
 	unsigned long (*p_deflateBound)(z_stream *, unsigned long);
+	unsigned long (*p_crc32)(unsigned long crc, unsigned char const * buf, unsigned int length);
 
-	ZlibFunctions(std::string const & /* libname */) :
+	ZlibFunctions(std::string const & /* libname */ = std::string()) :
 		p_inflateReset(reinterpret_cast< int (*)(z_stream *) >(::inflateReset)),
 		p_inflateEnd(reinterpret_cast< int (*)(z_stream *) >(::inflateEnd)),
 		p_inflateInit(reinterpret_cast< int (*)(z_stream *, char const *, int) >(::inflateInit_)),
@@ -170,7 +171,8 @@ struct ZlibFunctions
 		p_deflateInit(reinterpret_cast< int (*)(z_stream *, int, char const *, int) >(::deflateInit_)),
 		p_deflateInit2(reinterpret_cast< int (*)(z_stream *, int, int, int, int, int, char const *, int) >(::deflateInit2_)),
 		p_deflate(reinterpret_cast< int (*)(z_stream *, int) >(::deflate)),
-		p_deflateBound(reinterpret_cast< unsigned long (*)(z_stream *, unsigned long) >(deflateBound))
+		p_deflateBound(reinterpret_cast< unsigned long (*)(z_stream *, unsigned long) >(deflateBound)),
+		p_crc32(reinterpret_cast<unsigned long (*)(unsigned long crc, unsigned char const * buf, unsigned int length)>(::crc32))
 	{
 
 	}
