@@ -40,6 +40,80 @@ namespace libmaus2
 			NNPTraceContainer() : traceid(-1), otrace(0)
 			{}
 
+			void copyFrom(NNPTraceContainer const & O)
+			{
+				Atrace.ensureSize(O.Atrace.size());
+				std::copy(O.Atrace.begin(),O.Atrace.end(),Atrace.begin());
+				traceid = O.traceid;
+				otrace = O.otrace;
+			}
+
+			shared_ptr_type sclone() const
+			{
+				shared_ptr_type sptr(new this_type);
+				sptr->copyFrom(*this);
+				return sptr;
+			}
+
+			unique_ptr_type uclone() const
+			{
+				unique_ptr_type uptr(new this_type);
+				uptr->copyFrom(*this);
+				return uptr;
+			}
+
+			void traceToSparse(libmaus2::lcs::BaseConstants::step_type * ta, libmaus2::lcs::BaseConstants::step_type * te)
+			{
+				otrace = 0;
+				traceid = -1;
+
+				int64_t parent = -1;
+
+				if ( ta == te )
+					return;
+
+				// slide before first op
+				uint64_t slide = 0;
+				while ( ta != te && (*ta == libmaus2::lcs::BaseConstants::STEP_MATCH) )
+					slide++, ta++;
+
+				// if first op is a match
+				if ( slide )
+				{
+					NNPTraceElement T;
+					T.step = libmaus2::lcs::BaseConstants::STEP_RESET;
+					T.slide = slide;
+					T.parent = parent;
+					parent = otrace;
+					Atrace.push(otrace,T);
+				}
+
+				// while we have not reached the end
+				while ( ta != te )
+				{
+					// this should not be a match
+					assert ( *ta != libmaus2::lcs::BaseConstants::STEP_MATCH );
+
+					NNPTraceElement T;
+					T.step = *(ta++);
+
+					slide = 0;
+					while ( ta != te && (*ta == libmaus2::lcs::BaseConstants::STEP_MATCH) )
+						slide++, ta++;
+					T.slide = slide;
+					T.parent = parent;
+					parent = otrace;
+					Atrace.push(otrace,T);
+				}
+
+				traceid = parent;
+			}
+
+			void traceToSparse(libmaus2::lcs::AlignmentTraceContainer const & ATC)
+			{
+				traceToSparse(ATC.ta,ATC.te);
+			}
+
 			void reset()
 			{
 				traceid = -1;
@@ -649,6 +723,143 @@ namespace libmaus2
 					return true;
 				}
 			};
+
+			struct TracePointId
+			{
+				uint64_t apos;
+				uint64_t bpos;
+				uint64_t id;
+
+				TracePointId(uint64_t const rapos = 0, uint64_t const rbpos = 0, uint64_t rid = 0) : apos(rapos), bpos(rbpos), id(rid) {}
+
+				bool operator<(TracePointId const & O) const
+				{
+					if ( apos != O.apos )
+						return apos < O.apos;
+					else if ( bpos != O.bpos )
+						return bpos < O.bpos;
+					else
+						return id < O.id;
+				}
+			};
+
+			uint64_t getTracePoints(uint64_t apos, uint64_t bpos, uint64_t tspace, libmaus2::autoarray::AutoArray< TracePointId > & A, uint64_t o, uint64_t const id)
+			{
+				std::pair<uint64_t,uint64_t> const SL = getStringLengthUsed();
+				apos += SL.first;
+				bpos += SL.second;
+
+				assert ( tspace );
+				uint64_t tdistance = apos % tspace;
+
+				NNPTraceContainerDecoderReverse dec(*this);
+
+				uint64_t oa = o;
+
+				if ( ! tdistance )
+				{
+					A.push(o, TracePointId(apos,bpos,id));
+					tdistance = tspace;
+				}
+
+				libmaus2::lcs::BaseConstants::step_type step;
+				while ( dec.getNext(step) )
+				{
+					switch ( step )
+					{
+						case ::libmaus2::lcs::BaseConstants::STEP_INS:
+							bpos -= 1;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_DEL:
+							apos -= 1;
+							tdistance -= 1;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_MATCH:
+						case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
+							apos -= 1;
+							tdistance -= 1;
+							bpos -= 1;
+						default:
+							break;
+					}
+
+					if ( ! tdistance )
+					{
+						A.push(o, TracePointId(apos,bpos,id));
+						tdistance = tspace;
+					}
+				}
+
+				std::reverse(A.begin()+oa,A.begin()+o);
+
+				return o;
+			}
+
+			template<typename iterator>
+			static uint64_t getCommonTracePoints(
+				iterator it, iterator ite, libmaus2::autoarray::AutoArray< TracePointId > & A,
+				libmaus2::autoarray::AutoArray<uint64_t> & Ashare,
+				uint64_t const tspace
+			)
+			{
+				uint64_t o = 0;
+				uint64_t ashareo = 0;
+
+				for ( uint64_t id = 0; it != ite; ++it, ++id )
+				{
+					o = it->second->getTracePoints(it->first.abpos,it->first.bbpos,tspace,A,o,id);
+					Ashare.push(ashareo,id);
+				}
+
+				std::sort(A.begin(),A.begin()+o);
+
+				uint64_t alow = 0;
+				while ( alow < o )
+				{
+					uint64_t ahigh = alow+1;
+
+					while ( ahigh < o && A[alow].apos == A[ahigh].apos )
+						++ahigh;
+
+					if ( ahigh-alow > 1 )
+					{
+						uint64_t blow = alow;
+
+						while ( blow < ahigh )
+						{
+							uint64_t bhigh = blow + 1;
+
+							while ( bhigh < ahigh && A[blow].bpos == A[bhigh].bpos )
+								++bhigh;
+
+							if ( bhigh-blow > 1 )
+							{
+								for ( uint64_t i = blow; i < bhigh; i += 2 )
+								{
+									uint64_t id0 = A[i].id;
+
+									if ( i+1 < bhigh )
+									{
+										uint64_t id1 = A[i+1].id;
+										assert ( id0 != id1 );
+
+										if ( id0 < id1 )
+											Ashare [ id1 ] = id0;
+										else
+											Ashare [ id0 ] = id1;
+									}
+								}
+							}
+
+							blow = bhigh;
+						}
+					}
+
+					alow = ahigh;
+				}
+
+				return ashareo;
+			}
 
 			static bool cross(
 				NNPTraceContainer const & A, int64_t aapos, int64_t abpos,
