@@ -16,10 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #if ! defined(RLENCODER_HPP)
 #define RLENCODER_HPP
 
+#include <libmaus2/huffman/IndexWriter.hpp>
 #include <libmaus2/huffman/HuffmanEncoderFile.hpp>
 #include <libmaus2/util/Histogram.hpp>
 #include <libmaus2/huffman/CanonicalEncoder.hpp>
@@ -33,67 +33,6 @@ namespace libmaus2
 {
 	namespace huffman
 	{
-		struct IndexWriter
-		{
-			template<typename writer_type>
-			static void writeIndex(
-				writer_type & writer,
-				std::vector < IndexEntry > const & index,
-				uint64_t const indexpos,
-				uint64_t const numsyms)
-			{
-				uint64_t const maxpos = index.size() ? index[index.size()-1].pos : 0;
-				unsigned int const posbits = ::libmaus2::math::bitsPerNum(maxpos);
-
-				uint64_t const kacc = std::accumulate(index.begin(),index.end(),0ull,IndexEntryKeyAdd());
-				unsigned int const kbits = ::libmaus2::math::bitsPerNum(kacc);
-
-				uint64_t const vacc = std::accumulate(index.begin(),index.end(),0ull,IndexEntryValueAdd());
-				unsigned int const vbits = ::libmaus2::math::bitsPerNum(vacc);
-
-				// index size (number of blocks)
-				writer.writeElias2(index.size());
-				// write number of bits per file position
-				writer.writeElias2(posbits);
-
-				// write kbits
-				writer.writeElias2(kbits);
-				// write kacc
-				writer.writeElias2(kacc);
-
-				// write vbits
-				writer.writeElias2(vbits);
-				// write vacc
-				writer.writeElias2(vacc);
-
-				// align
-				writer.flushBitStream();
-
-				uint64_t tkacc = 0, tvacc = 0;
-				// write index
-				for ( uint64_t i = 0; i < index.size(); ++i )
-				{
-					writer.write(index[i].pos,posbits);
-
-					writer.write(tkacc,kbits);
-					tkacc += index[i].kcnt;
-
-					writer.write(tvacc,vbits);
-					tvacc += index[i].vcnt;
-				}
-				writer.write(0,posbits);
-				writer.write(tkacc,kbits);
-				writer.write(tvacc,vbits);
-				writer.flushBitStream();
-
-				assert ( numsyms == vacc );
-
-				for ( uint64_t i = 0; i < 64; ++i )
-					writer.writeBit( (indexpos & (1ull<<(63-i))) != 0 );
-				writer.flushBitStream();
-			}
-		};
-
 		template<typename _bit_writer_type>
 		struct RLEncoderBaseTemplate : public IndexWriter
 		{
@@ -268,7 +207,13 @@ namespace libmaus2
 					encode(*a);
 			}
 		};
+	}
+}
 
+namespace libmaus2
+{
+	namespace huffman
+	{
 		template<typename _huffmanencoderfile_type>
 		struct RLEncoderTemplate :
 			public _huffmanencoderfile_type,
