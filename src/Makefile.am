@@ -1026,7 +1026,11 @@ libmaus2huffman_include_HEADERS=\
 	libmaus2/huffman/IndexDecoderDataArray.hpp \
 	libmaus2/huffman/HuffmanInputFile.hpp \
 	libmaus2/huffman/KvInitResult.hpp \
-	libmaus2/huffman/HuffmanTree.hpp
+	libmaus2/huffman/HuffmanTree.hpp \
+	libmaus2/huffman/SymCountEncoder.hpp \
+	libmaus2/huffman/SymCountDecoder.hpp \
+	libmaus2/huffman/SymCount.hpp \
+	libmaus2/huffman/IndexWriter.hpp
 
 libmaus2math_includedir=$(includedir)/libmaus2/math
 libmaus2math_include_HEADERS=\
@@ -2013,7 +2017,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testbwtconstruction \
 	testbwtconstructionfasta \
 	testarrayinput \
-	testhugepages
+	testhugepages \
+	testsymcnt
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2557,3 +2562,7 @@ testarrayinput_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testhugepages_SOURCES  = test/testhugepages.cpp
 testhugepages_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testhugepages_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testsymcnt_SOURCES  = test/testsymcnt.cpp
+testsymcnt_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testsymcnt_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
