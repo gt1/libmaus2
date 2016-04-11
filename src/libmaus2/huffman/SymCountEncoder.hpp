@@ -43,7 +43,6 @@ namespace libmaus2
 			typedef _bit_writer_type bit_writer_type;
 
 			bit_writer_type & writer;
-			uint64_t const numsyms;
 
 			::libmaus2::autoarray::AutoArray < SymCount > symcntbuffer;
 			::libmaus2::autoarray::AutoArray < std::pair<int64_t,uint64_t> > symrlbuffer;
@@ -57,12 +56,10 @@ namespace libmaus2
 
 			bool indexwritten;
 
-			SymCountEncoderBaseTemplate(bit_writer_type & rwriter, uint64_t const rnumsyms, uint64_t const bufsize = 4ull*1024ull*1024ull)
-			: writer(rwriter), numsyms(rnumsyms), symcntbuffer(bufsize), pa(symcntbuffer.begin()), pc(pa), pe(symcntbuffer.end()),
+			SymCountEncoderBaseTemplate(bit_writer_type & rwriter, uint64_t const bufsize = 4ull*1024ull*1024ull)
+			: writer(rwriter), symcntbuffer(bufsize), pa(symcntbuffer.begin()), pc(pa), pe(symcntbuffer.end()),
 			  indexwritten(false)
 			{
-				// std::cerr << "Writing SymCount file of length " << numsyms << std::endl;
-				writer.writeElias2(numsyms);
 			}
 			~SymCountEncoderBaseTemplate()
 			{
@@ -83,7 +80,7 @@ namespace libmaus2
 					writer.flushBitStream();
 					uint64_t const indexpos = writer.getPos();
 
-					writeIndex(writer,index,indexpos,numsyms);
+					writeIndex(writer,index,indexpos);
 
 					indexwritten = true;
 				}
@@ -336,8 +333,10 @@ namespace libmaus2
 			typedef SymCountEncoderTemplate<_huffmanencoderfile_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
-			SymCountEncoderTemplate(std::string const & filename, uint64_t const n, uint64_t const bufsize)
-			: huffmanencoderfile_type(filename), SymCountEncoderBaseTemplate< huffmanencoderfile_type >(*this,n,bufsize)
+			typedef SymCount value_type;
+
+			SymCountEncoderTemplate(std::string const & filename, uint64_t const bufsize)
+			: huffmanencoderfile_type(filename), SymCountEncoderBaseTemplate< huffmanencoderfile_type >(*this,bufsize)
 			{
 
 			}
@@ -350,20 +349,6 @@ namespace libmaus2
 			{
 				SymCountEncoderBaseTemplate< huffmanencoderfile_type >::flush();
 				huffmanencoderfile_type::flush();
-			}
-
-			static uint64_t getLength(std::vector<std::string> const & filenames)
-			{
-				uint64_t n = 0;
-				for ( uint64_t i = 0; i < filenames.size(); ++i )
-					n += getLength(filenames[i]);
-				return n;
-			}
-			static uint64_t getLength(std::string const & filename)
-			{
-				libmaus2::aio::InputStreamInstance istr(filename);
-				::libmaus2::bitio::StreamBitInputStream SBIS(istr);
-				return ::libmaus2::bitio::readElias2(SBIS);
 			}
 		};
 
