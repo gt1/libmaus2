@@ -35,7 +35,8 @@ namespace libmaus2
 				writer_type & writer,
 				std::vector < IndexEntry > const & index,
 				uint64_t const indexpos,
-				uint64_t const numsyms)
+				uint64_t const numsyms = std::numeric_limits<uint64_t>::max()
+			)
 			{
 				uint64_t const maxpos = index.size() ? index[index.size()-1].pos : 0;
 				unsigned int const posbits = ::libmaus2::math::bitsPerNum(maxpos);
@@ -81,7 +82,8 @@ namespace libmaus2
 				writer.write(tvacc,vbits);
 				writer.flushBitStream();
 
-				assert ( numsyms == vacc );
+				if ( numsyms != std::numeric_limits<uint64_t>::max() )
+					assert ( numsyms == vacc );
 
 				for ( uint64_t i = 0; i < 64; ++i )
 					writer.writeBit( (indexpos & (1ull<<(63-i))) != 0 );
