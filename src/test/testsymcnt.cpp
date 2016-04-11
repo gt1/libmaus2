@@ -51,7 +51,7 @@ int main()
 				ASC[i++].sym = sym;
 		}
 
-		libmaus2::huffman::SymCountEncoderStd::unique_ptr_type senc(new libmaus2::huffman::SymCountEncoderStd(fn,n,512));
+		libmaus2::huffman::SymCountEncoderStd::unique_ptr_type senc(new libmaus2::huffman::SymCountEncoderStd(fn,512));
 		for ( uint64_t i = 0; i < n; ++i )
 			senc->encode(ASC[i]);
 		senc.reset();
