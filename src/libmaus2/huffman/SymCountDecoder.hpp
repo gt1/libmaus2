@@ -40,6 +40,7 @@ namespace libmaus2
 		{
 			typedef SymCountDecoder this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef SymCount value_type;
 
 			::libmaus2::huffman::IndexDecoderDataArray::unique_ptr_type Pidda;
 			::libmaus2::huffman::IndexDecoderDataArray const & idda;
@@ -388,14 +389,11 @@ namespace libmaus2
 				*--sc = SC;
 			}
 
-			// get length of file in symbols
 			static uint64_t getLength(std::string const & filename)
 			{
-				libmaus2::aio::InputStreamInstance istr(filename);
-				::libmaus2::bitio::StreamBitInputStream SBIS(istr);
-				// SBIS.readBit(); // need escape
-				return ::libmaus2::bitio::readElias2(SBIS);
-			}
+				libmaus2::huffman::IndexDecoderData IDD(filename);
+				return IDD.vacc;
+			};
 
 			// get length of vector of files in symbols
 			static uint64_t getLength(std::vector<std::string> const & filenames)
