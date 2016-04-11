@@ -44,6 +44,11 @@ namespace libmaus2
 			{
 				return sym == S.sym && cnt == S.cnt && sbit == S.sbit;
 			}
+
+			bool operator<(SymCount const & S) const
+			{
+				return sym < S.sym;
+			}
 		};
 	}
 }
