@@ -412,6 +412,173 @@ namespace libmaus2
 				}
 			}
 
+			/**
+			 * radix sorting with bucket sorting and histogram computation in the same run
+			 *
+			 * byte access version
+			 *
+			 * keys are assumed to be stored in the first keylength bytes of each record
+			 * for little endian these bytes are read left to right, for big endian right to left
+			 *
+			 * the sorted sequence is stored in [ita,ite) if rounds is even and [tita,tite) if rounds is odd
+			 **/
+			template<typename value_iterator, typename key_index_iterator>
+			static void byteradixsortKeyBytes(
+				value_iterator ita, value_iterator ite,
+				value_iterator tita, value_iterator tite,
+				unsigned int const tnumthreads,
+				key_index_iterator keybytes,
+				::std::size_t numkeybytes
+			)
+			{
+				typedef typename ::std::iterator_traits<value_iterator>::value_type value_type;
+
+				uint64_t const n = ite-ita;
+				uint64_t const packsize = (n + tnumthreads - 1) / tnumthreads;
+				uint64_t const numthreads = (n + packsize - 1) / packsize;
+
+				libmaus2::autoarray::AutoArray<uint64_t> Ahist((numthreads+1) * LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS, false);
+				libmaus2::autoarray::AutoArray<uint64_t> Athist(numthreads*numthreads* LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS, false);
+				libmaus2::autoarray::AutoArray<uint64_t> Ahist_cmp((numthreads+1) * LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS, false);
+
+				for ( unsigned int r = 0; r < numkeybytes; ++r )
+				{
+					/*
+					 * compute bucket histograms for first run
+					 */
+					if ( r == 0 )
+					{
+						unsigned int const key_offset_0 = keybytes[r];
+
+						#if defined(_OPENMP)
+						#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
+						#endif
+						for ( uint64_t t = 0; t < numthreads; ++t )
+						{
+							uint64_t const p_low = t * packsize;
+							uint64_t const p_high = std::min(p_low+packsize,n);
+
+							value_type * p_ita = ita + p_low;
+							value_type * p_ite = ita + p_high;
+
+							uint64_t * const hist = Ahist.begin() + t * LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS;
+
+							for ( uint64_t i = 0; i < LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS; ++i )
+								hist[i] = 0;
+
+							while ( p_ita != p_ite )
+								hist[ reinterpret_cast<uint8_t const *>(p_ita++)[key_offset_0] ] ++;
+						}
+					}
+
+					#if 0
+					if ( r )
+						for ( uint64_t i = 0; i < numthreads * LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS; ++i )
+							assert ( Ahist[i] == Ahist_cmp[i] );
+					#endif
+
+					// compute prefix sums for each bucket over blocks
+					for ( uint64_t i = 0; i < LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS; ++i )
+						libmaus2::util::PrefixSums::prefixSums(Ahist.begin() + i,Ahist.begin() + i + (numthreads+1) * LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS,LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS);
+
+					// compute prefix sums over whole data set
+					libmaus2::util::PrefixSums::prefixSums(Ahist.begin() + (numthreads+0) * LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS,Ahist.begin() + (numthreads+1) * LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS,1);
+
+					for ( uint64_t i = 0; i < LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS; ++i )
+					{
+						uint64_t const a = Ahist[(numthreads+0)*LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS+i];
+						uint64_t * p = Ahist.begin() + i;
+						for ( uint64_t j = 0; j < numthreads; ++j )
+						{
+							*p += a;
+							p += LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS;
+						}
+					}
+
+					if ( r + 1 < numkeybytes )
+					{
+						unsigned int const key_offset_0 = keybytes[r];
+						unsigned int const key_offset_1 = keybytes[r+1];
+
+						#if defined(_OPENMP)
+						#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
+						#endif
+						for ( uint64_t t = 0; t < numthreads; ++t )
+						{
+							uint64_t const p_low = t * packsize;
+							uint64_t const p_high = std::min(p_low+packsize,n);
+
+							value_type * p_ita = ita + p_low;
+							value_type * p_ite = ita + p_high;
+
+							uint64_t * const hist = Ahist.begin() + t * LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS;
+							uint64_t * const thist = Athist.begin() + t /* in block */ *numthreads*LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS;
+
+							std::fill(Athist.begin() + (t+0)*numthreads*LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS,Athist.begin() + (t+1)*numthreads*LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS,0);
+
+							while ( p_ita != p_ite )
+							{
+								value_type const & v = *(p_ita);
+								uint8_t const * kp = reinterpret_cast<uint8_t const *>(p_ita);
+								uint64_t const bucket      = kp[key_offset_0];
+								uint64_t const next_bucket = kp[key_offset_1];
+								uint64_t const outpos      = hist[bucket]++;
+								uint64_t const outpack     = outpos / packsize;
+								thist [ outpack /* out block */ * LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS + next_bucket ] ++;
+								tita[outpos] = v;
+								p_ita++;
+							}
+						}
+
+						#if defined(_OPENMP)
+						#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
+						#endif
+						for ( uint64_t t = 0; t < numthreads; ++t )
+						{
+							// uint64_t * const hist = Ahist_cmp.begin() + t * LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS;
+							uint64_t * const hist = Ahist.begin() + t * LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS;
+
+							for ( uint64_t i = 0; i < LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS; ++i )
+							{
+								hist[i] = 0;
+								for ( uint64_t p = 0; p < numthreads; ++p )
+									hist[i] += Athist[p /* in block */ *numthreads*LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS + t /* out block */ *LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS + i /* bucket */];
+							}
+						}
+					}
+					else
+					{
+						unsigned int const key_offset_0 = keybytes[r];
+
+						#if defined(_OPENMP)
+						#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
+						#endif
+						for ( uint64_t t = 0; t < numthreads; ++t )
+						{
+							uint64_t const p_low = t * packsize;
+							uint64_t const p_high = std::min(p_low+packsize,n);
+
+							value_type * p_ita = ita + p_low;
+							value_type * p_ite = ita + p_high;
+
+							uint64_t * const hist = Ahist.begin() + t * LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS;
+
+							while ( p_ita != p_ite )
+							{
+								value_type const & v = *(p_ita);
+								uint64_t const bucket      = reinterpret_cast<uint8_t const *>(p_ita)[key_offset_0];
+								uint64_t const outpos      = hist[bucket]++;
+								tita[outpos] = v;
+								p_ita++;
+							}
+						}
+					}
+
+					std::swap(ita,tita);
+					std::swap(ite,tite);
+				}
+			}
+
 			template<typename value_type>
 			static void byteradixsort(
 				value_type * ita, value_type * ite,
