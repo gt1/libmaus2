@@ -27,6 +27,9 @@ namespace libmaus2
 	{
 		struct CoordinateCache
 		{
+			typedef CoordinateCache this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+
 			unsigned int const blockshift;
 			uint64_t const n;
 			libmaus2::fastx::DNAIndexMetaDataBigBand const & index;
