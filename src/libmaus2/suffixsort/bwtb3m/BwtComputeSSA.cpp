@@ -1073,10 +1073,16 @@ void libmaus2::suffixsort::bwtb3m::BwtComputeSSA::computeSSA(
 	saout->flush();
 	saout.reset();
 
+	for ( uint64_t i = 0; i < Vsatmpfn.size(); ++i )
+		libmaus2::aio::FileRemoval::removeFile(Vsatmpfn[i]);
+
 	libmaus2::aio::OutputStreamInstance::unique_ptr_type isaout(new libmaus2::aio::OutputStreamInstance(libmaus2::util::OutputFileNameTools::clipOff(origbwt,".bwt") + ".isa"));
 	::libmaus2::serialize::Serialize<uint64_t>::serialize(*isaout,isasamplingrate);
 	::libmaus2::serialize::Serialize<uint64_t>::serialize(*isaout,(n+isasamplingrate-1)/isasamplingrate);
 	libmaus2::sorting::SemiExternalKeyTupleSort::sort< std::pair<uint64_t,uint64_t>,PairFirstProjectorType<uint64_t,uint64_t>,uint64_t,PairSecondProjectorType<uint64_t,uint64_t> >(Visatmpfn,tmpfilenamebase + "_final_isa_tmp_",*isaout,n,numthreads,maxtmpfiles /* max files */,maxsortmem /* max mem */, true /* remove input */);
 	isaout->flush();
 	isaout.reset();
+
+	for ( uint64_t i = 0; i < Visatmpfn.size(); ++i )
+		libmaus2::aio::FileRemoval::removeFile(Visatmpfn[i]);
 }
