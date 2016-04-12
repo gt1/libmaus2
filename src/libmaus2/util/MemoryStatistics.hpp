@@ -29,6 +29,7 @@ namespace libmaus2
 		{
 			static int64_t getPageSize()
 			{
+				#if defined(_SC_PAGESIZE)
 				long const v = sysconf(_SC_PAGESIZE);
 
 				if ( v < 0 )
@@ -41,10 +42,19 @@ namespace libmaus2
 				}
 
 				return static_cast<int64_t>(v);
+				#elif defined(LIBMAUS2_HAVE_GETPAGESIZE)
+				return getpagesize();
+				#else
+				libmaus2::exception::LibMausException lme;
+				lme.getStream() << "libmaus2::util::MemoryStatistics::getPageSize(): not supported." << std::endl;
+				lme.finish();
+				throw lme;
+				#endif
 			}
 
 			static int64_t getNumPhysPages()
 			{
+				#if defined(_SC_PHYS_PAGES)
 				long const v = sysconf(_SC_PHYS_PAGES);
 
 				if ( v < 0 )
@@ -57,10 +67,17 @@ namespace libmaus2
 				}
 
 				return static_cast<int64_t>(v);
+				#else
+				libmaus2::exception::LibMausException lme;
+				lme.getStream() << "libmaus2::util::MemoryStatistics::getNumPhysPages(): not supported." << std::endl;
+				lme.finish();
+				throw lme;
+				#endif
 			}
 
 			static int64_t getNumAvPhysPages()
 			{
+				#if defined(_SC_AVPHYS_PAGES)
 				long const v = sysconf(_SC_AVPHYS_PAGES);
 
 				if ( v < 0 )
@@ -73,11 +90,25 @@ namespace libmaus2
 				}
 
 				return static_cast<int64_t>(v);
+				#else
+				libmaus2::exception::LibMausException lme;
+				lme.getStream() << "libmaus2::util::MemoryStatistics::getNumAvPhysPages(): not supported." << std::endl;
+				lme.finish();
+				throw lme;
+				#endif
 			}
 
 			static int64_t getPhysicalMemory()
 			{
+				#if defined(__APPLE__)
+				int mib[2] = { CTL_HW, HW_MEMSIZE };
+				int64_t physmem;
+				size_t vlen = sizeof(int64_t);
+				sysctl(&mib[0], 2, &physmem, &vlen, NULL, 0);
+				return physmem;
+				#else
 				return getNumPhysPages() * getPageSize();
+				#endif
 			}
 
 			static int64_t getAvailablePhysicalMemory()
