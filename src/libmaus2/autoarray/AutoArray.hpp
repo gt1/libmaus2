@@ -1007,6 +1007,15 @@ namespace libmaus2
 			#endif
 
 			public:
+			N * take()
+			{
+				decreaseTotalAllocation(n);
+				N * p = array;
+				array = 0;
+				n = 0;
+				return p;
+			}
+
 			/**
 			 * release memory (set size of array to zero)
 			 **/

@@ -20,6 +20,7 @@
 #if ! defined(INDEXENTRY_HPP)
 #define INDEXENTRY_HPP
 
+#include <ostream>
 #include <libmaus2/types/types.hpp>
 
 namespace libmaus2
