@@ -1,3 +1,18 @@
+libmaus2 (2.0.155-1) unstable; urgency=medium
+
+  * implement detection of physical memory on Darwin
+  * remove tmp files in BwtComputeSSA
+  * add byteradixsortKeyBytes function in InterleavedRadixSort
+  * add unique_ptr_type typedef in CoordinateCache and DNARankKmerCache
+  * add take method in AutoArray class
+  * make numsyms parameter optional in IndexWriter
+  * add SymCount encoder and decoder classes
+  * move IndexWriter class to its own header file
+  * add methods copyFrom, sclone, uclone, traceToSparse, getTracePoints and getCommonTracePoints in NNPTraceContainer class
+  * add AlignmentTraceContainerAllocator and AlignmentTraceContainerTypeInfo classes
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 13 Apr 2016 09:11:58 +0200
+
 libmaus2 (2.0.154-1) unstable; urgency=medium
 
   * remove debug message in ZlibInterface 

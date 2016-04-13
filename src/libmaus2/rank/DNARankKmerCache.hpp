@@ -26,6 +26,9 @@ namespace libmaus2
 	{
 		struct DNARankKmerCache
 		{
+			typedef DNARankKmerCache this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+
 			libmaus2::rank::DNARank const & rank;
 			unsigned int const k;
 			libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > C;

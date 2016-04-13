@@ -1648,6 +1648,35 @@ namespace libmaus2
 				return ! operator==(o);
 			}
 		};
+
+		struct AlignmentTraceContainerAllocator
+		{
+			AlignmentTraceContainerAllocator() {}
+
+			AlignmentTraceContainer::shared_ptr_type operator()()
+			{
+				AlignmentTraceContainer::shared_ptr_type tptr(new AlignmentTraceContainer);
+				return tptr;
+			}
+		};
+
+		struct AlignmentTraceContainerTypeInfo
+		{
+			typedef AlignmentTraceContainerTypeInfo this_type;
+
+			typedef libmaus2::lcs::AlignmentTraceContainer::shared_ptr_type pointer_type;
+
+			static pointer_type getNullPointer()
+			{
+				pointer_type p;
+				return p;
+			}
+
+			static pointer_type deallocate(pointer_type /* p */)
+			{
+				return getNullPointer();
+			}
+		};
 	}
 }
 #endif
