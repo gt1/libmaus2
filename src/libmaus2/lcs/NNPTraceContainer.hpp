@@ -667,7 +667,7 @@ namespace libmaus2
 				libmaus2::lcs::BaseConstants::step_type peekslot;
 				bool peekslotfilled;
 
-				NNPTraceContainerDecoderReverse(NNPTraceContainer const & rA) : A(rA), traceid(A.traceid)
+				NNPTraceContainerDecoderReverse(NNPTraceContainer const & rA) : A(rA), traceid(A.traceid), peekslotfilled(false)
 				{
 				}
 
@@ -743,7 +743,69 @@ namespace libmaus2
 				}
 			};
 
-			uint64_t getTracePoints(uint64_t apos, uint64_t bpos, uint64_t tspace, libmaus2::autoarray::AutoArray< TracePointId > & A, uint64_t o, uint64_t const id)
+			static uint64_t listCommonTracePoints(
+				uint64_t const tspace,
+				NNPTraceContainer const & A,
+				uint64_t Aapos,
+				uint64_t Abpos,
+				NNPTraceContainer const & B,
+				uint64_t Bapos,
+				uint64_t Bbpos,
+				libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > & Aout,
+				libmaus2::autoarray::AutoArray< TracePointId > & Atmp
+			)
+			{
+				uint64_t oA = 0;
+				uint64_t const oB = A.getTracePoints(Aapos,Abpos,tspace,Atmp,oA,0);
+				uint64_t const oC = B.getTracePoints(Bapos,Bbpos,tspace,Atmp,oB,1);
+
+				TracePointId * TA = Atmp.begin() + oA;
+				TracePointId * TAE = Atmp.begin() + oB;
+				TracePointId * TB = Atmp.begin() + oB;
+				TracePointId * TBE = Atmp.begin() + oC;
+
+				for ( TracePointId * TC = TA; TC != TAE; ++TC )
+					assert ( TA->id == 0 );
+				for ( TracePointId * TC = TB; TC != TBE; ++TC )
+					assert ( TA->id == 0 );
+
+				for ( uint64_t i = 1; (TA+i) < TAE; ++i )
+					assert ( TA[i-1] < TA[i] );
+				for ( uint64_t i = 1; (TB+i) < TBE; ++i )
+					assert ( TB[i-1] < TB[i] );
+
+				uint64_t o = 0;
+
+				while ( TA != TAE && TB != TBE )
+				{
+					if ( TA->apos < TB->apos )
+						++TA;
+					else if  ( TB->apos < TA->apos )
+						++TB;
+					else if ( TA->bpos < TB->bpos )
+						++TA;
+					else if ( TB->bpos < TA->bpos )
+						++TB;
+					else
+					{
+						assert ( TA->apos == TB->apos );
+						assert ( TA->bpos == TB->bpos );
+						uint64_t const refapos = TA->apos;
+						uint64_t const refbpos = TA->bpos;
+
+						Aout.push(o,std::pair<uint64_t,uint64_t>(refapos,refbpos));
+
+						while ( TA != TAE && TA->apos == refapos && TA->bpos == refbpos )
+							++TA;
+						while ( TB != TBE && TB->apos == refapos && TB->bpos == refbpos )
+							++TB;
+					}
+				}
+
+				return o;
+			}
+
+			uint64_t getTracePoints(uint64_t apos, uint64_t bpos, uint64_t tspace, libmaus2::autoarray::AutoArray< TracePointId > & A, uint64_t o, uint64_t const id) const
 			{
 				std::pair<uint64_t,uint64_t> const SL = getStringLengthUsed();
 				apos += SL.first;
@@ -792,6 +854,11 @@ namespace libmaus2
 
 				std::reverse(A.begin()+oa,A.begin()+o);
 
+				for ( uint64_t i = oa; i < o; ++i )
+					assert ( (A[i].apos % tspace) == 0 );
+				for ( uint64_t i = oa+1; i < o; ++i )
+					assert ( A[i-1] < A[i] );
+
 				return o;
 			}
 
@@ -804,6 +871,9 @@ namespace libmaus2
 			{
 				uint64_t o = 0;
 				uint64_t ashareo = 0;
+				#if 0
+				iterator it_save = it;
+				#endif
 
 				for ( uint64_t id = 0; it != ite; ++it, ++id )
 				{
@@ -818,9 +888,11 @@ namespace libmaus2
 				{
 					uint64_t ahigh = alow+1;
 
+					// end of same A position
 					while ( ahigh < o && A[alow].apos == A[ahigh].apos )
 						++ahigh;
 
+					// if more than one
 					if ( ahigh-alow > 1 )
 					{
 						uint64_t blow = alow;
@@ -829,6 +901,7 @@ namespace libmaus2
 						{
 							uint64_t bhigh = blow + 1;
 
+							// end of same B position
 							while ( bhigh < ahigh && A[blow].bpos == A[bhigh].bpos )
 								++bhigh;
 
@@ -836,16 +909,33 @@ namespace libmaus2
 							{
 								for ( uint64_t i = blow; i < bhigh; i += 2 )
 								{
+									// first id
 									uint64_t id0 = A[i].id;
 
 									if ( i+1 < bhigh )
 									{
+										// second id
 										uint64_t id1 = A[i+1].id;
 										assert ( id0 != id1 );
 
-										if ( id0 < id1 )
-											Ashare [ id1 ] = id0;
-										else
+										#if 0
+										{
+											libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > Aout;
+											libmaus2::autoarray::AutoArray< TracePointId > Atmp;
+											uint64_t const ooo = listCommonTracePoints(
+												tspace,
+												*(it_save[id0].second),
+												it_save[id0].first.abpos,
+												it_save[id0].first.bbpos,
+												*(it_save[id1].second),
+												it_save[id1].first.abpos,
+												it_save[id1].first.bbpos,
+												Aout,Atmp);
+											assert ( ooo );
+										}
+										#endif
+
+										if ( id0 < id1 && Ashare[id0] == id0 )
 											Ashare [ id0 ] = id1;
 									}
 								}
