@@ -1,3 +1,9 @@
+libmaus2 (2.0.156-1) unstable; urgency=medium
+
+  * add faster (less seeking) rewriting of reverse complement in FastAToCompact4BigBandBiDir
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 14 Apr 2016 10:31:23 +0200
+
 libmaus2 (2.0.155-1) unstable; urgency=medium
 
   * implement detection of physical memory on Darwin
