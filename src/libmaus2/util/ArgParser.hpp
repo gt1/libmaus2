@@ -72,12 +72,15 @@ namespace libmaus2
 				{
 					std::string arg = argv[i];
 
+					// if argument starts with a '-'
 					if ( parseargs && arg.size() > 1 && arg[0] == '-' )
 					{
+						// if argument is "--"
 						if ( arg == "--" )
 						{
 							parseargs = false;
 						}
+						// if argument does not start with "--"
 						else if ( arg[1] != '-' )
 							kvargs.insert(std::pair<std::string,std::string>(arg.substr(1,1),arg.substr(2)));
 						else
