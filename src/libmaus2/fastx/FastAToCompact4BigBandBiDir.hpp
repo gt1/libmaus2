@@ -551,6 +551,7 @@ namespace libmaus2
 					}
 				}
 
+				#if defined(LIBMAUS2_FASTX_FASTATOCOMPACT4BIGBANDBIDIR_DEBUG)
 				// load and check compact array
 				libmaus2::bitio::CompactArray::unique_ptr_type CA(libmaus2::bitio::CompactArray::load(outputfilename));
 
@@ -570,6 +571,7 @@ namespace libmaus2
 
 				for ( uint64_t i = 0; i < suml; ++i )
 					assert (  (*CA)[i] == ((*CA)[2*suml-i-1]^3) );
+				#endif
 
 				return EXIT_SUCCESS;
 			}
