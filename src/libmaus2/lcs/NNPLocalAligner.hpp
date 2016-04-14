@@ -500,6 +500,27 @@ namespace libmaus2
 					Amodified.ensureSize(ashareo);
 					std::fill(Amodified.begin(),Amodified.begin()+ashareo,false);
 
+					#if 0
+					for ( uint64_t i = 0; i < ashareo; ++i )
+						if ( Ashare[i] != i )
+						{
+							uint64_t const partner = Ashare[i];
+							libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > Aout;
+							libmaus2::autoarray::AutoArray< libmaus2::lcs::NNPTraceContainer::TracePointId > Atmp;
+
+							uint64_t const o = libmaus2::lcs::NNPTraceContainer::listCommonTracePoints(
+								64,
+								*(LLV[i].second),
+								LLV[i].first.abpos,
+								LLV[i].first.bbpos,
+								*(LLV[partner].second),
+								LLV[partner].first.abpos,
+								LLV[partner].first.bbpos,
+								Aout,Atmp);
+							assert ( o );
+						}
+					#endif
+
 					assert ( ashareo == LLV.size() );
 					for ( uint64_t i = 0; i < ashareo; ++i )
 						if (
