@@ -871,7 +871,9 @@ namespace libmaus2
 			{
 				uint64_t o = 0;
 				uint64_t ashareo = 0;
+				#if 0
 				iterator it_save = it;
+				#endif
 
 				for ( uint64_t id = 0; it != ite; ++it, ++id )
 				{
