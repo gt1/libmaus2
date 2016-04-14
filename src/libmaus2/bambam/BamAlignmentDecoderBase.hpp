@@ -1095,6 +1095,16 @@ namespace libmaus2
 			}
 
 			/**
+			 * get cigar as string
+			 **/
+			static std::string getCigarAsString(uint8_t const * D)
+			{
+				libmaus2::autoarray::AutoArray<char> A;
+				uint64_t l = getCigarString(D,A);
+				return std::string(A.begin(),A.begin()+l);
+			}
+
+			/**
 			 * get cigar operations vector
 			 *
 			 * @param D alignment block
@@ -1308,6 +1318,52 @@ namespace libmaus2
 				uint8_t const * cigar = getCigar(D);
 
 				for ( uint32_t i = 0; i < ncigar; ++i, cigar+=4 )
+				{
+					uint32_t const v = getLEInteger(cigar,4);
+					uint8_t const op = v & ((1ull<<(4))-1);
+
+					switch ( op )
+					{
+						case BamFlagBase::LIBMAUS2_BAMBAM_CMATCH: // M
+						case BamFlagBase::LIBMAUS2_BAMBAM_CDEL: // D
+						case BamFlagBase::LIBMAUS2_BAMBAM_CREF_SKIP: // N
+						case BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL: // =
+						case BamFlagBase::LIBMAUS2_BAMBAM_CDIFF: // X
+							reflen += (v >> 4) & ((1ull<<(32-4))-1);
+							break;
+					}
+				}
+
+				return reflen;
+			}
+
+			/**
+			 * get number of reference sequence bases covered by alignment in D starting from first match/mismatch
+			 *
+			 * @param D alignment block
+			 * @return number of reference sequence bases covered by alignment in D
+			 **/
+			static uint64_t getReferenceAdvance(uint8_t const * D)
+			{
+				uint64_t reflen = 0;
+				uint32_t const ncigar = getNCigar(D);
+				uint8_t const * cigar = getCigar(D);
+
+				uint32_t i = 0;
+				for ( ; i < ncigar ; cigar += 4, ++i )
+				{
+					uint32_t const v = getLEInteger(cigar,4);
+					uint8_t const op = v & ((1ull<<(4))-1);
+
+					if (
+						op == BamFlagBase::LIBMAUS2_BAMBAM_CMATCH ||
+						op == BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL ||
+						op == BamFlagBase::LIBMAUS2_BAMBAM_CDIFF
+					)
+						break;
+				}
+
+				for ( ; i < ncigar; ++i, cigar+=4 )
 				{
 					uint32_t const v = getLEInteger(cigar,4);
 					uint8_t const op = v & ((1ull<<(4))-1);
@@ -3871,7 +3927,9 @@ namespace libmaus2
 					1 // LIBMAUS2_BAMBAM_CDIFF = 8
 				};
 
+				// decode cigar operation vector
 				uint32_t const numcigin = getCigarOperations(B,cigopin);
+				// decode read data
 				decodeRead(B, readdata);
 
 				uint64_t i = 0;
@@ -3949,7 +4007,7 @@ namespace libmaus2
 				}
 
 				assert ( readpos == getLseq(B) );
-				assert ( refpos == getPos(B) + getReferenceLength(B) );
+				assert ( refpos == getPos(B) + getReferenceAdvance(B) );
 
 				if ( Vout.size() > cigopin.size() )
 					cigopin.resize(Vout.size());
