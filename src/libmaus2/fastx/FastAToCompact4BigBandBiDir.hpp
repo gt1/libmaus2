@@ -121,6 +121,12 @@ namespace libmaus2
 				std::vector<uint64_t> lvec;
 				uint64_t nseq = 0;
 				uint64_t seqoff = 0;
+
+				std::vector< std::pair<uint64_t,uint64_t> > seqblocks;
+				uint64_t seqblocklow = 0;
+				uint64_t seqblocksize = 0;
+				uint64_t seqblockmaxsize = 1024ull*1024ull*1024ull;
+
 				for ( uint64_t i = 0; i < inputfilenames.size(); ++i )
 				{
 					std::string const fn = inputfilenames[i];
@@ -141,6 +147,7 @@ namespace libmaus2
 					libmaus2::fastx::StreamFastAReaderWrapper fain(*istr);
 					libmaus2::fastx::StreamFastAReaderWrapper::pattern_type pattern;
 
+
 					while ( fain.getNextPatternUnlocked(pattern) )
 					{
 						if ( logstr )
@@ -150,12 +157,13 @@ namespace libmaus2
 						std::string & spattern = pattern.spattern;
 						uint64_t const seqlen = spattern.size();
 
+						// meta meta data
 						assert ( static_cast<int64_t>(metapos) == metaOut->tellp() );
+						// position in meta data stream
 						libmaus2::util::NumberSerialisation::serialiseNumber(*metametaOut,metapos);
+						// offset in sequence stream
 						libmaus2::util::NumberSerialisation::serialiseNumber(*metametaOut,seqoff);
 
-						// length of sequence
-						libmaus2::util::NumberSerialisation::serialiseNumber(*metaOut,seqlen);
 						lvec.push_back(seqlen);
 
 						for ( uint64_t i = 0; i < seqlen; ++i )
@@ -215,6 +223,8 @@ namespace libmaus2
 							rout += towrite;
 						}
 
+						// length of sequence
+						libmaus2::util::NumberSerialisation::serialiseNumber(*metaOut,seqlen);
 						// number of replaced intervals
 						libmaus2::util::NumberSerialisation::serialiseNumber(*metaOut,Vreplace.size());
 						// replaced intervals
@@ -231,9 +241,33 @@ namespace libmaus2
 
 						if ( logstr )
 							*logstr << std::endl;
+
+						seqblocksize += seqlen;
+						if ( seqblocksize > seqblockmaxsize )
+						{
+							uint64_t const seqblockhigh = nseq;
+							seqblocks.push_back(std::pair<uint64_t,uint64_t>(seqblocklow,seqblockhigh));
+
+							seqblocksize = 0;
+							seqblocklow = seqblockhigh;
+						}
 					}
 				}
 
+				if ( seqblocksize )
+				{
+					uint64_t const seqblockhigh = nseq;
+					seqblocks.push_back(std::pair<uint64_t,uint64_t>(seqblocklow,seqblockhigh));
+
+					seqblocksize = 0;
+					seqblocklow = seqblockhigh;
+				}
+				assert ( seqblocklow == nseq );
+				assert ( (!seqblocks.size()) || (seqblocks[0].first == 0) );
+				for ( uint64_t i = 1; i < seqblocks.size(); ++i )
+					assert ( seqblocks[i-1].second == seqblocks[i].first );
+
+				// go to start of file and write number of sequences
 				metaOut->seekp(0);
 				libmaus2::util::NumberSerialisation::serialiseNumber(*metaOut,nseq);
 				metaOut->flush();
@@ -326,11 +360,94 @@ namespace libmaus2
 					if ( logstr )
 						*logstr << "[V] rewriting forward of sequence " << i << " length " << seqlen << " replintv=" << replintv << std::endl;
 				}
-				seqtmpISI.reset();
 				if ( Pcompactforwout )
 					Pcompactforwout->flush();
 				Pcompactforwout.reset();
 
+				#if 1
+				libmaus2::autoarray::AutoArray<char> D;
+				// handle reverse complement in blocks
+				for ( uint64_t zz = 0; zz < seqblocks.size(); ++zz )
+				{
+					uint64_t const z = seqblocks.size()-zz-1;
+					uint64_t const blow = seqblocks[z].first;
+					uint64_t const bhigh = seqblocks[z].second;
+					assert ( bhigh-blow );
+
+					metametaISI->clear();
+					metametaISI->seekg(blow * 2 * sizeof(uint64_t));
+
+					uint64_t const metapos = libmaus2::util::NumberSerialisation::deserialiseNumber(*metametaISI);
+					uint64_t const seqoff = libmaus2::util::NumberSerialisation::deserialiseNumber(*metametaISI);
+
+					metaISI->clear();
+					metaISI->seekg(metapos);
+
+					std::vector<libmaus2::fastx::DNAIndexMetaDataSequence> Vseq;
+					uint64_t seqlen = 0;
+					for ( uint64_t i = blow; i < bhigh; ++i )
+					{
+						Vseq.push_back(libmaus2::fastx::DNAIndexMetaDataSequence(*metaISI));
+						seqlen += Vseq.back().l;
+					}
+
+					for ( uint64_t ii = 0; ii < Vseq.size(); ++ii )
+					{
+						uint64_t const i = Vseq.size()-ii-1;
+
+						libmaus2::fastx::DNAIndexMetaDataSequence const & meta = Vseq[i];
+						std::vector<std::pair<uint64_t,uint64_t> > const & Vrepl = meta.nblocks;
+						uint64_t const replintv = Vrepl.size();
+
+						// write meta data
+						libmaus2::util::NumberSerialisation::serialiseNumber(*finalmetaOut,meta.l);
+						libmaus2::util::NumberSerialisation::serialiseNumber(*finalmetaOut,replintv);
+						for ( uint64_t jj = 0; jj < replintv; ++jj )
+						{
+							uint64_t const j = replintv - jj - 1;
+
+							libmaus2::util::NumberSerialisation::serialiseNumber(*finalmetaOut,meta.l-Vrepl[j].second);
+							libmaus2::util::NumberSerialisation::serialiseNumber(*finalmetaOut,meta.l-Vrepl[j].first);
+						}
+					}
+
+					#if 1
+					D.ensureSize(seqlen);
+					seqtmpISI->clear();
+					seqtmpISI->seekg(seqoff);
+					seqtmpISI->read(D.begin(),seqlen);
+					assert ( seqtmpISI->gcount() == static_cast<int64_t>(seqlen) );
+					std::reverse(D.begin(),D.begin()+seqlen);
+					for ( uint64_t i = 0; i < seqlen; ++i )
+						D[i] ^= 3;
+
+					Pcompactout->write(D.begin(),seqlen);
+					if ( Pcompactrecoout )
+						Pcompactrecoout->write(D.begin(),seqlen);
+					#else
+					libmaus2::aio::CircularReverseWrapper seqtmp(seqtmpfilename,seqoff+seqlen);
+					uint64_t todo = seqlen;
+					while ( todo )
+					{
+						uint64_t const tocopy = std::min(todo,B.size());
+
+						seqtmp.read(B.begin(),tocopy);
+
+						for ( uint64_t j = 0; j < tocopy; ++j )
+							B[j] ^= 3;
+
+						Pcompactout->write(B.begin(),tocopy);
+						if ( Pcompactrecoout )
+							Pcompactrecoout->write(B.begin(),tocopy);
+
+						todo -= tocopy;
+					}
+					#endif
+
+					if ( logstr )
+						*logstr << "[V] rewrote RC block [" << blow << "," << bhigh << ")" << std::endl;
+				}
+				#else
 				// reverse complement
 				for ( uint64_t ii = 0; ii < nseq; ++ii )
 				{
@@ -388,6 +505,8 @@ namespace libmaus2
 					if ( logstr )
 						*logstr << "[V] rewriting RC of sequence " << i << " length " << seqlen << " replintv=" << replintv << std::endl;
 				}
+				#endif
+				seqtmpISI.reset();
 
 				if ( Pcompactrecoout )
 					Pcompactrecoout->flush();
