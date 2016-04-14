@@ -1850,7 +1850,8 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16.hpp \
 	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16_def.hpp \
 	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16_undef.hpp \
-	libmaus2/lcs/SimdX86GlobalAlignmentScoreConstants256.hpp
+	libmaus2/lcs/SimdX86GlobalAlignmentScoreConstants256.hpp \
+	libmaus2/lcs/NNPLocalAligner.hpp
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp
