@@ -1,3 +1,11 @@
+libmaus2 (2.0.157-1) unstable; urgency=medium
+
+  * changes in BamAlignmentDecoderBase: add getCigarAsString and getReferenceAdvance methods, fix length checking in cigar string recalculation 
+  * changes in NNPTraceContainer: fix bug with uninitialised variable in NNPTraceContainerDecoderReverse, add listCommonTracePoints method 
+  * add NNP class based local aligner
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 14 Apr 2016 18:06:55 +0200
+
 libmaus2 (2.0.156-1) unstable; urgency=medium
 
   * add faster (less seeking) rewriting of reverse complement in FastAToCompact4BigBandBiDir
