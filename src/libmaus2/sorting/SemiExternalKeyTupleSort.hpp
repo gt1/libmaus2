@@ -39,14 +39,47 @@ namespace libmaus2
 			// sorting for tuples with a key field
 			// the keys are assumed to be uniformly distributed in [0,n)
 			template<typename data_type, typename key_projector_type, typename output_data_type, typename output_projector_type>
-			static void sort(std::vector<std::string> infn, std::string const & tmpbase, std::ostream & finalout, uint64_t const n, uint64_t const tnumthreads, uint64_t const maxfiles, uint64_t const maxmem, bool removeinput = true)
+			static void sort(std::vector<std::string> infn, std::string const & tmpbase, std::ostream & finalout, uint64_t const n, uint64_t tnumthreads, uint64_t const maxfiles, uint64_t const maxmem, bool removeinput = true)
 			{
+				// get number of input elements
+				libmaus2::aio::ConcatInputStream::unique_ptr_type Psizecheckin(new libmaus2::aio::ConcatInputStream(infn));
+				Psizecheckin->seekg(0,std::ios::end);
+				std::streampos const numinbytes = Psizecheckin->tellg();
+				assert ( numinbytes % sizeof(data_type) == 0 );
+				uint64_t const numin = numinbytes / sizeof(data_type);
+				Psizecheckin.reset();
+
+				uint64_t maxblocksize = numin;
+				uint64_t const maxinmem = (maxmem + sizeof(data_type)-1)/sizeof(data_type);
+				if ( ! maxinmem )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "SemiExternalKeyTupleSort<>::sort(): maxinmem parameter is too small" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+
+				uint64_t const maxradixthreads = maxfiles / 3; // one input, two output
+
+				if ( (! maxradixthreads) && (numin > maxinmem) )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "SemiExternalKeyTupleSort<>::sort(): invalid parameters for sorting" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+
+				tnumthreads = std::max(static_cast<uint64_t>(1),std::min(tnumthreads,maxradixthreads));
+
+				std::cerr << "[V] SemiExternalKeyTupleSort::sort: sorting with " << tnumthreads << " threads" << std::endl;
+
 				// tmp file id
 				uint64_t tmpid = 0;
 
 				// number of available open output files
-				uint64_t const numavoutputfiles = (maxfiles >= 2*tnumthreads) ? (maxfiles-tnumthreads) : tnumthreads;
-				assert ( numavoutputfiles >= tnumthreads );
+				assert ( (maxinmem >= numin) || (maxfiles >= 3*tnumthreads) );
+				uint64_t const numavoutputfiles = (maxfiles >= 3*tnumthreads) ? (maxfiles-tnumthreads) : 0;
+				assert ( (maxinmem >= numin) || (numavoutputfiles >= 2*tnumthreads) );
 
 				// maximum number of open output files per thread
 				uint64_t filesperthread = numavoutputfiles / tnumthreads;
@@ -67,18 +100,6 @@ namespace libmaus2
 				uint64_t const filemask = libmaus2::math::lowbits(filebits);
 				// number of bits for upper bound n
 				unsigned int const numnbits = libmaus2::math::numbits(n);
-
-				// get number of input elements
-				libmaus2::aio::ConcatInputStream::unique_ptr_type Psizecheckin(new libmaus2::aio::ConcatInputStream(infn));
-				Psizecheckin->seekg(0,std::ios::end);
-				std::streampos const numinbytes = Psizecheckin->tellg();
-				assert ( numinbytes % sizeof(data_type) == 0 );
-				uint64_t const numin = numinbytes / sizeof(data_type);
-				Psizecheckin.reset();
-
-				uint64_t maxblocksize = numin;
-				uint64_t const maxinmem = (maxmem + sizeof(data_type)-1)/sizeof(data_type);
-				assert ( maxinmem );
 
 				unsigned int radixruns = 0;
 				unsigned int numradixbits = 0;
