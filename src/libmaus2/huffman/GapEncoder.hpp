@@ -226,7 +226,8 @@ namespace libmaus2
 			// merge multiple gap arrays to one by adding them up per rank
 			static void merge(
 				std::vector < std::vector<std::string> > const & infilenames,
-				std::string const & outfilename
+				std::string const & outfilename,
+				uint64_t numthreads
 			)
 			{
 				if ( ! infilenames.size() )
@@ -255,7 +256,7 @@ namespace libmaus2
 						for ( uint64_t j = 0; j < infilenames[i].size(); ++j )
 							assert ( ::libmaus2::util::GetFileSize::fileExists(infilenames[i][j]) );
 
-						decoder_ptr_type tdecodersi(new decoder_type(infilenames[i]));
+						decoder_ptr_type tdecodersi(new decoder_type(infilenames[i],0 /* offset */,0/*psymoffset*/,numthreads));
 						decoders[i] = UNIQUE_PTR_MOVE(tdecodersi);
 					}
 
@@ -276,7 +277,7 @@ namespace libmaus2
 					// set up decoders
 					for ( uint64_t i = 0; i < infilenames.size(); ++i )
 					{
-						decoder_ptr_type tdecodersi(new decoder_type(infilenames[i]));
+						decoder_ptr_type tdecodersi(new decoder_type(infilenames[i],0/* offset */,0 /* psymoff */,numthreads));
 						decoders[i] = UNIQUE_PTR_MOVE(tdecodersi);
 					}
 
@@ -320,10 +321,10 @@ namespace libmaus2
 						// set up decoders
 						for ( uint64_t i = 0; i < infilenames.size(); ++i )
 						{
-							decoder_ptr_type tdecodersi(new decoder_type(infilenames[i]));
+							decoder_ptr_type tdecodersi(new decoder_type(infilenames[i],0/* offset */,0 /* psymoffset */,numthreads));
 							decoders[i] = UNIQUE_PTR_MOVE(tdecodersi);
 						}
-						GapDecoder wdec(std::vector<std::string>(1,outfilename));
+						GapDecoder wdec(std::vector<std::string>(1,outfilename),0 /* offset */,0 /* psymoff */,numthreads);
 
 						for ( uint64_t i = 0; i < n; ++i )
 						{

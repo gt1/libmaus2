@@ -223,11 +223,16 @@ namespace libmaus2
 					assert ( r == isapre.first );
 				}
 
-				static uint64_t getRlLength(std::vector < std::vector < std::string > > const & bwtfilenames)
+				static uint64_t getRlLength(std::vector < std::vector < std::string > > const & bwtfilenames, uint64_t const numthreads)
 				{
+					libmaus2::parallel::PosixSpinLock PSL;
 					uint64_t fs = 0;
 					for ( uint64_t i = 0; i < bwtfilenames.size(); ++i )
-						fs += rl_decoder::getLength(bwtfilenames[i]);
+					{
+						uint64_t const lfs = rl_decoder::getLength(bwtfilenames[i],numthreads);
+						libmaus2::parallel::ScopePosixSpinLock slock(PSL);
+						fs += lfs;
+					}
 					return fs;
 				}
 
@@ -299,10 +304,10 @@ namespace libmaus2
 						assert ( firstblockgapfilesize );
 
 						// uint64_t const fs = rl_decoder::getLength(bwtfilenames);
-						uint64_t const fs = getRlLength(bwtfilenames);
+						uint64_t const fs = getRlLength(bwtfilenames,numthreads);
 
 						// first gap file meta information
-						::libmaus2::huffman::IndexDecoderDataArray::unique_ptr_type Pfgapidda(new ::libmaus2::huffman::IndexDecoderDataArray(gapfilenames[0]));
+						::libmaus2::huffman::IndexDecoderDataArray::unique_ptr_type Pfgapidda(new ::libmaus2::huffman::IndexDecoderDataArray(gapfilenames[0],numthreads));
 						// first gap file
 						gapfile_decoder_type::unique_ptr_type fgap(new gapfile_decoder_type(*Pfgapidda /* gapfilenames[0] */));
 						// low marker
@@ -440,7 +445,8 @@ namespace libmaus2
 								gapfile_decoder_type::unique_ptr_type tgapdecsj(
 									new gapfile_decoder_type(
 										gapfilenames[j],
-										lspref,kvinitresult
+										lspref,kvinitresult,
+										numthreads
 									)
 								);
 								gapdecs[j] = UNIQUE_PTR_MOVE(tgapdecsj);
@@ -492,7 +498,7 @@ namespace libmaus2
 							for ( uint64_t i = 0; i < actgparts; ++i )
 								bwtusedcnts [ block * actgparts + i ] = lbwtusedcntsacc[i+1]-lbwtusedcntsacc[i];
 
-							assert ( lbwtusedcntsacc [ actgparts ] == rl_decoder::getLength(bwtfilenames[block]) );
+							assert ( lbwtusedcntsacc [ actgparts ] == rl_decoder::getLength(bwtfilenames[block],numthreads) );
 						}
 
 						// vector of output file names
@@ -530,7 +536,8 @@ namespace libmaus2
 								gapfile_decoder_type::unique_ptr_type tgapdecodersj(
 									new gapfile_decoder_type(
 										gapfilenames[j],
-										lspref,kvinitresult
+										lspref,kvinitresult,
+										numthreads
 									)
 								);
 								gapdecoders[j] = UNIQUE_PTR_MOVE(tgapdecodersj);
@@ -554,7 +561,7 @@ namespace libmaus2
 								bwttowrite[j] = bwtusedcnts [ j * actgparts + z ];
 
 								rl_decoder::unique_ptr_type tbwtdecodersj(
-									new rl_decoder(bwtfilenames[j],bwtoffset)
+									new rl_decoder(bwtfilenames[j],bwtoffset,numthreads)
 								);
 								bwtdecoders[j] = UNIQUE_PTR_MOVE(tbwtdecodersj);
 
@@ -1685,9 +1692,9 @@ namespace libmaus2
 						unsigned int const albits = rl_decoder::haveAlphabetBits() ? rl_decoder::getAlBits(mergereq.children[0]->sortresult.getFiles().getBWT()) : 0;
 
 						::libmaus2::huffman::IndexDecoderDataArray IDD0(
-							mergereq.children[0]->sortresult.getFiles().getBWT());
+							mergereq.children[0]->sortresult.getFiles().getBWT(),numthreads);
 						::libmaus2::huffman::IndexDecoderDataArray IDD1(
-							mergereq.children[1]->sortresult.getFiles().getBWT());
+							mergereq.children[1]->sortresult.getFiles().getBWT(),numthreads);
 
 						::libmaus2::huffman::IndexEntryContainerVector::unique_ptr_type IECV0 = ::libmaus2::huffman::IndexLoader::loadAccIndex(
 							mergereq.children[0]->sortresult.getFiles().getBWT()
@@ -2151,9 +2158,9 @@ namespace libmaus2
 						wprtc.start();
 						unsigned int const albits = rl_decoder::haveAlphabetBits() ? rl_decoder::getAlBits(mergereq.children[0]->sortresult.getFiles().getBWT()) : 0;
 						::libmaus2::huffman::IndexDecoderDataArray IDD0(
-							mergereq.children[0]->sortresult.getFiles().getBWT());
+							mergereq.children[0]->sortresult.getFiles().getBWT(),numthreads);
 						::libmaus2::huffman::IndexDecoderDataArray IDD1(
-							mergereq.children[1]->sortresult.getFiles().getBWT());
+							mergereq.children[1]->sortresult.getFiles().getBWT(),numthreads);
 
 						::libmaus2::huffman::IndexEntryContainerVector::unique_ptr_type IECV0 = ::libmaus2::huffman::IndexLoader::loadAccIndex(
 							mergereq.children[0]->sortresult.getFiles().getBWT()
@@ -2581,7 +2588,7 @@ namespace libmaus2
 							gapfilenames[bx] = GACR.fn;
 
 							// merge sampled inverse suffix arrays, returns rank of position 0 (relative to block start)
-							libmaus2::gamma::GammaGapDecoder GGD(gapfilenames[bx]);
+							libmaus2::gamma::GammaGapDecoder GGD(gapfilenames[bx],0/* offset */,0 /* psymoff */,numthreads);
 							result.setBlockP0Rank( mergeIsa(mergedisaname,blockresults.getFiles().getSampledISA(),newmergedisaname,blockstart,GGD,cblocksize+1 /*GACR.G.size()*/,logstr) );
 
 							// concatenate gt vectors

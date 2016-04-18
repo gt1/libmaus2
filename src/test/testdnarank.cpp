@@ -40,7 +40,7 @@ int main(int argc, char * argv[])
 				rlenc.encode(i&3);
 			}
 			{
-			libmaus2::huffman::RLDecoder rldec(std::vector<std::string>(1,memfn));
+			libmaus2::huffman::RLDecoder rldec(std::vector<std::string>(1,memfn),0 /* offset */,numthreads);
 			for ( uint64_t i = 0; i < n; ++i )
 				assert ( rldec.decode() == static_cast<int>(i&3) );
 			}

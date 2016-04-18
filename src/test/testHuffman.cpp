@@ -653,7 +653,7 @@ int main()
 	::libmaus2::huffman::GapEncoder GE(fn,hist,seqn);
 	GE.encode(&seq[0],&seq[seqn]);
 
-	::libmaus2::huffman::GapDecoder GD(std::vector<std::string>(1,fn));
+	::libmaus2::huffman::GapDecoder GD(std::vector<std::string>(1,fn),0 /* offset */,0/*psymoff */,1/*numthreads */);
 
 	#if 1
 	{
@@ -685,7 +685,7 @@ int main()
 		RLE->flush();
 		RLE.reset();
 
-		::libmaus2::huffman::RLDecoder rldec(testfilename);
+		::libmaus2::huffman::RLDecoder rldec(testfilename,0/*offset */,1/* numthreads */);
 	}
 	#endif
 
