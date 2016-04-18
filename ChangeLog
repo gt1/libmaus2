@@ -1,3 +1,9 @@
+libmaus2 (2.0.159-1) unstable; urgency=medium
+
+  * parallelise construction of IndexDecoderDataArray class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 18 Apr 2016 17:02:34 +0200
+
 libmaus2 (2.0.158-1) unstable; urgency=medium
 
   * adapt number of threads in SemiExternalKeyTupleSort if number of available files is too low
