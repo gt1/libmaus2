@@ -1384,6 +1384,38 @@ namespace libmaus2
 			}
 
 			/**
+			 * get number of reference sequence bases covered by alignment in D starting from first match/mismatch
+			 *
+			 * @param D alignment block
+			 * @return number of reference sequence bases covered by alignment in D
+			 **/
+			static uint64_t getFrontDel(uint8_t const * D)
+			{
+				uint64_t frontdel = 0;
+				uint32_t const ncigar = getNCigar(D);
+				uint8_t const * cigar = getCigar(D);
+
+				for ( uint64_t i = 0 ; i < ncigar ; cigar += 4, ++i )
+				{
+					uint32_t const v = getLEInteger(cigar,4);
+					uint8_t const op = v & ((1ull<<(4))-1);
+
+					if (
+						op == BamFlagBase::LIBMAUS2_BAMBAM_CMATCH ||
+						op == BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL ||
+						op == BamFlagBase::LIBMAUS2_BAMBAM_CDIFF
+					)
+						break;
+					else if (
+						op == BamFlagBase::LIBMAUS2_BAMBAM_CDEL
+					)
+						frontdel += (v >> 4) & ((1ull<<(32-4))-1);
+				}
+
+				return frontdel;
+			}
+
+			/**
 			 * get number of reference sequence bases covered by alignment described by cigar vector
 			 *
 			 * @param ita cigar vector start iterator

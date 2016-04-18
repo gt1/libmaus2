@@ -50,12 +50,16 @@ namespace libmaus2
                 {
                         typedef _reader_base_type reader_base_type;
 
-                        typedef FastAReaderTemplate reader_type;
+                        typedef FastAReaderTemplate<reader_base_type> reader_type;
                         typedef Pattern pattern_type;
                         typedef PatternBlock<pattern_type> block_type;
 
                         typedef reader_type idfile_type;
                         typedef FastIDBlock idblock_type;
+
+                        typedef reader_type this_type;
+                        typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+                        typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
                         #if defined(FASTXASYNC)
                         typedef ::libmaus2::aio::AsynchronousStreamReaderData<reader_type> stream_data_type;
@@ -63,8 +67,6 @@ namespace libmaus2
                         typedef ::libmaus2::aio::AsynchronousIdData<reader_type> stream_id_type;
                         typedef ::libmaus2::aio::AsynchronousStreamReader<stream_id_type> stream_idreader_type;
                         #endif
-
-                        typedef typename ::libmaus2::util::unique_ptr<reader_type>::type unique_ptr_type;
 
                         CharTermTable scanterm;
                         CharTermTable newlineterm;
