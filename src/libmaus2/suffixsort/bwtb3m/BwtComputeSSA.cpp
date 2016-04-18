@@ -403,7 +403,7 @@ void libmaus2::suffixsort::bwtb3m::BwtComputeSSA::computeSSA(
 	// input file vector
 	std::vector<std::string> Vbwtin(1,bwt);
 	// length of input file in symbols
-	uint64_t const n = libmaus2::huffman::RLDecoder::getLength(Vbwtin);
+	uint64_t const n = libmaus2::huffman::RLDecoder::getLength(Vbwtin,numthreads);
 
 	std::vector<uint64_t> const H = loadHMap(histfn);
 
@@ -793,7 +793,7 @@ void libmaus2::suffixsort::bwtb3m::BwtComputeSSA::computeSSA(
 				goutfilenameslock.unlock();
 
 				// open decoder for RL
-				libmaus2::huffman::RLDecoder rldec(std::vector<std::string>(1,bwt),rfrom);
+				libmaus2::huffman::RLDecoder rldec(std::vector<std::string>(1,bwt),rfrom,1 /* numthreads */);
 
 				std::vector<uint64_t> HH = Vblocksymhist[t-1];
 

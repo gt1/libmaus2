@@ -314,10 +314,11 @@ namespace libmaus2
 			GammaGapDecoder(
 				std::vector<std::string> const & rfilenames,
 				uint64_t kvtarget,
-				::libmaus2::huffman::KvInitResult & result
+				::libmaus2::huffman::KvInitResult & result,
+				uint64_t const rnumthreads
 			)
 			:
-			  Pidda(::libmaus2::huffman::IndexDecoderDataArray::construct(rfilenames)),
+			  Pidda(::libmaus2::huffman::IndexDecoderDataArray::construct(rfilenames,rnumthreads)),
 			  idda(*Pidda),
 			  /* buffer */
 			  decodebuf(), pa(0), pc(0), pe(0),
@@ -329,11 +330,12 @@ namespace libmaus2
 
 			GammaGapDecoder(
 				std::vector<std::string> const & rfilenames,
-				uint64_t offset = 0,
-				uint64_t * psymoffset = 0
+				uint64_t offset, // = 0
+				uint64_t * psymoffset, // = 0
+				uint64_t rnumthreads
 			)
 			:
-			  Pidda(::libmaus2::huffman::IndexDecoderDataArray::construct(rfilenames)),
+			  Pidda(::libmaus2::huffman::IndexDecoderDataArray::construct(rfilenames,rnumthreads)),
 			  idda(*Pidda),
 			  /* buffer */
 			  decodebuf(), pa(0), pc(0), pe(0),

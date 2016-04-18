@@ -1166,7 +1166,7 @@ namespace libmaus2
 				::libmaus2::timing::RealTimeClock rtc; rtc.start();
 				if ( ! H.isLeaf(H.root()) )
 				{
-					uint64_t const infs = rl_decoder::getLength(fn);
+					uint64_t const infs = rl_decoder::getLength(fn,numthreads);
 					uint64_t const tpartsize = std::min(static_cast<uint64_t>(tpartsizemax), (infs+numthreads-1)/numthreads);
 					uint64_t const numparts = (infs + tpartsize - 1) / tpartsize;
 
@@ -1220,8 +1220,11 @@ namespace libmaus2
 						uint64_t const numsyms = symsperpart[partid+1]-symsperpart[partid];
 
 						typename rl_decoder::unique_ptr_type rldec(new rl_decoder(
-							std::vector<std::string>(1,fn),
-							symsperpart[partid]));
+								std::vector<std::string>(1,fn),
+								symsperpart[partid],
+								1 /* numthreads */
+							)
+						);
 						::libmaus2::util::CountPutObject CPO;
 						for ( uint64_t i = 0; i < numsyms; ++i )
 							::libmaus2::util::UTF8::encodeUTF8(rldec->decode(),CPO);
@@ -1234,7 +1237,8 @@ namespace libmaus2
 						typename rl_decoder::unique_ptr_type trldec(
 							new rl_decoder(
 								std::vector<std::string>(1,fn),
-								symsperpart[partid]
+								symsperpart[partid],
+								1 /* numthreads */
 								)
 							);
 						rldec = UNIQUE_PTR_MOVE(trldec);
@@ -1704,7 +1708,7 @@ namespace libmaus2
 				if ( ! H.isLeaf(H.root()) )
 				{
 					// total length of file in symbols
-					uint64_t const infs = rl_decoder::getLength(fn);
+					uint64_t const infs = rl_decoder::getLength(fn,numthreads);
 
 					// number of symbols before terminator
 					uint64_t const pretermsyms = termrank;
@@ -1805,7 +1809,10 @@ namespace libmaus2
 						{
 							typename rl_decoder::unique_ptr_type rldec(new rl_decoder(
 								fn,
-								symsperpart[partid]));
+								symsperpart[partid],
+								1 /* numthreads*/
+								)
+							);
 							for ( uint64_t i = 0; i < numsyms; ++i )
 								::libmaus2::util::UTF8::encodeUTF8(rldec->decode(),CPO);
 						}
@@ -1840,7 +1847,10 @@ namespace libmaus2
 						{
 							typename rl_decoder::unique_ptr_type rldec(new rl_decoder(
 								fn,
-								symsperpart[partid]));
+								symsperpart[partid],
+								1 /* numthreads*/
+								)
+							);
 
 							for ( uint64_t i = 0; i < numsyms; ++i )
 								::libmaus2::util::UTF8::encodeUTF8(rldec->decode(),PO);

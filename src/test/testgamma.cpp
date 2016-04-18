@@ -303,7 +303,7 @@ void testgammagap()
 
 	::libmaus2::huffman::IndexDecoderData IDD(fn);
 
-	::libmaus2::gamma::GammaGapDecoder GGD(std::vector<std::string>(1,fn));
+	::libmaus2::gamma::GammaGapDecoder GGD(std::vector<std::string>(1,fn), 0/* offset */,0 /* psymoff */,1 /* numthreads */);
 
 	bool ok = true;
 	for ( uint64_t i = 0; i < n; ++i )
@@ -316,7 +316,7 @@ void testgammagap()
 	std::vector < std::vector<std::string> > merin;
 	merin.push_back(std::vector<std::string>(1,fn));
 	merin.push_back(std::vector<std::string>(1,fn2));
-	::libmaus2::gamma::GammaGapEncoder::merge(merin,fnm);
+	::libmaus2::gamma::GammaGapEncoder::merge(merin,fnm,1 /* numthreads */);
 }
 
 #include <libmaus2/gamma/GammaRLEncoder.hpp>
@@ -368,14 +368,14 @@ void testgammarl()
 		std::cerr << IDD.readEntry(i) << std::endl;
 	#endif
 
-	::libmaus2::gamma::GammaRLDecoder GD(std::vector<std::string>(1,fn));
+	::libmaus2::gamma::GammaRLDecoder GD(std::vector<std::string>(1,fn),0 /* offset */,64*1024 /* bufsize */,1/* numthreads */);
 	assert ( GD.getN() == n );
 
 	for ( uint64_t i = 0; i < n; ++i )
 		assert ( GD.decode() == static_cast<int64_t>(V[i]) );
 
 	uint64_t const off = n / 2 + 1031;
-	::libmaus2::gamma::GammaRLDecoder GD2(std::vector<std::string>(1,fn),off);
+	::libmaus2::gamma::GammaRLDecoder GD2(std::vector<std::string>(1,fn),off,64*1024 /* bufsize */,1 /* numthreads */);
 	for ( uint64_t i = off; i < n; ++i )
 		assert ( GD2.decode() == static_cast<int64_t>(V[i]) );
 
@@ -386,7 +386,7 @@ void testgammarl()
 
 	for ( uint64_t off = 0; off < Vcat.size(); off += 18521 )
 	{
-		::libmaus2::gamma::GammaRLDecoder GD3(std::vector<std::string>(1,fn3),off);
+		::libmaus2::gamma::GammaRLDecoder GD3(std::vector<std::string>(1,fn3),off,64*1024 /* bufsize */,1/*numthreads */);
 		assert ( GD3.getN() == Vcat.size() );
 
 		for ( uint64_t i = 0; i < std::min(static_cast<uint64_t>(1024ull),Vcat.size()-off); ++i )
@@ -1472,7 +1472,7 @@ void testsparsegammamultifilesetmergedense()
 	std::vector<std::string> const fno = SGGF.mergeToDense(ffn,maxval+1,numthreads);
 
 	// libmaus2::aio::InputStreamInstance CIS(ffn);
-	libmaus2::gamma::GammaGapDecoder SGGD(fno);
+	libmaus2::gamma::GammaGapDecoder SGGD(fno,0 /* offset */,0 /* psymoff */, 1 /* numthreads */);
 	for ( uint64_t i = 0; i < maxval+1; ++i )
 	{
 		uint64_t dv = SGGD.decode();
@@ -1532,7 +1532,7 @@ void testsparsegammamultifilesetmergedense2()
 	std::vector<std::string> const fno = SGGF.mergeToDense(ffn,maxval+1,numthreads);
 
 	// libmaus2::aio::InputStreamInstance CIS(ffn);
-	libmaus2::gamma::GammaGapDecoder SGGD(fno);
+	libmaus2::gamma::GammaGapDecoder SGGD(fno,0/* offset */, 0 /* psymoff */, 1 /* numthreads */);
 	for ( uint64_t i = 0; i < maxval+1; ++i )
 	{
 		uint64_t dv = SGGD.decode();
@@ -1649,7 +1649,7 @@ void testpartitionsingle()
 
 		Genc.reset();
 
-		libmaus2::gamma::GammaPartitionDecoder::unique_ptr_type Gdec(new libmaus2::gamma::GammaPartitionDecoder(std::vector<std::string>(1,fn)));
+		libmaus2::gamma::GammaPartitionDecoder::unique_ptr_type Gdec(new libmaus2::gamma::GammaPartitionDecoder(std::vector<std::string>(1,fn),0 /* offset */,1 /* numthreads */));
 		std::pair<uint64_t,uint64_t> P;
 		uint64_t c = 0;
 		while ( Gdec->getNext(P) )
@@ -1664,7 +1664,7 @@ void testpartitionsingle()
 		for ( uint64_t i = 0; i < n; ++i )
 		{
 			libmaus2::gamma::GammaPartitionDecoder::unique_ptr_type Tdec(
-				new libmaus2::gamma::GammaPartitionDecoder(std::vector<std::string>(1,fn),LV[i].first));
+				new libmaus2::gamma::GammaPartitionDecoder(std::vector<std::string>(1,fn),LV[i].first /* offset */,1 /* numthreads */));
 			Gdec = UNIQUE_PTR_MOVE(Tdec);
 
 			bool const ok = Gdec->getNext(P);
@@ -1673,7 +1673,7 @@ void testpartitionsingle()
 			if ( ! vok )
 			{
 				libmaus2::gamma::GammaPartitionDecoder::unique_ptr_type Tdec(
-					new libmaus2::gamma::GammaPartitionDecoder(std::vector<std::string>(1,fn),LV[i].first));
+					new libmaus2::gamma::GammaPartitionDecoder(std::vector<std::string>(1,fn),LV[i].first /* offset */,1/*numthreads */));
 
 				std::cerr << "expect " << LV[i].first << "," << LV[i].second << " got " << P.first << "," << P.second << std::endl;
 				if ( i )
@@ -1688,7 +1688,7 @@ void testpartitionsingle()
 		}
 
 		{
-			libmaus2::gamma::GammaPartitionDecoder::unique_ptr_type Tdec(new libmaus2::gamma::GammaPartitionDecoder(std::vector<std::string>(1,fn),LV.back().second));
+			libmaus2::gamma::GammaPartitionDecoder::unique_ptr_type Tdec(new libmaus2::gamma::GammaPartitionDecoder(std::vector<std::string>(1,fn),LV.back().second,1 /* numthreads */));
 			Gdec = UNIQUE_PTR_MOVE(Tdec);
 
 			bool const ok = Gdec->getNext(P);
@@ -1700,7 +1700,7 @@ void testpartitionsingle()
 		for ( uint64_t i = 0; i < n; ++i )
 			for ( uint64_t j = LV[i].first; j < LV[i].second; ++j )
 			{
-				libmaus2::gamma::GammaPartitionDecoder::unique_ptr_type Tdec(new libmaus2::gamma::GammaPartitionDecoder(std::vector<std::string>(1,fn),j));
+				libmaus2::gamma::GammaPartitionDecoder::unique_ptr_type Tdec(new libmaus2::gamma::GammaPartitionDecoder(std::vector<std::string>(1,fn),j,1 /* numthreads */));
 				Gdec = UNIQUE_PTR_MOVE(Tdec);
 
 				bool const ok = Gdec->getNext(P);
@@ -1743,7 +1743,7 @@ void testintervalsingle()
 
 		Genc.reset();
 
-		libmaus2::gamma::GammaIntervalDecoder::unique_ptr_type Gdec(new libmaus2::gamma::GammaIntervalDecoder(std::vector<std::string>(1,fn)));
+		libmaus2::gamma::GammaIntervalDecoder::unique_ptr_type Gdec(new libmaus2::gamma::GammaIntervalDecoder(std::vector<std::string>(1,fn),0 /* offset */,1 /* numthreads */));
 		std::pair<uint64_t,uint64_t> P;
 		uint64_t c = 0;
 		while ( Gdec->getNext(P) )
@@ -1759,7 +1759,7 @@ void testintervalsingle()
 		for ( uint64_t i = 0; i < n; ++i )
 		{
 			libmaus2::gamma::GammaIntervalDecoder::unique_ptr_type Tdec(
-				new libmaus2::gamma::GammaIntervalDecoder(std::vector<std::string>(1,fn),vsum));
+				new libmaus2::gamma::GammaIntervalDecoder(std::vector<std::string>(1,fn),vsum,1/* numthreads */));
 			Gdec = UNIQUE_PTR_MOVE(Tdec);
 
 			bool const ok = Gdec->getNext(P);
@@ -1779,7 +1779,7 @@ void testintervalsingle()
 			for ( uint64_t j = 0; j < w; ++j )
 			{
 				libmaus2::gamma::GammaIntervalDecoder::unique_ptr_type Tdec(
-					new libmaus2::gamma::GammaIntervalDecoder(std::vector<std::string>(1,fn),vsum+j));
+					new libmaus2::gamma::GammaIntervalDecoder(std::vector<std::string>(1,fn),vsum+j,1/* numthreads */));
 				Gdec = UNIQUE_PTR_MOVE(Tdec);
 
 				bool const ok = Gdec->getNext(P);

@@ -539,22 +539,39 @@ namespace libmaus2
 				return FileBlockOffset(fileptr,blockptr,fileoffset-fdata.getKeyValueCnt(blockptr));
 			}
 
-			static unique_ptr_type construct(std::vector<std::string> const & filenames)
+			static unique_ptr_type construct(std::vector<std::string> const & filenames, uint64_t const numthreads)
 			{
-				unique_ptr_type ptr(new this_type(filenames));
+				unique_ptr_type ptr(new this_type(filenames,numthreads));
 				return UNIQUE_PTR_MOVE(ptr);
 			}
 
-			IndexDecoderDataArray(std::vector<std::string> const & filenames)
+			IndexDecoderDataArray(std::vector<std::string> const & filenames, uint64_t const numthreads)
 			{
-				uint64_t nonempty = 0;
+				std::vector<bool> Vnonempty(filenames.size(),false);
+				std::vector<IndexDecoderData> LVIDD(filenames.size());
 
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
 				{
 					IndexDecoderData IDD(filenames[i]);
+
 					if ( IDD.numentries && IDD.kacc )
-						nonempty++;
+					{
+						LVIDD[i] = IDD;
+						Vnonempty[i] = true;
+					}
+					else
+					{
+						Vnonempty[i] = false;
+					}
 				}
+
+				uint64_t nonempty = 0;
+				for ( uint64_t i = 0; i < Vnonempty.size(); ++i )
+					if ( Vnonempty[i] )
+						nonempty += 1;
 
 				data = ::libmaus2::autoarray::AutoArray<IndexDecoderData>(nonempty);
 				kvec = ::libmaus2::autoarray::AutoArray<uint64_t>(nonempty+1,false);
@@ -562,9 +579,10 @@ namespace libmaus2
 
 				for ( uint64_t i = 0, j = 0; i < filenames.size(); ++i )
 				{
-					IndexDecoderData IDD(filenames[i]);
-					if ( IDD.numentries && IDD.kacc )
+					if ( Vnonempty[i] )
 					{
+						IndexDecoderData IDD = LVIDD[i];
+
 						data[j] = IDD;
 						kvec[j] = IDD.kacc;
 						vvec[j] = IDD.vacc;

@@ -123,7 +123,7 @@ uint64_t libmaus2::fm::MausFmToBwaConversion::loadPrimary(std::string const & in
 	return iprimary;
 }
 
-void libmaus2::fm::MausFmToBwaConversion::rewriteBwt(std::string const & infn, std::ostream & out)
+void libmaus2::fm::MausFmToBwaConversion::rewriteBwt(std::string const & infn, std::ostream & out, uint64_t const numthreads)
 {
 	// load ISA[0]
 	std::string const inisa = ::libmaus2::util::OutputFileNameTools::clipOff(infn,".bwt") + ".isa";
@@ -139,7 +139,7 @@ void libmaus2::fm::MausFmToBwaConversion::rewriteBwt(std::string const & infn, s
 	SGO64.flush();
 
 	// write bwt without terminator symbol
-	rl_decoder GD(std::vector<std::string>(1,infn));
+	rl_decoder GD(std::vector<std::string>(1,infn),0 /* offset */,numthreads);
 	::libmaus2::aio::SynchronousGenericOutput<uint32_t> SGO32(out,16*1024);
 	::libmaus2::aio::SynchronousGenericOutput<uint32_t>::iterator_type it32(SGO32);
 	::libmaus2::bitio::FastWriteBitWriterBuffer32Sync FWBW(it32);
@@ -155,14 +155,14 @@ void libmaus2::fm::MausFmToBwaConversion::rewriteBwt(std::string const & infn, s
 	out.flush();
 }
 
-void libmaus2::fm::MausFmToBwaConversion::rewriteSa(std::string const & infn, std::ostream & out)
+void libmaus2::fm::MausFmToBwaConversion::rewriteSa(std::string const & infn, std::ostream & out, uint64_t const numthreads)
 {
 	std::string const inisa = ::libmaus2::util::OutputFileNameTools::clipOff(infn,".bwt") + ".isa";
 	uint64_t const primary = loadPrimary(inisa);
 
 	::libmaus2::autoarray::AutoArray<uint64_t> L2 = loadL2(infn);
 
-	uint64_t const n = rl_decoder::getLength(infn);
+	uint64_t const n = rl_decoder::getLength(infn,numthreads);
 
 	std::cerr << "[D] n=" << n << std::endl;
 
@@ -221,7 +221,8 @@ void libmaus2::fm::MausFmToBwaConversion::rewriteSa(std::string const & infn, st
 void libmaus2::fm::MausFmToBwaConversion::rewrite(
 	std::string const & inbwt,
 	std::string const & outbwt,
-	std::string const & outsa
+	std::string const & outsa,
+	uint64_t const numthreads
 )
 {
 	std::set<std::string> S;
@@ -239,10 +240,10 @@ void libmaus2::fm::MausFmToBwaConversion::rewrite(
 	}
 
 	::libmaus2::aio::OutputStreamInstance COSbwt(outbwt);
-	rewriteBwt(inbwt,COSbwt);
+	rewriteBwt(inbwt,COSbwt,numthreads);
 	COSbwt.flush();
 
 	::libmaus2::aio::OutputStreamInstance COSsa(outsa);
-	rewriteSa(inbwt,COSsa);
+	rewriteSa(inbwt,COSsa,numthreads);
 	COSsa.flush();
 }
