@@ -171,7 +171,8 @@ namespace libmaus2
 			// merge multiple gap arrays to one by adding them up per rank
 			static void merge(
 				std::vector < std::vector<std::string> > const & infilenames,
-				std::string const & outfilename
+				std::string const & outfilename,
+				uint64_t const numthreads
 			)
 			{
 				if ( ! infilenames.size() )
@@ -196,7 +197,7 @@ namespace libmaus2
 					::libmaus2::autoarray::AutoArray<GammaGapDecoder::unique_ptr_type> GGD(infilenames.size());
 					for ( uint64_t i = 0; i < infilenames.size(); ++i )
 					{
-						GammaGapDecoder::unique_ptr_type tGGDi(new GammaGapDecoder(infilenames[i]));
+						GammaGapDecoder::unique_ptr_type tGGDi(new GammaGapDecoder(infilenames[i],0 /* offset */,0 /* psymoffset */,numthreads));
 						GGD[i] = UNIQUE_PTR_MOVE(tGGDi);
 					}
 
@@ -249,10 +250,10 @@ namespace libmaus2
 					{
 						for ( uint64_t i = 0; i < infilenames.size(); ++i )
 						{
-							GammaGapDecoder::unique_ptr_type tGGDi(new GammaGapDecoder(infilenames[i]));
+							GammaGapDecoder::unique_ptr_type tGGDi(new GammaGapDecoder(infilenames[i],0 /* offset */,0/* psymoffset */,numthreads));
 							GGD[i] = UNIQUE_PTR_MOVE(tGGDi);
 						}
-						GammaGapDecoder OGGD(std::vector<std::string>(1,outfilename));
+						GammaGapDecoder OGGD(std::vector<std::string>(1,outfilename),0 /* offset */,0 /* psymoffset */,numthreads);
 
 						for ( uint64_t i = 0; i < n; ++i )
 						{

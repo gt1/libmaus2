@@ -39,7 +39,7 @@ int main(int argc, char * argv[])
 			total += ita->first * ita->second;
 		}
 
-		uint64_t const n = libmaus2::huffman::RLDecoder::getLength(fn);
+		uint64_t const n = libmaus2::huffman::RLDecoder::getLength(fn,1 /* numthreads */);
 
 		std::cout << "[S]\taverage run-length\t" << thist->avg() << std::endl;
 

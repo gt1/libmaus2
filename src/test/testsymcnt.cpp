@@ -60,7 +60,7 @@ int main()
 
 		for ( uint64_t j = 0; j < n; ++j )
 		{
-			libmaus2::huffman::SymCountDecoder sdec(std::vector<std::string>(1,fn),j);
+			libmaus2::huffman::SymCountDecoder sdec(std::vector<std::string>(1,fn),j,1 /* numthreads */);
 			libmaus2::huffman::SymCount SC;
 			uint64_t i = 0;
 			for ( ; sdec.decode(SC); ++i )

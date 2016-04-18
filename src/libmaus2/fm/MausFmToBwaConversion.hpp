@@ -46,11 +46,11 @@ namespace libmaus2
 			 **/
 			static uint64_t loadPrimary(std::string const & inisa);
 
-			static void rewriteBwt(std::string const & infn, std::ostream & out);
-			static void rewriteSa(std::string const & infn, std::ostream & out);
+			static void rewriteBwt(std::string const & infn, std::ostream & out, uint64_t const numthreads);
+			static void rewriteSa(std::string const & infn, std::ostream & out, uint64_t const numthreads);
 
 			public:
-			static void rewrite(std::string const & inbwt, std::string const & outbwt, std::string const & outsa);
+			static void rewrite(std::string const & inbwt, std::string const & outbwt, std::string const & outsa, uint64_t const numthreads);
 		};
 	}
 }

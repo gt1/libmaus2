@@ -147,8 +147,8 @@ namespace libmaus2
 				}
 			}
 
-			GammaPartitionDecoder(std::vector<std::string> const & rVfn, uint64_t const voffset = 0)
-			: Vfn(rVfn), Pindex(new libmaus2::huffman::IndexDecoderDataArray(Vfn)), index(*Pindex), fileptr(0),
+			GammaPartitionDecoder(std::vector<std::string> const & rVfn, uint64_t const voffset, uint64_t const numthreads)
+			: Vfn(rVfn), Pindex(new libmaus2::huffman::IndexDecoderDataArray(Vfn,numthreads)), index(*Pindex), fileptr(0),
 			  Aintv(), pa(Aintv.begin()), pc(Aintv.begin()), pe(Aintv.begin())
 			{
 				libmaus2::huffman::FileBlockOffset FBO = index.findVBlock(voffset);

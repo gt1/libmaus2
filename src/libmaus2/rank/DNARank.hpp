@@ -106,7 +106,7 @@ namespace libmaus2
 					uint64_t const block_base_low = block_low * getDataBasesPerBlock();
 					uint64_t const block_base_high = std::min(n,block_high * getDataBasesPerBlock());
 					assert ( block_high > block_low );
-					libmaus2::huffman::RLDecoder rldec(rl,block_base_low);
+					libmaus2::huffman::RLDecoder rldec(rl,block_base_low,1/*numthreads*/);
 
 					for ( uint64_t i = block_base_low; i < block_base_high; ++i )
 					{
@@ -133,7 +133,7 @@ namespace libmaus2
 					uint64_t const block_base_low = block_low * getDataBasesPerBlock();
 					uint64_t const block_base_high = std::min(n,block_high * getDataBasesPerBlock());
 					assert ( block_high > block_low );
-					libmaus2::huffman::RLDecoder rldec(rl,block_base_low);
+					libmaus2::huffman::RLDecoder rldec(rl,block_base_low,1/*numthreads*/);
 
 					for ( uint64_t i = block_base_low; i < block_base_high; ++i )
 					{
@@ -803,7 +803,7 @@ namespace libmaus2
 			{
 				unique_ptr_type P(new this_type);
 
-				uint64_t const n = libmaus2::huffman::RLDecoder::getLength(rl);
+				uint64_t const n = libmaus2::huffman::RLDecoder::getLength(rl,numthreads);
 
 				// number of blocks allocated
 				uint64_t const numallocblocks = ((n+1) + getDataBasesPerBlock() - 1)/getDataBasesPerBlock();
@@ -830,7 +830,7 @@ namespace libmaus2
 					uint64_t const block_base_high = std::min(n,block_high * getDataBasesPerBlock());
 					uint64_t const block_base_syms = block_base_high - block_base_low;
 					assert ( block_high > block_low );
-					libmaus2::huffman::RLDecoder rldec(rl,block_base_low);
+					libmaus2::huffman::RLDecoder rldec(rl,block_base_low,1/*numthreads*/);
 
 					uint64_t * p = P->B.begin() + block_low * getWordsPerBlock();
 

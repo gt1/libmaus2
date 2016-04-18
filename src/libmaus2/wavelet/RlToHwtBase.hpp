@@ -207,7 +207,7 @@ namespace libmaus2
 				// number of inner nodes in Huffman tree
 				uint64_t const inner = H.inner();
 
-				::libmaus2::huffman::IndexDecoderDataArray IDD(bwt);
+				::libmaus2::huffman::IndexDecoderDataArray IDD(bwt,numthreads);
 				::libmaus2::huffman::IndexEntryContainerVector::unique_ptr_type IECV = ::libmaus2::huffman::IndexLoader::loadAccIndex(bwt);
 
 				// compute symbol to node mapping
@@ -249,7 +249,7 @@ namespace libmaus2
 				assert ( symtonodesp = symtonodes.end() );
 
 				// total size
-				uint64_t const n = rl_decoder::getLength(bwt);
+				uint64_t const n = rl_decoder::getLength(bwt,numthreads);
 				// before
 				uint64_t const n_0 = p0r;
 				// terminator
@@ -863,9 +863,9 @@ namespace libmaus2
 				#endif
 
 				// total size
-				uint64_t const n = rl_decoder::getLength(bwt);
+				uint64_t const n = rl_decoder::getLength(bwt,numthreads);
 
-				::libmaus2::huffman::IndexDecoderDataArray IDD(std::vector<std::string>(1,bwt));
+				::libmaus2::huffman::IndexDecoderDataArray IDD(std::vector<std::string>(1,bwt),numthreads);
 				::libmaus2::huffman::IndexEntryContainerVector::unique_ptr_type IECV =
 					::libmaus2::huffman::IndexLoader::loadAccIndex(std::vector<std::string>(1,bwt));
 
@@ -1290,7 +1290,7 @@ namespace libmaus2
 
 			static ::libmaus2::util::Histogram::unique_ptr_type computeRlSymHist(std::string const & bwt, uint64_t const numthreads)
 			{
-				uint64_t const n = rl_decoder::getLength(bwt);
+				uint64_t const n = rl_decoder::getLength(bwt,numthreads);
 
 				uint64_t const numpacks = 4*numthreads;
 				uint64_t const packsize = (n + numpacks - 1)/numpacks;
@@ -1308,7 +1308,7 @@ namespace libmaus2
 
 					if ( high-low )
 					{
-						rl_decoder dec(std::vector<std::string>(1,bwt),low);
+						rl_decoder dec(std::vector<std::string>(1,bwt),low,1/*numthreads*/);
 
 						uint64_t todec = high-low;
 						std::pair<int64_t,uint64_t> P;
@@ -1430,7 +1430,7 @@ namespace libmaus2
 					{
 						::libmaus2::util::TempFileNameGenerator tmpgen(tmpprefix,3);
 
-						uint64_t const n = rl_decoder::getLength(bwt);
+						uint64_t const n = rl_decoder::getLength(bwt,numthreads);
 						uint64_t const packsize = (n + numthreads - 1)/numthreads;
 						uint64_t const numpacks = (n + packsize-1)/packsize;
 
@@ -1449,7 +1449,7 @@ namespace libmaus2
 
 							if ( high-low )
 							{
-								rl_decoder dec(std::vector<std::string>(1,bwt),low);
+								rl_decoder dec(std::vector<std::string>(1,bwt),low,1/* numthreads*/);
 
 								uint64_t todec = high-low;
 								std::pair<int64_t,uint64_t> P;
@@ -1511,7 +1511,7 @@ namespace libmaus2
 				{
 					::libmaus2::util::TempFileNameGenerator tmpgen(tmpprefix,3);
 
-					uint64_t const n = rl_decoder::getLength(bwt);
+					uint64_t const n = rl_decoder::getLength(bwt,numthreads);
 
 					assert ( p0r < n );
 					uint64_t const nlow = p0r;
@@ -1537,7 +1537,7 @@ namespace libmaus2
 
 						if ( high-low )
 						{
-							rl_decoder dec(bwt,low);
+							rl_decoder dec(bwt,low,1 /* numthreads */);
 
 							uint64_t todec = high-low;
 							std::pair<int64_t,uint64_t> P;
@@ -1571,7 +1571,7 @@ namespace libmaus2
 
 						if ( high-low )
 						{
-							rl_decoder dec(bwt,low);
+							rl_decoder dec(bwt,low,1/*numthreads*/);
 
 							uint64_t todec = high-low;
 							std::pair<int64_t,uint64_t> P;

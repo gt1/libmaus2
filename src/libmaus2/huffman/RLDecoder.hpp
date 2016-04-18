@@ -130,10 +130,12 @@ namespace libmaus2
 			}
 
 			RLDecoder(
-				std::vector<std::string> const & rfilenames, uint64_t offset = 0
+				std::vector<std::string> const & rfilenames,
+				uint64_t offset,
+				uint64_t rnumthreads
 			)
 			:
-			  Pidda(::libmaus2::huffman::IndexDecoderDataArray::construct(rfilenames)),
+			  Pidda(::libmaus2::huffman::IndexDecoderDataArray::construct(rfilenames,rnumthreads)),
 			  idda(*Pidda),
 			  pa(0), pc(0), pe(0),
 			  fileptr(0), blockptr(0)
@@ -143,7 +145,7 @@ namespace libmaus2
 
 			RLDecoder(
 				::libmaus2::huffman::IndexDecoderDataArray const & ridda,
-				uint64_t offset = 0
+				uint64_t offset
 			)
 			:
 			  Pidda(),
@@ -156,8 +158,8 @@ namespace libmaus2
 
 			RLDecoder(
 				::libmaus2::huffman::IndexDecoderDataArray const & ridda,
-				::libmaus2::huffman::IndexEntryContainerVector const * = 0,
-				uint64_t offset = 0
+				::libmaus2::huffman::IndexEntryContainerVector const *,
+				uint64_t offset
 			)
 			:
 			  Pidda(),
@@ -300,7 +302,7 @@ namespace libmaus2
 			}
 
 			// get length of file in symbols
-			static uint64_t getLength(std::string const & filename)
+			static uint64_t getLength(std::string const & filename, uint64_t /* numthreads */)
 			{
 				libmaus2::aio::InputStreamInstance istr(filename);
 				::libmaus2::bitio::StreamBitInputStream SBIS(istr);
@@ -309,11 +311,20 @@ namespace libmaus2
 			}
 
 			// get length of vector of files in symbols
-			static uint64_t getLength(std::vector<std::string> const & filenames)
+			static uint64_t getLength(std::vector<std::string> const & filenames, uint64_t const numthreads)
 			{
 				uint64_t s = 0;
+				libmaus2::parallel::PosixSpinLock lock;
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
-					s += getLength(filenames[i]);
+				{
+					uint64_t const ls = getLength(filenames[i],1 /* numthreads */);
+					libmaus2::parallel::ScopePosixSpinLock slock(lock);
+					s += ls;
+				}
 				return s;
 			}
 

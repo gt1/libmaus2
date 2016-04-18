@@ -311,10 +311,13 @@ namespace libmaus2
 			}
 
 			GammaRLDecoder(
-				std::vector<std::string> const & rfilenames, uint64_t offset = 0, uint64_t const rbufsize = 64*1024
+				std::vector<std::string> const & rfilenames,
+				uint64_t offset, // = 0
+				uint64_t const rbufsize, // = 64*1024
+				uint64_t const rnumthreads
 			)
 			:
-			  Pidda(::libmaus2::huffman::IndexDecoderDataArray::construct(rfilenames)),
+			  Pidda(::libmaus2::huffman::IndexDecoderDataArray::construct(rfilenames,rnumthreads)),
 			  idda(*Pidda),
 			  iecv(0),
 			  pa(0), pc(0), pe(0),
@@ -326,8 +329,8 @@ namespace libmaus2
 
 			GammaRLDecoder(
 				::libmaus2::huffman::IndexDecoderDataArray const & ridda,
-				uint64_t offset = 0,
-				uint64_t const rbufsize = 64*1024
+				uint64_t offset, //= 0,
+				uint64_t const rbufsize // = 64*1024
 			)
 			:
 			  Pidda(),
@@ -343,8 +346,8 @@ namespace libmaus2
 			GammaRLDecoder(
 				::libmaus2::huffman::IndexDecoderDataArray const & ridda,
 				::libmaus2::huffman::IndexEntryContainerVector const * riecv,
-				uint64_t offset = 0,
-				uint64_t const rbufsize = 64*1024
+				uint64_t offset, // = 0
+				uint64_t const rbufsize // = 64*1024
 			)
 			:
 			  Pidda(),
