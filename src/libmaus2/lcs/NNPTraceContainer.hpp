@@ -296,6 +296,16 @@ namespace libmaus2
 				return std::pair<int64_t,int64_t>(dmin,dmax);
 			}
 
+			std::pair<int64_t,int64_t> getAntiDiagonalBand(int64_t apos, int64_t bpos) const
+			{
+				std::pair<uint64_t,uint64_t> const P = getStringLengthUsed();
+
+				int64_t dmin = apos+bpos;
+				int64_t dmax = apos+P.first+bpos+P.second;
+
+				return std::pair<int64_t,int64_t>(dmin,dmax);
+			}
+
 			std::pair<uint64_t,uint64_t> getStringLengthUsed() const
 			{
 				uint64_t alen = 0, blen = 0;
