@@ -46,6 +46,9 @@ namespace libmaus2
 				uint8_t const * be
 			)
 			{
+				uint8_t const * sa = a;
+				uint8_t const * sb = b;
+
 				while ( (a!=ae) && (b!=be) )
 				{
 					uint8_t const ca = *a;
@@ -90,7 +93,28 @@ namespace libmaus2
 				}
 
 				if ( a == ae && b == be )
-					return 0;
+				{
+					while ( sa != ae && sb != be )
+					{
+						uint8_t const ca = *(sa++);
+						uint8_t const cb = *(sb++);
+
+						if ( ca != cb )
+						{
+							if ( ca < cb )
+								return -1;
+							else
+								return 1;
+						}
+					}
+
+					if ( sa == ae && sb == be )
+						return 0;
+					else if ( sa == ae )
+						return -1;
+					else
+						return 1;
+				}
 				else if ( a == ae )
 					return -1;
 				else
@@ -128,6 +152,9 @@ namespace libmaus2
 			 **/
 			static int strcmpnum(uint8_t const * a, uint8_t const * b)
 			{
+				uint8_t const * sa = a;
+				uint8_t const * sb = b;
+
 				while ( *a && *b )
 				{
 					uint8_t const ca = *a;
@@ -172,7 +199,28 @@ namespace libmaus2
 				}
 
 				if ( (!*a) && (!*b) )
-					return 0;
+				{
+					while ( *sa && *sb )
+					{
+						uint8_t const ca = *(sa++);
+						uint8_t const cb = *(sb++);
+
+						if ( ca != cb )
+						{
+							if ( ca < cb )
+								return -1;
+							else
+								return 1;
+						}
+					}
+
+					if ( !(*sa) && !(*sb) )
+						return 0;
+					else if ( !*sa )
+						return -1;
+					else
+						return 1;
+				}
 				else if ( !*a )
 					return -1;
 				else
