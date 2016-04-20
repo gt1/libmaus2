@@ -245,9 +245,10 @@ namespace libmaus2
 				}
 
 				static std::vector<std::string> parallelGapFragMerge(
+					libmaus2::util::TempFileNameGenerator & gtmpgen,
 					std::vector < std::vector < std::string > > const & bwtfilenames,
 					std::vector < std::vector < std::string > > const & gapfilenames,
-					std::string const & outputfilenameprefix,
+					// std::string const & outputfilenameprefix,
 					// std::string const & tempfilenameprefix,
 					uint64_t const numthreads,
 					uint64_t const lfblockmult,
@@ -258,7 +259,7 @@ namespace libmaus2
 					// no bwt input files, create empty bwt file
 					if ( ! bwtfilenames.size() )
 					{
-						std::string const outputfilename = outputfilenameprefix + ".bwt";
+						std::string const outputfilename = gtmpgen.getFileName() + ".bwt";
 
 						rl_encoder rlenc(outputfilename,0 /* alphabet */,0,rlencoderblocksize);
 
@@ -276,7 +277,7 @@ namespace libmaus2
 						for ( uint64_t i = 0; i < bwtfilenames[0].size(); ++i )
 						{
 							std::ostringstream outputfilenamestr;
-							outputfilenamestr << outputfilenameprefix << '_'
+							outputfilenamestr << gtmpgen.getFileName() << '_'
 								<< std::setw(4) << std::setfill('0') << i << std::setw(0)
 								<< ".bwt";
 							std::string const outputfilename = outputfilenamestr.str();
@@ -511,7 +512,7 @@ namespace libmaus2
 						for ( int64_t z = 0; z < static_cast<int64_t>(actgparts); ++z )
 						{
 							std::ostringstream ostr;
-							ostr << outputfilenameprefix << "_" << std::setw(4) << std::setfill('0') << z << std::setw(0) << ".bwt";
+							ostr << gtmpgen.getFileName() << "_" << std::setw(4) << std::setfill('0') << z << std::setw(0) << ".bwt";
 							std::string const gpartfrag = ostr.str();
 							::libmaus2::util::TempFileRemovalContainer::addTempFile(gpartfrag);
 							gpartfrags[z] = gpartfrag;
@@ -945,6 +946,7 @@ namespace libmaus2
 				}
 
 				static GapArrayComputationResult computeGapArray(
+					libmaus2::util::TempFileNameGenerator & gtmpgen,
 					std::string const & fn, // name of text file
 					uint64_t const fs, // length of text file in symbols
 					uint64_t const blockstart, // start offset
@@ -953,7 +955,7 @@ namespace libmaus2
 					uint64_t const mergeprocrightend, // right end of merged area
 					::libmaus2::suffixsort::BwtMergeBlockSortResult const & blockresults, // information on block
 					std::vector<std::string> const & mergedgtname, // previous gt file name
-					std::string const & newmergedgtname, // new gt file name
+					// std::string const & newmergedgtname, // new gt file name
 					::libmaus2::lf::DArray * const accD, // accumulated symbol freqs for block
 					std::vector < ::libmaus2::suffixsort::BwtMergeZBlock > const & zblocks, // lf starting points
 					uint64_t const numthreads,
@@ -1002,7 +1004,7 @@ namespace libmaus2
 
 						::libmaus2::suffixsort::BwtMergeZBlock const & zblock = zblocks[z];
 
-						std::string const gtpartname = newmergedgtname + "_" + ::libmaus2::util::NumberSerialisation::formatNumber(z,4) + ".gt";
+						std::string const gtpartname = gtmpgen.getFileName() + "_" + ::libmaus2::util::NumberSerialisation::formatNumber(z,4) + ".gt";
 						::libmaus2::util::TempFileRemovalContainer::addTempFile(gtpartname);
 						gtpartnames[z] = gtpartname;
 						#if 0
@@ -1045,11 +1047,12 @@ namespace libmaus2
 				}
 
 				static GapArrayComputationResult computeGapArray(
+					libmaus2::util::TempFileNameGenerator & gtmpgen,
 					std::string const & fn, // name of text file
 					uint64_t const fs, // length of text file in symbols
 					libmaus2::suffixsort::bwtb3m::MergeStrategyMergeGapRequest const & msmgr, // merge request
 					std::vector<std::string> const & mergedgtname, // previous gt file name
-					std::string const & newmergedgtname, // new gt file name
+					//std::string const & newmergedgtname, // new gt file name
 					::libmaus2::lf::DArray * const accD, // accumulated symbol freqs for block
 					uint64_t const numthreads,
 					std::ostream * logstr
@@ -1071,11 +1074,12 @@ namespace libmaus2
 					// use gap object's zblocks vector
 					std::vector < ::libmaus2::suffixsort::BwtMergeZBlock > const & zblocks = msmgr.zblocks;
 
-					return computeGapArray(fn,fs,blockstart,cblocksize,nextblockstart,mergeprocrightend,
-						blockresults,mergedgtname,newmergedgtname,accD,zblocks,numthreads,logstr);
+					return computeGapArray(gtmpgen,fn,fs,blockstart,cblocksize,nextblockstart,mergeprocrightend,
+						blockresults,mergedgtname,accD,zblocks,numthreads,logstr);
 				}
 
 				static GapArrayByteComputationResult computeGapArrayByte(
+					libmaus2::util::TempFileNameGenerator & gtmpgen,
 					std::string const & fn, // name of text file
 					uint64_t const fs, // length of text file in symbols
 					uint64_t const blockstart, // start offset
@@ -1084,14 +1088,18 @@ namespace libmaus2
 					uint64_t const mergeprocrightend, // right end of merged area
 					::libmaus2::suffixsort::BwtMergeBlockSortResult const & blockresults, // information on block
 					std::vector<std::string> const & mergedgtname, // previous gt file name
+					#if 0
 					std::string const & newmergedgtname, // new gt file name
 					std::string const & gapoverflowtmpfilename, // gap overflow tmp file
+					#endif
 					::libmaus2::lf::DArray * const accD, // accumulated symbol freqs for block
 					std::vector < ::libmaus2::suffixsort::BwtMergeZBlock > const & zblocks, // lf starting points
 					uint64_t const numthreads,
 					std::ostream * logstr
 				)
 				{
+					std::string const gapoverflowtmpfilename = gtmpgen.getFileName() + "_gapoverflow";
+
 					// gap array
 					::libmaus2::suffixsort::GapArrayByte::shared_ptr_type pG(
 						new ::libmaus2::suffixsort::GapArrayByte(
@@ -1142,7 +1150,7 @@ namespace libmaus2
 
 						::libmaus2::suffixsort::BwtMergeZBlock const & zblock = zblocks[z];
 
-						std::string const gtpartname = newmergedgtname + "_" + ::libmaus2::util::NumberSerialisation::formatNumber(z,4) + ".gt";
+						std::string const gtpartname = gtmpgen.getFileName() + "_" + ::libmaus2::util::NumberSerialisation::formatNumber(z,4) + ".gt";
 						::libmaus2::util::TempFileRemovalContainer::addTempFile(gtpartname);
 						gtpartnames[z] = gtpartname;
 						#if 0
@@ -1190,12 +1198,15 @@ namespace libmaus2
 				}
 
 				static GapArrayByteComputationResult computeGapArrayByte(
+					libmaus2::util::TempFileNameGenerator & gtmpgen,
 					std::string const & fn, // name of text file
 					uint64_t const fs, // length of text file in symbols
 					libmaus2::suffixsort::bwtb3m::MergeStrategyMergeGapRequest const & msmgr, // merge request
 					std::vector<std::string> const & mergedgtname, // previous gt file name
+					#if 0
 					std::string const & newmergedgtname, // new gt file name
 					std::string const & gapoverflowtmpfilename, // gap overflow tmp file
+					#endif
 					::libmaus2::lf::DArray * const accD, // accumulated symbol freqs for block
 					uint64_t const numthreads,
 					std::ostream * logstr
@@ -1217,8 +1228,8 @@ namespace libmaus2
 					// use gap object's zblocks vector
 					std::vector < ::libmaus2::suffixsort::BwtMergeZBlock > const & zblocks = msmgr.zblocks;
 
-					return computeGapArrayByte(fn,fs,blockstart,cblocksize,nextblockstart,mergeprocrightend,
-						blockresults,mergedgtname,newmergedgtname,gapoverflowtmpfilename,accD,zblocks,numthreads,logstr);
+					return computeGapArrayByte(gtmpgen,fn,fs,blockstart,cblocksize,nextblockstart,mergeprocrightend,
+						blockresults,mergedgtname/*,newmergedgtname,gapoverflowtmpfilename*/,accD,zblocks,numthreads,logstr);
 				}
 
 				struct ZNext
@@ -1244,6 +1255,7 @@ namespace libmaus2
 				};
 
 				static SparseGapArrayComputationResult computeSparseGapArray(
+					libmaus2::util::TempFileNameGenerator & gtmpgen,
 					std::string const & fn,
 					uint64_t const fs,
 					uint64_t const blockstart,
@@ -1252,10 +1264,10 @@ namespace libmaus2
 					uint64_t const mergeprocrightend,
 					::libmaus2::suffixsort::BwtMergeBlockSortResult const & blockresults,
 					std::vector<std::string> const & mergedgtname,
-					std::string const & newmergedgtname,
+					// std::string const & newmergedgtname,
 					::libmaus2::lf::DArray * const accD,
 					//
-					std::string const & outputgapfilename,
+					// std::string const & outputgapfilename,
 					std::string const & tmpfileprefix,
 					uint64_t const maxmem,
 					std::vector < ::libmaus2::suffixsort::BwtMergeZBlock > const & zblocks,
@@ -1346,7 +1358,7 @@ namespace libmaus2
 
 							::libmaus2::suffixsort::BwtMergeZBlock const & zblock = zblocks[z];
 
-							std::string const gtpartname = newmergedgtname + "_" + ::libmaus2::util::NumberSerialisation::formatNumber(z,4) + ".gt";
+							std::string const gtpartname = gtmpgen.getFileName() + "_" + ::libmaus2::util::NumberSerialisation::formatNumber(z,4) + ".gt";
 							::libmaus2::util::TempFileRemovalContainer::addTempFile(gtpartname);
 							gtpartnames[z] = gtpartname;
 							libmaus2::bitio::BitVectorOutput GTHEF(gtpartname);
@@ -1475,7 +1487,7 @@ namespace libmaus2
 						}
 					}
 
-					std::vector<std::string> const outputgapfilenames = SGGFS.mergeToDense(outputgapfilename,cblocksize+1,numthreads);
+					std::vector<std::string> const outputgapfilenames = SGGFS.mergeToDense(gtmpgen,cblocksize+1,numthreads);
 
 					if ( logstr )
 						(*logstr) << "[V] computed gap array in time " << rtc.getElapsedSeconds() << std::endl;
@@ -1484,14 +1496,15 @@ namespace libmaus2
 				}
 
 				static SparseGapArrayComputationResult computeSparseGapArray(
+					libmaus2::util::TempFileNameGenerator & gtmpgen,
 					std::string const & fn, // name of text file
 					uint64_t const fs, // length of text file in symbols
 					libmaus2::suffixsort::bwtb3m::MergeStrategyMergeGapRequest const & msmgr, // merge request
 					uint64_t const ihwtspace,
 					std::vector<std::string> const & mergedgtname, // previous gt file name
-					std::string const & newmergedgtname, // new gt file name
+					// std::string const & newmergedgtname, // new gt file name
 					::libmaus2::lf::DArray * const accD, // accumulated symbol freqs for block
-					std::string const & outputgapfilename,
+					// std::string const & outputgapfilename,
 					std::string const & tmpfileprefix,
 					uint64_t const maxmem,
 					uint64_t const numthreads,
@@ -1513,9 +1526,11 @@ namespace libmaus2
 						children.at(children.size()-1)->sortresult.getCBlockSize();
 					std::vector < ::libmaus2::suffixsort::BwtMergeZBlock > const & zblocks = msmgr.zblocks;
 
-					return computeSparseGapArray(fn,fs,blockstart,cblocksize,nextblockstart,mergeprocrightend,
-						blockresults,mergedgtname,newmergedgtname,accD,
-						outputgapfilename,
+					return computeSparseGapArray(gtmpgen,fn,fs,blockstart,cblocksize,nextblockstart,mergeprocrightend,
+						blockresults,mergedgtname,
+						// newmergedgtname,
+						accD,
+						// outputgapfilename,
 						tmpfileprefix,
 						maxmem-ihwtspace,
 						zblocks,
@@ -1536,7 +1551,7 @@ namespace libmaus2
 					libmaus2::suffixsort::bwtb3m::MergeStrategyMergeInternalBlock & mergereq,
 					std::string const fn,
 					uint64_t const fs,
-					std::string const tmpfilenamebase,
+					// std::string const tmpfilenamebase,
 					uint64_t const rlencoderblocksize,
 					uint64_t const lfblockmult,
 					uint64_t const numthreads,
@@ -1596,9 +1611,10 @@ namespace libmaus2
 
 						// compute gap array
 						GapArrayComputationResult const GACR = computeGapArray(
+							gtmpgen,
 							fn,fs,*(mergereq.gaprequests[0]),
 							mergereq.children[1]->sortresult.getFiles().getGT(), // previous gt files
-							tmpfilenamebase + "_gparts", // new gt files
+							// tmpfilenamebase + "_gparts", // new gt files
 							accD.get(),
 							numthreads,
 							logstr
@@ -1617,7 +1633,7 @@ namespace libmaus2
 						for ( uint64_t i = 0; i < blockresults.getFiles().getGT().size(); ++i )
 						{
 							std::ostringstream ostr;
-							ostr << tmpfilenamebase << "_renamed_" << std::setw(6) << std::setfill('0') << i << std::setw(0) << ".gt";
+							ostr << gtmpgen.getFileName() << "_renamed_" << std::setw(6) << std::setfill('0') << i << std::setw(0) << ".gt";
 							std::string const renamed = ostr.str();
 							oldgtnames.push_back(ostr.str());
 							::libmaus2::util::TempFileRemovalContainer::addTempFile(renamed);
@@ -1675,7 +1691,7 @@ namespace libmaus2
 							P.push_back(P.back() + p);
 							wpacks.push_back(std::pair<uint64_t,uint64_t>(ilow,ihigh));
 							encfilenames.push_back(
-								tmpfilenamebase
+								gtmpgen.getFileName()
 								// result.getFiles().getBWT()
 								+ "_"
 								+ ::libmaus2::util::NumberSerialisation::formatNumber(encfilenames.size(),6)
@@ -1788,7 +1804,7 @@ namespace libmaus2
 							// gap file name
 							if ( bb+1 < mergereq.children.size() )
 							{
-								std::string const newgapname = tmpfilenamebase + "_merging_" + ::libmaus2::util::NumberSerialisation::formatNumber(bb,4) + ".gap";
+								std::string const newgapname = gtmpgen.getFileName() + "_merging_" + ::libmaus2::util::NumberSerialisation::formatNumber(bb,4) + ".gap";
 								::libmaus2::util::TempFileRemovalContainer::addTempFile(newgapname);
 								gapfilenames.push_back(newgapname);
 							}
@@ -1797,7 +1813,7 @@ namespace libmaus2
 							std::vector<std::string> newbwtnames;
 							for ( uint64_t i = 0; i < mergereq.children[bb]->sortresult.getFiles().getBWT().size(); ++i )
 							{
-								std::string const newbwtname = tmpfilenamebase + "_merging_"
+								std::string const newbwtname = gtmpgen.getFileName() + "_merging_"
 									+ ::libmaus2::util::NumberSerialisation::formatNumber(bb,4)
 									+ "_"
 									+ ::libmaus2::util::NumberSerialisation::formatNumber(i,4)
@@ -1837,9 +1853,9 @@ namespace libmaus2
 								mergereq.children[bx]->sortresult;
 
 							// output files for this iteration
-							std::string const newmergedgtname = tmpfilenamebase + "_merged_" + ::libmaus2::util::NumberSerialisation::formatNumber(bx,4) + ".gt";
+							std::string const newmergedgtname = gtmpgen.getFileName() + "_merged_" + ::libmaus2::util::NumberSerialisation::formatNumber(bx,4) + ".gt";
 							::libmaus2::util::TempFileRemovalContainer::addTempFile(newmergedgtname);
-							std::string const newmergedisaname = tmpfilenamebase + "_merged_" + ::libmaus2::util::NumberSerialisation::formatNumber(bx,4) + ".sampledisa";
+							std::string const newmergedisaname = gtmpgen.getFileName() + "_merged_" + ::libmaus2::util::NumberSerialisation::formatNumber(bx,4) + ".sampledisa";
 							::libmaus2::util::TempFileRemovalContainer::addTempFile(newmergedisaname);
 							// gap file
 							std::string const gapfile = gapfilenames[bx];
@@ -1851,9 +1867,9 @@ namespace libmaus2
 
 							// compute gap array
 							GapArrayComputationResult const GACR = computeGapArray(
-								fn,fs,*(mergereq.gaprequests[bx]),
+								gtmpgen,fn,fs,*(mergereq.gaprequests[bx]),
 								mergedgtname,
-								newmergedgtname,
+								//newmergedgtname,
 								accD.get(),
 								numthreads,
 								logstr
@@ -1876,7 +1892,7 @@ namespace libmaus2
 							for ( uint64_t i = 0; i < blockresults.getFiles().getGT().size(); ++i )
 							{
 								std::ostringstream ostr;
-								ostr << tmpfilenamebase
+								ostr << gtmpgen.getFileName()
 									<< "_renamed_"
 									<< std::setw(6) << std::setfill('0') << bx << std::setw(0)
 									<< "_"
@@ -1919,10 +1935,11 @@ namespace libmaus2
 						::libmaus2::timing::RealTimeClock mprtc;
 						mprtc.start();
 						result.setBWT(parallelGapFragMerge(
+							gtmpgen,
 							bwtfilenames,
 							stringVectorPack(gapfilenames),
 							// result.getFiles().getBWT(),
-							tmpfilenamebase+"_gpart",
+							//gtmpgen.getFileName()+"_gpart",
 							numthreads,
 							lfblockmult,rlencoderblocksize,logstr));
 						if ( logstr )
@@ -1955,7 +1972,7 @@ namespace libmaus2
 						hwtreqCOS,
 						result.getFiles().getBWT(),
 						result.getFiles().getHWT(),
-						tmpfilenamebase + "_wt",
+						gtmpgen.getFileName() + "_wt", // XXX replace
 						huftreefilename,
 						bwtterm,
 						result.getBlockP0Rank(),
@@ -1978,7 +1995,7 @@ namespace libmaus2
 					libmaus2::suffixsort::bwtb3m::MergeStrategyMergeInternalSmallBlock & mergereq,
 					std::string const fn,
 					uint64_t const fs,
-					std::string const tmpfilenamebase,
+					// std::string const tmpfilenamebase,
 					uint64_t const rlencoderblocksize,
 					uint64_t const lfblockmult,
 					uint64_t const numthreads,
@@ -2036,10 +2053,13 @@ namespace libmaus2
 
 						// compute gap array
 						GapArrayByteComputationResult const GACR = computeGapArrayByte(
+							gtmpgen,
 							fn,fs,*(mergereq.gaprequests[0]),
 							mergereq.children[1]->sortresult.getFiles().getGT(), // previous gt files
+							#if 0
 							tmpfilenamebase + "_gparts", // new gt files
 							tmpfilenamebase + "_gapoverflow",
+							#endif
 							accD.get(),
 							numthreads,
 							logstr
@@ -2058,7 +2078,7 @@ namespace libmaus2
 						for ( uint64_t i = 0; i < blockresults.getFiles().getGT().size(); ++i )
 						{
 							std::ostringstream ostr;
-							ostr << tmpfilenamebase << "_renamed_" << std::setw(6) << std::setfill('0') << i << std::setw(0) << ".gt";
+							ostr << gtmpgen.getFileName() << "_renamed_" << std::setw(6) << std::setfill('0') << i << std::setw(0) << ".gt";
 							std::string const renamed = ostr.str();
 							oldgtnames.push_back(ostr.str());
 							::libmaus2::util::TempFileRemovalContainer::addTempFile(renamed);
@@ -2142,7 +2162,7 @@ namespace libmaus2
 							P.push_back(P.back() + p);
 							wpacks.push_back(std::pair<uint64_t,uint64_t>(ilow,ihigh));
 							encfilenames.push_back(
-								tmpfilenamebase
+								gtmpgen.getFileName()
 								// result.getFiles().getBWT()
 								+ "_"
 								+ ::libmaus2::util::NumberSerialisation::formatNumber(encfilenames.size(),6)
@@ -2268,7 +2288,7 @@ namespace libmaus2
 							// gap file name
 							if ( bb+1 < mergereq.children.size() )
 							{
-								std::string const newgapname = tmpfilenamebase + "_merging_" + ::libmaus2::util::NumberSerialisation::formatNumber(bb,4) + ".gap";
+								std::string const newgapname = gtmpgen.getFileName() + "_merging_" + ::libmaus2::util::NumberSerialisation::formatNumber(bb,4) + ".gap";
 								::libmaus2::util::TempFileRemovalContainer::addTempFile(newgapname);
 								gapfilenames.push_back(newgapname);
 							}
@@ -2277,7 +2297,7 @@ namespace libmaus2
 							std::vector<std::string> newbwtnames;
 							for ( uint64_t i = 0; i < mergereq.children[bb]->sortresult.getFiles().getBWT().size(); ++i )
 							{
-								std::string const newbwtname = tmpfilenamebase + "_merging_"
+								std::string const newbwtname = gtmpgen.getFileName() + "_merging_"
 									+ ::libmaus2::util::NumberSerialisation::formatNumber(bb,4)
 									+ "_"
 									+ ::libmaus2::util::NumberSerialisation::formatNumber(i,4)
@@ -2317,12 +2337,16 @@ namespace libmaus2
 								mergereq.children[bx]->sortresult;
 
 							// output files for this iteration
+							#if 0
 							std::string const newmergedgtname = tmpfilenamebase + "_merged_" + ::libmaus2::util::NumberSerialisation::formatNumber(bx,4) + ".gt";
 							::libmaus2::util::TempFileRemovalContainer::addTempFile(newmergedgtname);
-							std::string const newmergedisaname = tmpfilenamebase + "_merged_" + ::libmaus2::util::NumberSerialisation::formatNumber(bx,4) + ".sampledisa";
+							#endif
+							std::string const newmergedisaname = gtmpgen.getFileName() + "_merged_" + ::libmaus2::util::NumberSerialisation::formatNumber(bx,4) + ".sampledisa";
 							::libmaus2::util::TempFileRemovalContainer::addTempFile(newmergedisaname);
+							#if 0
 							std::string const newmergedgapoverflow = tmpfilenamebase + "_merged_" + ::libmaus2::util::NumberSerialisation::formatNumber(bx,4) + ".gapoverflow";
 							::libmaus2::util::TempFileRemovalContainer::addTempFile(newmergedgapoverflow);
+							#endif
 							// gap file
 							std::string const gapfile = gapfilenames[bx];
 
@@ -2333,10 +2357,13 @@ namespace libmaus2
 
 							// compute gap array
 							GapArrayByteComputationResult const GACR = computeGapArrayByte(
+								gtmpgen,
 								fn,fs,*(mergereq.gaprequests[bx]),
 								mergedgtname,
+								#if 0
 								newmergedgtname,
 								newmergedgapoverflow,
+								#endif
 								accD.get(),
 								numthreads,
 								logstr
@@ -2365,7 +2392,7 @@ namespace libmaus2
 							for ( uint64_t i = 0; i < blockresults.getFiles().getGT().size(); ++i )
 							{
 								std::ostringstream ostr;
-								ostr << tmpfilenamebase
+								ostr << gtmpgen.getFileName()
 									<< "_renamed_"
 									<< std::setw(6) << std::setfill('0') << bx << std::setw(0)
 									<< "_"
@@ -2408,10 +2435,11 @@ namespace libmaus2
 						::libmaus2::timing::RealTimeClock mprtc;
 						mprtc.start();
 						result.setBWT(parallelGapFragMerge(
+							gtmpgen,
 							bwtfilenames,
 							stringVectorPack(gapfilenames),
 							// result.getFiles().getBWT(),
-							tmpfilenamebase+"_gpart",
+							// tmpfilenamebase+"_gpart",
 							numthreads,
 							lfblockmult,rlencoderblocksize,logstr));
 						if ( logstr )
@@ -2442,7 +2470,7 @@ namespace libmaus2
 						hwtreqCOS,
 						result.getFiles().getBWT(),
 						result.getFiles().getHWT(),
-						tmpfilenamebase + "_wt",
+						gtmpgen.getFileName() + "_wt", // XXX replace
 						huftreefilename,
 						bwtterm,
 						result.getBlockP0Rank(),
@@ -2465,7 +2493,7 @@ namespace libmaus2
 					libmaus2::suffixsort::bwtb3m::MergeStrategyMergeExternalBlock & mergereq,
 					std::string const fn,
 					uint64_t const fs,
-					std::string const tmpfilenamebase,
+					// std::string const tmpfilenamebase,
 					std::string const sparsetmpfilenamebase,
 					uint64_t const rlencoderblocksize,
 					uint64_t const lfblockmult,
@@ -2504,24 +2532,19 @@ namespace libmaus2
 					result.setTempPrefixAndRegisterAsTemp(gtmpgen,0,0);
 
 					{
-						std::vector < std::string > gapfilenameprefixes;
 						std::vector < std::vector < std::string > > gapfilenames;
 						std::vector < std::vector < std::string > > bwtfilenames;
 						for ( uint64_t bb = 0; bb < mergereq.children.size(); ++bb )
 						{
 							// gap file name
 							if ( bb+1 < mergereq.children.size() )
-							{
-								std::string const newgapname = tmpfilenamebase + "_merging_" + ::libmaus2::util::NumberSerialisation::formatNumber(bb,4) + ".gap";
-								gapfilenameprefixes.push_back(newgapname);
 								gapfilenames.push_back(std::vector<std::string>());
-							}
 
 							// bwt name
 							std::vector<std::string> newbwtnames;
 							for ( uint64_t i = 0; i < mergereq.children[bb]->sortresult.getFiles().getBWT().size(); ++i )
 							{
-								std::string const newbwtname = tmpfilenamebase + "_merging_"
+								std::string const newbwtname = gtmpgen.getFileName() + "_merging_"
 									+ ::libmaus2::util::NumberSerialisation::formatNumber(bb,4)
 									+ "_"
 									+ ::libmaus2::util::NumberSerialisation::formatNumber(i,4)
@@ -2564,12 +2587,8 @@ namespace libmaus2
 								mergereq.children[bx]->sortresult;
 
 							// output files for this iteration
-							std::string const newmergedgtname = tmpfilenamebase + "_merged_" + ::libmaus2::util::NumberSerialisation::formatNumber(bx,4) + ".gt";
-							::libmaus2::util::TempFileRemovalContainer::addTempFile(newmergedgtname);
-							std::string const newmergedisaname = tmpfilenamebase + "_merged_" + ::libmaus2::util::NumberSerialisation::formatNumber(bx,4) + ".sampledisa";
+							std::string const newmergedisaname = gtmpgen.getFileName() + "_merged_" + ::libmaus2::util::NumberSerialisation::formatNumber(bx,4) + ".sampledisa";
 							::libmaus2::util::TempFileRemovalContainer::addTempFile(newmergedisaname);
-							// gap file
-							std::string const gapfilenameprefix = gapfilenameprefixes[bx];
 
 							// start of this block
 							uint64_t const blockstart = blockresults.getBlockStart();
@@ -2579,10 +2598,11 @@ namespace libmaus2
 							// std::cerr << "*** compute sparse ***" << std::endl;
 
 							SparseGapArrayComputationResult const GACR = computeSparseGapArray(
+								gtmpgen,
 								fn,fs,*(mergereq.gaprequests[bx]),
 								mergereq.children[mergereq.gaprequests[bx]->into]->getIHWTSpaceBytes(),
-								mergedgtname,newmergedgtname,accD.get(),
-								gapfilenameprefix,
+								mergedgtname,
+								accD.get(),
 								sparsetmpfilenamebase+"_sparsegap",
 								mem,
 								numthreads,
@@ -2602,7 +2622,7 @@ namespace libmaus2
 							for ( uint64_t i = 0; i < blockresults.getFiles().getGT().size(); ++i )
 							{
 								std::ostringstream ostr;
-								ostr << tmpfilenamebase
+								ostr << gtmpgen.getFileName()
 									<< "_renamed_"
 									<< std::setw(6) << std::setfill('0') << bx << std::setw(0)
 									<< "_"
@@ -2643,7 +2663,7 @@ namespace libmaus2
 						::libmaus2::timing::RealTimeClock mprtc;
 						mprtc.start();
 						result.setBWT(
-							parallelGapFragMerge(bwtfilenames,gapfilenames,tmpfilenamebase+"_gpart",numthreads,
+							parallelGapFragMerge(gtmpgen,bwtfilenames,gapfilenames/* tmpfilenamebase+"_gpart" */,numthreads,
 								lfblockmult,rlencoderblocksize,logstr)
 						);
 						if ( logstr )
@@ -2674,7 +2694,7 @@ namespace libmaus2
 					libmaus2::wavelet::RlToHwtTermRequest::serialise(hwtreqCOS,
 						result.getFiles().getBWT(),
 						result.getFiles().getHWT(),
-						tmpfilenamebase + "_wt",
+						gtmpgen.getFileName() + "_wt", // XXX replace
 						huftreefilename,
 						bwtterm,
 						result.getBlockP0Rank(),
@@ -2813,12 +2833,13 @@ namespace libmaus2
 				}
 
 				static void computeSampledSA(
+					libmaus2::util::TempFileNameGenerator & gtmpgen,
 					std::string const & fn,
 					uint64_t const fs,
 					::libmaus2::lf::ImpCompactHuffmanWaveletLF const & IHWT,
 					std::string const & mergedisaname,
 					std::string const & outfn,
-					std::string const & tmpfilenamebase,
+					// std::string const & tmpfilenamebase,
 					uint64_t const numthreads,
 					uint64_t const lfblockmult,
 					uint64_t const sasamplingrate,
@@ -2846,14 +2867,14 @@ namespace libmaus2
 					::libmaus2::autoarray::AutoArray < ::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type > ISAF(numthreads);
 					for ( uint64_t i = 0; i < numthreads; ++i )
 					{
-						satempfilenames[i] = ( tmpfilenamebase + ".sampledsa_" + ::libmaus2::util::NumberSerialisation::formatNumber(i,6) );
+						satempfilenames[i] = ( gtmpgen.getFileName() + ".sampledsa_" + ::libmaus2::util::NumberSerialisation::formatNumber(i,6) );
 						::libmaus2::util::TempFileRemovalContainer::addTempFile(satempfilenames[i]);
 						::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type tSAFi(
 							new ::libmaus2::aio::SynchronousGenericOutput<uint64_t>(satempfilenames[i],8*1024)
 						);
 						SAF[i] = UNIQUE_PTR_MOVE(tSAFi);
 
-						isatempfilenames[i] = ( tmpfilenamebase + ".sampledisa_" + ::libmaus2::util::NumberSerialisation::formatNumber(i,6) );
+						isatempfilenames[i] = ( gtmpgen.getFileName() + ".sampledisa_" + ::libmaus2::util::NumberSerialisation::formatNumber(i,6) );
 						::libmaus2::util::TempFileRemovalContainer::addTempFile(isatempfilenames[i]);
 						::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type tISAFi(
 							new ::libmaus2::aio::SynchronousGenericOutput<uint64_t>(isatempfilenames[i],8*1024)
@@ -3247,9 +3268,9 @@ namespace libmaus2
 
 
 					// file name of serialised character histogram
-					std::string const chistfilename = options.tmpfilenamebase + ".chist";
+					std::string const chistfilename = gtmpgen.getFileName() + ".chist";
 					// file name of serialised huffman tree
-					std::string const huftreefilename = options.tmpfilenamebase + ".huftree";
+					std::string const huftreefilename = gtmpgen.getFileName() + ".huftree";
 					::libmaus2::util::TempFileRemovalContainer::addTempFile(chistfilename);
 					::libmaus2::util::TempFileRemovalContainer::addTempFile(huftreefilename);
 
@@ -3608,7 +3629,7 @@ namespace libmaus2
 								bwtterm,
 								maxsym,
 								blocktmpnames[b].serialise(),
-								options.tmpfilenamebase,
+								options.tmpfilenamebase /* only used if computeTermSymbolHwt == true */,
 								rlencoderblocksize,
 								preisasamplingrate,
 								blockstart,cblocksize,
@@ -3712,8 +3733,11 @@ namespace libmaus2
 							(*logstr) << std::endl;
 						}
 
+						#if 0
 						std::ostringstream tmpstr;
 						tmpstr << options.tmpfilenamebase << "_" << std::setfill('0') << std::setw(6) << (mtmpid++);
+						#endif
+
 						std::ostringstream sparsetmpstr;
 						sparsetmpstr << options.sparsetmpfilenamebase << "_" << std::setfill('0') << std::setw(6) << (mtmpid++);
 
@@ -3723,7 +3747,7 @@ namespace libmaus2
 								gtmpgen,
 								*(dynamic_cast<libmaus2::suffixsort::bwtb3m::MergeStrategyMergeInternalBlock *>(p)),
 								fn,fs,
-								tmpstr.str(),
+								// tmpstr.str(),
 								rlencoderblocksize,
 								lfblockmult,
 								options.numthreads,
@@ -3738,7 +3762,7 @@ namespace libmaus2
 								gtmpgen,
 								*(dynamic_cast<libmaus2::suffixsort::bwtb3m::MergeStrategyMergeInternalSmallBlock *>(p)),
 								fn,fs,
-								tmpstr.str(),
+								// tmpstr.str(),
 								rlencoderblocksize,
 								lfblockmult,
 								options.numthreads,
@@ -3753,7 +3777,7 @@ namespace libmaus2
 								gtmpgen,
 								*(dynamic_cast<libmaus2::suffixsort::bwtb3m::MergeStrategyMergeExternalBlock *>(p)),
 								fn,fs,
-								tmpstr.str(),
+								//tmpstr.str(),
 								sparsetmpstr.str(),
 								rlencoderblocksize,
 								lfblockmult,
@@ -3865,7 +3889,7 @@ namespace libmaus2
 
 						// compute sampled suffix array and sampled inverse suffix array
 						computeSampledSA(
-							fn,fs,IHWT,mergedisaname,options.outfn,options.tmpfilenamebase,
+							gtmpgen,fn,fs,IHWT,mergedisaname,options.outfn,
 							options.numthreads,lfblockmult,options.sasamplingrate,options.isasamplingrate,blockmem,
 							logstr
 						);
