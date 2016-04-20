@@ -1532,6 +1532,7 @@ namespace libmaus2
 				}
 
 				static void mergeBlocks(
+					libmaus2::util::TempFileNameGenerator & gtmpgen,
 					libmaus2::suffixsort::bwtb3m::MergeStrategyMergeInternalBlock & mergereq,
 					std::string const fn,
 					uint64_t const fs,
@@ -1571,7 +1572,7 @@ namespace libmaus2
 					// gt bit array,
 					// huffman shaped wavelet tree and
 					// histogram
-					result.setTempPrefixAndRegisterAsTemp(tmpfilenamebase + "_out",0 /* no preset bwt file names */, 0 /* no preset gt file names */);
+					result.setTempPrefixAndRegisterAsTemp(gtmpgen,0 /* no preset bwt file names */, 0 /* no preset gt file names */);
 
 					// if we merge only two blocks together, then we do not need to write the gap array to disk
 					if ( mergereq.children.size() == 2 )
@@ -1973,6 +1974,7 @@ namespace libmaus2
 				}
 
 				static void mergeBlocks(
+					libmaus2::util::TempFileNameGenerator & gtmpgen,
 					libmaus2::suffixsort::bwtb3m::MergeStrategyMergeInternalSmallBlock & mergereq,
 					std::string const fn,
 					uint64_t const fs,
@@ -2010,7 +2012,7 @@ namespace libmaus2
 					// gt bit array,
 					// huffman shaped wavelet tree and
 					// histogram
-					result.setTempPrefixAndRegisterAsTemp(tmpfilenamebase + "_out",0 /* no preset bwt file names */, 0 /* no preset gt file names */);
+					result.setTempPrefixAndRegisterAsTemp(gtmpgen,0 /* no preset bwt file names */, 0 /* no preset gt file names */);
 
 					// if we merge only two blocks together, then we do not need to write the gap array to disk
 					if ( mergereq.children.size() == 2 )
@@ -2459,6 +2461,7 @@ namespace libmaus2
 				}
 
 				static void mergeBlocks(
+					libmaus2::util::TempFileNameGenerator & gtmpgen,
 					libmaus2::suffixsort::bwtb3m::MergeStrategyMergeExternalBlock & mergereq,
 					std::string const fn,
 					uint64_t const fs,
@@ -2498,7 +2501,7 @@ namespace libmaus2
 					// gt bit array,
 					// huffman shaped wavelet tree and
 					// histogram
-					result.setTempPrefixAndRegisterAsTemp(tmpfilenamebase + "_out",0,0);
+					result.setTempPrefixAndRegisterAsTemp(gtmpgen,0,0);
 
 					{
 						std::vector < std::string > gapfilenameprefixes;
@@ -3214,6 +3217,7 @@ namespace libmaus2
 				static BwtMergeSortResult computeBwt(BwtMergeSortOptions const & options, std::ostream * logstr)
 				{
 					std::string fn = options.fn;
+					libmaus2::util::TempFileNameGenerator gtmpgen(options.tmpfilenamebase+"_tmpdir",5);
 
 					/* get file size */
 					uint64_t const fs = input_types_type::linear_wrapper::getFileSize(fn);
@@ -3450,7 +3454,7 @@ namespace libmaus2
 
 					// exit(0);
 
-					::libmaus2::suffixsort::BwtMergeTempFileNameSetVector blocktmpnames(options.tmpfilenamebase, numblocks, options.numthreads /* bwt */, options.numthreads /* gt */);
+					::libmaus2::suffixsort::BwtMergeTempFileNameSetVector blocktmpnames(gtmpgen, numblocks, options.numthreads /* bwt */, options.numthreads /* gt */);
 
 					#if defined(BWTB3M_MEMORY_DEBUG)
 					if ( logstr )
@@ -3716,6 +3720,7 @@ namespace libmaus2
 						if ( dynamic_cast<libmaus2::suffixsort::bwtb3m::MergeStrategyMergeInternalBlock *>(p) )
 						{
 							mergeBlocks(
+								gtmpgen,
 								*(dynamic_cast<libmaus2::suffixsort::bwtb3m::MergeStrategyMergeInternalBlock *>(p)),
 								fn,fs,
 								tmpstr.str(),
@@ -3730,6 +3735,7 @@ namespace libmaus2
 						else if ( dynamic_cast<libmaus2::suffixsort::bwtb3m::MergeStrategyMergeInternalSmallBlock *>(p) )
 						{
 							mergeBlocks(
+								gtmpgen,
 								*(dynamic_cast<libmaus2::suffixsort::bwtb3m::MergeStrategyMergeInternalSmallBlock *>(p)),
 								fn,fs,
 								tmpstr.str(),
@@ -3744,6 +3750,7 @@ namespace libmaus2
 						else if ( dynamic_cast<libmaus2::suffixsort::bwtb3m::MergeStrategyMergeExternalBlock *>(p) )
 						{
 							mergeBlocks(
+								gtmpgen,
 								*(dynamic_cast<libmaus2::suffixsort::bwtb3m::MergeStrategyMergeExternalBlock *>(p)),
 								fn,fs,
 								tmpstr.str(),
