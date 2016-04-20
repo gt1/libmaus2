@@ -1,3 +1,9 @@
+libmaus2 (2.0.164-1) unstable; urgency=medium
+
+  * use largelcpthres option in BwtMergeSortTemplate 
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 20 Apr 2016 22:07:29 +0200
+
 libmaus2 (2.0.163-1) unstable; urgency=medium
 
   * add poll call in PosixFdInput for read to detect delays
