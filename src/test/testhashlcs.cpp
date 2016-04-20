@@ -26,6 +26,8 @@
 
 #include <libmaus2/lcs/NP.hpp>
 
+#include <libmaus2/lcs/NNPLocalAligner.hpp>
+
 static std::string loadFirstPattern(std::string const & filename)
 {
 	::libmaus2::fastx::FastAReader fa(filename);
