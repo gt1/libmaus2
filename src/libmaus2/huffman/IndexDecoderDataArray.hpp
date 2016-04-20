@@ -547,7 +547,7 @@ namespace libmaus2
 
 			IndexDecoderDataArray(std::vector<std::string> const & filenames, uint64_t const numthreads)
 			{
-				std::vector<bool> Vnonempty(filenames.size(),false);
+				libmaus2::autoarray::AutoArray<uint8_t> Vnonempty(filenames.size(),false);
 				std::vector<IndexDecoderData> LVIDD(filenames.size());
 
 				#if defined(_OPENMP)
@@ -577,7 +577,8 @@ namespace libmaus2
 				kvec = ::libmaus2::autoarray::AutoArray<uint64_t>(nonempty+1,false);
 				vvec = ::libmaus2::autoarray::AutoArray<uint64_t>(nonempty+1,false);
 
-				for ( uint64_t i = 0, j = 0; i < filenames.size(); ++i )
+				uint64_t j = 0;
+				for ( uint64_t i = 0; i < filenames.size(); ++i )
 				{
 					if ( Vnonempty[i] )
 					{
@@ -589,6 +590,8 @@ namespace libmaus2
 						j += 1;
 					}
 				}
+
+				assert ( j == nonempty );
 
 				kvec.prefixSums();
 				vvec.prefixSums();
