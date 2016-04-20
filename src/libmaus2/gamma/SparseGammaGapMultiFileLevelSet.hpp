@@ -435,7 +435,7 @@ namespace libmaus2
 			/**
 			 * merge sparse gamma coded gap files to a set of dense files
 			 **/
-			std::vector<std::string> mergeToDense(std::string const & outputfilenameprefix, uint64_t const n, uint64_t const numthreads)
+			std::vector<std::string> mergeToDense(libmaus2::util::TempFileNameGenerator & gtmpgen, uint64_t const n, uint64_t const numthreads)
 			{
 				std::string const tmpfilename = tmpgen.getFileName();
 				std::vector<std::string> const fno = merge(tmpfilename,numthreads);
@@ -451,7 +451,7 @@ namespace libmaus2
 				for ( uint64_t p = 0; p < aparts; ++p )
 				{
 					std::ostringstream fnostr;
-					fnostr << outputfilenameprefix << "_" << std::setw(6) << std::setfill('0') << p;
+					fnostr << gtmpgen.getFileName() << "_" << std::setw(6) << std::setfill('0') << p;
 					std::string const fn = fnostr.str();
 					outputfilenames[p] = fn;
 

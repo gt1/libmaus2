@@ -49,6 +49,10 @@ namespace libmaus2
 			{
 				libmaus2::aio::MemoryFileContainer::rename(from,to);
 			}
+			virtual void mkdir(std::string const & /* name */, uint64_t const /* mode */)
+			{
+				// intentionally left blank
+			}
 		};
 	}
 }

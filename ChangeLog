@@ -1,3 +1,15 @@
+libmaus2 (2.0.162-1) unstable; urgency=medium
+
+  * use TempFileNameGenerator in bwtb3m were possible
+  * use TempFileNameGenerator in SparseGammaGapMultiFileLevelSet::mergeToDense
+  * do not fail in mkdir if directory already exists
+  * use TempFileNameGenerator to generate tmp file names during block sorting phase of bwtb3m
+  * add mkdir method in OutputStreamFactory interface and use it in TempFileNameGeneratorState/TempFileNameGenerator
+  * replace non thread safe std::vector<bool> by AutoArray
+  * add getDiagonalHistogramAverage method in NNPTraceContainer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 20 Apr 2016 15:08:15 +0200
+
 libmaus2 (2.0.161-1) unstable; urgency=medium
 
   * remove band score threshold checking for subsequent hits in a band in NNPLocalAligner

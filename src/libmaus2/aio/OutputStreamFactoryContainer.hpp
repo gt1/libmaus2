@@ -225,6 +225,27 @@ namespace libmaus2
 				}
 			}
 
+			static void mkdir(std::string const & name, uint64_t const mode)
+			{
+				libmaus2::aio::OutputStreamFactory::shared_ptr_type fact = getFactory(name);
+
+				if ( haveFactoryForProtocol(name) )
+				{
+					uint64_t col = name.size();
+					for ( uint64_t i = 0; i < name.size() && col == name.size(); ++i )
+						if ( name[i] == ':' )
+							col = i;
+
+					std::string const protocol = name.substr(0,col);
+					std::string const dn = name.substr(protocol.size()+1);
+					fact->mkdir(dn,mode);
+				}
+				else
+				{
+					fact->mkdir(name,mode);
+				}
+			}
+
 			static void addHandler(std::string const & protocol, libmaus2::aio::OutputStreamFactory::shared_ptr_type factory)
 			{
 				factories[protocol] = factory;
