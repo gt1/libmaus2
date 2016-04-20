@@ -949,13 +949,13 @@ namespace libmaus2
 						while ( p && p->getAntiDiag() < lasta[bucket] )
 							p = p->next;
 						// reque if score is still sufficienlty high
-						if ( p && p->score >= minbandscore )
+						if ( p /* && p->score >= minbandscore */ )
 							Q.push(p);
 					}
 					else
 					{
 						// push next in band if score still sufficiently high
-						if ( p->next && p->next->score >= minbandscore )
+						if ( p->next /* && p->next->score >= minbandscore */ )
 							Q.push(p->next);
 
 						#if 0
