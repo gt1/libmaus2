@@ -3904,7 +3904,19 @@ namespace libmaus2
 							::libmaus2::util::OutputFileNameTools::clipOff(options.outfn,".bwt") + ".sa",
 							::libmaus2::util::OutputFileNameTools::clipOff(options.outfn,".bwt") + ".isa"
 						);
+
+						libmaus2::aio::FileRemoval::removeFile(mergedisaname);
 					}
+
+					::libmaus2::aio::FileRemoval::removeFile(chistfilename);
+					::libmaus2::aio::FileRemoval::removeFile(huftreefilename);
+					libmaus2::aio::FileRemoval::removeFile(mergeresult.getFiles().getHist());
+
+					#if 0
+					std::ostringstream comstr;
+					comstr << "ls -lR " << (options.tmpfilenamebase+"_tmpdir");
+					system(comstr.str().c_str());
+					#endif
 
 					return result;
 				}
