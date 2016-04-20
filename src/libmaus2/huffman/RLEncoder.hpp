@@ -347,7 +347,6 @@ namespace libmaus2
 			}
 		};
 
-		typedef RLEncoderTemplate<HuffmanEncoderFile   > RLEncoder;
 		typedef RLEncoderTemplate<HuffmanEncoderFileStd> RLEncoderStd;
 	}
 }
