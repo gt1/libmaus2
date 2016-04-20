@@ -480,6 +480,136 @@ namespace libmaus2
 				}
 			}
 
+			template<typename iterator>
+			std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> fuseAlignments(
+				std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> P0,
+				std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> Pi,
+				iterator a,
+				iterator b
+			)
+			{
+				libmaus2::lcs::NNPAlignResult algnres0 = P0.first;
+				libmaus2::lcs::NNPAlignResult algnresi = Pi.first;
+
+				// decode traces
+				P0.second->computeTrace(ATC0);
+				Pi.second->computeTrace(ATC1);
+
+				// check decoded traces
+				assert (libmaus2::lcs::AlignmentTraceContainer::checkAlignment(ATC0.ta, ATC0.te,a + P0.first.abpos,b + P0.first.bbpos));
+				assert (libmaus2::lcs::AlignmentTraceContainer::checkAlignment(ATC1.ta, ATC1.te,a + Pi.first.abpos,b + Pi.first.bbpos));
+
+				// get crossing point
+				uint64_t offa = 0, offb = 0;
+				bool const ok = libmaus2::lcs::AlignmentTraceContainer::cross(ATC0,algnres0.abpos,algnres0.bbpos,offa,ATC1,algnresi.abpos,algnresi.bbpos,offb);
+
+				// make sure there is one
+				assert ( ok );
+
+				// check length is consistent
+				assert (
+					P0.first.abpos + libmaus2::lcs::AlignmentTraceContainer::getStringLengthUsed(ATC0.ta,ATC0.ta+offa).first ==
+					Pi.first.abpos + libmaus2::lcs::AlignmentTraceContainer::getStringLengthUsed(ATC1.ta,ATC1.ta+offb).first
+				);
+				assert (
+					P0.first.bbpos + libmaus2::lcs::AlignmentTraceContainer::getStringLengthUsed(ATC0.ta,ATC0.ta+offa).second ==
+					Pi.first.bbpos + libmaus2::lcs::AlignmentTraceContainer::getStringLengthUsed(ATC1.ta,ATC1.ta+offb).second
+				);
+
+				ATC0.te = ATC0.ta + offa;
+				ATC1.ta += offb;
+
+				ATCc.reset();
+				ATCc.push(ATC0);
+				assert ( std::equal(ATC0.ta,ATC0.ta + offa, ATCc.ta) );
+				ATCc.push(ATC1);
+
+				ATC1.ta -= offb;
+
+				assert ( std::equal(ATC0.ta,ATC0.ta + offa, ATCc.ta) );
+				assert ( std::equal(ATC1.ta+offb,ATC1.te, ATCc.ta + offa) );
+
+				// check fused alignment
+				assert ( libmaus2::lcs::AlignmentTraceContainer::checkAlignment(ATCc.ta, ATCc.te,a + P0.first.abpos,b + P0.first.bbpos) );
+
+				// return previous trace to free list
+				tracefreelist.put(P0.second);
+				tracefreelist.put(Pi.second);
+
+				// encode fused alignment
+				P0.second = tracefreelist.get();
+				P0.second->traceToSparse(ATCc);
+
+				// check sparse encoded alignment
+				assert ( P0.second->checkTrace(a + algnres0.abpos, b + algnres0.bbpos) );
+
+				// check consistency
+				std::pair<uint64_t,uint64_t> SLA = P0.second->getStringLengthUsed();
+				std::pair<uint64_t,uint64_t> SLB = ATCc.getStringLengthUsed();
+				assert ( SLA == SLB );
+
+				// set new meta data
+				algnres0.aepos = algnres0.abpos + SLA.first;
+				algnres0.bepos = algnres0.bbpos + SLA.second;
+				algnres0.dif = P0.second->getNumDif();
+
+				P0.first = algnres0;
+				assert ( P0.second->checkTrace(a + P0.first.abpos, b + P0.first.bbpos) );
+
+				return P0;
+			}
+
+			template<typename iterator>
+			std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> subsumeAlignments(
+				std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> P0,
+				std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> Pi,
+				iterator /* a */,
+				iterator /* b */
+			)
+			{
+				tracefreelist.put(Pi.second);
+				return P0;
+			}
+
+			template<typename iterator>
+			std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> joinAlignments(
+				std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> P0,
+				std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> Pi,
+				iterator a,
+				iterator b
+			)
+			{
+				assert ( P0.second->checkTrace(a + P0.first.abpos, b + P0.first.bbpos) );
+				assert ( Pi.second->checkTrace(a + Pi.first.abpos, b + Pi.first.bbpos) );
+
+				// make sure P0 is the "left" alignment
+				if ( Pi.first.abpos < P0.first.abpos )
+					std::swap(P0,Pi);
+				assert ( P0.first.abpos <= Pi.first.abpos );
+
+				libmaus2::lcs::NNPAlignResult algnres0 = P0.first;
+				libmaus2::lcs::NNPTraceContainer::shared_ptr_type trace0 = P0.second;
+
+				libmaus2::lcs::NNPAlignResult algnresi = Pi.first;
+				libmaus2::lcs::NNPTraceContainer::shared_ptr_type tracei = Pi.second;
+
+				bool const ok = libmaus2::lcs::NNPTraceContainer::cross(*trace0,algnres0.abpos,algnres0.bbpos,*tracei,algnresi.abpos,algnresi.bbpos);
+				assert ( ok );
+
+				if ( algnres0.aepos >= algnresi.aepos )
+				{
+					P0 = subsumeAlignments(P0,Pi,a,b);
+					assert ( P0.second->checkTrace(a + P0.first.abpos, b + P0.first.bbpos) );
+				}
+				else
+				{
+					P0 = fuseAlignments(P0,Pi,a,b);
+					assert ( P0.second->checkTrace(a + P0.first.abpos, b + P0.first.bbpos) );
+				}
+
+				return P0;
+			}
+
 			// filter alignments (remove contained overlapping alignments and fuse overlapping alignments)
 			template<typename iterator>
 			void filterAlignments(
@@ -491,198 +621,21 @@ namespace libmaus2
 				bool changed = true;
 				while ( changed )
 				{
-					// std::cerr << "round" << std::endl;
-
 					changed = false;
 
 					// compute common trace points
 					uint64_t const ashareo = libmaus2::lcs::NNPTraceContainer::getCommonTracePoints(LLV.begin(),LLV.end(),AT,Ashare,64);
+					assert ( ashareo == LLV.size() );
 					Amodified.ensureSize(ashareo);
 					std::fill(Amodified.begin(),Amodified.begin()+ashareo,false);
 
-					#if 0
 					for ( uint64_t i = 0; i < ashareo; ++i )
-						if ( Ashare[i] != i )
+						if ( Ashare[i] != i && !Amodified[     i  ] && !Amodified[ Ashare[i] ] )
 						{
 							uint64_t const partner = Ashare[i];
-							libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > Aout;
-							libmaus2::autoarray::AutoArray< libmaus2::lcs::NNPTraceContainer::TracePointId > Atmp;
-
-							uint64_t const o = libmaus2::lcs::NNPTraceContainer::listCommonTracePoints(
-								64,
-								*(LLV[i].second),
-								LLV[i].first.abpos,
-								LLV[i].first.bbpos,
-								*(LLV[partner].second),
-								LLV[partner].first.abpos,
-								LLV[partner].first.bbpos,
-								Aout,Atmp);
-							assert ( o );
-						}
-					#endif
-
-					assert ( ashareo == LLV.size() );
-					for ( uint64_t i = 0; i < ashareo; ++i )
-						if (
-							Ashare[i] != i
-							&&
-							!Amodified[     i  ]
-							&&
-							!Amodified[ Ashare[i] ]
-						)
-						{
-							uint64_t const partner = Ashare[i];
-
-							Amodified[i] = true;
-							Amodified[partner] = true;
-
-							std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> P0 = LLV[ i ];
-							std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> Pi = LLV[ partner ];
-
-							assert ( P0.second->checkTrace(a + P0.first.abpos, b + P0.first.bbpos) );
-							assert ( Pi.second->checkTrace(a + Pi.first.abpos, b + Pi.first.bbpos) );
-
-							if ( Pi.first.abpos < P0.first.abpos )
-								std::swap(P0,Pi);
-							assert ( P0.first.abpos <= Pi.first.abpos );
-
-							libmaus2::lcs::NNPAlignResult algnres0 = P0.first;
-							libmaus2::lcs::NNPTraceContainer::shared_ptr_type trace0 = P0.second;
-
-							libmaus2::lcs::NNPAlignResult algnresi = Pi.first;
-							libmaus2::lcs::NNPTraceContainer::shared_ptr_type tracei = Pi.second;
-
-							bool const ok = (
-								libmaus2::lcs::NNPTraceContainer::cross(
-									*trace0,algnres0.abpos,algnres0.bbpos,
-									*tracei,algnresi.abpos,algnresi.bbpos
-								)
-							);
-
-							if ( algnres0.aepos >= algnresi.aepos )
-							{
-								// std::cerr << "containment " << algnres0 << "," << algnresi << std::endl;
-
-								LLV[i] = P0;
-								tracefreelist.put(Pi.second);
-								LLV[ partner ] = std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type>();
-							}
-							else
-							{
-								// std::cerr << "true cross " << algnres0 << "," << algnresi << std::endl;
-
-								P0.second->computeTrace(ATC0);
-								Pi.second->computeTrace(ATC1);
-								// traceToSparse;
-
-								assert (
-									libmaus2::lcs::AlignmentTraceContainer::checkAlignment(
-										ATC0.ta, ATC0.te,
-										a + P0.first.abpos,
-										b + P0.first.bbpos
-									)
-								);
-								assert (
-									libmaus2::lcs::AlignmentTraceContainer::checkAlignment(
-										ATC1.ta, ATC1.te,
-										a + Pi.first.abpos,
-										b + Pi.first.bbpos
-									)
-								);
-
-								uint64_t offa = 0, offb = 0;
-								bool const ok = libmaus2::lcs::AlignmentTraceContainer::cross(
-									ATC0,algnres0.abpos,algnres0.bbpos,offa,
-									ATC1,algnresi.abpos,algnresi.bbpos,offb
-								);
-
-								assert ( ok );
-
-								assert (
-									P0.first.abpos + libmaus2::lcs::AlignmentTraceContainer::getStringLengthUsed(ATC0.ta,ATC0.ta+offa).first ==
-									Pi.first.abpos + libmaus2::lcs::AlignmentTraceContainer::getStringLengthUsed(ATC1.ta,ATC1.ta+offb).first
-								);
-								assert (
-									P0.first.bbpos + libmaus2::lcs::AlignmentTraceContainer::getStringLengthUsed(ATC0.ta,ATC0.ta+offa).second ==
-									Pi.first.bbpos + libmaus2::lcs::AlignmentTraceContainer::getStringLengthUsed(ATC1.ta,ATC1.ta+offb).second
-								);
-
-								ATC0.te = ATC0.ta + offa;
-								ATC1.ta += offb;
-
-								ATCc.reset();
-								ATCc.push(ATC0);
-								assert ( std::equal(ATC0.ta,ATC0.ta + offa, ATCc.ta) );
-								ATCc.push(ATC1);
-
-								ATC1.ta -= offb;
-
-								assert ( std::equal(ATC0.ta,ATC0.ta + offa, ATCc.ta) );
-								assert ( std::equal(ATC1.ta+offb,ATC1.te, ATCc.ta + offa) );
-
-								assert (
-									libmaus2::lcs::AlignmentTraceContainer::checkAlignment(
-										ATCc.ta, ATCc.te,
-										a + P0.first.abpos,
-										b + P0.first.bbpos
-									)
-								);
-
-								P0.second->traceToSparse(ATCc);
-
-								assert ( P0.second->checkTrace(a + algnres0.abpos, b + algnres0.bbpos) );
-
-								std::pair<uint64_t,uint64_t> SLA = P0.second->getStringLengthUsed();
-								std::pair<uint64_t,uint64_t> SLB = ATCc.getStringLengthUsed();
-
-								assert ( SLA == SLB );
-
-								algnres0.aepos = algnres0.abpos + SLA.first;
-								algnres0.bepos = algnres0.bbpos + SLA.second;
-								algnres0.dif = P0.second->getNumDif();
-
-								P0.first = algnres0;
-								LLV[i] = P0;
-
-								#if 0
-								P0.second->printTraceLines(
-									std::cerr,
-									cmapped + algnres0.abpos,
-									cmapped + algnres0.bbpos,
-									80,
-									std::string() /* indent */,
-									std::string("\n") /* linesep */,
-									libmaus2::fastx::remapChar
-								);
-								#endif
-
-								tracefreelist.put(Pi.second);
-								LLV[ partner ] = std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type>();
-
-								assert ( LLV[i].second->checkTrace(a + LLV[i].first.abpos, b + LLV[i].first.bbpos) );
-
-								// std::cerr << algnres0 << std::endl;
-							}
-
-							#if 0
-							if (! ok )
-							{
-								libmaus2::autoarray::AutoArray< libmaus2::lcs::NNPTraceContainer::TracePointId > A0;
-								libmaus2::autoarray::AutoArray< libmaus2::lcs::NNPTraceContainer::TracePointId > Ai;
-
-								uint64_t o0 = P0.second->getTracePoints(algnres0.abpos,algnres0.bbpos,64,A0,0,0);
-								uint64_t o1 = Pi.second->getTracePoints(algnresi.abpos,algnresi.bbpos,64,Ai,0,1);
-
-								for ( uint64_t j = 0; j < o0; ++j )
-									std::cerr << "A0[]=" << A0[j].apos << "," << A0[j].bpos << "," << A0[j].id << std::endl;
-								for ( uint64_t j = 0; j < o1; ++j )
-									std::cerr << "Ai[]=" << Ai[j].apos << "," << Ai[j].bpos << "," << Ai[j].id << std::endl;
-							}
-							#endif
-
-							assert (
-								ok
-							);
+							Amodified[i] = Amodified[partner] = true;
+							LLV[i] = joinAlignments(LLV[i],LLV[partner],a,b);
+							LLV[partner] = std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type>();
 						}
 
 					// filter out removed alignments
@@ -693,6 +646,110 @@ namespace libmaus2
 						else
 							changed = true;
 					LLV.resize(o);
+				}
+			}
+
+			// filter alignments (remove contained overlapping alignments and fuse overlapping alignments)
+			template<typename iterator>
+			void filterAlignmentsStrict(
+				std::vector < std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> > & LLV,
+				iterator a,
+				iterator b
+			)
+			{
+				bool running = true;
+
+				while ( running )
+				{
+					running = false;
+
+					std::vector< std::pair < std::pair<int64_t,int64_t>, uint64_t > > diagbands(LLV.size());
+					for ( uint64_t i = 0; i < LLV.size(); ++i )
+						diagbands[i] =
+							std::pair < std::pair<int64_t,int64_t>, uint64_t >(
+								LLV[i].second->getDiagonalBand(LLV[i].first.abpos,LLV[i].first.bbpos),
+								i
+							);
+
+					std::sort(diagbands.begin(),diagbands.end());
+
+					uint64_t low = 0;
+					while ( (!running) && (low < diagbands.size()) )
+					{
+						uint64_t high = low+1;
+						while (
+							high < diagbands.size() &&
+							diagbands[high-1].first.second >= diagbands[high].first.first
+						)
+							++high;
+
+						if ( high-low > 1 )
+						{
+							std::vector< std::pair < std::pair<int64_t,int64_t>, uint64_t > > antidiagbands(high-low);
+
+							for ( uint64_t j = low; j < high; ++j )
+							{
+								uint64_t const i = diagbands[j].second;
+								antidiagbands[j-low] = std::pair < std::pair<int64_t,int64_t>, uint64_t >(
+									LLV[i].second->getAntiDiagonalBand(LLV[i].first.abpos,LLV[i].first.bbpos),i
+								);
+
+							}
+							std::sort(antidiagbands.begin(),antidiagbands.end());
+
+							uint64_t alow = 0;
+							while ( (!running) && alow < antidiagbands.size() )
+							{
+								uint64_t ahigh = alow+1;
+								while (
+									ahigh < antidiagbands.size() &&
+									antidiagbands[ahigh-1].first.second >= antidiagbands[ahigh].first.first
+								)
+									++ahigh;
+
+								if ( ahigh-alow > 1 )
+								{
+									for ( uint64_t i = alow; (!running) && i < ahigh; ++i )
+										for ( uint64_t j = i+1; (!running) && j < ahigh; ++j )
+										{
+											std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> P0 =
+												LLV[ antidiagbands[i].second ];
+											std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> Pi =
+												LLV[ antidiagbands[j].second ];
+											bool const cross = libmaus2::lcs::NNPTraceContainer::cross(
+												*(P0.second),P0.first.abpos,P0.first.bbpos,
+												*(Pi.second),Pi.first.abpos,Pi.first.bbpos
+											);
+											if ( cross )
+											{
+												#if 0
+												std::cerr << "*" << LLV[antidiagbands[i].second].first << std::endl;
+												std::cerr << "*" << LLV[antidiagbands[j].second].first << std::endl;
+												#endif
+
+												LLV [ antidiagbands[i].second ] = joinAlignments(P0,Pi,a,b);
+												LLV [ antidiagbands[j].second ] = std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type>();
+												running = true;
+											}
+										}
+								}
+
+								alow = ahigh;
+							}
+						}
+
+						low = high;
+					}
+
+					if ( running )
+					{
+						uint64_t o = 0;
+						for ( uint64_t i = 0; i < LLV.size(); ++i )
+							if ( LLV[i].second )
+								LLV[o++] = LLV[i];
+						assert ( o < LLV.size() );
+						LLV.resize(o);
+					}
 				}
 			}
 
@@ -892,13 +949,13 @@ namespace libmaus2
 						while ( p && p->getAntiDiag() < lasta[bucket] )
 							p = p->next;
 						// reque if score is still sufficienlty high
-						if ( p && p->score >= minbandscore )
+						if ( p /* && p->score >= minbandscore */ )
 							Q.push(p);
 					}
 					else
 					{
 						// push next in band if score still sufficiently high
-						if ( p->next && p->next->score >= minbandscore )
+						if ( p->next /* && p->next->score >= minbandscore */ )
 							Q.push(p->next);
 
 						#if 0

@@ -1317,7 +1317,8 @@ libmaus2aio_include_HEADERS=\
 	libmaus2/aio/SplitWriter.hpp \
 	libmaus2/aio/ArrayInputStreamBuffer.hpp \
 	libmaus2/aio/ArrayInputStream.hpp \
-	libmaus2/aio/ArrayFile.hpp
+	libmaus2/aio/ArrayFile.hpp \
+	libmaus2/aio/StreamLock.hpp
 	
 libmaus2parallel_includedir=$(includedir)/libmaus2/parallel
 libmaus2parallel_include_HEADERS=\
