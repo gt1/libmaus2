@@ -22,6 +22,9 @@
 #include <libmaus2/aio/OutputStreamFactory.hpp>
 #include <libmaus2/aio/PosixFdOutputStream.hpp>
 
+#include <sys/stat.h>
+#include <sys/types.h>
+
 namespace libmaus2
 {
 	namespace aio
@@ -70,6 +73,19 @@ namespace libmaus2
 					int const error = errno;
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "PosixFdOutputStreamFactory::rename(" << from << "," << to << "): " << strerror(error) << std::endl;
+					lme.finish();
+					throw lme;
+				}
+			}
+			virtual void mkdir(std::string const & name, uint64_t const mode)
+			{
+				int const r = ::mkdir(name.c_str(),mode);
+
+				if ( r != 0 )
+				{
+					int const error = errno;
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "PosixFdOutputStreamFactory::mkdir(" << name << "," << mode << "): " << strerror(error) << std::endl;
 					lme.finish();
 					throw lme;
 				}
