@@ -1,3 +1,13 @@
+libmaus2 (2.0.161-1) unstable; urgency=medium
+
+  * remove band score threshold checking for subsequent hits in a band in NNPLocalAligner
+  * add StreamLock class containing global locks for cin,cout,cerr
+  * add timeout warning option for PosixFdInput
+  * refactor alignment fusing in NNPLocalAligner
+  * add getAntiDiagonalBand in NNPTraceContainer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 20 Apr 2016 10:03:26 +0200
+
 libmaus2 (2.0.160-1) unstable; urgency=medium
 
   * check for exact match in StrCmpNum if strings look equal by number based comparison
