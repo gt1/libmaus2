@@ -3412,7 +3412,7 @@ namespace libmaus2
 						*logstr << "[V] computing LCP between block suffixes and the following block start: ";
 					std::vector<uint64_t> largelcpblocks;
 					libmaus2::parallel::OMPLock largelcpblockslock;
-					uint64_t const largelcpthres = 16*1024;
+					// uint64_t const largelcpthres = 16*1024;
 					std::vector<uint64_t> boundedlcpblockvalues(numblocks);
 					libmaus2::parallel::SynchronousCounter<uint64_t> largelcpblockscomputed(0);
 					#if defined(_OPENMP)
@@ -3431,9 +3431,9 @@ namespace libmaus2
 						uint64_t const nextblockstart = (blockstart + cblocksize) % fs;
 
 						// find bounded lcp between this block and start of next
-						uint64_t const blcp = libmaus2::suffixsort::BwtMergeBlockSortRequestBase::findSplitCommonBounded<input_types_type>(fn,blockstart,cblocksize,nextblockstart,fs,largelcpthres);
+						uint64_t const blcp = libmaus2::suffixsort::BwtMergeBlockSortRequestBase::findSplitCommonBounded<input_types_type>(fn,blockstart,cblocksize,nextblockstart,fs,options.largelcpthres);
 
-						if ( blcp >= largelcpthres )
+						if ( blcp >= options.largelcpthres )
 						{
 							libmaus2::parallel::ScopeLock slock(largelcpblockslock);
 							largelcpblocks.push_back(b);

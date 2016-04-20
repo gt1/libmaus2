@@ -58,6 +58,7 @@ namespace libmaus2
 				std::string outfn;
 				std::string sinputtype;
 				bwt_merge_input_type inputtype;
+				uint64_t largelcpthres;
 
 				// parse input type from string form to enum
 				static bwt_merge_input_type parseInputType(std::string const & sinputtype)
@@ -140,6 +141,11 @@ namespace libmaus2
 					return libmaus2::parallel::NumCpus::getNumLogicalProcessors();
 				}
 
+				static uint64_t getDefaultLargeLCPThres()
+				{
+					return 16ull*1024ull;
+				}
+
 				// compute default output file name from input file name
 				static std::string computeDefaultOutputFileName(std::string const & fn)
 				{
@@ -197,7 +203,8 @@ namespace libmaus2
 					bool rcopyinputtomemory = getDefaultCopyInputToMemory(),
 					uint64_t rmaxblocksize = std::numeric_limits<uint64_t>::max(),
 					bool rcomputeTermSymbolHwt = false,
-					uint64_t rwordsperthread = getDefaultWordsPerThread()
+					uint64_t rwordsperthread = getDefaultWordsPerThread(),
+					uint64_t rlargelcpthres = getDefaultLargeLCPThres()
 				) :
 				  numthreads(rnumthreads),
 				  fn(rfn),
@@ -215,7 +222,8 @@ namespace libmaus2
 				  defoutfn(computeDefaultOutputFileName(computeDefaultOutputFileName(fn))),
 				  outfn(routfn.size() ? routfn : defoutfn),
 				  sinputtype(rsinputtype),
-				  inputtype(parseInputType(sinputtype))
+				  inputtype(parseInputType(sinputtype)),
+				  largelcpthres(rlargelcpthres)
 				{
 
 				}
@@ -240,7 +248,8 @@ namespace libmaus2
 				  defoutfn(computeDefaultOutputFileName(computeDefaultOutputFileName(fn))),
 				  outfn(arginfo.getValue<std::string>("outputfilename",defoutfn)),
 				  sinputtype(arginfo.getValue<std::string>("inputtype",getDefaultInputType())),
-				  inputtype(parseInputType(sinputtype))
+				  inputtype(parseInputType(sinputtype)),
+				  largelcpthres(arginfo.getValueUnsignedNumeric<uint64_t>("largelcpthres", getDefaultLargeLCPThres()))
 				{
 
 				}
