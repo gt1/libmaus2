@@ -39,6 +39,11 @@
 #include <cstring>
 #include <libmaus2/exception/LibMausException.hpp>
 #include <libmaus2/lz/StreamWrapper.hpp>
+#include <libmaus2/aio/StreamLock.hpp>
+
+#if defined(__linux__)
+#include <sys/time.h>
+#endif
 
 namespace libmaus2
 {
@@ -57,7 +62,51 @@ namespace libmaus2
 			ssize_t gcnt;
 			bool const closeOnDeconstruct;
 
+			static double const warnThreshold;
+
 			static std::map<std::string,uint64_t> const blocksizeoverride;
+
+			static double getTime()
+			{
+				#if defined(__linux__)
+				if ( warnThreshold > 0.0 )
+				{
+					struct timeval tv;
+					struct timezone tz;
+					int const r = gettimeofday(&tv,&tz);
+					if ( r < 0 )
+						return 0.0;
+					else
+						return static_cast<double>(tv.tv_sec) + (static_cast<double>(tv.tv_usec)/1e6);
+				}
+				else
+				#endif
+					return 0.0;
+			}
+
+			static void printWarning(char const * const functionname, double const time, std::string const & filename, int const fd)
+			{
+				if ( warnThreshold > 0.0 && time >= warnThreshold )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					std::cerr << "[W] warning PosixFdInput: " << functionname << "(" << fd << ")" << " took " << time << "s ";
+					if ( filename.size() )
+						std::cerr << " on " << filename;
+					std::cerr << std::endl;
+				}
+			}
+
+			static void printWarningRead(char const * const functionname, double const time, std::string const & filename, int const fd, uint64_t const size)
+			{
+				if ( warnThreshold > 0.0 && time >= warnThreshold )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					std::cerr << "[W] warning PosixFdInput: " << functionname << "(" << fd << "," << size << ")" << " took " << time << "s ";
+					if ( filename.size() )
+						std::cerr << " on " << filename;
+					std::cerr << std::endl;
+				}
+			}
 
 			public:
 			static int getDefaultFlags()
@@ -83,7 +132,10 @@ namespace libmaus2
 				// try to open the file
 				while ( fd == -1 )
 				{
+					double const time_bef = getTime();
 					fd = ::open(cfilename,rflags);
+					double const time_aft = getTime();
+					printWarning("open",time_aft-time_bef,filename,fd);
 
 					if ( fd == -1 )
 					{
@@ -104,7 +156,12 @@ namespace libmaus2
 				// close file
 				while ( fd != -1 )
 				{
-					if ( ::close(fd) == -1 )
+					double const time_bef = getTime();
+					int const r = ::close(fd);
+					double const time_aft = getTime();
+					printWarning("close",time_aft-time_bef,filename,fd);
+
+					if ( r == -1 )
 					{
 						switch ( errno )
 						{
@@ -141,7 +198,10 @@ namespace libmaus2
 			{
 				while ( fd == -1 )
 				{
+					double const time_bef = getTime();
 					fd = ::open(filename.c_str(),rflags);
+					double const time_aft = getTime();
+					printWarning("open",time_aft-time_bef,filename,fd);
 
 					if ( fd < 0 )
 					{
@@ -170,7 +230,10 @@ namespace libmaus2
 
 				while ( fd >= 0 && r < 0 )
 				{
+					double const time_bef = getTime();
 					r = ::read(fd,buffer,n);
+					double const time_aft = getTime();
+					printWarningRead("read",time_aft-time_bef,filename,fd,n);
 
 					if ( r < 0 )
 					{
@@ -204,7 +267,10 @@ namespace libmaus2
 
 				while ( fd >= 0 && r == static_cast<off_t>(-1) )
 				{
+					double const time_bef = getTime();
 					r = ::lseek(fd,n,SEEK_SET);
+					double const time_aft = getTime();
+					printWarning("lseek",time_aft-time_bef,filename,fd);
 
 					if ( r < 0 )
 					{
@@ -239,7 +305,10 @@ namespace libmaus2
 
 				while ( fd >= 0 && r == -1 )
 				{
+					double const time_bef = getTime();
 					r = ::close(fd);
+					double const time_aft = getTime();
+					printWarning("close",time_aft-time_bef,filename,fd);
 
 					if ( r == 0 )
 					{
@@ -274,7 +343,10 @@ namespace libmaus2
 
 				while ( fd >= 0 && r < 0 )
 				{
+					double const time_bef = getTime();
 					r = fstat(fd,&sb);
+					double const time_aft = getTime();
+					printWarning("fstat",time_aft-time_bef,filename,fd);
 
 					if ( r < 0 )
 					{
@@ -313,7 +385,10 @@ namespace libmaus2
 
 				while ( fd >= 0 && r < 0 )
 				{
+					double const time_bef = getTime();
 					r = fstat(fd,&sb);
+					double const time_aft = getTime();
+					printWarning("fstat",time_aft-time_bef,filename,fd);
 
 					if ( r < 0 )
 					{
@@ -372,7 +447,10 @@ namespace libmaus2
 
 				while ( fd >= 0 && r < 0 )
 				{
+					double const time_bef = getTime();
 					r = fstatfs(fd,&buf);
+					double const time_aft = getTime();
+					printWarning("fstatfs",time_aft-time_bef,filename,fd);
 
 					if ( r < 0 )
 					{
