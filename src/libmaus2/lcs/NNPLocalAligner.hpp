@@ -178,7 +178,9 @@ namespace libmaus2
 				iterator aa, iterator ae,
 				NNPLocalAlignerKmer * op,
 				unsigned int const anak,
-				uint64_t const anakmask
+				uint64_t const anakmask,
+				int64_t const plow,
+				int64_t const phigh
 			)
 			{
 				// if string is long enough
@@ -216,7 +218,11 @@ namespace libmaus2
 						e += (sym>3);
 
 						if ( ! e )
-							*(op++) = NNPLocalAlignerKmer(v,(aa-anak)-as);
+						{
+							int64_t const p = (aa-anak)-as;
+							if ( p >= plow && p+anak <= phigh )
+								*(op++) = NNPLocalAlignerKmer(v,p);
+						}
 
 						// update error count at front of current window
 						int64_t const tsym = *(ac++);
@@ -230,7 +236,9 @@ namespace libmaus2
 			template<typename iterator>
 			static void extractKmers(
 				iterator aa, iterator ae,
+				int64_t const alow, int64_t const ahigh,
 				iterator ba, iterator be,
+				int64_t const blow, int64_t const bhigh,
 				unsigned int const anak,
 				uint64_t const anakmask,
 				libmaus2::autoarray::AutoArray < NNPLocalAlignerKmer > & Akmers,
@@ -253,10 +261,10 @@ namespace libmaus2
 				Akmers.ensureSize(ks);
 
 				NNPLocalAlignerKmer * op_a = Akmers.begin();
-				NNPLocalAlignerKmer * op_b = extractKmers(aa,ae,op_a,anak,anakmask);
-				NNPLocalAlignerKmer * op_e = extractKmers(ba,be,op_b,anak,anakmask);
-
+				NNPLocalAlignerKmer * op_b = extractKmers(aa,ae,op_a,anak,anakmask,alow,ahigh);
 				std::sort(op_a,op_b);
+
+				NNPLocalAlignerKmer * op_e = extractKmers(ba,be,op_b,anak,anakmask,blow,bhigh);
 				std::sort(op_b,op_e);
 
 				bool const self = (aa == ba) && (ae == be);
@@ -324,7 +332,6 @@ namespace libmaus2
 				}
 
 				uint64_t maxf = 0;
-
 				// compute how many matches we can store
 				uint64_t matches = 0;
 				while ( maxf < histlow && (matches + maxf * Ahistlow[maxf] <= maxmatches) )
@@ -779,7 +786,13 @@ namespace libmaus2
 			 **/
 			template<typename iterator>
 			std::vector< std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> >
-				align(iterator aa, iterator ae, iterator ba, iterator be)
+				align(
+					iterator aa, iterator ae, iterator ba, iterator be,
+					int64_t const aseedlow = std::numeric_limits<int64_t>::min(),
+					int64_t const aseedhigh = std::numeric_limits<int64_t>::max(),
+					int64_t const bseedlow = std::numeric_limits<int64_t>::min(),
+					int64_t const bseedhigh = std::numeric_limits<int64_t>::max()
+				)
 			{
 				bool const overlap = isOverlapping(aa,ae,ba,be);
 
@@ -790,7 +803,7 @@ namespace libmaus2
 				NNPLocalAlignerKmerMatches * m_e = m_a;
 
 				// extract matches
-				extractKmers(aa,ae,ba,be,anak,anakmask,Akmers,histlow,Ahistlow,maxmatches,m_e);
+				extractKmers(aa,ae,aseedlow,aseedhigh,ba,be,bseedlow,bseedhigh,anak,anakmask,Akmers,histlow,Ahistlow,maxmatches,m_e);
 
 				// sort seeds by anti diagonal
 				std::sort(m_a,m_e);
@@ -987,21 +1000,21 @@ namespace libmaus2
 						// check alignment
 						assert ( tracecontainer.checkTrace(aa+algnres.abpos,ba+algnres.bbpos) );
 
-						std::pair<int64_t,int64_t> DB = tracecontainer.getDiagonalBand(apos,bpos);
-						DB.first >>= bucketlog;
-						DB.second >>= bucketlog;
-
-						// set end of alignment for bands
-						for ( int64_t db = DB.first; db <= DB.second; ++db )
-							lasta[db] = algnres.aepos + algnres.bepos;
-
-						ldbmin = std::min(ldbmin,DB.first);
-						ldbmax = std::max(ldbmax,DB.second);
-
 						// std::cerr << algnres << " " << n << " " << m  << std::endl;
 
 						if ( algnres.aepos - algnres.abpos >= 50 )
 						{
+							std::pair<int64_t,int64_t> DB = tracecontainer.getDiagonalBand(apos,bpos);
+							DB.first >>= bucketlog;
+							DB.second >>= bucketlog;
+
+							// set end of alignment for bands
+							for ( int64_t db = DB.first; db <= DB.second; ++db )
+								lasta[db] = algnres.aepos + algnres.bepos;
+
+							ldbmin = std::min(ldbmin,DB.first);
+							ldbmax = std::max(ldbmax,DB.second);
+
 
 							#if 0
 							tracecontainer.printTraceLines(
