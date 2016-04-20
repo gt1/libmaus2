@@ -123,6 +123,7 @@ namespace libmaus2
 				out.flush();
 			}
 
+			#if 0
 			/**
 			 * constructor by file name
 			 *
@@ -139,6 +140,24 @@ namespace libmaus2
                           datawrittentofile(0)
                         {
                         	W.seekp(offset,std::ios::beg);
+                        }
+                        #endif
+
+			/**
+			 * constructor by file name
+			 *
+			 * @param filename name of output file
+			 * @param bufsize size of output buffer
+			 * @param truncate true if file should be truncated false data should be appended
+			 * @param offset write offset in bytes
+			 **/
+                        SynchronousGenericOutput(std::string const & filename, uint64_t const bufsize)
+                        : B(bufsize,false), pa(B.get()), pc(pa), pe(pa+B.getN()),
+                          PW ( new ofstream_type(filename.c_str()) ),
+                          PF ( ),
+                          W  ( static_cast<std::ostream &>(*PW) ),
+                          datawrittentofile(0)
+                        {
                         }
 
                         /**

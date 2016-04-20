@@ -1,3 +1,14 @@
+libmaus2 (2.0.163-1) unstable; urgency=medium
+
+  * add poll call in PosixFdInput for read to detect delays
+  * add conditional compilation in testregex 
+  * add region restriction in NNPLocalAligner
+  * remove SynchronousGenericOutputPosix based HuffmanEncoderFile, RLEncoder and SymCountEncoder
+  * remove non OutputStreamInstance based constructor in SynchronousGenericOutput
+  * add timeout warnings in PosixFdOutputStreamBuffer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 20 Apr 2016 21:38:25 +0200
+
 libmaus2 (2.0.162-1) unstable; urgency=medium
 
   * use TempFileNameGenerator in bwtb3m were possible

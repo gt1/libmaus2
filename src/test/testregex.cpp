@@ -20,6 +20,7 @@
 #include <libmaus2/regex/PosixRegex.hpp>
 #include <iostream>
 
+#if defined(LIBMAUS2_HAVE_REGEX_H)
 void testRegex()
 {
 	::libmaus2::regex::PosixRegex PR("ab");
@@ -32,12 +33,15 @@ void testRegex()
 
 	std::cerr << PR.replaceAllMatches("ababababcabababd","xy") << std::endl;
 }
+#endif
 
 int main(/* int argc, char * argv[] */)
 {
 	try
 	{
+		#if defined(LIBMAUS2_HAVE_REGEX_H)
 		testRegex();
+		#endif
 	}
 	catch(std::exception const & ex)
 	{

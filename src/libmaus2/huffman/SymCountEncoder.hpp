@@ -352,7 +352,6 @@ namespace libmaus2
 			}
 		};
 
-		typedef SymCountEncoderTemplate<HuffmanEncoderFile   > SymCountEncoder;
 		typedef SymCountEncoderTemplate<HuffmanEncoderFileStd> SymCountEncoderStd;
 	}
 }
