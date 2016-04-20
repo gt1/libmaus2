@@ -254,6 +254,43 @@ namespace libmaus2
 				return M;
 			}
 
+			double getDiagonalHistogramAverage() const
+			{
+				std::stack < int64_t > S;
+
+				for ( int64_t curtraceid = traceid ; curtraceid >= 0; curtraceid = Atrace[curtraceid].parent )
+					S.push(curtraceid);
+
+				double sum = 0, div = 0;
+
+				int64_t apos = 0, bpos = 0;
+
+				while ( ! S.empty() )
+				{
+					NNPTraceElement const & E = Atrace[S.top()];
+					S.pop();
+
+					switch ( E.step )
+					{
+						case libmaus2::lcs::BaseConstants::STEP_DEL:
+							apos += 1;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_INS:
+							bpos += 1;
+							break;
+						default:
+							break;
+					}
+
+					int64_t const d = apos-bpos;
+
+					sum += static_cast<double>(E.slide) * static_cast<double>(d);
+					div += static_cast<double>(E.slide);
+				}
+
+				return div ? (sum/div) : 0.0;
+			}
+
 			std::pair<int64_t,int64_t> getDiagonalBand(int64_t apos, int64_t bpos) const
 			{
 				std::stack < int64_t > S;

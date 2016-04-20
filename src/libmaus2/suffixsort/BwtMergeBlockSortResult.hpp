@@ -75,8 +75,8 @@ namespace libmaus2
 			void removeFiles() const { files.removeFiles(); }
 			void removeFilesButBwt() const { files.removeFilesButBwt(); }
 			void removeFilesButBwtAndGt() const { files.removeFilesButBwtAndGt(); }
-			void setTempPrefixAndRegisterAsTemp(std::string const & prefix, uint64_t const numbwt, uint64_t const numgt)
-			{ files.setPrefixAndRegisterAsTemp(prefix,numbwt,numgt); }
+			void setTempPrefixAndRegisterAsTemp(libmaus2::util::TempFileNameGenerator & gtmpgen, uint64_t const numbwt, uint64_t const numgt)
+			{ files.setPrefixAndRegisterAsTemp(gtmpgen,numbwt,numgt); }
 			libmaus2::autoarray::AutoArray < ::libmaus2::suffixsort::BwtMergeZBlock > const & getZBlocks() const { return zblocks; }
 			void resizeZBlocks(uint64_t const n) { zblocks.resize(n); }
 			void setZBlock(uint64_t const i, ::libmaus2::suffixsort::BwtMergeZBlock const & z) { zblocks.at(i) = z; }

@@ -22,6 +22,9 @@
 #include <libmaus2/aio/OutputStreamFactory.hpp>
 #include <libmaus2/aio/PosixFdOutputStream.hpp>
 
+#include <sys/stat.h>
+#include <sys/types.h>
+
 namespace libmaus2
 {
 	namespace aio
@@ -72,6 +75,67 @@ namespace libmaus2
 					lme.getStream() << "PosixFdOutputStreamFactory::rename(" << from << "," << to << "): " << strerror(error) << std::endl;
 					lme.finish();
 					throw lme;
+				}
+			}
+			virtual void mkdir(std::string const & name, uint64_t const mode)
+			{
+				int r = -1;
+
+				while ( r != 0 )
+				{
+					r = ::mkdir(name.c_str(),mode);
+
+					if ( r != 0 )
+					{
+						int const error = errno;
+
+						switch ( error )
+						{
+							case EEXIST:
+							{
+								struct stat sb;
+								int rstat = -1;
+
+								while ( (rstat = ::stat(name.c_str(),&sb)) < 0 )
+								{
+									int const error = errno;
+									switch ( error )
+									{
+										case EAGAIN:
+											break;
+										default:
+										{
+											libmaus2::exception::LibMausException lme;
+											lme.getStream() << "PosixFdOutputStreamFactory::mkdir(" << name << "," << std::oct << mode << std::dec << "): " << strerror(error) << std::endl;
+											lme.finish();
+											throw lme;
+										}
+									}
+								}
+
+								if ( S_ISDIR(sb.st_mode) )
+									r = 0;
+								else
+								{
+									libmaus2::exception::LibMausException lme;
+									lme.getStream() << "PosixFdOutputStreamFactory::mkdir(" << name << "," << std::oct << mode << std::dec << "): exists but is not a directory" << std::endl;
+									lme.finish();
+									throw lme;
+								}
+
+								break;
+							}
+							case EAGAIN:
+								break;
+							default:
+							{
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "PosixFdOutputStreamFactory::mkdir(" << name << "," << std::oct << mode << std::dec << "): " << strerror(error) << std::endl;
+								lme.finish();
+								throw lme;
+							}
+						}
+					}
 				}
 			}
 		};

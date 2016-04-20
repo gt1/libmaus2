@@ -32,6 +32,8 @@
 #include <unistd.h>
 #endif
 
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
+
 bool libmaus2::util::TempFileNameGeneratorState::operator==(libmaus2::util::TempFileNameGeneratorState const & o) const
 {
 	return
@@ -102,21 +104,14 @@ std::string libmaus2::util::TempFileNameGeneratorState::getFileName()
 		particles.push_back( numToString(nextdir[i],digits) );
 
 	std::string dirname = prefix;
-	#if defined(_WIN32)
-	mkdir ( dirname.c_str() );
-	#else
-	mkdir ( dirname.c_str(), 0700 );
-	#endif
+
+	libmaus2::aio::OutputStreamFactoryContainer::mkdir(dirname,0700);
 
 	for ( uint64_t i = 0; i < particles.size(); ++i )
 	{
 		dirname += "/";
 		dirname += particles[i];
-		#if defined(_WIN32)
-		mkdir ( dirname.c_str() );
-		#else
-		mkdir ( dirname.c_str(), 0700 );
-		#endif
+		libmaus2::aio::OutputStreamFactoryContainer::mkdir(dirname,0700);
 	}
 
 	std::ostringstream fnostr;

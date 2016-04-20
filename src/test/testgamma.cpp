@@ -1469,7 +1469,7 @@ void testsparsegammamultifilesetmergedense()
 
 	std::string const ffn = tmpgen.getFileName();
 	uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
-	std::vector<std::string> const fno = SGGF.mergeToDense(ffn,maxval+1,numthreads);
+	std::vector<std::string> const fno = SGGF.mergeToDense(tmpgen,maxval+1,numthreads);
 
 	// libmaus2::aio::InputStreamInstance CIS(ffn);
 	libmaus2::gamma::GammaGapDecoder SGGD(fno,0 /* offset */,0 /* psymoff */, 1 /* numthreads */);
@@ -1529,7 +1529,7 @@ void testsparsegammamultifilesetmergedense2()
 
 	std::string const ffn = tmpgen.getFileName();
 	uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
-	std::vector<std::string> const fno = SGGF.mergeToDense(ffn,maxval+1,numthreads);
+	std::vector<std::string> const fno = SGGF.mergeToDense(tmpgen,maxval+1,numthreads);
 
 	// libmaus2::aio::InputStreamInstance CIS(ffn);
 	libmaus2::gamma::GammaGapDecoder SGGD(fno,0/* offset */, 0 /* psymoff */, 1 /* numthreads */);
