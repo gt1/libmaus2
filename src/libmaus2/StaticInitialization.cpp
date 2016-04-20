@@ -332,7 +332,7 @@ bool const libmaus2::lcs::NDextend1234Pass::passtable[256] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 };
 
-static double getPosixFdWarnThreshold()
+static double getPosixFdInputWarnThreshold()
 {
 	char const * cthres = getenv("LIBMAUS2_AIO_POSIXFDINPUT_WARN_THRESHOLD");
 
@@ -355,7 +355,34 @@ static double getPosixFdWarnThreshold()
 	}
 }
 
-double const libmaus2::aio::PosixFdInput::warnThreshold = getPosixFdWarnThreshold();
+double const libmaus2::aio::PosixFdInput::warnThreshold = getPosixFdInputWarnThreshold();
+
+#include <libmaus2/aio/PosixFdOutputStreamBuffer.hpp>
+
+static double getPosixOutputStreamBufferWarnThreshold()
+{
+	char const * cthres = getenv("LIBMAUS2_AIO_POSIXFDOUTPUTSTREAMBUFFER_WARN_THRESHOLD");
+
+	if ( cthres )
+	{
+		std::istringstream istr(cthres);
+		double v;
+		istr >> v;
+		if ( istr )
+		{
+			// std::cerr << "setting warn threshold to " << v << std::endl;
+			return v;
+		}
+		else
+			return 0.0;
+	}
+	else
+	{
+		return 0.0;
+	}
+}
+
+double const libmaus2::aio::PosixFdOutputStreamBuffer::warnThreshold = getPosixOutputStreamBufferWarnThreshold();
 
 static std::map<std::string,uint64_t> getPosixFdInputBlockSizeOverride()
 {

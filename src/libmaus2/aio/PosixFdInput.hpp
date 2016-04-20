@@ -43,6 +43,7 @@
 
 #if defined(__linux__)
 #include <sys/time.h>
+#include <poll.h>
 #endif
 
 namespace libmaus2
@@ -223,13 +224,57 @@ namespace libmaus2
 				}
 			}
 
-			ssize_t read(char * const buffer, uint64_t const n)
+			ssize_t read(char * const buffer, uint64_t n)
 			{
 				ssize_t r = -1;
 				gcnt = 0;
 
 				while ( fd >= 0 && r < 0 )
 				{
+					#if defined(__linux__)
+					pollfd pfd = { fd, POLLIN, 0 };
+					double const time_bef_poll = getTime();
+					int const ready = poll(&pfd, 1, std::floor(warnThreshold+0.5) * 1000ull);
+					double const time_aft_poll = getTime();
+
+					if ( ready == 1 && (pfd.revents & POLLIN) )
+					{
+						double const time_bef = getTime();
+						r = ::read(fd,buffer,n);
+						double const time_aft = getTime();
+						printWarningRead("read",time_aft-time_bef,filename,fd,n);
+
+						if ( r < 0 )
+						{
+							switch ( errno )
+							{
+								case EINTR:
+								case EAGAIN:
+									break;
+								default:
+								{
+									int const error = errno;
+									libmaus2::exception::LibMausException se;
+									se.getStream() << "PosixFdInput::read(" << filename << "," << n << "): " << strerror(error) << std::endl;
+									se.finish();
+									throw se;
+								}
+							}
+						}
+						else
+						{
+							gcnt = r;
+						}
+					}
+					else if ( ready == 1 && (pfd.revents & POLLHUP) )
+					{
+						n = 0;
+					}
+					else
+					{
+						printWarningRead("poll",time_aft_poll-time_bef_poll,filename,fd,n);
+					}
+					#else
 					double const time_bef = getTime();
 					r = ::read(fd,buffer,n);
 					double const time_aft = getTime();
@@ -256,6 +301,7 @@ namespace libmaus2
 					{
 						gcnt = r;
 					}
+					#endif
 				}
 
 				return gcnt;

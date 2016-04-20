@@ -32,6 +32,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <poll.h>
+
 namespace libmaus2
 {
 	namespace aio
@@ -39,6 +41,38 @@ namespace libmaus2
 		struct PosixFdOutputStreamBuffer : public ::std::streambuf
 		{
 			private:
+			static double const warnThreshold;
+
+			static double getTime()
+			{
+				#if defined(__linux__)
+				if ( warnThreshold > 0.0 )
+				{
+					struct timeval tv;
+					struct timezone tz;
+					int const r = gettimeofday(&tv,&tz);
+					if ( r < 0 )
+						return 0.0;
+					else
+						return static_cast<double>(tv.tv_sec) + (static_cast<double>(tv.tv_usec)/1e6);
+				}
+				else
+				#endif
+					return 0.0;
+			}
+
+			static void printWarning(char const * const functionname, double const time, std::string const & filename, int const fd)
+			{
+				if ( warnThreshold > 0.0 && time >= warnThreshold )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					std::cerr << "[W] warning PosixFdOutputStreamBuffer: " << functionname << "(" << fd << ")" << " took " << time << "s ";
+					if ( filename.size() )
+						std::cerr << " on " << filename;
+					std::cerr << std::endl;
+				}
+			}
+
 			static uint64_t getDefaultBlockSize()
 			{
 				return 64*1024;
@@ -60,26 +94,35 @@ namespace libmaus2
 			uint64_t const buffersize;
 			::libmaus2::autoarray::AutoArray<char> buffer;
 			uint64_t writepos;
+			std::string filename;
 
 			off_t doSeekAbsolute(uint64_t const p, int const whence = SEEK_SET)
 			{
 				off_t off = static_cast<off_t>(-1);
 
-				while ( (off=::lseek(fd,p,whence)) == static_cast<off_t>(-1) )
+				while ( off == static_cast<off_t>(-1) )
 				{
-					int const error = errno;
+					double const time_bef = getTime();
+					off = ::lseek(fd,p,whence);
+					double const time_aft = getTime();
+					printWarning("lseek",time_aft-time_bef,filename,fd);
 
-					switch ( error )
+					if ( off == static_cast<off_t>(-1) )
 					{
-						case EINTR:
-						case EAGAIN:
-							break;
-						default:
+						int const error = errno;
+
+						switch ( error )
 						{
-							libmaus2::exception::LibMausException se;
-							se.getStream() << "PosixOutputStreamBuffer::doSeekkAbsolute(): lseek() failed: " << strerror(error) << std::endl;
-							se.finish();
-							throw se;
+							case EINTR:
+							case EAGAIN:
+							break;
+							default:
+							{
+								libmaus2::exception::LibMausException se;
+								se.getStream() << "PosixOutputStreamBuffer::doSeekkAbsolute(): lseek() failed: " << strerror(error) << std::endl;
+								se.finish();
+								throw se;
+							}
 						}
 					}
 				}
@@ -101,21 +144,31 @@ namespace libmaus2
 
 			void doClose()
 			{
-				while ( close(fd) < 0 )
-				{
-					int const error = errno;
+				int r = -1;
 
-					switch ( error )
+				while ( r < 0 )
+				{
+					double const time_bef = getTime();
+					r = ::close(fd);
+					double const time_aft = getTime();
+					printWarning("close",time_aft-time_bef,filename,fd);
+
+					if ( r < 0 )
 					{
-						case EINTR:
-						case EAGAIN:
-							break;
-						default:
+						int const error = errno;
+
+						switch ( error )
 						{
-							libmaus2::exception::LibMausException se;
-							se.getStream() << "PosixOutputStreamBuffer::doClose(): close() failed: " << strerror(error) << std::endl;
-							se.finish();
-							throw se;
+							case EINTR:
+							case EAGAIN:
+								break;
+							default:
+							{
+								libmaus2::exception::LibMausException se;
+								se.getStream() << "PosixOutputStreamBuffer::doClose(): close() failed: " << strerror(error) << std::endl;
+								se.finish();
+								throw se;
+							}
 						}
 					}
 				}
@@ -125,21 +178,29 @@ namespace libmaus2
 			{
 				int fd = -1;
 
-				while ( (fd = open(filename.c_str(),flags,mode)) < 0 )
+				while ( fd < 0 )
 				{
-					int const error = errno;
+					double const time_bef = getTime();
+					fd = ::open(filename.c_str(),flags,mode);
+					double const time_aft = getTime();
+					printWarning("open",time_aft-time_bef,filename,fd);
 
-					switch ( error )
+					if ( fd < 0 )
 					{
-						case EINTR:
-						case EAGAIN:
-							break;
-						default:
+						int const error = errno;
+
+						switch ( error )
 						{
-							libmaus2::exception::LibMausException se;
-							se.getStream() << "PosixOutputStreamBuffer::doOpen(): open("<<filename<<") failed: " << strerror(error) << std::endl;
-							se.finish();
-							throw se;
+							case EINTR:
+							case EAGAIN:
+								break;
+							default:
+							{
+								libmaus2::exception::LibMausException se;
+								se.getStream() << "PosixOutputStreamBuffer::doOpen(): open("<<filename<<") failed: " << strerror(error) << std::endl;
+								se.finish();
+								throw se;
+							}
 						}
 					}
 				}
@@ -149,25 +210,35 @@ namespace libmaus2
 
 			void doFlush()
 			{
-				while ( fsync(fd) < 0 )
-				{
-					int const error = errno;
+				int r = -1;
 
-					switch ( error )
+				while ( r < 0 )
+				{
+					double const time_bef = getTime();
+					r = ::fsync(fd);
+					double const time_aft = getTime();
+					printWarning("fsync",time_aft-time_bef,filename,fd);
+
+					if ( r < 0 )
 					{
-						case EINTR:
-						case EAGAIN:
-							break;
-						case EROFS:
-						case EINVAL:
-							// descriptor does not support flushing
-							return;
-						default:
+						int const error = errno;
+
+						switch ( error )
 						{
-							libmaus2::exception::LibMausException se;
-							se.getStream() << "PosixOutputStreamBuffer::doSync(): fsync() failed: " << strerror(error) << std::endl;
-							se.finish();
-							throw se;
+							case EINTR:
+							case EAGAIN:
+								break;
+							case EROFS:
+							case EINVAL:
+								// descriptor does not support flushing
+								return;
+							default:
+							{
+								libmaus2::exception::LibMausException se;
+								se.getStream() << "PosixOutputStreamBuffer::doFlush(): fsync() failed: " << strerror(error) << std::endl;
+								se.finish();
+								throw se;
+							}
 						}
 					}
 				}
@@ -183,31 +254,48 @@ namespace libmaus2
 				while ( n )
 				{
 					size_t const towrite = std::min(n,static_cast<uint64_t>(optblocksize));
-					ssize_t const w = ::write(fd,p,towrite);
 
-					if ( w < 0 )
+					pollfd pfd = { fd, POLLOUT, 0 };
+					double const time_bef_poll = getTime();
+					int const ready = poll(&pfd, 1, std::floor(warnThreshold+0.5) * 1000ull);
+					double const time_aft_poll = getTime();
+
+					if ( ready == 1 && (pfd.revents & POLLOUT) )
 					{
-						int const error = errno;
+						double const time_bef = getTime();
+						ssize_t const w = ::write(fd,p,towrite);
+						double const time_aft = getTime();
+						printWarning("write",time_aft-time_bef,filename,fd);
 
-						switch ( error )
+						if ( w < 0 )
 						{
-							case EINTR:
-							case EAGAIN:
-								break;
-							default:
+							int const error = errno;
+
+							switch ( error )
 							{
-								libmaus2::exception::LibMausException se;
-								se.getStream() << "PosixOutputStreamBuffer::doSync(): write() failed: " << strerror(error) << std::endl;
-								se.finish();
-								throw se;
+								case EINTR:
+								case EAGAIN:
+									break;
+								default:
+								{
+									libmaus2::exception::LibMausException se;
+									se.getStream() << "PosixOutputStreamBuffer::doSync(): write() failed: " << strerror(error) << std::endl;
+									se.finish();
+									throw se;
+								}
 							}
 						}
+						else
+						{
+							assert ( w <= static_cast<int64_t>(n) );
+							n -= w;
+							writepos += w;
+						}
 					}
+					// file descriptor not ready for writing
 					else
 					{
-						assert ( w <= static_cast<int64_t>(n) );
-						n -= w;
-						writepos += w;
+						printWarning("poll",time_aft_poll-time_bef_poll,filename,fd);
 					}
 				}
 
@@ -221,7 +309,8 @@ namespace libmaus2
 			  optblocksize(getOptimalIOBlockSize(fd,std::string())),
 			  buffersize((rbuffersize <= 0) ? optblocksize : rbuffersize),
 			  buffer(buffersize,false),
-			  writepos(0)
+			  writepos(0),
+			  filename()
 			{
 				setp(buffer.begin(),buffer.end()-1);
 			}
@@ -233,7 +322,8 @@ namespace libmaus2
 			  optblocksize(getOptimalIOBlockSize(fd,fn)),
 			  buffersize((rbuffersize <= 0) ? optblocksize : rbuffersize),
 			  buffer(buffersize,false),
-			  writepos(0)
+			  writepos(0),
+			  filename(fn)
 			{
 				setp(buffer.begin(),buffer.end()-1);
 			}
