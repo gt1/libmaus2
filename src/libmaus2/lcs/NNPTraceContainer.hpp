@@ -909,6 +909,58 @@ namespace libmaus2
 				return o;
 			}
 
+			bool hasTracePoint(uint64_t apos, uint64_t bpos, uint64_t tspace, uint64_t tapos, uint64_t tbpos) const
+			{
+				std::pair<uint64_t,uint64_t> const SL = getStringLengthUsed();
+				apos += SL.first;
+				bpos += SL.second;
+
+				assert ( tspace );
+				uint64_t tdistance = apos % tspace;
+
+				NNPTraceContainerDecoderReverse dec(*this);
+
+				if ( ! tdistance )
+				{
+					if ( apos == tapos && bpos == tbpos )
+						return true;
+
+					tdistance = tspace;
+				}
+
+				libmaus2::lcs::BaseConstants::step_type step;
+				while ( dec.getNext(step) )
+				{
+					switch ( step )
+					{
+						case ::libmaus2::lcs::BaseConstants::STEP_INS:
+							bpos -= 1;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_DEL:
+							apos -= 1;
+							tdistance -= 1;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_MATCH:
+						case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
+							apos -= 1;
+							tdistance -= 1;
+							bpos -= 1;
+						default:
+							break;
+					}
+
+					if ( ! tdistance )
+					{
+						if ( apos == tapos && bpos == tbpos )
+							return true;
+
+						tdistance = tspace;
+					}
+				}
+
+				return false;
+			}
+
 			template<typename iterator>
 			static uint64_t getCommonTracePoints(
 				iterator it, iterator ite, libmaus2::autoarray::AutoArray< TracePointId > & A,
