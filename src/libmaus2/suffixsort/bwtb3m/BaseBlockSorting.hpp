@@ -47,6 +47,7 @@ namespace libmaus2
 				std::deque<uint64_t> pending;
 
 				libmaus2::autoarray::AutoArray<BaseBlockSortThread::unique_ptr_type> threads;
+				uint64_t verbose;
 
 				BaseBlockSorting(
 					std::vector < libmaus2::suffixsort::bwtb3m::MergeStrategyBlock::shared_ptr_type > & rV,
@@ -54,9 +55,11 @@ namespace libmaus2
 					uint64_t const numthreads,
 					//! inner node queue
 					std::deque<libmaus2::suffixsort::bwtb3m::MergeStrategyBlock *> & ritodo,
-					std::ostream * logstr
+					std::ostream * logstr,
+					uint64_t const rverbose
 				)
-				: V(rV), P(), next(0), freemem(rfreemem), finished(0), freememlock(), itodo(ritodo), threads(numthreads)
+				: V(rV), P(), next(0), freemem(rfreemem), finished(0), freememlock(), itodo(ritodo), threads(numthreads),
+				  verbose(rverbose)
 				{
 					for ( uint64_t i = 0; i < V.size(); ++i )
 						if ( V[i]->directSortSpace() > freemem )
@@ -71,7 +74,7 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < numthreads; ++i )
 					{
 						BaseBlockSortThread::unique_ptr_type tthreadsi(
-							new BaseBlockSortThread(i,P,V,next,freemem,finished,freememlock,itodo,pending,logstr)
+							new BaseBlockSortThread(i,P,V,next,freemem,finished,freememlock,itodo,pending,logstr,verbose)
 						);
 						threads[i] = UNIQUE_PTR_MOVE(tthreadsi);
 

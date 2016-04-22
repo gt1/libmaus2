@@ -44,6 +44,7 @@
 #include <libmaus2/suffixsort/PacInputTypes.hpp>
 #include <libmaus2/suffixsort/PacTermInputTypes.hpp>
 #include <libmaus2/suffixsort/Utf8InputTypes.hpp>
+#include <libmaus2/aio/StreamLock.hpp>
 
 namespace libmaus2
 {
@@ -68,6 +69,7 @@ namespace libmaus2
 			bool computeTermSymbolHwt;
 			uint64_t lcpnext;
 			uint64_t numdownstreamthreads;
+			uint64_t verbose;
 
 			static bwt_merge_sort_input_type decodeInputType(uint64_t const i)
 			{
@@ -113,6 +115,7 @@ namespace libmaus2
 				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,computeTermSymbolHwt);
 				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,lcpnext);
 				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,numdownstreamthreads);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,verbose);
 			}
 
 			std::string serialise() const
@@ -145,7 +148,8 @@ namespace libmaus2
 				zreqvec(stream),
 				computeTermSymbolHwt(::libmaus2::util::NumberSerialisation::deserialiseNumber(stream)),
 				lcpnext(::libmaus2::util::NumberSerialisation::deserialiseNumber(stream)),
-				numdownstreamthreads(::libmaus2::util::NumberSerialisation::deserialiseNumber(stream))
+				numdownstreamthreads(::libmaus2::util::NumberSerialisation::deserialiseNumber(stream)),
+				verbose(::libmaus2::util::NumberSerialisation::deserialiseNumber(stream))
 			{
 			}
 
@@ -166,7 +170,8 @@ namespace libmaus2
 				::libmaus2::suffixsort::BwtMergeZBlockRequestVector const & rzreqvec,
 				bool const rcomputeTermSymbolHwt,
 				uint64_t const rlcpnext,
-				uint64_t const rnumdownstreamthreads
+				uint64_t const rnumdownstreamthreads,
+				uint64_t const rverbose
 			)
 			:
 				inputtype(rinputtype),
@@ -185,7 +190,8 @@ namespace libmaus2
 				zreqvec(rzreqvec),
 				computeTermSymbolHwt(rcomputeTermSymbolHwt),
 				lcpnext(rlcpnext),
-				numdownstreamthreads(rnumdownstreamthreads)
+				numdownstreamthreads(rnumdownstreamthreads),
+				verbose(rverbose)
 			{
 			}
 
@@ -219,19 +225,17 @@ namespace libmaus2
 			}
 
 			template<typename input_types_type, typename rl_encoder>
-			::libmaus2::suffixsort::BwtMergeBlockSortResult sortBlock() const
+			::libmaus2::suffixsort::BwtMergeBlockSortResult sortBlock(std::ostream * logstr) const
 			{
 				// typedef typename input_types_type::base_input_stream base_input_stream;
 				// typedef typename base_input_stream::char_type char_type;
 				// typedef typename ::libmaus2::util::UnsignedCharVariant<char_type>::type unsigned_char_type;
 
-				// glock.lock();
-
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB1] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB1] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				std::ostringstream tmpfilenamedirstr;
 				tmpfilenamedirstr
@@ -243,20 +247,20 @@ namespace libmaus2
 				std::string const tmpfilenamedir = tmpfilenamedirstr.str();
 				::libmaus2::util::TempFileNameGenerator tmpgen(tmpfilenamedir,3);
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB2] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB2] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				::libmaus2::suffixsort::BwtMergeTempFileNameSet const tmpfilenames =
 					::libmaus2::suffixsort::BwtMergeTempFileNameSet::load(tmpfilenamesser);
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB3] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB3] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				// result
 				::libmaus2::suffixsort::BwtMergeBlockSortResult result;
@@ -265,11 +269,11 @@ namespace libmaus2
 				result.setCBlockSize( cblocksize );
 				result.setTempFileSet( tmpfilenames );
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB4] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB4] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				// set up huffman tree
 				unsigned int const albits = maxsym ? (8*sizeof(uint64_t) - ::libmaus2::bitio::Clz::clz(maxsym)) : 0;
@@ -277,11 +281,11 @@ namespace libmaus2
 				// symbol before block
 				int64_t const presym = input_types_type::linear_wrapper::getSymbolAtPosition(fn,blockstart ? (blockstart-1) : (fs-1));
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB5] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB5] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				// start of next block
 				// uint64_t const nextblockstart = (blockstart + cblocksize) % fs;
@@ -289,11 +293,11 @@ namespace libmaus2
 				// find lcp between this block and start of next
 				uint64_t const blcp = lcpnext; // findSplitCommon<input_types_type>(fn,blockstart,cblocksize,nextblockstart,fs);
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB6] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB6] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				// size of input string we need to read
 				uint64_t const readsize = (cblocksize + blcp + 1);
@@ -306,11 +310,11 @@ namespace libmaus2
 				uint64_t const octetlength = string_type::computeOctetLength(*cwptr,readsize);
 				cwptr.reset();
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB7] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB7] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				// set up circular reader
 				typename input_types_type::circular_wrapper circ(fn,blockstart);
@@ -320,49 +324,49 @@ namespace libmaus2
 				typename string_type::unique_ptr_type PT(new string_type(*cwptr, octetlength, readsize));
 				string_type & T = *PT;
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB8] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB8] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				typedef typename string_type::saidx_t saidx_t;
 				::libmaus2::autoarray::AutoArray<saidx_t, static_cast<libmaus2::autoarray::alloc_type>(libmaus2::util::StringAllocTypes::sa_atype)> SA =
 					T.computeSuffixArray32();
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB9] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB9] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				// compute character histogram
 				::libmaus2::util::Histogram hist;
 				for ( uint64_t i = 0; i < cblocksize; ++i )
 					hist ( T[i] );
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB10] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB10] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				std::map<int64_t,uint64_t> const histm = hist.getByType<int64_t>();
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB11] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB11] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				::libmaus2::lf::DArray D(histm,bwtterm);
 				D.serialise(tmpfilenames.getHist());
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB12] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB12] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				// check whether first suffix of next block is smaller or larger than first suffix of this block
 				bool gtlast = false;
@@ -380,11 +384,11 @@ namespace libmaus2
 						break;
 					}
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB13] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB13] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				// remove terminator symbols from suffix array
 				saidx_t * out = SA.begin();
@@ -393,31 +397,31 @@ namespace libmaus2
 						*(out++) = *in;
 				assert ( out-SA.begin() == static_cast<ptrdiff_t>(cblocksize) );
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB14] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB14] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				// search for rank of first position in block
 				for ( saidx_t * in = SA.begin(); in != out; ++in )
 					if ( ! *in )
 						result.setBlockP0Rank( (in-SA.begin()) );
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB15] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB15] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				// check if we find the same via binary search
 				assert ( result.getBlockP0Rank() == input_types_type::circular_suffix_comparator::suffixSearch(SA.begin(), cblocksize, blockstart /* offset */, blockstart, fn, fs) );
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB16] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB16] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				// search for rank of first position in complete file
 				// result.absp0rank = ::libmaus2::suffixsort::CircularSuffixComparator::suffixSearch(SA.begin(), cblocksize, blockstart, 0, fn, fs);
@@ -448,11 +452,11 @@ namespace libmaus2
 				}
 				SGOISA.flush();
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB17] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB17] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				/**
 				 * compute ranks for lf mapping blocks
@@ -487,21 +491,21 @@ namespace libmaus2
 				}
 				// std::cerr << "done, time " << sufsertc.getElapsedSeconds() << std::endl;
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB18] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB18] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				// compute BWT
 				::libmaus2::bitio::BitVector::unique_ptr_type pGT(new ::libmaus2::bitio::BitVector(cblocksize+1));
 				::libmaus2::bitio::BitVector & GT = *pGT;
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB19] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB19] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				bool gtflag = false;
 				uint64_t const outcnt = out-SA.begin();
@@ -528,34 +532,34 @@ namespace libmaus2
 					}
 				}
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB20] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB20] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				// deallocate text
 				PT.reset();
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB21] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB21] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				GT [ cblocksize ] = gtlast;
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB22] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB22] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB23] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB23] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				// save gt array
 				#if 0
@@ -585,11 +589,11 @@ namespace libmaus2
 
 				pGT.reset();
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB24] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB24] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				uint64_t const targetbwtfilesize = (outcnt + tmpfilenames.getBWT().size() - 1) / tmpfilenames.getBWT().size();
 
@@ -625,18 +629,18 @@ namespace libmaus2
 
 					bwtenc.flush();
 
-					#if defined(BWTB3M_DEBUG)
-					gcerrlock.lock();
-					std::cerr << "[D] generated " << tmpfilenames.getBWT()[b] << " with size " << high-low << std::endl;
-					gcerrlock.unlock();
-					#endif
+					if ( verbose >= 3 && logstr )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						(*logstr) << "[D] [" << blockstart << "," << cblocksize << ") generated "<< tmpfilenames.getBWT()[b] << " with size " << high-low << std::endl;
+					}
 				}
 
-				#if defined(BWTB3M_DEBUG)
-				gcerrlock.lock();
-				std::cerr << "[SB25] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-				gcerrlock.unlock();
-				#endif
+				if ( verbose >= 3 && logstr )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					(*logstr) << "[SB25] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+				}
 
 				if ( computeTermSymbolHwt )
 				{
@@ -645,11 +649,11 @@ namespace libmaus2
 						std::string utftmp = tmpfilenames.getHWT() + ".utf8tmp";
 						libmaus2::util::TempFileRemovalContainer::addTempFile(utftmp);
 
-						#if defined(BWTB3M_DEBUG)
-						gcerrlock.lock();
-						std::cerr << "[SB26] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-						gcerrlock.unlock();
-						#endif
+						if ( verbose >= 3 && logstr )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							(*logstr) << "[SB26] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+						}
 
 						// std::cerr << "writing " << utftmp << std::endl;
 
@@ -658,31 +662,31 @@ namespace libmaus2
 							::libmaus2::util::UTF8::encodeUTF8(SA[i],CPO);
 						uint64_t const ucnt = CPO.c;
 
-						#if defined(BWTB3M_DEBUG)
-						gcerrlock.lock();
-						std::cerr << "[SB27] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-						gcerrlock.unlock();
-						#endif
+						if ( verbose >= 3 && logstr )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							(*logstr) << "[SB27] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+						}
 
 						libmaus2::aio::OutputStreamInstance::unique_ptr_type utfCOS(new libmaus2::aio::OutputStreamInstance(utftmp));
 						for ( uint64_t i = 0; i < outcnt; ++i )
 							::libmaus2::util::UTF8::encodeUTF8(SA[i],*utfCOS);
 
-						#if defined(BWTB3M_DEBUG)
-						gcerrlock.lock();
-						std::cerr << "[SB28] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-						gcerrlock.unlock();
-						#endif
+						if ( verbose >= 3 && logstr )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							(*logstr) << "[SB28] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+						}
 
 						utfCOS->flush();
 						//utfCOS->close();
 						utfCOS.reset();
 
-						#if defined(BWTB3M_DEBUG)
-						gcerrlock.lock();
-						std::cerr << "[SB29] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-						gcerrlock.unlock();
-						#endif
+						if ( verbose >= 3 && logstr )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							(*logstr) << "[SB29] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+						}
 
 						#if 0
 						::libmaus2::autoarray::AutoArray<uint8_t> UT(ucnt,false);
@@ -693,11 +697,11 @@ namespace libmaus2
 
 						SA.release();
 
-						#if defined(BWTB3M_DEBUG)
-						gcerrlock.lock();
-						std::cerr << "[SB30] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-						gcerrlock.unlock();
-						#endif
+						if ( verbose >= 3 && logstr )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							(*logstr) << "[SB30] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+						}
 
 						::libmaus2::autoarray::AutoArray<uint8_t> UT(ucnt,false);
 						libmaus2::aio::InputStreamInstance::unique_ptr_type utfCIS(new libmaus2::aio::InputStreamInstance(utftmp));
@@ -732,19 +736,19 @@ namespace libmaus2
 						//utfCIS->close();
 						utfCIS.reset();
 
-						#if defined(BWTB3M_DEBUG)
-						gcerrlock.lock();
-						std::cerr << "[SB31] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-						gcerrlock.unlock();
-						#endif
+						if ( verbose >= 3 && logstr )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							(*logstr) << "[SB31] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+						}
 
 						::libmaus2::huffman::HuffmanTree::unique_ptr_type uhnode = loadCompactHuffmanTree(huftreefilename);
 
-						#if defined(BWTB3M_DEBUG)
-						gcerrlock.lock();
-						std::cerr << "[SB32] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-						gcerrlock.unlock();
-						#endif
+						if ( verbose >= 3 && logstr )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							(*logstr) << "[SB32] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+						}
 
 						std::string const tmpfileprefix = tmpfilenamedir + "_wt";
 						::libmaus2::wavelet::Utf8ToImpCompactHuffmanWaveletTree::constructWaveletTree<true>(
@@ -752,45 +756,45 @@ namespace libmaus2
 							1/* num threads */
 						);
 
-						#if defined(BWTB3M_DEBUG)
-						gcerrlock.lock();
-						std::cerr << "[SB33] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-						gcerrlock.unlock();
-						#endif
+						if ( verbose >= 3 && logstr )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							(*logstr) << "[SB33] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+						}
 
 						libmaus2::aio::FileRemoval::removeFile(utftmp.c_str());
 
-						#if defined(BWTB3M_DEBUG)
-						gcerrlock.lock();
-						std::cerr << "[SB34] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-						gcerrlock.unlock();
-						#endif
+						if ( verbose >= 3 && logstr )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							(*logstr) << "[SB34] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+						}
 					}
 					else
 					{
 
-						#if defined(BWTB3M_DEBUG)
-						gcerrlock.lock();
-						std::cerr << "[SB35] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-						gcerrlock.unlock();
-						#endif
+						if ( verbose >= 3 && logstr )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							(*logstr) << "[SB35] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+						}
 
 						::libmaus2::huffman::HuffmanTree::unique_ptr_type uhnode = loadCompactHuffmanTree(huftreefilename);
 
-						#if defined(BWTB3M_DEBUG)
-						gcerrlock.lock();
-						std::cerr << "[SB36] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-						gcerrlock.unlock();
-						#endif
+						if ( verbose >= 3 && logstr )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							(*logstr) << "[SB36] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+						}
 
 						// construct huffman shaped wavelet tree
 						libmaus2::util::FileTempFileContainer FTFC(tmpgen);
 
-						#if defined(BWTB3M_DEBUG)
-						gcerrlock.lock();
-						std::cerr << "[SB37] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-						gcerrlock.unlock();
-						#endif
+						if ( verbose >= 3 && logstr )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							(*logstr) << "[SB37] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+						}
 
 						::libmaus2::wavelet::ImpExternalWaveletGeneratorCompactHuffman IEWGH(*uhnode,FTFC);
 
@@ -800,22 +804,22 @@ namespace libmaus2
 						for ( uint64_t i = r0+1; i < outcnt; ++i )
 							IEWGH.putSymbol(SA[i]);
 
-						#if defined(BWTB3M_DEBUG)
-						gcerrlock.lock();
-						std::cerr << "[SB38] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-						gcerrlock.unlock();
-						#endif
+						if ( verbose >= 3 && logstr )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							(*logstr) << "[SB38] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+						}
 
 						// create final stream for huffman coded wavelet tree
 						::libmaus2::aio::OutputStreamInstance HCOS(tmpfilenames.getHWT());
 						IEWGH.createFinalStream(HCOS);
 						HCOS.flush();
 
-						#if defined(BWTB3M_DEBUG)
-						gcerrlock.lock();
-						std::cerr << "[SB39] " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
-						gcerrlock.unlock();
-						#endif
+						if ( verbose >= 3 && logstr )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							(*logstr) << "[SB39] [" << blockstart << "," << cblocksize << ") " << libmaus2::util::MemUsage() << "," << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
+						}
 					}
 				}
 				else
@@ -836,35 +840,33 @@ namespace libmaus2
 					//hwtReqCOS.close();
 				}
 
-				// glock.unlock();
-
 				return result;
 			}
 
 			template<typename rl_encoder>
-			std::string dispatch() const
+			std::string dispatch(std::ostream * logstr) const
 			{
 				::libmaus2::suffixsort::BwtMergeBlockSortResult result;
 
 				switch (inputtype)
 				{
 					case bwt_merge_input_type_byte:
-						result = sortBlock<libmaus2::suffixsort::ByteInputTypes,rl_encoder>();
+						result = sortBlock<libmaus2::suffixsort::ByteInputTypes,rl_encoder>(logstr);
 						break;
 					case bwt_merge_input_type_compact:
-						result = sortBlock<libmaus2::suffixsort::CompactInputTypes,rl_encoder>();
+						result = sortBlock<libmaus2::suffixsort::CompactInputTypes,rl_encoder>(logstr);
 						break;
 					case bwt_merge_input_type_pac:
-						result = sortBlock<libmaus2::suffixsort::PacInputTypes,rl_encoder>();
+						result = sortBlock<libmaus2::suffixsort::PacInputTypes,rl_encoder>(logstr);
 						break;
 					case bwt_merge_input_type_pac_term:
-						result = sortBlock<libmaus2::suffixsort::PacTermInputTypes,rl_encoder>();
+						result = sortBlock<libmaus2::suffixsort::PacTermInputTypes,rl_encoder>(logstr);
 						break;
 					case bwt_merge_input_type_lz4:
-						result = sortBlock<libmaus2::suffixsort::Lz4InputTypes,rl_encoder>();
+						result = sortBlock<libmaus2::suffixsort::Lz4InputTypes,rl_encoder>(logstr);
 						break;
 					case bwt_merge_input_type_utf8:
-						result = sortBlock<libmaus2::suffixsort::Utf8InputTypes,rl_encoder>();
+						result = sortBlock<libmaus2::suffixsort::Utf8InputTypes,rl_encoder>(logstr);
 						break;
 					default:
 					{
