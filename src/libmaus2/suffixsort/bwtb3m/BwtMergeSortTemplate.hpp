@@ -3636,7 +3636,8 @@ namespace libmaus2
 								zreqvec,
 								options.computeTermSymbolHwt,
 								boundedlcpblockvalues[b],
-								options.numthreads /* down stream threads */
+								options.numthreads, /* down stream threads */
+								options.verbose
 							);
 
 						// if ( logstr ) { *logstr << *PMSB; }
@@ -3680,7 +3681,7 @@ namespace libmaus2
 					#endif
 
 					// sort single blocks
-					libmaus2::suffixsort::bwtb3m::BaseBlockSorting::unique_ptr_type BBS(new libmaus2::suffixsort::bwtb3m::BaseBlockSorting(stratleafs,options.mem,options.numthreads,itodo,logstr));
+					libmaus2::suffixsort::bwtb3m::BaseBlockSorting::unique_ptr_type BBS(new libmaus2::suffixsort::bwtb3m::BaseBlockSorting(stratleafs,options.mem,options.numthreads,itodo,logstr,options.verbose));
 					BBS->start();
 					BBS->join();
 					BBS.reset();

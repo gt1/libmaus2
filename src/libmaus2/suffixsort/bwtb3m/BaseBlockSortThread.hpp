@@ -63,6 +63,8 @@ namespace libmaus2
 				std::deque<uint64_t> & pending;
 				//! log stream
 				std::ostream * logstr;
+				//! verbose level
+				uint64_t verbose;
 
 				BaseBlockSortThread(
 					uint64_t rtid,
@@ -74,9 +76,10 @@ namespace libmaus2
 					libmaus2::parallel::PosixMutex & rfreememlock,
 					std::deque<libmaus2::suffixsort::bwtb3m::MergeStrategyBlock *> & ritodo,
 					std::deque<uint64_t> & rpending,
-					std::ostream * rlogstr
+					std::ostream * rlogstr,
+					uint64_t const rverbose
 				) : tid(rtid), P(rP), V(rV), next(rnext), freemem(rfreemem), finished(rfinished), freememlock(rfreememlock),
-				    itodo(ritodo), pending(rpending), logstr(rlogstr)
+				    itodo(ritodo), pending(rpending), logstr(rlogstr), verbose(rverbose)
 				{
 
 				}
@@ -115,7 +118,7 @@ namespace libmaus2
 							{
 								// perform sorting
 								libmaus2::suffixsort::bwtb3m::MergeStrategyBaseBlock * block = dynamic_cast<libmaus2::suffixsort::bwtb3m::MergeStrategyBaseBlock *>(V[pack].get());
-								block->sortresult = ::libmaus2::suffixsort::BwtMergeBlockSortResult::load(block->sortreq.dispatch<rl_encoder>());
+								block->sortresult = ::libmaus2::suffixsort::BwtMergeBlockSortResult::load(block->sortreq.dispatch<rl_encoder>(logstr));
 							}
 							catch(std::exception const & ex)
 							{
