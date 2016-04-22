@@ -62,18 +62,24 @@ struct QueueElement
 static std::vector<uint64_t> loadHMap(std::string const & hist)
 {
 	libmaus2::aio::InputStream::unique_ptr_type Phist(libmaus2::aio::InputStreamFactoryContainer::constructUnique(hist));
+	// deserialise number map
 	std::map<int64_t,uint64_t> const hmap = ::libmaus2::util::NumberMapSerialisation::deserialiseMap<libmaus2::aio::InputStream,int64_t,uint64_t>(*Phist);
+	// number vector
 	std::vector<uint64_t> D;
 
 	if ( hmap.size() && hmap.begin()->first >= 0 )
 	{
+		// top symbol
 		int64_t const topsym = hmap.rbegin()->first;
+		// space for top symbol + 1 after
 		D.resize(topsym+2);
+		// copy frequences
 		for ( std::map<int64_t,uint64_t>::const_iterator ita = hmap.begin(); ita != hmap.end(); ++ita )
 		{
 			D [ ita->first ] = ita->second;
 			// std::cerr << "[HIN]\t" << ita->first << "\t" << ita->second << std::endl;
 		}
+		// erase last value in D
 		D [ D.size()-1 ] = 0;
 
 		// compute prefix sums
@@ -267,6 +273,8 @@ struct PreIsaAccessor
 		{
 			uint64_t const rr = splitblocks[i];
 			iterator it = std::lower_bound(acc.begin(),acc.end(),std::pair<uint64_t,uint64_t>(rr,0),PFComp());
+			assert ( it == acc.end() || it[0].first >= rr );
+			assert ( it == acc.begin() || it[-1].first < rr );
 			V[i] = std::pair<uint64_t,uint64_t > (rr,it-acc.begin());
 		}
 
@@ -324,10 +332,15 @@ void libmaus2::suffixsort::bwtb3m::BwtComputeSSA::computeSSA(
 	std::string const ref_sa_fn
 )
 {
+	// original bwt name
 	std::string const origbwt = bwt;
+	// dictionary prefix
 	std::string const dictprefix = libmaus2::util::OutputFileNameTools::clipOff(origbwt,".bwt");
+	// character histogram
 	std::string const histfn = dictprefix + ".hist";
+	// pre isa
 	std::string const preisa = dictprefix + ".preisa";
+	// meta (sampling rate) for pre isa
 	std::string const preisameta = preisa + ".meta";
 
 	uint64_t preisasamplingrate;
@@ -349,7 +362,7 @@ void libmaus2::suffixsort::bwtb3m::BwtComputeSSA::computeSSA(
 		bwt = nbwt;
 	}
 
-
+	// load ref_isa if we have any
 	libmaus2::autoarray::AutoArray<uint64_t>::unique_ptr_type ref_isa;
 	if ( ref_isa_fn.size() )
 	{
@@ -360,6 +373,7 @@ void libmaus2::suffixsort::bwtb3m::BwtComputeSSA::computeSSA(
 		libmaus2::autoarray::AutoArray<uint64_t>::unique_ptr_type Tptr(new libmaus2::autoarray::AutoArray<uint64_t>(I));
 		ref_isa = UNIQUE_PTR_MOVE(Tptr);
 	}
+	// load ref_sa if we have any
 	libmaus2::autoarray::AutoArray<uint64_t>::unique_ptr_type ref_sa;
 	if ( ref_sa_fn.size() )
 	{
@@ -377,7 +391,6 @@ void libmaus2::suffixsort::bwtb3m::BwtComputeSSA::computeSSA(
 	// temp file for isa
 	std::string const isatmpfn = tmpfilenamebase + "_isa_tmp";
 	libmaus2::util::TempFileRemovalContainer::addTempFile(isatmpfn);
-
 
 	// check sa sampling rate
 	if ( libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(sasamplingrate) != 1 )
@@ -405,13 +418,12 @@ void libmaus2::suffixsort::bwtb3m::BwtComputeSSA::computeSSA(
 	// length of input file in symbols
 	uint64_t const n = libmaus2::huffman::RLDecoder::getLength(Vbwtin,numthreads);
 
+	// load character histogram and compute prefix sums
 	std::vector<uint64_t> const H = loadHMap(histfn);
 
 	uint64_t numnonzeroocc = 0;
 	// sequence of non zero occ symbols
 	std::vector<uint64_t> NZH;
-	// map symbol to rank in sequence of non zero occ symbols
-	std::vector<int64_t> NZHI;
 	for ( uint64_t i = 1; i < H.size(); ++i )
 		// if non zero occ count for symbol i-1
 		if ( H[i] != H[i-1] )
@@ -419,23 +431,11 @@ void libmaus2::suffixsort::bwtb3m::BwtComputeSSA::computeSSA(
 			numnonzeroocc++;
 			// non zero occ symbol vector
 			NZH.push_back(i-1);
-			// rank mapping of non zero occ symbol
-			NZHI.push_back(NZHI.size());
-		}
-		else
-		{
-			NZHI.push_back(-1);
 		}
 
 	// number of symbols with non zero occurence count
 	if ( logstr )
 		*logstr << "[D] numnonzeroocc=" << numnonzeroocc << std::endl;
-
-	#if 0
-	if ( logstr )
-		for ( uint64_t i = 0; i < NZHI.size(); ++i )
-			*logstr << i << " " << NZHI[i] << std::endl;
-	#endif
 
 	// target number of files
 	uint64_t const tnumfiles = 256;
@@ -461,6 +461,7 @@ void libmaus2::suffixsort::bwtb3m::BwtComputeSSA::computeSSA(
 	std::vector<bool> filemulti(numfiles);
 	std::fill(filemulti.begin(),filemulti.end(),false);
 
+	// compute filemulti
 	uint64_t hid_low = 0;
 	while ( hid_low < HID.size() )
 	{
@@ -491,6 +492,7 @@ void libmaus2::suffixsort::bwtb3m::BwtComputeSSA::computeSSA(
 	std::vector<std::string> isain(1,preisa);
 	bool deletein = false;
 
+	// maximum symbol
 	int64_t const maxsym = static_cast<int64_t>(H.size())-1;
 
 	std::vector< std::vector<uint64_t> > Vblocksymhist;
@@ -499,12 +501,15 @@ void libmaus2::suffixsort::bwtb3m::BwtComputeSSA::computeSSA(
 
 	if ( 1 /* maxsym > 256 */ )
 	{
+		// compute accumulated block sym freq counts
 		std::string const rlhisttmp = tmpfilenamebase + "_rlhist_tmp";
 		std::string const blockhisttmp = tmpfilenamebase + "_rlhist_final";
 		libmaus2::util::TempFileRemovalContainer::addTempFile(blockhisttmp);
 		libmaus2::huffman::RLDecoder::getFragmentSymHistograms(bwt,blockhisttmp,rlhisttmp,0,maxsym,numthreads /* numpacks */,numthreads);
 
+		// block sym freq count
 		std::vector<uint64_t> rlblockhist(maxsym+1,0);
+		// accumulated block sym freq count
 		std::vector<uint64_t> rlblockhistacc(maxsym+1,0);
 		libmaus2::aio::InputStreamInstance::unique_ptr_type rlhistISI(new libmaus2::aio::InputStreamInstance(blockhisttmp));
 
@@ -515,6 +520,7 @@ void libmaus2::suffixsort::bwtb3m::BwtComputeSSA::computeSSA(
 		Vsplitblocks.push_back(std::accumulate(rlblockhistacc.begin(),rlblockhistacc.end(),0ull));
 		assert ( Vsplitblocks.at(0) == 0ull );
 
+		// decode rest of blocks
 		while ( rlhistISI->peek() != std::istream::traits_type::eof() )
 		{
 			for ( uint64_t i = 0; i < rlblockhist.size(); ++i )
@@ -654,6 +660,7 @@ void libmaus2::suffixsort::bwtb3m::BwtComputeSSA::computeSSA(
 	libmaus2::parallel::PosixSpinLock salock;
 	libmaus2::parallel::PosixSpinLock isalock;
 
+	// number of run length blocks
 	uint64_t const numrblocks =  Vsplitblocks.size() - 1;
 	std::vector<std::string> Vsatmpfn(numrblocks);
 	std::vector<std::string> Visatmpfn(numrblocks);
