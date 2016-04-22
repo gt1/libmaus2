@@ -134,8 +134,12 @@ namespace libmaus2
 			// priority queue
 			libmaus2::util::FiniteSizeHeap<NNPLocalAlignerKmerMatches *,NNPLocalAlignerKmerMatchesHeapComparator> Q;
 
+			private:
 			// free list for trace objects
 			libmaus2::util::GrowingFreeList < libmaus2::lcs::NNPTraceContainer, libmaus2::lcs::NNPTraceContainerAllocator, libmaus2::lcs::NNPTraceContainerTypeInfo > tracefreelist;
+
+			public:
+			uint64_t alloccount;
 
 			libmaus2::lcs::AlignmentTraceContainer ATC0;
 			libmaus2::lcs::AlignmentTraceContainer ATC1;
@@ -168,7 +172,8 @@ namespace libmaus2
 				histlow(8*1024),
 				Ahistlow(histlow+1),
 				minbandscore(rminbandscore),
-				Q(1024)
+				Q(1024),
+				alloccount(0)
 			{
 				assert ( anak );
 			}
@@ -540,11 +545,11 @@ namespace libmaus2
 				assert ( libmaus2::lcs::AlignmentTraceContainer::checkAlignment(ATCc.ta, ATCc.te,a + P0.first.abpos,b + P0.first.bbpos) );
 
 				// return previous trace to free list
-				tracefreelist.put(P0.second);
-				tracefreelist.put(Pi.second);
+				returnAlignment(P0);
+				returnAlignment(Pi);
 
 				// encode fused alignment
-				P0.second = tracefreelist.get();
+				P0.second = getAlignment();
 				P0.second->traceToSparse(ATCc);
 
 				// check sparse encoded alignment
@@ -574,7 +579,7 @@ namespace libmaus2
 				iterator /* b */
 			)
 			{
-				tracefreelist.put(Pi.second);
+				returnAlignment(Pi.second);
 				return P0;
 			}
 
@@ -774,10 +779,27 @@ namespace libmaus2
 				return (ba < ae);
 			}
 
+			libmaus2::lcs::NNPTraceContainer::shared_ptr_type getAlignment()
+			{
+				alloccount += 1;
+				return tracefreelist.get();
+			}
+
+			void returnAlignment(libmaus2::lcs::NNPTraceContainer::shared_ptr_type P)
+			{
+				tracefreelist.put(P);
+				alloccount -= 1;
+			}
+
+			void returnAlignment(std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> P)
+			{
+				returnAlignment(P.second);
+			}
+
 			void returnAlignments(std::vector< std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> > & V)
 			{
 				for ( uint64_t i = 0; i < V.size(); ++i )
-					tracefreelist.put(V[i].second);
+					returnAlignment(V[i]);
 			}
 
 			/**
@@ -794,6 +816,8 @@ namespace libmaus2
 					int64_t const bseedhigh = std::numeric_limits<int64_t>::max()
 				)
 			{
+				uint64_t const alloccountbef = alloccount;
+
 				bool const overlap = isOverlapping(aa,ae,ba,be);
 
 				uint64_t const n = ae-aa;
@@ -1028,7 +1052,7 @@ namespace libmaus2
 							);
 							#endif
 
-							libmaus2::lcs::NNPTraceContainer::shared_ptr_type tracecopy = tracefreelist.get();
+							libmaus2::lcs::NNPTraceContainer::shared_ptr_type tracecopy = getAlignment();
 							tracecopy->copyFrom(tracecontainer);
 
 							VR.push_back(
@@ -1060,6 +1084,10 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < VR.size(); ++i )
 					// check alignment
 					assert ( VR[i].second->checkTrace(aa+VR[i].first.abpos,ba+VR[i].first.bbpos) );
+
+				uint64_t const alloccountafter = alloccount;
+				uint64_t const alloccountdiff = alloccountafter - alloccountbef;
+				assert ( alloccountdiff == VR.size() );
 
 				return VR;
 			}

@@ -19,6 +19,7 @@
 #if ! defined(LIBMAUS2_HUFFMAN_SYMCOUNTENCODER_HPP)
 #define LIBMAUS2_HUFFMAN_SYMCOUNTENCODER_HPP
 
+#include <libmaus2/huffman/SymCountRun.hpp>
 #include <libmaus2/huffman/IndexWriter.hpp>
 #include <libmaus2/huffman/HuffmanEncoderFile.hpp>
 #include <libmaus2/util/Histogram.hpp>
@@ -31,8 +32,6 @@
 
 #include <libmaus2/gamma/GammaEncoderBase.hpp>
 
-#include <libmaus2/huffman/SymCount.hpp>
-
 namespace libmaus2
 {
 	namespace huffman
@@ -44,20 +43,23 @@ namespace libmaus2
 
 			bit_writer_type & writer;
 
-			::libmaus2::autoarray::AutoArray < SymCount > symcntbuffer;
-			::libmaus2::autoarray::AutoArray < std::pair<int64_t,uint64_t> > symrlbuffer;
-			::libmaus2::autoarray::AutoArray < std::pair<int64_t,uint64_t> > cntrlbuffer;
-
-			SymCount * const pa;
-			SymCount *       pc;
-			SymCount * const pe;
+			::libmaus2::autoarray::AutoArray < SymCountRun > symcntruns;
+			SymCountRun * const ra;
+			SymCountRun *       rc;
+			SymCountRun * const re;
+			SymCountRun currun;
 
 			std::vector < IndexEntry > index;
 
 			bool indexwritten;
 
-			SymCountEncoderBaseTemplate(bit_writer_type & rwriter, uint64_t const bufsize = 4ull*1024ull*1024ull)
-			: writer(rwriter), symcntbuffer(bufsize), pa(symcntbuffer.begin()), pc(pa), pe(symcntbuffer.end()),
+			SymCountEncoderBaseTemplate(bit_writer_type & rwriter, uint64_t const bufsize = 64*1024ull)
+			: writer(rwriter),
+			  symcntruns(bufsize),
+			  ra(symcntruns.begin()),
+			  rc(symcntruns.begin()),
+			  re(symcntruns.end()),
+			  currun(std::numeric_limits<int64_t>::min(),0,false,0),
 			  indexwritten(false)
 			{
 			}
@@ -66,10 +68,36 @@ namespace libmaus2
 				flush();
 			}
 
+			void encode(SymCount const & SC)
+			{
+				if ( SC == currun )
+				{
+					currun.rlen += 1;
+				}
+				else
+				{
+					if ( currun.rlen )
+					{
+						*(rc++) = currun;
+						if ( rc == re )
+							implicitFlush();
+					}
+
+					currun = SC;
+					currun.rlen = 1;
+				}
+			}
 
 			void flush()
 			{
-				assert ( pc != pe );
+				assert ( rc != re );
+
+				if ( currun.rlen )
+				{
+					*(rc++) = currun;
+					currun.rlen = 0;
+					currun.sym = std::numeric_limits<int64_t>::min();
+				}
 
 				implicitFlush();
 
@@ -88,57 +116,43 @@ namespace libmaus2
 				writer.flush();
 			}
 
-			std::pair<uint64_t,uint64_t> computeSymRunsAndHist(::libmaus2::util::Histogram & symhist, ::libmaus2::util::Histogram & symcnthist)
+			std::pair<uint64_t,uint64_t> computeSymRunsAndHist(
+				::libmaus2::util::Histogram & symhist,
+				::libmaus2::util::Histogram & symcnthist
+			)
 			{
 				// compute symbol runs
-				SymCount * t = pa;
-				uint64_t numsymruns = 0;
 				uint64_t numsyms = 0;
-				while ( t != pc )
+				for ( SymCountRun * t = ra; t != rc; ++t )
 				{
 					int64_t const refsym = t->sym;
-					SymCount * tl = t++;
-					while ( t != pc && t->sym == refsym )
-						++t;
+					uint64_t const lnumsyms = t->rlen;
 
 					symhist(refsym);
-					uint64_t const lnumsyms = t-tl;
 					symcnthist(lnumsyms);
 					numsyms += lnumsyms;
-
-					symrlbuffer.push(numsymruns,std::pair<int64_t,uint64_t>(refsym,lnumsyms));
 				}
 				assert ( numsyms );
 
-				return std::pair<uint64_t,uint64_t>(numsymruns,numsyms);
+				return std::pair<uint64_t,uint64_t>(rc-ra,numsyms);
 			}
 
 			std::pair<uint64_t,uint64_t> computeCntRunsAndHist(::libmaus2::util::Histogram & cntcnthist)
 			{
-				uint64_t numcntruns = 0;
 				uint64_t numcntsyms = 0;
 
 				// compute count runs
-				SymCount * t = pa;
-				while ( t != pc )
+				for ( SymCountRun * t = ra; t != rc; ++t )
 				{
-					int64_t const refcnt = t->cnt;
-					SymCount * tl = t++;
-					while ( t != pc && t->cnt == refcnt )
-						++t;
-
-					uint64_t const locc = t-tl;
-					cntcnthist(locc);
-					numcntsyms += locc;
-
-					cntrlbuffer.push(numcntruns,std::pair<int64_t,uint64_t>(refcnt,locc));
+					cntcnthist(t->rlen);
+					numcntsyms += t->rlen;
 				}
 
-				return std::pair<uint64_t,uint64_t>(numcntruns,numcntsyms);
+				return std::pair<uint64_t,uint64_t>(rc-ra,numcntsyms);
 			}
 
 			// encode sequence of run symbols
-			void encodeSymSeq(::libmaus2::util::Histogram & symhist, uint64_t const numsymruns)
+			void encodeSymSeq(::libmaus2::util::Histogram & symhist)
 			{
 				// get symbol/freq vectors
 				std::vector < std::pair<uint64_t,uint64_t > > const symfreqs = symhist.getFreqSymVector();
@@ -149,11 +163,11 @@ namespace libmaus2
 				symenc.serialise(writer);
 
 				// write symbol values
-				for ( std::pair<int64_t,uint64_t> * pi = symrlbuffer.begin(); pi != symrlbuffer.begin()+numsymruns; ++pi )
-					symenc.encode(writer,pi->first);
+				for ( SymCountRun * t = ra; t != rc; ++t )
+					symenc.encode(writer,t->sym);
 			}
 
-			void encodeSymCntSeq(::libmaus2::util::Histogram & symcnthist, uint64_t const numsymruns)
+			void encodeSymCntSeq(::libmaus2::util::Histogram & symcnthist)
 			{
 				// get symbol/freq vectors
 				std::vector < std::pair<uint64_t,uint64_t > > const symcntfreqs = symcnthist.getFreqSymVector();
@@ -180,23 +194,24 @@ namespace libmaus2
 				if ( escsymcntenc )
 				{
 					escsymcntenc->serialise(writer);
-					for ( std::pair<int64_t,uint64_t> * pi = symrlbuffer.begin(); pi != symrlbuffer.begin()+numsymruns; ++pi )
-						escsymcntenc->encode(writer,pi->second);
+					for ( SymCountRun * t = ra; t != rc; ++t )
+						escsymcntenc->encode(writer,t->rlen);
 				}
 				else
 				{
 					symcntenc->serialise(writer);
-					for ( std::pair<int64_t,uint64_t> * pi = symrlbuffer.begin(); pi != symrlbuffer.begin()+numsymruns; ++pi )
-						symcntenc->encode(writer,pi->second);
+					for ( SymCountRun * t = ra; t != rc; ++t )
+						symcntenc->encode(writer,t->rlen);
 				}
 			}
 
-			void encodeCntSeq(uint64_t const numcntruns)
+			void encodeCntSeq()
 			{
 				// write cnt values (gamma code)
-				for ( std::pair<int64_t,uint64_t> * pi = cntrlbuffer.begin(); pi != cntrlbuffer.begin()+numcntruns; ++pi )
+				for ( SymCountRun * t = ra; t != rc; ++t )
 				{
-					uint64_t const v = pi->first + 1;
+					//uint64_t const v = pi->first + 1;
+					uint64_t const v = t->cnt + 1;
 					unsigned int const nd = libmaus2::gamma::GammaEncoderBase<uint64_t>::getLengthCode(v);
 					// nd zero bits
 					writer.write(0,nd);
@@ -205,7 +220,7 @@ namespace libmaus2
 				}
 			}
 
-			void encodeCntCntSeq(::libmaus2::util::Histogram & cntcnthist, uint64_t const numcntruns)
+			void encodeCntCntSeq(::libmaus2::util::Histogram & cntcnthist)
 			{
 				// cnt run lengths
 				std::vector < std::pair<uint64_t,uint64_t > > const cntcntfreqs = cntcnthist.getFreqSymVector();
@@ -232,82 +247,59 @@ namespace libmaus2
 				if ( esccntcntenc )
 				{
 					esccntcntenc->serialise(writer);
-					for ( std::pair<int64_t,uint64_t> * pi = cntrlbuffer.begin(); pi != cntrlbuffer.begin()+numcntruns; ++pi )
-						esccntcntenc->encode(writer,pi->second);
+					for ( SymCountRun * t = ra; t != rc; ++t )
+						esccntcntenc->encode(writer,t->rlen);
 				}
 				else
 				{
 					cntcntenc->serialise(writer);
-					for ( std::pair<int64_t,uint64_t> * pi = cntrlbuffer.begin(); pi != cntrlbuffer.begin()+numcntruns; ++pi )
-						cntcntenc->encode(writer,pi->second);
+					for ( SymCountRun * t = ra; t != rc; ++t )
+						cntcntenc->encode(writer,t->rlen);
 				}
 			}
 
 			void encodeSBits()
 			{
 				// store s bits
-				for ( SymCount * pt = pa; pt != pc; ++pt )
-				{
+				for ( SymCountRun * rt = ra; rt != rc; ++rt )
 					// write sbit
-					writer.writeBit(pt->sbit);
-				}
+					writer.writeBit(rt->sbit);
 			}
 
-			std::pair<uint64_t,uint64_t> encodeSyms()
+			void encodeSyms()
 			{
 				::libmaus2::util::Histogram symhist;
 				::libmaus2::util::Histogram symcnthist;
-				std::pair<uint64_t,uint64_t> const Psym = computeSymRunsAndHist(symhist,symcnthist);
-				uint64_t const numsymruns = Psym.first;
+				computeSymRunsAndHist(symhist,symcnthist);
 
 				// store number of symbol runs
-				writer.writeElias2(numsymruns);
-				encodeSymSeq(symhist,numsymruns);
-				encodeSymCntSeq(symcnthist,numsymruns);
-
-				return Psym;
-			}
-
-			std::pair<uint64_t,uint64_t> encodeCnts()
-			{
-				::libmaus2::util::Histogram cntcnthist;
-				std::pair<uint64_t,uint64_t> const Pcnt = computeCntRunsAndHist(cntcnthist);
-				uint64_t const numcntruns = Pcnt.first;
-
-				// store number of cnt runs
-				writer.writeElias2(numcntruns);
-				encodeCntSeq(numcntruns);
-				encodeCntCntSeq(cntcnthist,numcntruns);
-
-				return Pcnt;
+				writer.writeElias2(rc-ra);
+				encodeSymSeq(symhist);
+				encodeSymCntSeq(symcnthist);
 			}
 
 			void implicitFlush()
 			{
-				if ( pc != pa )
+				if ( rc != ra )
 				{
 					writer.flushBitStream();
 					uint64_t const blockpos = writer.getPos();
 
-					std::pair<uint64_t,uint64_t> const IS = encodeSyms();
-					std::pair<uint64_t,uint64_t> const IC = encodeCnts();
+					uint64_t numsyms = 0;
+					for ( SymCountRun * t = ra; t != rc; ++t )
+						numsyms += t->rlen;
+
+					encodeSyms();
+					encodeCntSeq();
 					encodeSBits();
-					assert ( IS.second == IC.second );
 
 					// push index entry
-					index.push_back(IndexEntry(blockpos,IS.first,IS.second));
+					index.push_back(IndexEntry(blockpos,rc-ra,numsyms));
 
 					writer.flushBitStream();
 				}
 
-				pc = pa;
-			}
-
-			void encode(SymCount const & SC)
-			{
-				*(pc++) = SC;
-				if ( pc == pe )
-					implicitFlush();
+				rc = ra;
 			}
 
 			template<typename iterator>

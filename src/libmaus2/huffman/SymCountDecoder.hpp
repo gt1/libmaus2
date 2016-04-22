@@ -31,6 +31,7 @@
 #include <libmaus2/gamma/GammaEncoderBase.hpp>
 
 #include <libmaus2/huffman/SymCount.hpp>
+#include <libmaus2/huffman/SymCountRun.hpp>
 
 namespace libmaus2
 {
@@ -45,9 +46,7 @@ namespace libmaus2
 			::libmaus2::huffman::IndexDecoderDataArray::unique_ptr_type Pidda;
 			::libmaus2::huffman::IndexDecoderDataArray const & idda;
 
-			typedef std::pair<int64_t,uint64_t> rl_pair;
-			::libmaus2::autoarray::AutoArray < rl_pair > symrlbuffer;
-			::libmaus2::autoarray::AutoArray < rl_pair > cntrlbuffer;
+			::libmaus2::autoarray::AutoArray < SymCountRun > rlbuffer;
 
 			libmaus2::autoarray::AutoArray<SymCount> symcntbuffer;
 			SymCount * sa;
@@ -185,7 +184,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < numsymruns; ++i )
 				{
 					uint64_t const sym = symdec.fastDecode(*SBIS);
-					symrlbuffer[i].first = sym;
+					rlbuffer[i].sym = sym;
 				}
 			}
 
@@ -214,25 +213,14 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < numsymruns; ++i )
 					{
 						uint64_t const cnt = escsymcntdec->fastDecode(*SBIS);
-						symrlbuffer[i].second = cnt;
+						rlbuffer[i].rlen = cnt;
 					}
 				else
 					for ( uint64_t i = 0; i < numsymruns; ++i )
 					{
 						uint64_t const cnt = symcntdec->fastDecode(*SBIS);
-						symrlbuffer[i].second = cnt;
+						rlbuffer[i].rlen = cnt;
 					}
-			}
-
-			uint64_t decodeSyms()
-			{
-				// read block size
-				uint64_t const numsymruns = ::libmaus2::bitio::readElias2(*SBIS);
-				symrlbuffer.ensureSize(numsymruns);
-				decodeSymSeq(numsymruns);
-				decodeSymCntSeq(numsymruns);
-
-				return numsymruns;
 			}
 
 			void decodeCntCounts(uint64_t const numcntruns)
@@ -251,82 +239,33 @@ namespace libmaus2
 						v |= static_cast<uint64_t>(SBIS->readBit());
 					}
 
-					cntrlbuffer[i].first = (v-1);
+					rlbuffer[i].cnt = (v-1);
 				}
 			}
 
-			void decodeCntFreqs(uint64_t const numcntruns)
+			void decodeSBits(uint64_t const numsymruns)
 			{
-				bool const cntcntescape = SBIS->readBit();
-
-				::libmaus2::autoarray::AutoArray< std::pair<int64_t, uint64_t> > cntcntmap = ::libmaus2::huffman::CanonicalEncoder::deserialise(*SBIS);
-
-				// construct decoder for count runlengths
-				::libmaus2::huffman::EscapeCanonicalEncoder::unique_ptr_type esccntcntdec;
-				::libmaus2::huffman::CanonicalEncoder::unique_ptr_type cntcntdec;
-				if ( cntcntescape )
-				{
-					::libmaus2::huffman::EscapeCanonicalEncoder::unique_ptr_type tesccntcntdec(new ::libmaus2::huffman::EscapeCanonicalEncoder(cntcntmap));
-					esccntcntdec = UNIQUE_PTR_MOVE(tesccntcntdec);
-				}
-				else
-				{
-					::libmaus2::huffman::CanonicalEncoder::unique_ptr_type tcntcntdec(new ::libmaus2::huffman::CanonicalEncoder(cntcntmap));
-					cntcntdec = UNIQUE_PTR_MOVE(tcntcntdec);
-				}
-
-				// read symbol counts
-				if ( cntcntescape )
-					for ( uint64_t i = 0; i < numcntruns; ++i )
-					{
-						uint64_t const cnt = esccntcntdec->fastDecode(*SBIS);
-						cntrlbuffer[i].second = cnt;
-					}
-				else
-					for ( uint64_t i = 0; i < numcntruns; ++i )
-					{
-						uint64_t const cnt = cntcntdec->fastDecode(*SBIS);
-						cntrlbuffer[i].second = cnt;
-					}
+				for ( uint64_t i = 0; i < numsymruns; ++i )
+					rlbuffer[i].sbit = SBIS->readBit();
 			}
 
-			uint64_t decodeCnts()
-			{
-				uint64_t const numcntruns = ::libmaus2::bitio::readElias2(*SBIS);
-				cntrlbuffer.ensureSize(numcntruns);
-				decodeCntCounts(numcntruns);
-				decodeCntFreqs(numcntruns);
-
-				return numcntruns;
-			}
-
-			uint64_t unpack(uint64_t const numsymruns, uint64_t const numcntruns)
+			uint64_t unpack(uint64_t const numsymruns)
 			{
 				uint64_t numsymcnt = 0;
 				for ( uint64_t i = 0; i < numsymruns; ++i )
-					numsymcnt += symrlbuffer[i].second;
-				uint64_t numcntcnt = 0;
-				for ( uint64_t i = 0; i < numcntruns; ++i )
-					numcntcnt += cntrlbuffer[i].second;
-				assert ( numsymcnt == numcntcnt );
+					numsymcnt += rlbuffer[i].rlen;
 
 				symcntbuffer.ensureSize(numsymcnt);
 				uint64_t o = 0;
 				for ( uint64_t i = 0; i < numsymruns; ++i )
-					for ( uint64_t j = 0; j < symrlbuffer[i].second; ++j )
-						symcntbuffer[o++].sym = symrlbuffer[i].first;
-				o = 0;
-				for ( uint64_t i = 0; i < numcntruns; ++i )
-					for ( uint64_t j = 0; j < cntrlbuffer[i].second; ++j )
-						symcntbuffer[o++].cnt = cntrlbuffer[i].first;
+					for ( uint64_t j = 0; j < rlbuffer[i].rlen; ++j, ++o )
+					{
+						symcntbuffer[o].sym = rlbuffer[i].sym;
+						symcntbuffer[o].cnt = rlbuffer[i].cnt;
+						symcntbuffer[o].sbit = rlbuffer[i].sbit;
+					}
 
 				return numsymcnt;
-			}
-
-			void decodeSBits(uint64_t const numsymcnt)
-			{
-				for ( uint64_t i = 0; i < numsymcnt; ++i )
-					symcntbuffer[i].sbit = SBIS->readBit();
 			}
 
 			bool fillBuffer()
@@ -350,13 +289,17 @@ namespace libmaus2
 				// byte align stream
 				SBIS->flush();
 
-				uint64_t const numsymruns = decodeSyms();
-				uint64_t const numcntruns = decodeCnts();
+				// read block size
+				uint64_t const numsymruns = ::libmaus2::bitio::readElias2(*SBIS);
+				rlbuffer.ensureSize(numsymruns);
+
+				decodeSymSeq(numsymruns);
+				decodeSymCntSeq(numsymruns);
+				decodeCntCounts(numsymruns);
+				decodeSBits(numsymruns);
 
 				// unpack run length encoding
-				uint64_t const numsymcnt = unpack(numsymruns,numcntruns);
-
-				decodeSBits(numsymcnt);
+				uint64_t const numsymcnt = unpack(numsymruns);
 
 				SBIS->flush();
 
