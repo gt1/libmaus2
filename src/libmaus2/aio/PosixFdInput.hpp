@@ -46,6 +46,8 @@
 #include <poll.h>
 #endif
 
+#include <cmath>
+
 namespace libmaus2
 {
 	namespace aio
@@ -234,7 +236,8 @@ namespace libmaus2
 					#if defined(__linux__)
 					pollfd pfd = { fd, POLLIN, 0 };
 					double const time_bef_poll = getTime();
-					int const ready = poll(&pfd, 1, std::floor(warnThreshold+0.5) * 1000ull);
+					int const polltimeout = (warnThreshold > 0.0) ? static_cast<int>(std::floor(warnThreshold+0.5) * 1000ull) : -1;
+					int const ready = poll(&pfd, 1, polltimeout);
 					double const time_aft_poll = getTime();
 
 					if ( ready == 1 && (pfd.revents & POLLIN) )

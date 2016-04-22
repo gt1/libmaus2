@@ -1030,7 +1030,8 @@ libmaus2huffman_include_HEADERS=\
 	libmaus2/huffman/SymCountEncoder.hpp \
 	libmaus2/huffman/SymCountDecoder.hpp \
 	libmaus2/huffman/SymCount.hpp \
-	libmaus2/huffman/IndexWriter.hpp
+	libmaus2/huffman/IndexWriter.hpp \
+	libmaus2/huffman/SymCountRun.hpp
 
 libmaus2math_includedir=$(includedir)/libmaus2/math
 libmaus2math_include_HEADERS=\

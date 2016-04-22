@@ -1,3 +1,11 @@
+libmaus2 (2.0.165-1) unstable; urgency=medium
+
+  * introduce reference counting in NNPLocalAligner to check for memory leaks
+  * set poll timeout to infinite in case no warn threshold is given in PosixFdInput and PosixFdOutputStreamBuffer
+  * change SymCountEncoder/Decoder towards making runs instead of single symbols decodable
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 22 Apr 2016 09:20:10 +0200
+
 libmaus2 (2.0.164-1) unstable; urgency=medium
 
   * use largelcpthres option in BwtMergeSortTemplate 
