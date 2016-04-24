@@ -27,6 +27,7 @@
 #include <ostream>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/aio/PosixFdInput.hpp>
+#include <libmaus2/aio/StreamLock.hpp>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -44,6 +45,7 @@ namespace libmaus2
 		{
 			private:
 			static double const warnThreshold;
+			static int const check;
 
 			static double getTime()
 			{
@@ -90,15 +92,17 @@ namespace libmaus2
 					return fsopt;
 			}
 
+			std::string filename;
+			std::string checkfilename;
 			int fd;
+			int checkfd;
 			bool closefd;
 			int64_t const optblocksize;
 			uint64_t const buffersize;
 			::libmaus2::autoarray::AutoArray<char> buffer;
 			uint64_t writepos;
-			std::string filename;
 
-			off_t doSeekAbsolute(uint64_t const p, int const whence = SEEK_SET)
+			static off_t doSeekAbsolute(int const fd, std::string const & filename, uint64_t const p, int const whence /* = SEEK_SET */)
 			{
 				off_t off = static_cast<off_t>(-1);
 
@@ -132,19 +136,26 @@ namespace libmaus2
 				return off;
 			}
 
-			off_t getFileSize()
+			static off_t doGetFileSize(int const fd, std::string const & filename)
 			{
 				// current position in stream
-				off_t const cur = doSeekAbsolute(0,SEEK_CUR);
+				off_t const cur = doSeekAbsolute(fd,filename,0,SEEK_CUR);
 				// end position of stream
-				off_t const end = doSeekAbsolute(0,SEEK_END);
+				off_t const end = doSeekAbsolute(fd,filename,0,SEEK_END);
 				// go back to previous current
-				doSeekAbsolute(cur,SEEK_SET);
+				off_t const final = doSeekAbsolute(fd,filename,cur,SEEK_SET);
+
+				if ( final != cur )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					std::cerr << "libmaus2::aio::PosixFdOutputStreamBuffer::doGetFileSize(" << fd << "," << filename << "), failed to seek back to original position: " << final << " != " << cur << std::endl;
+				}
+
 				// return end position
 				return end;
 			}
 
-			void doClose()
+			static void doClose(int const fd, std::string const & filename)
 			{
 				int r = -1;
 
@@ -210,7 +221,7 @@ namespace libmaus2
 				return fd;
 			}
 
-			void doFlush()
+			static void doFlush(int const fd, std::string const & filename)
 			{
 				int r = -1;
 
@@ -246,13 +257,16 @@ namespace libmaus2
 				}
 			}
 
-			void doSync()
+			static uint64_t
+				doWrite(
+					int const fd,
+					std::string const & filename,
+					char * p,
+					uint64_t n,
+					int64_t const optblocksize,
+					uint64_t writepos
+				)
 			{
-				uint64_t n = pptr()-pbase();
-				pbump(-n);
-
-				char * p = pbase();
-
 				while ( n )
 				{
 					size_t const towrite = std::min(n,static_cast<uint64_t>(optblocksize));
@@ -303,30 +317,60 @@ namespace libmaus2
 				}
 
 				assert ( ! n );
+
+				return writepos;
+			}
+
+			void doSync()
+			{
+				uint64_t const n = pptr()-pbase();
+				pbump(-n);
+				char * const p = pbase();
+				uint64_t const origwritepos = writepos;
+				writepos = doWrite(fd,filename,p,n,optblocksize,origwritepos);
+				if ( checkfd != -1 )
+				{
+					uint64_t const checkwritepos = doWrite(checkfd,filename,p,n,optblocksize,origwritepos);
+					if ( checkwritepos != writepos )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "libmaus2::aio::PosixFdOutputStreamBuffer:doSync(): checkwritepos!=writepos, " << checkwritepos << "!=" << writepos << std::endl;
+					}
+				}
 			}
 
 			public:
 			PosixFdOutputStreamBuffer(int const rfd, int64_t const rbuffersize)
-			: fd(rfd),
+			:
+			  filename(),
+			  checkfilename(),
+			  fd(rfd),
+			  checkfd(-1),
 			  closefd(false),
 			  optblocksize(getOptimalIOBlockSize(fd,std::string())),
 			  buffersize((rbuffersize <= 0) ? optblocksize : rbuffersize),
 			  buffer(buffersize,false),
-			  writepos(0),
-			  filename()
+			  writepos(0)
 			{
 				setp(buffer.begin(),buffer.end()-1);
 			}
 
-			PosixFdOutputStreamBuffer(std::string const & fn, int64_t const rbuffersize, int const rflags = O_WRONLY | O_CREAT | O_TRUNC, int const rmode = 0644)
+			PosixFdOutputStreamBuffer(
+				std::string const & rfilename,
+				int64_t const rbuffersize,
+				int const rflags = O_WRONLY | O_CREAT | O_TRUNC,
+				int const rmode = 0644
+			)
 			:
-			  fd(doOpen(fn,rflags,rmode)),
+			  filename(rfilename),
+			  checkfilename(filename + ".check"),
+			  fd(doOpen(filename,rflags,rmode)),
+			  checkfd(check ? doOpen(checkfilename,rflags,rmode) : -1),
 			  closefd(true),
-			  optblocksize(getOptimalIOBlockSize(fd,fn)),
+			  optblocksize(getOptimalIOBlockSize(fd,filename)),
 			  buffersize((rbuffersize <= 0) ? optblocksize : rbuffersize),
 			  buffer(buffersize,false),
-			  writepos(0),
-			  filename(fn)
+			  writepos(0)
 			{
 				setp(buffer.begin(),buffer.end()-1);
 			}
@@ -335,7 +379,94 @@ namespace libmaus2
 			{
 				sync();
 				if ( closefd )
-					doClose();
+				{
+					if ( fd != -1 )
+					{
+						doClose(fd,filename);
+						fd = -1;
+					}
+
+					bool const havecheckfile = (checkfd != -1);
+
+					if ( havecheckfile )
+					{
+						doClose(checkfd,filename);
+						checkfd = -1;
+					}
+
+					if ( havecheckfile )
+					{
+						// instantiate streams
+						::std::ifstream istr0(filename,std::ios::binary);
+						::std::ifstream istr1(filename,std::ios::binary);
+
+						// see if they are both open
+						bool ok0 = istr0.is_open();
+						bool ok1 = istr1.is_open();
+
+						bool gok = true;
+
+						if ( ok0 != ok1 )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							std::cerr << "libmaus2::aio::PosixFdOutputStreamBuffer:~PosixFdOutputStreamBuffer(): " << filename << " is_open ok0=" << ok0 << " ok1=" << ok1 << std::endl;
+							gok = false;
+						}
+						else
+						{
+							gok = ok0;
+
+							uint64_t const n = 64*1024;
+							libmaus2::autoarray::AutoArray<char> B0(n,false);
+							libmaus2::autoarray::AutoArray<char> B1(n,false);
+
+							while ( istr0 && istr1 )
+							{
+								istr0.read(B0.begin(),n);
+								istr1.read(B1.begin(),n);
+
+								if ( istr0.gcount() != istr1.gcount() )
+								{
+									libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+									std::cerr << "libmaus2::aio::PosixFdOutputStreamBuffer:~PosixFdOutputStreamBuffer(): " << filename << " gcount istr0=" << istr0.gcount() << " != istr1=" << istr1.gcount() << std::endl;
+									gok = false;
+									break;
+								}
+								else if ( ! std::equal(B0.begin(),B0.begin()+istr0.gcount(),B1.begin()) )
+								{
+									libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+									std::cerr << "libmaus2::aio::PosixFdOutputStreamBuffer:~PosixFdOutputStreamBuffer(): " << filename << " data equality failure" << std::endl;
+									gok = false;
+									break;
+								}
+							}
+
+							ok0 = istr0 ? true : false;
+							ok1 = istr1 ? true : false;
+
+							if ( ok0 != ok1 )
+							{
+								libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+								std::cerr << "libmaus2::aio::PosixFdOutputStreamBuffer:~PosixFdOutputStreamBuffer(): " << filename << " final eq failure" << std::endl;
+								gok = false;
+							}
+						}
+
+						istr0.close();
+						istr1.close();
+
+						{
+							if ( !gok )
+							{
+								libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+								std::cerr << "libmaus2::aio::PosixFdOutputStreamBuffer:~PosixFdOutputStreamBuffer(): " << filename << " FAILED" << std::endl;
+							}
+						}
+
+						if ( checkfilename.size() )
+							::remove(checkfilename.c_str());
+					}
+				}
 			}
 
 			int_type overflow(int_type c = traits_type::eof())
@@ -353,27 +484,37 @@ namespace libmaus2
 			int sync()
 			{
 				doSync();
-				doFlush();
+				doFlush(fd,filename);
+				if ( checkfd != -1 )
+					doFlush(checkfd,filename);
 				return 0; // no error, -1 for error
 			}
 
-                        /**
-                         * seek to absolute position
-                         **/
-                        ::std::streampos seekpos(::std::streampos sp, ::std::ios_base::openmode which = ::std::ios_base::in | ::std::ios_base::out)
-                        {
-                        	if ( (which & ::std::ios_base::out) )
-                        	{
-                        		doSync();
-                        		doSeekAbsolute(sp);
-                        		writepos = sp;
-                        		return sp;
+			/**
+			 * seek to absolute position
+			 **/
+			::std::streampos seekpos(::std::streampos sp, ::std::ios_base::openmode which = ::std::ios_base::in | ::std::ios_base::out)
+			{
+				if ( (which & ::std::ios_base::out) )
+				{
+					doSync();
+					sp = doSeekAbsolute(fd,filename,sp,SEEK_SET);
+					if ( checkfd != -1 )
+					{
+						::std::streampos const checksp = doSeekAbsolute(checkfd,filename,sp,SEEK_SET);
+						if ( checksp != sp )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							std::cerr << "libmaus2::aio::PosixFdOutputStreamBuffer:seekpos(): checksp != sp, " << checksp << "!=" << sp << std::endl;
+						}
+					}
+					return sp;
 				}
 				else
 				{
 					return -1;
 				}
-                        }
+			}
 
 			/**
 			 * relative seek
@@ -402,7 +543,18 @@ namespace libmaus2
 				}
 				else if ( way == ::std::ios_base::end )
 				{
-					return seekpos(static_cast<int64_t>(getFileSize()) + off, which);
+					int64_t const filesize = static_cast<int64_t>(doGetFileSize(fd,filename));
+					if ( checkfd != -1 )
+					{
+						int64_t const checkfilesize = static_cast<int64_t>(doGetFileSize(checkfd,filename));
+						if ( checkfilesize != filesize )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							std::cerr << "libmaus2::aio::PosixFdOutputStreamBuffer::seekoff(): checkfilesize != filesize, " << checkfilesize << "!=" << filesize << std::endl;
+						}
+					}
+					int64_t const spos = filesize + off;
+					return seekpos(spos, which);
 				}
 				else
 				{
