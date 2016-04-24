@@ -1,3 +1,13 @@
+libmaus2 (2.0.168-1) unstable; urgency=medium
+
+  * add more checks in bwtb3m
+  * fix warning in SemiExternalKeyTupleSort
+  * fix warning in RMMTree
+  * add getLength method variant for vector of vectors in RLDecoder class
+  * implement output checking facility in PosixFdOutputStreamBuffer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Sun, 24 Apr 2016 17:14:36 +0200
+
 libmaus2 (2.0.167-1) unstable; urgency=medium
 
   * add verbose setting for block sorting in bwtb3m
