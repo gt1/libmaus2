@@ -181,7 +181,7 @@ namespace libmaus2
 					}
 
 					assert ( (it - in_it) % k == 0 );
-					assert ( (it - it_a) == (ihigh-ilow)*k );
+					assert ( (it - it_a) == static_cast<ptrdiff_t>((ihigh-ilow)*k) );
 
 					{
 						libmaus2::parallel::ScopePosixSpinLock slock(lock);
