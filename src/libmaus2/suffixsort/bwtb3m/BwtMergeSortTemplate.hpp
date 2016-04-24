@@ -256,6 +256,8 @@ namespace libmaus2
 					std::ostream * logstr
 				)
 				{
+					std::vector<std::string> goutputfilenames;
+
 					// no bwt input files, create empty bwt file
 					if ( ! bwtfilenames.size() )
 					{
@@ -265,7 +267,7 @@ namespace libmaus2
 
 						rlenc.flush();
 
-						return std::vector<std::string>(1,outputfilename);
+						goutputfilenames = std::vector<std::string>(1,outputfilename);
 					}
 					// no gap files, rename input
 					else if ( ! gapfilenames.size() )
@@ -288,7 +290,7 @@ namespace libmaus2
 							outputfilenames.push_back(outputfilename);
 						}
 
-						return outputfilenames;
+						goutputfilenames = outputfilenames;
 					}
 					// at least one gap file, merge
 					else
@@ -633,8 +635,15 @@ namespace libmaus2
 							bwtenc.flush();
 						}
 
-						return gpartfrags;
+						goutputfilenames = gpartfrags;
 					}
+
+					assert (
+						rl_decoder::getLength(goutputfilenames,numthreads) ==
+						rl_decoder::getLength(bwtfilenames,numthreads)
+					);
+
+					return goutputfilenames;
 				}
 
 				template<typename gap_iterator>
@@ -963,7 +972,12 @@ namespace libmaus2
 				)
 				{
 					// gap array
-					::libmaus2::autoarray::AutoArray<uint32_t> G(cblocksize+1);
+					::libmaus2::autoarray::AutoArray<uint32_t> G(cblocksize+1,false);
+					#if defined(_OPENMP)
+					#pragma omp parallel for num_threads(numthreads)
+					for ( uint64_t i = 0; i < G.size(); ++i )
+						G[i] = 0;
+					#endif
 
 					// set up lf mapping
 					::libmaus2::lf::DArray D(static_cast<std::string const &>(blockresults.getFiles().getHist()));
@@ -1042,6 +1056,41 @@ namespace libmaus2
 					}
 					if ( logstr )
 						(*logstr) << "[V] computed gap array in time " << rtc.getElapsedSeconds() << std::endl;
+
+					uint64_t const cperblock = (G.size() + numthreads - 1)/numthreads;
+					uint64_t const cblocks = (G.size() + cperblock - 1)/cperblock;
+					uint64_t volatile gs = 0;
+					libmaus2::parallel::PosixSpinLock gslock;
+
+					#if defined(_OPENMP)
+					#pragma omp parallel for
+					#endif
+					for ( uint64_t t = 0; t < cblocks; ++t )
+					{
+						uint64_t const low = t * cperblock;
+						uint64_t const high = std::min(low+cperblock,G.size());
+						uint64_t s = 0;
+						uint32_t const * g = G.begin() + low;
+						uint32_t const * const ge = G.begin() + high;
+						while ( g != ge )
+							s += *(g++);
+						libmaus2::parallel::ScopePosixSpinLock slock(gslock);
+						gs += s;
+					}
+
+					uint64_t es = 0;
+					for ( int64_t z = 0; z < static_cast<int64_t>(zactive); ++z )
+					{
+						uint64_t const zlen = zabsblockpos [ z ] - zabsblockpos [z+1];
+						es += zlen;
+					}
+
+					if ( logstr )
+					{
+						(*logstr) << "[V] gs=" << gs << " es=" << es << std::endl;
+					}
+
+					assert ( es == gs );
 
 					return GapArrayComputationResult(G,gtpartnames,zactive,zabsblockpos);
 				}

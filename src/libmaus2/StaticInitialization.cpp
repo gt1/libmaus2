@@ -382,7 +382,30 @@ static double getPosixOutputStreamBufferWarnThreshold()
 	}
 }
 
+int getPosixOutputStreamBufferCheck()
+{
+	char const * cthres = getenv("LIBMAUS2_AIO_POSIXFDOUTPUTSTREAMBUFFER_CHECK");
+
+	if ( cthres )
+	{
+		std::istringstream istr(cthres);
+		int v;
+		istr >> v;
+		if ( istr )
+		{
+			return v;
+		}
+		else
+			return 0;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
 double const libmaus2::aio::PosixFdOutputStreamBuffer::warnThreshold = getPosixOutputStreamBufferWarnThreshold();
+int const libmaus2::aio::PosixFdOutputStreamBuffer::check = getPosixOutputStreamBufferCheck();
 
 static std::map<std::string,uint64_t> getPosixFdInputBlockSizeOverride()
 {

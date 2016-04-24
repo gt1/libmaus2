@@ -219,7 +219,7 @@ namespace libmaus2
 						AS = libmaus2::autoarray::AutoArray<data_type>(snum);
 					}
 					conc.read(reinterpret_cast<char *>(AS.begin()),snum*sizeof(data_type));
-					assert ( conc.gcount() == snum*sizeof(data_type) );
+					assert ( conc.gcount() == static_cast<int64_t>(snum*sizeof(data_type)) );
 
 					if ( nonradixbits )
 					{
