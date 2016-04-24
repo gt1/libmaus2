@@ -328,6 +328,15 @@ namespace libmaus2
 				return s;
 			}
 
+			// get length of vector of files in symbols
+			static uint64_t getLength(std::vector< std::vector<std::string> > const & filenames, uint64_t const numthreads)
+			{
+				uint64_t s = 0;
+				for ( uint64_t i = 0; i < filenames.size(); ++i )
+					s += getLength(filenames[i],numthreads);
+				return s;
+			}
+
 			// compute run length histogram for run length values stored in file given by name
 			static libmaus2::util::Histogram::unique_ptr_type getRunLengthHistogram(std::string const & filename, uint64_t const numthreads)
 			{
