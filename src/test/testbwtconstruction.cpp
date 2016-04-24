@@ -49,7 +49,7 @@ void transform(iterator ita, iterator ite, bool timediv)
 	{
 		// check file
 		libmaus2::aio::InputStreamInstance::unique_ptr_type ISI(AF.open());
-		for ( uint64_t i = 0; i < ite-ita; ++i )
+		for ( ptrdiff_t i = 0; i < ite-ita; ++i )
 			assert ( ISI->peek() != std::istream::traits_type::eof() && static_cast<char>(ISI->get()) == ita[i] );
 	}
 
