@@ -44,7 +44,7 @@ namespace libmaus2
 			uint64_t const numsyms;
 
 			typedef std::pair<uint64_t,uint64_t> rl_pair;
-			typedef rl_pair run_type;
+			typedef RLRun run_type;
 			::libmaus2::autoarray::AutoArray < rl_pair > rlbuffer;
 
 			rl_pair * const pa;
