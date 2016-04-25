@@ -32,26 +32,26 @@
 
 #include <libmaus2/huffman/SymCount.hpp>
 #include <libmaus2/huffman/SymCountRun.hpp>
+#include <libmaus2/huffman/RLInitType.hpp>
 
 namespace libmaus2
 {
 	namespace huffman
 	{
-		struct SymCountDecoder
+		struct SymCountDecoder : public RLInitType
 		{
 			typedef SymCountDecoder this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef SymCount value_type;
+			typedef SymCountRun run_type;
 
 			::libmaus2::huffman::IndexDecoderDataArray::unique_ptr_type Pidda;
 			::libmaus2::huffman::IndexDecoderDataArray const & idda;
 
 			::libmaus2::autoarray::AutoArray < SymCountRun > rlbuffer;
-
-			libmaus2::autoarray::AutoArray<SymCount> symcntbuffer;
-			SymCount * sa;
-			SymCount * sc;
-			SymCount * se;
+			SymCountRun * ra;
+			SymCountRun * rc;
+			SymCountRun * re;
 
 			::libmaus2::util::unique_ptr<libmaus2::aio::InputStreamInstance>::type istr;
 
@@ -124,14 +124,35 @@ namespace libmaus2
 
 					openNewFile();
 
-					SymCount SC;
-
-					// this would be quicker using run lengths
+					SymCountRun SC;
 					while ( restoffset )
 					{
-						decode(SC);
-						--restoffset;
+						decodeRun(SC);
+
+						uint64_t const av = std::min(restoffset,SC.rlen);
+
+						if ( av < SC.rlen )
+							putBack(SymCountRun(SC.sym,SC.cnt,SC.sbit,SC.rlen-av));
+
+						restoffset -= av;
 					}
+				}
+			}
+
+
+			// init by position in stream
+			void initK(uint64_t offset)
+			{
+				if ( offset < idda.kvec[idda.kvec.size()-1] )
+				{
+					::libmaus2::huffman::FileBlockOffset const FBO = idda.findKBlock(offset);
+					fileptr = FBO.fileptr;
+					blockptr = FBO.blockptr;
+
+					openNewFile();
+					fillBuffer();
+
+					rc += FBO.offset;
 				}
 			}
 
@@ -141,7 +162,7 @@ namespace libmaus2
 			:
 			  Pidda(::libmaus2::huffman::IndexDecoderDataArray::construct(rfilenames,numthreads)),
 			  idda(*Pidda),
-			  sa(symcntbuffer.end()), sc(symcntbuffer.end()), se(symcntbuffer.end()),
+			  ra(rlbuffer.end()), rc(rlbuffer.end()), re(rlbuffer.end()),
 			  fileptr(0), blockptr(0)
 			{
 				init(offset);
@@ -154,10 +175,30 @@ namespace libmaus2
 			:
 			  Pidda(),
 			  idda(ridda),
-			  sa(symcntbuffer.end()), sc(symcntbuffer.end()), se(symcntbuffer.end()),
+			  ra(rlbuffer.end()), rc(rlbuffer.end()), re(rlbuffer.end()),
 			  fileptr(0), blockptr(0)
 			{
 				init(offset);
+			}
+
+
+			SymCountDecoder(::libmaus2::huffman::IndexDecoderDataArray const & ridda, uint64_t const offset, rl_init_type const & type)
+			:
+			  Pidda(),
+			  idda(ridda),
+			  ra(rlbuffer.end()), rc(rlbuffer.end()), re(rlbuffer.end()),
+			  fileptr(0), blockptr(0)
+			{
+				switch ( type )
+				{
+					case rl_init_type_v:
+						init(offset);
+						break;
+					case rl_init_type_k:
+						initK(offset);
+						break;
+				}
+				// init(offset);
 			}
 
 			SymCountDecoder(
@@ -168,7 +209,7 @@ namespace libmaus2
 			:
 			  Pidda(),
 			  idda(ridda),
-			  sa(symcntbuffer.end()), sc(symcntbuffer.end()), se(symcntbuffer.end()),
+			  ra(rlbuffer.end()), rc(rlbuffer.end()), re(rlbuffer.end()),
 			  fileptr(0), blockptr(0)
 			{
 				init(offset);
@@ -249,25 +290,6 @@ namespace libmaus2
 					rlbuffer[i].sbit = SBIS->readBit();
 			}
 
-			uint64_t unpack(uint64_t const numsymruns)
-			{
-				uint64_t numsymcnt = 0;
-				for ( uint64_t i = 0; i < numsymruns; ++i )
-					numsymcnt += rlbuffer[i].rlen;
-
-				symcntbuffer.ensureSize(numsymcnt);
-				uint64_t o = 0;
-				for ( uint64_t i = 0; i < numsymruns; ++i )
-					for ( uint64_t j = 0; j < rlbuffer[i].rlen; ++j, ++o )
-					{
-						symcntbuffer[o].sym = rlbuffer[i].sym;
-						symcntbuffer[o].cnt = rlbuffer[i].cnt;
-						symcntbuffer[o].sbit = rlbuffer[i].sbit;
-					}
-
-				return numsymcnt;
-			}
-
 			bool fillBuffer()
 			{
 				bool newfile = false;
@@ -293,19 +315,16 @@ namespace libmaus2
 				uint64_t const numsymruns = ::libmaus2::bitio::readElias2(*SBIS);
 				rlbuffer.ensureSize(numsymruns);
 
+				ra = rlbuffer.begin();
+				rc = ra;
+				re = ra + numsymruns;
+
 				decodeSymSeq(numsymruns);
 				decodeSymCntSeq(numsymruns);
 				decodeCntCounts(numsymruns);
 				decodeSBits(numsymruns);
 
-				// unpack run length encoding
-				uint64_t const numsymcnt = unpack(numsymruns);
-
 				SBIS->flush();
-
-				sa = symcntbuffer.begin();
-				sc = sa;
-				se = symcntbuffer.begin() + numsymcnt;
 
 				// next block
 				blockptr++;
@@ -315,21 +334,43 @@ namespace libmaus2
 
 			inline bool decode(SymCount & SC)
 			{
-				if ( sc == se )
+				if ( rc == re )
 				{
 					fillBuffer();
-					if ( sc == se )
+					if ( rc == re )
 						return false;
 				}
 
-				SC = *(sc++);
+				assert ( rc->rlen );
+
+				SC = static_cast<SymCount const &>(*rc);
+
+				if ( ! (--(rc->rlen)) )
+					++rc;
+
 				return true;
 			}
 
-			void putBack(SymCount const & SC)
+			inline bool decodeRun(SymCountRun & SC)
 			{
-				assert ( sc != sa );
-				*--sc = SC;
+				if ( rc == re )
+				{
+					fillBuffer();
+					if ( rc == re )
+						return false;
+				}
+
+				assert ( rc->rlen );
+
+				SC = *rc++;
+
+				return true;
+			}
+
+			void putBack(SymCountRun const & SC)
+			{
+				assert ( rc != ra );
+				*--rc = SC;
 			}
 
 			static uint64_t getLength(std::string const & filename)
@@ -349,6 +390,28 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
 				{
 					uint64_t const ls = getLength(filenames[i]);
+					libmaus2::parallel::ScopePosixSpinLock slock(lock);
+					s += ls;
+				}
+				return s;
+			}
+
+			static uint64_t getKLength(std::string const & fn)
+			{
+				libmaus2::huffman::IndexDecoderData IDD(fn);
+				return IDD.kacc;
+			}
+
+			static uint64_t getKLength(std::vector<std::string> const & fn, uint64_t const numthreads)
+			{
+				libmaus2::parallel::PosixSpinLock lock;
+				uint64_t s = 0;
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
+				for ( uint64_t i = 0; i < fn.size(); ++i )
+				{
+					uint64_t const ls = getKLength(fn[i]);
 					libmaus2::parallel::ScopePosixSpinLock slock(lock);
 					s += ls;
 				}

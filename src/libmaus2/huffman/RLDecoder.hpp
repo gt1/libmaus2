@@ -29,15 +29,19 @@
 #include <libmaus2/util/HistogramSet.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
 #include <libmaus2/huffman/IndexLoader.hpp>
+#include <libmaus2/huffman/RLInitType.hpp>
+#include <libmaus2/huffman/RLRun.hpp>
 
 namespace libmaus2
 {
 	namespace huffman
 	{
-		struct RLDecoder
+		struct RLDecoder : public libmaus2::huffman::RLInitType
 		{
 			typedef RLDecoder this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef uint64_t value_type;
+			typedef RLRun run_type;
 
 			::libmaus2::huffman::IndexDecoderDataArray::unique_ptr_type Pidda;
 			::libmaus2::huffman::IndexDecoderDataArray const & idda;
@@ -129,6 +133,20 @@ namespace libmaus2
 				}
 			}
 
+			// init by position in stream
+			void initK(uint64_t offset)
+			{
+				if ( offset < idda.kvec[idda.kvec.size()-1] )
+				{
+					::libmaus2::huffman::FileBlockOffset const FBO = idda.findKBlock(offset);
+					fileptr = FBO.fileptr;
+					blockptr = FBO.blockptr;
+					openNewFile();
+					fillBuffer();
+					pc += FBO.offset;
+				}
+			}
+
 			RLDecoder(
 				std::vector<std::string> const & rfilenames,
 				uint64_t offset,
@@ -154,6 +172,24 @@ namespace libmaus2
 			  fileptr(0), blockptr(0)
 			{
 				init(offset);
+			}
+
+			RLDecoder(::libmaus2::huffman::IndexDecoderDataArray const & ridda, uint64_t const offset, rl_init_type const & type)
+			:
+			  Pidda(),
+			  idda(ridda),
+			  pa(0), pc(0), pe(0),
+			  fileptr(0), blockptr(0)
+			{
+				switch ( type )
+				{
+					case rl_init_type_v:
+						init(offset);
+						break;
+					case rl_init_type_k:
+						initK(offset);
+						break;
+				}
 			}
 
 			RLDecoder(
@@ -276,6 +312,21 @@ namespace libmaus2
 				return sym;
 			}
 
+			inline bool decodeRun(run_type & R)
+			{
+				if ( pc == pe )
+				{
+					fillBuffer();
+					if ( pc == pe )
+						return false;
+				}
+				assert ( pc->second );
+				R.sym = pc->first;
+				R.rlen = pc->second;
+				pc += 1;
+				return true;
+			}
+
 			inline std::pair<int64_t,uint64_t> decodeRun()
 			{
 				if ( pc == pe )
@@ -301,13 +352,33 @@ namespace libmaus2
 				return decode();
 			}
 
-			// get length of file in symbols
-			static uint64_t getLength(std::string const & filename, uint64_t /* numthreads */)
+			static uint64_t getLength(std::string const & filename, uint64_t const)
 			{
-				libmaus2::aio::InputStreamInstance istr(filename);
-				::libmaus2::bitio::StreamBitInputStream SBIS(istr);
-				// SBIS.readBit(); // need escape
-				return ::libmaus2::bitio::readElias2(SBIS);
+				libmaus2::huffman::IndexDecoderData IDD(filename);
+				return IDD.vacc;
+			};
+
+			static uint64_t getKLength(std::string const & filename)
+			{
+				libmaus2::huffman::IndexDecoderData IDD(filename);
+				return IDD.kacc;
+			};
+
+
+			static uint64_t getKLength(std::vector<std::string> const & fn, uint64_t const numthreads)
+			{
+				libmaus2::parallel::PosixSpinLock lock;
+				uint64_t s = 0;
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
+				for ( uint64_t i = 0; i < fn.size(); ++i )
+				{
+					uint64_t const ls = getKLength(fn[i]);
+					libmaus2::parallel::ScopePosixSpinLock slock(lock);
+					s += ls;
+				}
+				return s;
 			}
 
 			// get length of vector of files in symbols
@@ -321,7 +392,7 @@ namespace libmaus2
 				#endif
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
 				{
-					uint64_t const ls = getLength(filenames[i],1 /* numthreads */);
+					uint64_t const ls = getLength(filenames[i],1);
 					libmaus2::parallel::ScopePosixSpinLock slock(lock);
 					s += ls;
 				}
