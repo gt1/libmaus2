@@ -150,6 +150,12 @@ std::map<int64_t,uint64_t> libmaus2::util::OctetString::getHistogramAsMap() cons
 ::libmaus2::autoarray::AutoArray<libmaus2::util::OctetString::saidx_t,static_cast<libmaus2::autoarray::alloc_type>(libmaus2::util::StringAllocTypes::sa_atype)>
 	libmaus2::util::OctetString::computeSuffixArray32(bool const parallel) const
 {
+	if ( verbose >= 5 )
+	{
+		libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+		std::cerr << "[V] OctectString::computeSuffixArray32 parallel=" << parallel << " A.size()=" << A.size() << " max " << ::std::numeric_limits<saidx_t>::max() << std::endl;
+	}
+
 	if ( A.size() > static_cast<uint64_t>(::std::numeric_limits<saidx_t>::max()) )
 	{
 		::libmaus2::exception::LibMausException se;
@@ -159,10 +165,23 @@ std::map<int64_t,uint64_t> libmaus2::util::OctetString::getHistogramAsMap() cons
 	}
 
 	::libmaus2::autoarray::AutoArray<saidx_t,static_cast<libmaus2::autoarray::alloc_type>(libmaus2::util::StringAllocTypes::sa_atype)> SA(A.size());
+
+	if ( verbose >= 5 )
+	{
+		libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+		std::cerr << "[V] OctectString::computeSuffixArray32 parallel=" << parallel << " A.size()=" << A.size() << " allocated array" << std::endl;
+	}
+
 	if ( parallel )
 		sort_type_parallel::divsufsort ( A.begin() , SA.begin() , A.size() );
 	else
 		sort_type_serial::divsufsort ( A.begin() , SA.begin() , A.size() );
+
+	if ( verbose >= 5 )
+	{
+		libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+		std::cerr << "[V] OctectString::computeSuffixArray32 parallel=" << parallel << " A.size()=" << A.size() << " sorted" << std::endl;
+	}
 
 	return SA;
 }
