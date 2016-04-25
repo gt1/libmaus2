@@ -415,7 +415,8 @@ namespace libmaus2
 				}
 
 				// check if we find the same via binary search
-				assert ( result.getBlockP0Rank() == input_types_type::circular_suffix_comparator::suffixSearch(SA.begin(), cblocksize, blockstart /* offset */, blockstart, fn, fs) );
+				typename input_types_type::circular_suffix_comparator CSC(fn,fs);
+				assert ( result.getBlockP0Rank() == CSC.suffixSearch(SA.begin(), cblocksize, blockstart /* offset */, blockstart) );
 
 				if ( verbose >= 3 && logstr )
 				{
@@ -464,17 +465,14 @@ namespace libmaus2
 				// std::cerr << "[V] searching for " << zreqvec.size() << " suffixes...";
 				::libmaus2::timing::RealTimeClock sufsertc; sufsertc.start();
 				result.resizeZBlocks(zreqvec.size());
-				#if defined(_OPENMP)
-				// #pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
-				#endif
+				// loop not parallelisable because of CSC!
 				for ( uint64_t z = 0; z < zreqvec.size(); ++z )
 				{
 					uint64_t const zabspos = zreqvec[z]; // .zabspos;
 
-					uint64_t const zrank = input_types_type::circular_suffix_comparator::suffixSearchTryInternal(
+					uint64_t const zrank = CSC.suffixSearchTryInternal(
 						SA.begin(), T.begin(), T.end(), cblocksize,
-						blockstart, zabspos%fs,
-						fn, fs
+						blockstart, zabspos%fs
 					);
 
 					#if 0
