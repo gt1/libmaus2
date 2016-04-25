@@ -119,12 +119,19 @@ namespace libmaus2
 
 			std::string const & filename;
 			uint64_t const fs;
+			typename factory_type::wrapper_ptr_type cstream0;
+			typename factory_type::wrapper_ptr_type cstream1;
+			libmaus2::autoarray::AutoArray<char> CA;
+			libmaus2::autoarray::AutoArray<char> CB;
 
 			CircularSuffixComparatorTemplate(
 				std::string const & rfilename,
 				uint64_t const rfs
 			)
-			: filename(rfilename), fs(rfs)
+			: filename(rfilename), fs(rfs),
+			  cstream0(factory_type::construct(filename,0)),
+			  cstream1(factory_type::construct(filename,0)),
+			  CA(1024,false), CB(1024,false)
 			{
 			}
 
@@ -138,13 +145,15 @@ namespace libmaus2
 				if ( pa == pb )
 					return false;
 
-				typename factory_type::wrapper_ptr_type cwa(factory_type::construct(filename,pa));
-				typename factory_type::wrapper_ptr_type cwb(factory_type::construct(filename,pb));
+				cstream0->clear();
+				cstream0->seekg(pa);
+				cstream1->clear();
+				cstream1->seekg(pb);
 
 				for ( uint64_t i = 0; i < fs; ++i )
 				{
-					typename factory_type::int_type const ca = cwa->get();
-					typename factory_type::int_type const cb = cwb->get();
+					typename factory_type::int_type const ca = cstream0->get();
+					typename factory_type::int_type const cb = cstream1->get();
 
 					assert ( ca != factory_type::base_istream_type::traits_type::eof() );
 					assert ( cb != factory_type::base_istream_type::traits_type::eof() );
@@ -162,12 +171,13 @@ namespace libmaus2
 				assert ( fs );
 				pb %= fs;
 
-				typename factory_type::wrapper_ptr_type cwb(factory_type::construct(filename,pb));
+				cstream0->clear();
+				cstream0->seekg(pb);
 
 				while ( texta != texte )
 				{
 					typename factory_type::int_type const ca = *(texta++);
-					typename factory_type::int_type const cb = cwb->get();
+					typename factory_type::int_type const cb = cstream0->get();
 
 					assert ( ca != factory_type::base_istream_type::traits_type::eof() );
 					assert ( cb != factory_type::base_istream_type::traits_type::eof() );
@@ -182,10 +192,11 @@ namespace libmaus2
 
 			// search for smallest suffix in SA that equals q or is larger than q
 			template<typename saidx_t>
-			static uint64_t suffixSearch(saidx_t const * SA, uint64_t const n, uint64_t const o, uint64_t const q, std::string const & filename, uint64_t const fs)
+			uint64_t suffixSearch(saidx_t const * SA, uint64_t const n, uint64_t const o, uint64_t const q)
 			{
 				uint64_t l = 0, r = n;
-				this_type CSC(filename,fs);
+				// this_type CSC(filename,fs);
+				this_type & CSC = (*this);
 
 				// binary search
 				while ( r-l > 2 )
@@ -217,15 +228,26 @@ namespace libmaus2
 				return l;
 			}
 
+			#if 0
+			template<typename saidx_t>
+			static uint64_t suffixSearch(saidx_t const * SA, uint64_t const n, uint64_t const o, uint64_t const q, std::string const & filename, uint64_t const fs)
+			{
+				this_type CSC(filename,fs);
+				return CSC.suffixSearch(SA,n,o,q);
+			}
+			#endif
+
 			// search for smallest suffix in SA that equals q or is larger than q
 			template<typename saidx_t, typename text_iterator>
-			static uint64_t suffixSearchInternal(
+			uint64_t suffixSearchInternal(
 				saidx_t const * SA,
 				text_iterator texta, text_iterator texte,
-				uint64_t const n, uint64_t const q, std::string const & filename, uint64_t const fs)
+				uint64_t const n, uint64_t const q
+			)
 			{
 				uint64_t l = 0, r = n;
-				this_type CSC(filename,fs);
+				this_type & CSC = (*this);
+				// this_type CSC(filename,fs);
 
 				// binary search
 				while ( r-l > 2 )
@@ -258,6 +280,25 @@ namespace libmaus2
 			}
 
 			template<typename saidx_t, typename text_iterator>
+			uint64_t suffixSearchTryInternal(
+				saidx_t const * SA,
+				text_iterator texta, text_iterator texte,
+				uint64_t const n, uint64_t const o, uint64_t const q
+			)
+			{
+				try
+				{
+					return suffixSearchInternal(SA, texta, texte, n, q);
+				}
+				catch(std::exception const & ex)
+				{
+					// std::cerr << ex.what() << std::endl;
+					return suffixSearch(SA,n,o,q);
+				}
+			}
+
+			#if 0
+			template<typename saidx_t, typename text_iterator>
 			static uint64_t suffixSearchTryInternal(
 				saidx_t const * SA,
 				text_iterator texta, text_iterator texte,
@@ -265,16 +306,10 @@ namespace libmaus2
 				std::string const & filename,
 				uint64_t const fs)
 			{
-				try
-				{
-					return suffixSearchInternal(SA, texta, texte, n, q, filename, fs);
-				}
-				catch(std::exception const & ex)
-				{
-					// std::cerr << ex.what() << std::endl;
-					return suffixSearch(SA,n,o,q,filename,fs);
-				}
+				this_type CSC(filename,fs);
+				return CSC.suffixSearchTryInternal(SA,texta,texte,n,o,q);
 			}
+			#endif
 		};
 
 		typedef CircularSuffixComparatorTemplate<CircularWrapperFactory> CircularSuffixComparator;

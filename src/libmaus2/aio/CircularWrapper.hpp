@@ -76,14 +76,6 @@ namespace libmaus2
 			{
 
 			}
-
-			/**
-			 * return read position in absolute stream
-			 **/
-			uint64_t tellg() const
-			{
-				return CircularBuffer::tellg();
-			}
 		};
 
 		/**
@@ -131,13 +123,6 @@ namespace libmaus2
 			: Utf8CircularBuffer(rin,offset,buffersize,pushbackspace), ::std::wistream(this)
 			{
 
-			}
-			/**
-			 * return symbol read position in absolute stream
-			 **/
-			uint64_t tellg() const
-			{
-				return Utf8CircularBuffer::tellg();
 			}
 		};
 
