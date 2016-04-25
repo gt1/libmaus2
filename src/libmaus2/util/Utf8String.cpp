@@ -71,7 +71,8 @@ void libmaus2::util::Utf8String::setup()
 libmaus2::util::Utf8String::Utf8String(
 	std::string const & filename,
 	uint64_t offset,
-	uint64_t blength)
+	uint64_t blength,
+	int const /* verbose */)
 {
 	::libmaus2::aio::InputStreamInstance CIS(filename);
 	uint64_t const fs = ::libmaus2::util::GetFileSize::getFileSize(CIS);
@@ -85,14 +86,14 @@ libmaus2::util::Utf8String::Utf8String(
 	setup();
 }
 
-libmaus2::util::Utf8String::Utf8String(std::istream & CIS, uint64_t blength)
+libmaus2::util::Utf8String::Utf8String(std::istream & CIS, uint64_t blength, int const /* verbose */)
 : A(blength,false)
 {
 	CIS.read(reinterpret_cast<char *>(A.begin()),blength);
 	setup();
 }
 
-libmaus2::util::Utf8String::Utf8String(std::wistream & CIS, uint64_t const octetlength, uint64_t const symlength)
+libmaus2::util::Utf8String::Utf8String(std::wistream & CIS, uint64_t const octetlength, uint64_t const symlength, int const /* verbose */)
 : A(octetlength,false)
 {
 	::libmaus2::util::PutObject<uint8_t *> P(A.begin());
