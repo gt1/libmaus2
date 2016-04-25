@@ -1,3 +1,11 @@
+libmaus2 (2.0.170-1) unstable; urgency=medium
+
+  * add verbose construction in OctetString class
+  * add dummy verbose parameter in Utf8String class to match OctetString
+  * switch DNARank and ImpCacheLineRank and suffix sorting back to non huge page based allocator (not sure huge page allocation is stable yet)
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 25 Apr 2016 11:00:18 +0200
+
 libmaus2 (2.0.169-1) unstable; urgency=medium
 
   * do not reopen file lots of times in CircularSuffixComparator
