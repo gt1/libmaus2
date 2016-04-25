@@ -105,6 +105,8 @@ namespace libmaus2
 			//! chromosome (reference sequence meta data) vector
 			std::vector< ::libmaus2::bambam::Chromosome > chromosomes;
 
+			libmaus2::autoarray::AutoArray<uint8_t> rbuf;
+
 			uint64_t getSeriliasedLength() const
 			{
 				libmaus2::util::CountPutObject CPO;
@@ -175,9 +177,39 @@ namespace libmaus2
 			  name(0),
 			  b_l_ref_read(0),
 			  l_ref(0),
-			  chromosomes()
+			  chromosomes(),
+			  rbuf(1024,false)
 			{
 
+			}
+
+			virtual ~BamHeaderParserState() {}
+
+			virtual void magicComplete()
+			{
+			}
+
+			virtual void textLengthComplete(int64_t const textlength)
+			{
+				if ( textlength > 0 )
+					this->text.resize(textlength);
+				else
+					this->text.resize(0);
+			}
+
+			virtual void textAvailable(uint8_t const * B, uint64_t const n, bool const /* finalcall */)
+			{
+				std::copy(B,B+n,this->text.begin() + this->b_text_read);
+			}
+
+			virtual void numRefSeqComplete(uint64_t const num)
+			{
+				this->chromosomes.resize(num);
+			}
+
+			virtual void chromosomeComplete(uint64_t const id, ::libmaus2::bambam::Chromosome const & C)
+			{
+				this->chromosomes[id] = C;
 			}
 
 			template<typename stream_type>
@@ -216,7 +248,10 @@ namespace libmaus2
 
 							// switch to next state if we got the whole magic
 							if ( this->b_magic_read == 4 )
+							{
 								this->state = bam_header_read_l_text;
+								magicComplete();
+							}
 
 							break;
 						}
@@ -231,22 +266,46 @@ namespace libmaus2
 
 							if ( this->b_l_text_read == 4 )
 							{
+
 								if ( this->l_text )
-								{
-									this->text.resize(this->l_text);
 									this->state = bam_header_read_text;
-								}
 								else
 									this->state = bam_header_read_n_ref;
+
+								textLengthComplete(this->l_text);
 							}
 							break;
 						}
 						case bam_header_read_text:
 						{
-							uint8_t const sym = getByte(in);
-							r += 1;
+							assert ( r < n );
+							assert ( this->b_text_read < this->l_text );
 
-							this->text[this->b_text_read++] = static_cast<char>(static_cast<unsigned char>(sym));
+							// number of bytes currently available in stream
+							uint64_t const av = n-r;
+							// number of text bytes still missing
+							uint64_t const tr = this->l_text - this->b_text_read;
+							// number of bytes to be processed
+							uint64_t todo = std::min(av,tr);
+							assert ( todo );
+
+							while ( todo )
+							{
+								uint64_t const toprocess = std::min(todo,static_cast<uint64_t>(rbuf.size()));
+
+								for ( uint64_t i = 0; i < toprocess; ++i )
+								{
+									uint8_t const sym = static_cast<uint8_t>(getByte(in));
+									this->rbuf[i] = sym;
+								}
+
+								bool const finalcall = (this->b_text_read + toprocess) == this->l_text;
+								textAvailable(this->rbuf.begin(),toprocess,finalcall);
+
+								this->b_text_read += toprocess;
+								r += toprocess;
+								todo -= toprocess;
+							}
 
 							if ( this->b_text_read == this->l_text )
 							{
@@ -276,7 +335,7 @@ namespace libmaus2
 
 							if ( this->b_n_ref == 4 )
 							{
-								this->chromosomes.resize(this->n_ref);
+								numRefSeqComplete(this->n_ref);
 
 								if ( this->n_ref )
 									this->state = bam_header_reaf_ref_l_name;
@@ -334,9 +393,12 @@ namespace libmaus2
 								while ( this->l_name && (!this->name[this->l_name-1]) )
 									-- this->l_name;
 
-								this->chromosomes[this->b_ref] = ::libmaus2::bambam::Chromosome(
-									std::string(this->name.begin(),this->name.begin()+this->l_name),
-									this->l_ref
+								chromosomeComplete(
+									this->b_ref,
+									::libmaus2::bambam::Chromosome(
+										std::string(this->name.begin(),this->name.begin()+this->l_name),
+										this->l_ref
+									)
 								);
 
 								#if 0
