@@ -3506,7 +3506,7 @@ namespace libmaus2
 						uint64_t const b = largelcpblocks[ib];
 
 						if ( logstr )
-							*logstr << "[V] Recomputing lcp value for block " << b << std::endl;
+							*logstr << "[V] Recomputing lcp value for block " << b << "...";
 
 						// start of block in file
 						uint64_t const blockstart = getBlockStart(b,blocksize,fullblocks);
@@ -3520,6 +3520,9 @@ namespace libmaus2
 						uint64_t const blcp = libmaus2::suffixsort::BwtMergeBlockSortRequestBase::findSplitCommon<input_types_type>(fn,blockstart,cblocksize,nextblockstart,fs);
 
 						boundedlcpblockvalues[b] = blcp;
+
+						if ( logstr )
+							*logstr << blcp << std::endl;
 					}
 
 					// exit(0);
