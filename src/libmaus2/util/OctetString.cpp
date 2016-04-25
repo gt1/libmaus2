@@ -164,12 +164,20 @@ std::map<int64_t,uint64_t> libmaus2::util::OctetString::getHistogramAsMap() cons
 		throw se;
 	}
 
-	::libmaus2::autoarray::AutoArray<saidx_t,static_cast<libmaus2::autoarray::alloc_type>(libmaus2::util::StringAllocTypes::sa_atype)> SA(A.size());
+	::libmaus2::autoarray::AutoArray<saidx_t,static_cast<libmaus2::autoarray::alloc_type>(libmaus2::util::StringAllocTypes::sa_atype)> SA(A.size(),false);
 
 	if ( verbose >= 5 )
 	{
 		libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
-		std::cerr << "[V] OctectString::computeSuffixArray32 parallel=" << parallel << " A.size()=" << A.size() << " allocated array" << std::endl;
+		std::cerr << "[V] OctectString::computeSuffixArray32 parallel=" << parallel << " A.size()=" << A.size() << " allocated array, type " << libmaus2::util::StringAllocTypes::sa_atype << std::endl;
+	}
+	
+	::memset(SA.begin(),0,SA.size() * sizeof(saidx_t));
+
+	if ( verbose >= 5 )
+	{
+		libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+		std::cerr << "[V] OctectString::computeSuffixArray32 parallel=" << parallel << " A.size()=" << A.size() << " erased SA array" << std::endl;
 	}
 
 	if ( parallel )
