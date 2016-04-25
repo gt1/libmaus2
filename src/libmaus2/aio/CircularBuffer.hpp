@@ -110,12 +110,42 @@ namespace libmaus2
 				base_type::setg(buffer.end(), buffer.end(), buffer.end());
 			}
 
-			/**
-			 * position in unwrapped input
-			 **/
-			uint64_t tellg() const
+			::std::streampos seekpos(::std::streampos sp, ::std::ios_base::openmode which = ::std::ios_base::in | ::std::ios_base::out)
 			{
-				return streamreadpos - (base_type::egptr()-base_type::gptr());
+				if ( (which & ::std::ios_base::in) != 0 )
+				{
+					stream.seekg(sp);
+					stream.clear();
+					base_type::setg(buffer.end(), buffer.end(), buffer.end());
+					streamreadpos = sp;
+					return sp;
+				}
+				else
+				{
+					return static_cast< ::std::streampos >(-1);
+				}
+			}
+
+			::std::streampos seekoff(::std::streamoff off, ::std::ios_base::seekdir way, ::std::ios_base::openmode which = ::std::ios_base::in | ::std::ios_base::out)
+			{
+				if ( (which & ::std::ios_base::in) == 0 )
+					return -1;
+
+				if ( way == ::std::ios_base::beg )
+					return seekpos(off,which);
+				else if ( way == ::std::ios_base::end )
+					return seekpos(static_cast<int64_t>(infilesize) + off,which);
+				else if ( way == ::std::ios_base::cur )
+				{
+					int64_t const cur = static_cast<int64_t>(streamreadpos) - static_cast<int64_t>(base_type::egptr()-base_type::gptr());
+
+					if ( off == 0 )
+						return cur;
+
+					return seekpos(cur + off);
+				}
+				else
+					return -1;
 			}
 
 			private:
