@@ -46,7 +46,8 @@ namespace libmaus2
 			uint64_t const numblocks;
 
 			enum {
-				alloc_type = ::libmaus2::autoarray::alloc_type_hugepages_memalign_cacheline
+				// alloc_type = ::libmaus2::autoarray::alloc_type_hugepages_memalign_cacheline
+				alloc_type = ::libmaus2::autoarray::alloc_type_memalign_cacheline
 			};
 
 			::libmaus2::autoarray::AutoArray<uint64_t, static_cast< ::libmaus2::autoarray::alloc_type >(alloc_type)> A;

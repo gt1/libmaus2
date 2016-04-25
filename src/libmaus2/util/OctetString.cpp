@@ -18,6 +18,7 @@
 */
 #include <libmaus2/util/OctetString.hpp>
 #include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/aio/StreamLock.hpp>
 
 uint64_t libmaus2::util::OctetString::computeOctetLength(std::istream &, uint64_t const len)
 {
@@ -36,30 +37,98 @@ libmaus2::util::OctetString::shared_ptr_type libmaus2::util::OctetString::constr
 libmaus2::util::OctetString::OctetString(
 	std::string const & filename,
 	uint64_t offset,
-	uint64_t blength)
+	uint64_t blength,
+	int rverbose
+) : verbose(rverbose)
 {
+	if ( verbose >= 5 )
+	{
+		libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+		std::cerr << "[V] loading OctectString from " << filename << " offset " << offset << " blength=" << blength << std::endl;
+	}
+	if ( verbose >= 5 )
+	{
+		libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+		std::cerr << "[V] OctectString opening: " << filename << " offset " << offset << " blength=" << blength << std::endl;
+	}
 	::libmaus2::aio::InputStreamInstance CIS(filename);
+	if ( verbose >= 5 )
+	{
+		libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+		std::cerr << "[V] OctectString getFileSize: " << filename << " offset " << offset << " blength=" << blength << std::endl;
+	}
 	uint64_t const fs = ::libmaus2::util::GetFileSize::getFileSize(CIS);
+	if ( verbose >= 5 )
+	{
+		libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+		std::cerr << "[V] OctectString got file size: " << filename << " offset " << offset << " blength=" << blength << fs << std::endl;
+	}
 	offset = std::min(offset,fs);
 	blength = std::min(blength,fs-offset);
 
+	if ( verbose >= 5 )
+	{
+		libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+		std::cerr << "[V] OctectString updated: " << filename << " offset " << offset << " blength=" << blength << fs << std::endl;
+	}
+
 	CIS.seekg(offset);
+
+	if ( verbose >= 5 )
+	{
+		libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+		std::cerr << "[V] OctectString seeked: " << filename << " offset " << offset << " blength=" << blength << fs << std::endl;
+	}
+
 	A = A_type(blength,false);
+
+	if ( verbose >= 5 )
+	{
+		libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+		std::cerr << "[V] OctectString allocated: " << filename << " offset " << offset << " blength=" << blength << fs << std::endl;
+	}
+
 	CIS.read(reinterpret_cast<char *>(A.begin()),blength);
+
+	if ( verbose >= 5 )
+	{
+		libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+		std::cerr << "[V] OctectString read: " << filename << " offset " << offset << " blength=" << blength << fs << std::endl;
+	}
 }
 
-libmaus2::util::OctetString::OctetString(std::istream & CIS, uint64_t blength)
-: A(blength,false)
+libmaus2::util::OctetString::OctetString(std::istream & CIS, uint64_t blength, int const rverbose)
+: A(blength,false), verbose(rverbose)
 {
+	if ( verbose >= 5 )
+	{
+		libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+		std::cerr << "[V] OctectString reading stream blength=" << blength << std::endl;
+	}
 	CIS.read(reinterpret_cast<char *>(A.begin()),blength);
+	if ( verbose >= 5 )
+	{
+		libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+		std::cerr << "[V] OctectString reading stream blength=" << blength << " finished" << std::endl;
+	}
 }
 
 
-libmaus2::util::OctetString::OctetString(std::istream & CIS, uint64_t const octetlength, uint64_t const symlength)
-: A(octetlength,false)
+libmaus2::util::OctetString::OctetString(std::istream & CIS, uint64_t const octetlength, uint64_t const symlength, int const rverbose)
+: A(octetlength,false), verbose(rverbose)
 {
+	if ( verbose >= 5 )
+	{
+		libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+		std::cerr << "[V] OctectString reading stream octetlength=" << octetlength << " symlength=" << symlength << std::endl;
+	}
 	assert ( octetlength == symlength );
 	CIS.read(reinterpret_cast<char *>(A.begin()),symlength);
+	if ( verbose >= 5 )
+	{
+		libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+		std::cerr << "[V] OctectString reading stream octetlength=" << octetlength << " symlength=" << symlength << " finished" << std::endl;
+	}
 }
 
 ::libmaus2::util::Histogram::unique_ptr_type libmaus2::util::OctetString::getHistogram() const

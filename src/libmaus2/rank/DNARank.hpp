@@ -54,7 +54,9 @@ namespace libmaus2
 
 			private:
 			uint64_t n;
-			libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_hugepages_memalign_cacheline> B;
+			// typedef libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_hugepages_memalign_cacheline> B_type;
+			typedef libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_memalign_cacheline> B_type;
+			B_type B;
 			D_type D;
 
 			void computeD()
@@ -814,7 +816,7 @@ namespace libmaus2
 				// number of thread packages
 				int64_t const numpacks = (numblocks + blocksperthread-1)/blocksperthread;
 
-				P->B = libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_hugepages_memalign_cacheline>(numallocblocks * getWordsPerBlock(), false);
+				P->B = B_type(numallocblocks * getWordsPerBlock(), false);
 				P->n = n;
 
 				libmaus2::autoarray::AutoArray<uint64_t> symacc((numpacks+1)*getSigma(),false);

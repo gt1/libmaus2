@@ -27,7 +27,8 @@ namespace libmaus2
 		struct StringAllocTypes
 		{
 			enum {
-				sa_atype = ::libmaus2::autoarray::alloc_type_hugepages
+				// sa_atype = ::libmaus2::autoarray::alloc_type_hugepages
+				sa_atype = ::libmaus2::autoarray::alloc_type_cxx
 			};
 			// static libmaus2::autoarray::alloc_type const sa_atype = ::libmaus2::autoarray::alloc_type_c;
 			// static libmaus2::autoarray::alloc_type const sa_atype = ::libmaus2::autoarray::alloc_type_hugepages;

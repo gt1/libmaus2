@@ -34,8 +34,9 @@ namespace libmaus2
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			typedef uint8_t const * const_iterator;
 
-			typedef ::libmaus2::autoarray::AutoArray<uint8_t,libmaus2::autoarray::alloc_type_hugepages> A_type;
+			typedef ::libmaus2::autoarray::AutoArray<uint8_t,libmaus2::autoarray::alloc_type_cxx> A_type;
 			A_type A;
+			int const verbose;
 
 			const_iterator begin() const
 			{
@@ -65,9 +66,11 @@ namespace libmaus2
 			OctetString(
 				std::string const & filename,
 				uint64_t offset = 0,
-				uint64_t blength = std::numeric_limits<uint64_t>::max());
-			OctetString(std::istream & CIS, uint64_t blength);
-			OctetString(std::istream & CIS, uint64_t const octetlength, uint64_t const symlength);
+				uint64_t blength = std::numeric_limits<uint64_t>::max(),
+				int const verbose = 0
+			);
+			OctetString(std::istream & CIS, uint64_t blength, int const verbose = 0);
+			OctetString(std::istream & CIS, uint64_t const octetlength, uint64_t const symlength, int const verbose = 0);
 
 			uint64_t size() const
 			{
