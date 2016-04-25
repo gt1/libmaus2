@@ -317,11 +317,11 @@ namespace libmaus2
 				}
 
 				// set up circular reader
-				typename input_types_type::circular_wrapper circ(fn,blockstart);
+				// typename input_types_type::circular_wrapper circ(fn,blockstart);
 				circular_wrapper_ptr_type tcwptr(new circular_wrapper(fn,blockstart));
 				cwptr = UNIQUE_PTR_MOVE(tcwptr);
 				// construct string (read text and preprocess it for random symbol access)
-				typename string_type::unique_ptr_type PT(new string_type(*cwptr, octetlength, readsize));
+				typename string_type::unique_ptr_type PT(new string_type(*cwptr, octetlength, readsize, verbose));
 				string_type & T = *PT;
 
 				if ( verbose >= 3 && logstr )

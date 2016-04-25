@@ -55,7 +55,7 @@ namespace libmaus2
 				return const_iterator(this,size());
 			}
 
-			typedef ::libmaus2::autoarray::AutoArray<uint8_t,libmaus2::autoarray::alloc_type_hugepages> A_type;
+			typedef ::libmaus2::autoarray::AutoArray<uint8_t,libmaus2::autoarray::alloc_type_cxx> A_type;
 			A_type A;
 			::libmaus2::rank::ImpCacheLineRank::unique_ptr_type I;
 			::libmaus2::select::ImpCacheLineSelectSupport::unique_ptr_type S;
@@ -78,9 +78,11 @@ namespace libmaus2
 			Utf8String(
 				std::string const & filename,
 				uint64_t offset = 0,
-				uint64_t blength = std::numeric_limits<uint64_t>::max());
-			Utf8String(std::istream & CIS, uint64_t blength);
-			Utf8String(std::wistream & CIS, uint64_t const octetlength, uint64_t const symlength);
+				uint64_t blength = std::numeric_limits<uint64_t>::max(),
+				int const verbose = 0
+			);
+			Utf8String(std::istream & CIS, uint64_t blength, int const verbose = 0);
+			Utf8String(std::wistream & CIS, uint64_t const octetlength, uint64_t const symlength, int const verbose = 0);
 
 			uint64_t size() const
 			{
