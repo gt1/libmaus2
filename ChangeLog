@@ -1,3 +1,14 @@
+libmaus2 (2.0.175-1) unstable; urgency=medium
+
+  * refactor and port new gap array splitting code to internal small block in bwtb3m
+  * add getOffsetSequence method in GapArrayByte
+  * add getOffsetSequence method in AutoArray class
+  * parallelise internal two block merging work package construction in bwtb3m
+  * add parallel prefix sums function in PrefixSums class
+  * add putBack(run_type const & P) method in RLDecoder
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 26 Apr 2016 22:53:47 +0200
+
 libmaus2 (2.0.174-1) unstable; urgency=medium
 
   * use ArrayFile instead of mem: prefix in BwtMergeSortTemplate if input file is not utf-8
