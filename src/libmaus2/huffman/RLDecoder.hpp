@@ -347,6 +347,11 @@ namespace libmaus2
 				*(--pc) = P;
 			}
 
+			inline void putBack(run_type const & P)
+			{
+				*(--pc) = std::pair<int64_t,uint64_t>(P.sym,P.rlen);
+			}
+
 			inline int get()
 			{
 				return decode();
