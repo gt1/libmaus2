@@ -106,12 +106,12 @@ namespace libmaus2
 					n += getLength(filenames[i]);
 				return n;
 			}
+
 			static uint64_t getLength(std::string const & filename)
 			{
-				libmaus2::aio::InputStreamInstance istr(filename);
-				::libmaus2::bitio::StreamBitInputStream SBIS(istr);
-				return ::libmaus2::bitio::readElias2(SBIS);
-			}
+				libmaus2::huffman::IndexDecoderData IDD(filename);
+				return IDD.vacc;
+			};
 
 			RLDecoderIndexBase(std::vector<std::string> const & rfilenames)
 			:

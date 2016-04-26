@@ -28,6 +28,8 @@
 #include <libmaus2/huffman/PairAddSecond.hpp>
 #include <libmaus2/huffman/IndexEntry.hpp>
 #include <libmaus2/aio/FileRemoval.hpp>
+#include <libmaus2/huffman/IndexDecoderDataArray.hpp>
+#include <libmaus2/huffman/RLRun.hpp>
 
 namespace libmaus2
 {
@@ -42,6 +44,7 @@ namespace libmaus2
 			uint64_t const numsyms;
 
 			typedef std::pair<uint64_t,uint64_t> rl_pair;
+			typedef RLRun run_type;
 			::libmaus2::autoarray::AutoArray < rl_pair > rlbuffer;
 
 			rl_pair * const pa;
@@ -61,7 +64,7 @@ namespace libmaus2
 			  indexwritten(false)
 			{
 				// std::cerr << "Writing RL file of length " << numsyms << std::endl;
-				writer.writeElias2(numsyms);
+				writer.writeElias2((numsyms != std::numeric_limits<uint64_t>::max()) ? numsyms : 0);
 			}
 			~RLEncoderBaseTemplate()
 			{
@@ -200,6 +203,28 @@ namespace libmaus2
 				}
 			}
 
+			void encodeRun(RLRun const & R)
+			{
+				if ( R.sym == cursym )
+					curcnt += R.rlen;
+				else if ( curcnt )
+				{
+					*(pc++) = rl_pair(cursym,curcnt);
+
+					if ( pc == pe )
+						implicitFlush();
+
+					cursym = R.sym;
+					curcnt = R.rlen;
+				}
+				else
+				{
+					assert ( R.sym != cursym );
+					cursym = R.sym;
+					curcnt = R.rlen;
+				}
+			}
+
 			template<typename iterator>
 			void encode(iterator a, iterator e)
 			{
@@ -222,6 +247,12 @@ namespace libmaus2
 			typedef _huffmanencoderfile_type huffmanencoderfile_type;
 			typedef RLEncoderTemplate<_huffmanencoderfile_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+
+			RLEncoderTemplate(std::string const & filename, uint64_t const bufsize)
+			: huffmanencoderfile_type(filename), RLEncoderBaseTemplate< huffmanencoderfile_type >(*this,std::numeric_limits<uint64_t>::max(),bufsize)
+			{
+
+			}
 
 			RLEncoderTemplate(std::string const & filename, uint64_t const n, uint64_t const bufsize)
 			: huffmanencoderfile_type(filename), RLEncoderBaseTemplate< huffmanencoderfile_type >(*this,n,bufsize)
@@ -315,11 +346,11 @@ namespace libmaus2
 					n += getLength(filenames[i]);
 				return n;
 			}
+
 			static uint64_t getLength(std::string const & filename)
 			{
-				libmaus2::aio::InputStreamInstance istr(filename);
-				::libmaus2::bitio::StreamBitInputStream SBIS(istr);
-				return ::libmaus2::bitio::readElias2(SBIS);
+				libmaus2::huffman::IndexDecoderData IDD(filename);
+				return IDD.vacc;
 			}
 
 			static void concatenate(std::vector<std::string> const & filenames, std::string const & outfilename, bool const removeinput = false)
