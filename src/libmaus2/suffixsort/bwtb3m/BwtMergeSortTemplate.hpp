@@ -45,6 +45,7 @@
 #include <libmaus2/suffixsort/bwtb3m/MergeStrategyConstruction.hpp>
 #include <libmaus2/suffixsort/bwtb3m/BaseBlockSorting.hpp>
 #include <libmaus2/suffixsort/bwtb3m/BwtMergeSortResult.hpp>
+#include <libmaus2/aio/ArrayFile.hpp>
 
 namespace libmaus2
 {
@@ -3549,27 +3550,100 @@ namespace libmaus2
 					::libmaus2::util::TempFileRemovalContainer::addTempFile(chistfilename);
 					::libmaus2::util::TempFileRemovalContainer::addTempFile(huftreefilename);
 
+					libmaus2::aio::ArrayFile<char const *>::unique_ptr_type COAF;
+					libmaus2::autoarray::AutoArray<char> COA;
+
 					if ( options.copyinputtomemory )
 					{
-						std::string const nfn = "mem://copied_" + fn;
-						libmaus2::aio::InputStreamInstance ininst(fn);
-						libmaus2::aio::OutputStreamInstance outinst(nfn);
-						uint64_t const fs = libmaus2::util::GetFileSize::getFileSize(ininst);
-						libmaus2::util::GetFileSize::copy(ininst,outinst,fs);
-						if ( logstr )
-							(*logstr) << "[V] copied " << fn << " to " << nfn << std::endl;
-
 						if ( input_types_type::utf8Wavelet() )
 						{
-							libmaus2::aio::InputStreamInstance ininst(fn + ".idx");
-							libmaus2::aio::OutputStreamInstance outinst(nfn + ".idx");
+							std::string const nfn = "mem://copied_" + fn;
+							libmaus2::aio::InputStreamInstance ininst(fn);
+							libmaus2::aio::OutputStreamInstance outinst(nfn);
 							uint64_t const fs = libmaus2::util::GetFileSize::getFileSize(ininst);
 							libmaus2::util::GetFileSize::copy(ininst,outinst,fs);
-							if ( *logstr )
-								*logstr << "[V] copied " << fn+".idx" << " to " << nfn+".idx" << std::endl;
-						}
+							if ( logstr )
+								(*logstr) << "[V] copied " << fn << " to " << nfn << std::endl;
 
-						fn = nfn;
+							{
+								libmaus2::aio::InputStreamInstance ininst(fn + ".idx");
+								libmaus2::aio::OutputStreamInstance outinst(nfn + ".idx");
+								uint64_t const fs = libmaus2::util::GetFileSize::getFileSize(ininst);
+								libmaus2::util::GetFileSize::copy(ininst,outinst,fs);
+								if ( logstr )
+									*logstr << "[V] copied " << fn+".idx" << " to " << nfn+".idx" << std::endl;
+							}
+
+							fn = nfn;
+						}
+						else
+						{
+							uint64_t const fs = libmaus2::util::GetFileSize::getFileSize(fn);
+							COA = libmaus2::autoarray::AutoArray<char>(fs,false);
+
+							#if defined(_OPENMP)
+							uint64_t const bs = 1024ull * 1024ull;
+							uint64_t const numthreads = options.numthreads;
+							uint64_t const numblocks = (fs + bs - 1)/bs;
+
+							if ( logstr )
+								(*logstr) << "[V] copying " << fn << " using " << numthreads << " threads, stripe size " << bs << std::endl;
+
+							#pragma omp parallel num_threads(numthreads)
+							{
+								uint64_t const tid = omp_get_thread_num();
+								libmaus2::aio::InputStreamInstance ininst(fn);
+
+								uint64_t bid = tid;
+
+								while ( bid < numblocks )
+								{
+									uint64_t const low = bid * bs;
+									uint64_t const high = std::min(low+bs,fs);
+									assert ( high > low );
+
+									ininst.clear();
+									ininst.seekg(low);
+
+									ininst.read(COA.begin() + low,high-low);
+
+									assert ( ininst && (ininst.gcount() == static_cast<int64_t>(high-low)) );
+
+									bid += numthreads;
+								}
+							}
+							#else
+							{
+								libmaus2::aio::InputStreamInstance ininst(fn);
+								ininst.read(COA.begin(),fs);
+								assert ( ininst && (ininst.gcount() == static_cast<int64_t>(fs)) );
+							}
+							#endif
+
+							libmaus2::aio::ArrayFile<char const *>::unique_ptr_type tCOAF(
+								new libmaus2::aio::ArrayFile<char const *>(COA.begin(),COA.end())
+							);
+							COAF = UNIQUE_PTR_MOVE(tCOAF);
+							std::string const nfn = COAF->getURL();
+							if ( logstr )
+								*logstr << "[V] copied " << fn << " to " << nfn << std::endl;
+
+							#if 0
+							{
+								libmaus2::aio::InputStreamInstance ISI0(fn);
+								libmaus2::aio::InputStreamInstance ISI1(nfn);
+								for ( uint64_t i = 0; i < fs; ++i )
+								{
+									int const c0 = ISI0.get();
+									int const c1 = ISI1.get();
+									assert ( c0 != std::istream::traits_type::eof() );
+									assert ( c0 == c1 );
+								}
+							}
+							#endif
+
+							fn = nfn;
+						}
 					}
 
 
