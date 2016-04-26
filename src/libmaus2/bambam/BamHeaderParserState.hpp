@@ -197,9 +197,21 @@ namespace libmaus2
 					this->text.resize(0);
 			}
 
-			virtual void textAvailable(uint8_t const * B, uint64_t const n, bool const /* finalcall */)
+			virtual void textAvailable(uint8_t const * B, uint64_t const n, bool const finalcall)
 			{
 				std::copy(B,B+n,this->text.begin() + this->b_text_read);
+
+				if ( finalcall )
+				{
+					// removing padding null bytes
+					while ( this->l_text && (!this->text[this->l_text-1]) )
+						--this->l_text;
+
+					#if 0
+					libmaus2::aio::OutputStreamInstance OSI("test_header.sam");
+					OSI.write(reinterpret_cast<char const *>(this->text.begin()),this->l_text);
+					#endif
+				}
 			}
 
 			virtual void numRefSeqComplete(uint64_t const num)
@@ -209,7 +221,7 @@ namespace libmaus2
 
 			virtual void chromosomeComplete(uint64_t const id, ::libmaus2::bambam::Chromosome const & C)
 			{
-				this->chromosomes[id] = C;
+				this->chromosomes.at(id) = C;
 			}
 
 			template<typename stream_type>
@@ -309,10 +321,6 @@ namespace libmaus2
 
 							if ( this->b_text_read == this->l_text )
 							{
-								// removing padding null bytes
-								while ( this->l_text && (!this->text[this->l_text-1]) )
-									--this->l_text;
-
 								#if 0
 								std::cerr <<
 									std::string(
