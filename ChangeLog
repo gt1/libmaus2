@@ -1,3 +1,13 @@
+libmaus2 (2.0.173-1) unstable; urgency=medium
+
+  * add more verbose statements in BwtMergeSortTemplate
+  * print large lcp value after computing it
+  * add run_type typedef in RLEncoder
+  * add per run length encoding and decoding in RLDecoder/RLEncoder
+  * erase array in suffix sorting method of OctetString
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 26 Apr 2016 08:36:32 +0200
+
 libmaus2 (2.0.172-1) unstable; urgency=medium
 
   * add more verbose messages in OctetString 

@@ -88,6 +88,25 @@ namespace libmaus2
 				}
 			}
 
+			void encodeRun(SymCountRun const & SC)
+			{
+				if ( static_cast<SymCount const &>(SC) == static_cast<SymCount const &>(currun) )
+				{
+					currun.rlen += SC.rlen;
+				}
+				else
+				{
+					if ( currun.rlen )
+					{
+						*(rc++) = currun;
+						if ( rc == re )
+							implicitFlush();
+					}
+
+					currun = SC;
+				}
+			}
+
 			void flush()
 			{
 				assert ( rc != re );
