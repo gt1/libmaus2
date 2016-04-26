@@ -27,9 +27,13 @@ namespace libmaus2
 {
 	namespace aio
 	{
-		template<typename iterator>
+		template<typename _iterator>
 		struct ArrayFile
 		{
+			typedef _iterator iterator;
+			typedef ArrayFile<iterator> this_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+
 			private:
 			// array
 			iterator ita;
