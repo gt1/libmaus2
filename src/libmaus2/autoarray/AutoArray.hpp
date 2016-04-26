@@ -631,6 +631,31 @@ namespace libmaus2
 				return get()+size();
 			}
 
+			struct AutoArraySequence
+			{
+				const_iterator p;
+
+				AutoArraySequence(const_iterator rp = const_iterator())
+				: p(rp) {}
+
+				value_type get()
+				{
+					return *(p++);
+				}
+			};
+
+			typedef AutoArraySequence sequence_type;
+
+			sequence_type getOffsetSequence(uint64_t const offset) const
+			{
+				return AutoArraySequence(begin() + offset);
+			}
+
+			const_iterator getOffsetPointer(uint64_t const offset) const
+			{
+				return begin() + offset;
+			}
+
 			/**
 			 * return inverse array, if this is a permutation (undefined otherwise)
 			 * @return inverse array, if this is a permutation
