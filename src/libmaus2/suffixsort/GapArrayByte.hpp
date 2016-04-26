@@ -194,7 +194,7 @@ namespace libmaus2
 					flush(t);
 			}
 
-			libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type getDecoder(uint64_t const offset = 0)
+			libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type getDecoder(uint64_t const offset = 0) const
 			{
 				libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type tdec(
 					new libmaus2::suffixsort::GapArrayByteDecoder(
@@ -203,6 +203,41 @@ namespace libmaus2
 				);
 
 				return UNIQUE_PTR_MOVE(tdec);
+			}
+
+			libmaus2::suffixsort::GapArrayByteDecoder::shared_ptr_type getDecoderSharedPointer(uint64_t const offset = 0) const
+			{
+				libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type uptr(getDecoder(offset));
+				libmaus2::suffixsort::GapArrayByteDecoder::shared_ptr_type sptr(uptr.release());
+				return sptr;
+			}
+
+			struct Sequence
+			{
+				libmaus2::suffixsort::GapArrayByteDecoder::shared_ptr_type S;
+				libmaus2::suffixsort::GapArrayByteDecoderBuffer::shared_ptr_type D;
+
+				Sequence(
+					libmaus2::suffixsort::GapArrayByteDecoder::shared_ptr_type rS = libmaus2::suffixsort::GapArrayByteDecoder::shared_ptr_type(),
+					libmaus2::suffixsort::GapArrayByteDecoderBuffer::shared_ptr_type rD = libmaus2::suffixsort::GapArrayByteDecoderBuffer::shared_ptr_type()
+				)
+				: S(rS), D(rD) {}
+
+				uint64_t get()
+				{
+					return D->get();
+				}
+			};
+
+			typedef Sequence sequence_type;
+
+			sequence_type getOffsetSequence(uint64_t const offset) const
+			{
+				libmaus2::suffixsort::GapArrayByteDecoder::shared_ptr_type S(getDecoderSharedPointer(offset));
+				libmaus2::suffixsort::GapArrayByteDecoderBuffer::shared_ptr_type D(
+					new libmaus2::suffixsort::GapArrayByteDecoderBuffer(*S,1024)
+				);
+				return Sequence(S,D);
 			}
 
 			void saveHufGapArray(std::string const & gapfile)
