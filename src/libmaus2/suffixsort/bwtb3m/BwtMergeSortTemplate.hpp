@@ -1664,6 +1664,134 @@ namespace libmaus2
 					return V;
 				}
 
+				template<typename gap_array>
+				static void splitGapArray(
+					gap_array & G,
+					uint64_t const Gsize,
+					uint64_t const numthreads,
+					std::vector < std::pair<uint64_t,uint64_t> > & wpacks,
+					std::vector < uint64_t > & P,
+					std::ostream * logstr,
+					int const verbose
+				)
+				{
+					typedef typename gap_array::sequence_type sequence_type;
+
+					if ( verbose >= 5 && logstr )
+					{
+						(*logstr) << "[V] computing work packets" << std::endl;
+					}
+
+					uint64_t const logG = std::max(libmaus2::math::ilog(Gsize),static_cast<unsigned int>(1));
+					uint64_t const logG2 = logG*logG;
+					// target number of G samples
+					uint64_t const tnumGsamp = std::max(Gsize / logG2,static_cast<uint64_t>(256*numthreads));
+					uint64_t const Gsampleblocksize = (Gsize + tnumGsamp - 1) / tnumGsamp;
+					// number of G samples
+					uint64_t const numGsamp = (Gsize + Gsampleblocksize - 1) / Gsampleblocksize;
+
+					libmaus2::autoarray::AutoArray < uint64_t > Gsamples(numGsamp,false);
+
+					#if defined(_OPENMP)
+					#pragma omp parallel for num_threads(numthreads)
+					#endif
+					for ( uint64_t t = 0; t < numGsamp; ++t )
+					{
+						uint64_t const low = t * Gsampleblocksize;
+						uint64_t const high = std::min(low + Gsampleblocksize, Gsize);
+						assert ( high >= low );
+						uint64_t s = 0;
+						sequence_type gp = G.getOffsetSequence(low);
+						for ( uint64_t i = low; i < high; ++i )
+							s += gp.get();
+						s += (high-low);
+						if ( high == Gsize && high != low )
+							s -= 1;
+						Gsamples[t] = s;
+					}
+
+					#if 0
+					std::vector<uint64_t> G_A(Gsamples.begin(),Gsamples.end());
+					std::vector<uint64_t> G_B(Gsamples.begin(),Gsamples.end());
+
+					libmaus2::util::PrefixSums::prefixSums(G_A.begin(),G_A.end());
+					libmaus2::util::PrefixSums::parallelPrefixSums(G_A.begin(),G_A.end(),numthreads);
+					#endif
+
+					uint64_t const Gsum = libmaus2::util::PrefixSums::parallelPrefixSums(Gsamples.begin(),Gsamples.end(),numthreads);
+
+					if ( verbose >= 5 && logstr )
+					{
+						(*logstr) << "[V] G size " << Gsize << " number of G samples " << numGsamp << std::endl;
+					}
+
+					uint64_t const Gsumperthread = (Gsum + numthreads-1)/numthreads;
+					wpacks = std::vector < std::pair<uint64_t,uint64_t> >(numthreads);
+					#if defined(_OPENMP)
+					#pragma omp parallel for num_threads(numthreads)
+					#endif
+					for ( uint64_t i = 0; i < numthreads; ++i )
+					{
+						uint64_t const target = i * Gsumperthread;
+						uint64_t const * p = ::std::lower_bound(Gsamples.begin(),Gsamples.end(),target);
+
+						if ( p == Gsamples.end() )
+							--p;
+						while ( *p > target )
+							--p;
+
+						assert ( *p <= target );
+
+						uint64_t iv = (p - Gsamples.begin()) * Gsampleblocksize;
+						uint64_t s = *p;
+
+						sequence_type gp = G.getOffsetSequence(iv);
+						//G_array_iterator gp = G.getOffsetPointer(iv);
+						while ( s < target && iv < Gsize )
+						{
+							s += (gp.get())+1;
+							iv++;
+						}
+						if ( iv == Gsize )
+							s -= 1;
+
+						wpacks[i].first = iv;
+						if ( i )
+							wpacks[i-1].second = iv;
+						// std::cerr << "i=" << i << " iv=" << iv << " Gsize=" << Gsize << std::endl;
+					}
+					wpacks.back().second = Gsize;
+
+					// remove empty packages
+					{
+						uint64_t o = 0;
+						for ( uint64_t i = 0; i < wpacks.size(); ++i )
+							if ( wpacks[i].first != wpacks[i].second )
+								wpacks[o++] = wpacks[i];
+						wpacks.resize(o);
+					}
+
+					P.resize(wpacks.size()+1);
+					#if defined(_OPENMP)
+					#pragma omp parallel for num_threads(numthreads)
+					#endif
+					for ( uint64_t i = 0; i < wpacks.size(); ++i )
+					{
+						uint64_t const low = wpacks[i].first;
+						uint64_t const high = wpacks[i].second;
+
+						sequence_type gp = G.getOffsetSequence(low);
+						// G_array_iterator gp = G.getOffsetPointer(low);
+						uint64_t s = 0;
+						for ( uint64_t i = low; i < high; ++i )
+							s += gp.get();
+
+						P[i] = s;
+
+					}
+					libmaus2::util::PrefixSums::prefixSums(P.begin(),P.end());
+				}
+
 				static void mergeBlocks(
 					libmaus2::util::TempFileNameGenerator & gtmpgen,
 					libmaus2::suffixsort::bwtb3m::MergeStrategyMergeInternalBlock & mergereq,
@@ -1765,6 +1893,8 @@ namespace libmaus2
 							verbose
 						);
 
+						uint64_t const Gsize = (cblocksize+1);
+
 						if ( verbose >= 5 && logstr )
 						{
 							(*logstr) << "[V] call to computeGapArray finished" << std::endl;
@@ -1802,13 +1932,12 @@ namespace libmaus2
 							(*logstr) << "[V] calling mergeIsa" << std::endl;
 						}
 
-
 						// merge sampled inverse suffix arrays, returns rank of position 0 (relative to block start)
 						libmaus2::util::GetObject<uint32_t const *> mergeGO(GACR.G.begin());
 						result.setBlockP0Rank( mergeIsa(
 							mergereq.children[1]->sortresult.getFiles().getSampledISA(), // old sampled isa
 							blockresults.getFiles().getSampledISA(), // new sampled isa
-							result.getFiles().getSampledISA(),blockstart,mergeGO/*GACR.G.begin()*/,cblocksize+1 /* GACR.G.size() */,logstr
+							result.getFiles().getSampledISA(),blockstart,mergeGO/*GACR.G.begin()*/,cblocksize+1 /* Gsize */,logstr
 						) );
 
 						if ( verbose >= 5 && logstr )
@@ -1820,25 +1949,23 @@ namespace libmaus2
 						if ( logstr )
 							(*logstr) << "[V] merging BWTs...";
 
-						//
-						// intervals on G
 						std::vector < std::pair<uint64_t,uint64_t> > wpacks;
-						std::vector < std::string > encfilenames;
-						// prefix sums over G
 						std::vector < uint64_t > P;
+						splitGapArray(GACR.G,Gsize,numthreads,wpacks,P,logstr,verbose);
 
+						#if 0
 						if ( verbose >= 5 && logstr )
 						{
 							(*logstr) << "[V] computing work packets" << std::endl;
 						}
 
-						uint64_t const logG = std::max(libmaus2::math::ilog(GACR.G.size()),static_cast<unsigned int>(1));
+						uint64_t const logG = std::max(libmaus2::math::ilog(Gsize),static_cast<unsigned int>(1));
 						uint64_t const logG2 = logG*logG;
 						// target number of G samples
-						uint64_t const tnumGsamp = std::max(GACR.G.size() / logG2,static_cast<uint64_t>(256*numthreads));
-						uint64_t const Gsampleblocksize = (GACR.G.size() + tnumGsamp - 1) / tnumGsamp;
+						uint64_t const tnumGsamp = std::max(Gsize / logG2,static_cast<uint64_t>(256*numthreads));
+						uint64_t const Gsampleblocksize = (Gsize + tnumGsamp - 1) / tnumGsamp;
 						// number of G samples
-						uint64_t const numGsamp = (GACR.G.size() + Gsampleblocksize - 1) / Gsampleblocksize;
+						uint64_t const numGsamp = (Gsize + Gsampleblocksize - 1) / Gsampleblocksize;
 
 						libmaus2::autoarray::AutoArray < uint64_t > Gsamples(numGsamp,false);
 
@@ -1848,13 +1975,14 @@ namespace libmaus2
 						for ( uint64_t t = 0; t < numGsamp; ++t )
 						{
 							uint64_t const low = t * Gsampleblocksize;
-							uint64_t const high = std::min(low + Gsampleblocksize, GACR.G.size());
+							uint64_t const high = std::min(low + Gsampleblocksize, Gsize);
 							assert ( high >= low );
 							uint64_t s = 0;
+							G_array_iterator gp = GACR.G.begin() + low;
 							for ( uint64_t i = low; i < high; ++i )
-								s += GACR.G[i];
+								s += *(gp++);
 							s += (high-low);
-							if ( high == GACR.G.size() && high != low )
+							if ( high == Gsize && high != low )
 								s -= 1;
 							Gsamples[t] = s;
 						}
@@ -1871,11 +1999,12 @@ namespace libmaus2
 
 						if ( verbose >= 5 && logstr )
 						{
-							(*logstr) << "[V] G size " << GACR.G.size() << " number of G samples " << numGsamp << std::endl;
+							(*logstr) << "[V] G size " << Gsize << " number of G samples " << numGsamp << std::endl;
 						}
 
 						uint64_t const Gsumperthread = (Gsum + numthreads-1)/numthreads;
-						wpacks.resize(numthreads);
+						std::vector < std::pair<uint64_t,uint64_t> > wpacks;
+						wpacks = std::vector < std::pair<uint64_t,uint64_t> >(numthreads);
 						#if defined(_OPENMP)
 						#pragma omp parallel for num_threads(numthreads)
 						#endif
@@ -1894,17 +2023,21 @@ namespace libmaus2
 							uint64_t iv = (p - Gsamples.begin()) * Gsampleblocksize;
 							uint64_t s = *p;
 
-							while ( s < target && iv < GACR.G.size() )
-								s += GACR.G[iv++]+1;
-							if ( iv == GACR.G.size() )
+							G_array_iterator gp = GACR.G.begin() + iv;
+							while ( s < target && iv < Gsize )
+							{
+								s += (*(gp++))+1;
+								iv++;
+							}
+							if ( iv == Gsize )
 								s -= 1;
 
 							wpacks[i].first = iv;
 							if ( i )
 								wpacks[i-1].second = iv;
-							// std::cerr << "i=" << i << " iv=" << iv << " GACR.G.size()=" << GACR.G.size() << std::endl;
+							// std::cerr << "i=" << i << " iv=" << iv << " Gsize=" << Gsize << std::endl;
 						}
-						wpacks.back().second = GACR.G.size();
+						wpacks.back().second = Gsize;
 
 						// remove empty packages
 						{
@@ -1915,8 +2048,8 @@ namespace libmaus2
 							wpacks.resize(o);
 						}
 
+						std::vector < uint64_t > P;
 						P.resize(wpacks.size()+1);
-						encfilenames.resize(wpacks.size());
 						#if defined(_OPENMP)
 						#pragma omp parallel for num_threads(numthreads)
 						#endif
@@ -1924,20 +2057,17 @@ namespace libmaus2
 						{
 							uint64_t const low = wpacks[i].first;
 							uint64_t const high = wpacks[i].second;
-							P[i] = std::accumulate(GACR.G.begin()+low,GACR.G.begin()+high,0ull);
 
-							encfilenames[i] = (
-								gtmpgen.getFileName()
-								// result.getFiles().getBWT()
-								+ "_"
-								+ ::libmaus2::util::NumberSerialisation::formatNumber(encfilenames.size(),6)
-								+ ".bwt"
-							);
-							::libmaus2::util::TempFileRemovalContainer::addTempFile(encfilenames[i]);
+							G_array_iterator gp = GACR.G.begin() + low;
+							uint64_t s = 0;
+							for ( uint64_t i = low; i < high; ++i )
+								s += *(gp++);
+
+							P[i] = s;
+
 						}
 						libmaus2::util::PrefixSums::prefixSums(P.begin(),P.end());
 
-						::libmaus2::timing::RealTimeClock wprtc; wprtc.start();
 						#if 0
 						// std::cerr << "(computing work packets...";
 						P.push_back(0);
@@ -1948,7 +2078,7 @@ namespace libmaus2
 						uint64_t const numpack = numthreads;
 						// suffixes per thread
 						uint64_t const tpacksize = (totalsuf + numpack-1)/numpack;
-						while ( ilow != GACR.G.size() )
+						while ( ilow != Gsize )
 						{
 							uint64_t s = 0;
 							uint64_t ihigh = ilow;
@@ -1958,12 +2088,12 @@ namespace libmaus2
 								(*logstr) << "[V] ilow=" << ilow << std::endl;
 							}
 
-							while ( ihigh != GACR.G.size() && s < tpacksize )
+							while ( ihigh != Gsize && s < tpacksize )
 								s += (GACR.G[ihigh++]+1);
 
 							uint64_t const p = s-(ihigh-ilow);
 
-							if ( ihigh+1 == GACR.G.size() && GACR.G[ihigh] == 0 )
+							if ( ihigh+1 == Gsize && GACR.G[ihigh] == 0 )
 								ihigh++;
 
 
@@ -1999,6 +2129,22 @@ namespace libmaus2
 							}
 						}
 						#endif
+						#endif
+
+						std::vector < std::string > encfilenames(wpacks.size());
+						for ( uint64_t i = 0; i < wpacks.size(); ++i )
+						{
+							encfilenames[i] = (
+								gtmpgen.getFileName()
+								// result.getFiles().getBWT()
+								+ "_"
+								+ ::libmaus2::util::NumberSerialisation::formatNumber(encfilenames.size(),6)
+								+ ".bwt"
+							);
+							::libmaus2::util::TempFileRemovalContainer::addTempFile(encfilenames[i]);
+						}
+
+						encfilenames.resize(wpacks.size());
 
 						assert ( wpacks.size() <= numthreads );
 						// std::cerr << "done,time=" << wprtc.getElapsedSeconds() << ")";
@@ -2009,6 +2155,7 @@ namespace libmaus2
 						}
 
 						// std::cerr << "(setting up IDDs...";
+						::libmaus2::timing::RealTimeClock wprtc; wprtc.start();
 						wprtc.start();
 
 						unsigned int const albits = rl_decoder::haveAlphabetBits() ? rl_decoder::getAlBits(mergereq.children[0]->sortresult.getFiles().getBWT()) : 0;
@@ -2022,7 +2169,6 @@ namespace libmaus2
 							mergereq.children[0]->sortresult.getFiles().getBWT(),numthreads);
 						::libmaus2::huffman::IndexDecoderDataArray IDD1(
 							mergereq.children[1]->sortresult.getFiles().getBWT(),numthreads);
-
 
 						if ( verbose >= 5 && logstr )
 						{
@@ -2061,7 +2207,7 @@ namespace libmaus2
 
 							if ( ilow != ihigh )
 							{
-								bool const islast = (ihigh == GACR.G.size());
+								bool const islast = (ihigh == Gsize);
 								std::string const encfilename = encfilenames[b];
 
 								if ( verbose >= 5 && logstr )
@@ -2265,7 +2411,7 @@ namespace libmaus2
 
 							// merge sampled inverse suffix arrays, returns rank of position 0 (relative to block start)
 							libmaus2::util::GetObject<uint32_t const *> mergeGO(GACR.G.begin());
-							result.setBlockP0Rank( mergeIsa(mergedisaname,blockresults.getFiles().getSampledISA(),newmergedisaname,blockstart,mergeGO /*GACR.G.begin()*/,cblocksize+1 /*GACR.G.size()*/,logstr) );
+							result.setBlockP0Rank( mergeIsa(mergedisaname,blockresults.getFiles().getSampledISA(),newmergedisaname,blockstart,mergeGO /*GACR.G.begin()*/,cblocksize+1 /*Gsize*/,logstr) );
 
 							#if 0
 							// concatenate gt vectors
@@ -2489,6 +2635,20 @@ namespace libmaus2
 						if ( logstr )
 							(*logstr) << "[V] merging BWTs...";
 
+
+						std::vector < std::pair<uint64_t,uint64_t> > wpacks;
+						std::vector < uint64_t > P;
+						splitGapArray(
+							*(GACR.G),
+							cblocksize+1,
+							numthreads,
+							wpacks,
+							P,
+							logstr,
+							verbose
+						);
+
+						#if 0
 						//
 						uint64_t const totalsuf = result.getCBlockSize();
 						// number of packets
@@ -2499,7 +2659,6 @@ namespace libmaus2
 						uint64_t ilow = 0;
 						// intervals on G
 						std::vector < std::pair<uint64_t,uint64_t> > wpacks;
-						std::vector < std::string > encfilenames;
 						// prefix sums over G
 						std::vector < uint64_t > P;
 						P.push_back(0);
@@ -2508,7 +2667,6 @@ namespace libmaus2
 						libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type pgap1dec(GACR.G->getDecoder());
 						libmaus2::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type pgap1decbuf(new libmaus2::suffixsort::GapArrayByteDecoderBuffer(*pgap1dec,8192));
 						libmaus2::suffixsort::GapArrayByteDecoderBuffer::iterator gap1decbufit = pgap1decbuf->begin();
-						::libmaus2::timing::RealTimeClock wprtc; wprtc.start();
 						while ( ilow != (cblocksize+1) )
 						{
 							uint64_t s = 0;
@@ -2547,22 +2705,29 @@ namespace libmaus2
 
 							P.push_back(P.back() + p);
 							wpacks.push_back(std::pair<uint64_t,uint64_t>(ilow,ihigh));
-							encfilenames.push_back(
-								gtmpgen.getFileName()
-								// result.getFiles().getBWT()
-								+ "_"
-								+ ::libmaus2::util::NumberSerialisation::formatNumber(encfilenames.size(),6)
-								+ ".bwt"
-							);
-							::libmaus2::util::TempFileRemovalContainer::addTempFile(encfilenames.back());
 							ilow = ihigh;
 						}
 						assert ( wpacks.size() <= numthreads );
 						// std::cerr << "done,time=" << wprtc.getElapsedSeconds() << ")";
 						pgap1decbuf.reset();
 						pgap1dec.reset();
+						#endif
+
+						std::vector < std::string > encfilenames(wpacks.size());
+						for ( uint64_t i = 0; i < wpacks.size(); ++i )
+						{
+							encfilenames[i] = (
+								gtmpgen.getFileName()
+								// result.getFiles().getBWT()
+								+ "_"
+								+ ::libmaus2::util::NumberSerialisation::formatNumber(encfilenames.size(),6)
+								+ ".bwt"
+							);
+							::libmaus2::util::TempFileRemovalContainer::addTempFile(encfilenames[i]);
+						}
 
 						// std::cerr << "(setting up IDDs...";
+						::libmaus2::timing::RealTimeClock wprtc; wprtc.start();
 						wprtc.start();
 						unsigned int const albits = rl_decoder::haveAlphabetBits() ? rl_decoder::getAlBits(mergereq.children[0]->sortresult.getFiles().getBWT()) : 0;
 						::libmaus2::huffman::IndexDecoderDataArray IDD0(
