@@ -41,6 +41,63 @@ namespace libmaus2
 
 				return s;
 			}
+
+			template<typename iterator>
+			static typename ::std::iterator_traits<iterator>::value_type parallelPrefixSums(iterator ita, iterator ite, uint64_t const numthreads)
+			{
+				typedef typename ::std::iterator_traits<iterator>::value_type value_type;
+
+				uint64_t const n = ite-ita;
+				uint64_t const blocksize = (n + numthreads - 1)/numthreads;
+				uint64_t const numblocks = (n + blocksize - 1)/blocksize;
+				std::vector<value_type> B(numblocks+1);
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
+				for ( uint64_t t = 0; t < numblocks; ++t )
+				{
+					uint64_t const low = t * blocksize;
+					uint64_t const high = std::min(low+blocksize,n);
+
+					value_type s = value_type();
+
+					iterator l_ita = ita + low;
+					iterator l_ite = ita + high;
+
+					while ( l_ita != l_ite )
+					{
+						value_type const t = *l_ita;
+						*(l_ita++) = s;
+						s += t;
+					}
+
+					B[t] = s;
+				}
+
+				prefixSums(B.begin(),B.end());
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
+				for ( uint64_t t = 0; t < numblocks; ++t )
+				{
+					uint64_t const low = t * blocksize;
+					uint64_t const high = std::min(low+blocksize,n);
+
+					value_type const a = B[t];
+
+					iterator l_ita = ita + low;
+					iterator l_ite = ita + high;
+
+					while ( l_ita != l_ite )
+					{
+						*(l_ita++) += a;
+					}
+				}
+
+				return B[numblocks];
+			}
 		};
 	}
 }
