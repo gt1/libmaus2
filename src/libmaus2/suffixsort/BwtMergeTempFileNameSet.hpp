@@ -81,7 +81,7 @@ namespace libmaus2
 			std::string hwtreq;
 			std::string hwt;
 			std::string hist;
-			std::string sampledisa;
+			std::vector<std::string> sampledisa;
 
 			public:
 			std::vector<std::string> const & getGT() const { return gt; }
@@ -89,16 +89,18 @@ namespace libmaus2
 			std::string const & getHWTReq() const { return hwtreq; }
 			std::string const & getHWT() const { return hwt; }
 			std::string const & getHist() const { return hist; }
-			std::string const & getSampledISA() const { return sampledisa; }
+			std::string const & getSampledISA() const { assert ( sampledisa.size() ); return sampledisa[0]; }
+			std::vector<std::string> const & getSampledISAVector() const { return sampledisa; }
 
 			void setGT(std::vector<std::string> const & rgt) { gt = rgt; }
 			void setBWT(std::vector<std::string> const & rbwt) { bwt = rbwt; }
 			void setHWTReq(std::string const & rhwtreq) { hwtreq = rhwtreq; }
 			void setHWT(std::string const & rhwt) { hwt = rhwt; }
 			void setHist(std::string const & rhist) { hist = rhist; }
-			void setSampledISA(std::string const & rsampledisa) { sampledisa = rsampledisa; }
+			void setSampledISA(std::string const & rsampledisa) { sampledisa = std::vector<std::string>(1,rsampledisa); }
+			void setSampledISA(std::vector<std::string> const & rsampledisa) { sampledisa = rsampledisa; }
 
-			void setPrefix(libmaus2::util::TempFileNameGenerator & gtmpgen, uint64_t const numbwt, uint64_t const numgt)
+			void setPrefix(libmaus2::util::TempFileNameGenerator & gtmpgen, uint64_t const numbwt, uint64_t const numgt, uint64_t const numisa)
 			{
 				std::vector<std::string> gtfilenames(numgt);
 				for ( uint64_t i = 0; i < numbwt; ++i )
@@ -107,7 +109,7 @@ namespace libmaus2
 					ostr << gtmpgen.getFileName() << '_'
 						<< std::setw(4) << std::setfill('0') << i << std::setw(0)
 						<< ".gt";
-					gtfilenames.push_back(ostr.str());
+					gtfilenames[i] = ostr.str();
 				}
 				setGT(gtfilenames);
 
@@ -118,26 +120,37 @@ namespace libmaus2
 					ostr << gtmpgen.getFileName() << '_'
 						<< std::setw(4) << std::setfill('0') << i << std::setw(0)
 						<< ".bwt";
-					bwtfilenames.push_back(ostr.str());
+					bwtfilenames[i] = ostr.str();
 				}
 
 				setBWT(bwtfilenames);
 				setHWTReq(gtmpgen.getFileName()+".hwtreq");
 				setHWT(gtmpgen.getFileName()+".hwt");
 				setHist(gtmpgen.getFileName()+".hist");
-				setSampledISA(gtmpgen.getFileName()+".sampledisa");
+
+				std::vector<std::string> isafilenames(numisa);
+				for ( uint64_t i = 0; i < numisa; ++i )
+				{
+					std::ostringstream ostr;
+					ostr << gtmpgen.getFileName() << '_'
+						<< std::setw(4) << std::setfill('0') << i << std::setw(0)
+						<< ".sampledisa";
+					isafilenames[i] = ostr.str();
+				}
+				setSampledISA(isafilenames);
 			}
 
-			void setPrefixAndRegisterAsTemp(libmaus2::util::TempFileNameGenerator & gtmpgen, uint64_t const numbwt, uint64_t const numgt)
+			void setPrefixAndRegisterAsTemp(libmaus2::util::TempFileNameGenerator & gtmpgen, uint64_t const numbwt, uint64_t const numgt, uint64_t const numisa)
 			{
-				setPrefix(gtmpgen, numbwt, numgt);
+				setPrefix(gtmpgen, numbwt, numgt, numisa);
 				for ( uint64_t i = 0; i < getGT().size(); ++i )
 					::libmaus2::util::TempFileRemovalContainer::addTempFile(getGT()[i]);
 				for ( uint64_t i = 0; i < getBWT().size(); ++i )
 					::libmaus2::util::TempFileRemovalContainer::addTempFile(getBWT()[i]);
 				::libmaus2::util::TempFileRemovalContainer::addTempFile(getHWT());
 				::libmaus2::util::TempFileRemovalContainer::addTempFile(getHist());
-				::libmaus2::util::TempFileRemovalContainer::addTempFile(getSampledISA());
+				for ( uint64_t i = 0; i < getSampledISAVector().size(); ++i )
+					::libmaus2::util::TempFileRemovalContainer::addTempFile(getSampledISAVector()[i]);
 			}
 
 			void removeGtFiles() const
@@ -167,8 +180,9 @@ namespace libmaus2
 
 			void removeSampledIsaFiles() const
 			{
-				if ( sampledisa.size() )
-					libmaus2::aio::FileRemoval::removeFile ( sampledisa );
+				for ( uint64_t i = 0; i < sampledisa.size(); ++i )
+					if ( sampledisa[i].size() )
+						libmaus2::aio::FileRemoval::removeFile ( sampledisa[i] );
 			}
 
 			void removeBwtFiles() const
@@ -209,7 +223,7 @@ namespace libmaus2
 				hwtreq(constructFileName(gtmpgen,id,".hwtreq")),
 				hwt(constructFileName(gtmpgen,id,".hwt")),
 				hist(constructFileName(gtmpgen,id,".hist")),
-				sampledisa(constructFileName(gtmpgen,id,".sampledisa"))
+				sampledisa(constructFileNameVector(gtmpgen,id,".sampledisa",1))
 			{
 
 			}
@@ -222,7 +236,7 @@ namespace libmaus2
 				hwtreq(::libmaus2::util::StringSerialisation::deserialiseString(in)),
 				hwt(::libmaus2::util::StringSerialisation::deserialiseString(in)),
 				hist(::libmaus2::util::StringSerialisation::deserialiseString(in)),
-				sampledisa(::libmaus2::util::StringSerialisation::deserialiseString(in))
+				sampledisa(::libmaus2::util::StringSerialisation::deserialiseStringVector(in))
 			{
 
 			}
@@ -241,7 +255,7 @@ namespace libmaus2
 				::libmaus2::util::StringSerialisation::serialiseString(out,hwtreq);
 				::libmaus2::util::StringSerialisation::serialiseString(out,hwt);
 				::libmaus2::util::StringSerialisation::serialiseString(out,hist);
-				::libmaus2::util::StringSerialisation::serialiseString(out,sampledisa);
+				::libmaus2::util::StringSerialisation::serialiseStringVector(out,sampledisa);
 			}
 
 			std::string serialise() const

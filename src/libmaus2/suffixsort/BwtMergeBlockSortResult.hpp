@@ -71,12 +71,13 @@ namespace libmaus2
 			void setCBlockSize(uint64_t const rcblocksize) { cblocksize = rcblocksize; }
 			void setBWT(std::vector<std::string> const & bwt) { files.setBWT(bwt); }
 			void setGT(std::vector<std::string> const & gt) { files.setGT(gt); }
+			void setSampledISA(std::vector<std::string> const & sampledisa) { files.setSampledISA(sampledisa); }
 			::libmaus2::suffixsort::BwtMergeTempFileNameSet const & getFiles() const { return files; }
 			void removeFiles() const { files.removeFiles(); }
 			void removeFilesButBwt() const { files.removeFilesButBwt(); }
 			void removeFilesButBwtAndGt() const { files.removeFilesButBwtAndGt(); }
-			void setTempPrefixAndRegisterAsTemp(libmaus2::util::TempFileNameGenerator & gtmpgen, uint64_t const numbwt, uint64_t const numgt)
-			{ files.setPrefixAndRegisterAsTemp(gtmpgen,numbwt,numgt); }
+			void setTempPrefixAndRegisterAsTemp(libmaus2::util::TempFileNameGenerator & gtmpgen, uint64_t const numbwt, uint64_t const numgt, uint64_t const numisa)
+			{ files.setPrefixAndRegisterAsTemp(gtmpgen,numbwt,numgt,numisa); }
 			libmaus2::autoarray::AutoArray < ::libmaus2::suffixsort::BwtMergeZBlock > const & getZBlocks() const { return zblocks; }
 			void resizeZBlocks(uint64_t const n) { zblocks.resize(n); }
 			void setZBlock(uint64_t const i, ::libmaus2::suffixsort::BwtMergeZBlock const & z) { zblocks.at(i) = z; }
