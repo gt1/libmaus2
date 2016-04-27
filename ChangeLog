@@ -1,3 +1,10 @@
+libmaus2 (2.0.176-1) unstable; urgency=medium
+
+  * implement parallel pre isa merging for internal and internal small blocks in bwtb3m
+  * rewrite PairFileSorting routine and fix bug where size of last block was wrongly calculated
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 27 Apr 2016 15:36:27 +0200
+
 libmaus2 (2.0.175-1) unstable; urgency=medium
 
   * refactor and port new gap array splitting code to internal small block in bwtb3m
