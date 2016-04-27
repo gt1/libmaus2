@@ -32,6 +32,7 @@
 #include <libmaus2/aio/ReorderConcatGenericInput.hpp>
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
 #include <libmaus2/aio/SynchronousGenericOutput.hpp>
+#include <libmaus2/aio/ConcatInputStream.hpp>
 
 #include <libmaus2/util/GetFileSize.hpp>
 
@@ -249,88 +250,90 @@ namespace libmaus2
 				bool const deleteinput = false
 			)
 			{
-				::std::vector < ::libmaus2::aio::FileFragment > frags;
-				uint64_t tlen = 0;
+				// number of pairs in input
+				uint64_t numpairs = 0;
+				// size of a pair in bytes
+				uint64_t const plen = 2*sizeof(uint64_t);
+				// get length of input
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
 				{
-					// length in elements of size uint64_t
-					uint64_t const len = ::libmaus2::util::GetFileSize::getFileSize(filenames[i])/sizeof(uint64_t);
-					::libmaus2::aio::FileFragment const frag(filenames[i],0,len);
-					frags.push_back(frag);
-					tlen += len;
+					// length of file in bytes
+					uint64_t const len = ::libmaus2::util::GetFileSize::getFileSize(filenames[i]);
+					// make sure it ends size is divisible by pair length
+					assert ( (len % plen) == 0 );
+					// add number of pairs
+					numpairs += len / plen;
 				}
 
-				assert ( tlen % 2 == 0 );
-				uint64_t const tlen2 = tlen/2;
+				// number of pairs per block
+				uint64_t const pairsperblock = (bufsize + plen -1)/plen;
+				// number of blocks
+				uint64_t const numblocks = (numpairs + pairsperblock - 1)/pairsperblock;
+				// number of full blocks
+				uint64_t const fullblocks = numpairs / pairsperblock;
+				// number of elements in last block
+				uint64_t const lastblock = (numblocks==fullblocks) ? pairsperblock : (numpairs - fullblocks*pairsperblock);
 
-				uint64_t const elnum = (bufsize + 2*sizeof(uint64_t)-1)/(2*sizeof(uint64_t));
-				uint64_t const numblocks = (tlen2 + elnum-1)/elnum;
-				uint64_t const fullblocks = tlen2/elnum;
-				uint64_t const lastblock = tlen2 - fullblocks*elnum;
+				libmaus2::aio::ConcatInputStream::unique_ptr_type CIN(new libmaus2::aio::ConcatInputStream(filenames));
+				::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type SGO(
+					new ::libmaus2::aio::SynchronousGenericOutput<uint64_t>(tmpfilename,16*1024)
+				);
+				::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > A(pairsperblock,false);
 
-				if ( ! libmaus2::util::GetFileSize::fileExists(tmpfilename) )
+				uint64_t w = 0;
+				for ( uint64_t b = 0; b < numblocks; ++b )
 				{
-					assert ( bufsize );
-					::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > A(elnum,false);
-					::libmaus2::aio::ReorderConcatGenericInput<uint64_t> SGI(frags,16*1024);
-					::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type SGO(
-						new ::libmaus2::aio::SynchronousGenericOutput<uint64_t>(tmpfilename,16*1024)
-					);
+					uint64_t const blow = b * pairsperblock;
+					uint64_t const bhigh = std::min(blow+pairsperblock,numpairs);
+					std::pair<uint64_t,uint64_t> * P = A.begin();
+					std::pair<uint64_t,uint64_t> * Pe = P + (bhigh-blow);
 
-					uint64_t dfullblocks = 0;
-					uint64_t dlastblock = 0;
-					uint64_t dnumblocks = 0;
+					CIN->clear();
+					CIN->seekg(blow * plen);
+					libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(*CIN,16*1024);
 
-					while ( SGI.peek() >= 0 )
+					bool ok = true;
+					while ( P != Pe )
 					{
-						std::pair<uint64_t,uint64_t> * P = A.begin();
-						uint64_t w = 0, v = 0;
+						ok = ok && SGI.getNext(P->first);
+						ok = ok && SGI.getNext(P->second);
+						P++;
+					}
+					assert ( ok );
 
-						while ( (P != A.end()) && SGI.getNext(w) )
-						{
-							bool const ok = SGI.getNext(v);
-							assert ( ok );
-							*(P++) = std::pair<uint64_t,uint64_t>(w,v);
-						}
-
-						#if defined(_OPENMP)
-						if ( parallel )
-						{
-							if ( second )
-								__gnu_parallel::sort(A.begin(),P,SecondComp<uint64_t,uint64_t>());
-							else
-								__gnu_parallel::sort(A.begin(),P,FirstComp<uint64_t,uint64_t>());
-						}
+					#if defined(_OPENMP)
+					if ( parallel )
+					{
+						if ( second )
+							__gnu_parallel::sort(A.begin(),P,SecondComp<uint64_t,uint64_t>());
 						else
-						#endif
-						{
-							if ( second )
-								std::sort(A.begin(),P,SecondComp<uint64_t,uint64_t>());
-							else
-								std::sort(A.begin(),P,FirstComp<uint64_t,uint64_t>());
-						}
-
-						for ( ptrdiff_t i = 0; i < P-A.begin(); ++i )
-						{
-							SGO->put(A[i].first);
-							SGO->put(A[i].second);
-						}
-
-						if ( P == A.end() )
-							dfullblocks++;
+							__gnu_parallel::sort(A.begin(),P,FirstComp<uint64_t,uint64_t>());
+					}
+					else
+					#endif
+					{
+						if ( second )
+							std::sort(A.begin(),P,SecondComp<uint64_t,uint64_t>());
 						else
-							dlastblock = P-A.begin();
-
-						dnumblocks++;
+							std::sort(A.begin(),P,FirstComp<uint64_t,uint64_t>());
 					}
 
-					SGO->flush();
-					SGO.reset();
-
-					assert ( dfullblocks == fullblocks );
-					assert ( dlastblock = lastblock );
-					assert ( dnumblocks == numblocks );
+					P = A.begin();
+					while ( P != Pe )
+					{
+						SGO->put(P->first);
+						SGO->put(P->second);
+						P++;
+						w++;
+					}
 				}
+
+				assert ( w == numpairs );
+
+				SGO->flush();
+				SGO.reset();
+				CIN.reset();
+				A.release();
 
 				if ( deleteinput )
 					for ( uint64_t i = 0; i < filenames.size(); ++i )
@@ -338,11 +341,11 @@ namespace libmaus2
 
 				if ( second )
 					mergeTriples< TripleSecondComparator<uint64_t,uint64_t,uint64_t>, out_type >(
-						numblocks,tmpfilename,elnum,lastblock,
+						numblocks,tmpfilename,pairsperblock,lastblock,
 						keepfirst,keepsecond,SGOfinal);
 				else
 					mergeTriples< TripleFirstComparator<uint64_t,uint64_t,uint64_t>, out_type >(
-						numblocks,tmpfilename,elnum,lastblock,
+						numblocks,tmpfilename,pairsperblock,lastblock,
 						keepfirst,keepsecond,SGOfinal);
 			}
 
