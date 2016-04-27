@@ -667,8 +667,8 @@ namespace libmaus2
 
 				template<typename gap_iterator>
 				static uint64_t mergeIsa(
-					std::string const & oldmergedisaname, // mergedisaname
-					std::string const & newmergedisaname, // blockresults.files.sampledisa
+					std::vector<std::string> const & oldmergedisaname, // mergedisaname
+					std::vector<std::string> const & newmergedisaname, // blockresults.files.sampledisa
 					std::string const & mergedmergedisaname, // newmergedisaname
 					uint64_t const blockstart, // blockstart
 					gap_iterator & Gc,
@@ -682,8 +682,12 @@ namespace libmaus2
 					if ( logstr )
 						(*logstr) << "[V] merging sampled inverse suffix arrays...";
 					rtc.start();
-					::libmaus2::aio::SynchronousGenericInput<uint64_t> SGIISAold(oldmergedisaname,16*1024);
-					::libmaus2::aio::SynchronousGenericInput<uint64_t> SGIISAnew(newmergedisaname,16*1024);
+
+					libmaus2::aio::ConcatInputStream ISIold(oldmergedisaname);
+					libmaus2::aio::ConcatInputStream ISInew(newmergedisaname);
+
+					::libmaus2::aio::SynchronousGenericInput<uint64_t> SGIISAold(ISIold,16*1024);
+					::libmaus2::aio::SynchronousGenericInput<uint64_t> SGIISAnew(ISInew,16*1024);
 					::libmaus2::aio::SynchronousGenericOutput<uint64_t> SGOISA(mergedmergedisaname,16*1024);
 
 					// sum over old (RHS block) suffixes
@@ -1792,6 +1796,28 @@ namespace libmaus2
 					libmaus2::util::PrefixSums::prefixSums(P.begin(),P.end());
 				}
 
+				static void setupSampledISA(
+					libmaus2::util::TempFileNameGenerator & gtmpgen,
+					::libmaus2::suffixsort::BwtMergeBlockSortResult & result,
+					uint64_t const numisa
+				)
+				{
+					std::vector < std::string > Vsampledisa(numisa);
+					for ( uint64_t i = 0; i < Vsampledisa.size(); ++i )
+					{
+						Vsampledisa[i] = (
+							gtmpgen.getFileName()
+							// result.getFiles().getBWT()
+							+ "_"
+							+ ::libmaus2::util::NumberSerialisation::formatNumber(Vsampledisa.size(),6)
+							+ ".sampledisa"
+						);
+						::libmaus2::util::TempFileRemovalContainer::addTempFile(Vsampledisa[i]);
+
+					}
+					result.setSampledISA(Vsampledisa);
+				}
+
 				static void mergeBlocks(
 					libmaus2::util::TempFileNameGenerator & gtmpgen,
 					libmaus2::suffixsort::bwtb3m::MergeStrategyMergeInternalBlock & mergereq,
@@ -1844,7 +1870,7 @@ namespace libmaus2
 					// gt bit array,
 					// huffman shaped wavelet tree and
 					// histogram
-					result.setTempPrefixAndRegisterAsTemp(gtmpgen,0 /* no preset bwt file names */, 0 /* no preset gt file names */);
+					result.setTempPrefixAndRegisterAsTemp(gtmpgen,0 /* no preset bwt file names */, 0 /* no preset gt file names */, 0 /* no preset isa */);
 
 					if ( verbose >= 5 && logstr )
 					{
@@ -1927,6 +1953,18 @@ namespace libmaus2
 
 						result.setGT(stringVectorAppend(GACR.gtpartnames,oldgtnames));
 
+						::libmaus2::timing::RealTimeClock rtc; rtc.start();
+
+						if ( logstr )
+							(*logstr) << "[V] computing gap array split...";
+
+						std::vector < std::pair<uint64_t,uint64_t> > wpacks;
+						std::vector < uint64_t > P;
+						splitGapArray(GACR.G,Gsize,numthreads,wpacks,P,logstr,verbose);
+
+						if ( logstr )
+							(*logstr) << "[V] done, time " << rtc.getElapsedSeconds() << std::endl;
+
 						if ( verbose >= 5 && logstr )
 						{
 							(*logstr) << "[V] calling mergeIsa" << std::endl;
@@ -1934,9 +1972,10 @@ namespace libmaus2
 
 						// merge sampled inverse suffix arrays, returns rank of position 0 (relative to block start)
 						libmaus2::util::GetObject<uint32_t const *> mergeGO(GACR.G.begin());
+						setupSampledISA(gtmpgen,result,1 /* numisa */);
 						result.setBlockP0Rank( mergeIsa(
-							mergereq.children[1]->sortresult.getFiles().getSampledISA(), // old sampled isa
-							blockresults.getFiles().getSampledISA(), // new sampled isa
+							mergereq.children[1]->sortresult.getFiles().getSampledISAVector(), // old sampled isa
+							blockresults.getFiles().getSampledISAVector(), // new sampled isa
 							result.getFiles().getSampledISA(),blockstart,mergeGO/*GACR.G.begin()*/,cblocksize+1 /* Gsize */,logstr
 						) );
 
@@ -1945,13 +1984,10 @@ namespace libmaus2
 							(*logstr) << "[V] call to mergeIsa finished" << std::endl;
 						}
 
-						::libmaus2::timing::RealTimeClock rtc; rtc.start();
 						if ( logstr )
 							(*logstr) << "[V] merging BWTs...";
 
-						std::vector < std::pair<uint64_t,uint64_t> > wpacks;
-						std::vector < uint64_t > P;
-						splitGapArray(GACR.G,Gsize,numthreads,wpacks,P,logstr,verbose);
+						rtc.start();
 
 						#if 0
 						if ( verbose >= 5 && logstr )
@@ -2364,7 +2400,7 @@ namespace libmaus2
 						}
 
 						std::vector<std::string> mergedgtname  = mergereq.children.back()->sortresult.getFiles().getGT();
-						std::string mergedisaname = mergereq.children.back()->sortresult.getFiles().getSampledISA();
+						std::vector<std::string> mergedisaname = mergereq.children.back()->sortresult.getFiles().getSampledISAVector();
 
 						// load char histogram for last block
 						std::string const & lblockhist = mergereq.children.back()->sortresult.getFiles().getHist();
@@ -2411,7 +2447,7 @@ namespace libmaus2
 
 							// merge sampled inverse suffix arrays, returns rank of position 0 (relative to block start)
 							libmaus2::util::GetObject<uint32_t const *> mergeGO(GACR.G.begin());
-							result.setBlockP0Rank( mergeIsa(mergedisaname,blockresults.getFiles().getSampledISA(),newmergedisaname,blockstart,mergeGO /*GACR.G.begin()*/,cblocksize+1 /*Gsize*/,logstr) );
+							result.setBlockP0Rank( mergeIsa(mergedisaname,blockresults.getFiles().getSampledISAVector(),newmergedisaname,blockstart,mergeGO /*GACR.G.begin()*/,cblocksize+1 /*Gsize*/,logstr) );
 
 							#if 0
 							// concatenate gt vectors
@@ -2450,11 +2486,12 @@ namespace libmaus2
 
 							// update current file names
 							mergedgtname = stringVectorAppend(GACR.gtpartnames,oldgtnames);
-							mergedisaname = newmergedisaname;
+							mergedisaname = std::vector<std::string>(1,newmergedisaname);
 						}
 
 						// renamed sampled inverse suffix array
-						libmaus2::aio::OutputStreamFactoryContainer::rename ( mergedisaname.c_str(), result.getFiles().getSampledISA().c_str() );
+						result.setSampledISA(mergedisaname);
+						// libmaus2::aio::OutputStreamFactoryContainer::rename ( mergedisaname.c_str(), result.getFiles().getSampledISA().c_str() );
 						// rename gt bit array filename
 						// libmaus2::aio::OutputStreamFactoryContainer::rename ( mergedgtname.c_str(), result.getFiles().getGT().c_str() );
 						result.setGT(mergedgtname);
@@ -2561,7 +2598,7 @@ namespace libmaus2
 					// gt bit array,
 					// huffman shaped wavelet tree and
 					// histogram
-					result.setTempPrefixAndRegisterAsTemp(gtmpgen,0 /* no preset bwt file names */, 0 /* no preset gt file names */);
+					result.setTempPrefixAndRegisterAsTemp(gtmpgen,0 /* no preset bwt file names */, 0 /* no preset gt file names */, 0 /* no preset isa */);
 
 					// if we merge only two blocks together, then we do not need to write the gap array to disk
 					if ( mergereq.children.size() == 2 )
@@ -2623,18 +2660,19 @@ namespace libmaus2
 						libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type pgap0dec(GACR.G->getDecoder());
 						libmaus2::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type pgap0decbuf(new libmaus2::suffixsort::GapArrayByteDecoderBuffer(*pgap0dec,8192));
 						// libmaus2::suffixsort::GapArrayByteDecoderBuffer::iterator gap0decbufit = pgap0decbuf->begin();
+						setupSampledISA(gtmpgen,result,1 /* numisa */);
 						result.setBlockP0Rank( mergeIsa(
-							mergereq.children[1]->sortresult.getFiles().getSampledISA(), // old sampled isa
-							blockresults.getFiles().getSampledISA(), // new sampled isa
+							mergereq.children[1]->sortresult.getFiles().getSampledISAVector(), // old sampled isa
+							blockresults.getFiles().getSampledISAVector(), // new sampled isa
 							result.getFiles().getSampledISA(),blockstart,*pgap0decbuf/*gap0decbufit*//*GACR.G.begin()*/,cblocksize+1 /* GACR.G.size() */,logstr
 						) );
 						pgap0decbuf.reset();
 						pgap0dec.reset();
 
 						::libmaus2::timing::RealTimeClock rtc; rtc.start();
-						if ( logstr )
-							(*logstr) << "[V] merging BWTs...";
 
+						if ( logstr )
+							(*logstr) << "[V] splitting gap array...";
 
 						std::vector < std::pair<uint64_t,uint64_t> > wpacks;
 						std::vector < uint64_t > P;
@@ -2647,6 +2685,13 @@ namespace libmaus2
 							logstr,
 							verbose
 						);
+
+						if ( logstr )
+							(*logstr) << "done, time " << rtc.getElapsedSeconds() << std::endl;
+
+						rtc.start();
+						if ( logstr )
+							(*logstr) << "[V] merging BWTs...";
 
 						#if 0
 						//
@@ -2869,7 +2914,7 @@ namespace libmaus2
 						}
 
 						std::vector<std::string> mergedgtname  = mergereq.children.back()->sortresult.getFiles().getGT();
-						std::string mergedisaname = mergereq.children.back()->sortresult.getFiles().getSampledISA();
+						std::vector<std::string> mergedisaname = mergereq.children.back()->sortresult.getFiles().getSampledISAVector();
 
 						// load char histogram for last block
 						std::string const & lblockhist = mergereq.children.back()->sortresult.getFiles().getHist();
@@ -2888,16 +2933,9 @@ namespace libmaus2
 								mergereq.children[bx]->sortresult;
 
 							// output files for this iteration
-							#if 0
-							std::string const newmergedgtname = tmpfilenamebase + "_merged_" + ::libmaus2::util::NumberSerialisation::formatNumber(bx,4) + ".gt";
-							::libmaus2::util::TempFileRemovalContainer::addTempFile(newmergedgtname);
-							#endif
 							std::string const newmergedisaname = gtmpgen.getFileName() + "_merged_" + ::libmaus2::util::NumberSerialisation::formatNumber(bx,4) + ".sampledisa";
 							::libmaus2::util::TempFileRemovalContainer::addTempFile(newmergedisaname);
-							#if 0
-							std::string const newmergedgapoverflow = tmpfilenamebase + "_merged_" + ::libmaus2::util::NumberSerialisation::formatNumber(bx,4) + ".gapoverflow";
-							::libmaus2::util::TempFileRemovalContainer::addTempFile(newmergedgapoverflow);
-							#endif
+
 							// gap file
 							std::string const gapfile = gapfilenames[bx];
 
@@ -2931,7 +2969,7 @@ namespace libmaus2
 							// libmaus2::util::GetObject<uint32_t const *> mergeGO(GACR.G.begin());
 							libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type pgap0dec(GACR.G->getDecoder());
 							libmaus2::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type pgap0decbuf(new libmaus2::suffixsort::GapArrayByteDecoderBuffer(*pgap0dec,8192));
-							result.setBlockP0Rank( mergeIsa(mergedisaname,blockresults.getFiles().getSampledISA(),newmergedisaname,blockstart,*pgap0decbuf/*mergeGO*/ /*GACR.G.begin()*/,cblocksize+1 /*GACR.G.size()*/,logstr) );
+							result.setBlockP0Rank( mergeIsa(mergedisaname,blockresults.getFiles().getSampledISAVector(),newmergedisaname,blockstart,*pgap0decbuf/*mergeGO*/ /*GACR.G.begin()*/,cblocksize+1 /*GACR.G.size()*/,logstr) );
 
 							#if 0
 							// concatenate gt vectors
@@ -2970,11 +3008,12 @@ namespace libmaus2
 
 							// update current file names
 							mergedgtname = stringVectorAppend(GACR.gtpartnames,oldgtnames);
-							mergedisaname = newmergedisaname;
+							mergedisaname = std::vector<std::string>(1,newmergedisaname);
 						}
 
 						// renamed sampled inverse suffix array
-						libmaus2::aio::OutputStreamFactoryContainer::rename ( mergedisaname.c_str(), result.getFiles().getSampledISA().c_str() );
+						result.setSampledISA(mergedisaname);
+						// libmaus2::aio::OutputStreamFactoryContainer::rename ( mergedisaname.c_str(), result.getFiles().getSampledISA().c_str() );
 						// rename gt bit array filename
 						// libmaus2::aio::OutputStreamFactoryContainer::rename ( mergedgtname.c_str(), result.getFiles().getGT().c_str() );
 						result.setGT(mergedgtname);
@@ -3081,7 +3120,7 @@ namespace libmaus2
 					// gt bit array,
 					// huffman shaped wavelet tree and
 					// histogram
-					result.setTempPrefixAndRegisterAsTemp(gtmpgen,0,0);
+					result.setTempPrefixAndRegisterAsTemp(gtmpgen,0,0,0);
 
 					{
 						std::vector < std::vector < std::string > > gapfilenames;
@@ -3118,7 +3157,7 @@ namespace libmaus2
 
 
 						std::vector<std::string> mergedgtname  = mergereq.children.back()->sortresult.getFiles().getGT();
-						std::string mergedisaname = mergereq.children.back()->sortresult.getFiles().getSampledISA();
+						std::vector<std::string> mergedisaname = mergereq.children.back()->sortresult.getFiles().getSampledISAVector();
 
 						// load char histogram for last block
 						std::string const & lblockhist = mergereq.children.back()->sortresult.getFiles().getHist();
@@ -3164,7 +3203,7 @@ namespace libmaus2
 
 							// merge sampled inverse suffix arrays, returns rank of position 0 (relative to block start)
 							libmaus2::gamma::GammaGapDecoder GGD(gapfilenames[bx],0/* offset */,0 /* psymoff */,numthreads);
-							result.setBlockP0Rank( mergeIsa(mergedisaname,blockresults.getFiles().getSampledISA(),newmergedisaname,blockstart,GGD,cblocksize+1 /*GACR.G.size()*/,logstr) );
+							result.setBlockP0Rank( mergeIsa(mergedisaname,blockresults.getFiles().getSampledISAVector(),newmergedisaname,blockstart,GGD,cblocksize+1 /*GACR.G.size()*/,logstr) );
 
 							// concatenate gt vectors
 							//concatenateGT(GACR.gtpartnames,blockresults.getFiles().getGT(),newmergedgtname);
@@ -3199,11 +3238,12 @@ namespace libmaus2
 
 							// update current file names
 							mergedgtname = stringVectorAppend(GACR.gtpartnames,oldgtnames);
-							mergedisaname = newmergedisaname;
+							mergedisaname = std::vector<std::string>(1,newmergedisaname);
 						}
 
 						// renamed sampled inverse suffix array
-						libmaus2::aio::OutputStreamFactoryContainer::rename ( mergedisaname.c_str(), result.getFiles().getSampledISA().c_str() );
+						// libmaus2::aio::OutputStreamFactoryContainer::rename ( mergedisaname.c_str(), result.getFiles().getSampledISA().c_str() );
+						result.setSampledISA(mergedisaname);
 						// rename gt bit array filename
 						// libmaus2::aio::OutputStreamFactoryContainer::rename ( mergedgtname.c_str(), result.getFiles().getGT().c_str() );
 						result.setGT(mergedgtname);
