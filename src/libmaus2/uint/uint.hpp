@@ -350,7 +350,8 @@ namespace libmaus2
 			}
 			UInt(uint64_t v)
 			{
-				for ( unsigned int i = 0; i < words; ++i ) A[i] = 0; A[0] = v;
+				for ( unsigned int i = 0; i < words; ++i ) A[i] = 0;
+				A[0] = v;
 			}
 			template<unsigned int otherwords>
 			UInt(UInt<otherwords> const & u)

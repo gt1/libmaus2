@@ -100,7 +100,7 @@ namespace libmaus2
 					}
 				}
 
-				~ScopeMutexLock()
+				~ScopeMutexLock() throw(libmaus2::exception::LibMausException)
 				{
 					if ( pthread_mutex_unlock(mutex) != 0 )
 					{

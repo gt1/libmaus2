@@ -101,11 +101,16 @@ namespace libmaus2
 				data_type *writer = Awriter.get();
 
 				/* sort */
-				for (uint64_t i=0; i < n; i++) writer[++b0[u8_0(reader[i],p)]] = reader[i]; std::swap(reader,writer);
-				for (uint64_t i=0; i < n; i++) writer[++b1[u8_1(reader[i],p)]] = reader[i]; std::swap(reader,writer);
-				for (uint64_t i=0; i < n; i++) writer[++b2[u8_2(reader[i],p)]] = reader[i]; std::swap(reader,writer);
-				for (uint64_t i=0; i < n; i++) writer[++b3[u8_3(reader[i],p)]] = reader[i]; std::swap(reader,writer);
-				for (uint64_t i=0; i < n; i++) writer[++b4[u8_4(reader[i],p)]] = reader[i]; std::swap(reader,writer);
+				for (uint64_t i=0; i < n; i++) writer[++b0[u8_0(reader[i],p)]] = reader[i];
+				std::swap(reader,writer);
+				for (uint64_t i=0; i < n; i++) writer[++b1[u8_1(reader[i],p)]] = reader[i];
+				std::swap(reader,writer);
+				for (uint64_t i=0; i < n; i++) writer[++b2[u8_2(reader[i],p)]] = reader[i];
+				std::swap(reader,writer);
+				for (uint64_t i=0; i < n; i++) writer[++b3[u8_3(reader[i],p)]] = reader[i];
+				std::swap(reader,writer);
+				for (uint64_t i=0; i < n; i++) writer[++b4[u8_4(reader[i],p)]] = reader[i];
+				std::swap(reader,writer);
 				for (uint64_t i=0; i < n; i++) writer[++b5[u8_5(reader[i],p)]] = reader[i];
 			}
 
@@ -159,11 +164,16 @@ namespace libmaus2
 				data_type *writer = Atmp;
 
 				/* sort */
-				for (uint64_t i=0; i < n; i++) writer[++b0[u8_0(reader[i],p)]] = reader[i]; std::swap(reader,writer);
-				for (uint64_t i=0; i < n; i++) writer[++b1[u8_1(reader[i],p)]] = reader[i]; std::swap(reader,writer);
-				for (uint64_t i=0; i < n; i++) writer[++b2[u8_2(reader[i],p)]] = reader[i]; std::swap(reader,writer);
-				for (uint64_t i=0; i < n; i++) writer[++b3[u8_3(reader[i],p)]] = reader[i]; std::swap(reader,writer);
-				for (uint64_t i=0; i < n; i++) writer[++b4[u8_4(reader[i],p)]] = reader[i]; std::swap(reader,writer);
+				for (uint64_t i=0; i < n; i++) writer[++b0[u8_0(reader[i],p)]] = reader[i];
+				std::swap(reader,writer);
+				for (uint64_t i=0; i < n; i++) writer[++b1[u8_1(reader[i],p)]] = reader[i];
+				std::swap(reader,writer);
+				for (uint64_t i=0; i < n; i++) writer[++b2[u8_2(reader[i],p)]] = reader[i];
+				std::swap(reader,writer);
+				for (uint64_t i=0; i < n; i++) writer[++b3[u8_3(reader[i],p)]] = reader[i];
+				std::swap(reader,writer);
+				for (uint64_t i=0; i < n; i++) writer[++b4[u8_4(reader[i],p)]] = reader[i];
+				std::swap(reader,writer);
 				for (uint64_t i=0; i < n; i++) writer[++b5[u8_5(reader[i],p)]] = reader[i];
 			}
 		};
