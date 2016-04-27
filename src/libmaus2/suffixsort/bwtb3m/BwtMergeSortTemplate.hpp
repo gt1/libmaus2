@@ -740,6 +740,207 @@ namespace libmaus2
 					return blockp0rank;
 				}
 
+				struct PreIsaAdapter
+				{
+					typedef PreIsaAdapter this_type;
+					typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+
+					mutable libmaus2::aio::ConcatInputStream ISI;
+					uint64_t const fs;
+					uint64_t const n;
+
+					typedef libmaus2::util::ConstIterator<this_type,std::pair<uint64_t,uint64_t> > const_iterator;
+
+					PreIsaAdapter(std::vector<std::string> const & fn) : ISI(fn), fs(libmaus2::util::GetFileSize::getFileSize(ISI)), n(fs / (2*sizeof(uint64_t)))
+					{
+						assert ( (fs % (2*sizeof(uint64_t))) == 0 );
+					}
+
+					std::pair<uint64_t,uint64_t> get(uint64_t const i) const
+					{
+						ISI.clear();
+						ISI.seekg(i*2*sizeof(uint64_t));
+						libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(ISI,2);
+
+						std::pair<uint64_t,uint64_t> P;
+						bool ok = SGI.getNext(P.first);
+						ok = ok && SGI.getNext(P.second);
+						assert ( ok );
+						return P;
+					}
+
+					std::pair<uint64_t,uint64_t> operator[](uint64_t const i) const
+					{
+						return get(i);
+					}
+
+					const_iterator begin() const
+					{
+						return const_iterator(this,0);
+					}
+
+					const_iterator end() const
+					{
+						return const_iterator(this,n);
+					}
+				};
+
+				struct PairFirstComparator
+				{
+					bool operator()(std::pair<uint64_t,uint64_t> const & A, std::pair<uint64_t,uint64_t> const & B) const
+					{
+						return A.first < B.first;
+					}
+				};
+
+				static uint64_t getFileSize(std::vector<std::string> const & Vfn)
+				{
+					uint64_t s = 0;
+					for ( uint64_t i = 0; i < Vfn.size(); ++i )
+						s += ::libmaus2::util::GetFileSize::getFileSize(Vfn[i]);
+					return s;
+				}
+
+				template<typename gap_array>
+				static std::pair < uint64_t, std::vector<std::string> >
+					mergeIsaParallel(
+						libmaus2::util::TempFileNameGenerator & tmpgen,
+						// work packages
+						std::vector < std::pair<uint64_t,uint64_t> > const & wpacks,
+						// prefix sums over G for low marks in wpacks
+						std::vector < uint64_t > const & P,
+						// old (RHS block pre isa)
+						std::vector<std::string> const & oldmergedisaname,
+						// new (LHS block pre isa)
+						std::vector<std::string> const & newmergedisaname,
+						// start of new (LHS) block in text
+						uint64_t const blockstart,
+						// the gap array
+						gap_array & G,
+						// number of threads
+						uint64_t const numthreads,
+						// log stream
+						std::ostream * logstr
+				)
+				{
+					::libmaus2::timing::RealTimeClock rtc;
+
+					// merge sampled inverse suffix arrays
+					if ( logstr )
+						(*logstr) << "[V] merging sampled inverse suffix arrays in parallel...";
+					rtc.start();
+
+					std::vector<std::string> Vout(wpacks.size());
+					for ( uint64_t i = 0; i < wpacks.size(); ++i )
+					{
+						std::ostringstream fnostr;
+						fnostr << tmpgen.getFileName() << "_" << std::setw(6) << std::setfill('0') << i << std::setw(0) << ".preisa";
+						Vout[i] = fnostr.str();
+					}
+
+					uint64_t volatile blockp0rank = std::numeric_limits<uint64_t>::max();
+					libmaus2::parallel::PosixSpinLock blockp0ranklock;
+
+					#if defined(_OPENMP)
+					#pragma omp parallel for num_threads(numthreads)
+					#endif
+					for ( uint64_t t = 0; t < wpacks.size(); ++t )
+					{
+						uint64_t const blow = wpacks[t].first;
+						uint64_t const bhigh = wpacks[t].second;
+						uint64_t const slow = P[t];
+
+						typename PreIsaAdapter::unique_ptr_type PIA_LHS(new PreIsaAdapter(newmergedisaname));
+						typename PreIsaAdapter::unique_ptr_type PIA_RHS(new PreIsaAdapter(oldmergedisaname));
+
+						typename PreIsaAdapter::const_iterator it_LHS = ::std::lower_bound(PIA_LHS->begin(),PIA_LHS->end(),std::pair<uint64_t,uint64_t>(blow,0),PairFirstComparator());
+						assert ( it_LHS == PIA_LHS->end() || it_LHS[0].first >= blow );
+						assert ( it_LHS == PIA_LHS->begin() || it_LHS[-1].first < blow );
+						uint64_t const off_LHS = it_LHS - PIA_LHS->begin();
+						PIA_LHS.reset();
+
+						typename PreIsaAdapter::const_iterator it_RHS = ::std::lower_bound(PIA_RHS->begin(),PIA_RHS->end(),std::pair<uint64_t,uint64_t>(slow,0),PairFirstComparator());
+						assert ( it_RHS == PIA_RHS->end() || it_RHS[0].first >= slow );
+						assert ( it_RHS == PIA_RHS->begin() || it_RHS[-1].first < slow );
+						uint64_t const off_RHS = it_RHS - PIA_RHS->begin();
+						PIA_RHS.reset();
+
+						// LHS
+						libmaus2::aio::ConcatInputStream ISInew(newmergedisaname);
+						ISInew.clear();
+						ISInew.seekg(off_LHS * 2 * sizeof(uint64_t));
+
+						// RHS
+						libmaus2::aio::ConcatInputStream ISIold(oldmergedisaname);
+						ISIold.clear();
+						ISIold.seekg(off_RHS * 2 * sizeof(uint64_t));
+
+						::libmaus2::aio::SynchronousGenericInput<uint64_t> SGIISAold(ISIold,16*1024);
+						::libmaus2::aio::SynchronousGenericInput<uint64_t> SGIISAnew(ISInew,16*1024);
+						::libmaus2::aio::SynchronousGenericOutput<uint64_t> SGOISA(Vout[t],16*1024);
+
+						uint64_t lblockp0rank = std::numeric_limits<uint64_t>::max();
+
+						typedef typename gap_array::sequence_type sequence_type;
+						sequence_type gp = G.getOffsetSequence(blow);
+						uint64_t s = slow;
+						// scan the gap array
+						for ( uint64_t i = blow; i < bhigh; ++i )
+						{
+							s += gp.get(); // *(Gc++);
+
+							// while old suffixes are smaller than next new suffix
+							int64_t re;
+							while ( (re=SGIISAold.peek()) >= 0 && re < static_cast<int64_t>(s) )
+							{
+								// rank (add number of new suffixes processed before)
+								uint64_t const r = SGIISAold.get() + i;
+								// position (copy as is)
+								uint64_t const p = SGIISAold.get();
+
+								SGOISA . put ( r );
+								SGOISA . put ( p );
+							}
+
+							// is next sample in next (LHS) block for rank i?
+							if ( SGIISAnew.peek() == static_cast<int64_t>(i) )
+							{
+								// add number of old suffixes to rank
+								uint64_t const r = SGIISAnew.get() + s;
+								// keep absolute position as is
+								uint64_t const p = SGIISAnew.get();
+
+								SGOISA . put ( r );
+								SGOISA . put ( p );
+
+								// check whether this rank is for the leftmost position in the merged block
+								if ( p == blockstart )
+									blockp0rank = r;
+							}
+						}
+
+						SGOISA.flush();
+
+						if ( lblockp0rank != std::numeric_limits<uint64_t>::max() )
+						{
+							blockp0ranklock.lock();
+							blockp0rank = lblockp0rank;
+							blockp0ranklock.unlock();
+						}
+					}
+
+					// sanity check, input length should equal output length
+					assert (
+						getFileSize(oldmergedisaname) + getFileSize(newmergedisaname) ==
+						getFileSize(Vout)
+					);
+
+					if ( logstr )
+						(*logstr) << "done, time " << rtc.getElapsedSeconds() << std::endl;
+
+					return std::pair < uint64_t, std::vector<std::string> >(blockp0rank,Vout);
+				}
+
 				static void saveGapFile(
 					::libmaus2::autoarray::AutoArray<uint32_t> const & G,
 					std::string const & gapfile,
@@ -1818,6 +2019,34 @@ namespace libmaus2
 					result.setSampledISA(Vsampledisa);
 				}
 
+				static bool compareFiles(std::vector<std::string> const & A, std::vector<std::string> const & B)
+				{
+					libmaus2::aio::ConcatInputStream CA(A);
+					libmaus2::aio::ConcatInputStream CB(B);
+
+					libmaus2::autoarray::AutoArray<char> BA(16*1024);
+					libmaus2::autoarray::AutoArray<char> BB(BA.size());
+
+					while ( CA && CB )
+					{
+						CA.read(BA.begin(),BA.size());
+						CB.read(BB.begin(),BB.size());
+						assert ( CA.gcount() == CB.gcount() );
+
+						uint64_t const ca = CA.gcount();
+
+						if (
+							! std::equal(BA.begin(),BA.begin()+ca,BB.begin())
+						)
+							return false;
+					}
+
+					bool const oka = static_cast<bool>(CA);
+					bool const okb = static_cast<bool>(CB);
+
+					return oka == okb;
+				}
+
 				static void mergeBlocks(
 					libmaus2::util::TempFileNameGenerator & gtmpgen,
 					libmaus2::suffixsort::bwtb3m::MergeStrategyMergeInternalBlock & mergereq,
@@ -1963,7 +2192,7 @@ namespace libmaus2
 						splitGapArray(GACR.G,Gsize,numthreads,wpacks,P,logstr,verbose);
 
 						if ( logstr )
-							(*logstr) << "[V] done, time " << rtc.getElapsedSeconds() << std::endl;
+							(*logstr) << "done, time " << rtc.getElapsedSeconds() << std::endl;
 
 						if ( verbose >= 5 && logstr )
 						{
@@ -1971,13 +2200,37 @@ namespace libmaus2
 						}
 
 						// merge sampled inverse suffix arrays, returns rank of position 0 (relative to block start)
-						libmaus2::util::GetObject<uint32_t const *> mergeGO(GACR.G.begin());
-						setupSampledISA(gtmpgen,result,1 /* numisa */);
-						result.setBlockP0Rank( mergeIsa(
-							mergereq.children[1]->sortresult.getFiles().getSampledISAVector(), // old sampled isa
-							blockresults.getFiles().getSampledISAVector(), // new sampled isa
-							result.getFiles().getSampledISA(),blockstart,mergeGO/*GACR.G.begin()*/,cblocksize+1 /* Gsize */,logstr
-						) );
+						std::pair < uint64_t, std::vector<std::string> > const PPP = mergeIsaParallel(
+							gtmpgen,wpacks,P,
+							mergereq.children[1]->sortresult.getFiles().getSampledISAVector(),
+							blockresults.getFiles().getSampledISAVector(),
+							blockstart,
+							GACR.G,
+							numthreads,
+							logstr
+						);
+
+						result.setBlockP0Rank(PPP.first);
+						result.setSampledISA(PPP.second);
+
+						// #define LIBMAUS2_SUFFIXSORT_BWTB3M_PARALLEL_ISA_MERGE_DEBUG
+
+						#if defined(LIBMAUS2_SUFFIXSORT_BWTB3M_PARALLEL_ISA_MERGE_DEBUG)
+						{
+							libmaus2::util::GetObject<uint32_t const *> mergeGO(GACR.G.begin());
+							std::string const isadebugtmp = gtmpgen.getFileName(true);
+							uint64_t const serialblockp0rank = mergeIsa(
+								mergereq.children[1]->sortresult.getFiles().getSampledISAVector(), // old sampled isa
+								blockresults.getFiles().getSampledISAVector(), // new sampled isa
+								isadebugtmp,blockstart,mergeGO/*GACR.G.begin()*/,cblocksize+1 /* Gsize */,logstr
+							);
+
+							assert ( PPP.first == serialblockp0rank );
+							assert ( compareFiles(PPP.second,std::vector<std::string>(1,isadebugtmp)) );
+
+							libmaus2::aio::FileRemoval::removeFile(isadebugtmp);
+						}
+						#endif
 
 						if ( verbose >= 5 && logstr )
 						{
@@ -2445,9 +2698,42 @@ namespace libmaus2
 							// save the gap file
 							saveGapFile(GACR.G,gapfile,logstr);
 
-							// merge sampled inverse suffix arrays, returns rank of position 0 (relative to block start)
-							libmaus2::util::GetObject<uint32_t const *> mergeGO(GACR.G.begin());
-							result.setBlockP0Rank( mergeIsa(mergedisaname,blockresults.getFiles().getSampledISAVector(),newmergedisaname,blockstart,mergeGO /*GACR.G.begin()*/,cblocksize+1 /*Gsize*/,logstr) );
+							if ( logstr )
+								(*logstr) << "[V] computing gap array split...";
+
+							libmaus2::timing::RealTimeClock splitrtc; splitrtc.start();
+							std::vector < std::pair<uint64_t,uint64_t> > wpacks;
+							std::vector < uint64_t > P;
+							splitGapArray(GACR.G,(cblocksize+1) /* Gsize */,numthreads,wpacks,P,logstr,verbose);
+
+							if ( logstr )
+								(*logstr) << "done, time " << splitrtc.getElapsedSeconds() << std::endl;
+
+							std::pair < uint64_t, std::vector<std::string> > const PPP = mergeIsaParallel(
+								gtmpgen,wpacks,P,
+								mergedisaname,
+								blockresults.getFiles().getSampledISAVector(),
+								blockstart,
+								GACR.G,
+								numthreads,
+								logstr
+							);
+
+							result.setBlockP0Rank(PPP.first);
+
+							#if defined(LIBMAUS2_SUFFIXSORT_BWTB3M_PARALLEL_ISA_MERGE_DEBUG)
+							{
+								// merge sampled inverse suffix arrays, returns rank of position 0 (relative to block start)
+								std::string const isadebugtmp = gtmpgen.getFileName(true);
+								libmaus2::util::GetObject<uint32_t const *> mergeGO(GACR.G.begin());
+								uint64_t const serialblockp0rank = mergeIsa(mergedisaname,blockresults.getFiles().getSampledISAVector(),isadebugtmp,blockstart,mergeGO /*GACR.G.begin()*/,cblocksize+1 /*Gsize*/,logstr);
+
+								assert ( PPP.first == serialblockp0rank );
+								assert ( compareFiles(PPP.second,std::vector<std::string>(1,isadebugtmp)) );
+
+								libmaus2::aio::FileRemoval::removeFile(isadebugtmp);
+							}
+							#endif
 
 							#if 0
 							// concatenate gt vectors
@@ -2486,7 +2772,7 @@ namespace libmaus2
 
 							// update current file names
 							mergedgtname = stringVectorAppend(GACR.gtpartnames,oldgtnames);
-							mergedisaname = std::vector<std::string>(1,newmergedisaname);
+							mergedisaname = PPP.second; // std::vector<std::string>(1,newmergedisaname);
 						}
 
 						// renamed sampled inverse suffix array
@@ -2656,19 +2942,6 @@ namespace libmaus2
 
 						result.setGT(stringVectorAppend(GACR.gtpartnames,oldgtnames));
 
-						// merge sampled inverse suffix arrays, returns rank of position 0 (relative to block start)
-						libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type pgap0dec(GACR.G->getDecoder());
-						libmaus2::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type pgap0decbuf(new libmaus2::suffixsort::GapArrayByteDecoderBuffer(*pgap0dec,8192));
-						// libmaus2::suffixsort::GapArrayByteDecoderBuffer::iterator gap0decbufit = pgap0decbuf->begin();
-						setupSampledISA(gtmpgen,result,1 /* numisa */);
-						result.setBlockP0Rank( mergeIsa(
-							mergereq.children[1]->sortresult.getFiles().getSampledISAVector(), // old sampled isa
-							blockresults.getFiles().getSampledISAVector(), // new sampled isa
-							result.getFiles().getSampledISA(),blockstart,*pgap0decbuf/*gap0decbufit*//*GACR.G.begin()*/,cblocksize+1 /* GACR.G.size() */,logstr
-						) );
-						pgap0decbuf.reset();
-						pgap0dec.reset();
-
 						::libmaus2::timing::RealTimeClock rtc; rtc.start();
 
 						if ( logstr )
@@ -2688,6 +2961,43 @@ namespace libmaus2
 
 						if ( logstr )
 							(*logstr) << "done, time " << rtc.getElapsedSeconds() << std::endl;
+
+						// merge sampled inverse suffix arrays, returns rank of position 0 (relative to block start)
+						std::pair < uint64_t, std::vector<std::string> > const PPP = mergeIsaParallel(
+							gtmpgen,wpacks,P,
+							mergereq.children[1]->sortresult.getFiles().getSampledISAVector(),
+							blockresults.getFiles().getSampledISAVector(),
+							blockstart,
+							*(GACR.G),
+							numthreads,
+							logstr
+						);
+
+						result.setBlockP0Rank(PPP.first);
+						result.setSampledISA(PPP.second);
+
+						#if defined(LIBMAUS2_SUFFIXSORT_BWTB3M_PARALLEL_ISA_MERGE_DEBUG)
+						{
+							std::string const isadebugtmp = gtmpgen.getFileName(true);
+
+							// merge sampled inverse suffix arrays, returns rank of position 0 (relative to block start)
+							libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type pgap0dec(GACR.G->getDecoder());
+							libmaus2::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type pgap0decbuf(new libmaus2::suffixsort::GapArrayByteDecoderBuffer(*pgap0dec,8192));
+							// libmaus2::suffixsort::GapArrayByteDecoderBuffer::iterator gap0decbufit = pgap0decbuf->begin();
+							uint64_t const serialblockp0rank = mergeIsa(
+								mergereq.children[1]->sortresult.getFiles().getSampledISAVector(), // old sampled isa
+								blockresults.getFiles().getSampledISAVector(), // new sampled isa
+								isadebugtmp,blockstart,*pgap0decbuf/*gap0decbufit*//*GACR.G.begin()*/,cblocksize+1 /* GACR.G.size() */,logstr
+							);
+							pgap0decbuf.reset();
+							pgap0dec.reset();
+
+							assert ( PPP.first == serialblockp0rank );
+							assert ( compareFiles(PPP.second,std::vector<std::string>(1,isadebugtmp)) );
+
+							libmaus2::aio::FileRemoval::removeFile(isadebugtmp);
+						}
+						#endif
 
 						rtc.start();
 						if ( logstr )
@@ -2965,11 +3275,55 @@ namespace libmaus2
 							GACR.G->saveGammaGapArray(gapfile);
 							#endif
 
+							::libmaus2::timing::RealTimeClock rtc; rtc.start();
+
+							if ( logstr )
+								(*logstr) << "[V] splitting gap array...";
+
+							std::vector < std::pair<uint64_t,uint64_t> > wpacks;
+							std::vector < uint64_t > P;
+							splitGapArray(
+								*(GACR.G),
+								cblocksize+1,
+								numthreads,
+								wpacks,
+								P,
+								logstr,
+								verbose
+							);
+
+							if ( logstr )
+								(*logstr) << "done, time " << rtc.getElapsedSeconds() << std::endl;
+
 							// merge sampled inverse suffix arrays, returns rank of position 0 (relative to block start)
-							// libmaus2::util::GetObject<uint32_t const *> mergeGO(GACR.G.begin());
-							libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type pgap0dec(GACR.G->getDecoder());
-							libmaus2::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type pgap0decbuf(new libmaus2::suffixsort::GapArrayByteDecoderBuffer(*pgap0dec,8192));
-							result.setBlockP0Rank( mergeIsa(mergedisaname,blockresults.getFiles().getSampledISAVector(),newmergedisaname,blockstart,*pgap0decbuf/*mergeGO*/ /*GACR.G.begin()*/,cblocksize+1 /*GACR.G.size()*/,logstr) );
+							std::pair < uint64_t, std::vector<std::string> > const PPP = mergeIsaParallel(
+								gtmpgen,wpacks,P,
+								mergedisaname,
+								blockresults.getFiles().getSampledISAVector(),
+								blockstart,
+								*(GACR.G),
+								numthreads,
+								logstr
+							);
+
+							result.setBlockP0Rank(PPP.first);
+
+							#if defined(LIBMAUS2_SUFFIXSORT_BWTB3M_PARALLEL_ISA_MERGE_DEBUG)
+							{
+								std::string const isadebugtmp = gtmpgen.getFileName(true);
+
+								// merge sampled inverse suffix arrays, returns rank of position 0 (relative to block start)
+								// libmaus2::util::GetObject<uint32_t const *> mergeGO(GACR.G.begin());
+								libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type pgap0dec(GACR.G->getDecoder());
+								libmaus2::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type pgap0decbuf(new libmaus2::suffixsort::GapArrayByteDecoderBuffer(*pgap0dec,8192));
+								uint64_t const serialblockp0rank = mergeIsa(mergedisaname,blockresults.getFiles().getSampledISAVector(),isadebugtmp,blockstart,*pgap0decbuf/*mergeGO*/ /*GACR.G.begin()*/,cblocksize+1 /*GACR.G.size()*/,logstr);
+
+								assert ( PPP.first == serialblockp0rank );
+								assert ( compareFiles(PPP.second,std::vector<std::string>(1,isadebugtmp)) );
+
+								libmaus2::aio::FileRemoval::removeFile(isadebugtmp);
+							}
+							#endif
 
 							#if 0
 							// concatenate gt vectors
@@ -3008,8 +3362,9 @@ namespace libmaus2
 
 							// update current file names
 							mergedgtname = stringVectorAppend(GACR.gtpartnames,oldgtnames);
-							mergedisaname = std::vector<std::string>(1,newmergedisaname);
+							mergedisaname = PPP.second;
 						}
+
 
 						// renamed sampled inverse suffix array
 						result.setSampledISA(mergedisaname);
