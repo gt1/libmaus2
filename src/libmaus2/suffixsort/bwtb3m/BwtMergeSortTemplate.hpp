@@ -3304,21 +3304,19 @@ namespace libmaus2
 					mergereq.releaseChildren();
 				}
 
-				static void sortIsaFile(std::string const & mergedisaname, uint64_t const blockmem)
+				static std::string sortIsaFile(
+					libmaus2::util::TempFileNameGenerator & gtmpgen,
+					std::vector<std::string> const & mergedisaname, uint64_t const blockmem
+				)
 				{
 					// sort sampled inverse suffix array file
-					std::string const mergeisatmp = mergedisaname+".tmp";
-					::libmaus2::util::TempFileRemovalContainer::addTempFile(mergeisatmp);
-					std::string const mergeisatmpout = mergedisaname+".tmp.out";
-					::libmaus2::util::TempFileRemovalContainer::addTempFile(mergeisatmpout);
-					// uint64_t const blockmem = 5*blocksize;
-					// uint64_t const blockels = (blockmem + 2*sizeof(uint64_t)-1)/(2*sizeof(uint64_t));
+					std::string const mergeisatmp = gtmpgen.getFileName(true);
+					std::string const mergeisatmpout = gtmpgen.getFileName(true);
 					::libmaus2::sorting::PairFileSorting::sortPairFile(
-						std::vector<std::string>(1,mergedisaname),mergeisatmp,true /* second comp */,
+						mergedisaname,mergeisatmp,true /* second comp */,
 						true,true,mergeisatmpout,blockmem/2/*par*/,true /* parallel */);
-					libmaus2::aio::FileRemoval::removeFile ( (mergeisatmp).c_str() );
-					libmaus2::aio::OutputStreamFactoryContainer::rename ( mergeisatmpout.c_str(), mergedisaname.c_str() );
-
+					libmaus2::aio::FileRemoval::removeFile (mergeisatmp);
+					return mergeisatmpout;
 				}
 
 				static uint64_t readBlockRanksSize(std::string const & mergedisaname)
@@ -4509,9 +4507,27 @@ namespace libmaus2
 
 					if ( options.bwtonly )
 					{
-						std::string const mergedisaname = mergeresult.getFiles().getSampledISA();
+						std::vector<std::string> const Vmergedisaname = mergeresult.getFiles().getSampledISAVector();
+
 						std::string const outisa = ::libmaus2::util::OutputFileNameTools::clipOff(options.outfn,".bwt") + ".preisa";
-						libmaus2::aio::OutputStreamFactoryContainer::rename(mergedisaname.c_str(),outisa.c_str());
+
+						if ( Vmergedisaname.size() == 1)
+						{
+							libmaus2::aio::OutputStreamFactoryContainer::rename(Vmergedisaname[0].c_str(),outisa.c_str());
+						}
+						else
+						{
+							libmaus2::aio::OutputStreamInstance OSI(outisa);
+
+							for ( uint64_t i = 0; i < Vmergedisaname.size(); ++i )
+							{
+								libmaus2::aio::InputStreamInstance::unique_ptr_type ISI(new libmaus2::aio::InputStreamInstance(Vmergedisaname[i]));
+								uint64_t const s = libmaus2::util::GetFileSize::getFileSize(*ISI);
+								libmaus2::util::GetFileSize::copy(*ISI,OSI,s);
+								ISI.reset();
+								libmaus2::aio::FileRemoval::removeFile(Vmergedisaname[i]);
+							}
+						}
 
 						std::string const outisameta = outisa + ".meta";
 						libmaus2::aio::OutputStreamInstance outisametaOSI(outisameta);
@@ -4556,8 +4572,8 @@ namespace libmaus2
 
 						// sort the sampled isa file
 						uint64_t const blockmem = memperthread; // memory per thread
-						std::string const mergedisaname = mergeresult.getFiles().getSampledISA();
-						sortIsaFile(mergedisaname,blockmem);
+						// sort pre isa files by second component (position)
+						std::string const mergedisaname = sortIsaFile(gtmpgen,mergeresult.getFiles().getSampledISAVector(),blockmem);
 
 						// compute sampled suffix array and sampled inverse suffix array
 						computeSampledSA(
