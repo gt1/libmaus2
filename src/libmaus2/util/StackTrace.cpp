@@ -33,6 +33,66 @@ static std::string chomp(std::string s)
 
 libmaus2::util::StackTrace::~StackTrace() {}
 
+std::string libmaus2::util::StackTrace::getExecPath()
+{
+	#if defined(__linux__)
+	char buf[PATH_MAX+1];
+	std::fill(
+		&buf[0],&buf[sizeof(buf)/sizeof(buf[0])],0);
+	if ( readlink("/proc/self/exe", &buf[0], PATH_MAX) < 0 )
+		throw std::runtime_error("readlink(/proc/self/exe) failed.");
+	return std::string(&buf[0]);
+	#else
+	return "program";
+	#endif
+}
+
+#if defined(__linux__)
+static std::string readCommandLine()
+{
+	try
+	{
+		::std::ifstream istr_cmdline("/proc/self/cmdline");
+		if ( ! istr_cmdline.is_open() )
+			return std::string();
+
+			std::ostringstream ocmdline;
+		int c;
+		while ( (c=istr_cmdline.get()) != std::istream::traits_type::eof() )
+			ocmdline.put(c);
+		istr_cmdline.close();
+		return ocmdline.str();
+	}
+	catch(...)
+	{
+		return std::string();
+	}
+}
+#endif
+
+static std::string findIfSelf(std::string const & exec)
+{
+	#if defined(__linux__)
+	try
+	{
+		std::string cmdline = readCommandLine();
+		if ( cmdline.find('\0') != std::string::npos )
+			cmdline = cmdline.substr(0,cmdline.find('\0'));
+		if ( cmdline != exec )
+		{
+			return exec;
+		}
+		return libmaus2::util::StackTrace::getExecPath();
+	}
+	catch(...)
+	{
+		return exec;
+	}
+	#else
+	return exec;
+	#endif
+}
+
 std::string libmaus2::util::StackTrace::toString(bool const
 #if defined(__linux)
 translate
@@ -48,7 +108,7 @@ translate
                 {
                         std::pair < std::string, std::string > A = components(trace[i],'[',']');
                         std::pair < std::string, std::string > B = components(A.first,'(',')');
-                        std::string const & execname = B.first;
+                        std::string const execname = findIfSelf(B.first);
                         std::string const & addr = A.second;
 
                         std::ostringstream comlinestr;
@@ -82,7 +142,8 @@ translate
                         	B.second = libmaus2::util::Demangle::demangleName(mangled) + "+" + offset;
                         }
 
-                        ostr << B.first << "(" << B.second << ")" << "[" << A.second << ":" << addrout << "]\n";
+                        //ostr << B.first << "(" << B.second << ")" << "[" << A.second << ":" << addrout << "]\n";
+                        ostr << execname << "(" << B.second << ")" << "[" << A.second << ":" << addrout << "]\n";
                 }
         }
         else
@@ -94,6 +155,7 @@ translate
 
         return ostr.str();
 }
+
 
 void libmaus2::util::StackTrace::simpleStackTrace(std::ostream &
 #if defined(LIBMAUS2_HAVE_BACKTRACE)
@@ -129,19 +191,6 @@ libmaus2::util::StackTrace::StackTrace() : trace()
 	#endif
 }
 
-std::string libmaus2::util::StackTrace::getExecPath()
-{
-	#if defined(_linux__)
-	char buf[PATH_MAX+1];
-	std::fill(
-		&buf[0],&buf[sizeof(buf)/sizeof(buf[0])],0);
-	if ( readlink("/proc/self/exe", &buf[0], PATH_MAX) < 0 )
-		throw std::runtime_error("readlink(/proc/self/exe) failed.");
-	return std::string(&buf[0]);
-	#else
-	return "program";
-	#endif
-}
 
 std::pair < std::string, std::string > libmaus2::util::StackTrace::components(std::string line, char const start, char const end)
 {
