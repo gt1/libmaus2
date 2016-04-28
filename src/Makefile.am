@@ -344,7 +344,9 @@ libmaus2gamma_include_HEADERS = libmaus2/gamma/GammaEncoder.hpp libmaus2/gamma/G
 	libmaus2/gamma/GammaPartitionEncoder.hpp \
 	libmaus2/gamma/GammaIntervalEncoder.hpp \
 	libmaus2/gamma/GammaPartitionDecoder.hpp \
-	libmaus2/gamma/GammaIntervalDecoder.hpp
+	libmaus2/gamma/GammaIntervalDecoder.hpp \
+	libmaus2/gamma/GammaPDEncoder.hpp \
+	libmaus2/gamma/GammaPDDecoder.hpp
 
 libmaus2regex_includedir=$(includedir)/libmaus2/regex/
 libmaus2regex_include_HEADERS = libmaus2/regex/PosixRegex.hpp
@@ -1481,7 +1483,9 @@ libmaus2sorting_include_HEADERS=\
 	libmaus2/sorting/MergeStepBinSearchResult.hpp \
 	libmaus2/sorting/ParallelStableSort.hpp \
 	libmaus2/sorting/SemiExternalKeyTupleSort.hpp \
-	libmaus2/sorting/InterleavedRadixSort.hpp
+	libmaus2/sorting/InterleavedRadixSort.hpp \
+	libmaus2/sorting/ParallelRunLengthRadixUnsort.hpp \
+	libmaus2/sorting/ParallelRunLengthRadixSort.hpp
 
 libmaus2hashing_includedir=$(includedir)/libmaus2/hashing
 libmaus2hashing_include_HEADERS=\
@@ -2025,7 +2029,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testbwtconstructionfasta \
 	testarrayinput \
 	testhugepages \
-	testsymcnt
+	testsymcnt \
+	testgammapd
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2573,3 +2578,7 @@ testhugepages_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testsymcnt_SOURCES  = test/testsymcnt.cpp
 testsymcnt_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testsymcnt_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testgammapd_SOURCES  = test/testgammapd.cpp
+testgammapd_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testgammapd_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
