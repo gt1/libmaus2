@@ -21,12 +21,13 @@
 #include <libmaus2/huffman/IndexDecoderDataArray.hpp>
 #include <libmaus2/gamma/GammaDecoder.hpp>
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/huffman/RLInitType.hpp>
 
 namespace libmaus2
 {
 	namespace gamma
 	{
-		struct GammaPartitionDecoder
+		struct GammaPartitionDecoder : public libmaus2::huffman::RLInitType
 		{
 			typedef GammaPartitionDecoder this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
@@ -147,7 +148,11 @@ namespace libmaus2
 				}
 			}
 
-			GammaPartitionDecoder(std::vector<std::string> const & rVfn, uint64_t const voffset, uint64_t const numthreads)
+			GammaPartitionDecoder(
+				std::vector<std::string> const & rVfn,
+				uint64_t const voffset,
+				uint64_t const numthreads
+			)
 			: Vfn(rVfn), Pindex(new libmaus2::huffman::IndexDecoderDataArray(Vfn,numthreads)), index(*Pindex), fileptr(0),
 			  Aintv(), pa(Aintv.begin()), pc(Aintv.begin()), pe(Aintv.begin())
 			{
