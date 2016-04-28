@@ -22,7 +22,7 @@
 #include <libmaus2/util/PosixExecute.hpp>
 #endif
 
-#if defined(__linux__)
+#if defined(__linux__) && defined(LIBMAUS2_DEBUG_COMPILED)
 static std::string chomp(std::string s)
 {
         while ( s.size() && isspace(s[s.size()-1]) )
@@ -47,7 +47,7 @@ std::string libmaus2::util::StackTrace::getExecPath()
 	#endif
 }
 
-#if defined(__linux__)
+#if defined(__linux__) && defined(LIBMAUS2_DEBUG_COMPILED)
 static std::string readCommandLine()
 {
 	try
@@ -70,6 +70,7 @@ static std::string readCommandLine()
 }
 #endif
 
+#if defined(LIBMAUS2_DEBUG_COMPILED)
 static std::string findIfSelf(std::string const & exec)
 {
 	#if defined(__linux__)
@@ -92,6 +93,7 @@ static std::string findIfSelf(std::string const & exec)
 	return exec;
 	#endif
 }
+#endif
 
 std::string libmaus2::util::StackTrace::toString(bool const
 #if defined(__linux)
@@ -108,6 +110,8 @@ translate
                 {
                         std::pair < std::string, std::string > A = components(trace[i],'[',']');
                         std::pair < std::string, std::string > B = components(A.first,'(',')');
+
+                        #if defined(LIBMAUS2_DEBUG_COMPILED)
                         std::string const execname = findIfSelf(B.first);
                         std::string const & addr = A.second;
 
@@ -144,6 +148,17 @@ translate
 
                         //ostr << B.first << "(" << B.second << ")" << "[" << A.second << ":" << addrout << "]\n";
                         ostr << execname << "(" << B.second << ")" << "[" << A.second << ":" << addrout << "]\n";
+                        #else
+                        if ( B.second.find_last_of('+') != std::string::npos )
+                        {
+                        	std::string const mangled = B.second.substr(0,B.second.find_last_of('+'));
+                        	std::string const offset = B.second.substr(B.second.find_last_of('+')+1);
+                        	B.second = libmaus2::util::Demangle::demangleName(mangled) + "+" + offset;
+                        }
+
+
+                        ostr << B.first << "(" << B.second << ")" << "[" << A.second << "]\n";
+                        #endif
                 }
         }
         else
