@@ -306,7 +306,7 @@ namespace libmaus2
 							#endif
 							for ( uint64_t i = 0; i < unsortthreads; ++i )
 							{
-								uint64_t const low = i * symsperthread;
+								uint64_t const low = std::min(i * symsperthread,numinsyms);
 								uint64_t const high = std::min(low+symsperthread,numinsyms);
 								uint64_t * Khist = Fhist.begin() + i * outfilesperthread;
 								Athreadint[i] = std::pair<uint64_t,uint64_t>(low,high);
