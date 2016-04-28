@@ -1240,11 +1240,13 @@ if test "${openmp}" = "yes" ; then
 	AC_LANG_POP
 fi
 
+LIBMAUS2_DEBUG_COMPILED=
 if test "${debug}" = "yes" ; then
         CXXFLAGS="${CXXFLAGS} -g -O0"
         CFLAGS="${CFLAGS} -g -O0"
         LDFLAGS="${LDFLAGS} -rdynamic"
 	openmp="no"
+	LIBMAUS2_DEBUG_COMPILED="#define LIBMAUS2_DEBUG_COMPILED"
 else
 	if test "${profile}" = "yes" ; then
 	        CXXFLAGS="${CXXFLAGS} -g -pg"
@@ -3626,4 +3628,5 @@ AC_SUBST([LIBMAUS2_IRODS_NEED_PREFIX])
 AC_SUBST([LIBMAUS2_NETTLE_HAVE_SHA3])
 AC_SUBST([LIBMAUS2_HAVE_MMAP])
 AC_SUBST([LIBMAUS2_HAVE_MMAP_HUGEPAGES])
+AC_SUBST([LIBMAUS2_DEBUG_COMPILED])
 AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2lsf.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp)
