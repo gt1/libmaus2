@@ -89,6 +89,7 @@ namespace libmaus2
 						encoder_type enc(Vout[t],std::numeric_limits<uint64_t>::max(),encbs);
 
 						// number of elements still to do
+						assert ( threadint.second >= threadint.first );
 						uint64_t todo = threadint.second - threadint.first;
 						typename key_decoder_type::run_type K;
 						typename decoder_type::run_type R;
@@ -96,7 +97,8 @@ namespace libmaus2
 						while ( todo )
 						{
 							// decode key run
-							Kdec.decodeRun(K);
+							bool const okK = Kdec.decodeRun(K);
+							assert ( okK );
 							// how much can we still use?
 							uint64_t av = std::min(todo,K.rlen);
 							// update todo
@@ -106,7 +108,8 @@ namespace libmaus2
 							while ( av )
 							{
 								// decode run from data file
-								Adec[K.sym]->decodeRun(R);
+								bool const okA = Adec[K.sym]->decodeRun(R);
+								assert ( okA );
 
 								// how much can we use of this run?
 								uint64_t lav = std::min(av,R.rlen);
