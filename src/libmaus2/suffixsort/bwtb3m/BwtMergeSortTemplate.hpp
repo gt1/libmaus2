@@ -938,7 +938,7 @@ namespace libmaus2
 					if ( logstr )
 						(*logstr) << "done, time " << rtc.getElapsedSeconds() << std::endl;
 
-					return std::pair < uint64_t, std::vector<std::string> >(blockp0rank,Vout);
+					return std::pair < uint64_t, std::vector<std::string> >(static_cast<uint64_t>(blockp0rank),Vout);
 				}
 
 				static void saveGapFile(

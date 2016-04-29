@@ -52,7 +52,7 @@ namespace libmaus2
 			  infix_numdel(0),
 			  infix_nummat(0),
 			  infix_nummis(0),
-			  infix_score(-std::numeric_limits<int64_t>::min())
+			  infix_score(std::numeric_limits<int64_t>::min())
 			{}
 
 			SuffixPrefixResult(uint32_t const raclip_left, uint32_t const rbclip_right,
@@ -66,7 +66,7 @@ namespace libmaus2
 			  infix_numdel(0),
 			  infix_nummat(0),
 			  infix_nummis(0),
-			  infix_score(-std::numeric_limits<int64_t>::min())
+			  infix_score(std::numeric_limits<int64_t>::min())
 			{}
 
 			SuffixPrefixResult(
