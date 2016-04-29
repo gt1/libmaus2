@@ -36,6 +36,7 @@
 #include <poll.h>
 
 #include <cmath>
+#include <fstream>
 
 namespace libmaus2
 {
@@ -397,8 +398,8 @@ namespace libmaus2
 					if ( havecheckfile )
 					{
 						// instantiate streams
-						::std::ifstream istr0(filename,std::ios::binary);
-						::std::ifstream istr1(filename,std::ios::binary);
+						::std::ifstream istr0(filename.c_str(),std::ios::binary);
+						::std::ifstream istr1(filename.c_str(),std::ios::binary);
 
 						// see if they are both open
 						bool ok0 = istr0.is_open();
@@ -417,13 +418,13 @@ namespace libmaus2
 							gok = ok0;
 
 							uint64_t const n = 64*1024;
-							libmaus2::autoarray::AutoArray<char> B0(n,false);
-							libmaus2::autoarray::AutoArray<char> B1(n,false);
+							libmaus2::autoarray::AutoArray<char> BU0(n,false);
+							libmaus2::autoarray::AutoArray<char> BU1(n,false);
 
 							while ( istr0 && istr1 )
 							{
-								istr0.read(B0.begin(),n);
-								istr1.read(B1.begin(),n);
+								istr0.read(BU0.begin(),n);
+								istr1.read(BU1.begin(),n);
 
 								if ( istr0.gcount() != istr1.gcount() )
 								{
@@ -432,7 +433,7 @@ namespace libmaus2
 									gok = false;
 									break;
 								}
-								else if ( ! std::equal(B0.begin(),B0.begin()+istr0.gcount(),B1.begin()) )
+								else if ( ! std::equal(BU0.begin(),BU0.begin()+istr0.gcount(),BU1.begin()) )
 								{
 									libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
 									std::cerr << "libmaus2::aio::PosixFdOutputStreamBuffer:~PosixFdOutputStreamBuffer(): " << filename << " data equality failure" << std::endl;
