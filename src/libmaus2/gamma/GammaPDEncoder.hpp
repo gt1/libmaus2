@@ -118,7 +118,7 @@ namespace libmaus2
 					PMETA->flush();
 					PMETA.reset();
 
-					assert ( POSI->tellp() == static_cast<int64_t>(offset) );
+					assert ( static_cast<int64_t>(POSI->tellp()) == static_cast<int64_t>(offset) );
 
 					libmaus2::aio::InputStreamInstance::unique_ptr_type METAin(new libmaus2::aio::InputStreamInstance(metafn));
 					while ( METAin->peek() != std::istream::traits_type::eof() )
