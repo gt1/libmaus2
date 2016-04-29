@@ -47,10 +47,11 @@ namespace libmaus2
 			uint64_t * pc;
 			uint64_t * const pe;
 
-			uint64_t const headerlength;
 			uint64_t valueswritten;
 
 			bool flushed;
+
+			uint64_t offset;
 
 			GammaPDEncoder(std::string const & rfn, uint64_t const blocksize = 4096)
 			: fn(rfn), POSI(new libmaus2::aio::OutputStreamInstance(fn)),
@@ -61,9 +62,9 @@ namespace libmaus2
 			  pa(B.begin()),
 			  pc(B.begin()),
 			  pe(B.end()),
-			  headerlength(0),
 			  valueswritten(0),
-			  flushed(false)
+			  flushed(false),
+			  offset(0)
 			{
 			}
 
@@ -80,19 +81,20 @@ namespace libmaus2
 				{
 					assert ( ! flushed );
 
-					uint64_t const offset = headerlength + PSGO->getWrittenBytes();
-
 					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETA,offset);
 					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETA,valueswritten);
 
 					uint64_t const bs = (pc-pa);
 
+					uint64_t const sgo_bef = PSGO->getWrittenBytes();
 					libmaus2::gamma::GammaEncoder<SGO_type> GE(*PSGO);
 					GE.encodeSlow(bs-1);
 					for ( uint64_t const * pp = pa; pp != pc; ++pp )
 						GE.encodeSlow(*pp);
 					GE.flush();
+					uint64_t const sgo_aft = PSGO->getWrittenBytes();
 
+					offset += (sgo_aft-sgo_bef);
 					valueswritten += bs;
 
 					pc = pa;
@@ -108,7 +110,8 @@ namespace libmaus2
 
 					PSGO->flush();
 
-					uint64_t const offset = headerlength + PSGO->getWrittenBytes();
+					//uint64_t const offset = PSGO->getWrittenBytes();
+					assert ( offset == PSGO->getWrittenBytes() );
 
 					PSGO.reset();
 
