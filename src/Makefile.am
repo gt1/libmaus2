@@ -1488,7 +1488,8 @@ libmaus2sorting_include_HEADERS=\
 	libmaus2/sorting/SemiExternalKeyTupleSort.hpp \
 	libmaus2/sorting/InterleavedRadixSort.hpp \
 	libmaus2/sorting/ParallelRunLengthRadixUnsort.hpp \
-	libmaus2/sorting/ParallelRunLengthRadixSort.hpp
+	libmaus2/sorting/ParallelRunLengthRadixSort.hpp \
+	libmaus2/sorting/ParallelExternalRadixSort.hpp
 
 libmaus2hashing_includedir=$(includedir)/libmaus2/hashing
 libmaus2hashing_include_HEADERS=\
