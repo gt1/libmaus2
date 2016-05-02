@@ -17,6 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <libmaus2/huffman/LFSupportDecoder.hpp>
+
 #include <libmaus2/huffman/LFSupportEncoder.hpp>
 #include <libmaus2/huffman/LFSupportDecoder.hpp>
 #include <libmaus2/sorting/ParallelExternalRadixSort.hpp>
@@ -323,7 +325,7 @@ void testlfsupport()
 	libmaus2::autoarray::AutoArray<uint64_t> Poff;
 
 	{
-		libmaus2::huffman::LFSupportEncoder enc(fn,4*1024);
+		libmaus2::huffman::LFSupportEncoder enc(fn,1024);
 		uint64_t vcato = 0;
 		uint64_t poffo = 0;
 		for ( uint64_t i = 0; i < n; ++i )
@@ -331,7 +333,7 @@ void testlfsupport()
 			// uint64_t const p = (1ull<<60) + n-i;
 			uint64_t const p = std::numeric_limits<uint64_t>::max() - 1;
 
-			V[i] = libmaus2::huffman::LFInfo(i/4 /* sym */, p /* p */,0 /* n */, 0 /* rv */, i%2 /* active */);
+			V[i] = libmaus2::huffman::LFInfo(libmaus2::random::Random::rand8() % 4 /* sym */, p-19581*i /* p */,0 /* n */, 0 /* rv */, i%2 /* active */);
 
 			uint64_t vo = 0;
 			Poff.push(poffo,vcato);
@@ -357,10 +359,12 @@ void testlfsupport()
 
 	std::cerr << "encoding done." << std::endl;
 
+	for ( uint64_t j = 0; j <= n; ++j )
 	{
-		libmaus2::huffman::LFSupportDecoder dec(std::vector<std::string>(1,fn),0);
+		std::cerr << "j=" << j << std::endl;
+		libmaus2::huffman::LFSupportDecoder dec(std::vector<std::string>(1,fn),j);
 		libmaus2::huffman::LFInfo info;
-		for ( uint64_t i = 0; i < n; ++i )
+		for ( uint64_t i = j; i < n; ++i )
 		{
 			dec.decode(info);
 			// std::cerr << info << std::endl;
