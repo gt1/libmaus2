@@ -17,11 +17,33 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <libmaus2/huffman/LFSupportEncoder.hpp>
+#include <libmaus2/huffman/LFSupportDecoder.hpp>
+#include <libmaus2/sorting/ParallelExternalRadixSort.hpp>
+
 #include <libmaus2/sorting/InPlaceParallelSort.hpp>
 #include <libmaus2/sorting/ParallelStableSort.hpp>
 #include <libmaus2/random/Random.hpp>
 #include <libmaus2/sorting/InterleavedRadixSort.hpp>
 #include <libmaus2/parallel/NumCpus.hpp>
+
+#if 0
+#include <libmaus2/huffman/GenericEncoder.hpp>
+
+struct S
+{
+	template<typename writer_type>
+	void encode(writer_type & /* writer */)
+	{
+
+	}
+};
+
+void f()
+{
+	libmaus2::huffman::GenericEncoderTemplate<S,libmaus2::huffman::HuffmanEncoderFileStd> GE("f",4096);
+}
+#endif
 
 void testBlockSwapDifferent()
 {
@@ -257,9 +279,96 @@ void testParallelSortState(uint64_t const rn = (1ull << 14) )
 
 #include <libmaus2/timing/RealTimeClock.hpp>
 
+void testlfsupport()
+{
+	std::string fn = "mem://tmp_";
+
+	#if 0
+	{
+		libmaus2::aio::OutputStreamInstance OSI(fn);
+		libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO(OSI,4096);
+
+		::libmaus2::bitio::FastWriteBitWriterStream64Std writer(SGO);
+		for ( uint64_t i = 0; i < 1024; ++i )
+		{
+			// writer.write(i,14);
+			writer.writeElias2(i);
+		}
+
+		writer.flush();
+		SGO.flush();
+	}
+
+	{
+		libmaus2::aio::InputStreamInstance ISI(fn);
+		libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(ISI,4096);
+		libmaus2::huffman::LFSSupportBitDecoder	dec(SGI);
+		for ( uint64_t i = 0; i < 1024; ++i )
+		{
+			#if 0
+			uint64_t const v = dec.peek(14);
+			dec.erase(14);
+			#endif
+			// uint64_t const v = dec.read(14);
+			uint64_t const v = libmaus2::bitio::readElias2(dec);
+			std::cerr << v << std::endl;
+		}
+	}
+	#endif
+
+	uint64_t n = 128*1024;
+	std::vector < libmaus2::huffman::LFInfo > V(n);
+	libmaus2::autoarray::AutoArray < uint64_t > Vcat;
+	libmaus2::autoarray::AutoArray<uint64_t> VO;
+	libmaus2::autoarray::AutoArray<uint64_t> Poff;
+
+	{
+		libmaus2::huffman::LFSupportEncoder enc(fn,4*1024);
+		uint64_t vcato = 0;
+		uint64_t poffo = 0;
+		for ( uint64_t i = 0; i < n; ++i )
+		{
+			V[i] = libmaus2::huffman::LFInfo(i/4 /* sym */, (1ull<<60) + n-i /* p */,0 /* n */, 0 /* rv */, i%2 /* active */);
+
+			uint64_t vo = 0;
+			Poff.push(poffo,vcato);
+
+			uint64_t const c = i % 8;
+			for ( uint64_t j = 0; j < c; ++j )
+			{
+				uint64_t const vv = (1ull << 61)+j;
+				VO.push(vo,vv);
+				Vcat.push(vcato,vv);
+			}
+
+			V[i].v = VO.begin();
+			V[i].n = c;
+
+			enc.encode(V[i]);
+		}
+		for ( uint64_t i = 0; i < n; ++i )
+		{
+			V[i].v = Vcat.begin() + Poff[i];
+		}
+	}
+
+	{
+		libmaus2::huffman::LFSupportDecoder dec(std::vector<std::string>(1,fn),0);
+		libmaus2::huffman::LFInfo info;
+		for ( uint64_t i = 0; i < n; ++i )
+		{
+			dec.decode(info);
+			// std::cerr << info << std::endl;
+			assert ( info == V[i] );
+		}
+	}
+}
+
 int main()
 {
 	{
+		testlfsupport();
+
 		typedef uint64_t value_type;
 		unsigned int keybytes[sizeof(value_type)];
 

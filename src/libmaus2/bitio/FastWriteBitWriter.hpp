@@ -37,7 +37,7 @@ namespace libmaus2
 		/**
 		 * bit stream writer class
 		 **/
-		template<typename _data_type, typename _data_iterator, _data_type basemask, _data_type fullmask>
+		template<typename _data_type, typename _data_iterator, _data_type basemask, _data_type fullmask, bool _write_safe>
 		struct FastWriteBitWriterTemplate
 		{
 			public:
@@ -47,7 +47,7 @@ namespace libmaus2
 			typedef _data_type data_type;
 			typedef _data_iterator data_iterator;
 
-			typedef FastWriteBitWriterTemplate<data_type,data_iterator,basemask,fullmask> this_type;
+			typedef FastWriteBitWriterTemplate<data_type,data_iterator,basemask,fullmask,_write_safe> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			private:
@@ -135,7 +135,7 @@ namespace libmaus2
 			 * @param b number of bits to write
 			 **/
 			template<typename N>
-			void write(N n, unsigned int b)
+			void writeInternal(N n, unsigned int b)
 			{
 				if ( b < bitsleft )
 				{
@@ -149,6 +149,28 @@ namespace libmaus2
 					b -= bitsleft;
 					writeCurrent();
 					write<N>(n & ::libmaus2::math::lowbits(b) , b);
+				}
+			}
+
+			/**
+			 * write a b bit number n
+			 * @param n number to be written
+			 * @param b number of bits to write
+			 **/
+			template<typename N>
+			void write(N n, unsigned int b)
+			{
+				if ( _write_safe && (b&(~31u)) )
+				{
+					assert ( b >= 32 );
+					unsigned int const bottombits = 32;
+					unsigned int const topbits    = b-bottombits;
+					writeInternal(n >> bottombits , topbits   );
+					writeInternal(n & 0xFFFFFFFFUL, bottombits);
+				}
+				else
+				{
+					writeInternal(n,b);
 				}
 			}
 
@@ -179,20 +201,21 @@ namespace libmaus2
 			}
 		};
 
-		typedef FastWriteBitWriterTemplate<uint8_t,   uint8_t *,              0x80    ,       0xFF           > FastWriteBitWriter;
-		typedef FastWriteBitWriterTemplate<uint16_t, uint16_t *,            0x8000    ,     0xFFFF           > FastWriteBitWriter2;
-		typedef FastWriteBitWriterTemplate<uint32_t, uint32_t *,        0x80000000    , 0xFFFFFFFFul         > FastWriteBitWriter4;
-		typedef FastWriteBitWriterTemplate<uint64_t, uint64_t *, 0x8000000000000000ULL, 0xFFFFFFFFFFFFFFFFULL> FastWriteBitWriter8;
-		typedef FastWriteBitWriterTemplate<uint8_t , std::back_insert_iterator< std::vector<uint8_t> >, 0x80, 0xFF> FastWriteBitWriterVector8;
-		typedef FastWriteBitWriterTemplate<uint64_t , std::back_insert_iterator< std::vector<uint64_t> >, 0x8000000000000000ULL, 0xFFFFFFFFFFFFFFFFULL> FastWriteBitWriterVector64;
-		typedef FastWriteBitWriterTemplate<uint8_t , std::ostream_iterator < uint8_t >, 0x80, 0xFF > FastWriteBitWriterStream8;
-		typedef FastWriteBitWriterTemplate<uint64_t , OutputBufferIterator<uint64_t>, 0x8000000000000000ULL, 0xFFFFFFFFFFFFFFFFULL> FastWriteBitWriterBuffer64;
-		typedef FastWriteBitWriterTemplate<uint8_t , ::libmaus2::aio::SynchronousGenericOutputPosix<uint8_t>::iterator_type, 0x80, 0xFF > FastWriteBitWriterStream8Posix;
-		typedef FastWriteBitWriterTemplate<uint8_t , ::libmaus2::aio::SynchronousGenericOutput<uint8_t>::iterator_type, 0x80, 0xFF > FastWriteBitWriterStream8Std;
-		typedef FastWriteBitWriterTemplate<uint64_t , ::libmaus2::aio::SynchronousGenericOutputPosix<uint64_t>::iterator_type, 0x8000000000000000ULL, 0xFFFFFFFFFFFFFFFFULL> FastWriteBitWriterBuffer64PosixSync;
-		typedef FastWriteBitWriterTemplate<uint64_t , ::libmaus2::aio::SynchronousGenericOutput<uint64_t>::iterator_type, 0x8000000000000000ULL, 0xFFFFFFFFFFFFFFFFULL> FastWriteBitWriterBuffer64Sync;
-		typedef FastWriteBitWriterTemplate<uint32_t , ::libmaus2::aio::SynchronousGenericOutputPosix<uint32_t>::iterator_type, 0x80000000ULL, 0xFFFFFFFFULL> FastWriteBitWriterBuffer32PosixSync;
-		typedef FastWriteBitWriterTemplate<uint32_t , ::libmaus2::aio::SynchronousGenericOutput<uint32_t>::iterator_type, 0x80000000ULL, 0xFFFFFFFFULL> FastWriteBitWriterBuffer32Sync;
+		typedef FastWriteBitWriterTemplate<uint8_t,   uint8_t *,              0x80    ,       0xFF           , false> FastWriteBitWriter;
+		typedef FastWriteBitWriterTemplate<uint16_t, uint16_t *,            0x8000    ,     0xFFFF           , false> FastWriteBitWriter2;
+		typedef FastWriteBitWriterTemplate<uint32_t, uint32_t *,        0x80000000    , 0xFFFFFFFFul         , false> FastWriteBitWriter4;
+		typedef FastWriteBitWriterTemplate<uint64_t, uint64_t *, 0x8000000000000000ULL, 0xFFFFFFFFFFFFFFFFULL, true> FastWriteBitWriter8;
+		typedef FastWriteBitWriterTemplate<uint8_t , std::back_insert_iterator< std::vector<uint8_t> >, 0x80, 0xFF, false> FastWriteBitWriterVector8;
+		typedef FastWriteBitWriterTemplate<uint64_t , std::back_insert_iterator< std::vector<uint64_t> >, 0x8000000000000000ULL, 0xFFFFFFFFFFFFFFFFULL, true> FastWriteBitWriterVector64;
+		typedef FastWriteBitWriterTemplate<uint8_t , std::ostream_iterator < uint8_t >, 0x80, 0xFF, false > FastWriteBitWriterStream8;
+		typedef FastWriteBitWriterTemplate<uint64_t , OutputBufferIterator<uint64_t>, 0x8000000000000000ULL, 0xFFFFFFFFFFFFFFFFULL, true> FastWriteBitWriterBuffer64;
+		typedef FastWriteBitWriterTemplate<uint8_t , ::libmaus2::aio::SynchronousGenericOutputPosix<uint8_t>::iterator_type, 0x80, 0xFF, false > FastWriteBitWriterStream8Posix;
+		typedef FastWriteBitWriterTemplate<uint8_t , ::libmaus2::aio::SynchronousGenericOutput<uint8_t>::iterator_type, 0x80, 0xFF,false > FastWriteBitWriterStream8Std;
+		typedef FastWriteBitWriterTemplate<uint64_t , ::libmaus2::aio::SynchronousGenericOutputPosix<uint64_t>::iterator_type, 0x8000000000000000ULL, 0xFFFFFFFFFFFFFFFFULL, true> FastWriteBitWriterBuffer64PosixSync;
+		typedef FastWriteBitWriterTemplate<uint64_t , ::libmaus2::aio::SynchronousGenericOutput<uint64_t>::iterator_type, 0x8000000000000000ULL, 0xFFFFFFFFFFFFFFFFULL, true> FastWriteBitWriterBuffer64Sync;
+		typedef FastWriteBitWriterTemplate<uint32_t , ::libmaus2::aio::SynchronousGenericOutputPosix<uint32_t>::iterator_type, 0x80000000ULL, 0xFFFFFFFFULL, false> FastWriteBitWriterBuffer32PosixSync;
+		typedef FastWriteBitWriterTemplate<uint32_t , ::libmaus2::aio::SynchronousGenericOutput<uint32_t>::iterator_type, 0x80000000ULL, 0xFFFFFFFFULL, false> FastWriteBitWriterBuffer32Sync;
+		typedef FastWriteBitWriterTemplate<uint64_t , ::libmaus2::aio::SynchronousGenericOutput<uint64_t>::iterator_type, 0x8000000000000000ULL, 0xFFFFFFFFFFFFFFFFULL, true > FastWriteBitWriterStream64Std;
 	}
 }
 #endif
