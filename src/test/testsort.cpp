@@ -318,23 +318,27 @@ void testlfsupport()
 
 	uint64_t n = 128*1024;
 	std::vector < libmaus2::huffman::LFInfo > V(n);
-	std::vector < uint64_t > Vcat;
+	libmaus2::autoarray::AutoArray < uint64_t > Vcat;
 	libmaus2::autoarray::AutoArray<uint64_t> VO;
-
+	libmaus2::autoarray::AutoArray<uint64_t> Poff;
 
 	{
 		libmaus2::huffman::LFSupportEncoder enc(fn,4*1024);
+		uint64_t vcato = 0;
+		uint64_t poffo = 0;
 		for ( uint64_t i = 0; i < n; ++i )
 		{
-			V[i] = libmaus2::huffman::LFInfo(i/4 /* sym */, n-i /* p */,0 /* n */, 0 /* rv */, i%2 /* active */);
+			V[i] = libmaus2::huffman::LFInfo(i/4 /* sym */, (1ull<<60) + n-i /* p */,0 /* n */, 0 /* rv */, i%2 /* active */);
 
 			uint64_t vo = 0;
+			Poff.push(poffo,vcato);
 
 			uint64_t const c = i % 8;
 			for ( uint64_t j = 0; j < c; ++j )
 			{
-				VO.push(vo,j);
-				Vcat.push_back(j);
+				uint64_t const vv = (1ull << 61)+j;
+				VO.push(vo,vv);
+				Vcat.push(vcato,vv);
 			}
 
 			V[i].v = VO.begin();
@@ -342,7 +346,10 @@ void testlfsupport()
 
 			enc.encode(V[i]);
 		}
-
+		for ( uint64_t i = 0; i < n; ++i )
+		{
+			V[i].v = Vcat.begin() + Poff[i];
+		}
 	}
 
 	{
@@ -351,7 +358,8 @@ void testlfsupport()
 		for ( uint64_t i = 0; i < n; ++i )
 		{
 			dec.decode(info);
-			std::cerr << info << std::endl;
+			// std::cerr << info << std::endl;
+			assert ( info == V[i] );
 		}
 	}
 }
@@ -360,8 +368,6 @@ int main()
 {
 	{
 		testlfsupport();
-
-		return 0;
 
 		typedef uint64_t value_type;
 		unsigned int keybytes[sizeof(value_type)];
