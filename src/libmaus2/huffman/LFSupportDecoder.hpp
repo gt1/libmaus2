@@ -18,6 +18,7 @@
 #if ! defined(LIBMAUS2_HUFFMAN_LFSUPPORTDECODER_HPP)
 #define LIBMAUS2_HUFFMAN_LFSUPPORTDECODER_HPP
 
+#include <libmaus2/huffman/LFSupportBitDecoder.hpp>
 #include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/aio/FileRemoval.hpp>
@@ -36,103 +37,13 @@ namespace libmaus2
 {
 	namespace huffman
 	{
-		struct LFSSupportBitDecoder
-		{
-			libmaus2::aio::SynchronousGenericInput<uint64_t> & SGI;
-
-			uint64_t w;
-			unsigned int av;
-
-			uint64_t peekslot;
-			unsigned int peekslotnumbits;
-
-			LFSSupportBitDecoder(libmaus2::aio::SynchronousGenericInput<uint64_t> & rSGI)
-			: SGI(rSGI), w(0), av(0), peekslot(0), peekslotnumbits(0) {}
-
-			uint64_t rawRead(unsigned int b)
-			{
-				uint64_t r = 0;
-
-				while ( b )
-				{
-					if ( ! av )
-					{
-						SGI.getNext(w);
-						av = 8*sizeof(uint64_t);
-					}
-
-					// bits to add in this round
-					unsigned int const lav = std::min(b,av);
-
-					// make room for bits in r
-					r <<= lav;
-
-					// add bits
-					r |= w >> (8*sizeof(uint64_t) - lav);
-
-					// shift out bits from w
-					if ( lav < 8*sizeof(uint64_t) )
-						w <<= lav;
-					else
-						w = 0;
-
-					av -= lav;
-					b -= lav;
-				}
-
-				return r;
-			}
-
-			void ensurePeekSlot(unsigned int const numbits)
-			{
-				if ( peekslotnumbits < numbits )
-				{
-					unsigned int const need = numbits - peekslotnumbits;
-					peekslot <<= need;
-					peekslot |= rawRead(need);
-					peekslotnumbits += need;
-				}
-
-				assert ( peekslotnumbits >= numbits );
-			}
-
-			uint64_t peek(unsigned int const numbits)
-			{
-				ensurePeekSlot(numbits);
-				return peekslot >> (peekslotnumbits-numbits);
-			}
-
-			void erase(unsigned int numbits)
-			{
-				ensurePeekSlot(numbits);
-				peekslotnumbits -= numbits;
-				peekslot &= ::libmaus2::math::lowbits(peekslotnumbits);
-			}
-
-			uint64_t read(unsigned int numbits)
-			{
-				uint64_t const v = peek(numbits);
-				erase(numbits);
-				return v;
-			}
-
-			uint64_t readBit()
-			{
-				return read(1);
-			}
-
-			void flush()
-			{
-				av = 0;
-				peekslotnumbits = 0;
-			}
-		};
-
 		struct LFSupportDecoder : public libmaus2::gamma::GammaPDIndexDecoderBase
 		{
 			typedef LFSupportDecoder this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
+			typedef LFInfo value_type;
 
 			libmaus2::gamma::GammaPDIndexDecoder index;
 			libmaus2::gamma::GammaPDIndexDecoder::FileBlockOffset FBO;
@@ -176,6 +87,7 @@ namespace libmaus2
 
 				// read block size
 				uint64_t const bs = ::libmaus2::bitio::readElias2(SBIS);
+
 				bool const cntescape = SBIS.readBit();
 
 				// read huffman code maps
@@ -203,7 +115,7 @@ namespace libmaus2
 				rlbuffer.ensureSize(bs);
 
 				// byte align input stream
-				SBIS.flush();
+				//SBIS.flush();
 
 				// decode symbols
 				for ( uint64_t i = 0; i < bs; ++i )
@@ -213,7 +125,7 @@ namespace libmaus2
 				}
 
 				// byte align
-				SBIS.flush();
+				// SBIS.flush();
 
 				// decode runlengths
 				if ( cntescape )
@@ -289,7 +201,6 @@ namespace libmaus2
 					PISI.reset();
 					return false;
 				}
-
 
 				uint64_t const numsymruns = decodeRL();
 
@@ -367,6 +278,22 @@ namespace libmaus2
 				bool const ok = decode(v);
 				assert ( ok );
 				return v;
+			}
+
+			static uint64_t getLength(std::string const & fn, uint64_t const /* numthreads */)
+			{
+				return libmaus2::gamma::GammaPDIndexDecoderBase::getNumValues(fn);
+			}
+
+			static uint64_t getLength(std::vector<std::string> const & Vfn, uint64_t const numthreads)
+			{
+				uint64_t s = 0;
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
+				for ( uint64_t i = 0; i < Vfn.size(); ++i )
+					s += getLength(Vfn[i],1);
+				return s;
 			}
 		};
 	}

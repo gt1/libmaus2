@@ -26,6 +26,7 @@
 #include <libmaus2/huffman/CanonicalEncoder.hpp>
 #include <libmaus2/huffman/LFInfo.hpp>
 #include <libmaus2/util/Histogram.hpp>
+#include <libmaus2/huffman/LFSupportBitDecoder.hpp>
 
 namespace libmaus2
 {
@@ -94,23 +95,26 @@ namespace libmaus2
 			void encodeRL(
 				uint64_t const numruns,
 				::libmaus2::util::Histogram & symhist,
-				::libmaus2::util::Histogram & cnthist)
+				::libmaus2::util::Histogram & cnthist
+			)
 			{
 				#if 0
 				std::cerr << "encode RL ";
 				for ( uint64_t i = 0; i < numruns; ++i )
 					std::cerr << "(" << Asymrun[i].first << "," << Asymrun[i].second << ")";
 				std::cerr << std::endl;
+
+				std::cerr << std::string(80,'-') << std::endl;
+				symhist.print(std::cerr);
+				std::cerr << std::string(80,'-') << std::endl;
+				cnthist.print(std::cerr);
 				#endif
+
 
 				std::vector < std::pair<uint64_t,uint64_t > > const symfreqs = symhist.getFreqSymVector();
 				std::vector < std::pair<uint64_t,uint64_t > > const cntfreqs = cnthist.getFreqSymVector();
 
 				assert ( ! ::libmaus2::huffman::EscapeCanonicalEncoder::needEscape(symfreqs) );
-
-				uint64_t const sgowritten_bef = PSGO64->getWrittenBytes();
-
-				::libmaus2::bitio::FastWriteBitWriterStream64Std writer(*PSGO64);
 
 				::libmaus2::huffman::CanonicalEncoder symenc(symhist.getByType<int64_t>());
 				::libmaus2::huffman::EscapeCanonicalEncoder::unique_ptr_type esccntenc;
@@ -128,6 +132,10 @@ namespace libmaus2
 					cntenc = UNIQUE_PTR_MOVE(tcntenc);
 				}
 
+				uint64_t const sgowritten_bef = PSGO64->getWrittenBytes();
+
+				::libmaus2::bitio::FastWriteBitWriterStream64Std writer(*PSGO64);
+
 				// encode number of sym runs
 				writer.writeElias2(numruns);
 				// encode escape bit
@@ -139,12 +147,12 @@ namespace libmaus2
 				else
 					cntenc->serialise(writer);
 
-				writer.flush();
+				//writer.flush();
 
 				for ( symrun * pi = Asymrun.begin(); pi != Asymrun.begin()+numruns; ++pi )
 					symenc.encode(writer,pi->first);
 
-				writer.flush();
+				//writer.flush();
 
 				if ( cntesc )
 					for ( symrun * pi = Asymrun.begin(); pi != Asymrun.begin()+numruns; ++pi )
@@ -159,6 +167,93 @@ namespace libmaus2
 
 				offset += sgowritten_aft-sgowritten_bef;
 
+				#if 0
+				{
+					std::string const tmp = "mem://tmp_debug";
+
+					std::vector < std::pair<uint64_t,uint64_t > > const symfreqs = symhist.getFreqSymVector();
+
+					libmaus2::autoarray::AutoArray < std::pair<int64_t, uint64_t> > symclone;
+
+					{
+						::libmaus2::aio::OutputStreamInstance OSI(tmp);
+						::libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO(OSI,4096);
+						::libmaus2::huffman::CanonicalEncoder symenc(symhist.getByType<int64_t>());
+						symclone = symenc.syms.clone();
+
+						::libmaus2::bitio::FastWriteBitWriterStream64Std writer(SGO);
+						symenc.serialise(writer);
+						for ( symrun * pi = Asymrun.begin(); pi != Asymrun.begin()+numruns; ++pi )
+							symenc.encode(writer,pi->first);
+
+						writer.flush();
+						SGO.flush();
+						OSI.flush();
+					}
+
+					{
+						libmaus2::aio::InputStreamInstance ISI(tmp);
+						libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(ISI,4096);
+						libmaus2::huffman::LFSSupportBitDecoder bitdec(SGI);
+						::libmaus2::autoarray::AutoArray< std::pair<int64_t, uint64_t> > symmap = ::libmaus2::huffman::CanonicalEncoder::deserialise(bitdec);
+
+						std::cerr << "symmap.size()=" << symmap.size() << " symclone.size()=" << symclone.size() << std::endl;
+
+						assert ( symmap.size() == symclone.size() );
+						for ( uint64_t i = 0; i < symmap.size(); ++i )
+						{
+							std::cerr << symmap[i].first << "," << symmap[i].second << "\t" << symclone[i].first << "," << symclone[i].second << std::endl;
+							assert ( symmap[i].first == symclone[i].first );
+							assert ( symmap[i].second == symclone[i].second );
+						}
+
+						::libmaus2::huffman::CanonicalEncoder symdec(symmap);
+						for ( symrun * pi = Asymrun.begin(); pi != Asymrun.begin()+numruns; ++pi )
+							assert ( pi->first == symdec.fastDecode(bitdec) );
+					}
+				}
+
+				{
+					std::string const tmp = "mem://tmp_debug";
+
+					std::vector < std::pair<uint64_t,uint64_t > > const symfreqs = cnthist.getFreqSymVector();
+
+					libmaus2::autoarray::AutoArray < std::pair<int64_t, uint64_t> > symclone;
+
+					{
+						::libmaus2::aio::OutputStreamInstance OSI(tmp);
+						::libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO(OSI,4096);
+						::libmaus2::huffman::CanonicalEncoder symenc(cnthist.getByType<int64_t>());
+						symclone = symenc.syms.clone();
+						::libmaus2::bitio::FastWriteBitWriterStream64Std writer(SGO);
+						symenc.serialise(writer);
+						for ( symrun * pi = Asymrun.begin(); pi != Asymrun.begin()+numruns; ++pi )
+							symenc.encode(writer,pi->second);
+						writer.flush();
+						SGO.flush();
+						OSI.flush();
+					}
+
+					{
+						libmaus2::aio::InputStreamInstance ISI(tmp);
+						libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(ISI,4096);
+						libmaus2::huffman::LFSSupportBitDecoder bitdec(SGI);
+						::libmaus2::autoarray::AutoArray< std::pair<int64_t, uint64_t> > symmap = ::libmaus2::huffman::CanonicalEncoder::deserialise(bitdec);
+
+						assert ( symmap.size() == symclone.size() );
+						for ( uint64_t i = 0; i < symmap.size(); ++i )
+						{
+							std::cerr << symmap[i].first << "," << symmap[i].second << "\t" << symclone[i].first << "," << symclone[i].second << std::endl;
+							assert ( symmap[i].first == symclone[i].first );
+							assert ( symmap[i].second == symclone[i].second );
+						}
+
+						::libmaus2::huffman::CanonicalEncoder symdec(symmap);
+						for ( symrun * pi = Asymrun.begin(); pi != Asymrun.begin()+numruns; ++pi )
+							assert ( pi->second == symdec.fastDecode(bitdec) );
+					}
+				}
+				#endif
 			}
 
 			void encodeSyms()
@@ -180,9 +275,10 @@ namespace libmaus2
 					while ( high != pc && high->sym == ref )
 						++high;
 
-					Asymrun.push(numruns,symrun(ref,high-low));
+					ptrdiff_t const cnt = high-low;
+					Asymrun.push(numruns,symrun(ref,cnt));
 					symhist(ref);
-					cnthist(high-low);
+					cnthist(cnt);
 
 					low = high;
 				}

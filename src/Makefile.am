@@ -1041,7 +1041,8 @@ libmaus2huffman_include_HEADERS=\
 	libmaus2/huffman/RLRun.hpp \
 	libmaus2/huffman/LFInfo.hpp \
 	libmaus2/huffman/LFSupportDecoder.hpp \
-	libmaus2/huffman/LFSupportEncoder.hpp
+	libmaus2/huffman/LFSupportEncoder.hpp \
+	libmaus2/huffman/LFSupportBitDecoder.hpp
 
 libmaus2math_includedir=$(includedir)/libmaus2/math
 libmaus2math_include_HEADERS=\
