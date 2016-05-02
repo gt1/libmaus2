@@ -43,6 +43,22 @@ namespace libmaus2
 			{
 
 			}
+
+			bool operator==(LFInfo const & o) const
+			{
+				if ( sym != o.sym )
+					return false;
+				if ( p != o.p )
+					return false;
+				if ( n != o.n )
+					return false;
+				if ( active != o.active )
+					return false;
+				for ( uint64_t i = 0; i < n; ++i )
+					if ( v[i] != o.v[i] )
+						return false;
+				return true;
+			}
 		};
 
 		inline std::ostream & operator<<(std::ostream & out, LFInfo const & L)
