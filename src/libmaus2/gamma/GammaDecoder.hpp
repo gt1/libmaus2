@@ -79,6 +79,22 @@ namespace libmaus2
 				}
 			}
 
+			static stream_data_type leftShift(stream_data_type const a, unsigned int const b)
+			{
+				if ( expect_false( b == (CHAR_BIT*sizeof(stream_data_type)) ) )
+					return stream_data_type();
+				else
+					return a << b;
+			}
+
+			static stream_data_type rightShift(stream_data_type const a, unsigned int const b)
+			{
+				if ( expect_false( b == (CHAR_BIT*sizeof(stream_data_type)) ) )
+					return stream_data_type();
+				else
+					return a >> b;
+			}
+
 			stream_data_type decode()
 			{
 				unsigned int cl;
@@ -94,15 +110,29 @@ namespace libmaus2
 				{
 					cl = bav;
 
-					// read next word
-					bool const ok = stream.getNext(v);
-					assert ( ok );
-					bav = (CHAR_BIT*sizeof(stream_data_type));
+					while ( true )
+					{
+						// read next word
+						bool const ok = stream.getNext(v);
+						assert ( ok );
+						bav = (CHAR_BIT*sizeof(stream_data_type));
 
-					unsigned int const llz = base_type::clz(v);
-					cl += llz;
-					v <<= llz;
-					bav -= llz;
+						if ( expect_true ( base_type::isNonNull(v) ) )
+						{
+							unsigned int const llz = base_type::clz(v);
+							assert ( llz != (CHAR_BIT*sizeof(stream_data_type)) );
+							cl += llz;
+							v <<= llz;
+							bav -= llz;
+							break;
+						}
+						else
+						{
+							cl += CHAR_BIT*sizeof(stream_data_type);
+							v = 0;
+							bav = 0;
+						}
+					}
 				}
 
 				stream_data_type code;
@@ -111,15 +141,17 @@ namespace libmaus2
 				// is code completely in this word?
 				if ( bav >= cl+1 )
 				{
-					code = (v >> ((CHAR_BIT*sizeof(stream_data_type))-(cl1)));
+					unsigned int const shift = ((CHAR_BIT*sizeof(stream_data_type))-(cl1));
+					code = rightShift(v,shift);
 					bav -= cl1;
-					v <<= cl1;
+					v = leftShift(v,cl1);
 				}
 				// code is not completely in this word, include the next one
 				else
 				{
 					// take rest of current word
-					code = (v >> ((CHAR_BIT*sizeof(stream_data_type))-(bav)));
+					unsigned int const shift0 = ((CHAR_BIT*sizeof(stream_data_type))-(bav));
+					code = rightShift(v,shift0);
 					cl1 -= bav;
 
 					// read next word
@@ -127,9 +159,10 @@ namespace libmaus2
 					assert ( ok );
 					bav = (CHAR_BIT*sizeof(stream_data_type));
 
-					code <<= cl1;
-					code |= (v >> ((CHAR_BIT*sizeof(stream_data_type))-(cl1)));
-					v <<= cl1;
+					code = leftShift(code,cl1);
+					unsigned int const shift1 = ((CHAR_BIT*sizeof(stream_data_type))-(cl1));
+					code = code | rightShift(v,shift1);
+					v = leftShift(v,cl1);
 					bav -= cl1;
 				}
 

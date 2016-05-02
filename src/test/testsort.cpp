@@ -328,7 +328,10 @@ void testlfsupport()
 		uint64_t poffo = 0;
 		for ( uint64_t i = 0; i < n; ++i )
 		{
-			V[i] = libmaus2::huffman::LFInfo(i/4 /* sym */, (1ull<<60) + n-i /* p */,0 /* n */, 0 /* rv */, i%2 /* active */);
+			// uint64_t const p = (1ull<<60) + n-i;
+			uint64_t const p = std::numeric_limits<uint64_t>::max() - 1;
+
+			V[i] = libmaus2::huffman::LFInfo(i/4 /* sym */, p /* p */,0 /* n */, 0 /* rv */, i%2 /* active */);
 
 			uint64_t vo = 0;
 			Poff.push(poffo,vcato);
@@ -351,6 +354,8 @@ void testlfsupport()
 			V[i].v = Vcat.begin() + Poff[i];
 		}
 	}
+
+	std::cerr << "encoding done." << std::endl;
 
 	{
 		libmaus2::huffman::LFSupportDecoder dec(std::vector<std::string>(1,fn),0);

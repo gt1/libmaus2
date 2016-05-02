@@ -98,9 +98,23 @@ namespace libmaus2
 			void encodeSlow(stream_data_type const q)
 			{
 				stream_data_type const code = q+static_cast<stream_data_type>(1);
+				assert ( code != stream_data_type() );
 				unsigned int const nd = GammaEncoderBase<stream_data_type>::getLengthCode(code);
 				encodeWord(0,nd);
-				encodeWord(code,nd+1);
+
+				if ( expect_false(nd+1 == CHAR_BIT*sizeof(stream_data_type)) )
+				{
+					unsigned int const wordbits = CHAR_BIT*sizeof(stream_data_type);
+					unsigned int const topbits = wordbits / 2;
+					unsigned int const bottombits = wordbits - topbits;
+
+					encodeWord(code >> bottombits, topbits);
+					encodeWord(code & ((static_cast<stream_data_type>(1) << bottombits)-1), bottombits);
+				}
+				else
+				{
+					encodeWord(code,nd+1);
+				}
 			}
 
 			void flush()
