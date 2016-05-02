@@ -1,3 +1,13 @@
+libmaus2 (2.0.178-1) unstable; urgency=medium
+
+  * improve efficiency in gap split function by not reinstantiating the gap file decoder for each sample
+  * add LFSupportEncoder/LFSupportDecoder classes
+  * add ParallelExternalRadixSort class
+  * add safe (bit shift) encoding of uint64_t in FastWriteBitWriter
+  * simplify offset tracking in GammaPDEncoder
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 02 May 2016 10:01:12 +0200
+
 libmaus2 (2.0.177-1) unstable; urgency=medium
 
   * do not call addr2line if libary is not built in debug mode in StackTrace
