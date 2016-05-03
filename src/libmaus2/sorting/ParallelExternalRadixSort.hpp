@@ -108,7 +108,7 @@ namespace libmaus2
 
 					uint64_t const isize = ihigh-ilow;
 					uint64_t const packsize = (isize+numthreads-1)/numthreads;
-					uint64_t const runthreads = (isize+packsize-1)/packsize;
+					uint64_t const runthreads = isize ? ((isize+packsize-1)/packsize) : 0;
 
 					std::vector<std::string> Vout(runthreads * outfilesperthread);
 					std::vector<std::string> Vkey(runthreads);
