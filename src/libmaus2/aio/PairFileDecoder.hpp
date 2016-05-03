@@ -20,6 +20,7 @@
 
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
 #include <libmaus2/util/iterator.hpp>
+#include <libmaus2/aio/ConcatInputStream.hpp>
 
 namespace libmaus2
 {
@@ -29,52 +30,58 @@ namespace libmaus2
 		{
 			typedef PairFileDecoder this_type;
 			typedef libmaus2::util::ConstIterator<this_type,std::pair<uint64_t,uint64_t> > const_iterator;
-		
-			mutable libmaus2::aio::InputStreamInstance::unique_ptr_type ISI;
+
+			mutable libmaus2::aio::ConcatInputStream::unique_ptr_type ISI;
 			mutable libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type SGI;
 			uint64_t const n;
 			mutable std::pair<uint64_t,uint64_t> peekslot;
 			mutable bool peekslotactive;
-			
+
 			uint64_t getLength() const
 			{
 				uint64_t const p = ISI->tellg();
-				
+
 				ISI->clear();
 				ISI->seekg(0,std::ios::end);
-				
+
 				uint64_t const l = ISI->tellg();
-				
+
 				assert ( l % (2*sizeof(uint64_t)) == 0 );
-				
+
 				ISI->clear();
 				ISI->seekg(p);
-				
+
 				return l / (2*sizeof(uint64_t));
 			}
-			
+
+			static uint64_t getLength(std::vector<std::string> const & Vfn)
+			{
+				this_type PFD(Vfn);
+				return PFD.getLength();
+			}
+
 			void seekg(uint64_t const offset) const
 			{
 				ISI->clear();
 				ISI->seekg(offset*2*sizeof(uint64_t));
 				SGI->clearBuffer();
 			}
-			
-			PairFileDecoder(std::string const & fn)
-			: ISI(new libmaus2::aio::InputStreamInstance(fn)), SGI(new libmaus2::aio::SynchronousGenericInput<uint64_t>(*ISI,4096)), n(getLength()), peekslotactive(false)
+
+			PairFileDecoder(std::vector<std::string> const & fn)
+			: ISI(new libmaus2::aio::ConcatInputStream(fn)), SGI(new libmaus2::aio::SynchronousGenericInput<uint64_t>(*ISI,4096)), n(getLength()), peekslotactive(false)
 			{
 			}
-			
+
 			const_iterator begin()
 			{
 				return const_iterator(this,0);
 			}
-			
+
 			const_iterator end()
 			{
 				return const_iterator(this,n);
 			}
-			
+
 			void setupFirst(uint64_t const r)
 			{
 				struct PairFirstComparator
@@ -84,12 +91,12 @@ namespace libmaus2
 						return A.first < B.first;
 					}
 				};
-				
+
 				const_iterator it = ::std::lower_bound(begin(),end(),std::pair<uint64_t,uint64_t>(r,0),PairFirstComparator());
 				uint64_t const off = it - begin();
 				seekg(off);
 			}
-			
+
 			bool peekNext(std::pair<uint64_t,uint64_t> & P) const
 			{
 				if ( ! peekslotactive )
@@ -97,7 +104,7 @@ namespace libmaus2
 				P = peekslot;
 				return peekslotactive;
 			}
-			
+
 			bool getNext(std::pair<uint64_t,uint64_t> & P) const
 			{
 				if ( peekslotactive )
@@ -113,7 +120,7 @@ namespace libmaus2
 					return ok;
 				}
 			}
-			
+
 			std::pair<uint64_t,uint64_t> get(uint64_t const i) const
 			{
 				seekg(i);
@@ -122,7 +129,7 @@ namespace libmaus2
 				assert ( ok );
 				return P;
 			}
-			
+
 			std::pair<uint64_t,uint64_t> operator[](uint64_t const i) const
 			{
 				return get(i);
