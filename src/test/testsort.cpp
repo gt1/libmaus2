@@ -280,6 +280,12 @@ void testParallelSortState(uint64_t const rn = (1ull << 14) )
 }
 
 #include <libmaus2/timing/RealTimeClock.hpp>
+#include <libmaus2/huffman/LFSetBitEncoder.hpp>
+#include <libmaus2/huffman/LFSetBitDecoder.hpp>
+#include <libmaus2/huffman/LFValueEncoder.hpp>
+#include <libmaus2/huffman/LFValueDecoder.hpp>
+#include <libmaus2/huffman/LFPhiPairEncoder.hpp>
+#include <libmaus2/huffman/LFPhiPairDecoder.hpp>
 
 void testlfsupport()
 {
