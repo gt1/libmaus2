@@ -147,7 +147,7 @@ namespace libmaus2
 				return bs;
 			}
 
-			struct R0Projector { static void set(LFPhiPair & P, uint64_t const v) { P.r0 = v; } };
+			//struct R0Projector { static void set(LFPhiPair & P, uint64_t const v) { P.r0 = v; } };
 			struct P0Projector { static void set(LFPhiPair & P, uint64_t const v) { P.p0 = v; } };
 			struct R1Projector { static void set(LFPhiPair & P, uint64_t const v) { P.r1 = v; } };
 			struct P1Projector { static void set(LFPhiPair & P, uint64_t const v) { P.p1 = v; } };
@@ -187,8 +187,8 @@ namespace libmaus2
 					return false;
 				}
 
-				uint64_t const numobj = decodeSequence<R0Projector>();
-				decodeSequence<P0Projector>();
+				//uint64_t const numobj = decodeSequence<R0Projector>();
+				uint64_t const numobj = decodeSequence<P0Projector>();
 				decodeSequence<R1Projector>();
 				decodeSequence<P1Projector>();
 

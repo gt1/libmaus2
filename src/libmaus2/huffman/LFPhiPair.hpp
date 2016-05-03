@@ -26,23 +26,23 @@ namespace libmaus2
 	{
 		struct LFPhiPair
 		{
-			uint64_t r0;
+			//uint64_t r0;
 			uint64_t p0;
 			uint64_t r1;
 			uint64_t p1;
 
 			LFPhiPair(
-				uint64_t rr0 = 0,
+				//uint64_t rr0 = 0,
 				uint64_t rp0 = 0,
 				uint64_t rr1 = 0,
 				uint64_t rp1 = 0
 			)
-			: r0(rr0), p0(rp0), r1(rr1), p1(rp1) {}
+			: /* r0(rr0), */ p0(rp0), r1(rr1), p1(rp1) {}
 
 			bool operator==(LFPhiPair const & O) const
 			{
 				return
-					r0 == O.r0 &&
+					// r0 == O.r0 &&
 					p0 == O.p0 &&
 					r1 == O.r1 &&
 					p1 == O.p1;

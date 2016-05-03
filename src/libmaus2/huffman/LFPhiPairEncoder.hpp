@@ -109,7 +109,7 @@ namespace libmaus2
 				offset += (sgo_aft-sgowritten_bef);
 			}
 
-			struct R0Projector { static uint64_t project(LFPhiPair const & P) { return P.r0; } };
+			// struct R0Projector { static uint64_t project(LFPhiPair const & P) { return P.r0; } };
 			struct P0Projector { static uint64_t project(LFPhiPair const & P) { return P.p0; } };
 			struct R1Projector { static uint64_t project(LFPhiPair const & P) { return P.r1; } };
 			struct P1Projector { static uint64_t project(LFPhiPair const & P) { return P.p1; } };
@@ -130,7 +130,7 @@ namespace libmaus2
 
 					uint64_t const bs = (pc-pa);
 
-					encodeSequence<R0Projector>();
+					// encodeSequence<R0Projector>();
 					encodeSequence<P0Projector>();
 					encodeSequence<R1Projector>();
 					encodeSequence<P1Projector>();
