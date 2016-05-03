@@ -287,12 +287,18 @@ namespace libmaus2
 
 			static uint64_t getLength(std::vector<std::string> const & Vfn, uint64_t const numthreads)
 			{
-				uint64_t s = 0;
+				uint64_t volatile s = 0;
+				libmaus2::parallel::PosixSpinLock lock;
+
 				#if defined(_OPENMP)
 				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( uint64_t i = 0; i < Vfn.size(); ++i )
-					s += getLength(Vfn[i],1);
+				{
+					uint64_t const ls = getLength(Vfn[i],1);
+					libmaus2::parallel::ScopePosixSpinLock slock(lock);
+					s += ls;
+				}
 				return s;
 			}
 		};
