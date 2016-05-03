@@ -228,6 +228,11 @@ namespace libmaus2
 				pc -= 1;
 			}
 
+			void clearBuffer()
+			{
+				pc = pe;
+			}
+
 			/**
 			 * read next word
 			 *
