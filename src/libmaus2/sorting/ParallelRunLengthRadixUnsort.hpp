@@ -19,6 +19,7 @@
 #define LIBMAUS2_SORTING_PARALLELRUNLENGTHRADIXUNSORT_HPP
 
 #include <libmaus2/util/TempFileNameGenerator.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 
 namespace libmaus2
 {
@@ -26,6 +27,10 @@ namespace libmaus2
 	{
 		struct ParallelRunLengthRadixUnsort
 		{
+			typedef ParallelRunLengthRadixUnsort this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
 			struct UnsortLevel
 			{
 				// key sequence
@@ -38,7 +43,24 @@ namespace libmaus2
 				std::vector < uint64_t > Ohist;
 				// threading intervals
 				std::vector < std::pair<uint64_t,uint64_t> > Vthreadint;
+
+				void removeKeyFiles()
+				{
+					for ( uint64_t i = 0; i < keyseqfn.size(); ++i )
+						libmaus2::aio::FileRemoval::removeFile(keyseqfn[i]);
+				}
 			};
+
+			void removeKeyFiles()
+			{
+				for ( uint64_t i = 0; i < levels.size(); ++i )
+					levels[i].removeKeyFiles();
+			}
+
+			~ParallelRunLengthRadixUnsort()
+			{
+				removeKeyFiles();
+			}
 
 			std::vector<UnsortLevel> levels;
 			uint64_t unsortthreads;
