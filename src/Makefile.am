@@ -1054,7 +1054,10 @@ libmaus2huffman_include_HEADERS=\
 	libmaus2/huffman/LFPhiPair.hpp \
 	libmaus2/huffman/LFPhiPairLCP.hpp \
 	libmaus2/huffman/LFPhiPairLCPDecoder.hpp \
-	libmaus2/huffman/LFPhiPairLCPEncoder.hpp
+	libmaus2/huffman/LFPhiPairLCPEncoder.hpp \
+	libmaus2/huffman/LFRankLCP.hpp \
+	libmaus2/huffman/LFRankLCPDecoder.hpp \
+	libmaus2/huffman/LFRankLCPEncoder.hpp
 
 libmaus2math_includedir=$(includedir)/libmaus2/math
 libmaus2math_include_HEADERS=\

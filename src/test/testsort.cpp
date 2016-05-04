@@ -288,6 +288,8 @@ void testParallelSortState(uint64_t const rn = (1ull << 14) )
 #include <libmaus2/huffman/LFPhiPairDecoder.hpp>
 #include <libmaus2/huffman/LFPhiPairLCPDecoder.hpp>
 #include <libmaus2/huffman/LFPhiPairLCPEncoder.hpp>
+#include <libmaus2/huffman/LFRankLCPDecoder.hpp>
+#include <libmaus2/huffman/LFRankLCPEncoder.hpp>
 
 void testlfsupport()
 {
