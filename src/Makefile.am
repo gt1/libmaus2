@@ -1051,7 +1051,10 @@ libmaus2huffman_include_HEADERS=\
 	libmaus2/huffman/LFValue.hpp \
 	libmaus2/huffman/LFPhiPairDecoder.hpp \
 	libmaus2/huffman/LFPhiPairEncoder.hpp \
-	libmaus2/huffman/LFPhiPair.hpp
+	libmaus2/huffman/LFPhiPair.hpp \
+	libmaus2/huffman/LFPhiPairLCP.hpp \
+	libmaus2/huffman/LFPhiPairLCPDecoder.hpp \
+	libmaus2/huffman/LFPhiPairLCPEncoder.hpp
 
 libmaus2math_includedir=$(includedir)/libmaus2/math
 libmaus2math_include_HEADERS=\
