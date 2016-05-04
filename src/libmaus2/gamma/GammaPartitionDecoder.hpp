@@ -22,6 +22,7 @@
 #include <libmaus2/gamma/GammaDecoder.hpp>
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
 #include <libmaus2/huffman/RLInitType.hpp>
+#include <libmaus2/gamma/PartitionInterval.hpp>
 
 namespace libmaus2
 {
@@ -50,10 +51,10 @@ namespace libmaus2
 			typedef gamma_decoder_type::unique_ptr_type gamma_decoder_ptr_type;
 			gamma_decoder_ptr_type PG;
 
-			libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > Aintv;
-			std::pair<uint64_t,uint64_t> * pa;
-			std::pair<uint64_t,uint64_t> * pc;
-			std::pair<uint64_t,uint64_t> * pe;
+			libmaus2::autoarray::AutoArray < PartitionInterval > Aintv;
+			PartitionInterval * pa;
+			PartitionInterval * pc;
+			PartitionInterval * pe;
 
 			void openNewFile()
 			{
@@ -120,7 +121,7 @@ namespace libmaus2
 				{
 					uint64_t const intvlen = PG->decode()+1;
 					uint64_t const curhigh = curlow + intvlen;
-					pa[i] = std::pair<uint64_t,uint64_t>(curlow,curhigh);
+					pa[i] = PartitionInterval(curlow,curhigh);
 					curlow = curhigh;
 				}
 
@@ -129,7 +130,7 @@ namespace libmaus2
 				return true;
 			}
 
-			bool getNext(std::pair<uint64_t,uint64_t> & P)
+			bool getNext(PartitionInterval & P)
 			{
 				if ( pc != pe )
 				{
@@ -166,7 +167,7 @@ namespace libmaus2
 
 				if ( ok )
 				{
-					while ( pc != pe && voffset >= pc->second )
+					while ( pc != pe && voffset >= pc->to )
 					{
 						// std::cerr << "skip " << pc->first << "," << pc->second << std::endl;
 						++pc;
@@ -174,8 +175,8 @@ namespace libmaus2
 
 					if ( pc != pe )
 					{
-						assert ( pc->first <= voffset );
-						assert ( voffset < pc->second );
+						assert ( pc->from <= voffset );
+						assert ( voffset < pc->to );
 					}
 					else
 					{
