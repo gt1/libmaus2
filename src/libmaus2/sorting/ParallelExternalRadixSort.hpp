@@ -118,7 +118,7 @@ namespace libmaus2
 						{
 							// sym major
 							uint64_t const fnid = i * runthreads + t;
-							Vout[fnid] = tmpgen.getFileName(true);
+							Vout[fnid] = tmpgen.getFileName(true) + ".par_ext_rad";
 							// thread major
 							uint64_t const tid = t*outfilesperthread+i;
 							typename encoder_type::unique_ptr_type Tenc(new encoder_type(Vout[fnid],bs));
