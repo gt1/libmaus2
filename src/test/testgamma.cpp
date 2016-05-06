@@ -1794,12 +1794,111 @@ void testintervalsingle()
 	}
 }
 
+#include <libmaus2/gamma/GammaFlaggedPartitionEncoder.hpp>
+#include <libmaus2/gamma/GammaFlaggedPartitionDecoder.hpp>
+
+void testflaggedpartitionsingle()
+{
+	std::string const fn = "mem://tmp_part";
+	libmaus2::random::Random::setup();
+	//uint64_t const mod = 64*1024+27;
+	uint64_t const mod = 241;
+
+	for ( uint64_t z = 0; z < 16; ++z )
+	{
+		libmaus2::gamma::GammaFlaggedPartitionEncoder::unique_ptr_type Genc(new libmaus2::gamma::GammaFlaggedPartitionEncoder(fn));
+		uint64_t const n = 996 + libmaus2::random::Random::rand64() % 128;
+		std::cerr << n << std::endl;
+
+		std::vector<uint64_t> L;
+		std::vector< libmaus2::gamma::FlaggedPartitionInterval > LV;
+		uint64_t low = 0;
+		for ( uint64_t i = 0; i < n; ++i )
+		{
+			uint64_t const w = (libmaus2::random::Random::rand64() % mod)+1;
+			L.push_back(w);
+			uint64_t const high = low+w;
+			bool const flag = (i % 8) == 0; // libmaus2::random::Random::rand8() % 2;
+			LV.push_back(libmaus2::gamma::FlaggedPartitionInterval(low,high,flag));
+			Genc->put(LV.back());
+			low = high;
+		}
+
+		Genc.reset();
+
+		libmaus2::gamma::GammaFlaggedPartitionDecoder::unique_ptr_type Gdec(new libmaus2::gamma::GammaFlaggedPartitionDecoder(std::vector<std::string>(1,fn),0 /* offset */,1 /* numthreads */));
+		libmaus2::gamma::FlaggedPartitionInterval P;
+		uint64_t c = 0;
+		while ( Gdec->getNext(P) )
+		{
+			assert ( P == LV[c] );
+			c += 1;
+		}
+		assert ( c == n );
+
+		Gdec.reset();
+
+		for ( uint64_t i = 0; i < n; ++i )
+		{
+			libmaus2::gamma::GammaFlaggedPartitionDecoder::unique_ptr_type Tdec(
+				new libmaus2::gamma::GammaFlaggedPartitionDecoder(std::vector<std::string>(1,fn),LV[i].from /* offset */,1 /* numthreads */));
+			Gdec = UNIQUE_PTR_MOVE(Tdec);
+
+			bool const ok = Gdec->getNext(P);
+			assert ( ok );
+			bool vok = (P == LV[i]);
+			if ( ! vok )
+			{
+				libmaus2::gamma::GammaFlaggedPartitionDecoder::unique_ptr_type Tdec(
+					new libmaus2::gamma::GammaFlaggedPartitionDecoder(std::vector<std::string>(1,fn),LV[i].from /* offset */,1/*numthreads */));
+
+				std::cerr << "expect " << LV[i].from << "," << LV[i].to << " got " << P.from << "," << P.to << std::endl;
+				if ( i )
+					std::cerr << "prev " << LV[i-1].from << "," << LV[i-1].to << std::endl;
+				if ( i+1 < n )
+					std::cerr << "next " << LV[i+1].from << "," << LV[i+1].to << std::endl;
+				std::cerr << "i=" << i << std::endl;
+			}
+			assert ( P == LV[i] );
+
+			Gdec.reset();
+		}
+
+		{
+			libmaus2::gamma::GammaFlaggedPartitionDecoder::unique_ptr_type Tdec(new libmaus2::gamma::GammaFlaggedPartitionDecoder(std::vector<std::string>(1,fn),LV.back().to,1 /* numthreads */));
+			Gdec = UNIQUE_PTR_MOVE(Tdec);
+
+			bool const ok = Gdec->getNext(P);
+			assert ( !ok );
+
+			Gdec.reset();
+		}
+
+		for ( uint64_t i = 0; i < n; ++i )
+			for ( uint64_t j = LV[i].from; j < LV[i].to; ++j )
+			{
+				libmaus2::gamma::GammaFlaggedPartitionDecoder::unique_ptr_type Tdec(new libmaus2::gamma::GammaFlaggedPartitionDecoder(std::vector<std::string>(1,fn),j,1 /* numthreads */));
+				Gdec = UNIQUE_PTR_MOVE(Tdec);
+
+				bool const ok = Gdec->getNext(P);
+				assert ( ok );
+				assert ( P == LV[i] );
+
+				Gdec.reset();
+			}
+	}
+}
+
+
 int main()
 {
 	try
 	{
 		srand(time(0));
 
+		testflaggedpartitionsingle();
+		std::cerr << "[V] flagged partition test done" << std::endl;
+		
 		testintervalsingle();
 		testpartitionsingle();
 

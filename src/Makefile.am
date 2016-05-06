@@ -350,7 +350,10 @@ libmaus2gamma_include_HEADERS = libmaus2/gamma/GammaEncoder.hpp libmaus2/gamma/G
 	libmaus2/gamma/GammaPDDecoder.hpp \
 	libmaus2/gamma/GammaPDIndexDecoderBase.hpp \
 	libmaus2/gamma/GammaPDIndexDecoder.hpp \
-	libmaus2/gamma/PartitionInterval.hpp
+	libmaus2/gamma/PartitionInterval.hpp \
+	libmaus2/gamma/FlaggedPartitionInterval.hpp \
+	libmaus2/gamma/GammaFlaggedPartitionDecoder.hpp \
+	libmaus2/gamma/GammaFlaggedPartitionEncoder.hpp
 
 libmaus2regex_includedir=$(includedir)/libmaus2/regex/
 libmaus2regex_include_HEADERS = libmaus2/regex/PosixRegex.hpp
