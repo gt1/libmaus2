@@ -22,7 +22,7 @@
 #include <libmaus2/gamma/GammaDecoder.hpp>
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
 #include <libmaus2/huffman/RLInitType.hpp>
-#include <libmaus2/gamma/FlaggedPartitionInterval.hpp>
+#include <libmaus2/gamma/FlaggedInterval.hpp>
 
 namespace libmaus2
 {
@@ -51,10 +51,10 @@ namespace libmaus2
 			typedef gamma_decoder_type::unique_ptr_type gamma_decoder_ptr_type;
 			gamma_decoder_ptr_type PG;
 
-			libmaus2::autoarray::AutoArray < FlaggedPartitionInterval > Aintv;
-			FlaggedPartitionInterval * pa;
-			FlaggedPartitionInterval * pc;
-			FlaggedPartitionInterval * pe;
+			libmaus2::autoarray::AutoArray < FlaggedInterval > Aintv;
+			FlaggedInterval * pa;
+			FlaggedInterval * pc;
+			FlaggedInterval * pe;
 
 			void openNewFile()
 			{
@@ -121,18 +121,18 @@ namespace libmaus2
 				{
 					uint64_t const intvlen = PG->decode()+1;
 					uint64_t const curhigh = curlow + intvlen;
-					pa[i] = FlaggedPartitionInterval(curlow,curhigh,false);
+					pa[i] = FlaggedInterval(curlow,curhigh,FlaggedInterval::interval_type_complete);
 					curlow = curhigh;
 				}
 
 				uint64_t numbits = 0;
 				while ( numbits < numintv )
 				{
-					bool const bit = PG->decodeWord(1);
+					FlaggedInterval::interval_type const type = static_cast<FlaggedInterval::interval_type>(PG->decodeWord(2));
 					uint64_t const len = PG->decode() + 1;
 
 					for ( uint64_t i = 0; i < len; ++i )
-						pa[numbits++].complete = bit;
+						pa[numbits++].type = type;
 				}
 
 				blockptr += 1;
@@ -140,7 +140,7 @@ namespace libmaus2
 				return true;
 			}
 
-			bool getNext(FlaggedPartitionInterval & P)
+			bool getNext(FlaggedInterval & P)
 			{
 				if ( pc != pe )
 				{

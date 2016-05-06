@@ -15,8 +15,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_GAMMA_PARTITIONINTERVAL_HPP)
-#define LIBMAUS2_GAMMA_PARTITIONINTERVAL_HPP
+#if ! defined(LIBMAUS2_GAMMA_INTERVAL_HPP)
+#define LIBMAUS2_GAMMA_INTERVAL_HPP
 
 #include <libmaus2/types/types.hpp>
 
@@ -24,23 +24,23 @@ namespace libmaus2
 {
 	namespace gamma
 	{
-		struct PartitionInterval
+		struct Interval
 		{
 			uint64_t from;
 			uint64_t to;
 
-			PartitionInterval()
+			Interval()
 			{
 
 			}
 
-			PartitionInterval(uint64_t const rfrom, uint64_t const rto)
+			Interval(uint64_t const rfrom, uint64_t const rto)
 			: from(rfrom), to(rto)
 			{
 
 			}
 
-			bool operator==(PartitionInterval const & P) const
+			bool operator==(Interval const & P) const
 			{
 				return
 					from == P.from && to == P.to;

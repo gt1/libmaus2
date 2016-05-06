@@ -22,7 +22,7 @@
 #include <libmaus2/gamma/GammaDecoder.hpp>
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
 #include <libmaus2/huffman/RLInitType.hpp>
-#include <libmaus2/gamma/PartitionInterval.hpp>
+#include <libmaus2/gamma/Interval.hpp>
 
 namespace libmaus2
 {
@@ -51,10 +51,10 @@ namespace libmaus2
 			typedef gamma_decoder_type::unique_ptr_type gamma_decoder_ptr_type;
 			gamma_decoder_ptr_type PG;
 
-			libmaus2::autoarray::AutoArray < PartitionInterval > Aintv;
-			PartitionInterval * pa;
-			PartitionInterval * pc;
-			PartitionInterval * pe;
+			libmaus2::autoarray::AutoArray < Interval > Aintv;
+			Interval * pa;
+			Interval * pc;
+			Interval * pe;
 
 			void openNewFile()
 			{
@@ -121,7 +121,7 @@ namespace libmaus2
 				{
 					uint64_t const intvlen = PG->decode()+1;
 					uint64_t const curhigh = curlow + intvlen;
-					pa[i] = PartitionInterval(curlow,curhigh);
+					pa[i] = Interval(curlow,curhigh);
 					curlow = curhigh;
 				}
 
@@ -130,7 +130,7 @@ namespace libmaus2
 				return true;
 			}
 
-			bool getNext(PartitionInterval & P)
+			bool getNext(Interval & P)
 			{
 				if ( pc != pe )
 				{

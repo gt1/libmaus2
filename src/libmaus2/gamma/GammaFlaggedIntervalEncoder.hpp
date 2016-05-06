@@ -15,8 +15,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_GAMMA_GAMMAFLAGGEDPARTITIONENCODER_HPP)
-#define LIBMAUS2_GAMMA_GAMMAFLAGGEDPARTITIONENCODER_HPP
+#if ! defined(LIBMAUS2_GAMMA_GAMMAFLAGGEDINTERVALENCODER_HPP)
+#define LIBMAUS2_GAMMA_GAMMAFLAGGEDINTERVALENCODER_HPP
 
 #include <libmaus2/gamma/GammaEncoder.hpp>
 #include <libmaus2/aio/OutputStreamInstance.hpp>
@@ -24,21 +24,23 @@
 #include <libmaus2/huffman/IndexEntry.hpp>
 #include <libmaus2/huffman/HuffmanEncoderFile.hpp>
 #include <libmaus2/huffman/RLEncoder.hpp>
-#include <libmaus2/gamma/FlaggedInterval.hpp>
 
 namespace libmaus2
 {
 	namespace gamma
 	{
-		struct GammaFlaggedPartitionEncoder
+		struct GammaFlaggedIntervalEncoder
 		{
-			typedef GammaFlaggedPartitionEncoder this_type;
+			typedef GammaFlaggedIntervalEncoder this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			typedef uint64_t gamma_data_type;
 			typedef libmaus2::aio::SynchronousGenericOutput<gamma_data_type> stream_type;
 
+			std::string const fn;
+			std::string const metafn;
 			libmaus2::aio::OutputStreamInstance::unique_ptr_type POSI;
+			libmaus2::aio::OutputStreamInstance::unique_ptr_type PMETAOSI;
 			std::ostream & OSI;
 			stream_type::unique_ptr_type PSGO;
 			stream_type & SGO;
@@ -52,47 +54,37 @@ namespace libmaus2
 			FlaggedInterval * const pe;
 
 			std::vector<libmaus2::huffman::IndexEntry> Vindex;
-			uint64_t total;
 
-			// write one block to disk
 			void flushInternal()
 			{
 				// number of elements in block
 				ptrdiff_t const numintv = pc-pa;
 
-				// if block is not empty
 				if ( numintv )
 				{
-					// data bit offset
 					uint64_t const offset = G.getOffset();
-
-					// check intervals are non empty
-					for ( FlaggedInterval * pp = pa; pp != pc; ++pp )
-						assert( pp->to > pp->from );
-					// check intervals are touching
-					for ( FlaggedInterval * pp = pa+1; pp != pc; ++pp )
-						assert( pp[0].from == pp[-1].to );
 
 					// number of elements in block
 					G.encodeSlow(numintv-1);
 
 					// first interval low, store absolute
 					G.encodeSlow(pa->from);
-					// non empty interval
-					assert ( pa->to-pa->from );
+					// encode interval length
+					G.encodeSlow(pa->to - pa->from);
 
 					// sum over interval lengths
-					uint64_t vsum = 0;
-
-					// encode intervals
-					for ( FlaggedInterval * pp = pa; pp != pc; ++pp )
+					uint64_t vsum = pa[0].to-pa[0].from;
+					// encode other intervals
+					for ( FlaggedInterval * pp = pa+1; pp != pc; ++pp )
 					{
-						// interval length
-						uint64_t const intvsize = pp[0].to-pp[0].from;
-						// encode
-						G.encodeSlow( intvsize - 1 );
+						// starts after prev interval
+						assert ( pp[0].from >= pp[-1].to );
+						// offset from previous interval start
+						G.encodeSlow( pp[0].from - pp[-1].to );
+						// length of interval
+						G.encodeSlow( pp[0].to - pp[0].from );
 						// update count
-						vsum += intvsize;
+						vsum += pp[0].to-pp[0].from;
 					}
 
 					FlaggedInterval * pp = pa;
@@ -108,26 +100,36 @@ namespace libmaus2
 						pp = pup;
 					}
 
-					// push index entry
-					Vindex.push_back(libmaus2::huffman::IndexEntry(offset,numintv,vsum));
-					// update total interval size
-					total += vsum;
+					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETAOSI,pa[0].from);
+					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETAOSI,pc[-1].to);
+					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETAOSI,offset);
 
+					// reset buffer
 					pc = pa;
 				}
 			}
 
-			GammaFlaggedPartitionEncoder(std::string const & fn, uint64_t const bufsize = 8*1024, uint64_t const indexblocksize = 1024)
-			: POSI(new libmaus2::aio::OutputStreamInstance(fn)), OSI(*POSI), PSGO(new stream_type(OSI,bufsize)), SGO(*PSGO),
-			  PG(new libmaus2::gamma::GammaEncoder<stream_type>(SGO)), G(*PG),
-			  B(indexblocksize), pa(B.begin()), pc(pa), pe(B.end()),
-			  total(0)
+			GammaFlaggedIntervalEncoder(
+				std::string const & rfn,
+				uint64_t const bufsize = 8*1024,
+				uint64_t const indexblocksize = 1024
+			)
+			: fn(rfn),
+			  metafn(fn+".meta"),
+			  POSI(new libmaus2::aio::OutputStreamInstance(fn)),
+			  PMETAOSI(new libmaus2::aio::OutputStreamInstance(metafn)),
+			  OSI(*POSI),
+			  PSGO(new stream_type(OSI,bufsize)),
+			  SGO(*PSGO),
+			  PG(new libmaus2::gamma::GammaEncoder<stream_type>(SGO)),
+			  G(*PG),
+			  B(indexblocksize), pa(B.begin()), pc(pa), pe(B.end())
 			{
 				assert ( bufsize );
 				assert ( indexblocksize );
 			}
 
-			~GammaFlaggedPartitionEncoder()
+			~GammaFlaggedIntervalEncoder()
 			{
 				flush();
 			}
@@ -146,9 +148,31 @@ namespace libmaus2
 
 					// write index
 					uint64_t const indexpos = OSI.tellp();
-					libmaus2::huffman::HuffmanEncoderFileStd::unique_ptr_type PHEF(new libmaus2::huffman::HuffmanEncoderFileStd(OSI));
-					libmaus2::huffman::IndexWriter::writeIndex(*PHEF,Vindex,indexpos,total);
-					PHEF.reset();
+
+					PMETAOSI->flush();
+					PMETAOSI.reset();
+
+					libmaus2::aio::InputStreamInstance::unique_ptr_type METAISI(new libmaus2::aio::InputStreamInstance(metafn));
+					uint64_t numblocks = 0;
+					while ( METAISI->peek() != std::istream::traits_type::eof() )
+					{
+						uint64_t const low = libmaus2::util::NumberSerialisation::deserialiseNumber(*METAISI);
+						uint64_t const high = libmaus2::util::NumberSerialisation::deserialiseNumber(*METAISI);
+						uint64_t const offset = libmaus2::util::NumberSerialisation::deserialiseNumber(*METAISI);
+
+						libmaus2::util::NumberSerialisation::serialiseNumber(OSI,low);
+						libmaus2::util::NumberSerialisation::serialiseNumber(OSI,high);
+						libmaus2::util::NumberSerialisation::serialiseNumber(OSI,offset);
+
+						numblocks += 1;
+					}
+
+					METAISI.reset();
+
+					libmaus2::aio::FileRemoval::removeFile(metafn);
+
+					libmaus2::util::NumberSerialisation::serialiseNumber(OSI,numblocks);
+					libmaus2::util::NumberSerialisation::serialiseNumber(OSI,indexpos);
 
 					OSI.flush();
 					POSI.reset();

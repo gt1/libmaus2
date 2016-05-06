@@ -24,7 +24,7 @@
 #include <libmaus2/huffman/IndexEntry.hpp>
 #include <libmaus2/huffman/HuffmanEncoderFile.hpp>
 #include <libmaus2/huffman/RLEncoder.hpp>
-#include <libmaus2/gamma/PartitionInterval.hpp>
+#include <libmaus2/gamma/Interval.hpp>
 
 namespace libmaus2
 {
@@ -46,10 +46,10 @@ namespace libmaus2
 			libmaus2::gamma::GammaEncoder<stream_type>::unique_ptr_type PG;
 			libmaus2::gamma::GammaEncoder<stream_type> & G;
 
-			libmaus2::autoarray::AutoArray< PartitionInterval > B;
-			PartitionInterval * const pa;
-			PartitionInterval * pc;
-			PartitionInterval * const pe;
+			libmaus2::autoarray::AutoArray< Interval > B;
+			Interval * const pa;
+			Interval * pc;
+			Interval * const pe;
 
 			std::vector<libmaus2::huffman::IndexEntry> Vindex;
 			uint64_t total;
@@ -67,10 +67,10 @@ namespace libmaus2
 					uint64_t const offset = G.getOffset();
 
 					// check intervals are non empty
-					for ( PartitionInterval * pp = pa; pp != pc; ++pp )
+					for ( Interval * pp = pa; pp != pc; ++pp )
 						assert( pp->to > pp->from );
 					// check intervals are touching
-					for ( PartitionInterval * pp = pa+1; pp != pc; ++pp )
+					for ( Interval * pp = pa+1; pp != pc; ++pp )
 						assert( pp[0].from == pp[-1].to );
 
 					// number of elements in block
@@ -85,7 +85,7 @@ namespace libmaus2
 					uint64_t vsum = 0;
 
 					// encode intervals
-					for ( PartitionInterval * pp = pa; pp != pc; ++pp )
+					for ( Interval * pp = pa; pp != pc; ++pp )
 					{
 						// interval length
 						uint64_t const intvsize = pp[0].to-pp[0].from;
@@ -142,7 +142,7 @@ namespace libmaus2
 				}
 			}
 
-			void put(PartitionInterval const & P)
+			void put(Interval const & P)
 			{
 				*(pc++) = P;
 				if ( pc == pe )
