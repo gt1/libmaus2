@@ -1898,7 +1898,7 @@ int main()
 
 		testflaggedpartitionsingle();
 		std::cerr << "[V] flagged partition test done" << std::endl;
-		
+
 		testintervalsingle();
 		testpartitionsingle();
 
