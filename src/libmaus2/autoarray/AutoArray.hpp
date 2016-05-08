@@ -40,9 +40,10 @@
 #include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/util/HugePages.hpp>
+#include <libmaus2/aio/StreamLock.hpp>
 
 // #define AUTOARRAY_TRACE 7
-#if defined(AUTOARRAY_TRACE)
+#if defined(LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE)
 #include <execinfo.h>
 #endif
 
@@ -96,7 +97,7 @@ namespace libmaus2
 			alloc_type_hugepages_memalign_pagesize = 6
 		};
 
-		#if defined(AUTOARRAY_TRACE)
+		#if defined(LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE)
 		template<unsigned int n>
 		struct AutoArrayBackTrace
 		{
@@ -270,8 +271,8 @@ namespace libmaus2
 		};
 		#endif
 
-		#if defined(AUTOARRAY_TRACE)
-		extern std::vector< AutoArrayBackTrace<AUTOARRAY_TRACE> > tracevector;
+		#if defined(LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE)
+		extern std::vector< AutoArrayBackTrace<LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE> > tracevector;
 		extern libmaus2::parallel::PosixSpinLock backtracelock;
 		extern libmaus2::parallel::PosixSpinLock tracelock;
 
@@ -307,30 +308,30 @@ namespace libmaus2
 			//! number of elements in this array
 			mutable uint64_t n;
 
-			#if defined(AUTOARRAY_TRACE)
-			void * trace[AUTOARRAY_TRACE];
+			#if defined(LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE)
+			void * trace[LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE];
 			unsigned int tracelength;
 
 			void fillTrace()
 			{
 				libmaus2::parallel::ScopePosixSpinLock slock(backtracelock);
-				void * ltrace[AUTOARRAY_TRACE+2];
+				void * ltrace[LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE+2];
 
-				tracelength = backtrace(&ltrace[0],AUTOARRAY_TRACE+2);
+				tracelength = backtrace(&ltrace[0],LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE+2);
 
 				if ( tracelength < 2 )
 				{
 					tracelength = 0;
-					for ( unsigned int i = tracelength; i < AUTOARRAY_TRACE; ++i )
+					for ( unsigned int i = tracelength; i < LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE; ++i )
 						trace[i] = NULL;
 				}
 				else
 				{
-					for ( unsigned int i = 2; i < AUTOARRAY_TRACE+2; ++i )
+					for ( unsigned int i = 2; i < LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE+2; ++i )
 						trace[i-2] = ltrace[i];
 					tracelength -= 2;
 
-					for ( unsigned int i = tracelength; i < AUTOARRAY_TRACE; ++i )
+					for ( unsigned int i = tracelength; i < LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE; ++i )
 						trace[i] = NULL;
 				}
 			}
@@ -342,9 +343,9 @@ namespace libmaus2
 				for ( ; i < tracevector.size() ; ++i )
 				{
 					bool eq = true;
-					AutoArrayBackTrace<AUTOARRAY_TRACE> & A = tracevector[i];
+					AutoArrayBackTrace<LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE> & A = tracevector[i];
 
-					for ( unsigned int j = 0; j < AUTOARRAY_TRACE; ++j )
+					for ( unsigned int j = 0; j < LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE; ++j )
 						if ( A.P[j] != trace[j] )
 						{
 							eq = false;
@@ -367,9 +368,9 @@ namespace libmaus2
 
 				if ( i == tracevector.size() )
 				{
-					AutoArrayBackTrace<AUTOARRAY_TRACE> A;
+					AutoArrayBackTrace<LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE> A;
 
-					for ( unsigned int j = 0; j < AUTOARRAY_TRACE; ++j )
+					for ( unsigned int j = 0; j < LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE; ++j )
 						A.P[j] = trace[j];
 					A.tracelength = tracelength;
 
@@ -385,7 +386,7 @@ namespace libmaus2
 				}
 				else
 				{
-					AutoArrayBackTrace<AUTOARRAY_TRACE> & A = tracevector[i];
+					AutoArrayBackTrace<LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE> & A = tracevector[i];
 
 					if ( bytes )
 						A.alloccnt += 1;
@@ -400,7 +401,7 @@ namespace libmaus2
 
 				assert ( i < tracevector.size() );
 
-				AutoArrayBackTrace<AUTOARRAY_TRACE> & A = tracevector[i];
+				AutoArrayBackTrace<LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE> & A = tracevector[i];
 
 				if ( bytes )
 					A.freecnt += 1;
@@ -415,7 +416,7 @@ namespace libmaus2
 			 **/
 			void increaseTotalAllocation(uint64_t n)
 			{
-				#if defined(AUTOARRAY_TRACE)
+				#if defined(LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE)
 				traceIn(n * sizeof(N));
 				#endif
 
@@ -427,10 +428,19 @@ namespace libmaus2
 					__sync_fetch_and_sub(&AutoArray_memusage, n * sizeof(N));
 
 					::libmaus2::exception::LibMausException se;
-					se.getStream() << "bad allocation: AutoArray mem limit of " << AutoArray_maxmem << " bytes exceeded by new allocation of " << n*sizeof(N) << " bytes.";
+					se.getStream() << "libmaus2::autoarray::AutoArray<" << getValueTypeName() << ">::increaseTotalAllocation: bad allocation: AutoArray mem limit of " << AutoArray_maxmem << " bytes exceeded by new allocation of " << n*sizeof(N) << " bytes." << std::endl;
 					se.finish();
-					throw se;
 
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << se.what();
+
+						#if defined(LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE)
+						libmaus2::autoarray::autoArrayPrintTraces(std::cerr);
+						#endif
+					}
+
+					throw se;
 				}
 
 				uint64_t peak;
@@ -487,7 +497,7 @@ namespace libmaus2
 
 				#endif
 
-				#if defined(AUTOARRAY_TRACE)
+				#if defined(LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE)
 				traceOut(n * sizeof(N));
 				#endif
 			}
@@ -1296,7 +1306,7 @@ namespace libmaus2
 			 * constructor for empty array
 			 **/
 			AutoArray() : array(0), n(0)
-			#if defined(AUTOARRAY_TRACE)
+			#if defined(LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE)
 			, tracelength(0)
 			#endif
 			{
@@ -1311,7 +1321,7 @@ namespace libmaus2
 			 * @param o
 			 **/
 			AutoArray(AutoArray<N,atype> const & o) : array(0), n(0)
-			#if defined(AUTOARRAY_TRACE)
+			#if defined(LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE)
 			, tracelength(0)
 			#endif
 			{
@@ -1324,8 +1334,8 @@ namespace libmaus2
 				o.array = 0;
 				o.n = 0;
 
-				#if defined(AUTOARRAY_TRACE)
-				for ( unsigned int i = 0; i < AUTOARRAY_TRACE; ++i )
+				#if defined(LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE)
+				for ( unsigned int i = 0; i < LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE; ++i )
 					trace[i] = o.trace[i];
 				tracelength = o.tracelength;
 				#endif
@@ -1335,7 +1345,7 @@ namespace libmaus2
 			 * copy constructor
 			 **/
 			AutoArray(uint64_t rn, N const * D) : array(0), n(rn)
-			#if defined(AUTOARRAY_TRACE)
+			#if defined(LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE)
 			, tracelength(0)
 			#endif
 			{
@@ -1357,7 +1367,7 @@ namespace libmaus2
 			 * @param erase if true, elements will be assigned default value of type (i.e. 0 for numbers)
 			 **/
 			AutoArray(uint64_t rn, bool erase = true) : array(0), n(rn)
-			#if defined(AUTOARRAY_TRACE)
+			#if defined(LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE)
 			, tracelength(0)
 			#endif
 			{
@@ -1535,8 +1545,8 @@ namespace libmaus2
 					o.array = 0;
 					o.n = 0;
 
-					#if defined(AUTOARRAY_TRACE)
-					for ( unsigned int i = 0; i < AUTOARRAY_TRACE; ++i )
+					#if defined(LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE)
+					for ( unsigned int i = 0; i < LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE; ++i )
 						trace[i] = o.trace[i];
 					tracelength = o.tracelength;
 					#endif

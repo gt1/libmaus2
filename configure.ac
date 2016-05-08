@@ -1219,6 +1219,11 @@ AC_ARG_ENABLE(autoarraytrace,
         AS_HELP_STRING([--enable-autoarraytrace],[store traces of allocation through AutoArray (default no)]),
         [autoarraytrace=${enableval}],[autoarraytrace=no])
 
+LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE=
+if test "${autoarraytrace}" = "yes" ; then
+	LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE="#define LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE 7"
+fi
+
 LIBMAUSSTATIC=
 if test "${sharedlibmaus2}" = "no" ; then
 	LIBMAUSSTATIC="-static"
@@ -3632,4 +3637,5 @@ AC_SUBST([LIBMAUS2_NETTLE_HAVE_SHA3])
 AC_SUBST([LIBMAUS2_HAVE_MMAP])
 AC_SUBST([LIBMAUS2_HAVE_MMAP_HUGEPAGES])
 AC_SUBST([LIBMAUS2_DEBUG_COMPILED])
+AC_SUBST([LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE])
 AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2lsf.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp)

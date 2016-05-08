@@ -88,7 +88,7 @@ std::ostream & libmaus2::autoarray::operator<<(std::ostream & out, libmaus2::aut
 	return out;
 }
 
-#if defined(AUTOARRAY_TRACE)
+#if defined(LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE)
 #include <libmaus2/util/PosixExecute.hpp>
 #include <libmaus2/util/UnitNum.hpp>
 
