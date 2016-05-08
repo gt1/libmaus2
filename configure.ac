@@ -1215,6 +1215,9 @@ AC_ARG_ENABLE(asm,
 AC_ARG_ENABLE(shared-libmaus2,
         AS_HELP_STRING([--enable-shared-libmaus2],[enable compiling shared libmaus2.so and libmaus2lsf.so]),
         [sharedlibmaus2=${enableval}],[sharedlibmaus2=yes])
+AC_ARG_ENABLE(autoarraytrace,
+        AS_HELP_STRING([--enable-autoarraytrace],[store traces of allocation through AutoArray (default no)]),
+        [autoarraytrace=${enableval}],[autoarraytrace=no])
 
 LIBMAUSSTATIC=
 if test "${sharedlibmaus2}" = "no" ; then
