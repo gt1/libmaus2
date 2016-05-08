@@ -103,6 +103,7 @@ namespace libmaus2
 					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETAOSI,pa[0].from);
 					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETAOSI,pc[-1].to);
 					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETAOSI,offset);
+					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETAOSI,numintv);
 
 					// reset buffer
 					pc = pa;
@@ -154,22 +155,31 @@ namespace libmaus2
 
 					libmaus2::aio::InputStreamInstance::unique_ptr_type METAISI(new libmaus2::aio::InputStreamInstance(metafn));
 					uint64_t numblocks = 0;
+					uint64_t numintvsum = 0;
 					while ( METAISI->peek() != std::istream::traits_type::eof() )
 					{
 						uint64_t const low = libmaus2::util::NumberSerialisation::deserialiseNumber(*METAISI);
 						uint64_t const high = libmaus2::util::NumberSerialisation::deserialiseNumber(*METAISI);
 						uint64_t const offset = libmaus2::util::NumberSerialisation::deserialiseNumber(*METAISI);
+						uint64_t const numintv = libmaus2::util::NumberSerialisation::deserialiseNumber(*METAISI);
 
 						libmaus2::util::NumberSerialisation::serialiseNumber(OSI,low);
 						libmaus2::util::NumberSerialisation::serialiseNumber(OSI,high);
 						libmaus2::util::NumberSerialisation::serialiseNumber(OSI,offset);
+						libmaus2::util::NumberSerialisation::serialiseNumber(OSI,numintvsum);
 
+						numintvsum += numintv;
 						numblocks += 1;
 					}
 
 					METAISI.reset();
 
 					libmaus2::aio::FileRemoval::removeFile(metafn);
+
+					libmaus2::util::NumberSerialisation::serialiseNumber(OSI,0);
+					libmaus2::util::NumberSerialisation::serialiseNumber(OSI,0);
+					libmaus2::util::NumberSerialisation::serialiseNumber(OSI,0);
+					libmaus2::util::NumberSerialisation::serialiseNumber(OSI,numintvsum);
 
 					libmaus2::util::NumberSerialisation::serialiseNumber(OSI,numblocks);
 					libmaus2::util::NumberSerialisation::serialiseNumber(OSI,indexpos);

@@ -22,6 +22,7 @@
 #include <libmaus2/gamma/GammaDecoder.hpp>
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
 #include <libmaus2/gamma/FlaggedInterval.hpp>
+#include <libmaus2/util/PrefixSums.hpp>
 
 namespace libmaus2
 {
@@ -37,13 +38,14 @@ namespace libmaus2
 				uint64_t low;
 				uint64_t high;
 				uint64_t offset;
+				uint64_t numintvsum;
 
 				BlockEntry()
 				{
 
 				}
 
-				BlockEntry(uint64_t rlow, uint64_t rhigh, uint64_t roffset) : low(rlow), high(rhigh), offset(roffset) {}
+				BlockEntry(uint64_t rlow, uint64_t rhigh, uint64_t roffset, uint64_t rnumintvsum) : low(rlow), high(rhigh), offset(roffset), numintvsum(rnumintvsum) {}
 			};
 
 			struct IndexSingleAccessor
@@ -62,6 +64,8 @@ namespace libmaus2
 				uint64_t filelow;
 				uint64_t filehigh;
 
+				uint64_t numintvsum;
+
 				IndexSingleAccessor(std::string const & rfn)
 				: fn(rfn), ISI(fn)
 				{
@@ -75,16 +79,19 @@ namespace libmaus2
 						filelow = get(0).low;
 						filehigh = get(numblocks-1).high;
 					}
+
+					numintvsum = get(numblocks).numintvsum;
 				}
 
 				BlockEntry get(uint64_t i) const
 				{
 					ISI.clear();
-					ISI.seekg(indexoffset + 3*sizeof(uint64_t)*i);
+					ISI.seekg(indexoffset + 4*sizeof(uint64_t)*i);
 					BlockEntry B;
 					B.low = libmaus2::util::NumberSerialisation::deserialiseNumber(ISI);
 					B.high = libmaus2::util::NumberSerialisation::deserialiseNumber(ISI);
 					B.offset = libmaus2::util::NumberSerialisation::deserialiseNumber(ISI);
+					B.numintvsum = libmaus2::util::NumberSerialisation::deserialiseNumber(ISI);
 					return B;
 				}
 
@@ -103,6 +110,11 @@ namespace libmaus2
 					return const_iterator(this,numblocks);
 				}
 
+				const_iterator bend() const
+				{
+					return const_iterator(this,numblocks+1);
+				}
+
 				struct HighComp
 				{
 					bool operator()(BlockEntry const & A, BlockEntry const & B) const
@@ -111,10 +123,37 @@ namespace libmaus2
 					}
 				};
 
+				struct NumIntvSumComp
+				{
+					bool operator()(BlockEntry const & A, BlockEntry const & B) const
+					{
+						return A.numintvsum < B.numintvsum;
+					}
+				};
+
 				uint64_t getBlockForValue(uint64_t const v) const
 				{
-					const_iterator it = ::std::lower_bound(begin(),end(),BlockEntry(0,v,0),HighComp());
+					const_iterator it = ::std::lower_bound(begin(),end(),BlockEntry(0,v,0,0),HighComp());
 					return it-begin();
+				}
+
+				std::pair<uint64_t,uint64_t> getBlockForIntervalId(uint64_t const v) const
+				{
+					if ( v >= numintvsum )
+						return std::pair<uint64_t,uint64_t>(numblocks,0);
+
+					const_iterator it = ::std::lower_bound(begin(),bend(),BlockEntry(0,0,0,v),NumIntvSumComp());
+
+					if ( (it == bend()) || ((*it).numintvsum != v) )
+						--it;
+
+					assert ( it != bend() );
+
+					uint64_t const bsum = (*it).numintvsum;
+
+					assert ( bsum <= v );
+
+					return std::pair<uint64_t,uint64_t>(it - begin(), v-bsum);
 				}
 			};
 
@@ -124,9 +163,17 @@ namespace libmaus2
 
 				std::vector<std::string> Vfn;
 				std::vector< std::pair<uint64_t,uint64_t> > intv;
+				uint64_t numintvsum;
+				std::vector<uint64_t> Vnumintvsum;
+
+				static uint64_t getNumIntvSum(std::vector<std::string> const & Vfn)
+				{
+					this_type IA(Vfn);
+					return IA.numintvsum;
+				}
 
 				IndexAccessor(std::vector<std::string> const & rVfn)
-				: Vfn(rVfn)
+				: Vfn(rVfn), numintvsum(0)
 				{
 					uint64_t o = 0;
 					for ( uint64_t i = 0; i < Vfn.size(); ++i )
@@ -136,9 +183,13 @@ namespace libmaus2
 						{
 							Vfn[o++] = Vfn[i];
 							intv.push_back(std::pair<uint64_t,uint64_t>(ISA.filelow,ISA.filehigh));
+							numintvsum += ISA.numintvsum;
+							Vnumintvsum.push_back(ISA.numintvsum);
 						}
 					}
 					Vfn.resize(o);
+					Vnumintvsum.push_back(0);
+					libmaus2::util::PrefixSums::prefixSums(Vnumintvsum.begin(),Vnumintvsum.end());
 				}
 
 				struct PairSecondComp
@@ -154,6 +205,25 @@ namespace libmaus2
 					std::vector< std::pair<uint64_t,uint64_t> >::const_iterator it =
 						::std::lower_bound(intv.begin(),intv.end(),std::pair<uint64_t,uint64_t>(0,v),PairSecondComp());
 					return it - intv.begin();
+				}
+
+				std::pair<uint64_t,uint64_t> getFileForIntervalId(uint64_t const v) const
+				{
+					if ( v >= Vnumintvsum.back() )
+						return std::pair<uint64_t,uint64_t>(Vfn.size(),0);
+
+					std::vector<uint64_t>::const_iterator it = ::std::lower_bound(Vnumintvsum.begin(),Vnumintvsum.end(),v);
+
+					if ( it == Vnumintvsum.end() || *it != v )
+						it -= 1;
+
+					assert ( it != Vnumintvsum.end() && *it <= v );
+
+					return
+						std::pair<uint64_t,uint64_t>(
+							it - Vnumintvsum.begin(),
+							v - *it
+						);
 				}
 			};
 
@@ -293,43 +363,90 @@ namespace libmaus2
 				}
 			}
 
-			GammaFlaggedIntervalDecoder(std::vector<std::string> const & rVfn, uint64_t const voffset)
+			enum init_mode
+			{
+				init_mode_value,
+				init_mode_interval_id
+			};
+
+			GammaFlaggedIntervalDecoder(
+				std::vector<std::string> const & rVfn,
+				uint64_t const voffset,
+				init_mode const im = init_mode_value
+			)
 			: IA(rVfn),
 			  fileptr(0),
 			  Aintv(), pa(Aintv.begin()), pc(Aintv.begin()), pe(Aintv.begin())
 			{
-				fileptr = IA.getFileForValue(voffset);
-
-				if ( fileptr < IA.Vfn.size() )
+				if ( im == init_mode_value )
 				{
-					IndexSingleAccessor::unique_ptr_type TISA(new IndexSingleAccessor(IA.Vfn[fileptr]));
-					PISA = UNIQUE_PTR_MOVE(TISA);
+					fileptr = IA.getFileForValue(voffset);
 
-					blockptr = PISA->getBlockForValue(voffset);
-					assert ( blockptr < PISA->numblocks );
-
-					// std::cerr << "voffset=" << voffset << " filteptr=" << fileptr << " blockptr=" << blockptr << std::endl;
-
-					openNewFile();
-
-					bool done = false;
-
-					while ( !done )
+					if ( fileptr < IA.Vfn.size() )
 					{
+						IndexSingleAccessor::unique_ptr_type TISA(new IndexSingleAccessor(IA.Vfn[fileptr]));
+						PISA = UNIQUE_PTR_MOVE(TISA);
+
+						blockptr = PISA->getBlockForValue(voffset);
+						assert ( blockptr < PISA->numblocks );
+
+						// std::cerr << "voffset=" << voffset << " filteptr=" << fileptr << " blockptr=" << blockptr << std::endl;
+
+						openNewFile();
+
+						bool done = false;
+
+						while ( !done )
+						{
+							bool const ok = fillBuffer();
+
+							assert ( ok );
+
+							while (
+								pc != pe &&
+								voffset != pc->from &&
+								voffset >= pc->to
+							)
+								++pc;
+
+							if ( pc != pe )
+								done = true;
+						}
+					}
+				}
+				else if ( im == init_mode_interval_id )
+				{
+					std::pair<uint64_t,uint64_t> P0 = IA.getFileForIntervalId(voffset);
+					fileptr = P0.first;
+
+					if ( fileptr < IA.Vfn.size() )
+					{
+						IndexSingleAccessor::unique_ptr_type TISA(new IndexSingleAccessor(IA.Vfn[fileptr]));
+						PISA = UNIQUE_PTR_MOVE(TISA);
+
+						uint64_t const ioffset = P0.second;
+
+						std::pair<uint64_t,uint64_t> const P1 = PISA->getBlockForIntervalId(ioffset);
+						blockptr = P1.first;
+
+						assert ( blockptr < PISA->numblocks );
+
+						openNewFile();
+
 						bool const ok = fillBuffer();
 
 						assert ( ok );
 
-						while (
-							pc != pe &&
-							voffset != pc->from &&
-							voffset >= pc->to
-						)
-							++pc;
+						assert ( pe - pc >= static_cast<ptrdiff_t>(P1.second) );
 
-						if ( pc != pe )
-							done = true;
+						pc += P1.second;
+
+						assert ( pc != pe );
 					}
+				}
+				else
+				{
+					fileptr = IA.Vfn.size();
 				}
 			}
 

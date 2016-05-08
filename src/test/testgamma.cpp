@@ -1965,7 +1965,22 @@ void testflaggedintervalsingle()
 				Gdec.reset();
 			}
 		}
+
+		for ( uint64_t i = 0; i < n; ++i )
+		{
+			libmaus2::gamma::GammaFlaggedIntervalDecoder::unique_ptr_type Gdec(new libmaus2::gamma::GammaFlaggedIntervalDecoder(std::vector<std::string>(1,fn),i /* offset */,libmaus2::gamma::GammaFlaggedIntervalDecoder::init_mode_interval_id));
+
+			for ( uint64_t j = i; j < n; ++j )
+			{
+				bool const ok = Gdec->getNext(P);
+				assert ( ok );
+				assert ( P == LV[j] );
+				//std::cerr << "ok" << std::endl;
+			}
+		}
 	}
+
+	std::cerr << "@" << std::endl;
 }
 
 void testIt()
