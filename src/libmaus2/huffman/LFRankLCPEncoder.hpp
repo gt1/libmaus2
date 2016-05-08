@@ -15,37 +15,46 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_GAMMA_GAMMAPDENCODER_HPP)
-#define LIBMAUS2_GAMMA_GAMMAPDENCODER_HPP
+#if ! defined(LIBMAUS2_GAMMA_LFRANKLCPENCODER_HPP)
+#define LIBMAUS2_GAMMA_LFRANKLCPENCODER_HPP
 
 #include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/aio/FileRemoval.hpp>
 #include <libmaus2/aio/SynchronousGenericOutput.hpp>
 #include <libmaus2/gamma/GammaEncoder.hpp>
+#include <libmaus2/huffman/CanonicalEncoder.hpp>
+#include <libmaus2/huffman/LFInfo.hpp>
+#include <libmaus2/util/Histogram.hpp>
+#include <libmaus2/huffman/LFSupportBitDecoder.hpp>
+#include <libmaus2/huffman/LFRankLCP.hpp>
 
 namespace libmaus2
 {
-	namespace gamma
+	namespace huffman
 	{
-		struct GammaPDEncoder
+		struct LFRankLCPEncoder
 		{
-			typedef GammaPDEncoder this_type;
+			typedef LFRankLCPEncoder this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			std::string fn;
 			libmaus2::aio::OutputStreamInstance::unique_ptr_type POSI;
-			typedef libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO_type;
-			SGO_type::unique_ptr_type PSGO;
+
+			typedef libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO64_type;
+			SGO64_type::unique_ptr_type PSGO64;
 
 			std::string metafn;
 			libmaus2::aio::OutputStreamInstance::unique_ptr_type PMETA;
 
-			libmaus2::autoarray::AutoArray<uint64_t> B;
-			uint64_t * const pa;
-			uint64_t * pc;
-			uint64_t * const pe;
+			libmaus2::autoarray::AutoArray<LFRankLCP> B;
+			LFRankLCP * const pa;
+			LFRankLCP * pc;
+			LFRankLCP * const pe;
+
+			typedef std::pair<int64_t,uint64_t> symrun;
+			libmaus2::autoarray::AutoArray<symrun> Asymrun;
 
 			uint64_t valueswritten;
 
@@ -53,9 +62,9 @@ namespace libmaus2
 
 			uint64_t offset;
 
-			GammaPDEncoder(std::string const & rfn, uint64_t const blocksize = 4096)
+			LFRankLCPEncoder(std::string const & rfn, uint64_t const blocksize = 4096)
 			: fn(rfn), POSI(new libmaus2::aio::OutputStreamInstance(fn)),
-			  PSGO(new libmaus2::aio::SynchronousGenericOutput<uint64_t>(*POSI,4096)),
+			  PSGO64(new libmaus2::aio::SynchronousGenericOutput<uint64_t>(*POSI,4096)),
 			  metafn(fn + ".meta"),
 			  PMETA(new libmaus2::aio::OutputStreamInstance(metafn)),
 			  B(blocksize,false),
@@ -68,17 +77,50 @@ namespace libmaus2
 			{
 			}
 
-			void encode(uint64_t const v)
+			void encode(LFRankLCP const & L)
 			{
-				*(pc++) = v;
+				*pc++ = L;
+
 				if ( pc == pe )
 					implicitFlush();
 			}
 
+			template<typename projector>
+			void encodeSequence()
+			{
+				uint64_t const sgowritten_bef = PSGO64->getWrittenBytes();
+
+				uint64_t maxval = 0;
+				for ( LFRankLCP * p = pa; p != pc; ++p )
+					if ( projector::project(*p) > maxval )
+							maxval = projector::project(*p);
+				unsigned int const numbits = ::libmaus2::math::numbits(maxval);
+
+				::libmaus2::bitio::FastWriteBitWriterStream64Std writer(*PSGO64);
+				writer.writeElias2(pc-pa);
+				writer.writeElias2(numbits);
+				for ( LFRankLCP * p = pa; p != pc; ++p )
+					writer.write(projector::project(*p),numbits);
+
+				writer.flush();
+
+				uint64_t const sgo_aft = PSGO64->getWrittenBytes();
+
+				offset += (sgo_aft-sgowritten_bef);
+			}
+
+			struct RProjector { static uint64_t project(LFRankLCP const & P) { return P.r; } };
+			struct LCPProjector { static uint64_t project(LFRankLCP const & P) { return P.lcp; } };
+
 			void implicitFlush()
 			{
+
 				if ( pc != pa )
 				{
+					#if 0
+					std::cerr << "implicitFlush()" << std::endl;
+					#endif
+
 					assert ( ! flushed );
 
 					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETA,offset);
@@ -86,15 +128,9 @@ namespace libmaus2
 
 					uint64_t const bs = (pc-pa);
 
-					uint64_t const sgo_bef = PSGO->getWrittenBytes();
-					libmaus2::gamma::GammaEncoder<SGO_type> GE(*PSGO);
-					GE.encodeSlow(bs-1);
-					for ( uint64_t const * pp = pa; pp != pc; ++pp )
-						GE.encodeSlow(*pp);
-					GE.flush();
-					uint64_t const sgo_aft = PSGO->getWrittenBytes();
+					encodeSequence<RProjector>();
+					encodeSequence<LCPProjector>();
 
-					offset += (sgo_aft-sgo_bef);
 					valueswritten += bs;
 
 					pc = pa;
@@ -108,12 +144,12 @@ namespace libmaus2
 					implicitFlush();
 					flushed = true;
 
-					PSGO->flush();
+					PSGO64->flush();
 
-					//uint64_t const offset = PSGO->getWrittenBytes();
-					assert ( offset == PSGO->getWrittenBytes() );
+					//uint64_t const offset = PSGO64->getWrittenBytes();
+					assert ( offset == PSGO64->getWrittenBytes() );
 
-					PSGO.reset();
+					PSGO64.reset();
 
 					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETA,offset);
 					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETA,valueswritten);
@@ -138,7 +174,7 @@ namespace libmaus2
 				}
 			}
 
-			~GammaPDEncoder()
+			~LFRankLCPEncoder()
 			{
 				flush();
 			}

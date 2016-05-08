@@ -15,8 +15,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus2/gamma/GammaPDEncoder.hpp>
 #include <libmaus2/gamma/GammaPDDecoder.hpp>
+#include <libmaus2/gamma/GammaPDEncoder.hpp>
 #include <libmaus2/random/Random.hpp>
 
 int main()

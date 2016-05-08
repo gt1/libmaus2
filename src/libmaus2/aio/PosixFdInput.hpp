@@ -272,6 +272,7 @@ namespace libmaus2
 					else if ( ready == 1 && (pfd.revents & POLLHUP) )
 					{
 						n = 0;
+						r = 0;
 					}
 					else
 					{

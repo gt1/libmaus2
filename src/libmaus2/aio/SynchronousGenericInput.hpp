@@ -222,6 +222,17 @@ namespace libmaus2
 				}
 			}
 
+			void putBack()
+			{
+				assert ( pc != pa );
+				pc -= 1;
+			}
+
+			void clearBuffer()
+			{
+				pc = pe;
+			}
+
 			/**
 			 * read next word
 			 *

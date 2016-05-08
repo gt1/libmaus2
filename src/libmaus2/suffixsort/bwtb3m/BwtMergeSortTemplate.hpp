@@ -938,7 +938,7 @@ namespace libmaus2
 					if ( logstr )
 						(*logstr) << "done, time " << rtc.getElapsedSeconds() << std::endl;
 
-					return std::pair < uint64_t, std::vector<std::string> >(blockp0rank,Vout);
+					return std::pair < uint64_t, std::vector<std::string> >(static_cast<uint64_t>(blockp0rank),Vout);
 				}
 
 				static void saveGapFile(
@@ -1897,6 +1897,37 @@ namespace libmaus2
 
 					libmaus2::autoarray::AutoArray < uint64_t > Gsamples(numGsamp,false);
 
+					uint64_t const samplesPerPackage = (numGsamp + numthreads - 1)/numthreads;
+					uint64_t const numSamplePackages = (numGsamp + samplesPerPackage - 1)/samplesPerPackage;
+
+					#if defined(_OPENMP)
+					#pragma omp parallel for num_threads(numthreads)
+					#endif
+					for ( uint64_t tid = 0; tid < numSamplePackages; ++tid )
+					{
+						uint64_t const tlow  = tid * samplesPerPackage;
+						uint64_t const thigh = std::min(tlow + samplesPerPackage, numGsamp);
+						assert ( thigh >= tlow );
+
+						sequence_type gp = G.getOffsetSequence(tlow * Gsampleblocksize);
+
+						for ( uint64_t ti = tlow; ti < thigh; ++ti )
+						{
+							uint64_t s = 0;
+							uint64_t const low = ti * Gsampleblocksize;
+							uint64_t const high = std::min(low + Gsampleblocksize, Gsize);
+
+							for ( uint64_t i = low; i < high; ++i )
+								s += gp.get();
+							s += (high-low);
+
+							if ( high == Gsize && high != low )
+								s -= 1;
+							Gsamples[ti] = s;
+						}
+					}
+
+					#if 0
 					#if defined(_OPENMP)
 					#pragma omp parallel for num_threads(numthreads)
 					#endif
@@ -1914,6 +1945,7 @@ namespace libmaus2
 							s -= 1;
 						Gsamples[t] = s;
 					}
+					#endif
 
 					#if 0
 					std::vector<uint64_t> G_A(Gsamples.begin(),Gsamples.end());

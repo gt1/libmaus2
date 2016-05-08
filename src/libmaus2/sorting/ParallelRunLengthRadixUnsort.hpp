@@ -19,6 +19,7 @@
 #define LIBMAUS2_SORTING_PARALLELRUNLENGTHRADIXUNSORT_HPP
 
 #include <libmaus2/util/TempFileNameGenerator.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 
 namespace libmaus2
 {
@@ -26,6 +27,10 @@ namespace libmaus2
 	{
 		struct ParallelRunLengthRadixUnsort
 		{
+			typedef ParallelRunLengthRadixUnsort this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
 			struct UnsortLevel
 			{
 				// key sequence
@@ -38,7 +43,24 @@ namespace libmaus2
 				std::vector < uint64_t > Ohist;
 				// threading intervals
 				std::vector < std::pair<uint64_t,uint64_t> > Vthreadint;
+
+				void removeKeyFiles()
+				{
+					for ( uint64_t i = 0; i < keyseqfn.size(); ++i )
+						libmaus2::aio::FileRemoval::removeFile(keyseqfn[i]);
+				}
 			};
+
+			void removeKeyFiles()
+			{
+				for ( uint64_t i = 0; i < levels.size(); ++i )
+					levels[i].removeKeyFiles();
+			}
+
+			~ParallelRunLengthRadixUnsort()
+			{
+				removeKeyFiles();
+			}
 
 			std::vector<UnsortLevel> levels;
 			uint64_t unsortthreads;
@@ -89,6 +111,7 @@ namespace libmaus2
 						encoder_type enc(Vout[t],std::numeric_limits<uint64_t>::max(),encbs);
 
 						// number of elements still to do
+						assert ( threadint.second >= threadint.first );
 						uint64_t todo = threadint.second - threadint.first;
 						typename key_decoder_type::run_type K;
 						typename decoder_type::run_type R;
@@ -96,7 +119,8 @@ namespace libmaus2
 						while ( todo )
 						{
 							// decode key run
-							Kdec.decodeRun(K);
+							bool const okK = Kdec.decodeRun(K);
+							assert ( okK );
 							// how much can we still use?
 							uint64_t av = std::min(todo,K.rlen);
 							// update todo
@@ -106,7 +130,8 @@ namespace libmaus2
 							while ( av )
 							{
 								// decode run from data file
-								Adec[K.sym]->decodeRun(R);
+								bool const okA = Adec[K.sym]->decodeRun(R);
+								assert ( okA );
 
 								// how much can we use of this run?
 								uint64_t lav = std::min(av,R.rlen);

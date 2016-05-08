@@ -257,6 +257,7 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 noinst_HEADERS = libmaus2/lz/lz4.h
 
 libmaus2_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@ @DALIGNERCPPFLAGS@ @GMPCPPFLAGS@ @LIBMAUS2_LZMA_CPPFLAGS@
+libmaus2_la_CXXFLAGS = @SEQANCXXFLAGS@ @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS}
 libmaus2_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@ @NETTLELDFLAGS@ @DALIGNERLDFLAGS@ @GMPLDFLAGS@
 libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ @DALIGNERLIBS@ @GMPLIBS@ @LIBMAUS2_LZMA_LIBS@
 
@@ -346,7 +347,15 @@ libmaus2gamma_include_HEADERS = libmaus2/gamma/GammaEncoder.hpp libmaus2/gamma/G
 	libmaus2/gamma/GammaPartitionDecoder.hpp \
 	libmaus2/gamma/GammaIntervalDecoder.hpp \
 	libmaus2/gamma/GammaPDEncoder.hpp \
-	libmaus2/gamma/GammaPDDecoder.hpp
+	libmaus2/gamma/GammaPDDecoder.hpp \
+	libmaus2/gamma/GammaPDIndexDecoderBase.hpp \
+	libmaus2/gamma/GammaPDIndexDecoder.hpp \
+	libmaus2/gamma/Interval.hpp \
+	libmaus2/gamma/FlaggedInterval.hpp \
+	libmaus2/gamma/GammaFlaggedPartitionDecoder.hpp \
+	libmaus2/gamma/GammaFlaggedPartitionEncoder.hpp \
+	libmaus2/gamma/GammaFlaggedIntervalDecoder.hpp \
+	libmaus2/gamma/GammaFlaggedIntervalEncoder.hpp
 
 libmaus2regex_includedir=$(includedir)/libmaus2/regex/
 libmaus2regex_include_HEADERS = libmaus2/regex/PosixRegex.hpp
@@ -1035,7 +1044,30 @@ libmaus2huffman_include_HEADERS=\
 	libmaus2/huffman/IndexWriter.hpp \
 	libmaus2/huffman/SymCountRun.hpp \
 	libmaus2/huffman/RLInitType.hpp \
-	libmaus2/huffman/RLRun.hpp
+	libmaus2/huffman/RLRun.hpp \
+	libmaus2/huffman/LFInfo.hpp \
+	libmaus2/huffman/LFSupportDecoder.hpp \
+	libmaus2/huffman/LFSupportEncoder.hpp \
+	libmaus2/huffman/LFSupportBitDecoder.hpp \
+	libmaus2/huffman/LFSetBit.hpp \
+	libmaus2/huffman/LFSetBitDecoder.hpp \
+	libmaus2/huffman/LFSetBitEncoder.hpp \
+	libmaus2/huffman/LFValueEncoder.hpp \
+	libmaus2/huffman/LFValueDecoder.hpp \
+	libmaus2/huffman/LFValue.hpp \
+	libmaus2/huffman/LFPhiPairDecoder.hpp \
+	libmaus2/huffman/LFPhiPairEncoder.hpp \
+	libmaus2/huffman/LFPhiPair.hpp \
+	libmaus2/huffman/LFPhiPairLCP.hpp \
+	libmaus2/huffman/LFPhiPairLCPDecoder.hpp \
+	libmaus2/huffman/LFPhiPairLCPEncoder.hpp \
+	libmaus2/huffman/LFRankLCP.hpp \
+	libmaus2/huffman/LFRankLCPDecoder.hpp \
+	libmaus2/huffman/LFRankLCPEncoder.hpp \
+	libmaus2/huffman/SymBit.hpp \
+	libmaus2/huffman/SymBitDecoder.hpp \
+	libmaus2/huffman/SymBitEncoder.hpp \
+	libmaus2/huffman/SymBitRun.hpp
 
 libmaus2math_includedir=$(includedir)/libmaus2/math
 libmaus2math_include_HEADERS=\
@@ -1325,7 +1357,8 @@ libmaus2aio_include_HEADERS=\
 	libmaus2/aio/ArrayFile.hpp \
 	libmaus2/aio/StreamLock.hpp \
 	libmaus2/aio/ArrayFileContainer.hpp \
-	libmaus2/aio/ArrayInputStreamFactory.hpp
+	libmaus2/aio/ArrayInputStreamFactory.hpp \
+	libmaus2/aio/PairFileDecoder.hpp
 	
 libmaus2parallel_includedir=$(includedir)/libmaus2/parallel
 libmaus2parallel_include_HEADERS=\
@@ -1485,7 +1518,8 @@ libmaus2sorting_include_HEADERS=\
 	libmaus2/sorting/SemiExternalKeyTupleSort.hpp \
 	libmaus2/sorting/InterleavedRadixSort.hpp \
 	libmaus2/sorting/ParallelRunLengthRadixUnsort.hpp \
-	libmaus2/sorting/ParallelRunLengthRadixSort.hpp
+	libmaus2/sorting/ParallelRunLengthRadixSort.hpp \
+	libmaus2/sorting/ParallelExternalRadixSort.hpp
 
 libmaus2hashing_includedir=$(includedir)/libmaus2/hashing
 libmaus2hashing_include_HEADERS=\

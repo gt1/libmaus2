@@ -15,22 +15,22 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_GAMMA_GAMMAPARTITIONDECODER_HPP)
-#define LIBMAUS2_GAMMA_GAMMAPARTITIONDECODER_HPP
+#if ! defined(LIBMAUS2_GAMMA_GAMMAFLAGGEDPARTITIONDECODER_HPP)
+#define LIBMAUS2_GAMMA_GAMMAFLAGGEDPARTITIONDECODER_HPP
 
 #include <libmaus2/huffman/IndexDecoderDataArray.hpp>
 #include <libmaus2/gamma/GammaDecoder.hpp>
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
 #include <libmaus2/huffman/RLInitType.hpp>
-#include <libmaus2/gamma/Interval.hpp>
+#include <libmaus2/gamma/FlaggedInterval.hpp>
 
 namespace libmaus2
 {
 	namespace gamma
 	{
-		struct GammaPartitionDecoder : public libmaus2::huffman::RLInitType
+		struct GammaFlaggedPartitionDecoder : public libmaus2::huffman::RLInitType
 		{
-			typedef GammaPartitionDecoder this_type;
+			typedef GammaFlaggedPartitionDecoder this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			std::vector<std::string> const Vfn;
@@ -51,10 +51,10 @@ namespace libmaus2
 			typedef gamma_decoder_type::unique_ptr_type gamma_decoder_ptr_type;
 			gamma_decoder_ptr_type PG;
 
-			libmaus2::autoarray::AutoArray < Interval > Aintv;
-			Interval * pa;
-			Interval * pc;
-			Interval * pe;
+			libmaus2::autoarray::AutoArray < FlaggedInterval > Aintv;
+			FlaggedInterval * pa;
+			FlaggedInterval * pc;
+			FlaggedInterval * pe;
 
 			void openNewFile()
 			{
@@ -121,8 +121,18 @@ namespace libmaus2
 				{
 					uint64_t const intvlen = PG->decode()+1;
 					uint64_t const curhigh = curlow + intvlen;
-					pa[i] = Interval(curlow,curhigh);
+					pa[i] = FlaggedInterval(curlow,curhigh,FlaggedInterval::interval_type_complete);
 					curlow = curhigh;
+				}
+
+				uint64_t numbits = 0;
+				while ( numbits < numintv )
+				{
+					FlaggedInterval::interval_type const type = static_cast<FlaggedInterval::interval_type>(PG->decodeWord(2));
+					uint64_t const len = PG->decode() + 1;
+
+					for ( uint64_t i = 0; i < len; ++i )
+						pa[numbits++].type = type;
 				}
 
 				blockptr += 1;
@@ -130,7 +140,7 @@ namespace libmaus2
 				return true;
 			}
 
-			bool getNext(Interval & P)
+			bool getNext(FlaggedInterval & P)
 			{
 				if ( pc != pe )
 				{
@@ -149,7 +159,7 @@ namespace libmaus2
 				}
 			}
 
-			GammaPartitionDecoder(
+			GammaFlaggedPartitionDecoder(
 				std::vector<std::string> const & rVfn,
 				uint64_t const voffset,
 				uint64_t const numthreads
