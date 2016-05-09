@@ -108,6 +108,19 @@ namespace libmaus2
 						pp = pup;
 					}
 
+					pp = pa;
+					while ( pp != pc )
+					{
+						FlaggedInterval * pup = pp;
+						while ( pup != pc && pup->active == pp->active )
+							++pup;
+
+						G.encodeWord(static_cast<int>(pp->active),1);
+						G.encodeSlow((pup-pp)-1);
+
+						pp = pup;
+					}
+
 					// push index entry
 					Vindex.push_back(libmaus2::huffman::IndexEntry(offset,numintv,vsum));
 					// update total interval size

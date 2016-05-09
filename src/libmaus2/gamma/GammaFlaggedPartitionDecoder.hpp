@@ -121,7 +121,7 @@ namespace libmaus2
 				{
 					uint64_t const intvlen = PG->decode()+1;
 					uint64_t const curhigh = curlow + intvlen;
-					pa[i] = FlaggedInterval(curlow,curhigh,FlaggedInterval::interval_type_complete);
+					pa[i] = FlaggedInterval(curlow,curhigh,FlaggedInterval::interval_type_complete,false /* active */);
 					curlow = curhigh;
 				}
 
@@ -133,6 +133,15 @@ namespace libmaus2
 
 					for ( uint64_t i = 0; i < len; ++i )
 						pa[numbits++].type = type;
+				}
+				numbits = 0;
+				while ( numbits < numintv )
+				{
+					bool const active = static_cast<FlaggedInterval::interval_type>(PG->decodeWord(1));
+					uint64_t const len = PG->decode() + 1;
+
+					for ( uint64_t i = 0; i < len; ++i )
+						pa[numbits++].active = active;
 				}
 
 				blockptr += 1;

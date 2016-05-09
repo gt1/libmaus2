@@ -1819,7 +1819,7 @@ void testflaggedpartitionsingle()
 			L.push_back(w);
 			uint64_t const high = low+w;
 			libmaus2::gamma::FlaggedInterval::interval_type const flag = static_cast<libmaus2::gamma::FlaggedInterval::interval_type>(i % 4); // libmaus2::random::Random::rand8() % 2;
-			LV.push_back(libmaus2::gamma::FlaggedInterval(low,high,flag));
+			LV.push_back(libmaus2::gamma::FlaggedInterval(low,high,flag,false /* active */));
 			Genc->put(LV.back());
 			low = high;
 		}
@@ -1915,7 +1915,7 @@ void testflaggedintervalsingle()
 			uint64_t const low = offset + o;
 			uint64_t const high = low + w;
 
-			LV.push_back(libmaus2::gamma::FlaggedInterval(low,high,libmaus2::gamma::FlaggedInterval::interval_type_complete));
+			LV.push_back(libmaus2::gamma::FlaggedInterval(low,high,libmaus2::gamma::FlaggedInterval::interval_type_complete,(i%3)==0 /*active*/));
 			Genc->put(LV.back());
 
 			offset = high;
@@ -1989,13 +1989,13 @@ void testIt()
         libmaus2::random::Random::setup();
 
 	libmaus2::gamma::GammaFlaggedIntervalEncoder::unique_ptr_type Genc(new libmaus2::gamma::GammaFlaggedIntervalEncoder(fn));
-	Genc->put(libmaus2::gamma::FlaggedInterval(0,0,libmaus2::gamma::FlaggedInterval::interval_type_complete));
-	Genc->put(libmaus2::gamma::FlaggedInterval(0,0,libmaus2::gamma::FlaggedInterval::interval_type_complete));
-	Genc->put(libmaus2::gamma::FlaggedInterval(0,0,libmaus2::gamma::FlaggedInterval::interval_type_complete));
-	Genc->put(libmaus2::gamma::FlaggedInterval(1,2,libmaus2::gamma::FlaggedInterval::interval_type_complete));
-	Genc->put(libmaus2::gamma::FlaggedInterval(2,2,libmaus2::gamma::FlaggedInterval::interval_type_complete));
-	Genc->put(libmaus2::gamma::FlaggedInterval(2,2,libmaus2::gamma::FlaggedInterval::interval_type_complete));
-	Genc->put(libmaus2::gamma::FlaggedInterval(2,2,libmaus2::gamma::FlaggedInterval::interval_type_complete));
+	Genc->put(libmaus2::gamma::FlaggedInterval(0,0,libmaus2::gamma::FlaggedInterval::interval_type_complete,false));
+	Genc->put(libmaus2::gamma::FlaggedInterval(0,0,libmaus2::gamma::FlaggedInterval::interval_type_complete,false));
+	Genc->put(libmaus2::gamma::FlaggedInterval(0,0,libmaus2::gamma::FlaggedInterval::interval_type_complete,true));
+	Genc->put(libmaus2::gamma::FlaggedInterval(1,2,libmaus2::gamma::FlaggedInterval::interval_type_complete,false));
+	Genc->put(libmaus2::gamma::FlaggedInterval(2,2,libmaus2::gamma::FlaggedInterval::interval_type_complete,true));
+	Genc->put(libmaus2::gamma::FlaggedInterval(2,2,libmaus2::gamma::FlaggedInterval::interval_type_complete,false));
+	Genc->put(libmaus2::gamma::FlaggedInterval(2,2,libmaus2::gamma::FlaggedInterval::interval_type_complete,false));
 	Genc->flush();
 	Genc.reset();
 

@@ -103,14 +103,15 @@ namespace libmaus2
 			uint64_t from;
 			uint64_t to;
 			interval_type type;
+			bool active;
 
 			FlaggedInterval()
 			{
 
 			}
 
-			FlaggedInterval(uint64_t const rfrom, uint64_t const rto, interval_type const rtype)
-			: from(rfrom), to(rto), type(rtype)
+			FlaggedInterval(uint64_t const rfrom, uint64_t const rto, interval_type const rtype, bool const ractive)
+			: from(rfrom), to(rto), type(rtype), active(ractive)
 			{
 
 			}
@@ -118,7 +119,7 @@ namespace libmaus2
 			bool operator==(FlaggedInterval const & P) const
 			{
 				return
-					from == P.from && to == P.to && type == P.type;
+					from == P.from && to == P.to && type == P.type && active == P.active;
 			}
 		};
 
@@ -148,7 +149,7 @@ namespace libmaus2
 
 		inline std::ostream & operator<<(std::ostream & out, FlaggedInterval const & I)
 		{
-			out << "FlaggedInterval(from=" << I.from << ",to=" << I.to << ",type=" << I.type << ")";
+			out << "FlaggedInterval(from=" << I.from << ",to=" << I.to << ",type=" << I.type << ",active=" << I.active << ")";
 			return out;
 		}
 	}

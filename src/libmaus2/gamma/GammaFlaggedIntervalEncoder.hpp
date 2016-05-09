@@ -100,6 +100,19 @@ namespace libmaus2
 						pp = pup;
 					}
 
+					pp = pa;
+					while ( pp != pc )
+					{
+						FlaggedInterval * pup = pp;
+						while ( pup != pc && pup->active == pp->active )
+							++pup;
+
+						G.encodeWord(static_cast<int>(pp->active),1);
+						G.encodeSlow((pup-pp)-1);
+
+						pp = pup;
+					}
+
 					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETAOSI,pa[0].from);
 					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETAOSI,pc[-1].to);
 					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETAOSI,offset);
