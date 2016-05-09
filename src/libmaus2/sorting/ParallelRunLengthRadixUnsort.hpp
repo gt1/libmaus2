@@ -83,7 +83,7 @@ namespace libmaus2
 					std::vector < std::string> Vout(L.Vthreadint.size());
 					// create output files
 					for ( uint64_t t = 0; t < L.Vthreadint.size(); ++t )
-						Vout[t] = tmpgen.getFileName(true);
+						Vout[t] = tmpgen.getFileName(true) + ".unsort";
 
 					// unsort
 					#if defined(_OPENMP)
