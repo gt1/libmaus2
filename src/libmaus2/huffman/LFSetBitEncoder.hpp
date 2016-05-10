@@ -15,8 +15,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_GAMMA_LFSUPPORTENCODER_HPP)
-#define LIBMAUS2_GAMMA_LFSUPPORTENCODER_HPP
+#if ! defined(LIBMAUS2_GAMMA_LFSETBITENCODER_HPP)
+#define LIBMAUS2_GAMMA_LFSETBITENCODER_HPP
 
 #include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/aio/InputStreamInstance.hpp>
@@ -27,14 +27,15 @@
 #include <libmaus2/huffman/LFInfo.hpp>
 #include <libmaus2/util/Histogram.hpp>
 #include <libmaus2/huffman/LFSupportBitDecoder.hpp>
+#include <libmaus2/huffman/LFSetBit.hpp>
 
 namespace libmaus2
 {
 	namespace huffman
 	{
-		struct LFSupportEncoder
+		struct LFSetBitEncoder
 		{
-			typedef LFSupportEncoder this_type;
+			typedef LFSetBitEncoder this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
@@ -47,13 +48,10 @@ namespace libmaus2
 			std::string metafn;
 			libmaus2::aio::OutputStreamInstance::unique_ptr_type PMETA;
 
-			libmaus2::autoarray::AutoArray<LFInfo> B;
-			LFInfo * const pa;
-			LFInfo * pc;
-			LFInfo * const pe;
-
-			libmaus2::autoarray::AutoArray<uint64_t> V;
-			uint64_t vpo;
+			libmaus2::autoarray::AutoArray<LFSetBit> B;
+			LFSetBit * const pa;
+			LFSetBit * pc;
+			LFSetBit * const pe;
 
 			typedef std::pair<int64_t,uint64_t> symrun;
 			libmaus2::autoarray::AutoArray<symrun> Asymrun;
@@ -64,7 +62,7 @@ namespace libmaus2
 
 			uint64_t offset;
 
-			LFSupportEncoder(std::string const & rfn, uint64_t const blocksize = 4096)
+			LFSetBitEncoder(std::string const & rfn, uint64_t const blocksize = 4096)
 			: fn(rfn), POSI(new libmaus2::aio::OutputStreamInstance(fn)),
 			  PSGO64(new libmaus2::aio::SynchronousGenericOutput<uint64_t>(*POSI,4096)),
 			  metafn(fn + ".meta"),
@@ -73,22 +71,17 @@ namespace libmaus2
 			  pa(B.begin()),
 			  pc(B.begin()),
 			  pe(B.end()),
-			  V(),
-			  vpo(0),
 			  valueswritten(0),
 			  flushed(false),
 			  offset(0)
 			{
 			}
 
-			void encode(LFInfo const & L)
+			void encode(LFSetBit const & L)
 			{
-				*pc = L;
+				*pc++ = L;
 
-				for ( uint64_t i = 0; i < L.n; ++i )
-					V.push(vpo,L.v[i]);
-
-				if ( ++pc == pe )
+				if ( pc == pe )
 					implicitFlush();
 			}
 
@@ -98,19 +91,6 @@ namespace libmaus2
 				::libmaus2::util::Histogram & cnthist
 			)
 			{
-				#if 0
-				std::cerr << "encode RL ";
-				for ( uint64_t i = 0; i < numruns; ++i )
-					std::cerr << "(" << Asymrun[i].first << "," << Asymrun[i].second << ")";
-				std::cerr << std::endl;
-
-				std::cerr << std::string(80,'-') << std::endl;
-				symhist.print(std::cerr);
-				std::cerr << std::string(80,'-') << std::endl;
-				cnthist.print(std::cerr);
-				#endif
-
-
 				std::vector < std::pair<uint64_t,uint64_t > > const symfreqs = symhist.getFreqSymVector();
 				std::vector < std::pair<uint64_t,uint64_t > > const cntfreqs = cnthist.getFreqSymVector();
 
@@ -166,94 +146,6 @@ namespace libmaus2
 				uint64_t const sgowritten_aft = PSGO64->getWrittenBytes();
 
 				offset += sgowritten_aft-sgowritten_bef;
-
-				#if 0
-				{
-					std::string const tmp = "mem://tmp_debug";
-
-					std::vector < std::pair<uint64_t,uint64_t > > const symfreqs = symhist.getFreqSymVector();
-
-					libmaus2::autoarray::AutoArray < std::pair<int64_t, uint64_t> > symclone;
-
-					{
-						::libmaus2::aio::OutputStreamInstance OSI(tmp);
-						::libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO(OSI,4096);
-						::libmaus2::huffman::CanonicalEncoder symenc(symhist.getByType<int64_t>());
-						symclone = symenc.syms.clone();
-
-						::libmaus2::bitio::FastWriteBitWriterStream64Std writer(SGO);
-						symenc.serialise(writer);
-						for ( symrun * pi = Asymrun.begin(); pi != Asymrun.begin()+numruns; ++pi )
-							symenc.encode(writer,pi->first);
-
-						writer.flush();
-						SGO.flush();
-						OSI.flush();
-					}
-
-					{
-						libmaus2::aio::InputStreamInstance ISI(tmp);
-						libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(ISI,4096);
-						libmaus2::huffman::LFSSupportBitDecoder bitdec(SGI);
-						::libmaus2::autoarray::AutoArray< std::pair<int64_t, uint64_t> > symmap = ::libmaus2::huffman::CanonicalEncoder::deserialise(bitdec);
-
-						std::cerr << "symmap.size()=" << symmap.size() << " symclone.size()=" << symclone.size() << std::endl;
-
-						assert ( symmap.size() == symclone.size() );
-						for ( uint64_t i = 0; i < symmap.size(); ++i )
-						{
-							std::cerr << symmap[i].first << "," << symmap[i].second << "\t" << symclone[i].first << "," << symclone[i].second << std::endl;
-							assert ( symmap[i].first == symclone[i].first );
-							assert ( symmap[i].second == symclone[i].second );
-						}
-
-						::libmaus2::huffman::CanonicalEncoder symdec(symmap);
-						for ( symrun * pi = Asymrun.begin(); pi != Asymrun.begin()+numruns; ++pi )
-							assert ( pi->first == symdec.fastDecode(bitdec) );
-					}
-				}
-
-				{
-					std::string const tmp = "mem://tmp_debug";
-
-					std::vector < std::pair<uint64_t,uint64_t > > const symfreqs = cnthist.getFreqSymVector();
-
-					libmaus2::autoarray::AutoArray < std::pair<int64_t, uint64_t> > symclone;
-
-					{
-						::libmaus2::aio::OutputStreamInstance OSI(tmp);
-						::libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO(OSI,4096);
-						::libmaus2::huffman::CanonicalEncoder symenc(cnthist.getByType<int64_t>());
-						symclone = symenc.syms.clone();
-						::libmaus2::bitio::FastWriteBitWriterStream64Std writer(SGO);
-						symenc.serialise(writer);
-						for ( symrun * pi = Asymrun.begin(); pi != Asymrun.begin()+numruns; ++pi )
-							symenc.encode(writer,pi->second);
-						writer.flush();
-						SGO.flush();
-						OSI.flush();
-					}
-
-					{
-						libmaus2::aio::InputStreamInstance ISI(tmp);
-						libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(ISI,4096);
-						libmaus2::huffman::LFSSupportBitDecoder bitdec(SGI);
-						::libmaus2::autoarray::AutoArray< std::pair<int64_t, uint64_t> > symmap = ::libmaus2::huffman::CanonicalEncoder::deserialise(bitdec);
-
-						assert ( symmap.size() == symclone.size() );
-						for ( uint64_t i = 0; i < symmap.size(); ++i )
-						{
-							std::cerr << symmap[i].first << "," << symmap[i].second << "\t" << symclone[i].first << "," << symclone[i].second << std::endl;
-							assert ( symmap[i].first == symclone[i].first );
-							assert ( symmap[i].second == symclone[i].second );
-						}
-
-						::libmaus2::huffman::CanonicalEncoder symdec(symmap);
-						for ( symrun * pi = Asymrun.begin(); pi != Asymrun.begin()+numruns; ++pi )
-							assert ( pi->second == symdec.fastDecode(bitdec) );
-					}
-				}
-				#endif
 			}
 
 			void encodeSyms()
@@ -262,7 +154,7 @@ namespace libmaus2
 				std::cerr << "encodeSyms()" << std::endl;
 				#endif
 
-				LFInfo * low = pa;
+				LFSetBit * low = pa;
 				uint64_t numruns = 0;
 
 				::libmaus2::util::Histogram symhist;
@@ -270,7 +162,7 @@ namespace libmaus2
 
 				while ( low != pc )
 				{
-					LFInfo * high = low;
+					LFSetBit * high = low;
 					int64_t ref = (high++)->sym;
 					while ( high != pc && high->sym == ref )
 						++high;
@@ -286,82 +178,13 @@ namespace libmaus2
 				encodeRL(numruns,symhist,cnthist);
 			}
 
-			void encodeP()
-			{
-				#if 0
-				std::cerr << "encodeP(";
-
-				for ( LFInfo * p = pa; p != pc; ++p )
-					std::cerr << p->p << ";";
-
-				std::cerr << ")" << std::endl;
-				#endif
-
-				uint64_t const sgo_bef = PSGO64->getWrittenBytes();
-				libmaus2::gamma::GammaEncoder<SGO64_type> GE(*PSGO64);
-
-				for ( LFInfo * p = pa; p != pc; ++p )
-					GE.encodeSlow(p->p);
-				GE.flush();
-
-				uint64_t const sgo_aft = PSGO64->getWrittenBytes();
-
-				offset += sgo_aft - sgo_bef;
-			}
-
-			void encodeN()
-			{
-				LFInfo * low = pa;
-				uint64_t numruns = 0;
-
-				::libmaus2::util::Histogram symhist;
-				::libmaus2::util::Histogram cnthist;
-
-				while ( low != pc )
-				{
-					LFInfo * high = low;
-					uint64_t ref = (high++)->n;
-					while ( high != pc && high->n == ref )
-						++high;
-
-					Asymrun.push(numruns,symrun(ref,high-low));
-					symhist(ref);
-					cnthist(high-low);
-
-					low = high;
-				}
-
-				encodeRL(numruns,symhist,cnthist);
-			}
-
-			void encodeV()
-			{
-				#if 0
-				std::cerr << "encodeV(";
-				for ( uint64_t i = 0; i < vpo; ++i )
-					std::cerr << V[i] << ";";
-				std::cerr << ")" << std::endl;
-				#endif
-
-				uint64_t const sgo_bef = PSGO64->getWrittenBytes();
-
-				libmaus2::gamma::GammaEncoder<SGO64_type> GE(*PSGO64);
-				for ( uint64_t i = 0; i < vpo; ++i )
-					GE.encodeSlow(V[i]);
-				GE.flush();
-
-				uint64_t const sgo_aft = PSGO64->getWrittenBytes();
-
-				offset += sgo_aft - sgo_bef;
-			}
-
-			void encodeActive()
+			void encodeSetBit()
 			{
 				uint64_t const sgowritten_bef = PSGO64->getWrittenBytes();
 
 				::libmaus2::bitio::FastWriteBitWriterStream64Std writer(*PSGO64);
-				for ( LFInfo * p = pa; p != pc; ++p )
-					writer.writeBit(p->active);
+				for ( LFSetBit * p = pa; p != pc; ++p )
+					writer.writeBit(p->sbit);
 
 				writer.flush();
 
@@ -388,32 +211,12 @@ namespace libmaus2
 
 					// encode symbol sequence (RL+huffman)
 					encodeSyms();
-					// encode positions
-					encodeP();
-					// encode number of samples stored
-					encodeN();
-					// encode values (gamma)
-					encodeV();
-					// encode active
-					encodeActive();
+					// encode setbits
+					encodeSetBit();
 
-					uint64_t const sgo_bef = PSGO64->getWrittenBytes();
-
-					libmaus2::gamma::GammaEncoder<SGO64_type> GE(*PSGO64);
-
-					#if 0
-					GE.encodeSlow(bs-1);
-					for ( uint64_t const * pp = pa; pp != pc; ++pp )
-						GE.encodeSlow(*pp);
-					GE.flush();
-					#endif
-					uint64_t const sgo_aft = PSGO64->getWrittenBytes();
-
-					offset += (sgo_aft-sgo_bef);
 					valueswritten += bs;
 
 					pc = pa;
-					vpo = 0;
 				}
 			}
 
@@ -454,7 +257,7 @@ namespace libmaus2
 				}
 			}
 
-			~LFSupportEncoder()
+			~LFSetBitEncoder()
 			{
 				flush();
 			}

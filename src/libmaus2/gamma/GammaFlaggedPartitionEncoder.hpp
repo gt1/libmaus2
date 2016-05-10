@@ -15,8 +15,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_GAMMA_GAMMAPARTITIONENCODER_HPP)
-#define LIBMAUS2_GAMMA_GAMMAPARTITIONENCODER_HPP
+#if ! defined(LIBMAUS2_GAMMA_GAMMAFLAGGEDPARTITIONENCODER_HPP)
+#define LIBMAUS2_GAMMA_GAMMAFLAGGEDPARTITIONENCODER_HPP
 
 #include <libmaus2/gamma/GammaEncoder.hpp>
 #include <libmaus2/aio/OutputStreamInstance.hpp>
@@ -24,15 +24,15 @@
 #include <libmaus2/huffman/IndexEntry.hpp>
 #include <libmaus2/huffman/HuffmanEncoderFile.hpp>
 #include <libmaus2/huffman/RLEncoder.hpp>
-#include <libmaus2/gamma/Interval.hpp>
+#include <libmaus2/gamma/FlaggedInterval.hpp>
 
 namespace libmaus2
 {
 	namespace gamma
 	{
-		struct GammaPartitionEncoder
+		struct GammaFlaggedPartitionEncoder
 		{
-			typedef GammaPartitionEncoder this_type;
+			typedef GammaFlaggedPartitionEncoder this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			typedef uint64_t gamma_data_type;
@@ -46,10 +46,10 @@ namespace libmaus2
 			libmaus2::gamma::GammaEncoder<stream_type>::unique_ptr_type PG;
 			libmaus2::gamma::GammaEncoder<stream_type> & G;
 
-			libmaus2::autoarray::AutoArray< Interval > B;
-			Interval * const pa;
-			Interval * pc;
-			Interval * const pe;
+			libmaus2::autoarray::AutoArray< FlaggedInterval > B;
+			FlaggedInterval * const pa;
+			FlaggedInterval * pc;
+			FlaggedInterval * const pe;
 
 			std::vector<libmaus2::huffman::IndexEntry> Vindex;
 			uint64_t total;
@@ -67,10 +67,10 @@ namespace libmaus2
 					uint64_t const offset = G.getOffset();
 
 					// check intervals are non empty
-					for ( Interval * pp = pa; pp != pc; ++pp )
+					for ( FlaggedInterval * pp = pa; pp != pc; ++pp )
 						assert( pp->to > pp->from );
 					// check intervals are touching
-					for ( Interval * pp = pa+1; pp != pc; ++pp )
+					for ( FlaggedInterval * pp = pa+1; pp != pc; ++pp )
 						assert( pp[0].from == pp[-1].to );
 
 					// number of elements in block
@@ -85,7 +85,7 @@ namespace libmaus2
 					uint64_t vsum = 0;
 
 					// encode intervals
-					for ( Interval * pp = pa; pp != pc; ++pp )
+					for ( FlaggedInterval * pp = pa; pp != pc; ++pp )
 					{
 						// interval length
 						uint64_t const intvsize = pp[0].to-pp[0].from;
@@ -93,6 +93,32 @@ namespace libmaus2
 						G.encodeSlow( intvsize - 1 );
 						// update count
 						vsum += intvsize;
+					}
+
+					FlaggedInterval * pp = pa;
+					while ( pp != pc )
+					{
+						FlaggedInterval * pup = pp;
+						while ( pup != pc && pup->type == pp->type )
+							++pup;
+
+						G.encodeWord(static_cast<int>(pp->type),2);
+						G.encodeSlow((pup-pp)-1);
+
+						pp = pup;
+					}
+
+					pp = pa;
+					while ( pp != pc )
+					{
+						FlaggedInterval * pup = pp;
+						while ( pup != pc && pup->active == pp->active )
+							++pup;
+
+						G.encodeWord(static_cast<int>(pp->active),1);
+						G.encodeSlow((pup-pp)-1);
+
+						pp = pup;
 					}
 
 					// push index entry
@@ -104,7 +130,7 @@ namespace libmaus2
 				}
 			}
 
-			GammaPartitionEncoder(std::string const & fn, uint64_t const bufsize = 8*1024, uint64_t const indexblocksize = 1024)
+			GammaFlaggedPartitionEncoder(std::string const & fn, uint64_t const bufsize = 8*1024, uint64_t const indexblocksize = 1024)
 			: POSI(new libmaus2::aio::OutputStreamInstance(fn)), OSI(*POSI), PSGO(new stream_type(OSI,bufsize)), SGO(*PSGO),
 			  PG(new libmaus2::gamma::GammaEncoder<stream_type>(SGO)), G(*PG),
 			  B(indexblocksize), pa(B.begin()), pc(pa), pe(B.end()),
@@ -114,7 +140,7 @@ namespace libmaus2
 				assert ( indexblocksize );
 			}
 
-			~GammaPartitionEncoder()
+			~GammaFlaggedPartitionEncoder()
 			{
 				flush();
 			}
@@ -142,7 +168,7 @@ namespace libmaus2
 				}
 			}
 
-			void put(Interval const & P)
+			void put(FlaggedInterval const & P)
 			{
 				*(pc++) = P;
 				if ( pc == pe )

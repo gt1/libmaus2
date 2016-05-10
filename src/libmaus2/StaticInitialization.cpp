@@ -44,7 +44,7 @@ libmaus2::parallel::OMPLock libmaus2::autoarray::AutoArray_lock;
 
 static uint64_t getMaxMem()
 {
-      char const * mem = getenv("AUTOARRAYMAXMEM");
+      char const * mem = getenv("LIBMAUS2_AUTOARRAY_AUTOARRAYMAXMEM");
 
       if ( ! mem )
             return std::numeric_limits<uint64_t>::max();
@@ -52,21 +52,56 @@ static uint64_t getMaxMem()
       {
             std::string const smem = mem;
 
-            std::istringstream istr(smem);
-            uint64_t maxmeg;
-            istr >> maxmeg;
+            bool ok = true;
 
-            if ( ! istr )
+            uint64_t i = 0;
+            uint64_t v = 0;
+            while ( i < smem.size() && ::isdigit(smem[i]) )
             {
-                  std::cerr << "Unable to parse AUTOARRAYMAXMEM=" << smem << " as integer number." << std::endl;
-                  exit(EXIT_FAILURE);
+            	v *= 10;
+            	v += smem[i++] - '0';
             }
 
-            uint64_t const maxmem = maxmeg * (1024*1024);
+            if ( i < smem.size() )
+            {
+            	uint64_t multiplier = 1ull;
 
-            std::cerr << "AutoArray_maxmem will be set to " << maxmeg << " MB = " << maxmem << " bytes." << std::endl;
+            	switch ( smem[i] )
+            	{
+            	   case 'k': multiplier = 1024ull; break;
+		   case 'K': multiplier = 1000ull; break;
+		   case 'm': multiplier = 1024ull*1024ull; break;
+		   case 'M': multiplier = 1000ull*1000ull; break;
+		   case 'g': multiplier = 1024ull*1024ull*1024ull; break;
+		   case 'G': multiplier = 1000ull*1000ull*1000ull; break;
+		   case 't': multiplier = 1024ull*1024ull*1024ull*1024ull; break;
+		   case 'T': multiplier = 1000ull*1000ull*1000ull*1000ull; break;
+		   case 'p': multiplier = 1024ull*1024ull*1024ull*1024ull*1024ull; break;
+		   case 'P': multiplier = 1000ull*1000ull*1000ull*1000ull*1000ull; break;
+		   case 'e': multiplier = 1024ull*1024ull*1024ull*1024ull*1024ull*1024ull; break;
+		   case 'E': multiplier = 1000ull*1000ull*1000ull*1000ull*1000ull*1000ull; break;
+		   default: ok = false; break;
+            	}
 
-            return maxmem;
+            	if ( ok )
+            	{
+		  v *= multiplier;
+		  i += 1;
+		}
+            }
+
+            ok = ok && (i == smem.size());
+
+            if ( ok )
+            {
+                std::cerr << "libmaus2::autoarray::AutoArray_maxmem will be set to " << v << " bytes" << std::endl;
+                return v;
+	    }
+	    else
+	    {
+                std::cerr << "Unable to parse LIBMAUS2_AUTOARRAY_AUTOARRAYMAXMEM=" << smem << std::endl;
+                exit(EXIT_FAILURE);
+            }
       }
 }
 
@@ -74,8 +109,8 @@ uint64_t volatile libmaus2::autoarray::AutoArray_memusage = 0;
 uint64_t volatile libmaus2::autoarray::AutoArray_peakmemusage = 0;
 uint64_t volatile libmaus2::autoarray::AutoArray_maxmem = getMaxMem();
 
-#if defined(AUTOARRAY_TRACE)
-std::vector< libmaus2::autoarray::AutoArrayBackTrace<AUTOARRAY_TRACE> > libmaus2::autoarray::tracevector;
+#if defined(LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE)
+std::vector< libmaus2::autoarray::AutoArrayBackTrace<LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE> > libmaus2::autoarray::tracevector;
 libmaus2::parallel::PosixSpinLock libmaus2::autoarray::backtracelock;
 libmaus2::parallel::PosixSpinLock libmaus2::autoarray::tracelock;
 #endif
