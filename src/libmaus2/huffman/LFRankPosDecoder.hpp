@@ -266,10 +266,60 @@ namespace libmaus2
 				}
 			}
 
+			void setup(uint64_t const v)
+			{
+				uint64_t low = 0;
+				uint64_t high = index.size();
+
+				while ( high - low > 2 )
+				{
+					//std::cerr << "low=" << low << " high=" << high << std::endl;
+
+					uint64_t m = (high+low)/2;
+
+					init(m);
+
+					LFRankPos P;
+					bool const ok = decode(P);
+					assert ( ok );
+
+					//std::cerr << "m=" << m << " v=" << v << " P.r=" << P.r << std::endl;
+
+					if ( P.r >= v ) // P.r is valid
+					{
+						high = m+1;
+					}
+					else // P.r < v is too small, i.e. invalid
+					{
+						low = m+1;
+					}
+				}
+
+				while ( low < index.size() )
+				{
+					LFRankPos P;
+					bool const ok = decode(P);
+					assert ( ok );
+
+					if ( P.r < v )
+						++low;
+					else
+						break;
+				}
+
+				if ( low != index.size() )
+				{
+					LFRankPos P;
+					bool const ok = decode(P);
+					assert ( ok );
+					assert ( P.r >= v );
+				}
+			}
+
 			LFRankPosDecoder(std::vector<std::string> const & rVfn, uint64_t const offset)
 			: index(rVfn)
 			{
-				init(offset);
+				setup(offset);
 			}
 
 			bool decode(LFRankPos & v)
