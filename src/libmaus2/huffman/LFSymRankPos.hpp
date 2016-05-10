@@ -15,8 +15,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_HUFFMAN_LFRANKPOS_HPP)
-#define LIBMAUS2_HUFFMAN_LFRANKPOS_HPP
+#if ! defined(LIBMAUS2_HUFFMAN_LFSYMRANKPOS_HPP)
+#define LIBMAUS2_HUFFMAN_LFSYMRANKPOS_HPP
 
 #include <libmaus2/types/types.hpp>
 #include <ostream>
@@ -25,28 +25,32 @@ namespace libmaus2
 {
 	namespace huffman
 	{
-		struct LFRankPos
+		struct LFSymRankPos
 		{
+			int64_t sym;
 			uint64_t r;
 			uint64_t p;
 			uint64_t n;
 			uint64_t * v;
 			bool active;
 
-			LFRankPos(
+			LFSymRankPos(
+				int64_t rsym = 0,
 				uint64_t rr = 0,
 				uint64_t rp = 0,
 				uint64_t rn = 0,
 				uint64_t * rv = 0,
 				bool ractive = false
-			) : r(rr), p(rp), n(rn), v(rv), active(ractive)
+			) : sym(rsym), r(rr), p(rp), n(rn), v(rv), active(ractive)
 			{
 
 			}
 
-			bool operator==(LFRankPos const & o) const
+			bool operator==(LFSymRankPos const & o) const
 			{
 				if ( r != o.r )
+					return false;
+				if ( sym != o.sym )
 					return false;
 				if ( p != o.p )
 					return false;
@@ -61,9 +65,9 @@ namespace libmaus2
 			}
 		};
 
-		inline std::ostream & operator<<(std::ostream & out, LFRankPos const & L)
+		inline std::ostream & operator<<(std::ostream & out, LFSymRankPos const & L)
 		{
-			out << "LFRankPos(r=" << L.r << ",p=" << L.p << ",n=" << L.n << ",v={";
+			out << "LFSymRankPos(sym=" << L.sym << ",r=" << L.r << ",p=" << L.p << ",n=" << L.n << ",v={";
 			for ( uint64_t i = 0; i < L.n; ++i )
 				out << L.v[i] << ((i+1<L.n)?",":"");
 			out << "},active=" << L.active << ")";
