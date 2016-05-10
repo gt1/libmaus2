@@ -1,3 +1,29 @@
+libmaus2 (2.0.180-1) unstable; urgency=medium
+
+  * add suffix on tmp file names create in ParallelRunLengthRadixUnsort
+  * add peekBit method in BitVectorInput
+  * add active flag in FlaggedInterval
+  * add decoding setup via interval id in GammaFlaggedIntervalDecoder/GammaFlaggedIntervalEncoder
+  * improve information output in out of memory situations
+  * add autoarraytrace option in configure.ac
+  * added GammaFlaggedIntervalEncoder/GammaFlaggedIntervalDecoder  
+  * add SymBitEncoder/SymBitDecoder
+  * add GammaFlaggedPartitionEncoder/GammaFlaggedPartitionDecoder
+  * typedef interval type in GammaPartitionEncoder
+  * add LFRankLCPEncoder/LFRankLCPDecoder
+  * add cleanup routines in ParallelRunLengthRadixUnsort
+  * change temp file names in ParallelExternalRadixSort
+  * add LFPhiPairLCPEncoder/LFPhiPairLCPDecoder
+  * add LFPhiPairDecoder/Encoder, LFSetBitDecoder/Encoder, LFValueDecoder/Encoder
+  * allow multiple input files in PairFileDecoder
+  * fix ParallelExternalRadixSort
+  * add PairFileDecoder class
+  * fix race condition in LFSupportDecoder::getLength
+  * fix flush operation in LFSupportBitDecoder (need to return words if we read at least a word ahead)
+  * add putBack method in SynchronousGenericInput
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 10 May 2016 08:52:47 +0200
+
 libmaus2 (2.0.179-1) unstable; urgency=medium
 
   * fix EOF detection on pipes after poll calls 
