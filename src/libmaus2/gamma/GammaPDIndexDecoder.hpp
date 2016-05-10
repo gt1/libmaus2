@@ -122,6 +122,11 @@ namespace libmaus2
 				libmaus2::util::PrefixSums::prefixSums(valuesPerFile.begin(),valuesPerFile.end());
 			}
 
+			uint64_t size() const
+			{
+				return valuesPerFile.back();
+			}
+
 			FileBlockOffset lookup(uint64_t offset)
 			{
 				if ( offset >= valuesPerFile.back() )
