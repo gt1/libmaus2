@@ -49,7 +49,6 @@ namespace libmaus2
 				uint64_t ihigh,
 				uint64_t maxsym,
 				bool maxsymvalid,
-				uint64_t const keybs,
 				uint64_t * rmaxsym = 0
 			)
 			{
@@ -87,6 +86,8 @@ namespace libmaus2
 				unsigned int rshift = 0;
 				while ( rshift < totalsymbits )
 				{
+					// std::cerr << "rshift=" << rshift << " ilow=" << ilow << " ihigh=" << ihigh << std::endl;
+
 					// rest bits to sort by
 					uint64_t const restbits = totalsymbits - rshift;
 					// minimum rounds left
@@ -107,7 +108,7 @@ namespace libmaus2
 
 					uint64_t const isize = ihigh-ilow;
 					uint64_t const packsize = (isize+numthreads-1)/numthreads;
-					uint64_t const runthreads = (isize+packsize-1)/packsize;
+					uint64_t const runthreads = isize ? ((isize+packsize-1)/packsize) : 0;
 
 					std::vector<std::string> Vout(runthreads * outfilesperthread);
 					std::vector<std::string> Vkey(runthreads);
@@ -117,14 +118,13 @@ namespace libmaus2
 						{
 							// sym major
 							uint64_t const fnid = i * runthreads + t;
-							Vout[fnid] = tmpgen.getFileName(true);
+							Vout[fnid] = tmpgen.getFileName(true) + ".par_ext_rad";
 							// thread major
 							uint64_t const tid = t*outfilesperthread+i;
 							typename encoder_type::unique_ptr_type Tenc(new encoder_type(Vout[fnid],bs));
 							Aoutfiles[tid] = UNIQUE_PTR_MOVE(Tenc);
 						}
 
-					::libmaus2::huffman::IndexDecoderDataArray IDDA(Vfn,numthreads);
 					uint64_t volatile cmaxsym = 0;
 					libmaus2::parallel::PosixSpinLock cmaxsymlock;
 
@@ -140,7 +140,7 @@ namespace libmaus2
 						typename encoder_type::unique_ptr_type * enc = Aoutfiles.begin() + t * outfilesperthread;
 						typename decoder_type::value_type V;
 
-						decoder_type dec(IDDA,tlow);
+						decoder_type dec(Vfn,tlow);
 
 						if ( maxsymvalid )
 						{
@@ -166,8 +166,8 @@ namespace libmaus2
 								uint64_t const key = (projector_type::project(V) >> rshift) & rmask;
 								enc[key]->encode(V);
 								todo --;
-								if ( V > static_cast<int64_t>(lmaxsym) )
-									lmaxsym = V;
+								if ( projector_type::project(V) > static_cast<int64_t>(lmaxsym) )
+									lmaxsym = projector_type::project(V);
 							}
 
 							cmaxsymlock.lock();

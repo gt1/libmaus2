@@ -15,8 +15,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_HUFFMAN_LFSUPPORTDECODER_HPP)
-#define LIBMAUS2_HUFFMAN_LFSUPPORTDECODER_HPP
+#if ! defined(LIBMAUS2_HUFFMAN_LFVALUEDECODER_HPP)
+#define LIBMAUS2_HUFFMAN_LFVALUEDECODER_HPP
 
 #include <libmaus2/huffman/LFSupportBitDecoder.hpp>
 #include <libmaus2/aio/OutputStreamInstance.hpp>
@@ -32,18 +32,19 @@
 #include <libmaus2/bitio/readElias.hpp>
 #include <libmaus2/huffman/CanonicalEncoder.hpp>
 #include <libmaus2/util/Histogram.hpp>
+#include <libmaus2/huffman/LFValue.hpp>
 
 namespace libmaus2
 {
 	namespace huffman
 	{
-		struct LFSupportDecoder : public libmaus2::gamma::GammaPDIndexDecoderBase
+		struct LFValueDecoder : public libmaus2::gamma::GammaPDIndexDecoderBase
 		{
-			typedef LFSupportDecoder this_type;
+			typedef LFValueDecoder this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			typedef LFInfo value_type;
+			typedef LFValue value_type;
 
 			libmaus2::gamma::GammaPDIndexDecoder index;
 			libmaus2::gamma::GammaPDIndexDecoder::FileBlockOffset FBO;
@@ -51,13 +52,11 @@ namespace libmaus2
 			libmaus2::aio::InputStreamInstance::unique_ptr_type PISI;
 			libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type PSGI;
 
-			libmaus2::autoarray::AutoArray<LFInfo> B;
+			libmaus2::autoarray::AutoArray<LFValue> B;
 
-			LFInfo * pa;
-			LFInfo * pc;
-			LFInfo * pe;
-
-			libmaus2::autoarray::AutoArray<uint64_t> V;
+			LFValue * pa;
+			LFValue * pc;
+			LFValue * pe;
 
 			typedef std::pair<int64_t,uint64_t> rl_pair;
 			::libmaus2::autoarray::AutoArray < rl_pair > rlbuffer;
@@ -147,40 +146,27 @@ namespace libmaus2
 				return bs;
 			}
 
-			void decodeP(uint64_t const n)
-			{
-				libmaus2::gamma::GammaDecoder< libmaus2::aio::SynchronousGenericInput<uint64_t> > GD(*PSGI);
-
-				for ( uint64_t i = 0; i < n; ++i )
-					B[i].p = GD.decode();
-				GD.flush();
-			}
-
-			void decodeV(uint64_t const numobj)
-			{
-				uint64_t numv = 0;
-				for ( uint64_t i = 0; i < numobj; ++i )
-					numv += B[i].n;
-				V.ensureSize(numv);
-
-				libmaus2::gamma::GammaDecoder< libmaus2::aio::SynchronousGenericInput<uint64_t> > GD(*PSGI);
-				numv = 0;
-				for ( uint64_t i = 0; i < numobj; ++i )
-				{
-					B[i].v = V.begin() + numv;
-
-					for ( uint64_t j = 0; j < B[i].n; ++j )
-						V[numv++] = GD.decode();
-				}
-				GD.flush();
-			}
-
-			void decodeActive(uint64_t const numobj)
+			void decodeSetBit(uint64_t const numobj)
 			{
 				LFSSupportBitDecoder SBIS(*PSGI);
 
 				for ( uint64_t i = 0; i < numobj; ++i )
-					B[i].active = SBIS.readBit();
+					B[i].sbit = SBIS.readBit();
+
+				SBIS.flush();
+			}
+
+			void decodeValue(uint64_t const numobj)
+			{
+				LFSSupportBitDecoder SBIS(*PSGI);
+
+				// read block size
+				unsigned int const numbits = ::libmaus2::bitio::readElias2(SBIS);
+				for ( uint64_t i = 0; i < numobj; ++i )
+					if ( B[i].sbit )
+						B[i].value = SBIS.read(numbits);
+					else
+						B[i].value = 0;
 
 				SBIS.flush();
 			}
@@ -214,16 +200,8 @@ namespace libmaus2
 					for ( uint64_t j = 0; j < rlbuffer[i].second; ++j )
 						B[o++].sym = rlbuffer[i].first;
 
-				decodeP(numobj);
-
-				uint64_t const numnruns = decodeRL();
-				o = 0;
-				for ( uint64_t i = 0; i < numnruns; ++i )
-					for ( uint64_t j = 0; j < rlbuffer[i].second; ++j )
-						B[o++].n = rlbuffer[i].first;
-
-				decodeV(numobj);
-				decodeActive(numobj);
+				decodeSetBit(numobj);
+				decodeValue(numobj);
 
 				pa = B.begin();
 				pc = B.begin();
@@ -243,7 +221,7 @@ namespace libmaus2
 					openFile();
 					decodeBlock();
 
-					LFInfo v;
+					LFValue v;
 					while ( FBO.offset )
 					{
 						bool const ok = decode(v);
@@ -253,13 +231,13 @@ namespace libmaus2
 				}
 			}
 
-			LFSupportDecoder(std::vector<std::string> const & rVfn, uint64_t const offset)
+			LFValueDecoder(std::vector<std::string> const & rVfn, uint64_t const offset)
 			: index(rVfn)
 			{
 				init(offset);
 			}
 
-			bool decode(LFInfo & v)
+			bool decode(LFValue & v)
 			{
 				while ( pc == pe )
 				{
@@ -272,9 +250,9 @@ namespace libmaus2
 				return true;
 			}
 
-			LFInfo decode()
+			LFValue decode()
 			{
-				LFInfo v;
+				LFValue v;
 				bool const ok = decode(v);
 				assert ( ok );
 				return v;

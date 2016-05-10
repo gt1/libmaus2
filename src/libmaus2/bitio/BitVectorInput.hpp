@@ -132,7 +132,7 @@ namespace libmaus2
 				}
 			}
 
-			bool readBit()
+			void ensureBufferFilled()
 			{
 				if ( shift < 0 )
 				{
@@ -187,7 +187,22 @@ namespace libmaus2
 					bool const ok = SGI->getNext(v);
 					assert ( ok );
 				}
+			}
 
+			void eraseBit()
+			{
+				shift -= 1;
+			}
+
+			bool peekBit()
+			{
+				ensureBufferFilled();
+				return (v >> shift) & 1ull;
+			}
+
+			bool readBit()
+			{
+				ensureBufferFilled();
 				return (v >> (shift--)) & 1ull;
 			}
 		};

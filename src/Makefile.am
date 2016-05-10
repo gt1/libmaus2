@@ -349,7 +349,13 @@ libmaus2gamma_include_HEADERS = libmaus2/gamma/GammaEncoder.hpp libmaus2/gamma/G
 	libmaus2/gamma/GammaPDEncoder.hpp \
 	libmaus2/gamma/GammaPDDecoder.hpp \
 	libmaus2/gamma/GammaPDIndexDecoderBase.hpp \
-	libmaus2/gamma/GammaPDIndexDecoder.hpp
+	libmaus2/gamma/GammaPDIndexDecoder.hpp \
+	libmaus2/gamma/Interval.hpp \
+	libmaus2/gamma/FlaggedInterval.hpp \
+	libmaus2/gamma/GammaFlaggedPartitionDecoder.hpp \
+	libmaus2/gamma/GammaFlaggedPartitionEncoder.hpp \
+	libmaus2/gamma/GammaFlaggedIntervalDecoder.hpp \
+	libmaus2/gamma/GammaFlaggedIntervalEncoder.hpp
 
 libmaus2regex_includedir=$(includedir)/libmaus2/regex/
 libmaus2regex_include_HEADERS = libmaus2/regex/PosixRegex.hpp
@@ -1041,7 +1047,27 @@ libmaus2huffman_include_HEADERS=\
 	libmaus2/huffman/RLRun.hpp \
 	libmaus2/huffman/LFInfo.hpp \
 	libmaus2/huffman/LFSupportDecoder.hpp \
-	libmaus2/huffman/LFSupportEncoder.hpp
+	libmaus2/huffman/LFSupportEncoder.hpp \
+	libmaus2/huffman/LFSupportBitDecoder.hpp \
+	libmaus2/huffman/LFSetBit.hpp \
+	libmaus2/huffman/LFSetBitDecoder.hpp \
+	libmaus2/huffman/LFSetBitEncoder.hpp \
+	libmaus2/huffman/LFValueEncoder.hpp \
+	libmaus2/huffman/LFValueDecoder.hpp \
+	libmaus2/huffman/LFValue.hpp \
+	libmaus2/huffman/LFPhiPairDecoder.hpp \
+	libmaus2/huffman/LFPhiPairEncoder.hpp \
+	libmaus2/huffman/LFPhiPair.hpp \
+	libmaus2/huffman/LFPhiPairLCP.hpp \
+	libmaus2/huffman/LFPhiPairLCPDecoder.hpp \
+	libmaus2/huffman/LFPhiPairLCPEncoder.hpp \
+	libmaus2/huffman/LFRankLCP.hpp \
+	libmaus2/huffman/LFRankLCPDecoder.hpp \
+	libmaus2/huffman/LFRankLCPEncoder.hpp \
+	libmaus2/huffman/SymBit.hpp \
+	libmaus2/huffman/SymBitDecoder.hpp \
+	libmaus2/huffman/SymBitEncoder.hpp \
+	libmaus2/huffman/SymBitRun.hpp
 
 libmaus2math_includedir=$(includedir)/libmaus2/math
 libmaus2math_include_HEADERS=\
@@ -1331,7 +1357,8 @@ libmaus2aio_include_HEADERS=\
 	libmaus2/aio/ArrayFile.hpp \
 	libmaus2/aio/StreamLock.hpp \
 	libmaus2/aio/ArrayFileContainer.hpp \
-	libmaus2/aio/ArrayInputStreamFactory.hpp
+	libmaus2/aio/ArrayInputStreamFactory.hpp \
+	libmaus2/aio/PairFileDecoder.hpp
 	
 libmaus2parallel_includedir=$(includedir)/libmaus2/parallel
 libmaus2parallel_include_HEADERS=\

@@ -15,8 +15,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_HUFFMAN_LFSUPPORTDECODER_HPP)
-#define LIBMAUS2_HUFFMAN_LFSUPPORTDECODER_HPP
+#if ! defined(LIBMAUS2_HUFFMAN_LFRANKLCPDECODER_HPP)
+#define LIBMAUS2_HUFFMAN_LFRANKLCPDECODER_HPP
 
 #include <libmaus2/huffman/LFSupportBitDecoder.hpp>
 #include <libmaus2/aio/OutputStreamInstance.hpp>
@@ -32,18 +32,20 @@
 #include <libmaus2/bitio/readElias.hpp>
 #include <libmaus2/huffman/CanonicalEncoder.hpp>
 #include <libmaus2/util/Histogram.hpp>
+#include <libmaus2/huffman/LFRankLCP.hpp>
+#include <libmaus2/util/iterator.hpp>
 
 namespace libmaus2
 {
 	namespace huffman
 	{
-		struct LFSupportDecoder : public libmaus2::gamma::GammaPDIndexDecoderBase
+		struct LFRankLCPDecoder : public libmaus2::gamma::GammaPDIndexDecoderBase
 		{
-			typedef LFSupportDecoder this_type;
+			typedef LFRankLCPDecoder this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			typedef LFInfo value_type;
+			typedef LFRankLCP value_type;
 
 			libmaus2::gamma::GammaPDIndexDecoder index;
 			libmaus2::gamma::GammaPDIndexDecoder::FileBlockOffset FBO;
@@ -51,13 +53,11 @@ namespace libmaus2
 			libmaus2::aio::InputStreamInstance::unique_ptr_type PISI;
 			libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type PSGI;
 
-			libmaus2::autoarray::AutoArray<LFInfo> B;
+			libmaus2::autoarray::AutoArray<LFRankLCP> B;
 
-			LFInfo * pa;
-			LFInfo * pc;
-			LFInfo * pe;
-
-			libmaus2::autoarray::AutoArray<uint64_t> V;
+			LFRankLCP * pa;
+			LFRankLCP * pc;
+			LFRankLCP * pe;
 
 			typedef std::pair<int64_t,uint64_t> rl_pair;
 			::libmaus2::autoarray::AutoArray < rl_pair > rlbuffer;
@@ -147,42 +147,25 @@ namespace libmaus2
 				return bs;
 			}
 
-			void decodeP(uint64_t const n)
-			{
-				libmaus2::gamma::GammaDecoder< libmaus2::aio::SynchronousGenericInput<uint64_t> > GD(*PSGI);
+			struct RProjector { static void set(LFRankLCP & P, uint64_t const v) { P.r = v; } };
+			struct LCPProjector { static void set(LFRankLCP & P, uint64_t const v) { P.lcp = v; } };
 
-				for ( uint64_t i = 0; i < n; ++i )
-					B[i].p = GD.decode();
-				GD.flush();
-			}
-
-			void decodeV(uint64_t const numobj)
-			{
-				uint64_t numv = 0;
-				for ( uint64_t i = 0; i < numobj; ++i )
-					numv += B[i].n;
-				V.ensureSize(numv);
-
-				libmaus2::gamma::GammaDecoder< libmaus2::aio::SynchronousGenericInput<uint64_t> > GD(*PSGI);
-				numv = 0;
-				for ( uint64_t i = 0; i < numobj; ++i )
-				{
-					B[i].v = V.begin() + numv;
-
-					for ( uint64_t j = 0; j < B[i].n; ++j )
-						V[numv++] = GD.decode();
-				}
-				GD.flush();
-			}
-
-			void decodeActive(uint64_t const numobj)
+			template<typename projector>
+			uint64_t decodeSequence()
 			{
 				LFSSupportBitDecoder SBIS(*PSGI);
 
-				for ( uint64_t i = 0; i < numobj; ++i )
-					B[i].active = SBIS.readBit();
+				// read block size
+				uint64_t const bs = ::libmaus2::bitio::readElias2(SBIS);
+				B.ensureSize(bs);
+
+				unsigned int const numbits = ::libmaus2::bitio::readElias2(SBIS);
+				for ( uint64_t i = 0; i < bs; ++i )
+					projector::set(B[i], SBIS.read(numbits));
 
 				SBIS.flush();
+
+				return bs;
 			}
 
 			bool decodeBlock()
@@ -202,28 +185,8 @@ namespace libmaus2
 					return false;
 				}
 
-				uint64_t const numsymruns = decodeRL();
-
-				uint64_t numobj = 0;
-				for ( uint64_t i = 0; i < numsymruns; ++i )
-					numobj += rlbuffer[i].second;
-
-				B.ensureSize(numobj);
-				uint64_t o = 0;
-				for ( uint64_t i = 0; i < numsymruns; ++i )
-					for ( uint64_t j = 0; j < rlbuffer[i].second; ++j )
-						B[o++].sym = rlbuffer[i].first;
-
-				decodeP(numobj);
-
-				uint64_t const numnruns = decodeRL();
-				o = 0;
-				for ( uint64_t i = 0; i < numnruns; ++i )
-					for ( uint64_t j = 0; j < rlbuffer[i].second; ++j )
-						B[o++].n = rlbuffer[i].first;
-
-				decodeV(numobj);
-				decodeActive(numobj);
+				uint64_t const numobj = decodeSequence<RProjector>();
+				decodeSequence<LCPProjector>();
 
 				pa = B.begin();
 				pc = B.begin();
@@ -243,7 +206,7 @@ namespace libmaus2
 					openFile();
 					decodeBlock();
 
-					LFInfo v;
+					LFRankLCP v;
 					while ( FBO.offset )
 					{
 						bool const ok = decode(v);
@@ -251,15 +214,19 @@ namespace libmaus2
 						FBO.offset--;
 					}
 				}
+				else
+				{
+					pc = pe;
+				}
 			}
 
-			LFSupportDecoder(std::vector<std::string> const & rVfn, uint64_t const offset)
+			LFRankLCPDecoder(std::vector<std::string> const & rVfn, uint64_t const offset)
 			: index(rVfn)
 			{
 				init(offset);
 			}
 
-			bool decode(LFInfo & v)
+			bool decode(LFRankLCP & v)
 			{
 				while ( pc == pe )
 				{
@@ -272,9 +239,9 @@ namespace libmaus2
 				return true;
 			}
 
-			LFInfo decode()
+			LFRankLCP decode()
 			{
-				LFInfo v;
+				LFRankLCP v;
 				bool const ok = decode(v);
 				assert ( ok );
 				return v;
