@@ -252,7 +252,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/fastx/FastAToCompact4BigBand.cpp \
 	libmaus2/suffixsort/bwtb3m/BwtMergeSortResult.cpp \
 	libmaus2/util/HugePages.cpp \
-	libmaus2/lz/ZlibInterface.cpp
+	libmaus2/lz/ZlibInterface.cpp \
+	libmaus2/suffixsort/bwtb3m/BwtSelectSSA.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1067,7 +1068,10 @@ libmaus2huffman_include_HEADERS=\
 	libmaus2/huffman/SymBit.hpp \
 	libmaus2/huffman/SymBitDecoder.hpp \
 	libmaus2/huffman/SymBitEncoder.hpp \
-	libmaus2/huffman/SymBitRun.hpp
+	libmaus2/huffman/SymBitRun.hpp \
+	libmaus2/huffman/LFRankPos.hpp \
+	libmaus2/huffman/LFRankPosEncoder.hpp \
+	libmaus2/huffman/LFRankPosDecoder.hpp
 
 libmaus2math_includedir=$(includedir)/libmaus2/math
 libmaus2math_include_HEADERS=\
@@ -1717,7 +1721,8 @@ libmaus2suffixsortbwtb3m_include_HEADERS=\
 	libmaus2/suffixsort/bwtb3m/BwtMergeSortTemplate.hpp \
 	libmaus2/suffixsort/bwtb3m/BwtMergeSort.hpp \
 	libmaus2/suffixsort/bwtb3m/BwtMergeSortResult.hpp \
-	libmaus2/suffixsort/bwtb3m/BwtComputeSSA.hpp
+	libmaus2/suffixsort/bwtb3m/BwtComputeSSA.hpp \
+	libmaus2/suffixsort/bwtb3m/BwtSelectSSA.hpp
 
 libmaus2suffixtree_includedir=$(includedir)/libmaus2/suffixtree
 libmaus2suffixtree_include_HEADERS=\

@@ -19,6 +19,9 @@
 
 #include <libmaus2/huffman/LFSupportDecoder.hpp>
 
+#include <libmaus2/huffman/LFRankPosEncoder.hpp>
+#include <libmaus2/huffman/LFRankPosDecoder.hpp>
+
 #include <libmaus2/huffman/LFSupportEncoder.hpp>
 #include <libmaus2/huffman/LFSupportDecoder.hpp>
 #include <libmaus2/sorting/ParallelExternalRadixSort.hpp>
@@ -371,9 +374,101 @@ void testlfsupport()
 
 	for ( uint64_t j = 0; j <= n; ++j )
 	{
-		std::cerr << "j=" << j << std::endl;
+		//std::cerr << "j=" << j << std::endl;
 		libmaus2::huffman::LFSupportDecoder dec(std::vector<std::string>(1,fn),j);
 		libmaus2::huffman::LFInfo info;
+		for ( uint64_t i = j; i < n; ++i )
+		{
+			dec.decode(info);
+			// std::cerr << info << std::endl;
+			assert ( info == V[i] );
+		}
+	}
+}
+
+void testrankpos()
+{
+	std::string fn = "mem://tmp_";
+
+	#if 0
+	{
+		libmaus2::aio::OutputStreamInstance OSI(fn);
+		libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO(OSI,4096);
+
+		::libmaus2::bitio::FastWriteBitWriterStream64Std writer(SGO);
+		for ( uint64_t i = 0; i < 1024; ++i )
+		{
+			// writer.write(i,14);
+			writer.writeElias2(i);
+		}
+
+		writer.flush();
+		SGO.flush();
+	}
+
+	{
+		libmaus2::aio::InputStreamInstance ISI(fn);
+		libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(ISI,4096);
+		libmaus2::huffman::LFSRankPosBitDecoder	dec(SGI);
+		for ( uint64_t i = 0; i < 1024; ++i )
+		{
+			#if 0
+			uint64_t const v = dec.peek(14);
+			dec.erase(14);
+			#endif
+			// uint64_t const v = dec.read(14);
+			uint64_t const v = libmaus2::bitio::readElias2(dec);
+			std::cerr << v << std::endl;
+		}
+	}
+	#endif
+
+	uint64_t n = 128*1024;
+	std::vector < libmaus2::huffman::LFRankPos > V(n);
+	libmaus2::autoarray::AutoArray < uint64_t > Vcat;
+	libmaus2::autoarray::AutoArray<uint64_t> VO;
+	libmaus2::autoarray::AutoArray<uint64_t> Poff;
+
+	{
+		libmaus2::huffman::LFRankPosEncoder enc(fn,1024);
+		uint64_t vcato = 0;
+		uint64_t poffo = 0;
+		for ( uint64_t i = 0; i < n; ++i )
+		{
+			// uint64_t const p = (1ull<<60) + n-i;
+			uint64_t const p = std::numeric_limits<uint64_t>::max() - 1;
+
+			V[i] = libmaus2::huffman::LFRankPos(libmaus2::random::Random::rand8() % 4 /* rank */, p-19581*i /* p */,0 /* n */, 0 /* rv */, i%2 /* active */);
+
+			uint64_t vo = 0;
+			Poff.push(poffo,vcato);
+
+			uint64_t const c = i % 8;
+			for ( uint64_t j = 0; j < c; ++j )
+			{
+				uint64_t const vv = (1ull << 61)+j;
+				VO.push(vo,vv);
+				Vcat.push(vcato,vv);
+			}
+
+			V[i].v = VO.begin();
+			V[i].n = c;
+
+			enc.encode(V[i]);
+		}
+		for ( uint64_t i = 0; i < n; ++i )
+		{
+			V[i].v = Vcat.begin() + Poff[i];
+		}
+	}
+
+	std::cerr << "encoding done." << std::endl;
+
+	for ( uint64_t j = 0; j <= n; ++j )
+	{
+		//std::cerr << "j=" << j << std::endl;
+		libmaus2::huffman::LFRankPosDecoder dec(std::vector<std::string>(1,fn),j);
+		libmaus2::huffman::LFRankPos info;
 		for ( uint64_t i = j; i < n; ++i )
 		{
 			dec.decode(info);
@@ -386,6 +481,7 @@ void testlfsupport()
 int main()
 {
 	{
+		testrankpos();
 		testlfsupport();
 
 		typedef uint64_t value_type;
