@@ -391,6 +391,8 @@ static double getPosixFdInputWarnThreshold()
 }
 
 double const libmaus2::aio::PosixFdInput::warnThreshold = getPosixFdInputWarnThreshold();
+uint64_t volatile libmaus2::aio::PosixFdInput::totalin = 0;
+libmaus2::parallel::PosixSpinLock libmaus2::aio::PosixFdInput::totalinlock;
 
 #include <libmaus2/aio/PosixFdOutputStreamBuffer.hpp>
 
@@ -441,6 +443,8 @@ int getPosixOutputStreamBufferCheck()
 
 double const libmaus2::aio::PosixFdOutputStreamBuffer::warnThreshold = getPosixOutputStreamBufferWarnThreshold();
 int const libmaus2::aio::PosixFdOutputStreamBuffer::check = getPosixOutputStreamBufferCheck();
+uint64_t volatile libmaus2::aio::PosixFdOutputStreamBuffer::totalout = 0;
+libmaus2::parallel::PosixSpinLock libmaus2::aio::PosixFdOutputStreamBuffer::totaloutlock;
 
 static std::map<std::string,uint64_t> getPosixFdInputBlockSizeOverride()
 {

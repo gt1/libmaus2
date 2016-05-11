@@ -65,6 +65,9 @@ namespace libmaus2
 			ssize_t gcnt;
 			bool const closeOnDeconstruct;
 
+			static uint64_t volatile totalin;
+			static libmaus2::parallel::PosixSpinLock totalinlock;
+
 			static double const warnThreshold;
 
 			static std::map<std::string,uint64_t> const blocksizeoverride;
@@ -266,6 +269,10 @@ namespace libmaus2
 						}
 						else
 						{
+							totalinlock.lock();
+							totalin += r;
+							totalinlock.unlock();
+
 							gcnt = r;
 						}
 					}
@@ -532,6 +539,15 @@ namespace libmaus2
 				#else
 				return -1;
 				#endif
+			}
+
+			static uint64_t getTotalIn()
+			{
+				uint64_t ltotalin;
+				totalinlock.lock();
+				ltotalin = totalin;
+				totalinlock.unlock();
+				return ltotalin;
 			}
 		};
 	}
