@@ -1,3 +1,9 @@
+libmaus2 (2.0.184-1) unstable; urgency=medium
+
+  * replace non standard GNU parallel sort with InPlaceParallelSort in PairFileSorting
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 11 May 2016 16:03:01 +0200
+
 libmaus2 (2.0.183-1) unstable; urgency=medium
 
   * add I/O counting in PosixFdInput/PosixFdOutputStreamBuffer

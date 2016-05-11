@@ -608,12 +608,7 @@ namespace libmaus2
 			)
 			{
 				uint64_t const n = e-a;
-				#if defined(_OPENMP)
-				uint64_t const t = omp_get_max_threads();
-				#else
-				uint64_t const t = 1;
-				#endif
-				uint64_t const s0 = (n+t-1)/t;
+				uint64_t const s0 = (n+numthreads-1)/numthreads;
 				uint64_t const b = (n+s0-1)/s0;
 
 				#if defined(_OPENMP)
@@ -644,7 +639,7 @@ namespace libmaus2
 
 						int levelthres = 0;
 						uint64_t const packsperthread = 4;
-						while ( (1ull<<levelthres) < packsperthread*t )
+						while ( (1ull<<levelthres) < packsperthread*numthreads )
 							++levelthres;
 
 						mergestepRecLevel(a+low0,high0-low0,high1-low1,order,basesort,0,levelthres,reqvec,numthreads);

@@ -576,6 +576,10 @@ void testsymrankpos()
 int main()
 {
 	{
+		testinplacesort2();
+
+		// exit(0);
+
 		testsymrankpos();
 		testrankpos();
 		testlfsupport();

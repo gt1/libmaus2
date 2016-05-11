@@ -33,6 +33,7 @@
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
 #include <libmaus2/aio/SynchronousGenericOutput.hpp>
 #include <libmaus2/aio/ConcatInputStream.hpp>
+#include <libmaus2/sorting/InPlaceParallelSort.hpp>
 
 #include <libmaus2/util/GetFileSize.hpp>
 
@@ -241,13 +242,13 @@ namespace libmaus2
 				bool const keepfirst,
 				bool const keepsecond,
 				out_type & SGOfinal,
-				uint64_t const bufsize = 256*1024*1024,
-				bool const
+				uint64_t const bufsize,
+				uint64_t const
 				#if defined(_OPENMP)
-					parallel
+					numthreads
 				#endif
-					= false,
-				bool const deleteinput = false
+					,
+				bool const deleteinput
 			)
 			{
 				// number of pairs in input
@@ -302,12 +303,16 @@ namespace libmaus2
 					assert ( ok );
 
 					#if defined(_OPENMP)
-					if ( parallel )
+					if ( numthreads )
 					{
+						libmaus2::sorting::InPlaceParallelSort::FixedSizeBaseSort basesort(512*1024);
+
 						if ( second )
-							__gnu_parallel::sort(A.begin(),P,SecondComp<uint64_t,uint64_t>());
+							libmaus2::sorting::InPlaceParallelSort::inplacesort2(A.begin(),P,SecondComp<uint64_t,uint64_t>(),basesort,numthreads);
+							// __gnu_parallel::sort(A.begin(),P,SecondComp<uint64_t,uint64_t>());
 						else
-							__gnu_parallel::sort(A.begin(),P,FirstComp<uint64_t,uint64_t>());
+							libmaus2::sorting::InPlaceParallelSort::inplacesort2(A.begin(),P,FirstComp<uint64_t,uint64_t>(),basesort,numthreads);
+							// __gnu_parallel::sort(A.begin(),P,FirstComp<uint64_t,uint64_t>());
 					}
 					else
 					#endif
@@ -356,14 +361,14 @@ namespace libmaus2
 				bool const keepfirst,
 				bool const keepsecond,
 				std::string const & outfilename,
-				uint64_t const bufsize = 256*1024*1024,
-				bool const parallel = false,
-				bool const deleteinput = false
+				uint64_t const bufsize, // = 256*1024*1024,
+				uint64_t const numthreads, // = false,
+				bool const deleteinput // = false
 			)
 			{
 				typedef ::libmaus2::aio::SynchronousGenericOutput<uint64_t> out_type;
 				out_type SGOfinal(outfilename,16*1024);
-				sortPairFileTemplate<out_type>(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize,parallel,deleteinput);
+				sortPairFileTemplate<out_type>(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize,numthreads,deleteinput);
 			}
 
 			static void sortPairFile(
@@ -373,14 +378,14 @@ namespace libmaus2
 				bool const keepfirst,
 				bool const keepsecond,
 				std::ostream & outstream,
-				uint64_t const bufsize = 256*1024*1024,
-				bool const parallel = false,
-				bool const deleteinput = false
+				uint64_t const bufsize, // = 256*1024*1024,
+				uint64_t const numthreads, // = false,
+				bool const deleteinput // = false
 			)
 			{
 				typedef ::libmaus2::aio::SynchronousGenericOutput<uint64_t> out_type;
 				out_type SGOfinal(outstream,16*1024);
-				sortPairFileTemplate<out_type>(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize,parallel,deleteinput);
+				sortPairFileTemplate<out_type>(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize,numthreads,deleteinput);
 			}
 		};
 	}
