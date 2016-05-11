@@ -1,3 +1,9 @@
+libmaus2 (2.0.182-1) unstable; urgency=medium
+
+  * add SizeMonitorThread class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 11 May 2016 14:23:34 +0200
+
 libmaus2 (2.0.181-1) unstable; urgency=medium
 
   * fix init/setup in LFRankPosDecoder
