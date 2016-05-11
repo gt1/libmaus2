@@ -297,6 +297,8 @@ namespace libmaus2
 
 				while ( low < index.size() )
 				{
+					init(low);
+
 					LFRankPos P;
 					bool const ok = decode(P);
 					assert ( ok );
@@ -309,17 +311,34 @@ namespace libmaus2
 
 				if ( low != index.size() )
 				{
+					init(low);
+
 					LFRankPos P;
 					bool const ok = decode(P);
 					assert ( ok );
 					assert ( P.r >= v );
 				}
+
+				init(low);
 			}
 
-			LFRankPosDecoder(std::vector<std::string> const & rVfn, uint64_t const offset)
+			enum init_type {
+				init_type_offset,
+				init_type_rank
+			};
+
+			LFRankPosDecoder(std::vector<std::string> const & rVfn, uint64_t const offset, init_type itype = init_type_offset)
 			: index(rVfn)
 			{
-				setup(offset);
+				switch ( itype )
+				{
+					case init_type_rank:
+						setup(offset);
+						break;
+					default:
+						init(offset);
+						break;
+				}
 			}
 
 			bool decode(LFRankPos & v)
