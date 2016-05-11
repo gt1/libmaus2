@@ -1,3 +1,10 @@
+libmaus2 (2.0.186-1) unstable; urgency=medium
+
+  * reduce file bits for unsorting if alphabet is smaller than allowed for a single round
+  * consider key sequences when computing number of files available
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 11 May 2016 22:05:20 +0200
+
 libmaus2 (2.0.185-1) unstable; urgency=medium
 
   * improve open file count handling 

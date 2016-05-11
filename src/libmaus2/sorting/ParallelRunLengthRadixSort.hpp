@@ -64,8 +64,8 @@ namespace libmaus2
 					unsortinfo->totalsyms = ihigh-ilow;
 				}
 
-				// we need at least 3 fils per thread (one input, two output)
-				uint64_t const maxthreads = maxfiles / 3;
+				// we need at least 3 fils per thread (one input, two output. plus one if we store key bits)
+				uint64_t const maxthreads = maxfiles / (3+(store_key_bits?1:0));
 				// compute maximum number of threads we can actually use
 				uint64_t const numthreads = std::min(tnumthreads,maxthreads);
 
@@ -80,7 +80,7 @@ namespace libmaus2
 				// maximum number of files per thread
 				uint64_t const filesperthread = maxfiles / numthreads;
 				// maximum number of output files per thread
-				uint64_t const ofilesperthread = filesperthread - 1;
+				uint64_t const ofilesperthread = filesperthread - 1 - (store_key_bits?1:0);
 
 				uint64_t tfilebits = 1;
 				uint64_t ofilecnt = 2;
@@ -284,6 +284,14 @@ namespace libmaus2
 							libmaus2::aio::FileRemoval::removeFile(Vfn[i]);
 					deleteinput = true;
 
+					if ( ! maxsymvalid )
+					{
+						// std::cerr << "[V] setting maxsym to " << cmaxsym << std::endl;
+						maxsym = cmaxsym;
+						maxsymvalid = true;
+						totalsymbits = libmaus2::math::numbits(maxsym);
+					}
+
 					if ( store_key_bits )
 					{
 						assert ( std::accumulate(GKhist.begin(),GKhist.end(),0ull) == numinsyms );
@@ -292,7 +300,7 @@ namespace libmaus2
 						{
 							libmaus2::sorting::ParallelRunLengthRadixUnsort::UnsortLevel UL;
 							UL.keyseqfn = Vkey;
-							UL.bits = filebits;
+							UL.bits = std::min(filebits,totalsymbits);
 							UL.Ghist = std::vector<uint64_t>(GKhist.begin(),GKhist.end());
 
 							libmaus2::autoarray::AutoArray<uint64_t> Fhist(outfilesperthread * (unsortthreads+1) + 1);
@@ -379,13 +387,6 @@ namespace libmaus2
 					ihigh = decoder_type::getKLength(Vfn,numthreads);
 					rshift += roundbits;
 
-					if ( ! maxsymvalid )
-					{
-						// std::cerr << "[V] setting maxsym to " << cmaxsym << std::endl;
-						maxsym = cmaxsym;
-						maxsymvalid = true;
-						totalsymbits = libmaus2::math::numbits(maxsym);
-					}
 				}
 
 				assert ( maxsymvalid );
