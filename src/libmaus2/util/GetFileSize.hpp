@@ -267,6 +267,10 @@ namespace libmaus2
 			 * check whether file A is older than file B
 			 **/
 			static bool isOlder(std::string const & fn_A, std::string const & fn_B);
+			/**
+			 * get dir size
+			 **/
+			static uint64_t getDirSize(std::string const & fn);
 		};
 	}
 }
