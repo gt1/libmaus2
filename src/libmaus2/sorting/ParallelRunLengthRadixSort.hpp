@@ -64,8 +64,8 @@ namespace libmaus2
 					unsortinfo->totalsyms = ihigh-ilow;
 				}
 
-				// we need at least 3 fils per thread (one input, two output)
-				uint64_t const maxthreads = maxfiles / 3;
+				// we need at least 3 fils per thread (one input, two output. plus one if we store key bits)
+				uint64_t const maxthreads = maxfiles / (3+(store_key_bits?1:0));
 				// compute maximum number of threads we can actually use
 				uint64_t const numthreads = std::min(tnumthreads,maxthreads);
 
@@ -80,7 +80,7 @@ namespace libmaus2
 				// maximum number of files per thread
 				uint64_t const filesperthread = maxfiles / numthreads;
 				// maximum number of output files per thread
-				uint64_t const ofilesperthread = filesperthread - 1;
+				uint64_t const ofilesperthread = filesperthread - 1 - (store_key_bits?1:0);
 
 				uint64_t tfilebits = 1;
 				uint64_t ofilecnt = 2;
