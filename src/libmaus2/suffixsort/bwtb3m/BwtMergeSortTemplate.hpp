@@ -3693,7 +3693,8 @@ namespace libmaus2
 
 				static std::string sortIsaFile(
 					libmaus2::util::TempFileNameGenerator & gtmpgen,
-					std::vector<std::string> const & mergedisaname, uint64_t const blockmem
+					std::vector<std::string> const & mergedisaname, uint64_t const blockmem,
+					uint64_t const numthreads
 				)
 				{
 					// sort sampled inverse suffix array file
@@ -3701,7 +3702,7 @@ namespace libmaus2
 					std::string const mergeisatmpout = gtmpgen.getFileName(true);
 					::libmaus2::sorting::PairFileSorting::sortPairFile(
 						mergedisaname,mergeisatmp,true /* second comp */,
-						true,true,mergeisatmpout,blockmem/2/*par*/,true /* parallel */);
+						true,true,mergeisatmpout,blockmem/2/*par*/,numthreads /* parallel */,false /* delete input */);
 					libmaus2::aio::FileRemoval::removeFile (mergeisatmp);
 					return mergeisatmpout;
 				}
@@ -3947,7 +3948,7 @@ namespace libmaus2
 						true /* keep second */,
 						*pmergedsa /* output stream */,
 						blockmem/2/*par*/,
-						true /* parallel */,
+						numthreads /* parallel */,
 						true /* delete input */
 					);
 					pmergedsa->flush();
@@ -3973,7 +3974,7 @@ namespace libmaus2
 						true /* keep second */,
 						*pmergedisa /* output stream */,
 						blockmem/2/*par*/,
-						true /* parallel */,
+						numthreads /* parallel */,
 						true /* delete input */
 					);
 					if ( logstr )
@@ -4960,7 +4961,7 @@ namespace libmaus2
 						// sort the sampled isa file
 						uint64_t const blockmem = memperthread; // memory per thread
 						// sort pre isa files by second component (position)
-						std::string const mergedisaname = sortIsaFile(gtmpgen,mergeresult.getFiles().getSampledISAVector(),blockmem);
+						std::string const mergedisaname = sortIsaFile(gtmpgen,mergeresult.getFiles().getSampledISAVector(),blockmem,options.numthreads);
 
 						// compute sampled suffix array and sampled inverse suffix array
 						computeSampledSA(
