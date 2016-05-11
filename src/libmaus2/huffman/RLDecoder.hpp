@@ -840,7 +840,11 @@ namespace libmaus2
 						libmaus2::util::NumberSerialisation::serialiseNumber(*Optr,H[i]);
 
 					in.reset();
-					libmaus2::aio::FileRemoval::removeFile(Vfn[t]);
+				}
+
+				for ( uint64_t i = 0; i < Vfn.size(); ++i )
+				{
+					libmaus2::aio::FileRemoval::removeFile(Vfn[i]);
 				}
 
 				Optr->flush();
