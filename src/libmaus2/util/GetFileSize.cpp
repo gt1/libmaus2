@@ -144,3 +144,103 @@ bool libmaus2::util::GetFileSize::isOlder(std::string const & fn_A, std::string 
 
 	return stat_a.st_mtime < stat_b.st_mtime;
 }
+
+#include <deque>
+#include <sys/types.h>
+#include <dirent.h>
+
+enum file_type { file_type_dir, file_type_regular, file_type_other };
+
+std::ostream & operator<<(std::ostream & out, file_type const & F)
+{
+	switch ( F )
+	{
+		case file_type_dir:
+			out << "file_type_dir";
+			break;
+		case file_type_regular:
+			out << "file_type_regular";
+			break;
+		default:
+			out << "file_type_other";
+			break;
+	}
+
+	return out;
+}
+
+static std::pair<file_type,uint64_t> getType(std::string const & fn)
+{
+	struct stat sb;
+	if ( ::stat(fn.c_str(),&sb) < 0 )
+	{
+		return std::pair<file_type,uint64_t>(file_type_other,0);
+	}
+
+	if ( S_ISREG(sb.st_mode) )
+		return std::pair<file_type,uint64_t>(file_type_regular,sb.st_size);
+	else if ( S_ISDIR(sb.st_mode) )
+		return std::pair<file_type,uint64_t>(file_type_dir,0);
+	else
+		return std::pair<file_type,uint64_t>(file_type_other,0);
+}
+
+struct DirHandleScope
+{
+	DIR * handle;
+
+	DirHandleScope(std::string const & fn) : handle(::opendir(fn.c_str())) {}
+	~DirHandleScope()
+	{
+		if ( handle )
+		{
+			::closedir(handle);
+			handle = 0;
+		}
+	}
+
+	struct dirent * getNext()
+	{
+		if ( handle )
+			return readdir(handle);
+		else
+			return 0;
+	}
+};
+
+uint64_t libmaus2::util::GetFileSize::getDirSize(std::string const & fn)
+{
+	std::deque<std::string> Q;
+	Q.push_back(fn);
+	uint64_t s = 0;
+
+	while ( Q.size() )
+	{
+		std::string const D = Q.front();
+		Q.pop_front();
+
+		std::pair<file_type,uint64_t> type = getType(D);
+
+		// std::cerr << D << " has type " << type.first << " size " << type.second << std::endl;
+
+		if ( type.first == file_type_dir )
+		{
+			DirHandleScope DHS(D);
+
+			struct dirent * entry;
+			while ( (entry=DHS.getNext()) )
+			{
+				std::string const sname = entry->d_name;
+
+				if ( sname != std::string(".") && sname != std::string("..") )
+					Q.push_back(D + std::string("/") + sname);
+			}
+		}
+		else if ( type.first == file_type_regular )
+		{
+			s += type.second;
+		}
+	}
+
+	return s;
+}
