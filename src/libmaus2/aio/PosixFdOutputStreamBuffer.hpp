@@ -47,6 +47,8 @@ namespace libmaus2
 			private:
 			static double const warnThreshold;
 			static int const check;
+			static uint64_t volatile totalout;
+			static libmaus2::parallel::PosixSpinLock totaloutlock;
 
 			static double getTime()
 			{
@@ -305,6 +307,10 @@ namespace libmaus2
 						}
 						else
 						{
+							totaloutlock.lock();
+							totalout += w;
+							totaloutlock.unlock();
+
 							assert ( w <= static_cast<int64_t>(n) );
 							n -= w;
 							writepos += w;
@@ -561,6 +567,15 @@ namespace libmaus2
 				{
 					return -1;
 				}
+			}
+
+			static uint64_t getTotalOut()
+			{
+				uint64_t ltotalout;
+				totaloutlock.lock();
+				ltotalout = totalout;
+				totaloutlock.unlock();
+				return ltotalout;
 			}
 		};
 	}
