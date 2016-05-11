@@ -92,6 +92,19 @@ namespace libmaus2
 					implicitFlush();
 			}
 
+			void encode(LFSymRankPos const & L, uint64_t const v)
+			{
+				*pc = L;
+
+				V.push(vpo,v);
+				for ( uint64_t i = 0; i < L.n; ++i )
+					V.push(vpo,L.v[i]);
+				pc->n += 1;
+
+				if ( ++pc == pe )
+					implicitFlush();
+			}
+
 			void encodeRL(
 				uint64_t const numruns,
 				::libmaus2::util::Histogram & symhist,
