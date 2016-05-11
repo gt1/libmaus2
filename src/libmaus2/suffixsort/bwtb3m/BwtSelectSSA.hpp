@@ -43,7 +43,7 @@ namespace libmaus2
 					std::vector<std::string> const & Vbvfn,
 					std::string const tmpfilenamebase,
 					bool const copyinputtomemory,
-					uint64_t const numthreads,
+					uint64_t numthreads,
 					uint64_t const maxsortmem,
 					uint64_t const maxtmpfiles,
 					std::ostream * logstr

@@ -52,7 +52,7 @@ namespace libmaus2
 				uint64_t * rmaxsym = 0
 			)
 			{
-				// we need at least 3 fils per thread (one input, two output)
+				// we need at least 3 files per thread (one input, two output)
 				uint64_t const maxthreads = maxfiles / 3;
 				// compute maximum number of threads we can actually use
 				uint64_t const numthreads = std::min(tnumthreads,maxthreads);
@@ -100,6 +100,7 @@ namespace libmaus2
 
 					uint64_t const outfilesperthread = (1ull<<filebits);
 					uint64_t const totaloutfiles = numthreads * outfilesperthread;
+					assert ( totaloutfiles + numthreads <= maxfiles );
 
 					libmaus2::autoarray::AutoArray < typename encoder_type::unique_ptr_type > Aoutfiles(totaloutfiles);
 
@@ -111,7 +112,6 @@ namespace libmaus2
 					uint64_t const runthreads = isize ? ((isize+packsize-1)/packsize) : 0;
 
 					std::vector<std::string> Vout(runthreads * outfilesperthread);
-					std::vector<std::string> Vkey(runthreads);
 
 					for ( uint64_t i = 0; i < outfilesperthread; ++i )
 						for ( uint64_t t = 0; t < runthreads; ++t )
