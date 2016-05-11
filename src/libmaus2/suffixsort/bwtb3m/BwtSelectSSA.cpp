@@ -329,12 +329,22 @@ void libmaus2::suffixsort::bwtb3m::BwtSelectSSA::computeSSA(
 	std::vector<std::string> const & Vbvfn,
 	std::string const tmpfilenamebase,
 	bool const copyinputtomemory,
-	uint64_t const numthreads,
+	uint64_t numthreads,
 	uint64_t const maxsortmem,
 	uint64_t const maxtmpfiles,
 	std::ostream * logstr
 )
 {
+	uint64_t const minnumfiles = 2;
+	uint64_t const minoutputfilesperthread = 2 * minnumfiles + 1;
+	uint64_t const mininputfilesperthread = 2; /* RL + ISA */
+
+	// reduce numthreads if needed
+	while ( numthreads && (numthreads * (minoutputfilesperthread + mininputfilesperthread)) > maxtmpfiles )
+		--numthreads;
+
+	assert ( numthreads );
+
 	// original bwt name
 	std::string origbwt;
 	bool removeorigbwt = false;
@@ -450,11 +460,14 @@ void libmaus2::suffixsort::bwtb3m::BwtSelectSSA::computeSSA(
 		*logstr << "[D] numnonzeroocc=" << numnonzeroocc << std::endl;
 
 	// target number of files
-	uint64_t const tnumfiles = 256;
+	uint64_t const avfiles = maxtmpfiles - numthreads * ( mininputfilesperthread + 1 );
+	uint64_t const tnumfiles = std::max (
+		static_cast<uint64_t>(avfiles / (2*numthreads)) , static_cast<uint64_t>(2ull) );
+	assert ( tnumfiles >= 2 );
 	// compute split
 	uint64_t const split = computeSplit(tnumfiles, H, NZH, n);
 	if ( logstr )
-		*logstr << "[D] split=" << split << std::endl;
+		*logstr << "[D] tnumfiles=" << tnumfiles << " split=" << split << std::endl;
 
 	// vector symbol to file for symbols in NZH
 	std::vector<uint64_t> HID;
