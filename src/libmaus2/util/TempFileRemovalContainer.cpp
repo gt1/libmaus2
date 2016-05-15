@@ -20,7 +20,7 @@
 
 bool ::libmaus2::util::SignalHandlerContainer::setupComplete = false;
 
-std::vector < std::string > libmaus2::util::TempFileRemovalContainer::tmpfilenames;
+std::set < std::string > libmaus2::util::TempFileRemovalContainer::tmpfilenames;
 std::vector < std::string > libmaus2::util::TempFileRemovalContainer::tmpdirectories;
 std::vector < std::string > libmaus2::util::TempFileRemovalContainer::tmpsemaphores;
 bool ::libmaus2::util::TempFileRemovalContainer::setupComplete = false;
