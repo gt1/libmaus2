@@ -25,6 +25,7 @@
 #include <string>
 #include <cstdlib>
 #include <map>
+#include <set>
 #include <libmaus2/aio/FileRemoval.hpp>
 #include <libmaus2/parallel/OMPLock.hpp>
 #include <semaphore.h>
@@ -256,7 +257,8 @@ namespace libmaus2
 			#endif
 
 			static ::libmaus2::parallel::OMPLock lock;
-			static std::vector < std::string > tmpfilenames;
+			// static std::vector < std::string > tmpfilenames;
+			static std::set < std::string > tmpfilenames;
 			static std::vector < std::string > tmpsemaphores;
 			static std::vector < std::string > tmpdirectories;
 
@@ -282,8 +284,9 @@ namespace libmaus2
 
 			static void removeTempFiles()
 			{
-				for ( uint64_t i = 0; i < tmpfilenames.size(); ++i )
-					libmaus2::aio::FileRemoval::removeFile(tmpfilenames[i]);
+				// for ( uint64_t i = 0; i < tmpfilenames.size(); ++i )
+				for ( std::set<std::string>::const_iterator ita = tmpfilenames.begin(); ita != tmpfilenames.end(); ++ita )
+					libmaus2::aio::FileRemoval::removeFileNoUnregister(*ita);
 			}
 
 			static void removeSemaphores()
@@ -372,12 +375,23 @@ namespace libmaus2
 				setupUnlocked();
 				lock.unlock();
 			}
+			
+			static void removeTempFile(std::string const & filename)
+			{
+				lock.lock();
+				setupUnlocked();
+				std::set<std::string>::const_iterator it = tmpfilenames.find(filename);
+				if ( it != tmpfilenames.end() )
+					tmpfilenames.erase(it);
+				lock.unlock();
+			}
 
 			static void addTempFile(std::string const & filename)
 			{
 				lock.lock();
 				setupUnlocked();
-				tmpfilenames.push_back(filename);
+				// tmpfilenames.push_back(filename);
+				tmpfilenames.insert(filename);
 				lock.unlock();
 			}
 		};

@@ -1,3 +1,9 @@
+libmaus2 (2.0.187-1) unstable; urgency=medium
+
+  * save memory handling tmp files 
+
+ -- German Tischler <tischler@mpi-cbg.de>  Sun, 15 May 2016 16:25:00 +0200
+
 libmaus2 (2.0.186-1) unstable; urgency=medium
 
   * reduce file bits for unsorting if alphabet is smaller than allowed for a single round
