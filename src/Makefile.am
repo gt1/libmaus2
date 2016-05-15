@@ -253,7 +253,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/suffixsort/bwtb3m/BwtMergeSortResult.cpp \
 	libmaus2/util/HugePages.cpp \
 	libmaus2/lz/ZlibInterface.cpp \
-	libmaus2/suffixsort/bwtb3m/BwtSelectSSA.cpp
+	libmaus2/suffixsort/bwtb3m/BwtSelectSSA.cpp \
+	libmaus2/aio/FileRemoval.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 

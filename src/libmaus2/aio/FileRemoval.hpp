@@ -20,7 +20,6 @@
 #define LIBMAUS2_AIO_FILEREMOVAL_HPP
 
 #include <libmaus2/aio/MemoryFileContainer.hpp>
-#include <libmaus2/util/TempFileRemovalContainer.hpp>
 #include <cstdio>
 
 namespace libmaus2
@@ -29,34 +28,9 @@ namespace libmaus2
 	{
 		struct FileRemoval
 		{
-			static bool hasPrefix(std::string const & name, std::string const & prefix)
-			{
-				return name.size() >= prefix.size() && name.substr(0,prefix.size()) == prefix;
-			}
-
-			static void removeFileNoUnregister(std::string const & name)
-			{
-				if ( hasPrefix(name,"file://") )
-				{
-					std::string const fn = name.substr(strlen("file://"));
-					libmaus2::aio::FileRemoval::removeFile(fn);
-				}
-				else if ( hasPrefix(name,"mem:") )
-				{
-					std::string const fn = name.substr(strlen("mem:"));
-					MemoryFileContainer::eraseEntry(fn);
-				}
-				else
-				{
-					::remove(name.c_str());
-				}
-			}
-
-			static void removeFile(std::string const & name)
-			{
-				removeFileNoUnregister(name);
-				libmaus2::util::TempFileRemovalContainer::removeTempFile(name);
-			}
+			static bool hasPrefix(std::string const & name, std::string const & prefix);
+			static void removeFileNoUnregister(std::string const & name);
+			static void removeFile(std::string const & name);
 		};
 	}
 }
