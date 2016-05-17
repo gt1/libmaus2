@@ -401,6 +401,8 @@ namespace libmaus2
 
 					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETA,offset);
 					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETA,valueswritten);
+					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETA,pa->r);
+					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETA,pc[-1].r);
 
 					uint64_t const bs = (pc-pa);
 
@@ -441,6 +443,8 @@ namespace libmaus2
 
 					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETA,offset);
 					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETA,valueswritten);
+					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETA,std::numeric_limits<uint64_t>::max());
+					libmaus2::util::NumberSerialisation::serialiseNumber(*PMETA,std::numeric_limits<uint64_t>::max());
 
 					PMETA->flush();
 					PMETA.reset();
@@ -448,8 +452,21 @@ namespace libmaus2
 					assert ( static_cast<int64_t>(POSI->tellp()) == static_cast<int64_t>(offset) );
 
 					libmaus2::aio::InputStreamInstance::unique_ptr_type METAin(new libmaus2::aio::InputStreamInstance(metafn));
+					uint64_t nummeta = 0;
 					while ( METAin->peek() != std::istream::traits_type::eof() )
-						libmaus2::util::NumberSerialisation::serialiseNumber(*POSI,libmaus2::util::NumberSerialisation::deserialiseNumber(*METAin));
+					{
+						uint64_t const offset = libmaus2::util::NumberSerialisation::deserialiseNumber(*METAin);
+						uint64_t const valueswritten = libmaus2::util::NumberSerialisation::deserialiseNumber(*METAin);
+						uint64_t const ranklow = libmaus2::util::NumberSerialisation::deserialiseNumber(*METAin);
+						uint64_t const rankhigh = libmaus2::util::NumberSerialisation::deserialiseNumber(*METAin);
+
+						nummeta += 1;
+
+						libmaus2::util::NumberSerialisation::serialiseNumber(*POSI,offset);
+						libmaus2::util::NumberSerialisation::serialiseNumber(*POSI,valueswritten);
+						libmaus2::util::NumberSerialisation::serialiseNumber(*POSI,ranklow);
+						libmaus2::util::NumberSerialisation::serialiseNumber(*POSI,rankhigh);
+					}
 					METAin.reset();
 
 					libmaus2::aio::FileRemoval::removeFile(metafn);

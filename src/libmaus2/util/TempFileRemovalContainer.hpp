@@ -362,7 +362,7 @@ namespace libmaus2
 				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				setupUnlocked();
 			}
-			
+
 			static void removeTempFile(std::string const & filename)
 			{
 				libmaus2::parallel::ScopePosixSpinLock slock(lock);
