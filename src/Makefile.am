@@ -92,7 +92,6 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/bambam/CollatingBamDecoder.cpp \
 	libmaus2/bambam/ReadEndsContainer.cpp \
 	libmaus2/bambam/ReadEnds.cpp \
-	libmaus2/util/TempFileRemovalContainer.cpp \
 	libmaus2/network/LogReceiver.cpp \
 	libmaus2/huffman/IndexLoaderBase.cpp \
 	libmaus2/bambam/BamAlignmentDecoderBase.cpp \
