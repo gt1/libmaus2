@@ -232,7 +232,7 @@ namespace libmaus2
 			}
 
 			LFValueDecoder(std::vector<std::string> const & rVfn, uint64_t const offset)
-			: index(rVfn)
+			: index(rVfn), FBO(), PISI(), PSGI(), B(), pa(0), pc(0), pe(0), rlbuffer()
 			{
 				init(offset);
 			}
