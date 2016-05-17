@@ -565,3 +565,16 @@ static std::map<std::string,uint64_t> getPosixFdInputBlockSizeOverride()
 }
 
 std::map<std::string,uint64_t> const libmaus2::aio::PosixFdInput::blocksizeoverride = getPosixFdInputBlockSizeOverride();
+
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
+
+bool ::libmaus2::util::SignalHandlerContainer::setupComplete = false;
+std::set < std::string > libmaus2::util::TempFileRemovalContainer::tmpfilenames;
+std::vector < std::string > libmaus2::util::TempFileRemovalContainer::tmpdirectories;
+std::vector < std::string > libmaus2::util::TempFileRemovalContainer::tmpsemaphores;
+bool ::libmaus2::util::TempFileRemovalContainer::setupComplete = false;
+libmaus2::util::TempFileRemovalContainer::sighandler_t libmaus2::util::TempFileRemovalContainer::siginthandler = 0;
+libmaus2::util::TempFileRemovalContainer::sighandler_t libmaus2::util::TempFileRemovalContainer::sigtermhandler = 0;
+libmaus2::util::TempFileRemovalContainer::sighandler_t libmaus2::util::TempFileRemovalContainer::sighuphandler = 0;
+libmaus2::util::TempFileRemovalContainer::sighandler_t libmaus2::util::TempFileRemovalContainer::sigpipehandler = 0;
+::libmaus2::parallel::PosixSpinLock libmaus2::util::TempFileRemovalContainer::lock;

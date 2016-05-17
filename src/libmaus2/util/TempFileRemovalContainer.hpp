@@ -27,7 +27,7 @@
 #include <map>
 #include <set>
 #include <libmaus2/aio/FileRemoval.hpp>
-#include <libmaus2/parallel/OMPLock.hpp>
+#include <libmaus2/parallel/PosixSpinLock.hpp>
 #include <semaphore.h>
 #include <unistd.h>
 
@@ -53,7 +53,7 @@ namespace libmaus2
 			typedef ::sighandler_t sighandler_t;
 			#endif
 
-			static ::libmaus2::parallel::OMPLock lock;
+			static ::libmaus2::parallel::PosixSpinLock lock;
 
 			static sighandler_t siginthandler;
 			static sighandler_t sigtermhandler;
@@ -69,43 +69,40 @@ namespace libmaus2
 
 			static uint64_t addIntHandler(SignalHandler * handler)
 			{
-				lock.lock();
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				uint64_t const id = siginthandlers.size() ?  (siginthandlers.rbegin()->first+1) : 0;
 				siginthandlers[id] = handler;
-				lock.unlock();
 				return id;
 			}
 
 			static uint64_t addTermHandler(SignalHandler * handler)
 			{
-				lock.lock();
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				uint64_t const id = sigtermhandlers.size() ?  (sigtermhandlers.rbegin()->first+1) : 0;
 				sigtermhandlers[id] = handler;
-				lock.unlock();
 				return id;
 			}
 
 			static uint64_t addHupHandler(SignalHandler * handler)
 			{
-				lock.lock();
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				uint64_t const id = sighuphandlers.size() ?  (sighuphandlers.rbegin()->first+1) : 0;
 				sighuphandlers[id] = handler;
-				lock.unlock();
 				return id;
 			}
 
 			static uint64_t addPipeHandler(SignalHandler * handler)
 			{
-				lock.lock();
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				uint64_t const id = sigpipehandlers.size() ?  (sigpipehandlers.rbegin()->first+1) : 0;
 				sigpipehandlers[id] = handler;
-				lock.unlock();
 				return id;
 			}
 
 			static uint64_t addAllHandler(SignalHandler * handler)
 			{
-				lock.lock();
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
+
 				uint64_t const pipeid = sigpipehandlers.size() ?  (sigpipehandlers.rbegin()->first+1) : 0;
 				uint64_t const hupid = sighuphandlers.size() ?  (sighuphandlers.rbegin()->first+1) : 0;
 				uint64_t const termid = sigtermhandlers.size() ?  (sigtermhandlers.rbegin()->first+1) : 0;
@@ -117,47 +114,40 @@ namespace libmaus2
 				sighuphandlers[allid] = handler;
 				sigpipehandlers[allid] = handler;
 
-				lock.unlock();
-
 				return allid;
 			}
 
 			static void removeIntHandler(uint64_t const id)
 			{
-				lock.lock();
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				siginthandlers.erase(siginthandlers.find(id));
-				lock.unlock();
 			}
 
 			static void removeTermHandler(uint64_t const id)
 			{
-				lock.lock();
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				sigtermhandlers.erase(sigtermhandlers.find(id));
-				lock.unlock();
 			}
 
 			static void removeHupHandler(uint64_t const id)
 			{
-				lock.lock();
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				sighuphandlers.erase(sighuphandlers.find(id));
-				lock.unlock();
 			}
 
 			static void removePipeHandler(uint64_t const id)
 			{
-				lock.lock();
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				sigpipehandlers.erase(sigpipehandlers.find(id));
-				lock.unlock();
 			}
 
 			static void removeAllHandler(uint64_t const id)
 			{
-				lock.lock();
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				siginthandlers.erase(siginthandlers.find(id));
 				sigtermhandlers.erase(sigtermhandlers.find(id));
 				sighuphandlers.erase(sighuphandlers.find(id));
 				sigpipehandlers.erase(sigpipehandlers.find(id));
-				lock.unlock();
 			}
 
 			static void sigIntHandler(int arg)
@@ -238,13 +228,12 @@ namespace libmaus2
 
 			static void setup()
 			{
-				lock.lock();
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				if ( ! setupComplete )
 				{
 					setupTempFileRemovalRoutines();
 					setupComplete = true;
 				}
-				lock.unlock();
 			}
 		};
 
@@ -256,8 +245,7 @@ namespace libmaus2
 			typedef ::sighandler_t sighandler_t;
 			#endif
 
-			static ::libmaus2::parallel::OMPLock lock;
-			// static std::vector < std::string > tmpfilenames;
+			static ::libmaus2::parallel::PosixSpinLock lock;
 			static std::set < std::string > tmpfilenames;
 			static std::vector < std::string > tmpsemaphores;
 			static std::vector < std::string > tmpdirectories;
@@ -371,28 +359,26 @@ namespace libmaus2
 
 			static void setup()
 			{
-				lock.lock();
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				setupUnlocked();
-				lock.unlock();
 			}
 			
 			static void removeTempFile(std::string const & filename)
 			{
-				lock.lock();
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				setupUnlocked();
 				std::set<std::string>::const_iterator it = tmpfilenames.find(filename);
 				if ( it != tmpfilenames.end() )
+				{
 					tmpfilenames.erase(it);
-				lock.unlock();
+				}
 			}
 
 			static void addTempFile(std::string const & filename)
 			{
-				lock.lock();
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				setupUnlocked();
-				// tmpfilenames.push_back(filename);
 				tmpfilenames.insert(filename);
-				lock.unlock();
 			}
 		};
 	}
