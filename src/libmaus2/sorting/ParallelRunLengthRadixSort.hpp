@@ -301,7 +301,8 @@ namespace libmaus2
 							libmaus2::sorting::ParallelRunLengthRadixUnsort::UnsortLevel UL;
 							UL.keyseqfn = Vkey;
 							UL.bits = std::min(filebits,totalsymbits);
-							UL.Ghist = std::vector<uint64_t>(GKhist.begin(),GKhist.end());
+							uint64_t const outfilesperthread = (1ull<<UL.bits);
+							UL.Ghist = std::vector<uint64_t>(GKhist.begin(),GKhist.begin() + outfilesperthread);
 
 							libmaus2::autoarray::AutoArray<uint64_t> Fhist(outfilesperthread * (unsortthreads+1) + 1);
 
