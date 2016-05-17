@@ -32,12 +32,298 @@
 #include <libmaus2/bitio/readElias.hpp>
 #include <libmaus2/huffman/CanonicalEncoder.hpp>
 #include <libmaus2/util/Histogram.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
 
 namespace libmaus2
 {
 	namespace huffman
 	{
-		struct LFRankPosDecoder : public libmaus2::gamma::GammaPDIndexDecoderBase
+		struct LFRankPosIndexDecoder
+		{
+			struct FileBlockOffset
+			{
+				uint64_t file;
+				uint64_t block;
+				uint64_t blockoffset;
+				uint64_t offset;
+
+				FileBlockOffset(
+					uint64_t const rfile = 0,
+					uint64_t const rblock = 0,
+					uint64_t const rblockoffset = 0,
+					uint64_t const roffset = 0
+				) : file(rfile), block(rblock), blockoffset(rblockoffset), offset(roffset) {}
+			};
+
+			static uint64_t getIndexOffset(::std::istream & in)
+			{
+				in.clear();
+				in.seekg(-8,std::ios_base::end);
+				uint64_t const offset = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				return offset;
+			}
+
+			static uint64_t getWordsPerEntry()
+			{
+				return 4ull;
+			}
+
+			static uint64_t getBytesPerEntry()
+			{
+				return getWordsPerEntry()*sizeof(uint64_t);
+			}
+
+			static uint64_t getNumIndexEntries(::std::istream & in)
+			{
+				uint64_t const indexpos = getIndexOffset(in);
+				uint64_t const fs = libmaus2::util::GetFileSize::getFileSize(in);
+				assert ( indexpos <= fs );
+				uint64_t const sub = fs - indexpos - sizeof(uint64_t);
+				assert ( sub % getBytesPerEntry() == 0 );
+				return sub / getBytesPerEntry();
+			}
+
+			static uint64_t getNumBlocks(::std::istream & in)
+			{
+				uint64_t const numindexentries = getNumIndexEntries(in);
+				assert ( numindexentries );
+				return numindexentries - 1;
+			}
+
+			std::vector<std::string> Vfn;
+			std::vector<uint64_t> valuesPerFile;
+			std::vector<uint64_t> blocksPerFile;
+			std::vector<uint64_t> indexEntriesPerFile;
+			std::vector<uint64_t> indexOffset;
+			std::vector< std::pair<uint64_t,uint64_t> > Vranklowhigh;
+
+			uint64_t getLowRank() const
+			{
+				if ( Vranklowhigh.size() )
+					return Vranklowhigh.front().first;
+				else
+					return 0;
+			}
+			uint64_t getHighRank() const
+			{
+				if ( Vranklowhigh.size() )
+					return Vranklowhigh.back().second;
+				else
+					return 0;
+			}
+
+			struct IndexEntry
+			{
+				uint64_t offset;
+				uint64_t valuesperblock;
+				uint64_t ranklow;
+				uint64_t rankhigh;
+
+				IndexEntry() {}
+				IndexEntry(
+					uint64_t const roffset,
+					uint64_t const rvaluesperblock,
+					uint64_t const rranklow,
+					uint64_t const rrankhigh
+				) : offset(roffset), valuesperblock(rvaluesperblock), ranklow(rranklow), rankhigh(rrankhigh)
+				{
+
+				}
+			};
+
+			struct IndexAccessor
+			{
+				typedef libmaus2::util::ConstIterator< IndexAccessor, IndexEntry > const_iterator;
+
+				mutable libmaus2::aio::InputStreamInstance ISI;
+				uint64_t const indexoffset;
+				uint64_t const indexentries;
+
+				IndexAccessor(std::string const & fn, uint64_t const rindexoffset, uint64_t const rindexentries)
+				: ISI(fn), indexoffset(rindexoffset), indexentries(rindexentries)
+				{
+
+				}
+
+				static IndexEntry get(std::istream & ISI, uint64_t const indexoffset, uint64_t const i)
+				{
+					ISI.clear();
+					ISI.seekg(indexoffset + i*getBytesPerEntry());
+					IndexEntry E;
+					E.offset = libmaus2::util::NumberSerialisation::deserialiseNumber(ISI);
+					E.valuesperblock = libmaus2::util::NumberSerialisation::deserialiseNumber(ISI);
+					E.ranklow = libmaus2::util::NumberSerialisation::deserialiseNumber(ISI);
+					E.rankhigh = libmaus2::util::NumberSerialisation::deserialiseNumber(ISI);
+					return E;
+				}
+
+				IndexEntry get(uint64_t const i) const
+				{
+					return get(ISI,indexoffset,i);
+				}
+
+				IndexEntry operator[](uint64_t const i) const
+				{
+					return get(i);
+				}
+
+				const_iterator begin() const
+				{
+					return const_iterator(this,0);
+				}
+
+				const_iterator end() const
+				{
+					return const_iterator(this,indexentries);
+				}
+			};
+
+			struct IndexEntryValuesPerBlockComp
+			{
+				bool operator()(IndexEntry const & A, IndexEntry const & B) const
+				{
+					return A.valuesperblock < B.valuesperblock;
+				}
+			};
+
+			struct IndexEntryRankHighComp
+			{
+				bool operator()(IndexEntry const & A, IndexEntry const & B) const
+				{
+					return A.rankhigh < B.rankhigh;
+				}
+			};
+
+			static uint64_t getNumValues(std::istream & in)
+			{
+				in.clear();
+				in.seekg(-4*static_cast<int64_t>(sizeof(uint64_t)),std::ios_base::end);
+				return libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+			}
+
+			static uint64_t getNumValues(std::string const & fn)
+			{
+				libmaus2::aio::InputStreamInstance ISI(fn);
+				return getNumValues(ISI);
+			}
+
+			LFRankPosIndexDecoder(std::vector<std::string> const & rVfn)
+			: Vfn(rVfn), valuesPerFile(0), blocksPerFile(0), indexEntriesPerFile(0)
+			{
+				uint64_t o = 0;
+				for ( uint64_t i = 0; i < Vfn.size(); ++i )
+				{
+					libmaus2::aio::InputStreamInstance ISI(Vfn[i]);
+					uint64_t const vpf = getNumValues(ISI);
+
+					if ( vpf )
+					{
+						valuesPerFile.push_back(vpf);
+						blocksPerFile.push_back(getNumBlocks(ISI));
+						indexEntriesPerFile.push_back(blocksPerFile.back()+1);
+						indexOffset.push_back(getIndexOffset(ISI));
+						Vfn[o++] = Vfn[i];
+
+						IndexEntry const firstentry = IndexAccessor::get(ISI,indexOffset.back(),0);
+						IndexEntry const lastentry = IndexAccessor::get(ISI,indexOffset.back(),blocksPerFile.back()-1);
+						Vranklowhigh.push_back(std::pair<uint64_t,uint64_t>(firstentry.ranklow,lastentry.rankhigh));
+					}
+				}
+				// for prefix sum
+				valuesPerFile.push_back(0);
+				Vfn.resize(o);
+
+				libmaus2::util::PrefixSums::prefixSums(valuesPerFile.begin(),valuesPerFile.end());
+			}
+
+			uint64_t size() const
+			{
+				return valuesPerFile.back();
+			}
+
+			struct PairSecondComp
+			{
+				bool operator()(std::pair<uint64_t,uint64_t> const & A, std::pair<uint64_t,uint64_t> const & B) const
+				{
+					return A.second < B.second;
+				}
+			};
+
+			FileBlockOffset lookupRank(uint64_t rank)
+			{
+				if ( ! Vranklowhigh.size() || rank > getHighRank() )
+					return FileBlockOffset(Vfn.size(),0,0);
+
+				std::vector<std::pair<uint64_t,uint64_t> >::const_iterator it = ::std::lower_bound(Vranklowhigh.begin(),Vranklowhigh.end(),std::pair<uint64_t,uint64_t>(0,rank),PairSecondComp());
+				assert ( it != Vranklowhigh.end() );
+				assert ( it->second >= rank );
+
+				uint64_t const fileid = it - Vranklowhigh.begin();
+
+				IndexAccessor IA(Vfn[fileid],indexOffset[fileid],indexEntriesPerFile[fileid]);
+				IndexAccessor::const_iterator fit = std::lower_bound(IA.begin(),IA.end(),IndexEntry(0,0,0,rank),IndexEntryRankHighComp());
+				assert ( fit != IA.end() );
+
+				uint64_t const blockid = fit - IA.begin();
+				IndexEntry E = IA.get(blockid);
+
+				assert ( E.rankhigh >= rank );
+
+				if ( blockid )
+				{
+					assert ( rank > IA.get(blockid-1).rankhigh );
+				}
+				else if ( fileid )
+				{
+					assert ( rank > Vranklowhigh[fileid-1].second );
+				}
+
+				return FileBlockOffset(fileid,blockid,E.offset);
+			}
+
+			FileBlockOffset lookup(uint64_t offset)
+			{
+				if ( offset >= valuesPerFile.back() )
+					return FileBlockOffset(Vfn.size(),0,0);
+
+				std::vector<uint64_t>::const_iterator it = ::std::lower_bound(valuesPerFile.begin(),valuesPerFile.end(),offset);
+				assert ( it != valuesPerFile.end() );
+
+				if ( *it != offset )
+				{
+					assert ( it != valuesPerFile.begin() );
+					it -= 1;
+				}
+
+				assert ( offset >= *it );
+
+				uint64_t const fileid = it - valuesPerFile.begin();
+				offset -= *it;
+
+				assert ( offset < valuesPerFile[fileid+1]-valuesPerFile[fileid] );
+
+				IndexAccessor IA(Vfn[fileid],indexOffset[fileid],indexEntriesPerFile[fileid]);
+				IndexAccessor::const_iterator fit = std::lower_bound(IA.begin(),IA.end(),IndexEntry(0,offset,0,0),IndexEntryValuesPerBlockComp());
+				assert ( fit != IA.end() );
+
+				if ( fit[0].valuesperblock != offset )
+					fit -= 1;
+
+				assert ( offset >= fit[0].valuesperblock );
+
+				uint64_t const blockid = fit - IA.begin();
+				uint64_t const blockoffset = fit[0].offset;
+
+				offset -= fit[0].valuesperblock;
+
+				// std::cerr << "fileid=" << fileid << " blockid=" << blockid << " blockoffset=" << blockoffset << " offset=" << offset << std::endl;
+
+				return FileBlockOffset(fileid,blockid,blockoffset,offset);
+			}
+		};
+
+
+		struct LFRankPosDecoder // : public libmaus2::gamma::GammaPDIndexDecoderBase
 		{
 			typedef LFRankPosDecoder this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
@@ -45,8 +331,8 @@ namespace libmaus2
 
 			typedef LFRankPos value_type;
 
-			libmaus2::gamma::GammaPDIndexDecoder index;
-			libmaus2::gamma::GammaPDIndexDecoder::FileBlockOffset FBO;
+			libmaus2::huffman::LFRankPosIndexDecoder index;
+			libmaus2::huffman::LFRankPosIndexDecoder::FileBlockOffset FBO;
 
 			libmaus2::aio::InputStreamInstance::unique_ptr_type PISI;
 			libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type PSGI;
@@ -268,6 +554,24 @@ namespace libmaus2
 
 			void setup(uint64_t const v)
 			{
+				FBO = index.lookupRank(v);
+
+				if ( FBO.file < index.Vfn.size() )
+				{
+					openFile();
+					decodeBlock();
+
+					while ( pc != pe && pc->r < v )
+						++pc;
+					assert ( pc != pe );
+					assert ( pc->r >= v );
+				}
+				else
+				{
+					pa = pc = pe = 0;
+				}
+
+				#if 0
 				uint64_t low = 0;
 				uint64_t high = index.size();
 
@@ -320,6 +624,7 @@ namespace libmaus2
 				}
 
 				init(low);
+				#endif
 			}
 
 			enum init_type {
@@ -328,7 +633,7 @@ namespace libmaus2
 			};
 
 			LFRankPosDecoder(std::vector<std::string> const & rVfn, uint64_t const offset, init_type itype = init_type_offset)
-			: index(rVfn)
+			: index(rVfn), FBO(), PISI(), PSGI(), B(), pa(0), pc(0), pe(0), V(), rlbuffer()
 			{
 				switch ( itype )
 				{
@@ -364,7 +669,7 @@ namespace libmaus2
 
 			static uint64_t getLength(std::string const & fn, uint64_t const /* numthreads */)
 			{
-				return libmaus2::gamma::GammaPDIndexDecoderBase::getNumValues(fn);
+				return libmaus2::huffman::LFRankPosIndexDecoder::getNumValues(fn);
 			}
 
 			static uint64_t getLength(std::vector<std::string> const & Vfn, uint64_t const numthreads)

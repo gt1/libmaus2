@@ -426,7 +426,8 @@ void testrankpos()
 	}
 	#endif
 
-	uint64_t n = 128*1024;
+	// uint64_t n = 128*1024;
+	uint64_t n = 3*1024;
 	std::vector < libmaus2::huffman::LFRankPos > V(n);
 	libmaus2::autoarray::AutoArray < uint64_t > Vcat;
 	libmaus2::autoarray::AutoArray<uint64_t> VO;
@@ -436,12 +437,14 @@ void testrankpos()
 		libmaus2::huffman::LFRankPosEncoder enc(fn,1024);
 		uint64_t vcato = 0;
 		uint64_t poffo = 0;
+		uint64_t r = 0;
 		for ( uint64_t i = 0; i < n; ++i )
 		{
 			// uint64_t const p = (1ull<<60) + n-i;
 			uint64_t const p = std::numeric_limits<uint64_t>::max() - 1;
 
-			V[i] = libmaus2::huffman::LFRankPos(libmaus2::random::Random::rand8() % 4 /* rank */, p-19581*i /* p */,0 /* n */, 0 /* rv */, i%2 /* active */);
+			r += (libmaus2::random::Random::rand8() % 4);
+			V[i] = libmaus2::huffman::LFRankPos(r /* rank */, p-19581*i /* p */,0 /* n */, 0 /* rv */, i%2 /* active */);
 
 			uint64_t vo = 0;
 			Poff.push(poffo,vcato);
@@ -469,16 +472,50 @@ void testrankpos()
 
 	for ( uint64_t j = 0; j <= n; ++j )
 	{
-		//std::cerr << "j=" << j << std::endl;
+		if ( j % 1024 == 0 )
+			std::cerr << "j=" << j << std::endl;
 		libmaus2::huffman::LFRankPosDecoder dec(std::vector<std::string>(1,fn),j);
 		libmaus2::huffman::LFRankPos info;
 		for ( uint64_t i = j; i < n; ++i )
 		{
-			dec.decode(info);
+			bool const ok = dec.decode(info);
+			assert ( ok );
 			// std::cerr << info << std::endl;
 			assert ( info == V[i] );
 		}
+		assert ( ! dec.decode(info) );
 	}
+
+	uint64_t j = 0;
+	while ( j < n )
+	{
+		uint64_t const r = V[j].r;
+		uint64_t h = j+1;
+		while ( h < n && V[h].r == r )
+			++h;
+
+		uint64_t rinit = r;
+		if ( j )
+		{
+			assert ( V[j-1].r < r );
+			rinit = V[j-1].r+1;
+		}
+
+		libmaus2::huffman::LFRankPosDecoder dec(std::vector<std::string>(1,fn),rinit,libmaus2::huffman::LFRankPosDecoder::init_type_rank);
+		libmaus2::huffman::LFRankPos info;
+		for ( uint64_t i = j; i < n; ++i )
+		{
+			bool const ok = dec.decode(info);
+			assert ( ok );
+			// std::cerr << info << std::endl;
+			assert ( info == V[i] );
+		}
+		assert ( ! dec.decode(info) );
+
+		j = h;
+	}
+
+	std::cerr << "[V] testrankpos done" << std::endl;
 }
 
 void testsymrankpos()
@@ -576,12 +613,13 @@ void testsymrankpos()
 int main()
 {
 	{
+		testrankpos();
+
 		testinplacesort2();
 
 		// exit(0);
 
 		testsymrankpos();
-		testrankpos();
 		testlfsupport();
 
 		typedef uint64_t value_type;
