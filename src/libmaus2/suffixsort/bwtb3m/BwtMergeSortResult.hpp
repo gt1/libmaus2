@@ -70,12 +70,62 @@ namespace libmaus2
 				// filename of RMM tree over LCP array (if constructed)
 				std::string rmmtreefn;
 
+				std::ostream & serialise(std::ostream & out) const
+				{
+					libmaus2::util::StringSerialisation::serialiseString(out,textfn);
+					libmaus2::util::StringSerialisation::serialiseString(out,bwtfn);
+					libmaus2::util::StringSerialisation::serialiseString(out,histfn);
+					libmaus2::util::StringSerialisation::serialiseString(out,hwtfn);
+					libmaus2::util::StringSerialisation::serialiseString(out,safn);
+					libmaus2::util::StringSerialisation::serialiseString(out,isafn);
+					libmaus2::util::StringSerialisation::serialiseString(out,metafn);
+					libmaus2::util::StringSerialisation::serialiseString(out,preisafn);
+					libmaus2::util::StringSerialisation::serialiseString(out,succinctlcpfn);
+					libmaus2::util::StringSerialisation::serialiseString(out,rmmtreefn);
+					return out;
+				}
+
+				void serialise(std::string const & fn) const
+				{
+					libmaus2::aio::OutputStreamInstance OSI(fn);
+					serialise(OSI);
+				}
+
+				std::istream & deserialise(std::istream & in)
+				{
+					textfn = libmaus2::util::StringSerialisation::deserialiseString(in);
+					bwtfn = libmaus2::util::StringSerialisation::deserialiseString(in);
+					histfn = libmaus2::util::StringSerialisation::deserialiseString(in);
+					hwtfn = libmaus2::util::StringSerialisation::deserialiseString(in);
+					safn = libmaus2::util::StringSerialisation::deserialiseString(in);
+					isafn = libmaus2::util::StringSerialisation::deserialiseString(in);
+					metafn = libmaus2::util::StringSerialisation::deserialiseString(in);
+					preisafn = libmaus2::util::StringSerialisation::deserialiseString(in);
+					succinctlcpfn = libmaus2::util::StringSerialisation::deserialiseString(in);
+					rmmtreefn = libmaus2::util::StringSerialisation::deserialiseString(in);
+					return in;
+				}
+
+				void deserialise(std::string const & fn)
+				{
+					libmaus2::aio::InputStreamInstance ISI(fn);
+					deserialise(ISI);
+				}
+
 				// type of succinct LCP array as defined in CompressedSuffixArray
 				typedef libmaus2::suffixtree::CompressedSuffixTree::lcp_type cst_succinct_lcp_type;
 				// type of RMM tree as defined in CompressedSuffixArray
 				typedef libmaus2::suffixtree::CompressedSuffixTree::rmm_tree_type cst_rmm_tree_type;
 
 				BwtMergeSortResult();
+				BwtMergeSortResult(std::istream & in)
+				{
+					deserialise(in);
+				}
+				BwtMergeSortResult(std::string const & fn)
+				{
+					deserialise(fn);
+				}
 
 				/**
 				 * Load a DNARank object from the run length encoded BWT. This requires the alphabet of the original text
