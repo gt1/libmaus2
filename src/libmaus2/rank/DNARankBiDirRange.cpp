@@ -17,7 +17,7 @@
 */
 #include <libmaus2/rank/DNARankBiDirRange.hpp>
 
-inline std::ostream & libmaus2::rank::operator<<(std::ostream & out, libmaus2::rank::DNARankBiDirRange const & B)
+std::ostream & libmaus2::rank::operator<<(std::ostream & out, libmaus2::rank::DNARankBiDirRange const & B)
 {
 	return out << "DNARankBiDirRange(" << B.forw << "," << B.reco << "," << B.size << ")";
 }
