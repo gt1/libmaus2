@@ -20,7 +20,7 @@
 
 #include <libmaus2/huffman/RLDecoder.hpp>
 #include <libmaus2/rank/popcnt.hpp>
-#include <libmaus2/fm/BidirectionalIndexInterval.hpp>
+#include <libmaus2/rank/DNARankBiDirRange.hpp>
 #include <sstream>
 
 #include <libmaus2/random/Random.hpp>
@@ -458,6 +458,142 @@ namespace libmaus2
 				}
 			}
 
+			// this method assumes the index is based on a sequence ( S S^RC )
+			void backwardExtendBi(libmaus2::rank::DNARankBiDirRange I, libmaus2::rank::DNARankBiDirRange O[LIBMAUS2_RANK_DNARANK_SIGMA]) const
+			{
+				uint64_t R0[LIBMAUS2_RANK_DNARANK_SIGMA];
+				uint64_t R1[LIBMAUS2_RANK_DNARANK_SIGMA];
+
+				multiLF(I.forw,I.forw+I.size,&R0[0],&R1[0]);
+
+				uint64_t rs = 0;
+				for ( int64_t sym = LIBMAUS2_RANK_DNARANK_SIGMA-1; sym >= 0; --sym )
+				{
+					R1[sym] -= R0[sym];
+					O [sym] . forw = R0[sym];
+					O [sym] . size = R1[sym];
+					O [sym] . reco = I.reco + rs;
+					rs += R1 [sym];
+				}
+			}
+
+			// this method assumes the index is based on a sequence ( S S^RC )
+			libmaus2::rank::DNARankBiDirRange backwardExtendBi(libmaus2::rank::DNARankBiDirRange const & I, uint64_t const sym) const
+			{
+				std::pair<uint64_t,uint64_t> Psym;
+				singleSymbolLF(I.forw,I.forw+I.size,sym,Psym);
+
+				libmaus2::rank::DNARankBiDirRange R;
+				R.forw = Psym.first;
+				R.size = Psym.second-Psym.first;
+				R.reco = I.reco;
+
+				switch ( sym )
+				{
+					case 0:
+						// R.reco += (R1[1]-R0[1]);
+						R.reco += singleSymbolLFRange(I.forw,I.forw+I.size,1);
+					case 1:
+						// R.reco += (R1[2]-R0[2]);
+						R.reco += singleSymbolLFRange(I.forw,I.forw+I.size,2);
+					case 2:
+						// R.reco += (R1[3]-R0[3]);
+						R.reco += singleSymbolLFRange(I.forw,I.forw+I.size,3);
+					default:
+						break;
+				}
+
+				#if 0
+				libmaus2::rank::DNARankBiDirRange OO[LIBMAUS2_RANK_DNARANK_SIGMA];
+				backwardExtendBi(I,&OO[0]);
+				assert ( R == OO[sym] );
+				#endif
+
+				return R;
+			}
+
+			// this method assumes the index is based on a sequence ( S S^RC )
+			void forwardExtendBi(libmaus2::rank::DNARankBiDirRange I, libmaus2::rank::DNARankBiDirRange O[LIBMAUS2_RANK_DNARANK_SIGMA]) const
+			{
+				uint64_t R0[LIBMAUS2_RANK_DNARANK_SIGMA];
+				uint64_t R1[LIBMAUS2_RANK_DNARANK_SIGMA];
+
+				multiLF(I.reco,I.reco+I.size,&R0[0],&R1[0]);
+
+				uint64_t rs = 0;
+				for ( uint64_t sym = 0; sym < LIBMAUS2_RANK_DNARANK_SIGMA; ++sym )
+				{
+					uint64_t const rsym = sym ^ 3;
+					libmaus2::rank::DNARankBiDirRange & R = O[sym];
+
+					R.reco = R0[rsym];
+					R.size = R1[rsym]-R0[rsym];
+					R.forw = I.forw + rs;
+
+					rs += R1[rsym]-R0[rsym];
+				}
+			}
+
+			// this method assumes the index is based on a sequence ( S S^RC )
+			libmaus2::rank::DNARankBiDirRange forwardExtendBi(libmaus2::rank::DNARankBiDirRange I, uint64_t const sym) const
+			{
+				libmaus2::rank::DNARankBiDirRange R;
+				uint64_t const rsym = sym^3;
+
+				std::pair<uint64_t,uint64_t> Psym;
+				singleSymbolLF(I.reco,I.reco+I.size,rsym,Psym);
+
+				R.reco = Psym.first; // R0[rsym];
+				R.size = Psym.second-Psym.first; // R1[rsym]-R0[rsym];
+				R.forw = I.forw;
+
+				switch ( sym )
+				{
+					case 3:
+						R.forw += singleSymbolLFRange(I.reco,I.reco+I.size,1);
+					case 2:
+						R.forw += singleSymbolLFRange(I.reco,I.reco+I.size,2);
+					case 1:
+						R.forw += singleSymbolLFRange(I.reco,I.reco+I.size,3);
+					default:
+						break;
+				}
+
+				#if 0
+				libmaus2::rank::DNARankBiDirRange OO[LIBMAUS2_RANK_DNARANK_SIGMA];
+				forwardExtendBi(I,&OO[0]);
+				assert ( R == OO[sym] );
+				#endif
+
+				return R;
+			}
+
+			libmaus2::rank::DNARankBiDirRange epsilonBi() const
+			{
+				libmaus2::rank::DNARankBiDirRange R;
+				R.forw = R.reco = 0;
+				R.size = n;
+				return R;
+			}
+
+			template<typename iterator>
+			libmaus2::rank::DNARankBiDirRange backwardSearchBi(iterator it, uint64_t const n) const
+			{
+				libmaus2::rank::DNARankBiDirRange R = epsilonBi();
+				for ( uint64_t i = 0; i < n; ++i )
+					R = backwardExtendBi(R,it[n-i-1]);
+				return R;
+			}
+
+			template<typename iterator>
+			libmaus2::rank::DNARankBiDirRange forwardSearchBi(iterator it, uint64_t const n) const
+			{
+				libmaus2::rank::DNARankBiDirRange R = epsilonBi();
+				for ( uint64_t i = 0; i < n; ++i )
+					R = forwardExtendBi(R,it[i]);
+				return R;
+			}
+
 			template<typename lcp_iterator, typename queue_type, typename iterator_D>
 			inline uint64_t multiRankLCPSet(
 				uint64_t const l,
@@ -545,6 +681,20 @@ namespace libmaus2
 				return P;
 			}
 
+			void singleSymbolLF(uint64_t const l, uint64_t const r, unsigned int const sym, std::pair<uint64_t,uint64_t> & P) const
+			{
+				P.first = D[sym] + rankm(sym,l);
+				P.second = D[sym] + rankm(sym,r);
+			}
+
+			uint64_t singleSymbolLFRange(uint64_t const l, uint64_t const r, unsigned int const sym) const
+			{
+				return
+					(D[sym] + rankm(sym,r))
+					-
+					(D[sym] + rankm(sym,l));
+			}
+
 			bool hasExtension(uint64_t const l, uint64_t const r, unsigned int const sym) const
 			{
 				std::pair<uint64_t,uint64_t> const P = singleSymbolLF(l,r,sym);
@@ -627,14 +777,98 @@ namespace libmaus2
 
 				libmaus2::autoarray::AutoArray<libmaus2::autoarray::AutoArray<char > > AC(numthreads);
 				libmaus2::autoarray::AutoArray<libmaus2::autoarray::AutoArray<char > > AD(numthreads);
+				libmaus2::autoarray::AutoArray<libmaus2::autoarray::AutoArray<char > > AR(numthreads);
 
 				for ( uint64_t i = 0; i < numthreads; ++i )
 				{
 					AC[i].resize(k);
 					AD[i].resize(k);
+					AR[i].resize(k);
 				}
 
 				libmaus2::parallel::PosixSpinLock cerrlock;
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
+				#endif
+				for ( uint64_t z = 0; z < lim; ++z )
+				{
+					#if defined(_OPENMP)
+					unsigned int const tid = omp_get_thread_num();
+					#else
+					unsigned int const tid = 0;
+					#endif
+
+					char * const C = AC[tid].begin();
+					char * const D = AD[tid].begin();
+					char * const R = AR[tid].begin();
+
+					for ( unsigned int i = 0; i < k; ++i )
+					{
+						C[i] = (z >> (getLogSigma()*i)) & (getSigma()-1);
+						R[k-i-1] = C[i]^3;
+					}
+
+					std::pair<uint64_t,uint64_t> const PF = backwardSearch(C,k);
+					std::pair<uint64_t,uint64_t> const PR = backwardSearch(R,k);
+
+					libmaus2::rank::DNARankBiDirRange const P = backwardSearchBi(C,k);
+					libmaus2::rank::DNARankBiDirRange const FP = forwardSearchBi(C,k);
+
+					cerrlock.lock();
+					std::cerr << "checking Bidir ";
+					for ( uint64_t i = 0; i < k; ++i )
+						std::cerr << static_cast<int>(C[i]);
+					std::cerr << " ";
+					for ( uint64_t i = 0; i < k; ++i )
+						std::cerr << static_cast<int>(R[i]);
+					std::cerr << " [" << P.forw << "," << P.forw+P.size << ")" << " [" << P.reco << "," << P.reco + P.size << ")";
+					#if 0
+						<< " expect " << PR.first << "," << PR.second;
+					for ( uint64_t i = 0; i < LIBMAUS2_RANK_DNARANK_SIGMA; ++i )
+						std::cerr << " " << backwardExtend(PF,i).second-backwardExtend(PF,i).first;
+					#endif
+					std::cerr << std::endl;
+					cerrlock.unlock();
+
+					assert ( PF.first == P.forw );
+					assert ( PF.second == P.forw + P.size );
+					assert ( PR.first == P.reco );
+					assert ( PR.second == P.reco + P.size );
+					assert ( FP == P );
+
+					for ( uint64_t r = P.forw; r < P.forw+P.size; ++r )
+					{
+						decode(r,k,D);
+						assert ( memcmp(C,D,k) == 0 );
+					}
+					if ( P.forw )
+					{
+						decode(P.forw-1,k,D);
+						assert ( memcmp(C,D,k) != 0 );
+					}
+					if ( P.forw+P.size < n )
+					{
+						decode(P.forw+P.size,k,D);
+						assert ( memcmp(C,D,k) != 0 );
+					}
+
+					for ( uint64_t r = P.reco; r < P.reco+P.size; ++r )
+					{
+						decode(r,k,D);
+						assert ( memcmp(R,D,k) == 0 );
+					}
+					if ( P.reco )
+					{
+						decode(P.reco-1,k,D);
+						assert ( memcmp(R,D,k) != 0 );
+					}
+					if ( P.reco+P.size < n )
+					{
+						decode(P.reco+P.size,k,D);
+						assert ( memcmp(R,D,k) != 0 );
+					}
+				}
 
 				#if defined(_OPENMP)
 				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
