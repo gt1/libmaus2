@@ -1,3 +1,14 @@
+libmaus2 (2.0.190-1) unstable; urgency=medium
+
+  * add mem/smem computation in DNARank class
+  * add operator< in DNARankBiDirRange class
+  * add minlength parameter in NNPLocalAligner
+  * add bidirectional extension methods in DNARank class
+  * add operator== in DNARankBiDirRange
+  * add serialise/deserialise methods in BwtMergeSortOptions and BwtMergeSortResult
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 19 May 2016 18:03:45 +0200
+
 libmaus2 (2.0.189-1) unstable; urgency=medium
 
   * change index format in LFRankPosEncoder/Decoder to allow for more efficient rank lookups
