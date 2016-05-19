@@ -124,6 +124,9 @@ namespace libmaus2
 			// minimum score for a band to be considred
 			int64_t minbandscore;
 
+			// minimum alignment length on A read
+			int64_t minlength;
+
 			// aligner object
 			libmaus2::lcs::NNP nnp;
 			// trace container
@@ -161,7 +164,8 @@ namespace libmaus2
 				unsigned int const rbucketlog,
 				unsigned int const ranak,
 				uint64_t const rmaxmatches,
-				int64_t const rminbandscore
+				int64_t const rminbandscore,
+				int64_t const rminlength
 			)
 			:
 				bucketlog(rbucketlog),
@@ -172,6 +176,7 @@ namespace libmaus2
 				histlow(8*1024),
 				Ahistlow(histlow+1),
 				minbandscore(rminbandscore),
+				minlength(rminlength),
 				Q(1024),
 				alloccount(0)
 			{
@@ -1026,7 +1031,7 @@ namespace libmaus2
 
 						// std::cerr << algnres << " " << n << " " << m  << std::endl;
 
-						if ( algnres.aepos - algnres.abpos >= 50 )
+						if ( algnres.aepos - algnres.abpos >= minlength )
 						{
 							std::pair<int64_t,int64_t> DB = tracecontainer.getDiagonalBand(apos,bpos);
 							DB.first >>= bucketlog;

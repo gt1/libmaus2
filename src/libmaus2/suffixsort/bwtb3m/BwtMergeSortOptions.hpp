@@ -33,12 +33,12 @@ namespace libmaus2
 			struct BwtMergeSortOptions
 			{
 				enum bwt_merge_input_type {
-					bwt_merge_input_type_bytestream,
-					bwt_merge_input_type_compactstream,
-					bwt_merge_input_type_pac,
-					bwt_merge_input_type_pacterm,
-					bwt_merge_input_type_lz4,
-					bwt_merge_input_type_utf_8
+					bwt_merge_input_type_bytestream = 0,
+					bwt_merge_input_type_compactstream = 1,
+					bwt_merge_input_type_pac = 2,
+					bwt_merge_input_type_pacterm = 3,
+					bwt_merge_input_type_lz4 = 4,
+					bwt_merge_input_type_utf_8 = 5
 				};
 
 				uint64_t numthreads;
@@ -60,6 +60,54 @@ namespace libmaus2
 				bwt_merge_input_type inputtype;
 				uint64_t largelcpthres;
 				uint64_t verbose;
+
+				std::ostream & serialise(std::ostream & out) const
+				{
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,numthreads);
+					libmaus2::util::StringSerialisation::serialiseString(out,fn);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,wordsperthread);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,bwtonly);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,mem);
+					libmaus2::util::StringSerialisation::serialiseString(out,tmpfilenamebase);
+					libmaus2::util::StringSerialisation::serialiseString(out,sparsetmpfilenamebase);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,isasamplingrate);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,sasamplingrate);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,copyinputtomemory);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,computeTermSymbolHwt);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,maxblocksize);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,maxpreisasamplingrate);
+					libmaus2::util::StringSerialisation::serialiseString(out,defoutfn);
+					libmaus2::util::StringSerialisation::serialiseString(out,outfn);
+					libmaus2::util::StringSerialisation::serialiseString(out,sinputtype);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,static_cast<int>(inputtype));
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,largelcpthres);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,verbose);
+					return out;
+				}
+
+				std::istream & deserialise(std::istream & in)
+				{
+					numthreads = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					fn = libmaus2::util::StringSerialisation::deserialiseString(in);
+					wordsperthread = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					bwtonly = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					mem = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					tmpfilenamebase = libmaus2::util::StringSerialisation::deserialiseString(in);
+					sparsetmpfilenamebase = libmaus2::util::StringSerialisation::deserialiseString(in);
+					isasamplingrate = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					sasamplingrate = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					copyinputtomemory = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					computeTermSymbolHwt = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					maxblocksize = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					maxpreisasamplingrate = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					defoutfn = libmaus2::util::StringSerialisation::deserialiseString(in);
+					outfn = libmaus2::util::StringSerialisation::deserialiseString(in);
+					sinputtype = libmaus2::util::StringSerialisation::deserialiseString(in);
+					inputtype = static_cast<bwt_merge_input_type>(libmaus2::util::NumberSerialisation::deserialiseNumber(in));
+					largelcpthres = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					verbose = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					return in;
+				}
 
 				// parse input type from string form to enum
 				static bwt_merge_input_type parseInputType(std::string const & sinputtype)

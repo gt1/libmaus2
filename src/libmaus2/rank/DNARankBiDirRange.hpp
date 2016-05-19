@@ -37,6 +37,21 @@ namespace libmaus2
 				reco = rreco;
 				size = rsize;
 			}
+
+			bool operator==(DNARankBiDirRange const & O) const
+			{
+				return forw == O.forw && reco == O.reco && size == O.size;
+			}
+
+			bool operator<(DNARankBiDirRange const & O) const
+			{
+				if ( forw != O.forw )
+					return forw < O.forw;
+				else if ( reco != O.reco )
+					return reco < O.reco;
+				else
+					return size < O.size;
+			}
 		};
 
 		std::ostream & operator<<(std::ostream & out, DNARankBiDirRange const & B);
