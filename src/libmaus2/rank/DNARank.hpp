@@ -27,6 +27,9 @@
 #include <libmaus2/parallel/PosixSpinLock.hpp>
 
 #include <libmaus2/util/Queue.hpp>
+#include <libmaus2/util/PrefixSums.hpp>
+#include <libmaus2/sorting/InPlaceParallelSort.hpp>
+#include <libmaus2/bitio/BitVector.hpp>
 
 namespace libmaus2
 {
@@ -41,6 +44,11 @@ namespace libmaus2
 			DNARankMEM()
 			{
 
+			}
+
+			uint64_t diam() const
+			{
+				return right-left;
 			}
 
 			DNARankMEM(libmaus2::rank::DNARankBiDirRange const & rintv, uint64_t const rleft, uint64_t const rright)
@@ -67,6 +75,24 @@ namespace libmaus2
 				else
 					return true;
 			}
+
+			bool operator!=(DNARankMEM const & O) const
+			{
+				return !operator==(O);
+			}
+		};
+
+		struct DNARankMEMPosComparator
+		{
+			bool operator()(DNARankMEM const & A, DNARankMEM const & B) const
+			{
+				if ( A.left != B.left )
+					return A.left < B.left;
+				else if ( A.right != B.right )
+					return A.right < B.right;
+				else
+					return A.intv < B.intv;
+			}
 		};
 
 		inline std::ostream & operator<<(std::ostream & out, DNARankMEM const & D)
@@ -76,80 +102,128 @@ namespace libmaus2
 
 		struct DNARankSMEMContext
 		{
+			typedef DNARankSMEMContext this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+
+			//typedef std::vector < std::pair< libmaus2::rank::DNARankBiDirRange, uint64_t > >::const_iterator prev_iterator;
+			typedef std::pair< libmaus2::rank::DNARankBiDirRange, uint64_t > const * prev_iterator;
+			// typedef std::vector < DNARankMEM > match_container_type;
+			typedef libmaus2::autoarray::AutoArray < DNARankMEM > match_container_type;
+			// typedef match_container_type::const_iterator match_iterator;
+			typedef DNARankMEM const * match_iterator;
+
 			private:
-			std::vector < std::pair< libmaus2::rank::DNARankBiDirRange, uint64_t > > Vcur;
-			std::vector < std::pair< libmaus2::rank::DNARankBiDirRange, uint64_t > > Vprev;
-			std::vector < DNARankMEM > Vmatch;
+			//std::vector < std::pair< libmaus2::rank::DNARankBiDirRange, uint64_t > > Vcur;
+			libmaus2::autoarray::AutoArray< std::pair< libmaus2::rank::DNARankBiDirRange, uint64_t > > Acur;
+			uint64_t ocur;
+			//std::vector < std::pair< libmaus2::rank::DNARankBiDirRange, uint64_t > > Vprev;
+			libmaus2::autoarray::AutoArray< std::pair< libmaus2::rank::DNARankBiDirRange, uint64_t > > Aprev;
+			uint64_t oprev;
+			match_container_type Amatch;
+			uint64_t omatch;
 
 			public:
-			typedef std::vector < std::pair< libmaus2::rank::DNARankBiDirRange, uint64_t > >::const_iterator prev_iterator;
-			typedef std::vector < DNARankMEM >::const_iterator match_iterator;
+			DNARankSMEMContext() : ocur(0), oprev(0), omatch(0)
+			{
+
+			}
+
+			match_container_type const & getMatches() const
+			{
+				//return Vmatch;
+				return Amatch;
+			}
+
+			uint64_t getNumMatches() const
+			{
+				//return Vmatch.size();
+				return omatch;
+			}
 
 			prev_iterator pbegin() const
 			{
-				return Vprev.begin();
+				//return Vprev.begin();
+				return Aprev.begin();
 			}
 
 			prev_iterator pend() const
 			{
-				return Vprev.end();
+				//return Vprev.end();
+				return Aprev.begin()+oprev;
 			}
 
 			match_iterator mbegin() const
 			{
-				return Vmatch.begin();
+				//return Vmatch.begin();
+				return Amatch.begin();
 			}
 
 			match_iterator mend() const
 			{
-				return Vmatch.end();
+				//return Vmatch.end();
+				return Amatch.begin()+omatch;
 			}
 
 			void reset()
 			{
-				Vcur.resize(0);
-				Vprev.resize(0);
-				Vmatch.resize(0);
+				//Vcur.resize(0);
+				//Vprev.resize(0);
+				ocur = 0;
+				oprev = 0;
 			}
 
 			void resetCur()
 			{
-				Vcur.resize(0);
+				//Vcur.resize(0);
+				ocur = 0;
 			}
 
 			void reverseCur()
 			{
-				std::reverse(Vcur.begin(),Vcur.end());
+				//std::reverse(Vcur.begin(),Vcur.end());
+				std::reverse(Acur.begin(),Acur.begin()+ocur);
 			}
 
-			void reverseMatch()
+			void resetMatch()
 			{
-				std::reverse(Vmatch.begin(),Vmatch.end());
+				//Vmatch.resize(0);
+				omatch = 0;
+			}
+
+			void reverseMatch(uint64_t const start)
+			{
+				std::reverse(Amatch.begin()+start,Amatch.begin()+omatch);
 			}
 
 			void pushCur(std::pair< libmaus2::rank::DNARankBiDirRange, uint64_t > const & I)
 			{
-				Vcur.push_back(I);
+				//Vcur.push_back(I);
+				Acur.push(ocur,I);
 			}
 
 			void pushMatch(DNARankMEM const & I)
 			{
-				Vmatch.push_back(I);
+				//Vmatch.push_back(I);
+				Amatch.push(omatch,I);
 			}
 
 			void swapCurPrev()
 			{
-				Vcur.swap(Vprev);
+				// Vcur.swap(Vprev);
+				Acur.swap(Aprev);
+				std::swap(ocur,oprev);
 			}
 
 			bool curEmpty() const
 			{
-				return Vcur.empty();
+				//return Vcur.empty();
+				return ocur == 0;
 			}
 
 			bool prevEmpty() const
 			{
-				return Vprev.empty();
+				//return Vprev.empty();
+				return oprev == 0;
 			}
 		};
 
@@ -735,6 +809,7 @@ namespace libmaus2
 				uint64_t const right,
 				uint64_t const i0,
 				uint64_t const minfreq,
+				uint64_t const minlen,
 				std::vector<DNARankMEM> & Vmem
 				) const
 			{
@@ -781,7 +856,10 @@ namespace libmaus2
 						libmaus2::rank::DNARankBiDirRange IP = backwardExtendBi(P.first,it[ip]);
 
 						if ( IP.size != P.first.size )
-							Vmem.push_back(DNARankMEM(P.first,ip+1,P.second));
+						{
+							if ( static_cast<int64_t>(P.second)-(ip+1) >= minlen )
+								Vmem.push_back(DNARankMEM(P.first,ip+1,P.second));
+						}
 						if ( IP.size >= minfreq )
 							Vnext.push_back(std::pair<libmaus2::rank::DNARankBiDirRange,uint64_t>(IP,P.second));
 					}
@@ -793,7 +871,10 @@ namespace libmaus2
 				{
 					std::pair<libmaus2::rank::DNARankBiDirRange,uint64_t> const & P = Vcur[i];
 					if ( P.first.size >= minfreq )
-						Vmem.push_back(DNARankMEM(P.first,ip+1,P.second));
+					{
+						if ( static_cast<int64_t>(P.second)-(ip+1) >= minlen )
+							Vmem.push_back(DNARankMEM(P.first,ip+1,P.second));
+					}
 				}
 			}
 
@@ -804,11 +885,12 @@ namespace libmaus2
 				uint64_t const right,
 				uint64_t const i0,
 				uint64_t const minfreq,
+				uint64_t const minlen,
 				std::vector<DNARankMEM> & Vmem
 				) const
 			{
 				Vmem.resize(0);
-				mem(it,left,right,i0,minfreq,Vmem);
+				mem(it,left,right,i0,minfreq,minlen,Vmem);
 				std::sort(Vmem.begin(),Vmem.end(),DNARankMEMContComp());
 
 				// remove contained mems
@@ -827,17 +909,20 @@ namespace libmaus2
 			}
 
 			template<typename iterator>
-			void smem(
+			uint64_t smem(
 				iterator it,
 				uint64_t const left,
 				uint64_t const right,
 				uint64_t const i0,
 				uint64_t const minfreq,
+				uint64_t const minlen,
 				DNARankSMEMContext & context
 			) const
 			{
 				assert ( i0 >= left );
 				assert ( i0 < right );
+
+				uint64_t const startmatch = context.getNumMatches();
 
 				// initialise with centre symbol at position i0
 				libmaus2::rank::DNARankBiDirRange I = backwardExtendBi(epsilonBi(),it[i0]);
@@ -904,7 +989,8 @@ namespace libmaus2
 							if ( ! matchadded )
 							{
 								matchadded = true;
-								context.pushMatch(DNARankMEM(Iprev.first,ip+1,Iprev.second));
+								if ( static_cast<int64_t>(Iprev.second) - (ip+1) >= static_cast<int64_t>(minlen) )
+									context.pushMatch(DNARankMEM(Iprev.first,ip+1,Iprev.second));
 							}
 						}
 						// otherwise if extension on the left is not empty
@@ -934,10 +1020,417 @@ namespace libmaus2
 				{
 					std::pair< libmaus2::rank::DNARankBiDirRange, uint64_t > const & Iprev = *(context.pbegin());
 					// put the longest match on the match list
-					context.pushMatch(DNARankMEM(Iprev.first,ip+1,Iprev.second));
+					if ( static_cast<int64_t>(Iprev.second) - (ip+1) >= static_cast<int64_t>(minlen) )
+						context.pushMatch(DNARankMEM(Iprev.first,ip+1,Iprev.second));
 				}
 
-				context.reverseMatch();
+				context.reverseMatch(startmatch);
+
+				return context.getNumMatches() - startmatch;
+			}
+
+			template<typename iterator>
+			void smemSerial(
+				iterator it,
+				uint64_t const left,
+				uint64_t const right,
+				// uint64_t const i0,
+				uint64_t const minfreq,
+				uint64_t const minlen,
+				DNARankSMEMContext & context
+			) const
+			{
+				context.resetMatch();
+				for ( uint64_t i0 = left; i0 < right; ++i0 )
+					smem(it,left,right,i0,minfreq,minlen,context);
+			}
+
+			template<typename iterator>
+			void smemParallel(
+				iterator it,
+				uint64_t const left,
+				uint64_t const right,
+				uint64_t const minfreq,
+				uint64_t const minlen,
+				std::vector<DNARankMEM> & SMEM,
+				uint64_t const numthreads
+			) const
+			{
+				uint64_t const packsperthread = 16;
+				uint64_t const tpacks = packsperthread * numthreads;
+
+				uint64_t const posperthread = std::min(static_cast<uint64_t>(64*1024),(right-left + tpacks-1)/tpacks);
+				uint64_t const numpack = (right-left) ? ((right-left+posperthread-1)/posperthread) : 0;
+
+				libmaus2::autoarray::AutoArray<DNARankSMEMContext::unique_ptr_type> Acontext(numthreads);
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
+				for ( uint64_t t = 0; t < numthreads; ++t )
+				{
+					DNARankSMEMContext::unique_ptr_type Pcontext(new DNARankSMEMContext);
+					Acontext[t] = UNIQUE_PTR_MOVE(Pcontext);
+				}
+
+				uint64_t volatile gdone = 0;
+				libmaus2::parallel::PosixSpinLock gdonelock;
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
+				#endif
+				for ( uint64_t t = 0; t < numpack; ++t )
+				{
+					uint64_t const tlow = left + t*posperthread;
+					uint64_t const thigh = std::min(tlow+posperthread,right);
+
+					#if defined(_OPENMP)
+					uint64_t const tid = omp_get_thread_num();
+					#else
+					uint64_t const tid = 0;
+					#endif
+
+					DNARankSMEMContext & context = *(Acontext[tid]);
+
+					uint64_t const bs = 64*1024ull;
+					uint64_t const numblocks = (thigh-tlow+bs-1)/bs;
+
+					for ( uint64_t b = 0; b < numblocks; ++b )
+					{
+						uint64_t const blow = tlow + b * bs;
+						uint64_t const bhigh = std::min(blow+bs,thigh);
+
+						for ( uint64_t i0 = blow; i0 < bhigh; ++i0 )
+							smem(it,left,right,i0,minfreq,minlen,context);
+
+						gdonelock.lock();
+						gdone += (bhigh-blow);
+
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							std::cerr << gdone << "/" << (right-left) << "\t" << static_cast<double>(gdone) / (right-left) << std::endl;
+						}
+
+						gdonelock.unlock();
+					}
+				}
+
+				std::vector<uint64_t> Vnummatches(Acontext.size());
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
+				for ( uint64_t i = 0; i < Acontext.size(); ++i )
+					Vnummatches[i] = Acontext[i]->getNumMatches();
+
+				uint64_t const sum = libmaus2::util::PrefixSums::prefixSums(Vnummatches.begin(),Vnummatches.end());
+
+				SMEM.resize(sum);
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
+				for ( uint64_t i = 0; i < Acontext.size(); ++i )
+				{
+					std::copy(
+						Acontext[i]->mbegin(),
+						Acontext[i]->mend(),
+						SMEM.begin() + Vnummatches[i]
+					);
+					Acontext[i].reset();
+				}
+
+				libmaus2::sorting::InPlaceParallelSort::inplacesort2(SMEM.begin(),SMEM.end(),numthreads,DNARankMEMPosComparator());
+
+				#if 0
+				libmaus2::bitio::BitVector BV(SMEM.size());
+				if ( SMEM.size() )
+					BV.setSync(0);
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
+				for ( uint64_t i = 1; i < SMEM.size(); ++i )
+					if ( SMEM[i-1] != SMEM[i] )
+						BV.setSync(i);
+				#endif
+
+				uint64_t o = SMEM.size() ? 1 : 0;
+				for ( uint64_t i = 1; i < SMEM.size(); ++i )
+					if ( SMEM[i] != SMEM[i-1] )
+						SMEM[o++] = SMEM[i];
+				SMEM.resize(o);
+			}
+
+			template<typename iterator>
+			void smemLimitedParallel(
+				iterator it,
+				uint64_t const left,
+				uint64_t const right,
+				uint64_t const minfreq,
+				uint64_t const minlen,
+				uint64_t const limit,
+				std::vector<DNARankMEM> & SMEM,
+				uint64_t const numthreads
+			) const
+			{
+				uint64_t const packsperthread = 16;
+				uint64_t const tpacks = packsperthread * numthreads;
+
+				uint64_t const posperthread = std::min(static_cast<uint64_t>(64*1024), (right-left + tpacks-1)/tpacks);
+				uint64_t const numpack = (right-left) ? ((right-left+posperthread-1)/posperthread) : 0;
+
+				libmaus2::autoarray::AutoArray<DNARankSMEMContext::unique_ptr_type> Acontext(numthreads);
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
+				for ( uint64_t t = 0; t < numthreads; ++t )
+				{
+					DNARankSMEMContext::unique_ptr_type Pcontext(new DNARankSMEMContext);
+					Acontext[t] = UNIQUE_PTR_MOVE(Pcontext);
+				}
+
+				uint64_t volatile gdone = 0;
+				uint64_t volatile lp = std::numeric_limits<uint64_t>::max();
+				libmaus2::parallel::PosixSpinLock gdonelock;
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
+				#endif
+				for ( uint64_t t = 0; t < numpack; ++t )
+				{
+					uint64_t const tlow = left + t*posperthread;
+					uint64_t const thigh = std::min(tlow+posperthread,right);
+
+					#if defined(_OPENMP)
+					uint64_t const tid = omp_get_thread_num();
+					#else
+					uint64_t const tid = 0;
+					#endif
+
+					DNARankSMEMContext & context = *(Acontext[tid]);
+
+					uint64_t const bs = 64*1024ull;
+					uint64_t const numblocks = (thigh-tlow+bs-1)/bs;
+
+					for ( uint64_t b = 0; b < numblocks; ++b )
+					{
+						uint64_t const blow = tlow + b * bs;
+						uint64_t const bhigh = std::min(blow+bs,thigh);
+
+						if ( blow >= left+limit && bhigh+limit <= right )
+							for ( uint64_t i0 = blow; i0 < bhigh; ++i0 )
+								smem(it,i0-limit,i0+limit,i0,minfreq,minlen,context);
+						else if ( blow >= left+limit )
+							for ( uint64_t i0 = blow; i0 < bhigh; ++i0 )
+								smem(it,i0-limit,right,i0,minfreq,minlen,context);
+						else if ( bhigh+limit <= right )
+							for ( uint64_t i0 = blow; i0 < bhigh; ++i0 )
+								smem(it,left,i0+limit,i0,minfreq,minlen,context);
+						else
+							for ( uint64_t i0 = blow; i0 < bhigh; ++i0 )
+								smem(it,left,right,i0,minfreq,minlen,context);
+
+						gdonelock.lock();
+						gdone += (bhigh-blow);
+
+						if ( gdone >> 20 != lp >> 20 )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							std::cerr << gdone << "/" << (right-left) << "\t" << static_cast<double>(gdone) / (right-left) << std::endl;
+							lp = gdone;
+						}
+
+						gdonelock.unlock();
+					}
+				}
+
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					std::cerr << gdone << "/" << (right-left) << "\t" << static_cast<double>(gdone) / (right-left) << std::endl;
+				}
+
+				std::vector<uint64_t> Vnummatches(Acontext.size());
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
+				for ( uint64_t i = 0; i < Acontext.size(); ++i )
+					Vnummatches[i] = Acontext[i]->getNumMatches();
+
+				uint64_t const sum = libmaus2::util::PrefixSums::prefixSums(Vnummatches.begin(),Vnummatches.end());
+
+				SMEM.resize(sum);
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
+				for ( uint64_t i = 0; i < Acontext.size(); ++i )
+				{
+					std::copy(
+						Acontext[i]->mbegin(),
+						Acontext[i]->mend(),
+						SMEM.begin() + Vnummatches[i]
+					);
+					Acontext[i].reset();
+				}
+
+				libmaus2::sorting::InPlaceParallelSort::inplacesort2(SMEM.begin(),SMEM.end(),numthreads,DNARankMEMPosComparator());
+
+				#if 0
+				libmaus2::bitio::BitVector BV(SMEM.size());
+				if ( SMEM.size() )
+					BV.setSync(0);
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
+				for ( uint64_t i = 1; i < SMEM.size(); ++i )
+					if ( SMEM[i-1] != SMEM[i] )
+						BV.setSync(i);
+				#endif
+
+				uint64_t o = SMEM.size() ? 1 : 0;
+				for ( uint64_t i = 1; i < SMEM.size(); ++i )
+					if ( SMEM[i] != SMEM[i-1] )
+						SMEM[o++] = SMEM[i];
+				SMEM.resize(o);
+			}
+
+			template<typename iterator>
+			void smemLimitedParallelSplit(
+				iterator it,
+				uint64_t const left,
+				uint64_t const right,
+				uint64_t const minlen,
+				uint64_t const limit,
+				uint64_t const minsplitlength,
+				uint64_t const minsplitsize,
+				std::vector<DNARankMEM> const & SMEMin,
+				std::vector<DNARankMEM> & SMEMout,
+				uint64_t const numthreads
+			) const
+			{
+				uint64_t const packsperthread = 16;
+				uint64_t const tpacks = packsperthread * numthreads;
+
+				uint64_t const posperthread = std::min(static_cast<uint64_t>(64*1024), (SMEMin.size()+tpacks-1)/tpacks);
+				uint64_t const numpack = (SMEMin.size()) ? ((SMEMin.size()+posperthread-1)/posperthread) : 0;
+
+				libmaus2::autoarray::AutoArray<DNARankSMEMContext::unique_ptr_type> Acontext(numthreads);
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
+				for ( uint64_t t = 0; t < numthreads; ++t )
+				{
+					DNARankSMEMContext::unique_ptr_type Pcontext(new DNARankSMEMContext);
+					Acontext[t] = UNIQUE_PTR_MOVE(Pcontext);
+				}
+
+				uint64_t volatile gdone = 0;
+				uint64_t volatile lp = std::numeric_limits<uint64_t>::max();
+				libmaus2::parallel::PosixSpinLock gdonelock;
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
+				#endif
+				for ( uint64_t t = 0; t < numpack; ++t )
+				{
+					uint64_t const tlow = t*posperthread;
+					uint64_t const thigh = std::min(tlow+posperthread,SMEMin.size());
+
+					#if defined(_OPENMP)
+					uint64_t const tid = omp_get_thread_num();
+					#else
+					uint64_t const tid = 0;
+					#endif
+
+					DNARankSMEMContext & context = *(Acontext[tid]);
+
+					uint64_t const bs = 64*1024ull;
+					uint64_t const numblocks = (thigh-tlow+bs-1)/bs;
+
+					for ( uint64_t b = 0; b < numblocks; ++b )
+					{
+						uint64_t const blow = tlow + b * bs;
+						uint64_t const bhigh = std::min(blow+bs,thigh);
+
+						for ( uint64_t i = blow; i < bhigh; ++i )
+						{
+							DNARankMEM const & in = SMEMin[i];
+							uint64_t const sleft = in.left;
+							uint64_t const sright = in.right;
+							uint64_t const sdiam = in.right-in.left;
+
+							if ( sdiam >= minsplitlength && in.intv.size <= minsplitsize )
+							{
+								uint64_t const scentre = (sleft+sright)>>1;
+
+								uint64_t const bleft =
+									std::max(
+										static_cast<int64_t>(left),
+										static_cast<int64_t>(scentre)-static_cast<int64_t>(limit)
+									);
+								uint64_t const bright =
+									std::min(
+										right,
+										scentre+limit
+									);
+
+								smem(it,bleft,bright,(sleft+sright)>>1,in.intv.size+1,minlen,context);
+							}
+						}
+
+						gdonelock.lock();
+						gdone += (bhigh-blow);
+
+						if ( gdone >> 20 != lp >> 20 )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							std::cerr << gdone << "/" << (SMEMin.size()) << "\t" << static_cast<double>(gdone) / (SMEMin.size()) << std::endl;
+							lp = gdone;
+						}
+
+						gdonelock.unlock();
+					}
+				}
+
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					std::cerr << gdone << "/" << (SMEMin.size()) << "\t" << static_cast<double>(gdone) / (SMEMin.size()) << std::endl;
+				}
+
+				std::vector<uint64_t> Vnummatches(Acontext.size());
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
+				for ( uint64_t i = 0; i < Acontext.size(); ++i )
+					Vnummatches[i] = Acontext[i]->getNumMatches();
+
+				uint64_t const sum = libmaus2::util::PrefixSums::prefixSums(Vnummatches.begin(),Vnummatches.end());
+
+				SMEMout.resize(sum);
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads)
+				#endif
+				for ( uint64_t i = 0; i < Acontext.size(); ++i )
+				{
+					std::copy(
+						Acontext[i]->mbegin(),
+						Acontext[i]->mend(),
+						SMEMout.begin() + Vnummatches[i]
+					);
+					Acontext[i].reset();
+				}
+
+				libmaus2::sorting::InPlaceParallelSort::inplacesort2(SMEMout.begin(),SMEMout.end(),numthreads,DNARankMEMPosComparator());
+
+				uint64_t o = SMEMout.size() ? 1 : 0;
+				for ( uint64_t i = 1; i < SMEMout.size(); ++i )
+					if ( SMEMout[i] != SMEMout[i-1] )
+						SMEMout[o++] = SMEMout[i];
+				SMEMout.resize(o);
 			}
 
 			template<typename lcp_iterator, typename queue_type, typename iterator_D>
@@ -1163,9 +1656,10 @@ namespace libmaus2
 					libmaus2::rank::DNARankBiDirRange const FP = forwardSearchBi(C,k);
 
 					uint64_t const minfreq = 2;
+					uint64_t const minlen = 5;
 
 					std::vector<DNARankMEM> Vmems;
-					mems(C,0,k,k/2,minfreq /* minfreq */,Vmems);
+					mems(C,0,k,k/2,minfreq /* minfreq */,minlen,Vmems);
 
 					#if 0
 					std::vector<DNARankMEM> Vmem;
@@ -1173,7 +1667,7 @@ namespace libmaus2
 					#endif
 
 					DNARankSMEMContext smemcontext;
-					smem(C,0,k,k/2,minfreq/* min freq */,smemcontext);
+					smem(C,0,k,k/2,minfreq/* min freq */,minlen,smemcontext);
 
 					std::vector < DNARankMEM > V_smem;
 					for ( DNARankSMEMContext::match_iterator ita = smemcontext.mbegin(); ita != smemcontext.mend(); ++ita )

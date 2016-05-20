@@ -100,6 +100,7 @@ void testBlockSwap()
 	}
 }
 
+#if 0
 void testblockmerge()
 {
 	uint32_t A[256];
@@ -137,6 +138,7 @@ void testblockmerge()
 		std::cerr << "A[" << i << "]=" << A[i] << std::endl;
 	#endif
 }
+#endif
 
 void testinplacesort()
 {
@@ -753,7 +755,7 @@ int main()
 	testMultiSort();
 	testBlockSwapDifferent();
 	testBlockSwap();
-	testblockmerge();
+	//testblockmerge();
 	//testinplacesort();
 	testinplacesort2();
 }
