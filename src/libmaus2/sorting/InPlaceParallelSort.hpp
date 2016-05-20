@@ -435,6 +435,7 @@ namespace libmaus2
 				basesort.flush();
 			}
 
+			#if 0
 			template<typename iterator, typename base_sort>
 			static void mergestep(iterator p, uint64_t const s, uint64_t const t, base_sort & basesort, uint64_t const numthreads)
 			{
@@ -443,6 +444,7 @@ namespace libmaus2
 				mergestepRec<iterator,order_type>(p,s,t,order_type(),basesort,numthreads);
 				basesort.flush();
 			}
+			#endif
 
 			struct TrivialBaseSort
 			{
@@ -672,6 +674,13 @@ namespace libmaus2
 				typedef std::less<value_type> order_type;
 				FixedSizeBaseSort basesort(512*1024);
 				inplacesort2(a,e,order_type(),basesort,numthreads);
+			}
+
+			template<typename iterator, typename order_type>
+			static void inplacesort2(iterator a, iterator e, uint64_t const numthreads, order_type order)
+			{
+				FixedSizeBaseSort basesort(512*1024);
+				inplacesort2(a,e,order,basesort,numthreads);
 			}
 
 		};
