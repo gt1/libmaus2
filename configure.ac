@@ -47,6 +47,27 @@ if test \( ${HOSTCPUISX86_64} = "yes" \) -a \( ${HOSTOSISGNULINUX} = "yes"  \) ;
 fi
 AC_MSG_RESULT([${HOSTISX86_64GNULINUX}])
 
+if test "${HOSTISX86_64GNULINUX}" = "yes" ; then
+	AC_ARG_ENABLE(native,
+		AS_HELP_STRING([--enable-native],[use compiler flags suitable for running on build platform (default no)]),
+		[nativegcc=${enableval}],[nativegcc=no])
+	if test "${nativegcc}" = "yes" ; then
+		AC_MSG_CHECKING([whether we can compile a program -march=native])
+		AC_LANG_PUSH([C++])
+		CXXFLAGS_SAVE="${CXXFLAGS}"
+		CXXFLAGS="-march=native"
+		AC_TRY_LINK([],[return 0;],[have_native_gcc=yes],[have_native_gcc=no])
+		AC_MSG_RESULT([${have_native_gcc}])
+		CXXFLAGS="${CXXFLAGS_SAVE}"
+		AC_LANG_POP
+
+		if test "${have_native_gcc}" = "yes" ; then
+			CXXFLAGS="${CXXFLAGS} -march=native"
+			CFLAGS="${CFLAGS} -march=native"
+		fi
+	fi
+fi
+
 YASMEXE=
 DIGESTASMOBJ=
 LIBMAUS2_HAVE_SHA2_ASSEMBLY=
