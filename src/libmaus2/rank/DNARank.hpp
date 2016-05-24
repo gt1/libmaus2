@@ -1336,7 +1336,7 @@ namespace libmaus2
 				for ( uint64_t t = 0; t < numpack; ++t )
 				{
 					uint64_t const tlow = t*posperthread;
-					uint64_t const thigh = std::min(tlow+posperthread,SMEMin.size());
+					uint64_t const thigh = std::min(tlow+posperthread,static_cast<uint64_t>(SMEMin.size()));
 
 					#if defined(_OPENMP)
 					uint64_t const tid = omp_get_thread_num();

@@ -89,6 +89,16 @@ namespace libmaus2
 				}
 			}
 
+			void pushBump(element_type const & entry)
+			{
+				if ( expect_false(full()) )
+				{
+					ensureSize(std::max(2*f,static_cast<size_t>(1)));
+					assert ( ! full() );
+				}
+				push(entry);
+			}
+
 			void push(element_type const & entry)
 			{
 				size_t i = f++;

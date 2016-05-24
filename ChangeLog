@@ -1,3 +1,12 @@
+libmaus2 (2.0.192-1) unstable; urgency=medium
+
+  * add chain method in SplayTree class
+  * add --enable-native switch for configure
+  * add pushBump method in FiniteSizeHeap
+  * add loadBareSimpleSuffixArray method in BwtMergeSortResult class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 24 May 2016 13:25:55 +0200
+
 libmaus2 (2.0.191-1) unstable; urgency=medium
 
   * add smem method variants in DNARank
