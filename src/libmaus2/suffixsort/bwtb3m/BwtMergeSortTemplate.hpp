@@ -4982,6 +4982,9 @@ namespace libmaus2
 						);
 
 						libmaus2::aio::FileRemoval::removeFile(mergedisaname);
+
+						for ( uint64_t i = 0; i < mergeresult.getFiles().getSampledISAVector().size(); ++i )
+							libmaus2::aio::FileRemoval::removeFile(mergeresult.getFiles().getSampledISAVector()[i]);
 					}
 
 					::libmaus2::aio::FileRemoval::removeFile(chistfilename);
