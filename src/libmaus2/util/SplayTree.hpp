@@ -778,6 +778,52 @@ namespace libmaus2
 					return parent;
 				}
 			}
+
+			node_id_type chain(key_type const & key)
+			{
+				// tree empty?
+				if ( root == -1 )
+					return -1;
+
+				// parent of node
+				node_id_type parent = -1;
+				// current node
+				node_id_type node = root;
+
+				// follow path to key
+				while ( node != -1 )
+				{
+					parent = node;
+					key_type const & ref = getKey(node);
+
+					if ( comparator(key,ref) ) // key < ref? go left
+						node = getLeft(node);
+					else if ( comparator(ref,key) ) // key > ref? go right
+						node = getRight(node);
+					// found key
+					else
+					{
+						splayUp(node);
+						return node;
+					}
+				}
+
+				assert ( node == -1 );
+
+				while ( parent != -1 )
+				{
+					// node < key
+					if ( comparator(getKey(parent),key) )
+					{
+						splayUp(parent);
+						return parent;
+					}
+
+					parent = getParent(parent);
+				}
+
+				return -1;
+			}
 		};
 	}
 }
