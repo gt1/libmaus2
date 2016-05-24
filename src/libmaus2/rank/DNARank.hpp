@@ -1838,7 +1838,7 @@ namespace libmaus2
 				return (w >> (getLogSigma()*i)) & (getSigma()-1);
 			}
 
-			std::pair<uint64_t,uint64_t> simpleLFUntilMask(uint64_t r, uint64_t const mask)
+			std::pair<uint64_t,uint64_t> simpleLFUntilMask(uint64_t r, uint64_t const mask) const
 			{
 				uint64_t d = 0;
 				while ( r & mask )
