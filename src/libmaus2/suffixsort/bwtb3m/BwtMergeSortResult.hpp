@@ -127,6 +127,35 @@ namespace libmaus2
 					deserialise(fn);
 				}
 
+				struct BareSimpleSampledSuffixArray
+				{
+					uint64_t samplingrate;
+					libmaus2::autoarray::AutoArray<uint64_t> A;
+				};
+
+				BareSimpleSampledSuffixArray loadBareSimpleSuffixArray() const
+				{
+					if ( !safn.size() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::suffixsort::bwtb3m::BwtMergeSortResult::loadBareSimpleSuffixArray(): sampled suffix array has not been constructed" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					libmaus2::aio::InputStreamInstance ISI(safn);
+					typedef libmaus2::fm::SimpleSampledSA<libmaus2::lf::ImpCompactHuffmanWaveletLF> sa_type;
+					uint64_t s = 0;
+					uint64_t const samplingrate = sa_type::readUnsignedInt(ISI,s);
+					libmaus2::autoarray::AutoArray<uint64_t> SA(ISI);
+
+					BareSimpleSampledSuffixArray BSSSA;
+					BSSSA.samplingrate = samplingrate;
+					BSSSA.A = SA;
+
+					return BSSSA;
+				}
+
 				/**
 				 * Load a DNARank object from the run length encoded BWT. This requires the alphabet of the original text
 				 * to be a subset of 0,1,2,3
