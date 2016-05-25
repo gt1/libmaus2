@@ -1,3 +1,9 @@
+libmaus2 (2.0.194-1) unstable; urgency=medium
+
+  * add ComputeSuccinctLCPResult and PLCPBitDecoder classes
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 25 May 2016 11:11:30 +0200
+
 libmaus2 (2.0.193-1) unstable; urgency=medium
 
   * add const qualifier for simpleLFUntilMask method in DNARank class
