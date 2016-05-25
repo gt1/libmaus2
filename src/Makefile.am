@@ -1614,7 +1614,9 @@ libmaus2lcp_include_HEADERS=\
 	libmaus2/lcp/OracleLCP.hpp \
 	libmaus2/lcp/SuccinctLCP.hpp \
 	libmaus2/lcp/WaveletLCPResult.hpp \
-	libmaus2/lcp/WaveletLCP.hpp
+	libmaus2/lcp/WaveletLCP.hpp \
+	libmaus2/lcp/ComputeSuccinctLCPResult.hpp \
+	libmaus2/lcp/PLCPBitDecoder.hpp
 
 libmaus2random_includedir=$(includedir)/libmaus2/random
 libmaus2random_include_HEADERS=\
