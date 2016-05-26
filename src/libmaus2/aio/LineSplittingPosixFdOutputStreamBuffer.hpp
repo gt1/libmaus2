@@ -121,7 +121,7 @@ namespace libmaus2
 				openfilename = std::string();
 				written = 0;
 			}
-			
+
 			int doOpen()
 			{
 				std::string const filename = getFileName(fileno++);
@@ -281,7 +281,7 @@ namespace libmaus2
 
 				return fnostr.str();
 			}
-			
+
 			uint64_t getNumFiles() const
 			{
 				return fileno;
