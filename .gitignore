@@ -59,3 +59,4 @@ compile_clang_3_8_0.sh
 pull.sh
 trycompile.sh
 removespace.sh
+test-driver

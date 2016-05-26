@@ -1,0 +1,90 @@
+~/src/git/libmaus2/test ~/src/git/libmaus2/test
+~/src/git/libmaus2/test
++ configure_sh
++ configure_gz
++ base64 -d
++ gzip -d -c
++ cat
++ ../src/testAIO
+1
+a
+a
+1
+b
+b
+2
+c
+d
+---
+5
+c
+d
+e
+f
+g
+-----
+c
+d
+e
+f
+g
+---
+e
+d
+c
+b
+a
+---
+1
+2
+3
+4
+5
+***
+1
+2
+3
+4
+5
+1
+a
+a
+1
+b
+b
+2
+c
+d
+---
+5
+c
+d
+e
+f
+g
+-----
+c
+d
+e
+f
+g
+---
+e
+d
+c
+b
+a
+---
+1
+2
+3
+4
+5
+***
+1
+2
+3
+4
+5
++ rm -f configure
++ set +x

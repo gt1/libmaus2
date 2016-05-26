@@ -24,20 +24,33 @@
 
 #include <libmaus2/aio/AsynchronousBufferReader.hpp>
 #include <libmaus2/aio/AsynchronousWriter.hpp>
+
+#include <libmaus2/aio/FileRemoval.hpp>
+
+#include <libmaus2/aio/InputStreamInstance.hpp>
+
 #include <libmaus2/aio/LineSplittingPosixFdOutputStream.hpp>
 #include <libmaus2/aio/LinuxStreamingPosixFdOutputStream.hpp>
+
+#include <libmaus2/aio/MemoryFileContainer.hpp>
+#include <libmaus2/aio/MemoryInputOutputStream.hpp>
+#include <libmaus2/aio/MemoryInputStream.hpp>
+#include <libmaus2/aio/MemoryInputStreamBuffer.hpp>
+#include <libmaus2/aio/MemoryOutputStream.hpp>
+#include <libmaus2/aio/MemoryOutputStreamBuffer.hpp>
+
 #include <libmaus2/aio/PosixFdInputStream.hpp>
 #include <libmaus2/aio/PosixFdOutputStream.hpp>
+#include <libmaus2/aio/PosixFdInputOutputStream.hpp>
+
 #include <libmaus2/timing/RealTimeClock.hpp>
-#include <libmaus2/aio/InputStreamInstance.hpp>
+
+#include <libmaus2/util/ArgParser.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
 
 #include <vector>
 #include <map>
 #include <cmath>
-
-#include <libmaus2/aio/PosixFdInputOutputStream.hpp>
-
-#include <libmaus2/aio/InputStreamInstance.hpp>
 
 void testPosixFdInput()
 {
@@ -66,22 +79,22 @@ void testPosixFdInput()
 		assert ( p == A.size() );
 
 		// if ( (i & (1024-1)) == 0 )
-			std::cerr << "i=" << i << std::endl;
+		//	std::cerr << "i=" << i << std::endl;
 
 		if ( i == A.size() )
 			break;
 	}
 }
 
-#include <libmaus2/aio/MemoryFileContainer.hpp>
-#include <libmaus2/aio/MemoryInputOutputStream.hpp>
-#include <libmaus2/aio/MemoryOutputStream.hpp>
 
 template<typename stream_type, typename output_stream_type, typename input_stream_type>
 void testInputOutput()
 {
+	std::string const tmpfn = "testAIO.tmp";
+	libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfn);
+
 	{
-		stream_type PFIOS("t",std::ios::in|std::ios::out|std::ios::binary|std::ios::trunc);
+		stream_type PFIOS(tmpfn,std::ios::in|std::ios::out|std::ios::binary|std::ios::trunc);
 		PFIOS.put('a');
 		std::cerr << PFIOS.tellp() << std::endl;
 		PFIOS.seekg(0,std::ios::beg);
@@ -130,7 +143,7 @@ void testInputOutput()
 	std::cerr << "-----" << std::endl;
 
 	{
-		stream_type PFIOS("t",std::ios::in|std::ios::out|std::ios::binary);
+		stream_type PFIOS(tmpfn,std::ios::in|std::ios::out|std::ios::binary);
 
 		int c;
 		while ( (c=PFIOS.get()) != std::iostream::traits_type::eof() )
@@ -142,7 +155,7 @@ void testInputOutput()
 	std::cerr << std::string("---") << std::endl;
 
 	{
-		stream_type PFIOS("t",std::ios::in|std::ios::out|std::ios::binary);
+		stream_type PFIOS(tmpfn,std::ios::in|std::ios::out|std::ios::binary);
 
 		PFIOS.seekg(0,std::ios::end);
 
@@ -167,7 +180,7 @@ void testInputOutput()
 	std::cerr << std::string("---") << std::endl;
 
 	{
-		output_stream_type PFOS("t");
+		output_stream_type PFOS(tmpfn);
 		PFOS.put('1');
 		PFOS.put('2');
 		PFOS.put('3');
@@ -176,7 +189,7 @@ void testInputOutput()
 	}
 
 	{
-		stream_type PFIOS("t",std::ios::in|std::ios::out|std::ios::binary);
+		stream_type PFIOS(tmpfn,std::ios::in|std::ios::out|std::ios::binary);
 
 		int c;
 		while ( (c=PFIOS.get()) != std::iostream::traits_type::eof() )
@@ -188,7 +201,7 @@ void testInputOutput()
 	std::cerr << std::string("***") << std::endl;
 
 	{
-		input_stream_type PFIOS("t");
+		input_stream_type PFIOS(tmpfn);
 
 		int c;
 		while ( (c=PFIOS.get()) != std::iostream::traits_type::eof() )
@@ -198,165 +211,170 @@ void testInputOutput()
 	}
 }
 
-#include <libmaus2/aio/MemoryOutputStreamBuffer.hpp>
-#include <libmaus2/aio/MemoryInputStreamBuffer.hpp>
-#include <libmaus2/aio/MemoryInputStream.hpp>
-#include <libmaus2/aio/FileRemoval.hpp>
-
-int main(int argc, char * argv[])
+void testLineSplittingOutput()
 {
+	libmaus2::aio::LineSplittingPosixFdOutputStream LSOUT("split",4,32);
+	for ( uint64_t i = 0; i < 17; ++i )
 	{
-	libmaus2::aio::InputStreamInstance in("configure");
-	int c = -1;
-	while ( (c=in.get()) != std::istream::traits_type::eof() )
-		std::cout.put(c);
-
-	// return 0;
+		LSOUT << "line_" << i << "\n";
 	}
-
-	// testInputOutput<libmaus2::aio::PosixFdInputOutputStream>();
-	testInputOutput<libmaus2::aio::MemoryInputOutputStream,libmaus2::aio::MemoryOutputStream,libmaus2::aio::MemoryInputStream>();
-
-	return 0;
-
+	LSOUT.flush();
+	
+	std::vector<std::string> Vfn = LSOUT.getFileNames();
+	uint64_t j = 0;
+	for ( uint64_t i = 0; i < Vfn.size(); ++i )
 	{
-		libmaus2::aio::LineSplittingPosixFdOutputStream LSOUT("split",4,32);
-		for ( uint64_t i = 0; i < 17; ++i )
+		libmaus2::aio::InputStreamInstance ISI(Vfn[i]);
+		
+		for ( uint64_t k = 0; k < 4 && j < 17; ++k, ++j )
 		{
-			LSOUT << "line_" << i << "\n";
+			std::string line;
+			std::getline(ISI,line);
+			std::ostringstream ostr;
+			ostr << "line_" << j;
+			
+			// std::cerr << ostr.str() << " __ " << line << std::endl;
+			
+			assert ( ostr.str() == line );
 		}
+		
+		libmaus2::aio::FileRemoval::removeFile(Vfn[i]);
 	}
+}
 
+void testLineSplittingNoOutput()
+{
 	{
 		libmaus2::aio::LineSplittingPosixFdOutputStream LSOUT("nosplit",4,32);
 	}
 
+	assert ( !libmaus2::util::GetFileSize::fileExists("nosplit") );
+}
+
+void testPosixFdOverwrite()
+{
+	std::string const fn = "nonexistant.test.file";
+	std::string const text1 = "Hello world.";
+	std::string const text2 = "new text";
+
 	{
-		std::string const fn = "nonexistant.test.file";
-		std::string const text1 = "Hello world.";
-		std::string const text2 = "new text";
-
-		{
-			libmaus2::aio::PosixFdOutputStream PFOS(fn);
-			PFOS << text1;
-			PFOS.flush();
-		}
-
-		{
-			libmaus2::aio::InputStreamInstance CIS(fn);
-			libmaus2::autoarray::AutoArray<char> C(text1.size());
-			CIS.read(C.begin(),C.size());
-			assert ( CIS.get() < 0 );
-			assert ( strncmp ( text1.c_str(), C.begin(), C.size() ) == 0 );
-		}
-
-		{
-			libmaus2::aio::PosixFdOutputStream PFOS(fn);
-			PFOS << text2;
-			PFOS.flush();
-		}
-
-		{
-			libmaus2::aio::InputStreamInstance CIS(fn);
-			libmaus2::autoarray::AutoArray<char> C(text2.size());
-			CIS.read(C.begin(),C.size());
-			assert ( CIS.get() < 0 );
-			assert ( strncmp ( text2.c_str(), C.begin(), C.size() ) == 0 );
-		}
-
-		libmaus2::aio::FileRemoval::removeFile(fn);
+		libmaus2::aio::PosixFdOutputStream PFOS(fn);
+		PFOS << text1;
+		PFOS.flush();
 	}
 
 	{
-		std::string const fn = "nonexistant.test.file";
-		std::string const text1 = "Hello world.";
-		std::string const text2 = "new text";
-
-		{
-			libmaus2::aio::LinuxStreamingPosixFdOutputStream PFOS(fn);
-			PFOS << text1;
-			PFOS.flush();
-		}
-
-		{
-			libmaus2::aio::InputStreamInstance CIS(fn);
-			libmaus2::autoarray::AutoArray<char> C(text1.size());
-			CIS.read(C.begin(),C.size());
-			assert ( CIS.get() < 0 );
-			assert ( strncmp ( text1.c_str(), C.begin(), C.size() ) == 0 );
-		}
-
-		{
-			libmaus2::aio::LinuxStreamingPosixFdOutputStream PFOS(fn);
-			PFOS << text2;
-			PFOS.flush();
-		}
-
-		{
-			libmaus2::aio::InputStreamInstance CIS(fn);
-			libmaus2::autoarray::AutoArray<char> C(text2.size());
-			CIS.read(C.begin(),C.size());
-			assert ( CIS.get() < 0 );
-			assert ( strncmp ( text2.c_str(), C.begin(), C.size() ) == 0 );
-		}
-
-		libmaus2::aio::FileRemoval::removeFile(fn);
+		libmaus2::aio::InputStreamInstance CIS(fn);
+		libmaus2::autoarray::AutoArray<char> C(text1.size());
+		CIS.read(C.begin(),C.size());
+		assert ( CIS.get() < 0 );
+		assert ( strncmp ( text1.c_str(), C.begin(), C.size() ) == 0 );
 	}
 
-	// test putback buffer in PosixFdInputStream
 	{
-		std::string const fn = "configure";
-		uint64_t const fs = libmaus2::util::GetFileSize::getFileSize(fn);
-		libmaus2::autoarray::AutoArray<char> A(fs,false);
+		libmaus2::aio::PosixFdOutputStream PFOS(fn);
+		PFOS << text2;
+		PFOS.flush();
+	}
 
+	{
+		libmaus2::aio::InputStreamInstance CIS(fn);
+		libmaus2::autoarray::AutoArray<char> C(text2.size());
+		CIS.read(C.begin(),C.size());
+		assert ( CIS.get() < 0 );
+		assert ( strncmp ( text2.c_str(), C.begin(), C.size() ) == 0 );
+	}
+
+	libmaus2::aio::FileRemoval::removeFile(fn);
+}
+
+void testLinuxStreamingOverwrite()
+{
+	std::string const fn = "nonexistant.test.file";
+	std::string const text1 = "Hello world.";
+	std::string const text2 = "new text";
+
+	{
+		libmaus2::aio::LinuxStreamingPosixFdOutputStream PFOS(fn);
+		PFOS << text1;
+		PFOS.flush();
+	}
+
+	{
+		libmaus2::aio::InputStreamInstance CIS(fn);
+		libmaus2::autoarray::AutoArray<char> C(text1.size());
+		CIS.read(C.begin(),C.size());
+		assert ( CIS.get() < 0 );
+		assert ( strncmp ( text1.c_str(), C.begin(), C.size() ) == 0 );
+	}
+
+	{
+		libmaus2::aio::LinuxStreamingPosixFdOutputStream PFOS(fn);
+		PFOS << text2;
+		PFOS.flush();
+	}
+
+	{
+		libmaus2::aio::InputStreamInstance CIS(fn);
+		libmaus2::autoarray::AutoArray<char> C(text2.size());
+		CIS.read(C.begin(),C.size());
+		assert ( CIS.get() < 0 );
+		assert ( strncmp ( text2.c_str(), C.begin(), C.size() ) == 0 );
+	}
+
+	libmaus2::aio::FileRemoval::removeFile(fn);
+}
+
+void testPutBack()
+{
+	std::string const fn = "configure";
+	uint64_t const fs = libmaus2::util::GetFileSize::getFileSize(fn);
+	libmaus2::autoarray::AutoArray<char> A(fs,false);
+
+	{
+		libmaus2::aio::InputStreamInstance CIS(fn);
+		CIS.read(A.begin(),fs);
+	}
+
+	uint64_t const putbacksize = 2048;
+
+	if ( fs >= putbacksize )
+	{
+		libmaus2::aio::PosixFdInputStream PFIS(fn,64*1024,putbacksize);
+
+		for ( uint64_t z = 0; z < (fs-putbacksize+1); ++z )
 		{
-			libmaus2::aio::InputStreamInstance CIS(fn);
-			CIS.read(A.begin(),fs);
-		}
-
-		uint64_t const putbacksize = 2048;
-
-		if ( fs >= putbacksize )
-		{
-			libmaus2::aio::PosixFdInputStream PFIS(fn,64*1024,putbacksize);
-
-			for ( uint64_t z = 0; z < (fs-putbacksize+1); ++z )
+			for ( uint64_t i = 0 ; i < putbacksize; ++i )
 			{
-				for ( uint64_t i = 0 ; i < putbacksize; ++i )
-				{
-					int const c = PFIS.get();
-					assert ( c >= 0 );
-					assert ( c == A[z+i] );
-				}
-
-				PFIS.clear();
-
-				for ( int64_t i = putbacksize-1; i >= 1; --i )
-					PFIS.putback(A[z+i]);
+				int const c = PFIS.get();
+				assert ( c >= 0 );
+				assert ( c == A[z+i] );
 			}
+
+			PFIS.clear();
+
+			for ( int64_t i = putbacksize-1; i >= 1; --i )
+				PFIS.putback(A[z+i]);
 		}
 	}
 
-	testPosixFdInput();
+}
 
-	if ( argc < 3 )
-	{
-		std::cerr << "usage: " << argv[0] << " <in0> <in1> ... <out>" << std::endl;
-		return EXIT_FAILURE;
-	}
-
-	try
+void testAsync(libmaus2::util::ArgParser const & arg)
+{
+	if ( arg.size() >= 2 )
 	{
 		::libmaus2::timing::RealTimeClock rtc;
 		rtc.start();
 
 		std::list<std::string> filenames;
-		for ( int i = 1; i+1 < argc; ++i )
-			filenames.push_back(argv[i]);
+		// input file names
+		for ( uint64_t i = 0; i+1 < arg.size(); ++i )
+			filenames.push_back(arg[i]);
 
 		// ::libmaus2::aio::AsynchronousBufferReader ABR(argv[1],16,1ull << 18);
 		::libmaus2::aio::AsynchronousBufferReaderList ABR(filenames.begin(),filenames.end(),16,1ull << 18);
-		::libmaus2::aio::AsynchronousWriter AW(argv[argc-1]);
+		::libmaus2::aio::AsynchronousWriter AW(arg[arg.size()-1]);
 		uint64_t copied = 0;
 		uint64_t copymeg = 0;
 
@@ -382,11 +400,29 @@ int main(int argc, char * argv[])
 			<< (copied/(1024.0*1024.0))/rtc.getElapsedSeconds()
 			<< "MB/s"
 			<< std::endl;
+	}
+}
 
+int main(int argc, char * argv[])
+{
+	try
+	{
+		libmaus2::util::ArgParser arg(argc,argv);
+	
+		testAsync(arg);
+		testPutBack();
+		testLinuxStreamingOverwrite();
+		testPosixFdOverwrite();
+		testLineSplittingOutput();
+		testLineSplittingNoOutput();
 		testPosixFdInput();
+		testInputOutput<libmaus2::aio::PosixFdInputOutputStream,libmaus2::aio::PosixFdOutputStream,libmaus2::aio::PosixFdInputStream>();
+		testInputOutput<libmaus2::aio::MemoryInputOutputStream,libmaus2::aio::MemoryOutputStream,libmaus2::aio::MemoryInputStream>();
+
 	}
 	catch(std::exception const & ex)
 	{
-		std::cerr << "exception: " << ex.what() << std::endl;
+		std::cerr << ex.what() << std::endl;
+		return EXIT_FAILURE;
 	}
 }

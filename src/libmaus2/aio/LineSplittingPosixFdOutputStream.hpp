@@ -40,6 +40,24 @@ namespace libmaus2
 			{
 				flush();
 			}
+			
+			std::string getFileName(uint64_t const id) const
+			{
+				return LineSplittingPosixFdOutputStreamBuffer::getFileName(id);
+			}
+			
+			uint64_t getNumFiles() const
+			{
+				return LineSplittingPosixFdOutputStreamBuffer::getNumFiles();
+			}
+			
+			std::vector<std::string> getFileNames() const
+			{
+				std::vector<std::string> Vfn(getNumFiles());
+				for ( uint64_t i = 0; i < Vfn.size(); ++i )
+					Vfn[i] = getFileName(i);
+				return Vfn;
+			}
 		};
 	}
 }

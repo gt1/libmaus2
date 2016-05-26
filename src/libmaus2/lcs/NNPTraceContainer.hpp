@@ -411,6 +411,82 @@ namespace libmaus2
 
 				return ok;
 			}
+			
+			struct DiagStrip
+			{
+				int64_t d;
+				uint64_t l;
+				uint64_t h;
+				
+				DiagStrip() {}
+				DiagStrip(int64_t const rd, uint64_t const rl, uint64_t const rh) : d(rd), l(rl), h(rh) {}
+				
+				bool operator<(DiagStrip const & O) const
+				{
+					if ( d != O.d )
+						return d < O.d;
+					else if ( l != O.l )
+						return l < O.l;
+					else
+						return h > O.h;
+				}
+				
+				uint64_t getFrom() const
+				{
+					return l;
+				}
+				
+				uint64_t getTo() const
+				{
+					return h;
+				}
+			};
+
+			uint64_t getDiagStrips(uint64_t a, uint64_t b, libmaus2::autoarray::AutoArray<DiagStrip> & D) const
+			{
+				std::pair<uint64_t,uint64_t> const P = getStringLengthUsed();
+				a += P.first;
+				b += P.second;
+
+				int64_t cur = traceid;
+				uint64_t o = 0;
+				while ( cur >= 0 )
+				{
+					DiagStrip DS;
+					DS.d = static_cast<int64_t>(a)-static_cast<int64_t>(b);
+					DS.h = a + b;
+					
+					a -= Atrace[cur].slide;
+					b -= Atrace[cur].slide;
+					
+					DS.l = a+b;
+					
+					if ( Atrace[cur].slide )
+						D.push(o,DS);
+
+					switch ( Atrace[cur].step )
+					{
+						case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
+							--a;
+							--b;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_DEL:
+							--a;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_INS:
+							--b;
+							break;
+						default:
+							break;
+					}
+
+					cur = Atrace[cur].parent;
+				}
+				
+				std::sort(D.begin(),D.begin()+o);
+				
+				return o;
+			}
 
 			uint64_t getNumDif() const
 			{

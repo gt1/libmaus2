@@ -5,9 +5,27 @@ AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
 AC_PROG_LIBTOOL
 
-AM_INIT_AUTOMAKE([std-options subdir-objects tar-pax])
+AM_INIT_AUTOMAKE([std-options subdir-objects tar-pax parallel-tests])
 AM_CONFIG_HEADER(config.h)
 AC_CONFIG_MACRO_DIR([m4])
+
+AC_MSG_CHECKING([whether we are cross compiling])
+ISNATIVE=
+if test \( "${ac_cv_build}" = "${ac_cv_host}" \) -a \( "${ac_cv_build}" = "${ac_cv_target}" \) ; then
+	ISNATIVE=1
+	AC_MSG_RESULT([no])
+else
+	ISNATIVE=0
+	AC_MSG_RESULT([yes])
+fi
+
+AC_PATH_PROG(BASHPROG,bash,no)
+AC_PATH_PROG(BASE64PROG,base64,no)
+
+TESTDIR=
+if test \( "${ISNATIVE}" -eq 1 \) -a \( "${BASHPROG}" != "no" \) -a \( "${BASE64PROG}" != "no" \) ; then
+	TESTDIR=test
+fi
 
 CFLAGS_SAVE="${CFLAGS}"
 CFLAGS=""
@@ -3659,4 +3677,5 @@ AC_SUBST([LIBMAUS2_HAVE_MMAP])
 AC_SUBST([LIBMAUS2_HAVE_MMAP_HUGEPAGES])
 AC_SUBST([LIBMAUS2_DEBUG_COMPILED])
 AC_SUBST([LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE])
-AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2lsf.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp)
+AC_SUBST([TESTDIR])
+AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2lsf.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp test/Makefile)
