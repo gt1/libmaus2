@@ -219,25 +219,25 @@ void testLineSplittingOutput()
 		LSOUT << "line_" << i << "\n";
 	}
 	LSOUT.flush();
-	
+
 	std::vector<std::string> Vfn = LSOUT.getFileNames();
 	uint64_t j = 0;
 	for ( uint64_t i = 0; i < Vfn.size(); ++i )
 	{
 		libmaus2::aio::InputStreamInstance ISI(Vfn[i]);
-		
+
 		for ( uint64_t k = 0; k < 4 && j < 17; ++k, ++j )
 		{
 			std::string line;
 			std::getline(ISI,line);
 			std::ostringstream ostr;
 			ostr << "line_" << j;
-			
+
 			// std::cerr << ostr.str() << " __ " << line << std::endl;
-			
+
 			assert ( ostr.str() == line );
 		}
-		
+
 		libmaus2::aio::FileRemoval::removeFile(Vfn[i]);
 	}
 }
@@ -408,7 +408,7 @@ int main(int argc, char * argv[])
 	try
 	{
 		libmaus2::util::ArgParser arg(argc,argv);
-	
+
 		testAsync(arg);
 		testPutBack();
 		testLinuxStreamingOverwrite();
