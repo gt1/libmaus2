@@ -253,7 +253,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/util/HugePages.cpp \
 	libmaus2/lz/ZlibInterface.cpp \
 	libmaus2/suffixsort/bwtb3m/BwtSelectSSA.cpp \
-	libmaus2/aio/FileRemoval.cpp
+	libmaus2/aio/FileRemoval.cpp \
+	libmaus2/rank/DNARankMEM.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -970,7 +971,10 @@ libmaus2rank_include_HEADERS=\
 	libmaus2/rank/DNARank.hpp \
 	libmaus2/rank/DNARankKmerCache.hpp \
 	libmaus2/rank/DNARankBiDir.hpp \
-	libmaus2/rank/DNARankBiDirRange.hpp
+	libmaus2/rank/DNARankBiDirRange.hpp \
+	libmaus2/rank/DNARankMEM.hpp \
+	libmaus2/rank/DNARankMEMPosComparator.hpp \
+	libmaus2/rank/DNARankSMEMContext.hpp
 
 libmaus2geometry_includedir=$(includedir)/libmaus2/geometry
 libmaus2geometry_include_HEADERS=\

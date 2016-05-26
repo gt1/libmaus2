@@ -18,6 +18,9 @@
 #if ! defined(LIBMAUS2_RANK_DNARANK_HPP)
 #define LIBMAUS2_RANK_DNARANK_HPP
 
+#include <libmaus2/rank/DNARankSMEMContext.hpp>
+#include <libmaus2/rank/DNARankMEMPosComparator.hpp>
+#include <libmaus2/rank/DNARankMEM.hpp>
 #include <libmaus2/huffman/RLDecoder.hpp>
 #include <libmaus2/rank/popcnt.hpp>
 #include <libmaus2/rank/DNARankBiDirRange.hpp>
@@ -31,202 +34,11 @@
 #include <libmaus2/sorting/InPlaceParallelSort.hpp>
 #include <libmaus2/bitio/BitVector.hpp>
 
+
 namespace libmaus2
 {
 	namespace rank
 	{
-		struct DNARankMEM
-		{
-			libmaus2::rank::DNARankBiDirRange intv;
-			uint64_t left;
-			uint64_t right;
-
-			DNARankMEM()
-			{
-
-			}
-
-			uint64_t diam() const
-			{
-				return right-left;
-			}
-
-			DNARankMEM(libmaus2::rank::DNARankBiDirRange const & rintv, uint64_t const rleft, uint64_t const rright)
-			: intv(rintv), left(rleft), right(rright) {}
-
-			bool operator<(DNARankMEM const & O) const
-			{
-				if ( intv < O.intv )
-					return true;
-				else if ( O.intv < intv )
-					return false;
-				else if ( left != O.left )
-					return left < O.left;
-				else
-					return right < O.right;
-			}
-
-			bool operator==(DNARankMEM const & O) const
-			{
-				if ( *this < O )
-					return false;
-				else if ( O < *this )
-					return false;
-				else
-					return true;
-			}
-
-			bool operator!=(DNARankMEM const & O) const
-			{
-				return !operator==(O);
-			}
-		};
-
-		struct DNARankMEMPosComparator
-		{
-			bool operator()(DNARankMEM const & A, DNARankMEM const & B) const
-			{
-				if ( A.left != B.left )
-					return A.left < B.left;
-				else if ( A.right != B.right )
-					return A.right < B.right;
-				else
-					return A.intv < B.intv;
-			}
-		};
-
-		inline std::ostream & operator<<(std::ostream & out, DNARankMEM const & D)
-		{
-			return out << "DNARankMEM(intv=" << D.intv << ",left=" << D.left << ",right=" << D.right << ")";
-		}
-
-		struct DNARankSMEMContext
-		{
-			typedef DNARankSMEMContext this_type;
-			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-
-			//typedef std::vector < std::pair< libmaus2::rank::DNARankBiDirRange, uint64_t > >::const_iterator prev_iterator;
-			typedef std::pair< libmaus2::rank::DNARankBiDirRange, uint64_t > const * prev_iterator;
-			// typedef std::vector < DNARankMEM > match_container_type;
-			typedef libmaus2::autoarray::AutoArray < DNARankMEM > match_container_type;
-			// typedef match_container_type::const_iterator match_iterator;
-			typedef DNARankMEM const * match_iterator;
-
-			private:
-			//std::vector < std::pair< libmaus2::rank::DNARankBiDirRange, uint64_t > > Vcur;
-			libmaus2::autoarray::AutoArray< std::pair< libmaus2::rank::DNARankBiDirRange, uint64_t > > Acur;
-			uint64_t ocur;
-			//std::vector < std::pair< libmaus2::rank::DNARankBiDirRange, uint64_t > > Vprev;
-			libmaus2::autoarray::AutoArray< std::pair< libmaus2::rank::DNARankBiDirRange, uint64_t > > Aprev;
-			uint64_t oprev;
-			match_container_type Amatch;
-			uint64_t omatch;
-
-			public:
-			DNARankSMEMContext() : ocur(0), oprev(0), omatch(0)
-			{
-
-			}
-
-			match_container_type const & getMatches() const
-			{
-				//return Vmatch;
-				return Amatch;
-			}
-
-			uint64_t getNumMatches() const
-			{
-				//return Vmatch.size();
-				return omatch;
-			}
-
-			prev_iterator pbegin() const
-			{
-				//return Vprev.begin();
-				return Aprev.begin();
-			}
-
-			prev_iterator pend() const
-			{
-				//return Vprev.end();
-				return Aprev.begin()+oprev;
-			}
-
-			match_iterator mbegin() const
-			{
-				//return Vmatch.begin();
-				return Amatch.begin();
-			}
-
-			match_iterator mend() const
-			{
-				//return Vmatch.end();
-				return Amatch.begin()+omatch;
-			}
-
-			void reset()
-			{
-				//Vcur.resize(0);
-				//Vprev.resize(0);
-				ocur = 0;
-				oprev = 0;
-			}
-
-			void resetCur()
-			{
-				//Vcur.resize(0);
-				ocur = 0;
-			}
-
-			void reverseCur()
-			{
-				//std::reverse(Vcur.begin(),Vcur.end());
-				std::reverse(Acur.begin(),Acur.begin()+ocur);
-			}
-
-			void resetMatch()
-			{
-				//Vmatch.resize(0);
-				omatch = 0;
-			}
-
-			void reverseMatch(uint64_t const start)
-			{
-				std::reverse(Amatch.begin()+start,Amatch.begin()+omatch);
-			}
-
-			void pushCur(std::pair< libmaus2::rank::DNARankBiDirRange, uint64_t > const & I)
-			{
-				//Vcur.push_back(I);
-				Acur.push(ocur,I);
-			}
-
-			void pushMatch(DNARankMEM const & I)
-			{
-				//Vmatch.push_back(I);
-				Amatch.push(omatch,I);
-			}
-
-			void swapCurPrev()
-			{
-				// Vcur.swap(Vprev);
-				Acur.swap(Aprev);
-				std::swap(ocur,oprev);
-			}
-
-			bool curEmpty() const
-			{
-				//return Vcur.empty();
-				return ocur == 0;
-			}
-
-			bool prevEmpty() const
-			{
-				//return Vprev.empty();
-				return oprev == 0;
-			}
-		};
-
 		struct DNARank
 		{
 			typedef DNARank this_type;
