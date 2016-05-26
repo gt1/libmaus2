@@ -70,7 +70,7 @@ namespace libmaus2
 				return !operator==(O);
 			}
 		};
-		
+
 		std::ostream & operator<<(std::ostream & out, libmaus2::rank::DNARankMEM const & D);
 	}
 }
