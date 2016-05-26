@@ -1,5 +1,5 @@
 #!/bin/bash
-source base64decode.sh
+source ${SCRIPTDIR}/base64decode.sh
 
 function configure_gz
 {

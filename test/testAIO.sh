@@ -11,4 +11,6 @@ configure_sh > configure
 RET=$?
 rm -f configure
 
+echo "Exiting with code ${RET}"
+
 exit ${RET}
