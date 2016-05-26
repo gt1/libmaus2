@@ -60,3 +60,5 @@ pull.sh
 trycompile.sh
 removespace.sh
 test-driver
+test/*.log
+test/*.trs

@@ -1,7 +1,7 @@
-TESTS=testAIO.sh
+TESTS=testAIO.sh testargparser.sh
 TEST_ENVIRONMENT= 
 LOG_COMPILER=/bin/bash
-EXTRA_DIST=testAIO.sh configure.gz.sh base64decode.sh
+EXTRA_DIST=testAIO.sh configure.gz.sh base64decode.sh testargparser.sh
 
 #check_PROGRAMS= # bamcmp bamtosam
 
