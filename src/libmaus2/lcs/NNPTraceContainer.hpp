@@ -411,16 +411,16 @@ namespace libmaus2
 
 				return ok;
 			}
-			
+
 			struct DiagStrip
 			{
 				int64_t d;
 				uint64_t l;
 				uint64_t h;
-				
+
 				DiagStrip() {}
 				DiagStrip(int64_t const rd, uint64_t const rl, uint64_t const rh) : d(rd), l(rl), h(rh) {}
-				
+
 				bool operator<(DiagStrip const & O) const
 				{
 					if ( d != O.d )
@@ -430,12 +430,12 @@ namespace libmaus2
 					else
 						return h > O.h;
 				}
-				
+
 				uint64_t getFrom() const
 				{
 					return l;
 				}
-				
+
 				uint64_t getTo() const
 				{
 					return h;
@@ -455,12 +455,12 @@ namespace libmaus2
 					DiagStrip DS;
 					DS.d = static_cast<int64_t>(a)-static_cast<int64_t>(b);
 					DS.h = a + b;
-					
+
 					a -= Atrace[cur].slide;
 					b -= Atrace[cur].slide;
-					
+
 					DS.l = a+b;
-					
+
 					if ( Atrace[cur].slide )
 						D.push(o,DS);
 
@@ -482,9 +482,9 @@ namespace libmaus2
 
 					cur = Atrace[cur].parent;
 				}
-				
+
 				std::sort(D.begin(),D.begin()+o);
-				
+
 				return o;
 			}
 
