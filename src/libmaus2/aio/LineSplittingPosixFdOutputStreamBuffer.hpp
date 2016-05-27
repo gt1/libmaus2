@@ -124,11 +124,7 @@ namespace libmaus2
 
 			int doOpen()
 			{
-				std::ostringstream fnostr;
-
-				fnostr << fn << "_" << std::setw(6) << std::setfill('0') << (fileno++) << std::setw(0);
-
-				std::string const filename = fnostr.str();
+				std::string const filename = getFileName(fileno++);
 
 				int fd = -1;
 
@@ -275,6 +271,20 @@ namespace libmaus2
 				doSync();
 				doFlush();
 				return 0; // no error, -1 for error
+			}
+
+			std::string getFileName(uint64_t const id) const
+			{
+				std::ostringstream fnostr;
+
+				fnostr << fn << "_" << std::setw(6) << std::setfill('0') << id << std::setw(0);
+
+				return fnostr.str();
+			}
+
+			uint64_t getNumFiles() const
+			{
+				return fileno;
 			}
 		};
 	}

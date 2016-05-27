@@ -176,28 +176,40 @@ namespace libmaus2
 
 				std::deque< q_element > todo;
 
+				// if element is not empty
 				if ( elem.getTo() > elem.getFrom() )
+					// push it
 					todo.push_back(q_element(k,upair(elem.getFrom(),elem.getTo())));
 
+				// while we have intervals to be checked
 				while ( todo.size() )
 				{
+					// get next interval
 					q_element q = todo.front();
 					todo.pop_front();
 
+					// level
 					int const level = k-q.first;
 
+					// base bin for level
 					uint64_t const basebin = (1ull << level)-1;
+					// div/split size for level
 					uint64_t const div = (1ull<<(q.first+1));
 
-					uint64_t const mask = (q.first >= 0) ? (1<<q.first) : 0;
+					uint64_t const mask = (q.first >= 0) ? (static_cast<uint64_t>(1ull)<<q.first) : static_cast<uint64_t>(0);
 
+					// interval
 					uint64_t const low = q.second.first;
 					uint64_t const high = q.second.second;
+					// bin for low end
 					uint64_t const bin = basebin + low/div;
 
+					// see if we have anything in bin matching low end
 					if ( bins.find(bin) != bins.end() )
 					{
+						// get list of entries in bin
 						std::vector<element_type> const & V = bins.find(bin)->second;
+						// compute intersections between elements in bin and query
 						for ( uint64_t i = 0; i < V.size(); ++i )
 						{
 							libmaus2::math::IntegerInterval<uint64_t> I0(elem.getFrom(),elem.getTo()-1);
@@ -209,8 +221,10 @@ namespace libmaus2
 
 					// std::cerr << level << "," << q.first << "," << q.second.first << "," << q.second.second << "," << basebin << "," << div << "," << bin << std::endl;
 
+					// query interval should not be empty
 					assert ( high > low );
 
+					// do we cross the bin split bound?
 					bool const cross = ((high-1)&mask) != (low & mask);
 
 					if ( cross )
@@ -219,8 +233,8 @@ namespace libmaus2
 
 						// std::cerr << "low=" << low << ",mid=" << mid << ",high=" << high << std::endl;
 
-						assert ( mid > low );
-						assert ( high > mid );
+						bool const ok = (mid > low) && (high > mid);
+						assert ( ok );
 
 						todo.push_back(q_element(q.first-1,upair(low,mid)));
 						todo.push_back(q_element(q.first-1,upair(mid,high)));

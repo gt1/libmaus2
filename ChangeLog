@@ -1,3 +1,13 @@
+libmaus2 (2.0.195-1) unstable; urgency=medium
+
+  * fix RangeSet search when n > 2^32
+  * refactor DNARank classes
+  * add argparser test
+  * fix testAIO.sh for out of source directory builds
+  * add first automatic test for make check (testAIO)
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 27 May 2016 16:45:16 +0200
+
 libmaus2 (2.0.194-1) unstable; urgency=medium
 
   * add ComputeSuccinctLCPResult and PLCPBitDecoder classes
