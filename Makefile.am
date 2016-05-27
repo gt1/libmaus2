@@ -1,5 +1,5 @@
 EXTRA_DIST = configure GPLv2 GPLv3
-SUBDIRS = src
+SUBDIRS = src @TESTDIR@
 ACLOCAL_AMFLAGS=-I m4
 
 pkgconfigdir = $(libdir)/pkgconfig
