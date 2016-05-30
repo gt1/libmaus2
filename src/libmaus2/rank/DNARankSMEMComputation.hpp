@@ -21,6 +21,9 @@
 
 #include <libmaus2/rank/DNARank.hpp>
 #include <libmaus2/rank/DNARankKmerCache.hpp>
+#include <libmaus2/util/TempFileNameGenerator.hpp>
+#include <libmaus2/gamma/GammaIntervalEncoder.hpp>
+#include <libmaus2/gamma/GammaIntervalDecoder.hpp>
 
 namespace libmaus2
 {
@@ -28,6 +31,119 @@ namespace libmaus2
 	{
 		struct DNARankSMEMComputation
 		{
+			/**
+			 * enumerator for smems
+			 **/
+			template<typename iterator>
+			struct SMEMEnumerator
+			{
+				libmaus2::rank::DNARank const & rank;
+				iterator const it;
+				uint64_t const left;
+				uint64_t const right;
+				uint64_t const minfreq;
+				uint64_t const minlen;
+				uint64_t const maxlen;
+
+				uint64_t const minsplitlength;
+				uint64_t const minsplitsize;
+
+				DNARankSMEMContext context;
+				DNARankSMEMContext splitcontext;
+				uint64_t next;
+
+				std::deque<DNARankMEM> Q;
+
+				struct MEMComp
+				{
+					bool operator()(DNARankMEM const & A, DNARankMEM const & B) const
+					{
+						return A.left < B.left;
+					}
+				};
+
+				libmaus2::util::FiniteSizeHeap<DNARankMEM,MEMComp> F;
+				DNARankMEM prevMEM;
+
+				SMEMEnumerator(
+					libmaus2::rank::DNARank const & rrank,
+					iterator rit,
+					uint64_t const rleft,
+					uint64_t const rright,
+					uint64_t const rminfreq,
+					uint64_t const rminlen,
+					uint64_t const rmaxlen,
+					uint64_t const rminsplitlength,
+					uint64_t const rminsplitsize
+				) : rank(rrank), it(rit), left(rleft), right(rright), minfreq(rminfreq), minlen(rminlen), maxlen(rmaxlen), minsplitlength(rminsplitlength), minsplitsize(rminsplitsize), context(), next(left), F(1024)
+				{
+					prevMEM.left = 0;
+				}
+
+				bool getNext(DNARankMEM & mem)
+				{
+					while ( Q.empty() && next < right )
+					{
+						context.resetMatch();
+						uint64_t const p = next++;
+
+						int64_t const ileft = std::max(
+							static_cast<int64_t>(left),
+							static_cast<int64_t>(p)-static_cast<int64_t>(maxlen)
+						);
+						int64_t const iright = std::min(p+maxlen,right);
+
+						rank.smem(it,ileft,iright,p,minfreq,minlen,context);
+
+						for ( DNARankSMEMContext::match_iterator ita = context.mbegin(); ita != context.mend(); ++ita )
+						{
+							assert ( ita->left+maxlen >= p );
+							assert ( ita->right > p );
+							F.pushBump(*ita);
+
+							uint64_t const sdiam = ita->right-ita->left;
+							if ( sdiam >= minsplitlength && ita->intv.size <= minsplitsize )
+							{
+								uint64_t const centre = (ita->left+ita->right)/2;
+								assert ( static_cast<int64_t>(centre) >= static_cast<int64_t>(p) - static_cast<int64_t>((maxlen+1)/2) );
+
+								int64_t const ileft = std::max(
+									static_cast<int64_t>(left),
+									static_cast<int64_t>(centre)-static_cast<int64_t>(maxlen)
+								);
+								int64_t const iright = std::min(centre+maxlen,right);
+
+								splitcontext.resetMatch();
+								rank.smem(it,ileft,iright,centre,ita->intv.size+1,minlen,splitcontext);
+
+								for ( DNARankSMEMContext::match_iterator sita = splitcontext.mbegin(); sita != splitcontext.mend(); ++sita )
+								{
+									assert ( sita->left + maxlen + (maxlen+1)/2 >= p );
+									F.pushBump(*sita);
+								}
+							}
+						}
+
+						while ( ! F.empty() && F.top().left+maxlen+((maxlen+1)/2) <= p )
+							Q.push_back(F.pop());
+					}
+					if ( next == right )
+						while ( ! F.empty() )
+							Q.push_back(F.pop());
+
+					if ( Q.empty() )
+						return false;
+					else
+					{
+						mem = Q.front();
+						Q.pop_front();
+						assert ( mem.left >= prevMEM.left );
+						prevMEM = mem;
+						return true;
+					}
+				}
+			};
+
 			template<typename iterator>
 			static void smemSerial(
 				libmaus2::rank::DNARank const & rank,
@@ -160,6 +276,236 @@ namespace libmaus2
 					if ( SMEM[i] != SMEM[i-1] )
 						SMEM[o++] = SMEM[i];
 				SMEM.resize(o);
+			}
+
+			/**
+			 * compute active regions in [left,right) containing matches of length >= minlen with frequency >= minfreq
+			 * split by inactive regions of size >= mininactive
+			 **/
+			template<typename iterator>
+			static std::string activeParallel(
+				libmaus2::util::TempFileNameGenerator & tmpgen,
+				libmaus2::rank::DNARankKmerCache const & cache,
+				iterator it,
+				uint64_t const left,
+				uint64_t const right,
+				uint64_t const minfreq,
+				uint64_t const minlen,
+				uint64_t const numthreads,
+				uint64_t const mininactive
+			)
+			{
+				uint64_t const range = right-left;
+				uint64_t const numkmers = (range >= minlen) ? (range-minlen+1) : 0;
+
+				if ( numkmers )
+				{
+					uint64_t const minblocks = 16*numthreads;
+					uint64_t const tblocksize = 256*1024ull;
+					uint64_t const tblocks = (numkmers + tblocksize - 1)/tblocksize;
+					uint64_t const ttblocks = std::max(minblocks,tblocks);
+
+					uint64_t const blocksize = (numkmers + ttblocks - 1)/ttblocks;
+					uint64_t const numblocks = (numkmers + blocksize - 1)/blocksize;
+
+					std::cerr << "[V] num blocks " << numblocks << std::endl;
+
+					uint64_t volatile nextblockid = 0;
+					libmaus2::parallel::PosixSpinLock lock;
+
+					std::vector<std::string> Vfn(numthreads);
+					libmaus2::autoarray::AutoArray< libmaus2::gamma::GammaIntervalEncoder::unique_ptr_type > Aintenc(numthreads);
+					for ( uint64_t i = 0; i < numthreads; ++i )
+					{
+						Vfn[i] = tmpgen.getFileName(true);
+						libmaus2::gamma::GammaIntervalEncoder::unique_ptr_type Tenc(new libmaus2::gamma::GammaIntervalEncoder(Vfn[i]));
+						Aintenc[i] = UNIQUE_PTR_MOVE(Tenc);
+
+					}
+
+					#if defined(_OPENMP)
+					#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
+					#endif
+					for ( uint64_t tblockid = 0; tblockid < numblocks; ++tblockid )
+					{
+						#if defined(_OPENMP)
+						uint64_t const tid = omp_get_thread_num();
+						#else
+						uint64_t const tid = 0;
+						#endif
+
+						libmaus2::gamma::GammaIntervalEncoder * enc = Aintenc[tid].get();
+
+						uint64_t blockid;
+						lock.lock();
+						blockid = nextblockid++;
+						lock.unlock();
+
+						uint64_t const blocklow = blockid * blocksize;
+						uint64_t const blockhigh = std::min(blocklow+blocksize,numkmers);
+						assert ( blockhigh - blocklow );
+
+						bool active;
+
+						{
+							std::pair<uint64_t,uint64_t> const P = cache.search(it+blocklow,minlen);
+							active = (P.second-P.first) >= minfreq;
+						}
+
+						uint64_t prevstart = blocklow;
+
+						for ( uint64_t z = blocklow+1; z < blockhigh; ++z )
+						{
+							std::pair<uint64_t,uint64_t> const P = cache.search(it+z,minlen);
+
+							bool const newactive = ((P.second-P.first) >= minfreq);
+
+							if ( newactive != active )
+							{
+								assert ( z > prevstart );
+
+								#if 0
+								{
+									libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+									if ( z - prevstart > 700u )
+										std::cerr << "[V] inactive [" << prevstart << "," << z << ")" << std::endl;
+								}
+								#endif
+
+								enc->put(std::pair<uint64_t,uint64_t>(prevstart,z));
+
+								active = newactive;
+								prevstart = z;
+							}
+						}
+					}
+
+					for ( uint64_t i = 0; i < numthreads; ++i )
+					{
+						Aintenc[i]->flush();
+						Aintenc[i].reset();
+					}
+
+					struct HeapEntry
+					{
+						std::pair<uint64_t,uint64_t> intv;
+						uint64_t id;
+
+						bool operator<(HeapEntry const & H) const
+						{
+							if ( intv != H.intv )
+								return intv < H.intv;
+							else
+								return id < H.id;
+						}
+
+						HeapEntry()
+						{
+
+						}
+						HeapEntry(std::pair<uint64_t,uint64_t> rintv, uint64_t rid) : intv(rintv), id(rid) {}
+					};
+
+					libmaus2::util::FiniteSizeHeap<HeapEntry> H(numthreads);
+					libmaus2::autoarray::AutoArray< libmaus2::gamma::GammaIntervalDecoder::unique_ptr_type > Aintdec(numthreads);
+
+					for ( uint64_t i = 0; i < numthreads; ++i )
+					{
+						libmaus2::gamma::GammaIntervalDecoder::unique_ptr_type tdec(new libmaus2::gamma::GammaIntervalDecoder(std::vector<std::string>(1,Vfn[i]),0/*offset*/,1/* numthreads */));
+						Aintdec[i] = UNIQUE_PTR_MOVE(tdec);
+
+						std::pair<uint64_t,uint64_t> P;
+
+						if ( Aintdec[i]->getNext(P) )
+						{
+							H.push(HeapEntry(P,i));
+						}
+						else
+						{
+							Aintdec[i].reset();
+							libmaus2::aio::FileRemoval::removeFile(Vfn[i]);
+						}
+					}
+
+					std::pair<uint64_t,uint64_t> Pprev(0,0);
+					std::string const outfn = tmpgen.getFileName(true);
+					libmaus2::gamma::GammaIntervalEncoder::unique_ptr_type Penc(new libmaus2::gamma::GammaIntervalEncoder(outfn));
+
+					while ( ! H.empty() )
+					{
+						HeapEntry T = H.pop();
+
+						// mergeable
+						if ( T.intv.first == Pprev.second )
+						{
+							Pprev.second = T.intv.second;
+						}
+						else
+						{
+							if ( expect_true(Pprev.second != Pprev.first) )
+								if ( Pprev.second-Pprev.first >= mininactive )
+									Penc->put(Pprev);
+
+							Pprev = T.intv;
+						}
+
+						if ( Aintdec[T.id]->getNext(T.intv) )
+							H.push(T);
+						else
+						{
+							Aintdec[T.id].reset();
+							libmaus2::aio::FileRemoval::removeFile(Vfn[T.id]);
+						}
+					}
+
+					if ( expect_true(Pprev.second != Pprev.first) )
+						if ( Pprev.second-Pprev.first >= mininactive )
+							Penc->put(Pprev);
+
+					Penc->flush();
+					Penc.reset();
+
+					std::string const outfinfn = tmpgen.getFileName(true);
+					libmaus2::gamma::GammaIntervalDecoder::unique_ptr_type Pdec(new libmaus2::gamma::GammaIntervalDecoder(std::vector<std::string>(1,outfn),0/*offset */,1 /* numthreads */));
+					libmaus2::gamma::GammaIntervalEncoder::unique_ptr_type Pcomp(new libmaus2::gamma::GammaIntervalEncoder(outfinfn));
+
+					uint64_t actlow = left;
+					std::pair<uint64_t,uint64_t> P;
+					while ( Pdec->getNext(P) )
+					{
+						if ( P.first > actlow )
+							Pcomp->put(std::pair<uint64_t,uint64_t>(actlow,P.first));
+
+						actlow = P.second;
+					}
+					if ( actlow != right )
+						Pcomp->put(std::pair<uint64_t,uint64_t>(actlow,right));
+					Pcomp->flush();
+					Pcomp.reset();
+					Pdec.reset();
+
+					libmaus2::aio::FileRemoval::removeFile(outfn);
+
+					#if 0
+					libmaus2::gamma::GammaIntervalDecoder::unique_ptr_type Pdec(new libmaus2::gamma::GammaIntervalDecoder(std::vector<std::string>(1,outfn),0/*offset */,1 /* numthreads */));
+					std::pair<uint64_t,uint64_t> P;
+					while ( Pdec->getNext(P) )
+					{
+						if ( P.second-P.first >= 700 )
+							std::cerr << "[V] inactive [" << P.first << "," << P.second << ")" << std::endl;
+					}
+					#endif
+
+					return outfinfn;
+				}
+				else
+				{
+					std::string const outfn = tmpgen.getFileName(true);
+					libmaus2::gamma::GammaIntervalEncoder::unique_ptr_type Penc(new libmaus2::gamma::GammaIntervalEncoder(outfn));
+					Penc->flush();
+					Penc.reset();
+					return outfn;
+				}
 			}
 
 			template<typename iterator>
