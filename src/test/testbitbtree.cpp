@@ -119,8 +119,9 @@ int testBitBTreeFunctionalityInsertDelete()
 	srand(5);
 
 	uint64_t c = 0;
+	uint64_t const runs = 512;
 
-	for ( unsigned int z = 0; z < 100000; ++z )
+	for ( unsigned int z = 0; z < runs; ++z )
 	{
 		// B.toString(std::cerr);
 
@@ -179,11 +180,12 @@ int testBitBTreeFunctionalityInsertDelete()
 #endif
 
 #if defined(BITTREE_DEBUG)
-		if ( (++c & (1024-1)) == 0 )
+		//if ( (++c & (1024-1)) == 0 )
+		if ( (++c & (128-1)) == 0 )
 #else
 		if ( (++c & (16*1024-1)) == 0 )
 #endif
-			std::cerr << "\r                               \r" << B.getN() << "\t" << B.bitSize();
+			std::cerr << "\r                               \r" << c << "/" << runs << "\t" << B.getN() << "\t" << B.bitSize();
 
 		typename ::libmaus2::bitbtree::BitBTree<k,w>::unique_ptr_type clone(B.clone());
 
@@ -250,6 +252,8 @@ int testBitBTreeFunctionalityInsertDelete()
 		}
 	}
 
+	std::cerr << std::endl;
+
 	return EXIT_SUCCESS;
 }
 
@@ -289,6 +293,15 @@ int main()
 	std::cerr << B.count1() << std::endl;
 	B.toString(std::cerr);
 
-	testBitBTreeShort<k,w>();
-	testBitBTreeFunctionalityInsertDelete<k,w>();
+	int r = testBitBTreeShort<k,w>();
+
+	if ( r != EXIT_SUCCESS )
+		return EXIT_FAILURE;
+
+	r = testBitBTreeFunctionalityInsertDelete<k,w>();
+
+	if ( r != EXIT_SUCCESS )
+		return EXIT_FAILURE;
+
+	return EXIT_SUCCESS;
 }
