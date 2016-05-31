@@ -24,6 +24,7 @@
 #include <deque>
 #include <cassert>
 #include <libmaus2/math/IntegerInterval.hpp>
+#include <libmaus2/util/SimpleQueue.hpp>
 
 namespace libmaus2
 {
@@ -267,6 +268,180 @@ namespace libmaus2
 				std::set < element_type const * > SB(RR.begin(),RR.end());
 				assert ( SA == SB );
 				#endif
+			}
+
+			typedef std::pair<uint64_t,uint64_t> search_upair;
+			typedef std::pair<int,search_upair> search_q_element;
+
+			uint64_t search(
+				element_type const & elem,
+				libmaus2::autoarray::AutoArray < element_type const *> & R,
+				libmaus2::util::SimpleQueue<search_q_element> & todo
+			) const
+			{
+				uint64_t o = 0;
+
+				todo.clear();
+
+				// if element is not empty
+				if ( elem.getTo() > elem.getFrom() )
+					// push it
+					todo.push_back(search_q_element(k,search_upair(elem.getFrom(),elem.getTo())));
+
+				// while we have intervals to be checked
+				while ( ! todo.empty() )
+				{
+					// get next interval
+					search_q_element q = todo.front();
+					todo.pop_front();
+
+					// level
+					int const level = k-q.first;
+
+					// base bin for level
+					uint64_t const basebin = (1ull << level)-1;
+					// div/split size for level
+					uint64_t const div = (1ull<<(q.first+1));
+
+					uint64_t const mask = (q.first >= 0) ? (static_cast<uint64_t>(1ull)<<q.first) : static_cast<uint64_t>(0);
+
+					// interval
+					uint64_t const low = q.second.first;
+					uint64_t const high = q.second.second;
+					// bin for low end
+					uint64_t const bin = basebin + low/div;
+
+					// see if we have anything in bin matching low end
+					if ( bins.find(bin) != bins.end() )
+					{
+						// get list of entries in bin
+						std::vector<element_type> const & V = bins.find(bin)->second;
+						// compute intersections between elements in bin and query
+						for ( uint64_t i = 0; i < V.size(); ++i )
+						{
+							libmaus2::math::IntegerInterval<uint64_t> I0(elem.getFrom(),elem.getTo()-1);
+							libmaus2::math::IntegerInterval<uint64_t> I1(V[i].getFrom(),V[i].getTo()-1);
+							if ( !I0.intersection(I1).isEmpty() )
+								R.push(o,&V[i]);
+						}
+					}
+
+					// std::cerr << level << "," << q.first << "," << q.second.first << "," << q.second.second << "," << basebin << "," << div << "," << bin << std::endl;
+
+					// query interval should not be empty
+					assert ( high > low );
+
+					// do we cross the bin split bound?
+					bool const cross = ((high-1)&mask) != (low & mask);
+
+					if ( cross )
+					{
+						uint64_t const mid = ((low >> q.first)+1)<<q.first;
+
+						// std::cerr << "low=" << low << ",mid=" << mid << ",high=" << high << std::endl;
+
+						bool const ok = (mid > low) && (high > mid);
+						assert ( ok );
+
+						todo.push_back(search_q_element(q.first-1,search_upair(low,mid)));
+						todo.push_back(search_q_element(q.first-1,search_upair(mid,high)));
+					}
+					else if ( q.first >= 0 )
+					{
+						todo.push_back(search_q_element(q.first-1,search_upair(low,high)));
+					}
+					else
+					{
+						// std::cerr << "base " << low << "," << high << " bin " << bin << std::endl;
+					}
+				}
+
+				return o;
+			}
+
+			uint64_t search(
+				element_type const & elem,
+				libmaus2::util::SimpleQueue<search_q_element> & todo
+			) const
+			{
+				uint64_t o = 0;
+
+				todo.clear();
+
+				// if element is not empty
+				if ( elem.getTo() > elem.getFrom() )
+					// push it
+					todo.push_back(search_q_element(k,search_upair(elem.getFrom(),elem.getTo())));
+
+				// while we have intervals to be checked
+				while ( ! todo.empty() )
+				{
+					// get next interval
+					search_q_element q = todo.front();
+					todo.pop_front();
+
+					// level
+					int const level = k-q.first;
+
+					// base bin for level
+					uint64_t const basebin = (1ull << level)-1;
+					// div/split size for level
+					uint64_t const div = (1ull<<(q.first+1));
+
+					uint64_t const mask = (q.first >= 0) ? (static_cast<uint64_t>(1ull)<<q.first) : static_cast<uint64_t>(0);
+
+					// interval
+					uint64_t const low = q.second.first;
+					uint64_t const high = q.second.second;
+					// bin for low end
+					uint64_t const bin = basebin + low/div;
+
+					// see if we have anything in bin matching low end
+					if ( bins.find(bin) != bins.end() )
+					{
+						// get list of entries in bin
+						std::vector<element_type> const & V = bins.find(bin)->second;
+						// compute intersections between elements in bin and query
+						for ( uint64_t i = 0; i < V.size(); ++i )
+						{
+							libmaus2::math::IntegerInterval<uint64_t> I0(elem.getFrom(),elem.getTo()-1);
+							libmaus2::math::IntegerInterval<uint64_t> I1(V[i].getFrom(),V[i].getTo()-1);
+							if ( !I0.intersection(I1).isEmpty() )
+								++o;
+						}
+					}
+
+					// std::cerr << level << "," << q.first << "," << q.second.first << "," << q.second.second << "," << basebin << "," << div << "," << bin << std::endl;
+
+					// query interval should not be empty
+					assert ( high > low );
+
+					// do we cross the bin split bound?
+					bool const cross = ((high-1)&mask) != (low & mask);
+
+					if ( cross )
+					{
+						uint64_t const mid = ((low >> q.first)+1)<<q.first;
+
+						// std::cerr << "low=" << low << ",mid=" << mid << ",high=" << high << std::endl;
+
+						bool const ok = (mid > low) && (high > mid);
+						assert ( ok );
+
+						todo.push_back(search_q_element(q.first-1,search_upair(low,mid)));
+						todo.push_back(search_q_element(q.first-1,search_upair(mid,high)));
+					}
+					else if ( q.first >= 0 )
+					{
+						todo.push_back(search_q_element(q.first-1,search_upair(low,high)));
+					}
+					else
+					{
+						// std::cerr << "base " << low << "," << high << " bin " << bin << std::endl;
+					}
+				}
+
+				return o;
 			}
 		};
 	}
