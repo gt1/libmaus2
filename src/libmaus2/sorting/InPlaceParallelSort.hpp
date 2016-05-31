@@ -610,6 +610,10 @@ namespace libmaus2
 			)
 			{
 				uint64_t const n = e-a;
+
+				if ( ! n )
+					return;
+
 				uint64_t const s0 = (n+numthreads-1)/numthreads;
 				uint64_t const b = (n+s0-1)/s0;
 

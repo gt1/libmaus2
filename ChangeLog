@@ -1,3 +1,15 @@
+libmaus2 (2.0.196-1) unstable; urgency=medium
+
+  * add SimpleQueue class
+  * simpify DNARankSMEMComputation
+  * rewrite/simplify operator== in DNARankMEM
+  * avoid division by zero when sorting empty arrays in InPlaceParallelSort
+  * add testBitIO test
+  * add activeParallel function and SMEMEnumerator class in DNARankSMEMComputation
+  * add tests and adapt tests for make check
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 31 May 2016 10:49:55 +0200
+
 libmaus2 (2.0.195-1) unstable; urgency=medium
 
   * fix RangeSet search when n > 2^32

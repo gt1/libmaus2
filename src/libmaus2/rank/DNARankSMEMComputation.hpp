@@ -19,8 +19,13 @@
 #if ! defined(LIBMAUS2_RANK_DNARANKSMEMCOMPUTATION_HPP)
 #define LIBMAUS2_RANK_DNARANKSMEMCOMPUTATION_HPP
 
+#include <libmaus2/util/SimpleQueue.hpp>
 #include <libmaus2/rank/DNARank.hpp>
 #include <libmaus2/rank/DNARankKmerCache.hpp>
+#include <libmaus2/util/TempFileNameGenerator.hpp>
+#include <libmaus2/gamma/GammaIntervalEncoder.hpp>
+#include <libmaus2/gamma/GammaIntervalDecoder.hpp>
+
 
 namespace libmaus2
 {
@@ -28,6 +33,134 @@ namespace libmaus2
 	{
 		struct DNARankSMEMComputation
 		{
+
+			/**
+			 * enumerator for smems
+			 **/
+			template<typename iterator>
+			struct SMEMEnumerator
+			{
+				libmaus2::rank::DNARank const & rank;
+				iterator const it;
+				uint64_t const left;
+				uint64_t const right;
+				uint64_t const minfreq;
+				uint64_t const minlen;
+				uint64_t const maxlen;
+
+				uint64_t const minsplitlength;
+				uint64_t const minsplitsize;
+
+				DNARankSMEMContext context;
+				DNARankSMEMContext splitcontext;
+				uint64_t next;
+
+				libmaus2::util::SimpleQueue<DNARankMEM> Q;
+
+				struct MEMComp
+				{
+					bool operator()(DNARankMEM const & A, DNARankMEM const & B) const
+					{
+						if ( A.left != B.left )
+							return A.left < B.left;
+						else if ( A.right != B.right )
+							return A.right < B.right;
+						else
+							return A.intv < B.intv;
+					}
+				};
+
+				libmaus2::util::FiniteSizeHeap<DNARankMEM,MEMComp> F;
+				DNARankMEM prevMEM;
+
+				SMEMEnumerator(
+					libmaus2::rank::DNARank const & rrank,
+					iterator rit,
+					uint64_t const rleft,
+					uint64_t const rright,
+					uint64_t const rminfreq,
+					uint64_t const rminlen,
+					uint64_t const rmaxlen,
+					uint64_t const rminsplitlength,
+					uint64_t const rminsplitsize
+				) : rank(rrank), it(rit), left(rleft), right(rright), minfreq(rminfreq), minlen(rminlen), maxlen(rmaxlen), minsplitlength(rminsplitlength), minsplitsize(rminsplitsize), context(), next(left), F(1024)
+				{
+					prevMEM.left = 0;
+				}
+
+				bool getNext(DNARankMEM & mem)
+				{
+					while ( Q.empty() && next < right )
+					{
+						context.resetMatch();
+						uint64_t const p = next++;
+
+						int64_t const ileft = std::max(
+							static_cast<int64_t>(left),
+							static_cast<int64_t>(p)-static_cast<int64_t>(maxlen)
+						);
+						int64_t const iright = std::min(p+maxlen,right);
+
+						rank.smem(it,ileft,iright,p,minfreq,minlen,context);
+
+						for ( DNARankSMEMContext::match_iterator ita = context.mbegin(); ita != context.mend(); ++ita )
+						{
+							assert ( ita->left+maxlen >= p );
+							assert ( ita->right > p );
+							F.pushBump(*ita);
+
+							uint64_t const sdiam = ita->right-ita->left;
+							if ( sdiam >= minsplitlength && ita->intv.size <= minsplitsize )
+							{
+								uint64_t const centre = (ita->left+ita->right)/2;
+								assert ( static_cast<int64_t>(centre) >= static_cast<int64_t>(p) - static_cast<int64_t>((maxlen+1)/2) );
+
+								int64_t const ileft = std::max(
+									static_cast<int64_t>(left),
+									static_cast<int64_t>(centre)-static_cast<int64_t>(maxlen)
+								);
+								int64_t const iright = std::min(centre+maxlen,right);
+
+								splitcontext.resetMatch();
+								rank.smem(it,ileft,iright,centre,ita->intv.size+1,minlen,splitcontext);
+
+								for ( DNARankSMEMContext::match_iterator sita = splitcontext.mbegin(); sita != splitcontext.mend(); ++sita )
+								{
+									assert ( sita->left + maxlen + (maxlen+1)/2 >= p );
+									F.pushBump(*sita);
+								}
+							}
+						}
+
+						while ( ! F.empty() && F.top().left+maxlen+((maxlen+1)/2) <= p )
+						{
+							DNARankMEM mem = F.pop();
+							if ( Q.empty() || mem != Q.back() )
+								Q.push_back(mem);
+						}
+					}
+					if ( next == right )
+						while ( ! F.empty() )
+						{
+							DNARankMEM mem = F.pop();
+							if ( Q.empty() || mem != Q.back() )
+								Q.push_back(mem);
+						}
+
+					if ( Q.empty() )
+						return false;
+					else
+					{
+						mem = Q.front();
+						Q.pop_front();
+						assert ( mem.left >= prevMEM.left );
+						assert ( mem != prevMEM );
+						prevMEM = mem;
+						return true;
+					}
+				}
+			};
+
 			template<typename iterator>
 			static void smemSerial(
 				libmaus2::rank::DNARank const & rank,
@@ -162,6 +295,269 @@ namespace libmaus2
 				SMEM.resize(o);
 			}
 
+			/**
+			 * compute active regions in [left,right) containing matches of length >= minlen with frequency >= minfreq
+			 * split by inactive regions of size >= mininactive
+			 **/
+			template<typename iterator>
+			static std::string activeParallel(
+				libmaus2::util::TempFileNameGenerator & tmpgen,
+				libmaus2::rank::DNARankKmerCache const & cache,
+				iterator it,
+				uint64_t const left,
+				uint64_t const right,
+				uint64_t const minfreq,
+				uint64_t const minlen,
+				uint64_t const numthreads,
+				uint64_t const mininactive
+			)
+			{
+				uint64_t const range = right-left;
+				uint64_t const numkmers = (range >= minlen) ? (range-minlen+1) : 0;
+
+				if ( numkmers )
+				{
+					// minimum number of blocks (if possible)
+					uint64_t const minblocks = 16*numthreads;
+					// target block size
+					uint64_t const tblocksize = 256*1024ull;
+					// target number of blocks
+					uint64_t const tblocks = (numkmers + tblocksize - 1)/tblocksize;
+					// increase if smaller than minblocks
+					uint64_t const ttblocks = std::max(minblocks,tblocks);
+
+					// actual blocksize
+					uint64_t const blocksize = (numkmers + ttblocks - 1)/ttblocks;
+					// actual number of blocks
+					uint64_t const numblocks = (numkmers + blocksize - 1)/blocksize;
+
+					// std::cerr << "[V] num blocks " << numblocks << " block size " << blocksize << std::endl;
+
+					// next block id taken
+					uint64_t volatile nextblockid = 0;
+					libmaus2::parallel::PosixSpinLock lock;
+
+					// set up writers
+					std::vector<std::string> Vfn(numthreads);
+					libmaus2::autoarray::AutoArray< libmaus2::gamma::GammaIntervalEncoder::unique_ptr_type > Aintenc(numthreads);
+					for ( uint64_t i = 0; i < numthreads; ++i )
+					{
+						Vfn[i] = tmpgen.getFileName(true);
+						libmaus2::gamma::GammaIntervalEncoder::unique_ptr_type Tenc(new libmaus2::gamma::GammaIntervalEncoder(Vfn[i]));
+						Aintenc[i] = UNIQUE_PTR_MOVE(Tenc);
+
+					}
+
+					// process blocks
+					#if defined(_OPENMP)
+					#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
+					#endif
+					for ( uint64_t tblockid = 0; tblockid < numblocks; ++tblockid )
+					{
+						// thread id
+						#if defined(_OPENMP)
+						uint64_t const tid = omp_get_thread_num();
+						#else
+						uint64_t const tid = 0;
+						#endif
+
+						// get encoder
+						libmaus2::gamma::GammaIntervalEncoder * enc = Aintenc[tid].get();
+
+						// get block id
+						uint64_t blockid;
+						lock.lock();
+						blockid = nextblockid++;
+						lock.unlock();
+
+						// block bounds
+						uint64_t const blocklow = blockid * blocksize;
+						uint64_t const blockhigh = std::min(blocklow+blocksize,numkmers);
+						assert ( blockhigh - blocklow );
+
+						// is first position active?
+						bool active;
+						{
+							std::pair<uint64_t,uint64_t> const P = cache.search(it+blocklow,minlen);
+							active = (P.second-P.first) >= minfreq;
+						}
+
+						// start of previous range
+						uint64_t prevstart = blocklow;
+
+						// iterate over non first positions
+						for ( uint64_t z = blocklow+1; z < blockhigh; ++z )
+						{
+							// search
+							std::pair<uint64_t,uint64_t> const P = cache.search(it+z,minlen);
+
+							// new active values
+							bool const newactive = ((P.second-P.first) >= minfreq);
+
+							// if different from previous
+							if ( newactive != active )
+							{
+								// should be non empty
+								assert ( z > prevstart );
+
+								// encode interval if inactive
+								if ( ! active )
+									enc->put(std::pair<uint64_t,uint64_t>(prevstart,z));
+
+								active = newactive;
+								prevstart = z;
+							}
+						}
+					}
+
+					// flush encoders
+					for ( uint64_t i = 0; i < numthreads; ++i )
+					{
+						Aintenc[i]->flush();
+						Aintenc[i].reset();
+					}
+
+					// heap data structure
+					struct HeapEntry
+					{
+						std::pair<uint64_t,uint64_t> intv;
+						uint64_t id;
+
+						bool operator<(HeapEntry const & H) const
+						{
+							if ( intv.first != H.intv.first )
+								return intv.first < H.intv.first;
+							else if ( intv.second != H.intv.second )
+								return intv.second < H.intv.second;
+							else
+								return id < H.id;
+						}
+
+						HeapEntry()
+						{
+
+						}
+						HeapEntry(std::pair<uint64_t,uint64_t> rintv, uint64_t rid) : intv(rintv), id(rid) {}
+					};
+
+					// heap
+					libmaus2::util::FiniteSizeHeap<HeapEntry> H(numthreads);
+					// decoders
+					libmaus2::autoarray::AutoArray< libmaus2::gamma::GammaIntervalDecoder::unique_ptr_type > Aintdec(numthreads);
+
+					// set up decoders and fill heap
+					for ( uint64_t i = 0; i < numthreads; ++i )
+					{
+						libmaus2::gamma::GammaIntervalDecoder::unique_ptr_type tdec(new libmaus2::gamma::GammaIntervalDecoder(std::vector<std::string>(1,Vfn[i]),0/*offset*/,1/* numthreads */));
+						Aintdec[i] = UNIQUE_PTR_MOVE(tdec);
+
+						std::pair<uint64_t,uint64_t> P;
+						if ( Aintdec[i]->getNext(P) )
+						{
+							H.push(HeapEntry(P,i));
+						}
+						else
+						{
+							Aintdec[i].reset();
+							libmaus2::aio::FileRemoval::removeFile(Vfn[i]);
+						}
+					}
+
+					// previous
+					std::pair<uint64_t,uint64_t> Pprev(0,0);
+					// output file name
+					std::string const outfn = tmpgen.getFileName(true);
+					// encoder for merged inactive intervals
+					libmaus2::gamma::GammaIntervalEncoder::unique_ptr_type Penc(new libmaus2::gamma::GammaIntervalEncoder(outfn));
+
+					while ( ! H.empty() )
+					{
+						// get top of merge heap
+						HeapEntry T = H.pop();
+
+						// mergeable
+						if ( T.intv.first == Pprev.second )
+						{
+							Pprev.second = T.intv.second;
+						}
+						else
+						{
+							// if non empty
+							if ( expect_true(Pprev.second != Pprev.first) )
+								// if sufficietly large
+								if ( Pprev.second-Pprev.first >= mininactive )
+									Penc->put(Pprev);
+
+							Pprev = T.intv;
+						}
+
+						// try to get next
+						if ( Aintdec[T.id]->getNext(T.intv) )
+							H.push(T);
+						else
+						{
+							Aintdec[T.id].reset();
+							libmaus2::aio::FileRemoval::removeFile(Vfn[T.id]);
+						}
+					}
+
+					// put final interval
+					if ( expect_true(Pprev.second != Pprev.first) )
+						if ( Pprev.second-Pprev.first >= mininactive )
+							Penc->put(Pprev);
+
+					Penc->flush();
+					Penc.reset();
+
+					// set up encoder for active intervals
+					std::string const outfinfn = tmpgen.getFileName(true);
+					libmaus2::gamma::GammaIntervalDecoder::unique_ptr_type Pdec(new libmaus2::gamma::GammaIntervalDecoder(std::vector<std::string>(1,outfn),0/*offset */,1 /* numthreads */));
+					libmaus2::gamma::GammaIntervalEncoder::unique_ptr_type Pcomp(new libmaus2::gamma::GammaIntervalEncoder(outfinfn));
+
+					// active low
+					uint64_t actlow = left;
+					std::pair<uint64_t,uint64_t> P;
+					// get next inactive interval
+					while ( Pdec->getNext(P) )
+					{
+						// active up to start of inactive
+						if ( P.first > actlow )
+							Pcomp->put(std::pair<uint64_t,uint64_t>(actlow,P.first));
+
+						// active from end of inactive
+						actlow = P.second;
+					}
+					// put final if non empty
+					if ( actlow != right )
+						Pcomp->put(std::pair<uint64_t,uint64_t>(actlow,right));
+					Pcomp->flush();
+					Pcomp.reset();
+					Pdec.reset();
+
+					libmaus2::aio::FileRemoval::removeFile(outfn);
+
+					#if 0
+					libmaus2::gamma::GammaIntervalDecoder::unique_ptr_type Pdec(new libmaus2::gamma::GammaIntervalDecoder(std::vector<std::string>(1,outfn),0/*offset */,1 /* numthreads */));
+					std::pair<uint64_t,uint64_t> P;
+					while ( Pdec->getNext(P) )
+					{
+						if ( P.second-P.first >= 700 )
+							std::cerr << "[V] inactive [" << P.first << "," << P.second << ")" << std::endl;
+					}
+					#endif
+
+					return outfinfn;
+				}
+				else
+				{
+					std::string const outfn = tmpgen.getFileName(true);
+					libmaus2::gamma::GammaIntervalEncoder::unique_ptr_type Penc(new libmaus2::gamma::GammaIntervalEncoder(outfn));
+					Penc->flush();
+					Penc.reset();
+					return outfn;
+				}
+			}
+
 			template<typename iterator>
 			static void smemLimitedParallel(
 				libmaus2::rank::DNARank const & rank,
@@ -169,6 +565,7 @@ namespace libmaus2
 				iterator it,
 				uint64_t const left,
 				uint64_t const right,
+				uint64_t const n,
 				uint64_t const minfreq,
 				uint64_t const minlen,
 				uint64_t const limit,
@@ -226,101 +623,40 @@ namespace libmaus2
 						uint64_t const bhigh = std::min(blow+bs,thigh);
 						std::fill(active.begin(),active.end(),0);
 
-						int64_t const checkleft =
+						int64_t const aleft =
 							std::max(
-								static_cast<int64_t>(left),
-								static_cast<int64_t>(blow) - static_cast<int64_t>(minlen) + static_cast<int64_t>(1)
+								static_cast<int64_t>(blow) - static_cast<int64_t>(minlen) + static_cast<int64_t>(1),
+								static_cast<int64_t>(0)
 							);
-						int64_t const checkright =
+						int64_t const aright =
 							std::min(
-								static_cast<int64_t>(right)-static_cast<int64_t>(minlen) + static_cast<int64_t>(1),
-								static_cast<int64_t>(bhigh)
-							)
-						;
+								bhigh,
+								n-minlen+1
+							);
 
-						// kmers clipped on the left
-						for (
-							int64_t i = checkleft;
-							i < std::min(static_cast<int64_t>(blow),checkright);
-							++i
-						)
+						for ( int64_t i = aleft; i < aright; ++i )
 						{
-							assert ( i        >= left );
-							assert ( i+minlen <= right );
 							std::pair<uint64_t,uint64_t> const P = cache.search(it+i,minlen);
+
 							if ( P.second-P.first >= minfreq )
 								for ( int64_t j = i; j < i+minlen; ++j )
 									if ( j >= blow && j < bhigh )
-									{
 										active[j-blow] = 1;
-									}
-						}
-						// full kmers
-						for ( int64_t i = blow; i < static_cast<int64_t>(bhigh)-static_cast<int64_t>(minlen)+static_cast<int64_t>(1); ++i )
-						{
-							assert ( i        >= left );
-							assert ( i+minlen <= right );
-							assert ( i        >= blow );
-							assert ( i+minlen <= bhigh );
-							std::pair<uint64_t,uint64_t> const P = cache.search(it+i,minlen);
-
-							if ( P.second-P.first >= minfreq )
-								for ( int64_t j = i; j < i+minlen; ++j )
-								{
-									assert ( j >= blow );
-									assert ( j < bhigh );
-									active[j-blow] = 1;
-								}
-						}
-						// kmers clipped on the right
-						for (
-							int64_t i =
-								std::max(checkleft,static_cast<int64_t>(bhigh)-static_cast<int64_t>(minlen)+static_cast<int64_t>(1)); i < checkright; ++i
-						)
-						{
-							assert ( i        >= left );
-							assert ( i+minlen <= right );
-							std::pair<uint64_t,uint64_t> const P = cache.search(it+i,minlen);
-							if ( P.second-P.first >= minfreq )
-								for ( int64_t j = i; j < i+minlen; ++j )
-									if ( j >= blow && j < bhigh )
-									{
-										active[j-blow] = 1;
-									}
 						}
 
-						if ( blow >= left+limit && bhigh+limit <= right )
-						{
-							for ( uint64_t i0 = blow; i0 < bhigh; ++i0 )
-								if ( active[i0-blow] )
-								{
-									rank.smem(it,i0-limit,i0+limit,i0,minfreq,minlen,context);
-								}
-						}
-						else if ( blow >= left+limit )
-						{
-							for ( uint64_t i0 = blow; i0 < bhigh; ++i0 )
-								if ( active[i0-blow] )
-								{
-									rank.smem(it,i0-limit,right,i0,minfreq,minlen,context);
-								}
-						}
-						else if ( bhigh+limit <= right )
-						{
-							for ( uint64_t i0 = blow; i0 < bhigh; ++i0 )
-								if ( active[i0-blow] )
-								{
-									rank.smem(it,left,i0+limit,i0,minfreq,minlen,context);
-								}
-						}
-						else
-						{
-							for ( uint64_t i0 = blow; i0 < bhigh; ++i0 )
-								if ( active[i0-blow] )
-								{
-									rank.smem(it,left,right,i0,minfreq,minlen,context);
-								}
-						}
+						for ( uint64_t i0 = blow; i0 < bhigh; ++i0 )
+							if ( active[i0-blow] )
+							{
+								int64_t const ileft =
+									std::max(
+										static_cast<int64_t>(i0)-static_cast<int64_t>(limit),
+										static_cast<int64_t>(0)
+									);
+								int64_t const iright =
+									std::min(i0+limit,n);
+
+								rank.smem(it,ileft,iright,i0,minfreq,minlen,context);
+							}
 
 						gdonelock.lock();
 						gdone += (bhigh-blow);

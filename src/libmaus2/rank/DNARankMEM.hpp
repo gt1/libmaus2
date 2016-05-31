@@ -57,12 +57,7 @@ namespace libmaus2
 
 			bool operator==(DNARankMEM const & O) const
 			{
-				if ( *this < O )
-					return false;
-				else if ( O < *this )
-					return false;
-				else
-					return true;
+				return intv == O.intv && left == O.left && right == O.right;
 			}
 
 			bool operator!=(DNARankMEM const & O) const

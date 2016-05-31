@@ -61,9 +61,14 @@ int main()
 		}
 
 		std::cerr << (ok ? "ok" : "failed") << std::endl;
+
+		if ( ok )
+			return EXIT_SUCCESS;
+		else
+			return EXIT_FAILURE;
 	}
 	catch(std::exception const & ex)
 	{
-
+		return EXIT_FAILURE;
 	}
 }

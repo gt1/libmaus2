@@ -1238,7 +1238,8 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/HugePages.hpp \
 	libmaus2/util/HugePageAllocator.hpp \
 	libmaus2/util/StringAllocTypes.hpp \
-	libmaus2/util/Destructable.hpp
+	libmaus2/util/Destructable.hpp \
+	libmaus2/util/SimpleQueue.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
