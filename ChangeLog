@@ -1,3 +1,13 @@
+libmaus2 (2.0.197-1) unstable; urgency=medium
+
+  * add missing include directive in DNARankSMEMComputation
+  * add clear method in FiniteSizeHeap
+  * add search method variants in RangeSet
+  * add swap, get, size, operator[], reverse and clear methods in SimpleQueue class
+  * fix clear method in SplayTree class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 31 May 2016 17:58:29 +0200
+
 libmaus2 (2.0.196-1) unstable; urgency=medium
 
   * add SimpleQueue class
