@@ -687,7 +687,7 @@ namespace libmaus2
 						{
 							node_id_type const right = getRight(P.first);
 
-							deleteNode(P.first);
+							base.deleteNode(P.first);
 
 							if ( right != -1 )
 								todo.push(std::pair<node_id_type,int>(right,0));
