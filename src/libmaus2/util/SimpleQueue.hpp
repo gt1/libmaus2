@@ -37,6 +37,50 @@ namespace libmaus2
 			uint64_t low;
 			uint64_t high;
 
+			void swap(SimpleQueue<value_type> & O)
+			{
+				Q.swap(O.Q);
+				std::swap(m,O.m);
+				std::swap(low,O.low);
+				std::swap(high,O.high);
+			}
+
+			value_type & get(uint64_t i)
+			{
+				return Q [ i & m ];
+			}
+
+			value_type const & get(uint64_t i) const
+			{
+				return Q [ i & m ];
+			}
+
+			uint64_t size() const
+			{
+				return high-low;
+			}
+
+			value_type & operator[](uint64_t const i)
+			{
+				return get(low+i);
+			}
+
+			value_type const & operator[](uint64_t const i) const
+			{
+				return get(low+i);
+			}
+
+			void reverse()
+			{
+				uint64_t const s = high-low;
+				uint64_t const s2 = s>>1;
+				for ( uint64_t i = 0; i < s2; ++i )
+					std::swap(
+						get(low+i),
+						get(high-i-1)
+					);
+			}
+
 			void bump()
 			{
 				libmaus2::autoarray::AutoArray<value_type> NQ(Q.size()<<1,false);
@@ -55,6 +99,11 @@ namespace libmaus2
 			: Q(1), m(Q.size()-1), low(0), high(0)
 			{
 
+			}
+
+			void clear()
+			{
+				low = high = 0;
 			}
 
 			bool empty() const

@@ -25,7 +25,7 @@
 #include <libmaus2/util/TempFileNameGenerator.hpp>
 #include <libmaus2/gamma/GammaIntervalEncoder.hpp>
 #include <libmaus2/gamma/GammaIntervalDecoder.hpp>
-
+#include <libmaus2/util/FiniteSizeHeap.hpp>
 
 namespace libmaus2
 {
