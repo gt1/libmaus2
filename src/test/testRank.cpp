@@ -67,6 +67,10 @@
 
 #include <libmaus2/select/ESelect222B.hpp>
 
+#include <libmaus2/rank/RunLengthBitVectorStream.hpp>
+#include <libmaus2/rank/RunLengthBitVector.hpp>
+#include <libmaus2/rank/RunLengthBitVectorGenerator.hpp>
+
 // using bitio::getBit1;
 unsigned int shiftRand()
 {
@@ -138,7 +142,7 @@ bool checkE2(unsigned int const rvecsize)
 	unsigned int const vecsize = ((rvecsize + 63) / 64) * 64;
 
 	std::cerr
-		<< "checking rank class " << ::libmaus2::util::Demangle::demangle<eclass>() << " "
+		<< "\t\t[V]checking rank class " << ::libmaus2::util::Demangle::demangle<eclass>() << " "
 		<< "writer type " << ::libmaus2::util::Demangle::demangle<writer_type>() << " "
 		<< "data type " << ::libmaus2::util::Demangle::demangle<typename writer_type::data_type>() << std::endl;
 
@@ -200,13 +204,13 @@ bool checkE2(unsigned int const rvecsize)
 	{
 		double const allops = loops * vecsize;
 
-		std::cerr << classname << " loops " << loops << " vecsize " << vecsize << " check OK"<< std::endl;
-		std::cerr << "t_rank=" << t_rank << " per op " << (t_rank/allops)/CLOCKS_PER_SEC << " ops per sec " << 1.0/((t_rank/allops)/CLOCKS_PER_SEC) << std::endl;
-		std::cerr << "t_select=" << t_select << " ops " << allselops << " per op " << (t_select/allselops)/CLOCKS_PER_SEC << " ops per sec " << 1.0/((t_select/allselops)/CLOCKS_PER_SEC) << std::endl;
+		std::cerr << "\t\t[V]" << classname << " loops " << loops << " vecsize " << vecsize << " check OK"<< std::endl;
+		std::cerr << "\t\t\t[V]t_rank=" << t_rank << " per op " << (t_rank/allops)/CLOCKS_PER_SEC << " ops per sec " << 1.0/((t_rank/allops)/CLOCKS_PER_SEC) << std::endl;
+		std::cerr << "\t\t\t[V]t_select=" << t_select << " ops " << allselops << " per op " << (t_select/allselops)/CLOCKS_PER_SEC << " ops per sec " << 1.0/((t_select/allselops)/CLOCKS_PER_SEC) << std::endl;
 	}
 	else
 	{
-		std::cerr << classname << " loops " << loops << " vecsize " << vecsize << " check failed"<< std::endl;
+		std::cerr << "\t\t[V]" << classname << " loops " << loops << " vecsize " << vecsize << " check failed"<< std::endl;
 	}
 
 	return ok;
@@ -222,19 +226,19 @@ bool checkE2Append(unsigned int const rvecsize)
 	unsigned int const vecsize = ((rvecsize + 63) / 64) * 64;
 
 	std::cerr
-		<< "rank class " << ::libmaus2::util::Demangle::demangle<eappclass>() << " "
+		<< "\t[V]rank class " << ::libmaus2::util::Demangle::demangle<eappclass>() << " "
 		<< "writer type " << ::libmaus2::util::Demangle::demangle<writer_type>() << " "
 		<< "data type " << ::libmaus2::util::Demangle::demangle<data_type>() << std::endl;
 
 	::libmaus2::autoarray::AutoArray< data_type > AA( vecsize/ ( 8 * sizeof(data_type) ) , false );
 
-	unsigned int const loops = 100;
+	unsigned int const loops = 5;
 
 	bool ok = true;
 
 	for ( unsigned int i = 0; i < loops; ++i )
 	{
-		std::cerr << "loop " << i+1 << std::endl;
+		std::cerr << "\t\t[V] loop " << i+1 << std::endl;
 
 		// initialize random bit vector
 		writer_type B(AA.get());
@@ -250,7 +254,7 @@ bool checkE2Append(unsigned int const rvecsize)
 		libmaus2::rank::ERank222BAppendDynamic E2APP;
 		#endif
 
-		std::cerr << ::libmaus2::util::Demangle::demangle< libmaus2::rank::ERank222BAppendDynamic >() << " loop " << (i+1) << std::endl;
+		std::cerr << "\t\t[V] "<< ::libmaus2::util::Demangle::demangle< libmaus2::rank::ERank222BAppendDynamic >() << " loop " << (i+1) << std::endl;
 
 		for ( uint64_t j = 0; j < vecsize; ++j )
 		{
@@ -289,7 +293,7 @@ bool checkE2Sel1(unsigned int const rvecsize)
 	unsigned int const vecsize = ((rvecsize + 63) / 64) * 64;
 
 	std::cerr
-		<< "rank class " << ::libmaus2::util::Demangle::demangle<eclass>() << " "
+		<< "\t\t[V] rank class " << ::libmaus2::util::Demangle::demangle<eclass>() << " "
 		<< "writer type " << ::libmaus2::util::Demangle::demangle<writer_type>() << " "
 		<< "data type " << ::libmaus2::util::Demangle::demangle<data_type>() << std::endl;
 
@@ -324,12 +328,12 @@ bool checkE2Sel1(unsigned int const rvecsize)
 
 	if ( ok )
 	{
-		std::cerr << classname << " loops " << loops << " vecsize " << vecsize << " check OK"<< std::endl;
-		std::cerr << "t_select=" << t_select << " ops " << allselops << " per op " << (t_select/allselops)/CLOCKS_PER_SEC << " ops per sec " << 1.0/((t_select/allselops)/CLOCKS_PER_SEC) << std::endl;
+		std::cerr << "\t\t\t[V] " << classname << " loops " << loops << " vecsize " << vecsize << " check OK"<< std::endl;
+		std::cerr << "\t\t\t[V] t_select=" << t_select << " ops " << allselops << " per op " << (t_select/allselops)/CLOCKS_PER_SEC << " ops per sec " << 1.0/((t_select/allselops)/CLOCKS_PER_SEC) << std::endl;
 	}
 	else
 	{
-		std::cerr << classname << " loops " << loops << " vecsize " << vecsize << " check failed"<< std::endl;
+		std::cerr << "\t\t\t[V] " << classname << " loops " << loops << " vecsize " << vecsize << " check failed"<< std::endl;
 	}
 
 	return ok;
@@ -344,7 +348,7 @@ bool checkE2Sel0(unsigned int const rvecsize)
 	unsigned int const vecsize = ((rvecsize + 63) / 64) * 64;
 
 	std::cerr
-		<< "rank class " << ::libmaus2::util::Demangle::demangle<eclass>() << " "
+		<< "\t\t[V] rank class " << ::libmaus2::util::Demangle::demangle<eclass>() << " "
 		<< "writer type " << ::libmaus2::util::Demangle::demangle<writer_type>() << " "
 		<< "data type " << ::libmaus2::util::Demangle::demangle<data_type>() << std::endl;
 
@@ -379,12 +383,12 @@ bool checkE2Sel0(unsigned int const rvecsize)
 
 	if ( ok )
 	{
-		std::cerr << classname << " loops " << loops << " vecsize " << vecsize << " check OK"<< std::endl;
-		std::cerr << "t_select=" << t_select << " ops " << allselops << " per op " << (t_select/allselops)/CLOCKS_PER_SEC << " ops per sec " << 1.0/((t_select/allselops)/CLOCKS_PER_SEC) << std::endl;
+		std::cerr << "\t\t\t[V] " << classname << " loops " << loops << " vecsize " << vecsize << " check OK"<< std::endl;
+		std::cerr << "\t\t\t[V] t_select=" << t_select << " ops " << allselops << " per op " << (t_select/allselops)/CLOCKS_PER_SEC << " ops per sec " << 1.0/((t_select/allselops)/CLOCKS_PER_SEC) << std::endl;
 	}
 	else
 	{
-		std::cerr << classname << " loops " << loops << " vecsize " << vecsize << " check failed"<< std::endl;
+		std::cerr << "\t\t\t[V] " << classname << " loops " << loops << " vecsize " << vecsize << " check failed"<< std::endl;
 	}
 
 	return ok;
@@ -460,13 +464,13 @@ bool checkEP28(unsigned int const rvecsize)
 	{
 		double const allops = loops * vecsize;
 
-		std::cerr << classname << " loops " << loops << " vecsize " << vecsize << " check OK"<< std::endl;
-		std::cerr << "t_rank=" << t_rank << " per op " << (t_rank/allops)/CLOCKS_PER_SEC << " ops per sec " << 1.0/((t_rank/allops)/CLOCKS_PER_SEC) << std::endl;
-		std::cerr << "t_select=" << t_select << " ops " << allselops << " per op " << (t_select/allselops)/CLOCKS_PER_SEC << " ops per sec " << 1.0/((t_select/allselops)/CLOCKS_PER_SEC) << std::endl;
+		std::cerr << "\t\t[V] " << classname << " loops " << loops << " vecsize " << vecsize << " check OK"<< std::endl;
+		std::cerr << "\t\t\t[V] t_rank=" << t_rank << " per op " << (t_rank/allops)/CLOCKS_PER_SEC << " ops per sec " << 1.0/((t_rank/allops)/CLOCKS_PER_SEC) << std::endl;
+		std::cerr << "\t\t\t[V] t_select=" << t_select << " ops " << allselops << " per op " << (t_select/allselops)/CLOCKS_PER_SEC << " ops per sec " << 1.0/((t_select/allselops)/CLOCKS_PER_SEC) << std::endl;
 	}
 	else
 	{
-		std::cerr << classname << " loops " << loops << " vecsize " << vecsize << " check failed"<< std::endl;
+		std::cerr << "\t\t[V] " << classname << " loops " << loops << " vecsize " << vecsize << " check failed"<< std::endl;
 	}
 
 	return ok;
@@ -548,9 +552,9 @@ bool checkRank()
 	ok = ok && checkEP28< ::libmaus2::rank::ERank222BP <  ::libmaus2::rank::Proc01<uint64_t> > >(vecsize);
 
 	if ( ok )
-		std::cerr << "All tests ok." << std::endl;
+		std::cerr << "\t[V] All tests ok." << std::endl;
 	else
-		std::cerr << "Test failed." << std::endl;
+		std::cerr << "\t[V] Test failed." << std::endl;
 
 	return ok;
 }
@@ -919,32 +923,39 @@ void waveletTreeRankSelect()
 	::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, unsigned int > W(A,n);
 	::libmaus2::wavelet::QuickWaveletTree< ::libmaus2::rank::ERank222B, unsigned int > Q(A,n);
 
+	#if 0
 	for ( unsigned int i = 0; i < n; ++i )
 		std::cerr << A[i] << ";";
 	std::cerr << std::endl;
+	#endif
 
+	#if 0
 	for ( unsigned int i = 0; i < n; ++i )
 		std::cerr << W.rank(0,i) << ";";
 	std::cerr << std::endl;
+	#endif
 
 	for ( unsigned int i = 0; i < n; ++i )
 	{
-		std::cerr << Q.rank(0,i) << ";";
+		//std::cerr << Q.rank(0,i) << ";";
 		assert ( W.rank(0,i) == Q.rank(0,i) );
 	}
-	std::cerr << std::endl;
+	//std::cerr << std::endl;
 
+	#if 0
 	for ( unsigned int i = 0; i < n; ++i )
 		std::cerr << W.rank(1,i) << ";";
 	std::cerr << std::endl;
+	#endif
 
 	for ( unsigned int i = 0; i < n; ++i )
 	{
-		std::cerr << Q.rank(1,i) << ";";
+		//std::cerr << Q.rank(1,i) << ";";
 		assert ( W.rank(1,i) == Q.rank(1,i) );
 	}
-	std::cerr << std::endl;
+	//std::cerr << std::endl;
 
+	#if 0
 	for ( unsigned int i = 0; i < n; ++i )
 		std::cerr << W.rank(2,i) << ";";
 	std::cerr << std::endl;
@@ -972,19 +983,21 @@ void waveletTreeRankSelect()
 	for ( unsigned int i = 0; i < n; ++i )
 		std::cerr << W.rank(50,i) << ";";
 	std::cerr << std::endl;
+	#endif
 
 	for ( unsigned int i = 0; i < 12; ++i )
 		for ( unsigned int j = 0; j < 5; ++j )
 		{
-			std::cerr << "select(" << i << "," << j << ")=" << W.select(i,j) << std::endl;
-
+			// std::cerr << "select(" << i << "," << j << ")=" << W.select(i,j) << std::endl;
 			assert ( W.select(i,j) == Q.select(i,j) ) ;
 		}
 
+	#if 0
 	std::cerr << "array: ";
 	for ( unsigned int i = 0; i < n; ++i )
 		std::cerr << W[i] << ";";
 	std::cerr << std::endl;
+	#endif
 }
 
 void waveletTreeCheckRMQ()
@@ -1022,7 +1035,9 @@ void waveletTreeCheckRMQ()
 			rmqok = rmqok && (min0 == min1) && (max0 == max1);
 		}
 
-	std::cerr << "ok: " << rmqok << std::endl;
+	// std::cerr << "ok: " << rmqok << std::endl;
+
+	assert ( rmqok );
 	#endif
 }
 
@@ -1034,9 +1049,8 @@ void callWaveletTreeRankSelectRandom(unsigned int const q)
 	{
 		uint64_t const n = (rand() % 16384)+24;
 		waveletTreeRankSelectRandom(n);
-		std::cerr << "\r                            \r" << i << "/" << q;
+		//std::cerr << "\t[V] " << i << "/" << q << "\n";
 	}
-	std::cerr << std::endl;
 }
 
 void elias()
@@ -1365,7 +1379,7 @@ void checkRandomRnvGeneric()
 			}
 	}
 
-	std::cerr << "Random checks  for rnvGeneric ok." << std::endl;
+	// std::cerr << "Random checks  for rnvGeneric ok." << std::endl;
 
 }
 
@@ -1411,7 +1425,7 @@ void testCacheLineRank()
 		uint64_t const bits = bb * 8ull;
 		clr_type CLR(bits);
 
-		std::cerr << "Filling vector...";
+		std::cerr << "\t[V] Filling vector...";
 		::libmaus2::timing::RealTimeClock frtc;
 		frtc.start();
 		clr_type::WriteContext wcontext = CLR.getWriteContext();
@@ -1428,7 +1442,7 @@ void testCacheLineRank()
 		std::cerr << "done, time " << (CLR.n / frtc.getElapsedSeconds())/(1024ull*1024ull) << "M/s" << std::endl;
 		::libmaus2::rank::ImpCacheLineRankSelectAdapter IA(CLR);
 
-		std::cerr << "Copying vector...";
+		std::cerr << "\t[V] Copying vector...";
 		frtc.start();
 		::libmaus2::autoarray::AutoArray<uint64_t> D( (CLR.n+63)/64, false );
 		for ( uint64_t i = 0; i < CLR.n; ++i )
@@ -1440,7 +1454,7 @@ void testCacheLineRank()
 		}
 		std::cerr << "done, time " << (CLR.n / frtc.getElapsedSeconds())/(1024ull*1024ull) << "M/s" << std::endl;
 
-		std::cerr << "Checking vector...";
+		std::cerr << "\t[V] Checking vector...";
 		frtc.start();
 		for ( uint64_t i = 0; i < CLR.n; ++i )
 		{
@@ -1451,7 +1465,7 @@ void testCacheLineRank()
 		}
 		std::cerr << "done, time " << (CLR.n / frtc.getElapsedSeconds())/(1024ull*1024ull) << "M/s" << std::endl;
 
-		std::cerr << "Checking external...";
+		std::cerr << "\t[V] Checking external...";
 		std::ostringstream eostr;
 		::libmaus2::rank::ImpCacheLineRank::WriteContextExternal::unique_ptr_type wce =
 			::libmaus2::rank::ImpCacheLineRank::WriteContextExternal::construct(eostr,CLR.n);
@@ -1470,7 +1484,7 @@ void testCacheLineRank()
 
 		#define CACHECHECKSELECT
 
-		std::cerr << "Checking rank/select...";
+		std::cerr << "\t[V] Checking rank/select...";
 		uint64_t s = 0;
 		uint64_t s0 = 0;
 		for ( uint64_t i = 0; i < CLR.n; ++i )
@@ -1502,17 +1516,19 @@ void testCacheLineRank()
 				assert ( rok0 );
 			}
 
+			#if 0
 			if ( ( i & (16*1024*1024-1) ) == 0 )
 				std::cerr << "(" << static_cast<double>(i+1)/CLR.n << ")";
+			#endif
 		}
 		std::cerr << "done." << std::endl;
 
-		std::cerr << "Setting up erank...";
+		std::cerr << "\t[V] Setting up erank...";
 		frtc.start();
 		::libmaus2::rank::ERank222B erank(D.get(), D.size()*64);
 		std::cerr << "done, time " << (CLR.n / frtc.getElapsedSeconds())/(1024ull*1024ull) << "M/s" << std::endl;
 
-		std::cerr << "Setting up random probe vector...";
+		std::cerr << "\t[V] Setting up random probe vector...";
 		frtc.start();
 		uint64_t const rankprobes = 16*1024*1024;
 		::libmaus2::autoarray::AutoArray<uint64_t> P(rankprobes,false);
@@ -1522,7 +1538,7 @@ void testCacheLineRank()
 
 		unsigned int const loops = 50;
 
-		std::cerr << "Running probes on CLR...";
+		std::cerr << "\t[V] Running probes on CLR...";
 		::libmaus2::timing::RealTimeClock rtc;
 		rtc.start();
 		uint64_t v = 0;
@@ -1538,7 +1554,7 @@ void testCacheLineRank()
 		double const CLRtime = rtc.getElapsedSeconds();
 		std::cerr << "done." << std::endl;
 
-		std::cerr << "Running probes on erank...";
+		std::cerr << "\t[V] Running probes on erank...";
 		rtc.start();
 		for ( unsigned int l = 0; l < loops; ++l )
 		{
@@ -1553,9 +1569,8 @@ void testCacheLineRank()
 		std::cerr << "done." << std::endl;
 
 		uint64_t const queries = loops * P.size();
-		std::cerr << "mega queries/s: CLR=" << (queries/CLRtime)/(1024.0*1024.0) << " erank=" << (queries/eranktime)/(1024.0*1024.0) << " v=" << v << std::endl;
+		std::cerr << "\t[V] mega queries/s: CLR=" << (queries/CLRtime)/(1024.0*1024.0) << " erank=" << (queries/eranktime)/(1024.0*1024.0) << " v=" << v << std::endl;
 	}
-	std::cerr << std::endl;
 }
 
 void testRnvGenericQuick()
@@ -1598,14 +1613,12 @@ void testRangeCountMax()
 
 void testAccessPermutationsQuick()
 {
-	std::cerr << "Testing access on permutations (QuickWT)...";
 	for ( uint64_t i = 0; i <= 10; ++i )
 	{
 		std::cerr << "(" << i;
 		checkAccessPermutationsQuick(i);
 		std::cerr << ")";
 	}
-	std::cerr << "done." << std::endl;
 }
 
 void testRMQPermutationsQuick()
@@ -1623,9 +1636,7 @@ void testRMQPermutationsQuick()
 
 void testEnumSymbols()
 {
-	std::cerr << "Testing symbol enumeration...";
 	testEnumerateSymbols ( 16 , 32 );
-	std::cerr << "done." << std::endl;
 }
 
 #include <libmaus2/lf/LF.hpp>
@@ -1698,15 +1709,12 @@ void checkBPS()
 
 	::libmaus2::bitio::IndexedBitVector::unique_ptr_type PUUB = CT.bpsVector();
 	BalancedParentheses BP(PUUB);
+	BP.checkOperations();
 }
 
-#include <libmaus2/rank/RunLengthBitVectorStream.hpp>
-#include <libmaus2/rank/RunLengthBitVector.hpp>
-#include <libmaus2/rank/RunLengthBitVectorGenerator.hpp>
 
 void testrl(std::vector<bool> const & B)
 {
-
 	std::stringstream ostr;
 	std::stringstream indexstr;
 	libmaus2::rank::RunLengthBitVectorGenerator RLBVG(ostr,indexstr,B.size(),256);
@@ -1786,11 +1794,11 @@ void testrl()
 
 	{
 		srand(5);
-		for ( uint64_t z = 0; z < 1024; ++z )
+		for ( uint64_t z = 0; z < 64; ++z )
 		{
 			std::vector<bool> B;
 			uint64_t const r = (rand() % (32*1024))+1;
-			std::cerr << "r=" << r << std::endl;
+			// std::cerr << "r=" << r << std::endl;
 			for ( uint64_t i = 0; i < r; ++i )
 				B.push_back(rand() & 1);
 			testrl(B);
@@ -1799,103 +1807,148 @@ void testrl()
 	}
 }
 
+void testFastRank()
+{
+	char s[] = { 0,1,1,0,1,1,2,0,1,0,1,1,2,1,0,0,1,0,0,0,1,1,1,0};
+	uint64_t const n = sizeof(s)/sizeof(s[0]);
+
+	{
+		libmaus2::rank::FastRank<uint8_t,uint32_t> R(&s[0],n);
+		std::map<char,uint64_t> M;
+		for ( uint64_t i = 0; i < n; ++i )
+		{
+			M[s[i]]++;
+			for ( uint64_t j = 0; j < 256; ++j )
+			{
+				int64_t const expect = M[j];
+				int64_t const got = R.rank(j,i);
+
+				if ( expect != got )
+				{
+					std::cerr << "i=" << i << " j=" << j << " expected " << expect << " got " << got << std::endl;
+					assert ( expect == got );
+				}
+			}
+		}
+	}
+	{
+		libmaus2::rank::FastRank<uint8_t,uint32_t> R(&s[0],n,2);
+		std::map<char,uint64_t> M;
+		for ( uint64_t i = 0; i < n; ++i )
+		{
+			M[s[i]]++;
+			for ( uint64_t j = 0; j < 256; ++j )
+			{
+				int64_t const expect = M[j];
+				int64_t const got = R.rank(j,i);
+
+				if ( expect != got )
+				{
+					std::cerr << "i=" << i << " j=" << j << " expected " << expect << " got " << got << std::endl;
+					assert ( expect == got );
+				}
+			}
+		}
+	}
+}
+
 int main()
 {
 	initRand();
 
-	{
-		char s[] = { 0,1,1,0,1,1,2,0,1,0,1,1,2,1,0,0,1,0,0,0,1,1,1,0};
-		uint64_t const n = sizeof(s)/sizeof(s[0]);
+	std::cerr << "[V] testing FastRank...";
+	testFastRank();
+	std::cerr << "done." << std::endl;
 
-		{
-			libmaus2::rank::FastRank<uint8_t,uint32_t> R(&s[0],n);
-			std::map<char,uint64_t> M;
-			for ( uint64_t i = 0; i < n; ++i )
-			{
-				M[s[i]]++;
-				for ( uint64_t j = 0; j < 256; ++j )
-				{
-					int64_t const expect = M[j];
-					int64_t const got = R.rank(j,i);
-
-					if ( expect != got )
-					{
-						std::cerr << "i=" << i << " j=" << j << " expected " << expect << " got " << got << std::endl;
-						assert ( expect == got );
-					}
-				}
-			}
-		}
-		{
-			libmaus2::rank::FastRank<uint8_t,uint32_t> R(&s[0],n,2);
-			std::map<char,uint64_t> M;
-			for ( uint64_t i = 0; i < n; ++i )
-			{
-				M[s[i]]++;
-				for ( uint64_t j = 0; j < 256; ++j )
-				{
-					int64_t const expect = M[j];
-					int64_t const got = R.rank(j,i);
-
-					if ( expect != got )
-					{
-						std::cerr << "i=" << i << " j=" << j << " expected " << expect << " got " << got << std::endl;
-						assert ( expect == got );
-					}
-				}
-			}
-		}
-	}
-
-	exit(0);
-
+	std::cerr << "[V] testing RunLengthBitVector...";
 	testrl();
+	std::cerr << "done." << std::endl;
+
+	std::cerr << "[V] testing E2Append:\n";
 	checkE2Append(1024*1024);
+
+	std::cerr << "[V] testing WaveletTree rank/select random (size 128)...";
 	callWaveletTreeRankSelectRandom(128);
+	std::cerr << "done." << std::endl;
+
+	std::cerr << "[V] testing WaveletTree smaller/larger...";
 	waveletTreeSmallerLargerRandom(10);
+	std::cerr << "done." << std::endl;
+
+	std::cerr << "[V] testing CacheLineRank:\n";
 	testCacheLineRank();
+
+	std::cerr << "[V] testing WaveletTree RnvGenericQuick...";
 	testRnvGenericQuick();
+	std::cerr << "done." << std::endl;
+
+	std::cerr << "[V] testing permutation order access on QuickWaveletTree...";
 	testAccessPermutationsQuick();
+	std::cerr << "done" << std::endl;
+
+	std::cerr << "[V] testing enum symbols on WaveletTree...";
 	testEnumSymbols();
-	waveletTreeRankSelect();
-	callWaveletTreeRankSelectRandom(16*1024);
+	std::cerr << "done" << std::endl;
 
+	std::cerr << "[V] testing rank/select on WaveletTree (small sequence)...";
 	waveletTreeRankSelect();
+	std::cerr << "done." << std::endl;
+
+	std::cerr << "[V] testing WaveletTree rank/select random (size 1k)...";
+	callWaveletTreeRankSelectRandom(1024);
+	std::cerr << "done." << std::endl;
+
+	std::cerr << "[V] testing RMQ on wavelet tree...";
 	waveletTreeCheckRMQ();
+	std::cerr << "done." << std::endl;
 
+	std::cerr << "[V] checking BPS...";
 	checkBPS();
+	std::cerr << std::endl;
+
+	std::cerr << "[V] checking BitWriterStream8/FastWriteBitWriterStream8...";
 	checkStreams8(1000000);
+	std::cerr << "done." << std::endl;
+
+	std::cerr << "[V] checking BitWriterStream64/FastWriteBitWriterStream64...";
 	checkStreams64(10000000);
+	std::cerr << "done." << std::endl;
 
-	testCacheLineRank();
-	checkRank();
+	std::cerr << "[V] checking binary rank/select" << std::endl;
+	bool const ok = checkRank();
+	if ( ! ok )
+		return EXIT_FAILURE;
 
-
+	std::cerr << "[V] checking rangeCount on wavelet tree with permutations up to length 9...";
 	for ( unsigned int n = 1; n < 10; ++n )
 		checkRangeCountPermutations ( n );
+	std::cerr << "done." << std::endl;
 
+	std::cerr << "[V] checking rangeCount on wavelet tree with 1000 random sequences of length 20...";
 	checkRangeCountRand ( 20, 1000 );
+	std::cerr << "done." << std::endl;
 
+	std::cerr << "[V] checking sortedSymbol on wavelet tree...";
 	for ( unsigned int i = 0; i < 256; ++i )
 		checkSortedSymbols(31);
+	std::cerr << "done." << std::endl;
 
-	std::cerr << "Checking wavelet tree rank/select with random sequences" << std::endl;
-
-
+	std::cerr << "[V] Checking wavelet tree rank/select with random sequences" << std::endl;
 	clock_t bef_rmq = clock();
 	bool rmqok = true;
 	for ( unsigned int i = 0; rmqok && i < 10; ++i )
 	{
-		std::cerr << "checking rmq for all permutations of length " << i << "...";
+		std::cerr << "\t[V] checking rmq for all permutations of length " << i << "...";
 		rmqok = rmqok && checkRmqPermutations(i);
 		std::cerr << "done." << std::endl;
 	}
-	std::cerr << "RMQ tests: " << (rmqok?"ok":"failed") << " clocks " << (clock()-bef_rmq) << std::endl;
+	std::cerr << "\t[V] RMQ tests: " << (rmqok?"ok":"failed") << " clocks " << (clock()-bef_rmq) << std::endl;
+	assert ( rmqok );
 
 	for ( unsigned int i = 0; i <= 8; ++i )
 	{
 		double const cps = 1.0 / CLOCKS_PER_SEC;
-		std::cerr << "Checking QuickWaveletTree::rpv for all permutations of length " << i << "...";
+		std::cerr << "[V] checking QuickWaveletTree::rpv for all permutations of length " << i << "...";
 		clock_t bef = clock();
 		checkRPVPermutationsQuick(i);
 		clock_t aft = clock();
@@ -1904,7 +1957,7 @@ int main()
 	for ( unsigned int i = 0; i <= 8; ++i )
 	{
 		double const cps = 1.0 / CLOCKS_PER_SEC;
-		std::cerr << "Checking WaveletTree::rpv for all permutations of length " << i << "...";
+		std::cerr << "[V] checking WaveletTree::rpv for all permutations of length " << i << "...";
 		clock_t bef = clock();
 		checkRPVPermutations(i);
 		clock_t aft = clock();
@@ -1915,11 +1968,12 @@ int main()
 	bool rpvok = true;
 	for ( unsigned int i = 0; rpvok && i < 10; ++i )
 	{
-		std::cerr << "checking rpv for all permutations of length " << i << "...";
+		std::cerr << "[V] checking rpv for all permutations of length " << i << "...";
 		rpvok = rpvok && checkRPVPermutations(i);
 		std::cerr << "done." << std::endl;
 	}
-	std::cerr << "RPV tests: " << (rpvok?"ok":"failed") << " clocks " << (clock()-bef_rpv) << std::endl;
+	assert ( rpvok );
+	std::cerr << "[V] RPV tests: " << (rpvok?"ok":"failed") << " clocks " << (clock()-bef_rpv) << std::endl;
 
 	clock_t bef_rnv = clock();
 	bool rnvok = true;
@@ -1929,8 +1983,10 @@ int main()
 		rnvok = rnvok && checkRNVPermutations(i);
 		std::cerr << "done." << std::endl;
 	}
-	std::cerr << "RNV tests: " << (rnvok?"ok":"failed") << " clocks " << (clock()-bef_rnv) << std::endl;
+	assert ( rnvok );
+	std::cerr << "[V] RNV tests: " << (rnvok?"ok":"failed") << " clocks " << (clock()-bef_rnv) << std::endl;
 
+	std::cerr << "[V] checking random RnvGeneric...";
 	checkRandomRnvGeneric();
-
+	std::cerr << "done." << std::endl;
 }
