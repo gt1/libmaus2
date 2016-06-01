@@ -26,6 +26,9 @@ namespace libmaus2
 {
 	namespace rank
 	{
+		/**
+		 * rank class storing explicit results round robin
+		 **/
 		template<typename _value_type, typename _rank_type>
 		struct FastRank
 		{
@@ -35,12 +38,19 @@ namespace libmaus2
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			uint64_t n;
+			// array for input sequence
 			libmaus2::autoarray::AutoArray<value_type> AV;
+			// input sequence pointer
 			value_type * V;
+			// rank array
 			libmaus2::autoarray::AutoArray<rank_type> R;
+			// maximum symbol
 			int64_t maxsym;
+			// next power of two following maxsym+1
 			uint64_t mod;
+			// mod-1
 			uint64_t mask;
+			// inverse bit mask for mask (top bits not used for storing maxsym+1)
 			uint64_t invmask;
 
 			uint64_t rank(int64_t const sym, uint64_t const i) const
