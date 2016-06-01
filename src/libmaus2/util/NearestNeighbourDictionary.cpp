@@ -43,7 +43,7 @@ libmaus2::util::NearestNeighbourDictionary::NearestNeighbourDictionary(::libmaus
 
 	uint64_t max_distance_between_two_ones = 0;
 	uint64_t ones = 0; // counter for the ones in v
-	// get maximal distance between to ones in the bit vector
+	// get maximal distance between two ones in the bit vector
 	// speed this up by broadword computing
 	for (uint64_t i=0, last_one_pos_plus_1=0; i < v.size(); ++i)
 	{
