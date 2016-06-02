@@ -28,6 +28,7 @@
 #include <libmaus2/rank/DNARankGetPosition.hpp>
 #include <libmaus2/util/SplayTree.hpp>
 #include <libmaus2/util/FiniteSizeHeap.hpp>
+#include <libmaus2/fastx/DNAIndexMetaDataBigBandBiDir.hpp>
 
 namespace libmaus2
 {
@@ -40,6 +41,8 @@ namespace libmaus2
 			uint64_t const minscore;
 			uint64_t n;
 			char const * text;
+
+			libmaus2::fastx::DNAIndexMetaDataBigBandBiDir const & meta;
 
 			libmaus2::autoarray::AutoArray<uint64_t> Anumchildren;
 			libmaus2::autoarray::AutoArray<uint64_t> Aforward;
@@ -89,7 +92,12 @@ namespace libmaus2
 				}
 			};
 
-			ChainNodeInfoSet(uint64_t const rn, char const * rtext) : minscore(250), n(rn), text(rtext), RS(n)
+			ChainNodeInfoSet(
+				uint64_t const rn,
+				char const * rtext,
+				libmaus2::fastx::DNAIndexMetaDataBigBandBiDir const & rmeta,
+				uint64_t const rminscore
+			) : minscore(rminscore), n(rn), text(rtext), meta(rmeta), RS(n)
 			{
 
 			}
@@ -447,7 +455,7 @@ namespace libmaus2
 				return o && getChainScore() >= minscore;
 			}
 
-			void align()
+			void align(char const * query, uint64_t const querysize)
 			{
 				if ( o && CNI[0].chainscore >= minscore )
 				{
@@ -463,8 +471,11 @@ namespace libmaus2
 						uint64_t const cur = aligntodoQ.front();
 						aligntodoQ.pop_front();
 
-						//Vtodo.push_back(cur);
-						alignVtodo.push_back(cur);
+						std::pair<uint64_t,uint64_t> const & Pl = meta.mapCoordinates(CNI[cur].yleft);
+						std::pair<uint64_t,uint64_t> const & Pr = meta.mapCoordinates(CNI[cur].yright-1);
+
+						if ( Pl.first == Pr.first )
+							alignVtodo.push_back(cur);
 
 						for ( uint64_t i = 0; i < getNumChildren(cur); ++i )
 							aligntodoQ.push_back(getChild(cur,i));
@@ -476,12 +487,28 @@ namespace libmaus2
 
 						assert ( CNI[cur].xright > CNI[cur].xleft );
 
+						std::pair<uint64_t,uint64_t> const & Pl = meta.mapCoordinates(CNI[cur].yleft);
+						uint64_t const refleft = meta.L [ Pl.first ];
+						uint64_t const refright = meta.L [ Pl.first + 1 ];
+
 						libmaus2::lcs::NNPAlignResult res = nnp.align(
-							text,text+n,CNI[cur].xleft,
-							text,text+n,CNI[cur].yleft,
+							query,
+							query+querysize,
+							CNI[cur].xleft,
+							text+refleft,
+							text+refright,
+							CNI[cur].yleft - refleft,
 							nnptrace,
 							true /* self checking */
 						);
+
+						//std::cerr << "refleft=" << refleft << " refright=" << refright << " res=" << res << std::endl;
+
+						res.bbpos += refleft;
+						res.bepos += refleft;
+
+						assert ( res.bbpos >= refleft );
+						assert ( res.bbpos < refright );
 
 						// std::cerr << res << std::endl;
 
@@ -543,7 +570,8 @@ namespace libmaus2
 											<< std::endl;
 										#endif
 
-										alignVtodoout.push_back(alignVtodo[h_v]);
+										if ( alignVtodo[h_v] != cur )
+											alignVtodoout.push_back(alignVtodo[h_v]);
 									}
 
 									++h_v;
@@ -598,17 +626,20 @@ namespace libmaus2
 				chain.rightmost = rightmost;
 			}
 
-			void printAlignments()
+			void printAlignments(uint64_t const minlength = 0)
 			{
 				for ( uint64_t i = 0; i < aalgno; ++i )
 				{
-					libmaus2::math::IntegerInterval<int64_t> IA(Aalgn[i].res.abpos,Aalgn[i].res.aepos-1);
-					libmaus2::math::IntegerInterval<int64_t> IB(Aalgn[i].res.bbpos,Aalgn[i].res.bepos-1);
-					libmaus2::math::IntegerInterval<int64_t> IC = IA.intersection(IB);
-					bool const self = ! IC.isEmpty();
+					if ( Aalgn[i].res.aepos-Aalgn[i].res.abpos >= minlength )
+					{
+						libmaus2::math::IntegerInterval<int64_t> IA(Aalgn[i].res.abpos,Aalgn[i].res.aepos-1);
+						libmaus2::math::IntegerInterval<int64_t> IB(Aalgn[i].res.bbpos,Aalgn[i].res.bepos-1);
+						libmaus2::math::IntegerInterval<int64_t> IC = IA.intersection(IB);
+						bool const self = ! IC.isEmpty();
 
-					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::coutlock);
-					std::cout << Aalgn[i].res << "\t" << (self?"self":"distinct") << std::endl;
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::coutlock);
+						std::cout << Aalgn[i].res << "\t" << (self?"self":"distinct") << std::endl;
+					}
 				}
 			}
 		};

@@ -48,6 +48,11 @@ namespace libmaus2
 
 			}
 
+			uint64_t getRange(libmaus2::util::ContainerElementFreeList<ChainNode> & nodes) const
+			{
+				return rightmost - getLeftMost(nodes);
+			}
+
 			uint64_t getLeftMost(libmaus2::util::ContainerElementFreeList<ChainNode> & nodes) const
 			{
 				assert ( head != std::numeric_limits<uint64_t>::max() );
