@@ -31,6 +31,7 @@
 #include <libmaus2/lcs/ChainSplayTreeNodeComparator.hpp>
 #include <libmaus2/lcs/ChainSplayTreeNode.hpp>
 #include <libmaus2/rank/DNARankSMEMComputation.hpp>
+#include <libmaus2/fastx/FastAIndex.hpp>
 
 namespace libmaus2
 {
@@ -40,6 +41,8 @@ namespace libmaus2
 		{
 			typedef SMEMProcessor this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+
+			//libmaus2::fastx::FastAIndex const & faindex;
 
 			libmaus2::fastx::DNAIndexMetaDataBigBandBiDir const & meta;
 			libmaus2::rank::DNARank const & Prank;
@@ -82,6 +85,7 @@ namespace libmaus2
 			uint64_t maxocc;
 
 			SMEMProcessor(
+				//libmaus2::fastx::FastAIndex const & rfaindex,
 				libmaus2::fastx::DNAIndexMetaDataBigBandBiDir const & rmeta,
 				libmaus2::rank::DNARank const & rPrank,
 				libmaus2::suffixsort::bwtb3m::BwtMergeSortResult::BareSimpleSampledSuffixArray const & rBSSSA,
@@ -93,7 +97,8 @@ namespace libmaus2
 				bool const rselfcheck,
 				uint64_t const rchainminscore,
 				uint64_t const rmaxocc
-			) : meta(rmeta), Prank(rPrank), BSSSA(rBSSSA), text(rtext), maxxdist(rmaxxdist), GP(Prank,BSSSA), n(Prank.size()), ST(), addQ(16*1024), remQ(16*1024),
+			) : // faindex(rfaindex),
+			    meta(rmeta), Prank(rPrank), BSSSA(rBSSSA), text(rtext), maxxdist(rmaxxdist), GP(Prank,BSSSA), n(Prank.size()), ST(), addQ(16*1024), remQ(16*1024),
 			    //chainrightmost(),
 			    chainend(), CNIS(n,text,meta,rchainminscore,rfracmul,rfracdiv), ACH(),
 			    // chainmeta(), chainmetao(0),
@@ -265,6 +270,14 @@ namespace libmaus2
 
 			}
 
+			uint64_t mapSeq(uint64_t const id) const
+			{
+				if ( id < meta.S.size() / 2 )
+					return id;
+				else
+					return meta.S.size() - id - 1;
+			}
+
 			void process(
 				libmaus2::rank::DNARankSMEMComputation::SMEMEnumerator<char const *> & senum,
 				char const * query,
@@ -365,10 +378,19 @@ namespace libmaus2
 							uint64_t parentsubid;
 							// std::cerr << "[V] trying to link up " << libmaus2::lcs::ChainAddQueueElement(xright,p,z /* mem id */,i /* seed id */,0 /* chain id*/,0/*chain sub id*/) << std::endl;
 
+
 							// find largest entry suitable for p
 							libmaus2::util::SplayTree<libmaus2::lcs::ChainSplayTreeNode,libmaus2::lcs::ChainSplayTreeNodeComparator>::node_id_type s_id = ST.chain(libmaus2::lcs::ChainSplayTreeNode(std::numeric_limits<uint64_t>::max(),p,0,0));
 
 							assert ( s_id == -1 || ST.getKey(s_id).yright <= p );
+
+							#if 0
+							std::cerr
+								<< "trying to link up x=[" << xleft << "," << xright << ") y="
+								<< "[(" << faindex[mapSeq(meta.mapCoordinates(p).first)].name << "," << meta.mapCoordinates(p).second << "),"
+								<< "(" << faindex[mapSeq(meta.mapCoordinates(p+(xright-xleft)).first)].name << "," << meta.mapCoordinates(p+(xright-xleft)).second << "))"
+								<< std::endl;
+							#endif
 
 							if ( s_id >= 0 )
 							{
@@ -377,8 +399,55 @@ namespace libmaus2
 								assert ( p >= K.yright );
 								assert ( xleft >= K.xright );
 
+								// maximum available y still too low?
 								if ( p - K.yright > maxxdist )
 									s_id = -1;
+								else
+								{
+									uint64_t mindif = std::numeric_limits<uint64_t>::max();
+
+									for ( int64_t s_cur = s_id;
+										s_cur >= 0 &&
+										p - ST.getKey(s_cur).yright <= maxxdist;
+										s_cur = ST.getPrev(s_cur)
+									)
+									{
+										libmaus2::lcs::ChainSplayTreeNode const & K = ST.getKey(s_cur);
+
+										assert ( xleft >= K.xright );
+										uint64_t const xdif = xleft - K.xright;
+										assert ( p >= K.yright );
+										uint64_t const ydif = p - K.yright;
+
+										uint64_t const ddif = std::max(xdif,ydif) - std::min(xdif,ydif);
+
+										if ( ddif < mindif )
+										{
+											s_id = s_cur;
+											mindif = ddif;
+										}
+
+										#if 0
+										std::cerr
+											<< "could try to xright=" << K.xright << " yright="
+											<< "[" << faindex[mapSeq(meta.mapCoordinates(K.yright).first)].name << "," << meta.mapCoordinates(K.yright).second << ")"
+											<< " ddif=" << ddif
+											<< std::endl;
+										#endif
+									}
+								}
+							}
+
+							if ( s_id >= 0 )
+							{
+								libmaus2::lcs::ChainSplayTreeNode const & K = ST.getKey(s_id);
+
+								#if 0
+								std::cerr
+									<< "linking to xright=" << K.xright << " yright="
+									<< "[" << faindex[mapSeq(meta.mapCoordinates(K.yright).first)].name << "," << meta.mapCoordinates(K.yright).second << ")"
+									<< std::endl;
+								#endif
 							}
 
 							// if any
