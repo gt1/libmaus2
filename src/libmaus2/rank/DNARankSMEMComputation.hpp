@@ -41,6 +41,7 @@ namespace libmaus2
 			struct SMEMEnumerator
 			{
 				libmaus2::rank::DNARank const & rank;
+				libmaus2::rank::DNARankKmerCache const * cache;
 				iterator const it;
 				uint64_t const left;
 				uint64_t const right;
@@ -56,6 +57,7 @@ namespace libmaus2
 				uint64_t next;
 
 				libmaus2::util::SimpleQueue<DNARankMEM> Q;
+
 
 				struct MEMComp
 				{
@@ -73,6 +75,8 @@ namespace libmaus2
 				libmaus2::util::FiniteSizeHeap<DNARankMEM,MEMComp> F;
 				DNARankMEM prevMEM;
 
+				libmaus2::autoarray::AutoArray<char> CV;
+
 				SMEMEnumerator(
 					libmaus2::rank::DNARank const & rrank,
 					iterator rit,
@@ -83,9 +87,48 @@ namespace libmaus2
 					uint64_t const rmaxlen,
 					uint64_t const rminsplitlength,
 					uint64_t const rminsplitsize
-				) : rank(rrank), it(rit), left(rleft), right(rright), minfreq(rminfreq), minlen(rminlen), maxlen(rmaxlen), minsplitlength(rminsplitlength), minsplitsize(rminsplitsize), context(), next(left), F(1024)
+				) : rank(rrank), cache(0), it(rit), left(rleft), right(rright), minfreq(rminfreq), minlen(rminlen), maxlen(rmaxlen), minsplitlength(rminsplitlength), minsplitsize(rminsplitsize), context(), next(left), F(1024)
 				{
 					prevMEM.left = 0;
+				}
+
+				SMEMEnumerator(
+					libmaus2::rank::DNARank const & rrank,
+					libmaus2::rank::DNARankKmerCache const * rcache,
+					iterator rit,
+					uint64_t const rleft,
+					uint64_t const rright,
+					uint64_t const rminfreq,
+					uint64_t const rminlen,
+					uint64_t const rmaxlen,
+					uint64_t const rminsplitlength,
+					uint64_t const rminsplitsize
+				) : rank(rrank), cache(rcache), it(rit), left(rleft), right(rright), minfreq(rminfreq), minlen(rminlen), maxlen(rmaxlen), minsplitlength(rminsplitlength), minsplitsize(rminsplitsize), context(), next(left), F(1024), CV(right-left)
+				{
+					prevMEM.left = 0;
+
+					assert ( right >= left );
+					uint64_t const range = right-left;
+					std::fill(CV.begin(),CV.begin()+range,0);
+					uint64_t const numk = (range >= minlen) ? (range-minlen+1) : 0;
+
+					for ( uint64_t i = 0; i < numk; ++i )
+					{
+						std::pair<uint64_t,uint64_t> const P = cache->search(it+left+i,minlen);
+						if ( P.second-P.first >= minfreq )
+						{
+							uint64_t const p = left + i;
+							int64_t const ifrom = std::max(static_cast<int64_t>(p)-static_cast<int64_t>(minlen)+1,static_cast<int64_t>(left));
+							int64_t const ito = std::min(p+minlen,right);
+
+							for ( int64_t i = ifrom; i < ito; ++i )
+							{
+								assert ( i >= left );
+								assert ( i < right );
+								CV [ i - left ] = 1;
+							}
+						}
+					}
 				}
 
 				bool getNext(DNARankMEM & mem)
@@ -95,11 +138,19 @@ namespace libmaus2
 						context.resetMatch();
 						uint64_t const p = next++;
 
+						if ( cache && !CV[p-left] )
+							continue;
+
 						int64_t const ileft = std::max(
 							static_cast<int64_t>(left),
 							static_cast<int64_t>(p)-static_cast<int64_t>(maxlen)
 						);
 						int64_t const iright = std::min(p+maxlen,right);
+
+						#if 0
+						for ( int64_t i = ileft; i < iright; ++i )
+							assert ( it[i] < 4 );
+						#endif
 
 						rank.smem(it,ileft,iright,p,minfreq,minlen,context);
 
@@ -120,6 +171,9 @@ namespace libmaus2
 									static_cast<int64_t>(centre)-static_cast<int64_t>(maxlen)
 								);
 								int64_t const iright = std::min(centre+maxlen,right);
+
+								for ( int64_t i = ileft; i < iright; ++i )
+									assert ( it[i] < 4 );
 
 								splitcontext.resetMatch();
 								rank.smem(it,ileft,iright,centre,ita->intv.size+1,minlen,splitcontext);
