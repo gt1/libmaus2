@@ -33,6 +33,8 @@ namespace libmaus2
                 	typedef _value_type value_type;
                 	static const ::libmaus2::autoarray::alloc_type atype = _atype;
                 	typedef EntityBuffer<value_type,_atype> this_type;
+                	typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+                	typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
                 	private:
                 	this_type operator=(this_type const &);
