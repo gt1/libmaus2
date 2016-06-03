@@ -192,6 +192,11 @@ namespace libmaus2
 				shiftA(sa);
 				shiftB(sb);
 			}
+
+			int64_t getScore() const
+			{
+				return static_cast<int64_t>(aepos-abpos)-static_cast<int64_t>(dif);
+			}
 		};
 
 		std::ostream & operator<<(std::ostream & out, NNPAlignResult const & O);
