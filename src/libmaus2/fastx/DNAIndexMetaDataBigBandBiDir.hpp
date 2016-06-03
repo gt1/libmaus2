@@ -88,6 +88,75 @@ namespace libmaus2
 				return R;
 			}
 
+			struct Coordinates
+			{
+				bool valid;
+				uint64_t seq;
+				bool rc;
+				uint64_t left;
+				uint64_t length;
+
+				Coordinates() {}
+				Coordinates(
+					bool const rvalid,
+					uint64_t const rseq,
+					bool const rrc,
+					uint64_t const rleft,
+					uint64_t const rlength
+				)
+				: valid(rvalid), seq(rseq), rc(rrc), left(rleft), length(rlength) {}
+
+				std::ostream & print(std::ostream & out) const
+				{
+					out << "Coordinates(valid=" << valid << ",seq=" << seq << ",rc=" << rc << ",left=" << left << ",length=" << length << ")";
+					return out;
+				}
+			};
+
+			Coordinates mapCoordinatePair(uint64_t const il, uint64_t const ir)
+			{
+				if ( ir <= il )
+					return Coordinates(false,0,false,0,0);
+
+				std::pair<uint64_t,uint64_t> Pl = mapCoordinates(il);
+				std::pair<uint64_t,uint64_t> Pr = mapCoordinates(ir-1);
+
+				if ( Pl.first != Pr.first )
+				{
+					if ( Pl.first < S.size()/2 )
+					{
+						uint64_t const seq = Pl.first;
+						uint64_t const left = Pl.second;
+						return Coordinates(false,seq,false,left,S[seq].l);
+					}
+					else
+					{
+						uint64_t const seq = S.size()-Pl.first-1;
+						assert( S[Pl.first].l == S[seq].l );
+						uint64_t const left = S[seq].l - Pr.second - 1;
+						return Coordinates(false,seq,true,left,S[seq].l);
+					}
+				}
+
+				assert ( S.size() % 2 == 0 );
+
+				if ( Pl.first < S.size()/2 )
+				{
+					uint64_t const seq = Pl.first;
+					uint64_t const left = Pl.second;
+					uint64_t const right = Pr.second+1;
+					return Coordinates(true,seq,false,left,right-left);
+				}
+				else
+				{
+					uint64_t const seq = S.size()-Pl.first-1;
+					assert( S[Pl.first].l == S[seq].l );
+					uint64_t const left = S[seq].l - Pr.second - 1;
+					uint64_t const right = S[seq].l - Pl.second;
+					return Coordinates(true,seq,true,left,right-left);
+				}
+			}
+
 			bool valid(std::pair<uint64_t,uint64_t> const & P, uint64_t const k) const
 			{
 				uint64_t const seqlen = S[P.first].l;

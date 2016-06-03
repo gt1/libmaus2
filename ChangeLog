@@ -1,3 +1,10 @@
+libmaus2 (2.0.198-1) unstable; urgency=medium
+
+  * add classes for chaining based alignment
+  * add testRank as automatic test
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 03 Jun 2016 10:32:11 +0200
+
 libmaus2 (2.0.197-1) unstable; urgency=medium
 
   * add missing include directive in DNARankSMEMComputation

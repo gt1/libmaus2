@@ -41,7 +41,7 @@ namespace libmaus2
 			typedef typename std::iterator_traits<array_iterator>::value_type key_type;
 			array_iterator const A;
 
-			// base 2 logarithm rownded to zero (-1 means -inf)
+			// base 2 logarithm rounded to zero (-1 means -inf)
 			static inline int logbindown(uint32_t k)
 			{
 				int c = -1;
@@ -111,7 +111,7 @@ namespace libmaus2
 				return true;
 			}
 
-			// O(1) range query
+			// O(1) range query [l,r] (both included)
 			uint32_t operator()(uint32_t l, uint32_t r) const
 			{
 				assert(r>=l && r<n);

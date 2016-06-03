@@ -254,7 +254,13 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/lz/ZlibInterface.cpp \
 	libmaus2/suffixsort/bwtb3m/BwtSelectSSA.cpp \
 	libmaus2/aio/FileRemoval.cpp \
-	libmaus2/rank/DNARankMEM.cpp
+	libmaus2/rank/DNARankMEM.cpp \
+	libmaus2/lcs/ChainAddQueueElement.cpp \
+	libmaus2/lcs/Chain.cpp \
+	libmaus2/lcs/ChainNode.cpp \
+	libmaus2/lcs/ChainNodeInfo.cpp \
+	libmaus2/lcs/ChainRemoveQueueElement.cpp \
+	libmaus2/lcs/ChainSplayTreeNode.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -975,7 +981,8 @@ libmaus2rank_include_HEADERS=\
 	libmaus2/rank/DNARankMEM.hpp \
 	libmaus2/rank/DNARankMEMPosComparator.hpp \
 	libmaus2/rank/DNARankSMEMContext.hpp \
-	libmaus2/rank/DNARankSMEMComputation.hpp
+	libmaus2/rank/DNARankSMEMComputation.hpp \
+	libmaus2/rank/DNARankGetPosition.hpp
 
 libmaus2geometry_includedir=$(includedir)/libmaus2/geometry
 libmaus2geometry_include_HEADERS=\
@@ -1912,7 +1919,20 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16_def.hpp \
 	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16_undef.hpp \
 	libmaus2/lcs/SimdX86GlobalAlignmentScoreConstants256.hpp \
-	libmaus2/lcs/NNPLocalAligner.hpp
+	libmaus2/lcs/NNPLocalAligner.hpp \
+	libmaus2/lcs/ChainAddQueueElementHeapComparator.hpp \
+	libmaus2/lcs/ChainNode.hpp \
+	libmaus2/lcs/ChainRemoveQueueElement.hpp \
+	libmaus2/lcs/ChainAddQueueElement.hpp \
+	libmaus2/lcs/ChainNodeInfo.hpp \
+	libmaus2/lcs/ChainSplayTreeNodeComparator.hpp \
+	libmaus2/lcs/ChainAlignment.hpp \
+	libmaus2/lcs/ChainNodeInfoSet.hpp \
+	libmaus2/lcs/ChainSplayTreeNode.hpp \
+	libmaus2/lcs/Chain.hpp \
+	libmaus2/lcs/ChainRemoveQueueElementComparator.hpp \
+	libmaus2/lcs/ChainLeftMostComparator.hpp \
+	libmaus2/lcs/SMEMProcessor.hpp
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp

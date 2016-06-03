@@ -349,7 +349,7 @@ struct BalancedParentheses : public BalancedParenthesesBase
 
 	void checkOperations() const
 	{
-		std::cerr << "Checking...";
+		//std::cerr << "Checking...";
 		std::vector <uint64_t> parstack;
 		for ( uint64_t i = 0; i < UUB.size(); ++i )
 		{
@@ -378,7 +378,7 @@ struct BalancedParentheses : public BalancedParenthesesBase
 			#endif
 			// std::cerr << "i=" << i << " enclose()="<< enclose(i) << std::endl;
 		}
-		std::cerr << "done." << std::endl;
+		//std::cerr << "done." << std::endl;
 	}
 
 	BalancedParentheses(::libmaus2::bitio::IndexedBitVector::unique_ptr_type & rPUUB)
