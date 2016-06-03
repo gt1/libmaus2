@@ -29,13 +29,14 @@ namespace libmaus2
 			libmaus2::lcs::NNPAlignResult res;
 			uint64_t seedposa;
 			uint64_t seedposb;
+			uint64_t seedlength;
 			#if 0
 			libmaus2::lcs::NNPTraceContainer::shared_ptr_type nnptrace;
 			#endif
 
 			ChainAlignment() {}
-			ChainAlignment(libmaus2::lcs::NNPAlignResult const & rres, uint64_t const rseedposa, uint64_t const rseedposb)
-			: res(rres), seedposa(rseedposa), seedposb(rseedposb)
+			ChainAlignment(libmaus2::lcs::NNPAlignResult const & rres, uint64_t const rseedposa, uint64_t const rseedposb, uint64_t const rseedlength)
+			: res(rres), seedposa(rseedposa), seedposb(rseedposb), seedlength(rseedlength)
 			{
 
 			}
@@ -43,6 +44,16 @@ namespace libmaus2
 			ChainAlignment(libmaus2::lcs::NNPAlignResult const & rres, libmaus2::lcs::NNPTraceContainer const & rnnptrace)
 			: res(rres), nnptrace(rnnptrace.sclone()) {}
 			#endif
+
+			int64_t getScore() const
+			{
+				return res.getScore();
+			}
+
+			uint64_t getARange() const
+			{
+				return res.aepos-res.abpos;
+			}
 
 			bool operator<(ChainAlignment const & O) const
 			{
@@ -63,6 +74,58 @@ namespace libmaus2
 				return
 					!(*this < O) &&
 					!(O < *this);
+			}
+		};
+	}
+}
+
+namespace libmaus2
+{
+	namespace lcs
+	{
+		struct ChainAlignmentLengthComparator
+		{
+			bool operator()(ChainAlignment const & A, ChainAlignment const & B)
+			{
+				if ( A.getARange() != B.getARange() )
+					return A.getARange() > B.getARange();
+				else
+					return A < B;
+			}
+		};
+	}
+}
+
+namespace libmaus2
+{
+	namespace lcs
+	{
+		struct ChainAlignmentAEndComparator
+		{
+			bool operator()(ChainAlignment const & A, ChainAlignment const & B)
+			{
+				if ( A.res.aepos != B.res.aepos )
+					return A.res.aepos < B.res.aepos;
+				else if ( A.res.abpos != B.res.abpos )
+					return A.res.abpos < B.res.abpos;
+				else if ( A.res.bbpos != B.res.bbpos )
+					return A.res.bbpos < B.res.bbpos;
+				else
+					return A.res.bepos < B.res.bepos;
+			}
+		};
+	}
+}
+
+namespace libmaus2
+{
+	namespace lcs
+	{
+		struct ChainAlignmentScoreComparator
+		{
+			bool operator()(ChainAlignment const & A, ChainAlignment const & B)
+			{
+				return A.getScore() > B.getScore();
 			}
 		};
 	}
