@@ -95,7 +95,7 @@ namespace libmaus2
 				uint64_t const rmaxocc
 			) : meta(rmeta), Prank(rPrank), BSSSA(rBSSSA), text(rtext), maxxdist(rmaxxdist), GP(Prank,BSSSA), n(Prank.size()), ST(), addQ(16*1024), remQ(16*1024),
 			    //chainrightmost(),
-			    chainend(), CNIS(n,text,meta,rchainminscore), ACH(),
+			    chainend(), CNIS(n,text,meta,rchainminscore,rfracmul,rfracdiv), ACH(),
 			    // chainmeta(), chainmetao(0),
 			    CLMC(&chainnodefreelist),
 			    chainQ(16*1024,CLMC),

@@ -24,6 +24,7 @@
 #include <libmaus2/util/SimpleQueue.hpp>
 #include <libmaus2/util/PrefixSums.hpp>
 #include <iomanip>
+#include <set>
 #include <libmaus2/suffixsort/bwtb3m/BwtMergeSortResult.hpp>
 #include <libmaus2/rank/DNARankGetPosition.hpp>
 #include <libmaus2/util/SplayTree.hpp>
@@ -69,6 +70,11 @@ namespace libmaus2
 			libmaus2::util::SimpleQueue<uint64_t> alignVtodo;
 			libmaus2::util::SimpleQueue<uint64_t> alignVtodoout;
 
+			libmaus2::autoarray::AutoArray < libmaus2::lcs::ChainAlignment > Aalgnfilter;
+
+			uint64_t fracmul;
+			uint64_t fracdiv;
+
 			void reset()
 			{
 				aalgno = 0;
@@ -96,8 +102,10 @@ namespace libmaus2
 				uint64_t const rn,
 				char const * rtext,
 				libmaus2::fastx::DNAIndexMetaDataBigBandBiDir const & rmeta,
-				uint64_t const rminscore
-			) : minscore(rminscore), n(rn), text(rtext), meta(rmeta), RS(n)
+				uint64_t const rminscore,
+				uint64_t const rfracmul,
+				uint64_t const rfracdiv
+			) : minscore(rminscore), n(rn), text(rtext), meta(rmeta), RS(n), fracmul(rfracmul), fracdiv(rfracdiv)
 			{
 
 			}
@@ -522,7 +530,7 @@ namespace libmaus2
 							std::string() /* indent */,std::string() /* linesep */,libmaus2::fastx::remapChar);
 						#endif
 
-						Aalgn.push(aalgno,libmaus2::lcs::ChainAlignment(res,CNI[cur].xleft,CNI[cur].yleft));
+						Aalgn.push(aalgno,libmaus2::lcs::ChainAlignment(res,CNI[cur].xleft,CNI[cur].yleft,CNI[cur].xright-CNI[cur].xleft));
 
 						uint64_t const d_o = nnptrace.getDiagStrips(res.abpos,res.bbpos,D);
 
@@ -593,6 +601,74 @@ namespace libmaus2
 			{
 				std::sort(Aalgn.begin(),Aalgn.begin()+aalgno);
 				aalgno = std::unique(Aalgn.begin(),Aalgn.begin()+aalgno)-Aalgn.begin();
+
+				uint64_t aalignfilto = 0;
+				std::set < ChainAlignment, ChainAlignmentAEndComparator > active;
+				for ( uint64_t i = 0; i < aalgno; ++i )
+				{
+					uint64_t const abpos = Aalgn[i].res.abpos;
+					uint64_t const aepos = Aalgn[i].res.aepos;
+					// uint64_t const alen = aepos-abpos;
+					libmaus2::math::IntegerInterval<int64_t> Ii(abpos,aepos-1);
+
+					while ( (! active.empty()) && active.begin()->res.aepos < abpos )
+					{
+						Aalgnfilter.push(aalignfilto,*active.begin());
+						active.erase(active.begin());
+					}
+
+					std::set < ChainAlignment > activekill;
+					bool covered = false;
+					for ( std::set < ChainAlignment, ChainAlignmentAEndComparator >::const_iterator ita =
+						active.begin(); ita != active.end(); ++ita )
+					{
+						uint64_t const back_abpos = ita->res.abpos;
+						uint64_t const back_aepos = ita->res.aepos;
+						// uint64_t const backlen = back_aepos - back_abpos;
+
+						libmaus2::math::IntegerInterval<int64_t> Ia(back_abpos,back_aepos-1);
+						libmaus2::math::IntegerInterval<int64_t> Ic = Ii.intersection(Ia);
+
+						if (
+							Ic.diameter() >= static_cast<int64_t>((fracmul * Ii.diameter()) / fracdiv)
+							&&
+							Ia.diameter() >= 2 * Ii.diameter()
+							&&
+							ita->getScore() >= 2 * Aalgn[i].getScore()
+						)
+						{
+							//std::cerr << "killing " << Aalgn[i].res << " in favour of " << ita->res << std::endl;
+							covered = true;
+						}
+						else if (
+							Ic.diameter() >= static_cast<int64_t>((fracmul * Ia.diameter()) / fracdiv)
+							&&
+							Ii.diameter() >= 2 * Ia.diameter()
+							&&
+							Aalgn[i].getScore() >= 2 * ita->getScore()
+						)
+						{
+							//std::cerr << "killing " << ita->res << " in favour of " << Aalgn[i].res << std::endl;
+							activekill.insert(*ita);
+						}
+					}
+
+					if ( ! covered )
+					{
+						active.insert(Aalgn[i]);
+					}
+					for ( std::set < ChainAlignment >::iterator ita = activekill.begin(); ita != activekill.end(); ++ita )
+						active.erase(*ita);
+				}
+
+				for ( std::set < ChainAlignment, ChainAlignmentAEndComparator >::const_iterator ita =
+					active.begin(); ita != active.end(); ++ita )
+					Aalgnfilter.push(aalignfilto,*ita);
+
+				Aalgn.swap(Aalgnfilter);
+				std::swap(aalgno,aalignfilto);
+
+				std::sort(Aalgn.begin(),Aalgn.begin()+aalgno,ChainAlignmentScoreComparator());
 			}
 
 			void copyback(
