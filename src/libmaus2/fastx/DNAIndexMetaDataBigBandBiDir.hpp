@@ -97,7 +97,13 @@ namespace libmaus2
 				uint64_t length;
 
 				Coordinates() {}
-				Coordinates(bool const rvalid, uint64_t const rseq, bool const rrc, uint64_t const rleft, uint64_t const rlength)
+				Coordinates(
+					bool const rvalid,
+					uint64_t const rseq,
+					bool const rrc,
+					uint64_t const rleft,
+					uint64_t const rlength
+				)
 				: valid(rvalid), seq(rseq), rc(rrc), left(rleft), length(rlength) {}
 
 				std::ostream & print(std::ostream & out) const
