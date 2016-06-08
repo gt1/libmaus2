@@ -46,6 +46,14 @@ namespace libmaus2
 			::libmaus2::autoarray::AutoArray<value_type,atype> abuffer;
 			value_type * buffer;
 
+			void swap(this_type & other)
+			{
+				std::swap(buffersize,other.buffersize);
+				std::swap(length,other.length);
+				abuffer.swap(other.abuffer);
+				std::swap(buffer,other.buffer);
+			}
+
 			uint64_t swapBuffer(::libmaus2::autoarray::AutoArray<value_type,atype> & obuffer)
 			{
 				uint64_t const rlength = length;
