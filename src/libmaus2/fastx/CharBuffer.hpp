@@ -58,7 +58,7 @@ namespace libmaus2
 			{
 				buffersize = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				length = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
-				abuffer.deserialise(in);
+				abuffer.deserialize(in);
 				buffer = abuffer.begin();
 			}
 
