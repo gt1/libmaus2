@@ -32,6 +32,7 @@
 #include <libmaus2/lcs/ChainSplayTreeNode.hpp>
 #include <libmaus2/rank/DNARankSMEMComputation.hpp>
 #include <libmaus2/fastx/FastAIndex.hpp>
+#include <libmaus2/fastx/CoordinateCacheBiDir.hpp>
 
 namespace libmaus2
 {
@@ -45,6 +46,7 @@ namespace libmaus2
 			//libmaus2::fastx::FastAIndex const & faindex;
 
 			libmaus2::fastx::DNAIndexMetaDataBigBandBiDir const & meta;
+			libmaus2::fastx::CoordinateCacheBiDir const & cocache;
 			libmaus2::rank::DNARank const & Prank;
 			libmaus2::suffixsort::bwtb3m::BwtMergeSortResult::BareSimpleSampledSuffixArray const & BSSSA;
 			char const * text;
@@ -87,6 +89,7 @@ namespace libmaus2
 			SMEMProcessor(
 				//libmaus2::fastx::FastAIndex const & rfaindex,
 				libmaus2::fastx::DNAIndexMetaDataBigBandBiDir const & rmeta,
+				libmaus2::fastx::CoordinateCacheBiDir const & rcocache,
 				libmaus2::rank::DNARank const & rPrank,
 				libmaus2::suffixsort::bwtb3m::BwtMergeSortResult::BareSimpleSampledSuffixArray const & rBSSSA,
 				char const * rtext,
@@ -98,7 +101,7 @@ namespace libmaus2
 				uint64_t const rchainminscore,
 				uint64_t const rmaxocc
 			) : // faindex(rfaindex),
-			    meta(rmeta), Prank(rPrank), BSSSA(rBSSSA), text(rtext), maxxdist(rmaxxdist), GP(Prank,BSSSA), n(Prank.size()), ST(), addQ(16*1024), remQ(16*1024),
+			    meta(rmeta), cocache(rcocache), Prank(rPrank), BSSSA(rBSSSA), text(rtext), maxxdist(rmaxxdist), GP(Prank,BSSSA), n(Prank.size()), ST(), addQ(16*1024), remQ(16*1024),
 			    //chainrightmost(),
 			    chainend(), CNIS(n,text,meta,rchainminscore,rfracmul,rfracdiv), ACH(),
 			    // chainmeta(), chainmetao(0),
@@ -371,42 +374,56 @@ namespace libmaus2
 						// get (Y) position
 						uint64_t const p = GP.getPosition(smem.intv.forw + i);
 
-						if ( (!selfcheck) || (p != smem.left) )
+						std::pair<uint64_t,uint64_t> const coL = cocache[p];
+						std::pair<uint64_t,uint64_t> const coR = cocache[((p+(xright-xleft))+n-1)%n];
+
+						if (
+							// do not consider seeds spanning over a refseq boundary
+							(coL.first == coR.first)
+							&&
+							((!selfcheck) || (p != smem.left))
+						)
 						{
 							uint64_t chainid;
 							uint64_t chainsubid;
 							uint64_t parentsubid;
 							// std::cerr << "[V] trying to link up " << libmaus2::lcs::ChainAddQueueElement(xright,p,z /* mem id */,i /* seed id */,0 /* chain id*/,0/*chain sub id*/) << std::endl;
 
-
 							// find largest entry suitable for p
-							libmaus2::util::SplayTree<libmaus2::lcs::ChainSplayTreeNode,libmaus2::lcs::ChainSplayTreeNodeComparator>::node_id_type s_id = ST.chain(libmaus2::lcs::ChainSplayTreeNode(std::numeric_limits<uint64_t>::max(),p,0,0));
+							libmaus2::util::SplayTree<libmaus2::lcs::ChainSplayTreeNode,libmaus2::lcs::ChainSplayTreeNodeComparator>::node_id_type s_init =
+								ST.chain(libmaus2::lcs::ChainSplayTreeNode(std::numeric_limits<uint64_t>::max(),p,0,0));
+							int64_t s_id = -1;
 
-							assert ( s_id == -1 || ST.getKey(s_id).yright <= p );
+							assert ( s_init == -1 || ST.getKey(s_init).yright <= p );
 
-							#if 0
-							std::cerr
-								<< "trying to link up x=[" << xleft << "," << xright << ") y="
-								<< "[(" << faindex[mapSeq(meta.mapCoordinates(p).first)].name << "," << meta.mapCoordinates(p).second << "),"
-								<< "(" << faindex[mapSeq(meta.mapCoordinates(p+(xright-xleft)).first)].name << "," << meta.mapCoordinates(p+(xright-xleft)).second << "))"
-								<< std::endl;
+							#if defined(LIBMAUS2_CHAIN_LINK_DEBUG)
+							{
+								libmaus2::fastx::DNAIndexMetaDataBigBandBiDir::Coordinates CO =
+									meta.mapCoordinatePair(p,p+(xright-xleft)-1);
+
+								std::cerr
+									<< "trying to link up x=[" << xleft << "," << xright << ") y="
+									<< "([" << CO.seq << "," << CO.rc << "," << CO.left << "," << CO.left+CO.length+1 << ")"
+									<< std::endl;
+							}
 							#endif
 
-							if ( s_id >= 0 )
+							if ( s_init >= 0 )
 							{
-								libmaus2::lcs::ChainSplayTreeNode const & K = ST.getKey(s_id);
+								libmaus2::lcs::ChainSplayTreeNode const & K = ST.getKey(s_init);
+
 
 								assert ( p >= K.yright );
 								assert ( xleft >= K.xright );
 
 								// maximum available y still too low?
 								if ( p - K.yright > maxxdist )
-									s_id = -1;
+									s_init = -1;
 								else
 								{
 									uint64_t mindif = std::numeric_limits<uint64_t>::max();
 
-									for ( int64_t s_cur = s_id;
+									for ( int64_t s_cur = s_init;
 										s_cur >= 0 &&
 										p - ST.getKey(s_cur).yright <= maxxdist;
 										s_cur = ST.getPrev(s_cur)
@@ -421,34 +438,50 @@ namespace libmaus2
 
 										uint64_t const ddif = std::max(xdif,ydif) - std::min(xdif,ydif);
 
-										if ( ddif < mindif )
+										std::pair < uint64_t, uint64_t> const coP = cocache[(K.yright+n-1)%n];
+
+										if (
+											coP.first == coL.first
+											&&
+											ddif < mindif
+										)
 										{
 											s_id = s_cur;
 											mindif = ddif;
 										}
 
-										#if 0
-										std::cerr
-											<< "could try to xright=" << K.xright << " yright="
-											<< "[" << faindex[mapSeq(meta.mapCoordinates(K.yright).first)].name << "," << meta.mapCoordinates(K.yright).second << ")"
-											<< " ddif=" << ddif
-											<< std::endl;
+										#if defined(LIBMAUS2_CHAIN_LINK_DEBUG)
+										{
+											libmaus2::fastx::DNAIndexMetaDataBigBandBiDir::Coordinates CO =
+												meta.mapCoordinatePair((K.yright+n-1)%n,K.yright);
+
+											std::cerr
+												<< "could try to xright=" << K.xright << " yright="
+												<< "[" << CO.seq << "," << CO.rc << "," << CO.left+1 << ")"
+												<< " ddif=" << ddif
+												<< std::endl;
+										}
 										#endif
 									}
 								}
 							}
 
+							#if defined(LIBMAUS2_CHAIN_LINK_DEBUG)
 							if ( s_id >= 0 )
 							{
 								libmaus2::lcs::ChainSplayTreeNode const & K = ST.getKey(s_id);
 
-								#if 0
+								libmaus2::fastx::DNAIndexMetaDataBigBandBiDir::Coordinates CO =
+									meta.mapCoordinatePair((K.yright+n-1)%n,K.yright);
+
 								std::cerr
 									<< "linking to xright=" << K.xright << " yright="
-									<< "[" << faindex[mapSeq(meta.mapCoordinates(K.yright).first)].name << "," << meta.mapCoordinates(K.yright).second << ")"
+									<< "[" << CO.seq
+									<< "," << CO.rc
+									<< "," << CO.left+1 << ")"
 									<< std::endl;
-								#endif
 							}
+							#endif
 
 							// if any
 							if ( s_id >= 0 )

@@ -1,3 +1,13 @@
+libmaus2 (2.0.200-1) unstable; urgency=medium
+
+  * make sure not to link seeds on different ref sequences
+  * fix alignment/chaining bug skipping over unprocessed seeds
+  * add const on mapCoordinatePair on DNAIndexMetaDataBigBandBiDir
+  * add CoordinateCacheBiDir class
+  * add FastAIndexGenerator class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 08 Jun 2016 09:00:52 +0200
+
 libmaus2 (2.0.199-1) unstable; urgency=medium
 
   * improve chaining
