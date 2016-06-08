@@ -646,6 +646,14 @@ namespace libmaus2
 								l_v = h_v;
 							}
 						}
+						while ( l_v < alignVtodo.size() )
+						{
+							// copy if not current
+							if ( alignVtodo[l_v] != cur )
+								alignVtodoout.push_back(alignVtodo[l_v]);
+
+							++l_v;
+						}
 
 						assert ( alignVtodoout.size() < alignVtodo.size() );
 
@@ -763,8 +771,11 @@ namespace libmaus2
 				chain.rightmost = rightmost;
 
 				#if defined(CHAINNODEINFOSET_DOT)
-				std::cerr << "[V] copied back chain of score " << chain.getChainScore(chainnodefreelist) << " range " << chain.getRange(chainnodefreelist) << std::endl;
-				dot(chainid, "_copyback");
+				if ( o > 1 )
+				{
+					std::cerr << "[V] copied back chain of score " << chain.getChainScore(chainnodefreelist) << " range " << chain.getRange(chainnodefreelist) << std::endl;
+					dot(chainid, "_copyback");
+				}
 				#endif
 			}
 
