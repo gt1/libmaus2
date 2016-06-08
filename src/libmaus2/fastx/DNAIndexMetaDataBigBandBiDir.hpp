@@ -113,7 +113,7 @@ namespace libmaus2
 				}
 			};
 
-			Coordinates mapCoordinatePair(uint64_t const il, uint64_t const ir)
+			Coordinates mapCoordinatePair(uint64_t const il, uint64_t const ir) const
 			{
 				if ( ir <= il )
 					return Coordinates(false,0,false,0,0);

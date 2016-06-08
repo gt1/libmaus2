@@ -75,6 +75,10 @@ namespace libmaus2
 			uint64_t fracmul;
 			uint64_t fracdiv;
 
+			#if defined(CHAINNODEINFOSET_DOT)
+			uint64_t chaindot;
+			#endif
+
 			void reset()
 			{
 				aalgno = 0;
@@ -106,6 +110,9 @@ namespace libmaus2
 				uint64_t const rfracmul,
 				uint64_t const rfracdiv
 			) : minscore(rminscore), n(rn), text(rtext), meta(rmeta), RS(n), fracmul(rfracmul), fracdiv(rfracdiv)
+				#if defined(CHAINNODEINFOSET_DOT)
+				,chaindot(0)
+				#endif
 			{
 
 			}
@@ -341,7 +348,13 @@ namespace libmaus2
 
 							if ( thisend >= node.xleft )
 							{
-								childscore = std::max(childscore,childnode.chainscore + static_cast<uint64_t>(node.chainscore) - (node.xright-childnode.xleft));
+								assert ( node.xright >= childnode.xleft );
+
+								childscore =
+									std::max(
+										childscore,
+										childnode.chainscore + static_cast<uint64_t>(node.chainscore) - (node.xright-childnode.xleft)
+									);
 							}
 							else
 							{
@@ -374,10 +387,17 @@ namespace libmaus2
 				}
 			}
 
-			static std::string label(libmaus2::lcs::ChainNodeInfo const & C)
+			std::string label(libmaus2::lcs::ChainNodeInfo const & C) const
 			{
+				#if 0
+				std::pair<uint64_t,uint64_t> const & Pl = meta.mapCoordinates(C.yleft);
+				std::pair<uint64_t,uint64_t> const & Pr = meta.mapCoordinates(C.yright);
+				#endif
+
+				libmaus2::fastx::DNAIndexMetaDataBigBandBiDir::Coordinates const CO = meta.mapCoordinatePair(C.yleft,C.yright);
+
 				std::ostringstream ostr;
-				ostr << C.xleft << "," << C.xright << "," << C.yleft << "," << C.yright;
+				ostr << "x=[" << C.xleft << "," << C.xright << "),y=[(" << CO.seq << "," << CO.rc << "," << CO.left << "," << CO.left+CO.length << ")";
 				return ostr.str();
 			}
 
@@ -429,10 +449,10 @@ namespace libmaus2
 				}
 			}
 
-			void dot(uint64_t id) const
+			void dot(uint64_t id, std::string const & dottype = std::string()) const
 			{
 				std::ostringstream fnostr;
-				fnostr << "chain_" << std::setw(6) << std::setfill('0') << id << std::setw(0) << ".dot";
+				fnostr << "chain_" << std::setw(6) << std::setfill('0') << id << std::setw(0) << dottype << ".dot";
 				dot(fnostr.str());
 			}
 
@@ -443,11 +463,26 @@ namespace libmaus2
 				assert ( o );
 				Anumchildren.ensureSize(o+1);
 				computeForwardLinks();
+
+				#if defined(CHAINNODEINFOSET_DOT)
+				if ( o > 1 )
+					dot(chaindot,"_unsimplified");
+				#endif
+
 				assert ( o );
 				simplify();
 				assert ( o );
 				calculateScore();
 				assert ( o );
+
+
+				#if defined(CHAINNODEINFOSET_DOT)
+				if ( o > 1 )
+				{
+					std::cerr << "[V] produced chain of score " << getChainScore() << " valid " << isValid() << std::endl;
+					dot(chaindot++,"_simplified");
+				}
+				#endif
 			}
 
 			uint64_t getChainScore() const
@@ -467,6 +502,8 @@ namespace libmaus2
 			{
 				if ( o && CNI[0].chainscore >= minscore )
 				{
+					// std::cerr << "[V] running align for chain of score " << CNI[0].chainscore << std::endl;
+
 					aligntodoQ.clear();
 					alignVtodo.clear();
 					alignVtodoout.clear();
@@ -491,6 +528,8 @@ namespace libmaus2
 
 					while ( !alignVtodo.empty() )
 					{
+						// std::cerr << "[V] todo " << alignVtodo.size() << std::endl;
+
 						uint64_t const cur = alignVtodo.front(); // Vtodo.front();
 
 						assert ( CNI[cur].xright > CNI[cur].xleft );
@@ -518,7 +557,15 @@ namespace libmaus2
 						assert ( res.bbpos >= refleft );
 						assert ( res.bbpos < refright );
 
-						// std::cerr << res << std::endl;
+						#if 0
+						{
+							libmaus2::fastx::DNAIndexMetaDataBigBandBiDir::Coordinates CO = meta.mapCoordinatePair(res.bbpos,res.bepos);
+							std::cerr
+								<< res
+								<< " seq=" << CO.seq << " rc=" << CO.rc << " left=" << CO.left << " length=" << CO.length
+								<< std::endl;
+						}
+						#endif
 
 						#if 0
 						std::cerr << res << std::endl;
@@ -534,6 +581,10 @@ namespace libmaus2
 
 						uint64_t const d_o = nnptrace.getDiagStrips(res.abpos,res.bbpos,D);
 
+						#if 0
+						std::cerr << "Number of diag strips is " << d_o << std::endl;
+						#endif
+
 						alignVtodoout.clear();
 
 						uint64_t l_o = 0;
@@ -546,7 +597,13 @@ namespace libmaus2
 							if ( diag_strip < diag_vcomp )
 								++l_o;
 							else if ( diag_vcomp < diag_strip )
+							{
+								// copy if not current
+								if ( alignVtodo[l_v] != cur )
+									alignVtodoout.push_back(alignVtodo[l_v]);
+
 								++l_v;
+							}
 							else
 							{
 								RS.clear();
@@ -599,9 +656,12 @@ namespace libmaus2
 
 			void cleanup()
 			{
+				// sort alignments
 				std::sort(Aalgn.begin(),Aalgn.begin()+aalgno);
+				// filter out duplicates (identical left and right ends)
 				aalgno = std::unique(Aalgn.begin(),Aalgn.begin()+aalgno)-Aalgn.begin();
 
+				// filter out covered alignments
 				uint64_t aalignfilto = 0;
 				std::set < ChainAlignment, ChainAlignmentAEndComparator > active;
 				for ( uint64_t i = 0; i < aalgno; ++i )
@@ -668,6 +728,7 @@ namespace libmaus2
 				Aalgn.swap(Aalgnfilter);
 				std::swap(aalgno,aalignfilto);
 
+				// sort remaining alignments by score
 				std::sort(Aalgn.begin(),Aalgn.begin()+aalgno,ChainAlignmentScoreComparator());
 			}
 
@@ -700,6 +761,11 @@ namespace libmaus2
 				}
 
 				chain.rightmost = rightmost;
+
+				#if defined(CHAINNODEINFOSET_DOT)
+				std::cerr << "[V] copied back chain of score " << chain.getChainScore(chainnodefreelist) << " range " << chain.getRange(chainnodefreelist) << std::endl;
+				dot(chainid, "_copyback");
+				#endif
 			}
 
 			void printAlignments(uint64_t const minlength = 0)
