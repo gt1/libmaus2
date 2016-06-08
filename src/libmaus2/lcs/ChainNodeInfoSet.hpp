@@ -75,6 +75,9 @@ namespace libmaus2
 			uint64_t fracmul;
 			uint64_t fracdiv;
 
+			int64_t algndommul;
+			int64_t algndomdiv;
+
 			#if defined(CHAINNODEINFOSET_DOT)
 			uint64_t chaindot;
 			#endif
@@ -108,8 +111,10 @@ namespace libmaus2
 				libmaus2::fastx::DNAIndexMetaDataBigBandBiDir const & rmeta,
 				uint64_t const rminscore,
 				uint64_t const rfracmul,
-				uint64_t const rfracdiv
-			) : minscore(rminscore), n(rn), text(rtext), meta(rmeta), RS(n), fracmul(rfracmul), fracdiv(rfracdiv)
+				uint64_t const rfracdiv,
+				uint64_t const ralgndommul,
+				uint64_t const ralgndomdiv
+			) : minscore(rminscore), n(rn), text(rtext), meta(rmeta), RS(n), fracmul(rfracmul), fracdiv(rfracdiv), algndommul(ralgndommul), algndomdiv(ralgndomdiv)
 				#if defined(CHAINNODEINFOSET_DOT)
 				,chaindot(0)
 				#endif
@@ -700,9 +705,11 @@ namespace libmaus2
 						if (
 							Ic.diameter() >= static_cast<int64_t>((fracmul * Ii.diameter()) / fracdiv)
 							&&
-							Ia.diameter() >= 2 * Ii.diameter()
+							// Ia.diameter() >= 2 * Ii.diameter()
+							((algndommul * Ia.diameter()) / algndomdiv) >= Ii.diameter()
 							&&
-							ita->getScore() >= 2 * Aalgn[i].getScore()
+							//ita->getScore() >= 2 * Aalgn[i].getScore()
+							((algndommul * ita->getScore())/ algndomdiv) >= Aalgn[i].getScore()
 						)
 						{
 							//std::cerr << "killing " << Aalgn[i].res << " in favour of " << ita->res << std::endl;
@@ -711,9 +718,11 @@ namespace libmaus2
 						else if (
 							Ic.diameter() >= static_cast<int64_t>((fracmul * Ia.diameter()) / fracdiv)
 							&&
-							Ii.diameter() >= 2 * Ia.diameter()
+							// Ii.diameter() >= 2 * Ia.diameter()
+							((algndommul * Ii.diameter())/algndomdiv) >= Ia.diameter()
 							&&
-							Aalgn[i].getScore() >= 2 * ita->getScore()
+							// Aalgn[i].getScore() >= 2 * ita->getScore()
+							((algndommul*Aalgn[i].getScore())/algndomdiv) >= ita->getScore()
 						)
 						{
 							//std::cerr << "killing " << ita->res << " in favour of " << Aalgn[i].res << std::endl;
