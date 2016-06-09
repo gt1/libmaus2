@@ -86,6 +86,9 @@ namespace libmaus2
 
 			uint64_t maxocc;
 
+			uint64_t chaindommul;
+			uint64_t chaindomdiv;
+
 			SMEMProcessor(
 				//libmaus2::fastx::FastAIndex const & rfaindex,
 				libmaus2::fastx::DNAIndexMetaDataBigBandBiDir const & rmeta,
@@ -99,11 +102,15 @@ namespace libmaus2
 				uint64_t const rfracdiv,
 				bool const rselfcheck,
 				uint64_t const rchainminscore,
-				uint64_t const rmaxocc
+				uint64_t const rmaxocc,
+                                uint64_t const ralgndommul,
+                                uint64_t const ralgndomdiv,
+                                uint64_t const rchaindommul,
+                                uint64_t const rchaindomdiv
 			) : // faindex(rfaindex),
 			    meta(rmeta), cocache(rcocache), Prank(rPrank), BSSSA(rBSSSA), text(rtext), maxxdist(rmaxxdist), GP(Prank,BSSSA), n(Prank.size()), ST(), addQ(16*1024), remQ(16*1024),
 			    //chainrightmost(),
-			    chainend(), CNIS(n,text,meta,rchainminscore,rfracmul,rfracdiv), ACH(),
+			    chainend(), CNIS(n,text,meta,rchainminscore,rfracmul,rfracdiv,ralgndommul,ralgndomdiv), ACH(),
 			    // chainmeta(), chainmetao(0),
 			    CLMC(&chainnodefreelist),
 			    chainQ(16*1024,CLMC),
@@ -112,7 +119,9 @@ namespace libmaus2
 			    fracmul(rfracmul),
 			    fracdiv(rfracdiv),
 			    selfcheck(rselfcheck),
-			    maxocc(rmaxocc)
+			    maxocc(rmaxocc),
+			    chaindommul(rchaindommul),
+			    chaindomdiv(rchaindomdiv)
 			{
 
 			}
@@ -171,9 +180,9 @@ namespace libmaus2
 					if (
 						Isec.diameter() >= static_cast<int64_t>((Icur.diameter() * fracmul)/fracdiv)
 						&&
-						backchain.getRange(chainnodefreelist) > 2*chain.getRange(chainnodefreelist)
+						(chaindommul * backchain.getRange(chainnodefreelist))/chaindomdiv > chain.getRange(chainnodefreelist)
 						&&
-						backchain.getChainScore(chainnodefreelist) > 2*chain.getChainScore(chainnodefreelist)
+						(chaindommul * backchain.getChainScore(chainnodefreelist))/chaindomdiv > chain.getChainScore(chainnodefreelist)
 					)
 					{
 						//std::cerr << "chain " << chain << " covered by " << backchain << std::endl;
@@ -182,9 +191,9 @@ namespace libmaus2
 					else if (
 						Isec.diameter() >= static_cast<int64_t>((Iback.diameter() * fracmul)/fracdiv)
 						&&
-						chain.getRange(chainnodefreelist) > 2*backchain.getRange(chainnodefreelist)
+						(chaindommul * chain.getRange(chainnodefreelist))/chaindomdiv > backchain.getRange(chainnodefreelist)
 						&&
-						chain.getChainScore(chainnodefreelist) > 2*backchain.getChainScore(chainnodefreelist)
+						(chaindommul * chain.getChainScore(chainnodefreelist))/chaindomdiv > backchain.getChainScore(chainnodefreelist)
 					)
 					{
 						// std::cerr << "oldchain " << backchain << " covered by " << chain << std::endl;

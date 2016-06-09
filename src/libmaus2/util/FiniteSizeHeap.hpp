@@ -48,6 +48,11 @@ namespace libmaus2
 
 			}
 
+			uint64_t free() const
+			{
+				return H.size() - f;
+			}
+
 			void clear()
 			{
 				f = 0;

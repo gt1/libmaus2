@@ -21,6 +21,7 @@
 
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/fastx/acgtnMap.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 #include <algorithm>
 
 namespace libmaus2
@@ -45,6 +46,29 @@ namespace libmaus2
                         uint64_t length;
 			::libmaus2::autoarray::AutoArray<value_type,atype> abuffer;
 			value_type * buffer;
+
+			void serialise(std::ostream & out) const
+			{
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,buffersize);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,length);
+				abuffer.serialize(out);
+			}
+
+			void deserialise(std::istream & in)
+			{
+				buffersize = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				length = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				abuffer.deserialize(in);
+				buffer = abuffer.begin();
+			}
+
+			void swap(this_type & other)
+			{
+				std::swap(buffersize,other.buffersize);
+				std::swap(length,other.length);
+				abuffer.swap(other.abuffer);
+				std::swap(buffer,other.buffer);
+			}
 
 			uint64_t swapBuffer(::libmaus2::autoarray::AutoArray<value_type,atype> & obuffer)
 			{
@@ -112,6 +136,11 @@ namespace libmaus2
                         : buffersize(initialsize), length(0), abuffer(buffersize), buffer(abuffer.get())
                         {
 
+                        }
+
+                        EntityBuffer(std::istream & in)
+                        {
+                        	deserialise(in);
                         }
 
                         void assign(std::string & s)
