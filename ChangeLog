@@ -1,3 +1,13 @@
+libmaus2 (2.0.203-1) unstable; urgency=medium
+
+  * export chain domination parameters in SMEMProcessor
+  * add filter parameters in chaining
+  * add free method in FiniteSizeHeap
+  * add serialise and deserialise methods in CharBuffer class
+  * add swap method in CharBuffer class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 09 Jun 2016 11:03:29 +0200
+
 libmaus2 (2.0.202-1) unstable; urgency=medium
 
   * fix another seed skipping bug in ChainNodeInfoSet
