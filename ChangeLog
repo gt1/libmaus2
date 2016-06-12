@@ -1,3 +1,9 @@
+libmaus2 (2.0.205-1) unstable; urgency=medium
+
+  * update release to include test directory Makefile.in 
+
+ -- German Tischler <tischler@mpi-cbg.de>  Sun, 12 Jun 2016 14:17:58 +0200
+
 libmaus2 (2.0.204-1) unstable; urgency=medium
 
   * add hash based comparator for bam alignments
