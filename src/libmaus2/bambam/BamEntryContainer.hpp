@@ -23,6 +23,7 @@
 #include <libmaus2/bambam/BamAlignmentHeapComparator.hpp>
 #include <libmaus2/bambam/BamAlignmentNameComparator.hpp>
 #include <libmaus2/bambam/BamAlignmentPosComparator.hpp>
+#include <libmaus2/bambam/BamAlignmentHashComparator.hpp>
 #include <libmaus2/bambam/BamDecoder.hpp>
 #include <libmaus2/bambam/BamWriter.hpp>
 #include <libmaus2/bambam/MdNmRecalculation.hpp>
