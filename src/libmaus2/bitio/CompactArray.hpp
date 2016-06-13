@@ -35,6 +35,7 @@ namespace libmaus2
 
 			typedef CompactArrayTemplate<synchronous> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			typedef uint64_t value_type;
 

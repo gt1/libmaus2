@@ -38,20 +38,20 @@ namespace libmaus2
 {
 	namespace lcs
 	{
+		template<typename _ssa_type = libmaus2::suffixsort::bwtb3m::BwtMergeSortResult::BareSimpleSampledSuffixArray>
 		struct SMEMProcessor
 		{
-			typedef SMEMProcessor this_type;
-			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-
-			//libmaus2::fastx::FastAIndex const & faindex;
+			typedef _ssa_type ssa_type;
+			typedef SMEMProcessor<ssa_type> this_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			libmaus2::fastx::DNAIndexMetaDataBigBandBiDir const & meta;
 			libmaus2::fastx::CoordinateCacheBiDir const & cocache;
 			libmaus2::rank::DNARank const & Prank;
-			libmaus2::suffixsort::bwtb3m::BwtMergeSortResult::BareSimpleSampledSuffixArray const & BSSSA;
+			ssa_type const & BSSSA;
 			char const * text;
 			uint64_t const maxxdist;
-			libmaus2::rank::DNARankGetPosition GP;
+			libmaus2::rank::DNARankGetPosition<ssa_type> GP;
 			uint64_t const n;
 
 			libmaus2::util::SplayTree<libmaus2::lcs::ChainSplayTreeNode,libmaus2::lcs::ChainSplayTreeNodeComparator> ST;
@@ -94,7 +94,7 @@ namespace libmaus2
 				libmaus2::fastx::DNAIndexMetaDataBigBandBiDir const & rmeta,
 				libmaus2::fastx::CoordinateCacheBiDir const & rcocache,
 				libmaus2::rank::DNARank const & rPrank,
-				libmaus2::suffixsort::bwtb3m::BwtMergeSortResult::BareSimpleSampledSuffixArray const & rBSSSA,
+				ssa_type const & rBSSSA,
 				char const * rtext,
 				uint64_t const rmaxxdist,
 				uint64_t const ractivemax,
