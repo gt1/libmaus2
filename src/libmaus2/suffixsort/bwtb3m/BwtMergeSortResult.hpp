@@ -197,7 +197,7 @@ namespace libmaus2
 					uint64_t const bs = 64*1024;
 					libmaus2::autoarray::AutoArray<uint64_t> B(bs,false);
 					uint64_t const b = n ? libmaus2::math::numbits(n-1) : 0;
-					libmaus2::bitio::CompactArray::shared_ptr_type PSA(new libmaus2::bitio::CompactArray(arraylength,b));
+					libmaus2::bitio::CompactArray::shared_ptr_type PSA(new libmaus2::bitio::CompactArray(arraylength,b,0 /* pad */,false /* erase */));
 					libmaus2::bitio::CompactArray & SA = *PSA;
 
 					uint64_t z = 0;
