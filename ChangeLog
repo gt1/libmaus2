@@ -1,3 +1,11 @@
+libmaus2 (2.0.206-1) unstable; urgency=medium
+
+  * add CompactBareSimpleSampledSuffixArray in BwtMergeSortResult
+  * make DNARankGetPosition and SMEMProcessor template parameterised with suffix array type
+  * add shared_ptr_type in CompactArray
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 13 Jun 2016 12:26:57 +0200
+
 libmaus2 (2.0.205-1) unstable; urgency=medium
 
   * update release to include test directory Makefile.in 
