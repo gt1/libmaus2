@@ -25,14 +25,17 @@ namespace libmaus2
 {
 	namespace rank
 	{
+		template<typename _ssa_type>
 		struct DNARankGetPosition
 		{
+			typedef _ssa_type ssa_type;
+
 			libmaus2::rank::DNARank const & Prank;
-			libmaus2::suffixsort::bwtb3m::BwtMergeSortResult::BareSimpleSampledSuffixArray const & BSSSA;
+			ssa_type const & BSSSA;
 
 			DNARankGetPosition(
 				libmaus2::rank::DNARank const & rPrank,
-				libmaus2::suffixsort::bwtb3m::BwtMergeSortResult::BareSimpleSampledSuffixArray const & rBSSSA
+				ssa_type const & rBSSSA
 			) : Prank(rPrank), BSSSA(rBSSSA)
 			{
 
@@ -41,7 +44,7 @@ namespace libmaus2
 			uint64_t getPosition(uint64_t const r) const
 			{
 				std::pair<uint64_t,uint64_t> const P = Prank.simpleLFUntilMask(r, BSSSA.samplingrate-1);
-				uint64_t const p = ( BSSSA.A[P.first / BSSSA.samplingrate] + P.second ) % Prank.size();
+				uint64_t const p = ( BSSSA[P.first / BSSSA.samplingrate] + P.second ) % Prank.size();
 				return p;
 			}
 		};
