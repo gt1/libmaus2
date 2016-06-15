@@ -274,6 +274,7 @@ namespace libmaus2
 				{
 					size_t const towrite = std::min(n,static_cast<uint64_t>(optblocksize));
 
+					#if defined(__linux__)
 					pollfd pfd = { fd, POLLOUT, 0 };
 					double const time_bef_poll = getTime();
 					int const polltimeout = (warnThreshold > 0.0) ? static_cast<int>(std::floor(warnThreshold+0.5) * 1000ull) : -1;
@@ -321,6 +322,43 @@ namespace libmaus2
 					{
 						printWarning("poll",time_aft_poll-time_bef_poll,filename,fd);
 					}
+					#else
+					{
+						double const time_bef = getTime();
+						ssize_t const w = ::write(fd,p,towrite);
+						double const time_aft = getTime();
+						printWarning("write",time_aft-time_bef,filename,fd);
+
+						if ( w < 0 )
+						{
+							int const error = errno;
+
+							switch ( error )
+							{
+								case EINTR:
+								case EAGAIN:
+									break;
+								default:
+								{
+									libmaus2::exception::LibMausException se;
+									se.getStream() << "PosixOutputStreamBuffer::doSync(): write() failed: " << strerror(error) << std::endl;
+									se.finish();
+									throw se;
+								}
+							}
+						}
+						else
+						{
+							totaloutlock.lock();
+							totalout += w;
+							totaloutlock.unlock();
+
+							assert ( w <= static_cast<int64_t>(n) );
+							n -= w;
+							writepos += w;
+						}
+					}
+					#endif
 				}
 
 				assert ( ! n );
