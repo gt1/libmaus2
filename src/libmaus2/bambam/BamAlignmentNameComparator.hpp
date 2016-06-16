@@ -47,6 +47,12 @@ namespace libmaus2
 
 			}
 
+			static uint64_t getSecSupFlags()
+			{
+				return
+					libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSECONDARY |
+					libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSUPPLEMENTARY;
+			}
 
 			/**
 			 * compare alignment blocks da and db by name as described in class description. if names are equal then
@@ -82,7 +88,16 @@ namespace libmaus2
 					int const r1 = ((1-r1a) << 1) | (1-r2a);
 					int const r2 = ((1-r1b) << 1) | (1-r2b);
 
-					return (r1-r2) < 0;
+					if ( r1 != r2 )
+					{
+						return (r1-r2) < 0;
+					}
+					else
+					{
+						// primary < secondary < supplementary
+						return
+							(flagsa & getSecSupFlags()) < (flagsb & getSecSupFlags());
+					}
 				}
 				else
 				{
@@ -123,15 +138,37 @@ namespace libmaus2
 					return r;
 
 				// read 1 before read 2
-				int const r1 = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(da) & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1;
-				int const r2 = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(db) & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1;
+				uint32_t const flagsa = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(da);
+				uint32_t const flagsb = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(db);
+
+				int const r1a = (flagsa & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1) != 0;
+				int const r1b = (flagsb & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1) != 0;
+				int const r2a = (flagsa & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD2) != 0;
+				int const r2b = (flagsb & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD2) != 0;
+
+				int const r1 = ((1-r1a) << 1) | (1-r2a);
+				int const r2 = ((1-r1b) << 1) | (1-r2b);
 
 				if ( r1 == r2 )
-					return 0;
-				else if ( r1 )
+				{
+					uint64_t const fa = flagsa & getSecSupFlags();
+					uint64_t const fb = flagsb & getSecSupFlags();
+
+					if ( fa < fb )
+						return -1;
+					else if ( fb < fa )
+						return 1;
+					else
+						return 0;
+				}
+				else if ( (r1-r2) < 0 )
+				{
 					return -1;
+				}
 				else
+				{
 					return 1;
+				}
 			}
 
 			/**
