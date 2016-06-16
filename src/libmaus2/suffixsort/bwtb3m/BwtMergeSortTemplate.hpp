@@ -3947,7 +3947,7 @@ namespace libmaus2
 						false /* keep first */,
 						true /* keep second */,
 						*pmergedsa /* output stream */,
-						blockmem/2/*par*/,
+						blockmem/* /2 par in place now*/,
 						numthreads /* parallel */,
 						true /* delete input */
 					);
@@ -4966,7 +4966,8 @@ namespace libmaus2
 						// compute sampled suffix array and sampled inverse suffix array
 						computeSampledSA(
 							gtmpgen,fn,fs,IHWT,mergedisaname,options.outfn,
-							options.numthreads,lfblockmult,options.sasamplingrate,options.isasamplingrate,blockmem,
+							options.numthreads,lfblockmult,options.sasamplingrate,options.isasamplingrate,
+							options.mem,
 							logstr
 						);
 

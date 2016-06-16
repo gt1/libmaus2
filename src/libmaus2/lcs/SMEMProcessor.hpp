@@ -106,11 +106,13 @@ namespace libmaus2
                                 uint64_t const ralgndommul,
                                 uint64_t const ralgndomdiv,
                                 uint64_t const rchaindommul,
-                                uint64_t const rchaindomdiv
+                                uint64_t const rchaindomdiv,
+                                uint64_t const rmaxwerr,
+                                uint64_t const rmaxback
 			) : // faindex(rfaindex),
 			    meta(rmeta), cocache(rcocache), Prank(rPrank), BSSSA(rBSSSA), text(rtext), maxxdist(rmaxxdist), GP(Prank,BSSSA), n(Prank.size()), ST(), addQ(16*1024), remQ(16*1024),
 			    //chainrightmost(),
-			    chainend(), CNIS(n,text,meta,rchainminscore,rfracmul,rfracdiv,ralgndommul,ralgndomdiv), ACH(),
+			    chainend(), CNIS(n,text,meta,rchainminscore,rfracmul,rfracdiv,ralgndommul,ralgndomdiv,rmaxwerr,rmaxback), ACH(),
 			    // chainmeta(), chainmetao(0),
 			    CLMC(&chainnodefreelist),
 			    chainQ(16*1024,CLMC),
