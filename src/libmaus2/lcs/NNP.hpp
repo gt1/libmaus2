@@ -57,10 +57,26 @@ namespace libmaus2
 				}
 			};
 
+			// discard traces which have more than this number of errors in the last 64 columns
+			unsigned int const maxwerr;
+			// discard traces which are this far more back than the furthest
+			int64_t const maxback;
+
 			libmaus2::autoarray::AutoArray<DiagElement> Acontrol;
 			DiagElement * control;
 			libmaus2::autoarray::AutoArray<DiagElement> Ancontrol;
 			DiagElement * ncontrol;
+
+			static unsigned int getDefaultMaxWindowError()
+			{
+				return 24;
+			}
+
+			static int64_t getDefaultMaxBack()
+			{
+				return 75;
+			}
+
 
 			struct CompInfo
 			{
@@ -83,7 +99,15 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray<CompInfo> Acompdiag;
 			libmaus2::autoarray::AutoArray<int64_t> Aactivediag;
 
-			NNP() : Acontrol(1), control(Acontrol.begin()), Ancontrol(1), ncontrol(Ancontrol.begin())
+			NNP(
+				unsigned int const rmaxwerr = getDefaultMaxWindowError(),
+				int64_t const rmaxback = getDefaultMaxBack()
+			)
+			:
+				maxwerr(rmaxwerr),
+				maxback(rmaxback),
+				Acontrol(1), control(Acontrol.begin()),
+				Ancontrol(1), ncontrol(Ancontrol.begin())
 			{
 			}
 
@@ -207,7 +231,6 @@ namespace libmaus2
 				int64_t const maxband = getDefaultMaxDiag()
 			)
 			{
-				unsigned int const maxwerr = 24;
 				uint64_t oactivediag = 0;
 
 				ptrdiff_t const alen = ae-ab;
@@ -580,7 +603,7 @@ namespace libmaus2
 					for ( uint64_t di = 0; di < compdiago; ++di )
 					{
 						int64_t const d = Acompdiag[di].d;
-						if ( control[d].offset >= 0 && control[d].offset >= maxroundoffset-75 )
+						if ( control[d].offset >= 0 && control[d].offset >= maxroundoffset-maxback )
 						{
 							Aactivediag[oactivediag++] = d;
 							active = true;

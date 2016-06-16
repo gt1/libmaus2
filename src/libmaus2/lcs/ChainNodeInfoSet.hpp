@@ -113,8 +113,12 @@ namespace libmaus2
 				uint64_t const rfracmul,
 				uint64_t const rfracdiv,
 				uint64_t const ralgndommul,
-				uint64_t const ralgndomdiv
-			) : minscore(rminscore), n(rn), text(rtext), meta(rmeta), RS(n), fracmul(rfracmul), fracdiv(rfracdiv), algndommul(ralgndommul), algndomdiv(ralgndomdiv)
+				uint64_t const ralgndomdiv,
+				uint64_t const rmaxwerr,
+				uint64_t const rmaxback
+			) : minscore(rminscore), n(rn), text(rtext), meta(rmeta), RS(n),
+			    nnp(rmaxwerr,rmaxback),
+			    fracmul(rfracmul), fracdiv(rfracdiv), algndommul(ralgndommul), algndomdiv(ralgndomdiv)
 				#if defined(CHAINNODEINFOSET_DOT)
 				,chaindot(0)
 				#endif
