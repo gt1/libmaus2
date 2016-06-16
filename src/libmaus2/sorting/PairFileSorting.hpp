@@ -279,7 +279,7 @@ namespace libmaus2
 				::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type SGO(
 					new ::libmaus2::aio::SynchronousGenericOutput<uint64_t>(tmpfilename,16*1024)
 				);
-				::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > A(pairsperblock,false);
+				::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > A(std::min(pairsperblock,numpairs),false);
 
 				uint64_t w = 0;
 				for ( uint64_t b = 0; b < numblocks; ++b )
