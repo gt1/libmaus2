@@ -1,3 +1,13 @@
+libmaus2 (2.0.207-1) unstable; urgency=medium
+
+  * do not use poll on non Linux systems in PosixFdOutputStreamBuffer
+  * pass through NNP maxwerr and maxback parameters in ChainNodeInfoSet and SMEMProcessor
+  * export parameters to caller interface in NNP class
+  * use all memory for sorting SA/ISA, not just the one for a single block
+  * do not erase CompactBareSimpleSampledSuffixArray before filling it
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 16 Jun 2016 10:02:42 +0200
+
 libmaus2 (2.0.206-1) unstable; urgency=medium
 
   * add CompactBareSimpleSampledSuffixArray in BwtMergeSortResult
