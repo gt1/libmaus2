@@ -1,3 +1,9 @@
+libmaus2 (2.0.210-1) unstable; urgency=medium
+
+  * pass generic libmaus2 cxxflags when compiling simd parts
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 17 Jun 2016 10:25:27 +0200
+
 libmaus2 (2.0.209-1) unstable; urgency=medium
 
   * extend name sorting to secondary and supplementary flags
