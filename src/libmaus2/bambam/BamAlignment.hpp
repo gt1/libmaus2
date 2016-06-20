@@ -2338,6 +2338,14 @@ namespace libmaus2
 			}
 
 			/**
+			 * @return number of deleted bases before first match
+			 **/
+			uint64_t getFrontDel() const
+			{
+				return libmaus2::bambam::BamAlignmentDecoderBase::getFrontDel(D.begin());
+			}
+
+			/**
 			 * add mate cigar string aux field
 			 *
 			 * @param A first read alignment block
