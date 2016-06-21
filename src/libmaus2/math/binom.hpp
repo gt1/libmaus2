@@ -263,6 +263,30 @@ namespace libmaus2
 				return r;
 			}
 
+			static std::vector < libmaus2::math::GmpFloat > binomVector(libmaus2::math::GmpFloat const p, uint64_t const n, unsigned int const prec)
+			{
+				//libmaus2::math::GmpFloat r(0,prec);
+				libmaus2::math::GmpFloat const q = libmaus2::math::GmpFloat(1.0,prec)-p; // q = 1-p
+				libmaus2::math::GmpFloat const tp(1.0,prec); // tp = 1
+				libmaus2::math::GmpFloat const tq = slowPow(q,n,prec); // tq = q^n
+				libmaus2::math::GmpFloat f = tp * tq; // product of tp and tq
+
+				std::vector < libmaus2::math::GmpFloat > V(n+1);
+
+				// sum up starting from k
+				for ( uint64_t k = 0; k <= n; ++k )
+				{
+					V[k] = f;
+					// r += f; // add f to result
+					f *= p; // multiply factor by p
+					f /= q; // divide factor by q
+					f /= (libmaus2::math::GmpFloat(k,prec)+libmaus2::math::GmpFloat(1,prec)); // divide by k+1
+					f *= (libmaus2::math::GmpFloat(n,prec)-libmaus2::math::GmpFloat(k,prec)); // multiply by n-k
+				}
+
+				return V;
+			}
+
 			/**
 			 * search for maximum k s.t. binomRowUpperGmpFloat(p,n,k,prec) >= lim using binary search
 			 **/
@@ -313,6 +337,52 @@ namespace libmaus2
 				}
 
 				return r;
+			}
+
+			static bool increment(std::vector<uint64_t> & D, uint64_t top)
+			{
+				int64_t i = static_cast<int64_t>(D.size())-1;
+
+				while ( i >= 0 && D[i] == top )
+					--i;
+
+				if ( i < 0 )
+				{
+					return false;
+				}
+				else
+				{
+					D[i++] += 1;
+					while ( i < static_cast<int64_t>(D.size()) )
+						D[i++] = 0;
+
+					return true;
+				}
+			}
+
+			static std::vector< libmaus2::math::GmpFloat > multiDimBinomial(double const p, uint64_t const n, unsigned int const d)
+			{
+				std::vector < libmaus2::math::GmpFloat > BV = libmaus2::math::Binom::binomVector(p /* prob for correct kmer */, n, 512);
+
+				std::vector<uint64_t> D(d);
+				std::vector< libmaus2::math::GmpFloat > S(d*n+1);
+
+				do
+				{
+					libmaus2::math::GmpFloat mult = 1;
+					uint64_t isum = 0;
+
+					for ( uint64_t i = 0; i < D.size(); ++i )
+					{
+						isum += D[i];
+						mult *= BV[D[i]];
+					}
+
+					S [ isum ] += mult;
+				} while ( increment(D,n) );
+
+
+				return S;
 			}
 		};
 	}
