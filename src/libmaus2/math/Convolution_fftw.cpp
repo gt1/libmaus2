@@ -90,7 +90,7 @@ std::vector<double> libmaus2::math::Convolution::convolutionFFTW(
 	FFTWMemBlock CCout(fftn);
 
 	fftw_plan fftwforwAplan = fftw_plan_dft_1d(fftn,CCin_A.A,CCtmp_A.A,FFTW_FORWARD,0);
-	fftw_plan fftwforwBplan = fftw_plan_dft_1d(fftn,CCin_A.A,CCtmp_B.A,FFTW_FORWARD,0);
+	fftw_plan fftwforwBplan = fftw_plan_dft_1d(fftn,CCin_B.A,CCtmp_B.A,FFTW_FORWARD,0);
 	fftw_plan fftwbackplan  = fftw_plan_dft_1d(fftn,CCtmp_C.A,CCout.A,FFTW_BACKWARD,0);
 
 	for ( uint64_t i = 0; i < RA.size(); ++i )
