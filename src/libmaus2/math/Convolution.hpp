@@ -66,10 +66,10 @@ namespace libmaus2
 				std::vector<double> const & RB
 			);
 
-			template<typename type>
+			template<typename type_1, typename type_2>
 			static std::vector<double> convolutionFFT(
-				std::vector<type> const & RA,
-				std::vector<type> const & RB
+				std::vector<type_1> const & RA,
+				std::vector<type_2> const & RB
 			)
 			{
 				std::vector<double> const A(RA.begin(),RA.end());
