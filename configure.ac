@@ -3490,6 +3490,35 @@ AC_MSG_RESULT([${daligner}])
 	LDFLAGS=${LDFLAGS_SAVE}
 fi
 
+AC_ARG_WITH([fftw],
+            [AS_HELP_STRING([--with-fftw@<:@=PATH@:>@], [path to installed fftw library @<:@default=@:>@])],
+            [with_fftw=${withval}],
+            [with_fftw=no])
+
+LIBMAUS2_HAVE_FFTW=
+if test "${with_fftw}" != "no" ; then
+	if test ! -z "${with_fftw}" ; then
+		PKGCONFIGPATHSAVE="${PKG_CONFIG_PATH}"
+		if test -z "${PKG_CONFIG_PATH}" ; then
+			export PKG_CONFIG_PATH="${with_fftw}/lib/pkgconfig"
+		else
+			export PKG_CONFIG_PATH="${with_fftw}/lib/pkgconfig:${PKG_CONFIG_PATH}"
+		fi
+	fi
+
+	PKG_CHECK_MODULES([fftw3],[fftw3 >= 3.3.4])
+
+	if test ! -z "${with_fftw}" ; then
+		if test ! -z "${PKGCONFIGPATHSAVE}" ; then
+			export PKG_CONFIG_PATH="${PKGCONFIGPATHSAVE}"
+		fi
+	fi
+
+	FFTWCPPFLAGS="${fftw3_CFLAGS}"
+	FFTWLIBS="${fftw3_LIBS}"
+
+	LIBMAUS2_HAVE_FFTW="#define LIBMAUS2_HAVE_FFTW"
+fi
 
 AC_ARG_ENABLE(compile-testprograms,
         AS_HELP_STRING([--enable-compile-testprograms],[enable compilation of uninstalled test programs (default yes)]),
@@ -3677,5 +3706,9 @@ AC_SUBST([LIBMAUS2_HAVE_MMAP])
 AC_SUBST([LIBMAUS2_HAVE_MMAP_HUGEPAGES])
 AC_SUBST([LIBMAUS2_DEBUG_COMPILED])
 AC_SUBST([LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE])
+AC_SUBST([LIBMAUS2_HAVE_FFTW])
+AC_SUBST([FFTWCPPFLAGS])
+AC_SUBST([FFTWLDFLAGS])
+AC_SUBST([FFTWLIBS])
 AC_SUBST([TESTDIR])
-AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2lsf.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp test/Makefile)
+AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2lsf.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc libmaus2fftw.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp test/Makefile)
