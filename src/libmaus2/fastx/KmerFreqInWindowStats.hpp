@@ -37,7 +37,7 @@ namespace libmaus2
 					v <<= 2;
 					v |= libmaus2::fastx::mapChar(t[i]);
 				}
-				
+
 				return v;
 			}
 
@@ -52,41 +52,41 @@ namespace libmaus2
 
 				uint64_t const numwindowleftpos = n - windowsize + 1;
 				unsigned int const numk = windowsize-k+1;
-				
+
 				assert ( n >= windowsize );
-				
+
 				std::map < uint64_t,uint64_t> C;
 				uint64_t csum = 0;
-				
+
 				for ( uint64_t i = 0; i < it; ++i )
 				{
 					uint64_t const windowleft = libmaus2::random::Random::rand64() % (numwindowleftpos);
 					uint64_t const inwindow = libmaus2::random::Random::rand64() % numk;
-					
+
 					char const * window = text.c_str() + windowleft;
-					
+
 					bool ok = true;
 					for ( uint64_t j = 0; j < windowsize; ++j )
 						if ( libmaus2::fastx::mapChar(window[j]) > 3 )
 							ok = false;
-					
+
 					if ( ! ok )
 						continue;
-					
+
 					uint64_t const refkmer = getKmer(window+inwindow,k);
 					uint64_t c = 0;
 					for ( uint64_t j = 0; j < numk; ++j )
 						if ( getKmer(window+j,k) == refkmer )
 							++c;
-							
+
 					assert ( c );
-					
+
 					C[c]++;
 					csum += 1;
-					
-					// std::cerr << "windowleft=" << windowleft << " inwindow=" << inwindow << " c=" << c << std::endl;		
+
+					// std::cerr << "windowleft=" << windowleft << " inwindow=" << inwindow << " c=" << c << std::endl;
 				}
-				
+
 				return C;
 			}
 
