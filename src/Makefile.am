@@ -53,7 +53,7 @@ libmaus2_irods_a_CPPFLAGS = @IRODSCPPFLAGS@ @WARNCPPFLAGS@
 libmaus2seqchksumsfactory_a_SOURCES = libmaus2/bambam/ChecksumsFactory.cpp
 libmaus2seqchksumsfactory_a_CPPFLAGS = @GMPCPPFLAGS@
 
-libmaus2fftw_a_SOURCES = libmaus2/math/binom_fftw.cpp
+libmaus2fftw_a_SOURCES = libmaus2/math/binom_fftw.cpp libmaus2/math/Convolution_fftw.cpp
 libmaus2fftw_a_CXXFLAGS = @FFTWCPPFLAGS@
 
 CLEANFILES=sha256_sse4.o sha256_avx1.o sha256_avx2_rorx2.o sha256_avx2_rorx8.o sha512_avx2_rorx.o sha512_avx.o sha512_sse4.o
@@ -1116,7 +1116,8 @@ libmaus2math_include_HEADERS=\
 	libmaus2/math/Faulhaber.hpp \
 	libmaus2/math/RepetetiveKmerFreqEstimate.hpp \
 	libmaus2/math/GmpInteger.hpp \
-	libmaus2/math/GmpFloat.hpp
+	libmaus2/math/GmpFloat.hpp \
+	libmaus2/math/Convolution.hpp
 
 libmaus2rl_includedir=$(includedir)/libmaus2/rl
 libmaus2rl_include_HEADERS=\
