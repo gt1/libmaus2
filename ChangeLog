@@ -1,3 +1,16 @@
+libmaus2 (2.0.211-1) unstable; urgency=medium
+
+  * refactor AdapterFilter so most of its fields are marked as const.
+  * add operator+= in AlignmentStatistics
+  * add Convolution class
+  * add KmerFreqInWindowStats class
+  * add fft and non fft versions for sum of binomial random variables
+  * added gpow function (template in fashion of ipow)
+  * add binomVector and multiDimBinomial functions in Binom class
+  * add getFrontDel method in BamAlignment class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 23 Jun 2016 22:26:34 +0200
+
 libmaus2 (2.0.210-1) unstable; urgency=medium
 
   * pass generic libmaus2 cxxflags when compiling simd parts

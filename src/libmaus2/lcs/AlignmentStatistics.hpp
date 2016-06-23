@@ -49,6 +49,15 @@ namespace libmaus2
 
 			}
 
+			AlignmentStatistics & operator+=(AlignmentStatistics const & O)
+			{
+				matches += O.matches;
+				mismatches += O.mismatches;
+				insertions += O.insertions;
+				deletions += O.deletions;
+				return *this;
+			}
+
 			double getErrorRate() const
 			{
 				return

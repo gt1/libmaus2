@@ -37,6 +37,19 @@ namespace libmaus2
 			}
 			return result;
 		}
+
+		template<typename type>
+		inline type gpow(type base, uint64_t exponent)
+		{
+			type result = 1;
+			while ( exponent )
+			{
+				if ( exponent & 1 ) result *= base;
+				exponent >>= 1;
+				base = base*base;
+			}
+			return result;
+		}
 	}
 }
 #endif

@@ -16,7 +16,7 @@ abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 
 lib_LTLIBRARIES = libmaus2.la libmaus2lsf.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
-lib_LIBRARIES = libmaus2digests.a libmaus2digests_sse4.a libmaus2_irods.a libmaus2seqchksumsfactory.a
+lib_LIBRARIES = libmaus2digests.a libmaus2digests_sse4.a libmaus2_irods.a libmaus2seqchksumsfactory.a libmaus2fftw.a
 
 libmaus2_simd_align_128_la_SOURCES = \
 	libmaus2/lcs/SimdX86GlobalAlignmentConstants128.cpp \
@@ -52,6 +52,9 @@ libmaus2_irods_a_CPPFLAGS = @IRODSCPPFLAGS@ @WARNCPPFLAGS@
 
 libmaus2seqchksumsfactory_a_SOURCES = libmaus2/bambam/ChecksumsFactory.cpp
 libmaus2seqchksumsfactory_a_CPPFLAGS = @GMPCPPFLAGS@
+
+libmaus2fftw_a_SOURCES = libmaus2/math/binom_fftw.cpp libmaus2/math/Convolution_fftw.cpp
+libmaus2fftw_a_CXXFLAGS = @FFTWCPPFLAGS@
 
 CLEANFILES=sha256_sse4.o sha256_avx1.o sha256_avx2_rorx2.o sha256_avx2_rorx8.o sha512_avx2_rorx.o sha512_avx.o sha512_sse4.o
 
@@ -1113,7 +1116,8 @@ libmaus2math_include_HEADERS=\
 	libmaus2/math/Faulhaber.hpp \
 	libmaus2/math/RepetetiveKmerFreqEstimate.hpp \
 	libmaus2/math/GmpInteger.hpp \
-	libmaus2/math/GmpFloat.hpp
+	libmaus2/math/GmpFloat.hpp \
+	libmaus2/math/Convolution.hpp
 
 libmaus2rl_includedir=$(includedir)/libmaus2/rl
 libmaus2rl_include_HEADERS=\
@@ -1518,7 +1522,8 @@ libmaus2fastx_include_HEADERS=\
 	libmaus2/fastx/FastAToCompact4BigBandBiDir.hpp \
 	libmaus2/fastx/FastAToCompact4BigBand.hpp \
 	libmaus2/fastx/FastAIndexGenerator.hpp \
-	libmaus2/fastx/CoordinateCacheBiDir.hpp
+	libmaus2/fastx/CoordinateCacheBiDir.hpp \
+	libmaus2/fastx/KmerFreqInWindowStats.hpp
 
 libmaus2timing_includedir=$(includedir)/libmaus2/timing
 libmaus2timing_include_HEADERS=\
