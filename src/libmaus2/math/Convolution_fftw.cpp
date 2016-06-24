@@ -63,6 +63,7 @@ struct FFTWMemBlock
 };
 #endif
 
+#if defined(LIBMAUS2_HAVE_FFTW)
 struct Transform
 {
 	typedef Transform this_type;
@@ -144,6 +145,7 @@ static void returnPlan(Transform::shared_ptr_type plan)
 	std::vector<Transform::shared_ptr_type> & V = it->second;
 	V.push_back(plan);
 }
+#endif
 
 std::vector<double> libmaus2::math::Convolution::convolutionFFTW(
 	std::vector<double> const &
