@@ -155,7 +155,7 @@ namespace libmaus2
 				uint64_t rmaxkmerfreqthres,
 				uint64_t const cachelen = getDefaultCacheLen()
 			)
-			: prefix(rprefix), suffix(rsuffix), hwtname(prefix+suffix), kmerlen(rkmerlen), index(hwtname),
+			: prefix(rprefix), suffix(rsuffix), hwtname(prefix+suffix), kmerlen(rkmerlen), index(hwtname,1/*numthreads*/),
 			  SA(*(index.SA)), PISA(libmaus2::fm::SampledISA<lf_type>::load(index.LF.get(),prefix+".isa")),
 			  ISA(*PISA), LF(*(index.LF)),
 			  Pcache(libmaus2::fm::KmerCache::construct<index_type,1,4>(index,cachelen)),
