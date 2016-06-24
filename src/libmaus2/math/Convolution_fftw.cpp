@@ -21,6 +21,8 @@
 #include <complex>
 #include <cassert>
 #include <libmaus2/math/ipow.hpp>
+#include <libmaus2/parallel/PosixMutex.hpp>
+#include <libmaus2/math/numbits.hpp>
 
 #if defined(LIBMAUS2_HAVE_FFTW)
 #include <fftw3.h>
@@ -61,6 +63,88 @@ struct FFTWMemBlock
 };
 #endif
 
+struct Transform
+{
+	typedef Transform this_type;
+	typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+	typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
+	uint64_t const size;
+	bool const forward;
+	FFTWMemBlock CCin;
+	FFTWMemBlock CCout;
+	fftw_plan plan;
+
+	Transform(uint64_t const rsize, bool const rforward) : size(rsize), forward(rforward), CCin(size), CCout(size), plan(fftw_plan_dft_1d(size,CCin.A,CCout.A,forward ? FFTW_FORWARD : FFTW_BACKWARD,0))
+	{
+	}
+
+	void reset()
+	{
+		CCin.erase();
+		CCout.erase();
+	}
+
+	void execute()
+	{
+		fftw_execute(plan);
+	}
+};
+
+static libmaus2::parallel::PosixMutex planlock;
+static std::map < uint64_t, std::vector<Transform::shared_ptr_type> > forwardPlans;
+static std::map < uint64_t, std::vector<Transform::shared_ptr_type> > backwardPlans;
+
+static Transform::shared_ptr_type getPlan(uint64_t const size, bool const forward)
+{
+	std::map < uint64_t, std::vector<Transform::shared_ptr_type> > & plans = forward ? forwardPlans : backwardPlans;
+	libmaus2::parallel::ScopePosixMutex slock(planlock);
+
+	if ( plans.find(size) == plans.end() )
+		plans[size] = std::vector<Transform::shared_ptr_type>(0);
+
+	std::map < uint64_t, std::vector<Transform::shared_ptr_type> >::iterator it = plans.find(size);
+	assert ( it != plans.end() );
+
+	std::vector<Transform::shared_ptr_type> & V = it->second;
+
+	if ( ! V.size() )
+	{
+		// std::cerr << "allocating plan of size " << size << std::endl;
+		V.push_back(Transform::shared_ptr_type(new Transform(size,forward)));
+	}
+
+	assert ( V.size() );
+
+	Transform::shared_ptr_type T = V.back();
+	V.pop_back();
+
+	assert ( T->size == size );
+	assert ( T->forward == forward );
+
+	T->reset();
+
+	return T;
+}
+
+static void returnPlan(Transform::shared_ptr_type plan)
+{
+	bool const forward = plan->forward;
+	uint64_t const size = plan->size;
+
+	std::map < uint64_t, std::vector<Transform::shared_ptr_type> > & plans = forward ? forwardPlans : backwardPlans;
+	libmaus2::parallel::ScopePosixMutex slock(planlock);
+
+	if ( plans.find(size) == plans.end() )
+		plans[size] = std::vector<Transform::shared_ptr_type>(0);
+
+	std::map < uint64_t, std::vector<Transform::shared_ptr_type> >::iterator it = plans.find(size);
+	assert ( it != plans.end() );
+
+	std::vector<Transform::shared_ptr_type> & V = it->second;
+	V.push_back(plan);
+}
+
 std::vector<double> libmaus2::math::Convolution::convolutionFFTW(
 	std::vector<double> const &
 		#if defined(LIBMAUS2_HAVE_FFTW)
@@ -80,26 +164,30 @@ std::vector<double> libmaus2::math::Convolution::convolutionFFTW(
 	if ( ra*rb == 0 )
 		return std::vector<double>(0);
 
-	uint64_t const fftn = (ra+rb-1);
+	uint64_t const rfftn = (ra+rb-1);
+	uint64_t const minsize = 4096;
+	uint64_t const fftn = std::max(minsize,libmaus2::math::nextTwoPow(rfftn));
 
-	FFTWMemBlock CCin_A(fftn);
-	FFTWMemBlock CCin_B(fftn);
-	FFTWMemBlock CCtmp_A(fftn);
-	FFTWMemBlock CCtmp_B(fftn);
-	FFTWMemBlock CCtmp_C(fftn);
-	FFTWMemBlock CCout(fftn);
+	Transform::shared_ptr_type planA = getPlan(fftn,true);
+	Transform::shared_ptr_type planB = getPlan(fftn,true);
+	Transform::shared_ptr_type planR = getPlan(fftn,false);
 
-	fftw_plan fftwforwAplan = fftw_plan_dft_1d(fftn,CCin_A.A,CCtmp_A.A,FFTW_FORWARD,0);
-	fftw_plan fftwforwBplan = fftw_plan_dft_1d(fftn,CCin_B.A,CCtmp_B.A,FFTW_FORWARD,0);
-	fftw_plan fftwbackplan  = fftw_plan_dft_1d(fftn,CCtmp_C.A,CCout.A,FFTW_BACKWARD,0);
+	FFTWMemBlock & CCin_A = planA->CCin;
+	FFTWMemBlock & CCtmp_A = planA->CCout;
+
+	FFTWMemBlock & CCin_B = planB->CCin;
+	FFTWMemBlock & CCtmp_B = planB->CCout;
+
+	FFTWMemBlock & CCtmp_C = planR->CCin;
+	FFTWMemBlock & CCout = planR->CCout;
 
 	for ( uint64_t i = 0; i < RA.size(); ++i )
 		CCin_A.A[i][0] = RA[i];
 	for ( uint64_t i = 0; i < RB.size(); ++i )
 		CCin_B.A[i][0] = RB[i];
 
-	fftw_execute(fftwforwAplan);
-	fftw_execute(fftwforwBplan);
+	planA->execute();
+	planB->execute();
 
 	for ( uint64_t i = 0; i < fftn; ++i )
 	{
@@ -110,15 +198,15 @@ std::vector<double> libmaus2::math::Convolution::convolutionFFTW(
 		CCtmp_C.A[i][1] = CC.imag();
 	}
 
-	fftw_execute(fftwbackplan);
+	planR->execute();
 
-	fftw_destroy_plan(fftwforwAplan);
-	fftw_destroy_plan(fftwforwBplan);
-	fftw_destroy_plan(fftwbackplan);
-
-	std::vector<double> R(fftn);
-	for ( uint64_t i = 0; i < fftn; ++i )
+	std::vector<double> R(rfftn);
+	for ( uint64_t i = 0; i < rfftn; ++i )
 		R[i] = CCout.A[i][0] / fftn;
+
+	returnPlan(planA);
+	returnPlan(planB);
+	returnPlan(planR);
 
 	return R;
 	#else
