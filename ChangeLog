@@ -1,3 +1,9 @@
+libmaus2 (2.0.212-1) unstable; urgency=medium
+
+  * implement plan caching in Convolution_fftw
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 24 Jun 2016 14:12:31 +0200
+
 libmaus2 (2.0.211-1) unstable; urgency=medium
 
   * refactor AdapterFilter so most of its fields are marked as const.
