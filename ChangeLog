@@ -1,3 +1,9 @@
+libmaus2 (2.0.214-1) unstable; urgency=medium
+
+  * fix interface in SimpleLocalAligner class 
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 24 Jun 2016 18:15:05 +0200
+
 libmaus2 (2.0.213-1) unstable; urgency=medium
 
   * fix compilation without fftw 
