@@ -37,6 +37,7 @@ namespace libmaus2
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			private:
+			// bits per symbol
 			enum { seedk = 3 };
 
 			public:
@@ -77,20 +78,65 @@ namespace libmaus2
 			};
 
 			private:
-			unsigned int const seedlength;
-			std::vector<AdapterFragment> fragments;
-			std::vector<std::string> adaptersf;
-			std::vector<std::string> adaptersr;
-			std::vector<libmaus2::bambam::BamAlignment::shared_ptr_type> badapters;
-			libmaus2::fastx::QReorder4Set<seedk,uint64_t>::unique_ptr_type kmerfilter;
-			libmaus2::fastx::AutoArrayWordPutObject<uint64_t> A;
-			libmaus2::autoarray::AutoArray<uint8_t> S;
-			uint64_t const wmask;
+			struct AdapterInfo
+			{
+				std::string forward;
+				std::string reco;
+				std::string name;
+				char const * cname;
 
-			void addFragments(
+				AdapterInfo() : cname(0) {}
+				AdapterInfo(
+					std::string const & rforward,
+					std::string const & rreco,
+					std::string const & rname
+				) : forward(rforward), reco(rreco), name(rname), cname(name.c_str()) {}
+
+				AdapterInfo & operator=(AdapterInfo const & O)
+				{
+					forward = O.forward;
+					reco = O.reco;
+					name = O.name;
+					cname = name.c_str();
+					return *this;
+				}
+			};
+
+			// data not changed during operation
+			unsigned int const seedlength;
+			libmaus2::autoarray::AutoArray<uint8_t> const S;
+			libmaus2::autoarray::AutoArray<uint8_t> const R;
+			uint64_t const wmask;
+			std::vector < AdapterInfo > const adapterinfo;
+			std::vector<AdapterFragment> const fragments;
+			libmaus2::fastx::QReorder4Set<seedk,uint64_t>::unique_ptr_type const kmerfilter;
+
+			// data changed during operation
+			libmaus2::fastx::AutoArrayWordPutObject<uint64_t> A;
+
+			std::string const & getForwardAdapter(uint64_t const i) const
+			{
+				return adapterinfo[i].forward;
+			}
+
+			std::string const & getReverseComplementAdapter(uint64_t const i) const
+			{
+				return adapterinfo[i].reco;
+			}
+
+			char const * getAdapterName(uint64_t const i) const
+			{
+				return adapterinfo[i].cname;
+			}
+
+			static void addFragments(
 				uint8_t const * const R,
 				std::string const & s,
-				uint16_t adpid, uint16_t adpstr
+				uint16_t adpid,
+				uint16_t adpstr,
+				std::vector<AdapterFragment> & fragments,
+				uint64_t const seedlength,
+				uint64_t const wmask
 			)
 			{
 				uint64_t w = 0;
@@ -117,29 +163,41 @@ namespace libmaus2
 				}
 			}
 
-			void init(std::istream & in)
+			static libmaus2::autoarray::AutoArray<uint8_t> initS()
 			{
-				assert ( seedlength );
-				libmaus2::bambam::BamDecoder bamdec(in);
+				libmaus2::autoarray::AutoArray<uint8_t> S(256);
+				std::fill(S.begin(),S.end(),5);
+				S['a'] = S['A'] = 0;
+				S['c'] = S['C'] = 1;
+				S['g'] = S['G'] = 2;
+				S['t'] = S['T'] = 3;
+				return S;
+			}
 
+			static libmaus2::autoarray::AutoArray<uint8_t> initR()
+			{
 				libmaus2::autoarray::AutoArray<uint8_t> R(256);
 				std::fill(R.begin(),R.end(),4);
 				R['a'] = R['A'] = 0;
 				R['c'] = R['C'] = 1;
 				R['g'] = R['G'] = 2;
 				R['t'] = R['T'] = 3;
+				return R;
+			}
 
-				std::fill(S.begin(),S.end(),5);
-				S['a'] = S['A'] = 0;
-				S['c'] = S['C'] = 1;
-				S['g'] = S['G'] = 2;
-				S['t'] = S['T'] = 3;
+			static std::vector<AdapterInfo> loadAdapterInfo(std::istream & in, uint64_t const seedlength)
+			{
+				assert ( seedlength );
 
-				uint64_t r = 0;
-				while ( bamdec.readAlignment() )
+				std::vector<AdapterInfo> adapterinfo;
+				libmaus2::bambam::BamDecoder bamdec(in);
+
+				for ( uint64_t r = 0; bamdec.readAlignment(); ++r )
 				{
-					std::string const readf = bamdec.getAlignment().getRead();
-					std::string const readr = bamdec.getAlignment().getReadRC();
+					// forward read: get read and turn all non A,C,G,T,N symbols to N
+					std::string const readf = libmaus2::fastx::remapString(libmaus2::fastx::mapString(bamdec.getAlignment().getRead()));
+					// reverse complement
+					std::string const readr = libmaus2::fastx::reverseComplementUnmapped(readf);
 					uint64_t const rl = readf.size();
 
 					if ( rl < seedlength )
@@ -149,18 +207,40 @@ namespace libmaus2
 						continue;
 					}
 
-					addFragments(R.begin(),readf,r,false);
-					addFragments(R.begin(),readr,r,true);
+					adapterinfo.push_back(AdapterInfo(readf,readr,bamdec.getAlignment().getName()));
+				}
 
-					adaptersf.push_back(readf);
-					adaptersr.push_back(libmaus2::fastx::reverseComplementUnmapped(readf));
-					badapters.push_back(bamdec.getAlignment().sclone());
+				return adapterinfo;
+			}
 
-					++r;
+			static std::vector<AdapterInfo> loadAdapterInfo(std::string const & fn, uint64_t const seedlength)
+			{
+				libmaus2::aio::InputStreamInstance ISI(fn);
+				return loadAdapterInfo(ISI,seedlength);
+			}
+
+			static std::vector<AdapterFragment> generateFragments(
+				uint8_t const * R,
+				std::vector<AdapterInfo> const & adapterinfo,
+				uint64_t const seedlength,
+				uint64_t const wmask
+			)
+			{
+				std::vector<AdapterFragment> fragments;
+
+				for ( uint64_t r = 0; r < adapterinfo.size(); ++r )
+				{
+					addFragments(R,adapterinfo[r].forward,r,false,fragments,seedlength,wmask);
+					addFragments(R,adapterinfo[r].reco,r,true,fragments,seedlength,wmask);
 				}
 
 				std::sort(fragments.begin(),fragments.end());
 
+				return fragments;
+			}
+
+			static libmaus2::fastx::QReorder4Set<seedk,uint64_t>::unique_ptr_type constructKmerFilter(std::vector<AdapterFragment> const & fragments, uint64_t const seedlength)
+			{
 				std::vector<uint64_t> W;
 				for ( uint64_t i = 0; i < fragments.size(); ++i )
 					W.push_back(fragments[i].w);
@@ -169,30 +249,33 @@ namespace libmaus2
 						new libmaus2::fastx::QReorder4Set<seedk,uint64_t>(seedlength,W.begin(),W.end(),16)
 					);
 
-				kmerfilter = UNIQUE_PTR_MOVE(rkmerfilter);
+				libmaus2::fastx::QReorder4Set<seedk,uint64_t>::unique_ptr_type kmerfilter = UNIQUE_PTR_MOVE(rkmerfilter);
 
+				return UNIQUE_PTR_MOVE(kmerfilter);
 			}
 
-			libmaus2::fastx::AutoArrayWordPutObject<uint64_t> const & searchRanks(uint64_t const v, unsigned int const maxmis)
+			void searchRanks(uint64_t const v, unsigned int const maxmis, libmaus2::fastx::AutoArrayWordPutObject<uint64_t> & TA) const
 			{
-				kmerfilter->searchRanks(v,maxmis,A);
-				return A;
+				kmerfilter->searchRanks(v,maxmis,TA);
 			}
 
 			public:
 			AdapterFilter(std::string const & adapterfilename, unsigned int const rseedlength = 12)
-			: seedlength(rseedlength), S(256),
-			  wmask(libmaus2::math::lowbits(seedlength * seedk))
+			: seedlength(rseedlength), S(initS()), R(initR()),
+			  wmask(libmaus2::math::lowbits(seedlength * seedk)),
+			  adapterinfo(loadAdapterInfo(adapterfilename,seedlength)),
+			  fragments(generateFragments(R.begin(),adapterinfo,seedlength,wmask)),
+			  kmerfilter(constructKmerFilter(fragments,seedlength))
 			{
-				libmaus2::aio::InputStream::unique_ptr_type pCIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(adapterfilename));
-				init(*pCIS);
 			}
 
 			AdapterFilter(std::istream & adapterstream, unsigned int const rseedlength = 12)
-			: seedlength(rseedlength), S(256),
-			  wmask(libmaus2::math::lowbits(seedlength * seedk))
+			: seedlength(rseedlength), S(initS()), R(initR()),
+			  wmask(libmaus2::math::lowbits(seedlength * seedk)),
+			  adapterinfo(loadAdapterInfo(adapterstream,seedlength)),
+			  fragments(generateFragments(R.begin(),adapterinfo,seedlength,wmask)),
+			  kmerfilter(constructKmerFilter(fragments,seedlength))
 			{
-				init(adapterstream);
 			}
 
 			uint64_t getMatchStart(libmaus2::bambam::AdapterOffsetStrand const & AOSentry) const
@@ -202,7 +285,7 @@ namespace libmaus2
 
 			uint64_t getAdapterMatchLength(uint64_t const n, libmaus2::bambam::AdapterOffsetStrand const & AOSentry) const
 			{
-				std::string const & adp = AOSentry.adpstr ? adaptersr[AOSentry.adpid] : adaptersf[AOSentry.adpid];
+				std::string const & adp = AOSentry.adpstr ? getReverseComplementAdapter(AOSentry.adpid) : getForwardAdapter(AOSentry.adpid);
 
 				uint64_t const matchstart = AOSentry.getMatchStart();
 				uint64_t const adpstart   = AOSentry.getAdapterStart();
@@ -213,11 +296,6 @@ namespace libmaus2
 				uint64_t const comlen = std::min(matchlen,adplen);
 
 				return comlen;
-			}
-
-			char const * getAdapterName(uint64_t const id) const
-			{
-				return badapters[id]->getName();
 			}
 
 			char const * getAdapterName(libmaus2::bambam::AdapterOffsetStrand const & AOSentry) const
@@ -234,7 +312,7 @@ namespace libmaus2
 				uint64_t & fT
 			) const
 			{
-				std::string const & adp = AOSentry.adpstr ? adaptersr[AOSentry.adpid] : adaptersf[AOSentry.adpid];
+				std::string const & adp = AOSentry.adpstr ? getReverseComplementAdapter(AOSentry.adpid) : getForwardAdapter(AOSentry.adpid);
 
 				uint64_t const matchstart = AOSentry.getMatchStart();
 				uint64_t const adpstart   = AOSentry.getAdapterStart();
@@ -276,7 +354,7 @@ namespace libmaus2
 				libmaus2::bambam::AdapterOffsetStrand const & AOSentry
 			) const
 			{
-				std::string const & adp = AOSentry.adpstr ? adaptersr[AOSentry.adpid] : adaptersf[AOSentry.adpid];
+				std::string const & adp = AOSentry.adpstr ? getReverseComplementAdapter(AOSentry.adpid) : getForwardAdapter(AOSentry.adpid);
 
 				uint64_t const matchstart = AOSentry.getMatchStart();
 				uint64_t const adpstart   = AOSentry.getAdapterStart();
@@ -288,7 +366,7 @@ namespace libmaus2
 
 				std::cerr
 					<< "AdapterOffsetStrand("
-						<< "id=" << AOSentry.adpid << "(" << badapters[AOSentry.adpid]->getName() << ")" << ","
+						<< "id=" << AOSentry.adpid << "(" << getAdapterName(AOSentry) << ")" << ","
 						<< "off=" << AOSentry.adpoff << ","
 						<< "str=" << AOSentry.adpstr << ","
 						<< "sco=" << AOSentry.score << ","
@@ -332,8 +410,9 @@ namespace libmaus2
 				int64_t const minscore,
 				double const minfrac,
 				double const minpfrac,
+				libmaus2::fastx::AutoArrayWordPutObject<uint64_t> & TA,
 				int const verbose = 0
-			)
+			) const
 			{
 				AOSPB.reset();
 
@@ -358,13 +437,13 @@ namespace libmaus2
 						w |= S[ *(u++) ];
 						w &= wmask;
 
-						searchRanks(w,maxmis);
+						searchRanks(w,maxmis,TA);
 
-						if ( A.p )
+						if ( TA.p )
 						{
-							for ( uint64_t i = 0; i < A.p; ++i )
+							for ( uint64_t i = 0; i < TA.p; ++i )
 							{
-								uint64_t const rank = A.A[i];
+								uint64_t const rank = TA.A[i];
 								AdapterFragment const & frag = fragments[rank];
 
 								AOS.push_back(
@@ -387,7 +466,7 @@ namespace libmaus2
 					{
 						libmaus2::bambam::AdapterOffsetStrand & AOSentry = *itc;
 
-						std::string const & adp = AOSentry.adpstr ? adaptersr[AOSentry.adpid] : adaptersf[AOSentry.adpid];
+						std::string const & adp = AOSentry.adpstr ? getReverseComplementAdapter(AOSentry.adpid) : getForwardAdapter(AOSentry.adpid);
 
 						uint64_t const matchstart = (AOSentry.adpoff >= 0) ? 0 : -AOSentry.adpoff;
 						uint64_t const adpstart   = (AOSentry.adpoff >= 0) ? AOSentry.adpoff : 0;
@@ -457,6 +536,20 @@ namespace libmaus2
 
 				// no overlap found
 				return false;
+			}
+
+			bool searchAdapters(
+				uint8_t const * const ua,
+				uint64_t const n,
+				unsigned int const maxmis,
+				libmaus2::util::PushBuffer<libmaus2::bambam::AdapterOffsetStrand> & AOSPB,
+				int64_t const minscore,
+				double const minfrac,
+				double const minpfrac,
+				int const verbose = 0
+			)
+			{
+				return searchAdapters(ua,n,maxmis,AOSPB,minscore,minfrac,minpfrac,A,verbose);
 			}
 		};
 	}
