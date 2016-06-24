@@ -110,7 +110,7 @@ static Transform::shared_ptr_type getPlan(uint64_t const size, bool const forwar
 
 	if ( ! V.size() )
 	{
-		std::cerr << "allocating plan of size " << size << std::endl;
+		// std::cerr << "allocating plan of size " << size << std::endl;
 		V.push_back(Transform::shared_ptr_type(new Transform(size,forward)));
 	}
 
