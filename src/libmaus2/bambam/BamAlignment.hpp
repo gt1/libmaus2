@@ -1920,6 +1920,14 @@ namespace libmaus2
 			}
 
 			/**
+			 * erase auxiliary tags
+			 **/
+			void eraseAux()
+			{
+				blocksize = ::libmaus2::bambam::BamAlignmentDecoderBase::eraseAux(D.begin());
+			}
+
+			/**
 			 * remove all auxiliary fields
 			 *
 			 * @param D alignment block data

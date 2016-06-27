@@ -3329,6 +3329,19 @@ namespace libmaus2
 			}
 
 			/**
+			 * erase all aux tags
+			 *
+			 * @param E alignment block
+			 * @param blocksize size of alignment block
+			 * @return updated (reduced) block size
+			 **/
+			static uint64_t eraseAux(uint8_t * E)
+			{
+				// return updated block size
+				return getAux()-E;
+			}
+
+			/**
 			 * filter out auxiliary tags in the given list
 			 *
 			 * @param E alignment block
