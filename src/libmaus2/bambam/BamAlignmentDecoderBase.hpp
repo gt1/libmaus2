@@ -3338,7 +3338,7 @@ namespace libmaus2
 			static uint64_t eraseAux(uint8_t * E)
 			{
 				// return updated block size
-				return getAux()-E;
+				return getAux(E)-E;
 			}
 
 			/**
