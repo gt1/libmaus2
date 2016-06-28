@@ -506,6 +506,27 @@ namespace libmaus2
 				putSeqLen(seqlen);
 			}
 
+			/**
+			 * erase query sequence in the alignment by the given string using
+			 * the given encode table
+			 **/
+			void eraseSequence()
+			{
+				uint64_t const oldlen = getLseq();
+				uint64_t const pre    = getNumPreSeqBytes();
+				uint64_t const oldseq = getNumSeqBytes();
+				uint64_t const post   = getNumPostSeqBytes();
+
+				uint8_t const * copyfrom = D.begin() + pre + oldseq + oldlen;
+				uint8_t * copyto = D.begin() + pre;
+				uint64_t copylen = post-oldlen;
+
+				::std::memmove(copyto,copyfrom,copylen);
+
+				blocksize = pre + copylen;
+				putSeqLen(0);
+			}
+
 			template<typename iterator>
 			void replaceName(iterator ita, uint64_t const n)
 			{
@@ -1920,22 +1941,11 @@ namespace libmaus2
 			}
 
 			/**
-			 * remove all auxiliary fields
-			 *
-			 * @param D alignment block data
-			 * @return new size of block
-			 **/
-			static uint64_t eraseAux(uint8_t const * const D)
-			{
-				return ::libmaus2::bambam::BamAlignmentDecoderBase::getAux(D)-D;
-			}
-
-			/**
-			 * remove all auxiliary fields
+			 * erase auxiliary tags
 			 **/
 			void eraseAux()
 			{
-				blocksize = eraseAux(D.begin());
+				blocksize = ::libmaus2::bambam::BamAlignmentDecoderBase::eraseAux(D.begin());
 			}
 
 			/**

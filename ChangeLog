@@ -1,3 +1,14 @@
+libmaus2 (2.0.215-1) unstable; urgency=medium
+
+  * add verbosity parameter for block sort stage of parallel BAM sorting in BlockSortControl
+  * add operator<< for ReadEndsBlockDecoderBaseCollectionInfo and ReadEndsBlockDecoderBaseCollectionInfoBase
+  * refactor and add eraseSequence method in BamAlignment
+  * fix compilation (missing parameter for getAux in BamAlignmentDecoderBase)
+  * add eraseAux in BamAlignment and BamAlignmentDecoderBase
+  * add binomRowGmp function in Binom class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 28 Jun 2016 10:01:12 +0200
+
 libmaus2 (2.0.214-1) unstable; urgency=medium
 
   * fix interface in SimpleLocalAligner class 
