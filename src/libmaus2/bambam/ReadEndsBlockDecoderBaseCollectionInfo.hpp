@@ -125,6 +125,12 @@ namespace libmaus2
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 		};
+
+		std::ostream & operator<<(std::ostream & out, ReadEndsBlockDecoderBaseCollectionInfo const & O)
+		{
+			out << static_cast<ReadEndsBlockDecoderBaseCollectionInfoBase const &>(O);
+			return out;
+		}
 	}
 }
 #endif

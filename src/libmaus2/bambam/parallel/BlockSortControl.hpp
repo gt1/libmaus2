@@ -418,6 +418,8 @@ namespace libmaus2
 
 				std::string const hash;
 
+				int verbose;
+
 				void freeBuffers()
 				{
 					fragmentBufferFreeListPreSort.reset();
@@ -450,6 +452,11 @@ namespace libmaus2
 					out << "[M] tempFileFreeList->getAllSize()=" << tempFileFreeList->getAllSize() << std::endl;
 					out << "[M] parseInfo: " << libmaus2::util::UnitNum::unitNum(parseInfo.byteSize()) << "\n";
 					return out;
+				}
+
+				void setVerbose(int const rverbose)
+				{
+					verbose = rverbose;
 				}
 
 				BlockSortControl(
@@ -533,7 +540,8 @@ namespace libmaus2
 					unflushedPairReadEndsContainers(0),
 					unmergeFragReadEndsRegions(0),
 					unmergePairReadEndsRegions(0),
-					hash(rhash)
+					hash(rhash),
+					verbose(0)
 				{
 					STP.registerDispatcher(GICRPDid,&GICRPD);
 					STP.registerDispatcher(GIBDWPDid,&GIBDWPD);
@@ -1217,13 +1225,49 @@ namespace libmaus2
 
 				void enqueMergeFragReadEndsLists()
 				{
+					if ( verbose )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "\t\t(call getFragMergeInfo)\n";
+					}
 					libmaus2::util::shared_ptr< std::vector< ::libmaus2::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type MI =
 						getFragMergeInfo();
+					if ( verbose )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "\t\t(return getFragMergeInfo)\n";
+						std::vector< ::libmaus2::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > const & V = *MI;
+						for ( uint64_t i = 0; i < V.size(); ++i )
+							std::cerr << "\t\t\t([" << i << "]=" << V[i] << ")\n";
+					}
+
+					if ( verbose )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "\t\t(call getShortMergeIntervals)\n";
+					}
 					std::vector < std::vector< std::pair<uint64_t,uint64_t> > > SMI =
 						libmaus2::bambam::ReadEndsBlockDecoderBaseCollection<true>::getShortMergeIntervals(*MI,STP.getNumThreads(),false /* check */);
+					if ( verbose )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "\t\t(return getShortMergeIntervals)\n";
+						for ( uint64_t i = 0; i < SMI.size(); ++i )
+						{
+							std::cerr << "\t\t\t(\n";
+							for ( uint64_t j = 0; j < SMI[i].size(); ++j )
+								std::cerr << "\t\t\t\t(" << SMI[i][j].first << "," << SMI[i][j].second << ")\n";
+							std::cerr << "\t\t\t)\n";
+						}
+					}
 
 					unmergeFragReadEndsRegions += SMI.size();
 
+					if ( verbose )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "\t\t(enque FragReadEndsMergeWorkPackage)\n";
+					}
 					for ( uint64_t i = 0; i < SMI.size(); ++i )
 					{
 						ReadEndsMergeRequest req(Pdupbitvec.get(),MI,SMI[i]);
@@ -1231,23 +1275,69 @@ namespace libmaus2
 						*package = FragReadEndsMergeWorkPackage(req,0/*prio*/,FREMWPDid);
 						STP.enque(package);
 					}
+					if ( verbose )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "\t\t(done queuing FragReadEndsMergeWorkPackage)\n";
+					}
 				}
 
 				void enqueMergePairReadEndsLists()
 				{
+					if ( verbose )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "\t\t(call getPairMergeInfo)\n";
+					}
 					libmaus2::util::shared_ptr< std::vector< ::libmaus2::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type MI =
 						getPairMergeInfo();
+					if ( verbose )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "\t\t(return getPairMergeInfo)\n";
+						std::vector< ::libmaus2::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > const & V = *MI;
+						for ( uint64_t i = 0; i < V.size(); ++i )
+							std::cerr << "\t\t\t([" << i << "]=" << V[i] << ")\n";
+					}
+
+					if ( verbose )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "\t\t(call getLongMergeIntervals)\n";
+					}
 					std::vector < std::vector< std::pair<uint64_t,uint64_t> > > SMI =
 						libmaus2::bambam::ReadEndsBlockDecoderBaseCollection<true>::getLongMergeIntervals(*MI,STP.getNumThreads(),false /* check */);
+					if ( verbose )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "\t\t(return getLongMergeIntervals)\n";
+						for ( uint64_t i = 0; i < SMI.size(); ++i )
+						{
+							std::cerr << "\t\t\t(\n";
+							for ( uint64_t j = 0; j < SMI[i].size(); ++j )
+								std::cerr << "\t\t\t\t(" << SMI[i][j].first << "," << SMI[i][j].second << ")\n";
+							std::cerr << "\t\t\t)\n";
+						}
+					}
 
 					unmergePairReadEndsRegions += SMI.size();
 
+					if ( verbose )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "\t\t(enque PairReadEndsMergeWorkPackage)\n";
+					}
 					for ( uint64_t i = 0; i < SMI.size(); ++i )
 					{
 						ReadEndsMergeRequest req(Pdupbitvec.get(),MI,SMI[i]);
 						PairReadEndsMergeWorkPackage * package = pairReadEndsMergeWorkPackages.getPackage();
 						*package = PairReadEndsMergeWorkPackage(req,0/*prio*/,PREMWPDid);
 						STP.enque(package);
+					}
+					if ( verbose )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "\t\t(done queuing PairReadEndsMergeWorkPackage)\n";
 					}
 				}
 
@@ -1632,9 +1722,35 @@ namespace libmaus2
 					// enque ReadEnds lists merge requests
 					std::cerr << "[V] merging read ends lists/computing duplicates...";
 					libmaus2::timing::RealTimeClock mergertc; mergertc.start();
+					if ( verbose )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "\n\t(call enqueMergeFragReadEndsLists)\n";
+					}
 					enqueMergeFragReadEndsLists();
-					enqueMergePairReadEndsLists();
+					if ( verbose )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "\t(return enqueMergeFragReadEndsLists)\n";
+					}
 
+					if ( verbose )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "\t(call enqueMergePairReadEndsLists)\n";
+					}
+					enqueMergePairReadEndsLists();
+					if ( verbose )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "\t(return enqueMergePairReadEndsLists)\n";
+					}
+
+					if ( verbose )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "\t(waiting)\n";
+					}
 					// wait for merge requests to finish
 					while (
 						(

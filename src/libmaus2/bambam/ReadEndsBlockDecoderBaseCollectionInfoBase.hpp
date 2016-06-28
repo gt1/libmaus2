@@ -103,6 +103,16 @@ namespace libmaus2
 
 			}
 		};
+
+		std::ostream & operator<<(std::ostream & out, ReadEndsBlockDecoderBaseCollectionInfoBase const & O)
+		{
+			out << "ReadEndsBlockDecoderBaseCollectionInfoBase(datafilename=" << O.datafilename << ",indexfilename=" << O.indexfilename << ",blockelcnt={";
+			for ( uint64_t i = 0; i < O.blockelcnt.size(); ++i )
+				out << O.blockelcnt[i] << ((i+1<O.blockelcnt.size()) ? ";" : "},indexoffset={");
+			for ( uint64_t i = 0; i < O.indexoffset.size(); ++i )
+				out << O.indexoffset[i] << ((i+1<O.indexoffset.size()) ? ";" : "})");
+			return out;
+		}
 	}
 }
 #endif

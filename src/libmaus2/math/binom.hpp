@@ -22,6 +22,7 @@
 
 #include <libmaus2/types/types.hpp>
 #include <libmaus2/math/gcd.hpp>
+#include <libmaus2/math/ipow.hpp>
 #include <libmaus2/math/Rational.hpp>
 #include <libmaus2/math/GmpInteger.hpp>
 #include <libmaus2/math/GmpFloat.hpp>
@@ -175,6 +176,25 @@ namespace libmaus2
 				double const tp = 1.0;
 				double const tq = slowPow(q,n);
 				double f = 1.0 * tp * tq;
+
+				for ( uint64_t i = 0; i <= k; ++i )
+				{
+					r += f;
+					f *= p;
+					f /= q;
+					f /= (i+1);
+					f *= (n-i);
+				}
+				return r;
+			}
+
+			static GmpFloat binomRowGmp(GmpFloat const p, uint64_t const k, uint64_t const n, unsigned int prec)
+			{
+				GmpFloat r(0,prec);
+				GmpFloat const q = GmpFloat(1,prec)-p;
+				GmpFloat const tp = GmpFloat(1.0,prec);
+				GmpFloat const tq = gpow(q,n);
+				GmpFloat f = GmpFloat(1.0,prec) * tp * tq;
 
 				for ( uint64_t i = 0; i <= k; ++i )
 				{

@@ -76,19 +76,19 @@ namespace libmaus2
 							}
 							break;
 						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CINS:
-							for ( uint64_t i = 0; i < itc->second; ++i )
+							for ( int64_t i = 0; i < static_cast<int64_t>(itc->second); ++i )
 								ATCV.push_back(libmaus2::lcs::BaseConstants::STEP_INS);
 							break;
 						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDEL:
-							for ( uint64_t i = 0; i < itc->second; ++i )
+							for ( int64_t i = 0; i < static_cast<int64_t>(itc->second); ++i )
 								ATCV.push_back(libmaus2::lcs::BaseConstants::STEP_DEL);
 							break;
 						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL:
-							for ( uint64_t i = 0; i < itc->second; ++i )
+							for ( int64_t i = 0; i < static_cast<int64_t>(itc->second); ++i )
 								ATCV.push_back(libmaus2::lcs::BaseConstants::STEP_MATCH);
 							break;
 						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF:
-							for ( uint64_t i = 0; i < itc->second; ++i )
+							for ( int64_t i = 0; i < static_cast<int64_t>(itc->second); ++i )
 								ATCV.push_back(libmaus2::lcs::BaseConstants::STEP_MISMATCH);
 							break;
 					}
