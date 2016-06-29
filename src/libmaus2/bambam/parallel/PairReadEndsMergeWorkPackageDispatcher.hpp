@@ -40,6 +40,7 @@ namespace libmaus2
 				PairReadEndsMergeWorkPackageReturnInterface & packageReturnInterface;
 				PairReadEndsMergeWorkPackageFinishedInterface & mergeFinishedInterface;
 				AddDuplicationMetricsInterface & addDuplicationMetricsInterface;
+				int verbose;
 
 				PairReadEndsMergeWorkPackageDispatcher(
 					PairReadEndsMergeWorkPackageReturnInterface & rpackageReturnInterface,
@@ -52,24 +53,87 @@ namespace libmaus2
 
 				}
 				virtual ~PairReadEndsMergeWorkPackageDispatcher() {}
+
+				void setVerbose(int const rverbose)
+				{
+					verbose = rverbose;
+				}
+
 				virtual void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
-					PairReadEndsMergeWorkPackage * BP = dynamic_cast<PairReadEndsMergeWorkPackage *>(P);
-					assert ( BP );
+					try
+					{
+						PairReadEndsMergeWorkPackage * BP = dynamic_cast<PairReadEndsMergeWorkPackage *>(P);
+						assert ( BP );
 
-					ReadEndsBlockIndexSet pairindexset(*(BP->REQ.MI));
-					libmaus2::bambam::DupSetCallbackSharedVector dvec(*(BP->REQ.dupbitvec));
+						if ( verbose )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							std::cerr << "PairReadEndsMergeWorkPackageDispatcher package " << P << " instantiating ReadEndsBlockIndexSet" << std::endl;
+						}
+						ReadEndsBlockIndexSet pairindexset(*(BP->REQ.MI));
+						if ( verbose )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							std::cerr << "PairReadEndsMergeWorkPackageDispatcher package " << P << " instantiated ReadEndsBlockIndexSet" << std::endl;
+						}
 
-					pairindexset.merge(
-						BP->REQ.SMI,
-						libmaus2::bambam::DupMarkBase::isDupPair,
-						libmaus2::bambam::DupMarkBase::markDuplicatePairs,
-						dvec);
+						if ( verbose )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							std::cerr << "PairReadEndsMergeWorkPackageDispatcher package " << P << " instantiating DupSetCallbackSharedVector" << std::endl;
+						}
+						libmaus2::bambam::DupSetCallbackSharedVector dvec(*(BP->REQ.dupbitvec));
+						if ( verbose )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							std::cerr << "PairReadEndsMergeWorkPackageDispatcher package " << P << " instantiated DupSetCallbackSharedVector" << std::endl;
+						}
 
-					addDuplicationMetricsInterface.addDuplicationMetrics(dvec.metrics);
+						if ( verbose )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							std::cerr << "PairReadEndsMergeWorkPackageDispatcher package " << P << " calling pairindexset.merge" << std::endl;
+						}
+						pairindexset.merge(
+							BP->REQ.SMI,
+							libmaus2::bambam::DupMarkBase::isDupPair,
+							libmaus2::bambam::DupMarkBase::markDuplicatePairs,
+							dvec);
+						if ( verbose )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							std::cerr << "PairReadEndsMergeWorkPackageDispatcher package " << P << " returned from pairindexset.merge" << std::endl;
+						}
 
-					mergeFinishedInterface.pairReadEndsMergeWorkPackageFinished(BP);
-					packageReturnInterface.pairReadEndsMergeWorkPackageReturn(BP);
+						if ( verbose )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							std::cerr << "PairReadEndsMergeWorkPackageDispatcher package " << P << " calling addDuplicationMetrics" << std::endl;
+						}
+						addDuplicationMetricsInterface.addDuplicationMetrics(dvec.metrics);
+						if ( verbose )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							std::cerr << "PairReadEndsMergeWorkPackageDispatcher package " << P << " returned from addDuplicationMetrics" << std::endl;
+						}
+
+						mergeFinishedInterface.pairReadEndsMergeWorkPackageFinished(BP);
+						packageReturnInterface.pairReadEndsMergeWorkPackageReturn(BP);
+
+						if ( verbose )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							std::cerr << "PairReadEndsMergeWorkPackageDispatcher package " << P << " end" << std::endl;
+						}
+					}
+					catch(std::exception const & ex)
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "PairReadEndsMergeWorkPackageDispatcher exception: " << ex.what() << std::endl;
+						throw;
+					}
+
 				}
 			};
 		}
