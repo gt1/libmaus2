@@ -124,6 +124,24 @@ namespace libmaus2
 				return flags;
 			}
 		};
+
+		inline std::ostream & operator<<(std::ostream & out, BamFlagBase::bam_cigar_ops const & v)
+		{
+			switch ( v )
+			{
+				case BamFlagBase::LIBMAUS2_BAMBAM_CMATCH: return out << 'M';
+				case BamFlagBase::LIBMAUS2_BAMBAM_CINS: return out << 'I';
+				case BamFlagBase::LIBMAUS2_BAMBAM_CDEL: return out << 'D';
+				case BamFlagBase::LIBMAUS2_BAMBAM_CREF_SKIP: return out << 'N';
+				case BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP: return out << 'S';
+				case BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP: return out << 'H';
+				case BamFlagBase::LIBMAUS2_BAMBAM_CPAD: return out << 'P';
+				case BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL: return out << '=';
+				case BamFlagBase::LIBMAUS2_BAMBAM_CDIFF: return out << 'X';
+				default: return out;
+			}
+		}
+
 	}
 }
 #endif

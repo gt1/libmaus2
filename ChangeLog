@@ -1,3 +1,12 @@
+libmaus2 (2.0.216-1) unstable; urgency=medium
+
+  * add verbose mode in parallel duplicate marking
+  * add decrement method in LockedCounter
+  * add getRefPosForReadPos method in BamAlignment class
+  * add output operator for BamFlagBase::bam_cigar_ops
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 29 Jun 2016 10:25:15 +0200
+
 libmaus2 (2.0.215-1) unstable; urgency=medium
 
   * add verbosity parameter for block sort stage of parallel BAM sorting in BlockSortControl

@@ -2072,6 +2072,68 @@ namespace libmaus2
 				return false;
 			}
 
+			static bool isMatchOp(BamFlagBase::bam_cigar_ops const o)
+			{
+				return
+					o == BamFlagBase::LIBMAUS2_BAMBAM_CMATCH
+					||
+					o == BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL
+					||
+					o == BamFlagBase::LIBMAUS2_BAMBAM_CDIFF;
+			}
+
+			uint64_t getRefPosForReadPos(uint64_t const readq) const
+			{
+				libmaus2::autoarray::AutoArray<cigar_operation> cigop;
+				uint32_t const ncig = getCigarOperations(cigop);
+				uint64_t refadv = 0;
+
+				uint64_t refpos = getPos();
+				uint64_t readpos = 0;
+
+				for ( uint64_t i = 0; i < ncig; ++i )
+				{
+					if ( isMatchOp(static_cast<BamFlagBase::bam_cigar_ops>(cigop[i].first)) )
+						refadv = 1;
+
+					for ( int64_t j = 0; j < cigop[i].second; ++j )
+					{
+						if ( readpos == readq )
+							return refpos;
+
+						switch ( cigop[i].first )
+						{
+							case BamFlagBase::LIBMAUS2_BAMBAM_CMATCH:
+							case BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL:
+							case BamFlagBase::LIBMAUS2_BAMBAM_CDIFF:
+								readpos += 1;
+								refpos += refadv;
+								break;
+							case BamFlagBase::LIBMAUS2_BAMBAM_CINS:
+								readpos += 1;
+								break;
+							case BamFlagBase::LIBMAUS2_BAMBAM_CDEL:
+								refpos += refadv;
+								break;
+							case BamFlagBase::LIBMAUS2_BAMBAM_CREF_SKIP:
+								refpos += refadv;
+								break;
+							case BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP:
+								readpos += 1;
+								break;
+							case BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP:
+							case BamFlagBase::LIBMAUS2_BAMBAM_CPAD:
+								break;
+						}
+					}
+				}
+
+				if ( refpos == readq )
+					return refpos;
+				else
+					return std::numeric_limits<uint64_t>::max();
+			}
+
 			/**
 			 * compute insert size
 			 *
