@@ -457,6 +457,8 @@ namespace libmaus2
 				void setVerbose(int const rverbose)
 				{
 					verbose = rverbose;
+					FREMWPD.setVerbose(verbose);
+					PREMWPD.setVerbose(verbose);
 				}
 
 				BlockSortControl(
@@ -1215,12 +1217,22 @@ namespace libmaus2
 
 				void fragReadEndsMergeWorkPackageFinished(FragReadEndsMergeWorkPackage *)
 				{
-					unmergeFragReadEndsRegions--;
+					uint64_t const left = unmergeFragReadEndsRegions.decrement();
+					if ( verbose )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "decremented unmergeFragReadEndsRegions to " << left << "\n";
+					}
 				}
 
 				void pairReadEndsMergeWorkPackageFinished(PairReadEndsMergeWorkPackage *)
 				{
-					unmergePairReadEndsRegions--;
+					uint64_t const left = unmergePairReadEndsRegions.decrement();
+					if ( verbose )
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "decremented unmergePairReadEndsRegions to " << left << "\n";
+					}
 				}
 
 				void enqueMergeFragReadEndsLists()
