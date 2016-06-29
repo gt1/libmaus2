@@ -50,6 +50,17 @@ namespace libmaus2
 				return v;
 			}
 
+			uint64_t decrement()
+			{
+				uint64_t lv;
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(lock);
+					v -= 1;
+					lv = v;
+				}
+				return lv;
+			}
+
 			LockedCounter & operator++(int)
 			{
 				libmaus2::parallel::ScopePosixSpinLock slock(lock);
