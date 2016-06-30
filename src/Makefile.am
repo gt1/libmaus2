@@ -1384,7 +1384,9 @@ libmaus2aio_include_HEADERS=\
 	libmaus2/aio/ArrayFileContainer.hpp \
 	libmaus2/aio/ArrayInputStreamFactory.hpp \
 	libmaus2/aio/PairFileDecoder.hpp \
-	libmaus2/aio/SizeMonitorThread.hpp
+	libmaus2/aio/SizeMonitorThread.hpp \
+	libmaus2/aio/DebugLineOutputStreamBuffer.hpp \
+	libmaus2/aio/DebugLineOutputStream.hpp
 	
 libmaus2parallel_includedir=$(includedir)/libmaus2/parallel
 libmaus2parallel_include_HEADERS=\
