@@ -21,7 +21,10 @@
 #include <libmaus2/util/shared_ptr.hpp>
 #include <libmaus2/util/unique_ptr.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray2d.hpp>
 #include <libmaus2/util/SimpleHashMap.hpp>
+#include <libmaus2/util/SimpleQueue.hpp>
+#include <libmaus2/lcs/BaseConstants.hpp>
 
 namespace libmaus2
 {
@@ -155,7 +158,8 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type shared_ptr_type;
 
-			typedef uint64_t node_id_type;
+			typedef uint32_t node_id_type;
+			typedef uint32_t score_type;
 
 			libmaus2::util::SimpleHashMap<
 				POHashGraphKey<node_id_type>,
@@ -179,9 +183,38 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray<uint64_t> numreverseedges;
 			uint64_t numreverseedgeso;
 
+			libmaus2::autoarray::AutoArray<char> nodelabels;
+			uint64_t numnodelabels;
+
+			// used for align()
+			libmaus2::autoarray::AutoArray<uint64_t> unfinished;
+			libmaus2::util::SimpleQueue<uint64_t> Q;
+
+			struct TraceNode
+			{
+				node_id_type i;
+				node_id_type j;
+				score_type s;
+				libmaus2::lcs::BaseConstants::step_type t;
+
+				TraceNode() {}
+				TraceNode(
+					node_id_type const ri,
+					node_id_type const rj,
+					score_type const rs,
+					libmaus2::lcs::BaseConstants::step_type const rt
+				) : i(ri), j(rj), s(rs), t(rt) {}
+			};
+
+			libmaus2::autoarray::AutoArray2d<TraceNode> S;
+
 			POHashGraph() :
 				forwardedges(0), numforwardedges(), numforwardedgeso(0),
-				reverseedges(0), numreverseedges(), numreverseedgeso(0)
+				reverseedges(0), numreverseedges(), numreverseedgeso(0),
+				nodelabels(), numnodelabels(0),
+				unfinished(),
+				Q(),
+				S()
 			{
 
 			}
@@ -192,6 +225,22 @@ namespace libmaus2
 				numreverseedgeso = 0;
 				forwardedges.clearFast();
 				reverseedges.clearFast();
+				numnodelabels = 0;
+			}
+
+			void addNode(uint64_t const id, char const symbol)
+			{
+				while ( !(id < numnodelabels) )
+					nodelabels.push(numnodelabels,0);
+				assert ( id < numnodelabels );
+				nodelabels[id] = symbol;
+			}
+
+			uint64_t addNode(char const symbol)
+			{
+				uint64_t const nodeid = numnodelabels;
+				addNode(nodeid,symbol);
+				return nodeid;
 			}
 
 			uint64_t getNumForwardEdges(uint64_t const from) const
@@ -312,6 +361,232 @@ namespace libmaus2
 						return i;
 
 				return -1;
+			}
+
+			template<typename iterator>
+			void setupSingle(iterator it, uint64_t const n)
+			{
+				clear();
+
+				if ( n )
+					addNode(*(it++));
+
+				for ( uint64_t i = 1; i < n; ++i )
+				{
+					addNode(*(it++));
+					insertEdge(i-1,i);
+				}
+			}
+
+			std::ostream & toDot(std::ostream & out, std::string const & name = "pograph") const
+			{
+				out << "digraph " << name << " {\n";
+
+				out << "\trankdir=LR;\n";
+
+				int64_t const maxfrom = getMaxFrom();
+				int64_t const maxto = getMaxTo();
+				int64_t const maxnode = std::max(maxfrom,maxto);
+
+				for ( int64_t i = 0; i <= maxnode; ++i )
+					if ( i < static_cast<int64_t>(numnodelabels) )
+						out << "\tnode_" << i << " [label=\"" << nodelabels[i] << "\"];\n";
+					else
+						out << "\tnode_" << i << " [label=\"" << i << "\"];\n";
+
+				for ( int64_t i = 0; i <= maxfrom; ++i )
+					for ( uint64_t j = 0; j < getNumForwardEdges(i); ++j )
+						out << "\tnode_" << i << " -> " << "node_" << getForwardEdge(i,j).to << ";\n";
+
+				out << "}\n";
+
+				return out;
+			}
+
+			template<typename iterator>
+			void align(iterator it, uint64_t const n)
+			{
+				int64_t const maxfrom = getMaxFrom();
+				int64_t const maxto = getMaxTo();
+				int64_t const maxnode = std::max(maxfrom,maxto);
+				uint64_t const nodelimit = maxnode+1;
+
+				S.setup(nodelimit,n);
+
+				unfinished.ensureSize(nodelimit);
+				std::fill(unfinished.begin(),unfinished.begin()+nodelimit,0ull);
+
+				for ( uint64_t i = 0; i < nodelimit; ++i )
+				{
+					unfinished[i] = getNumReverseEdges(i);
+					// std::cerr << "unfinished " << i << " " << unfinished[i] << std::endl;
+					if ( ! unfinished[i] )
+						Q.push_back(i);
+				}
+
+				while ( ! Q.empty() )
+				{
+					uint64_t const q = Q.pop_front();
+					char const g = nodelabels[q];
+
+					// std::cerr << "processing " << q << " " << g << std::endl;
+
+					for ( uint64_t i = 0; i < n; ++i )
+					{
+						int64_t score = std::numeric_limits<int64_t>::min();
+						uint64_t previ = q;
+						uint64_t prevj = i;
+						libmaus2::lcs::BaseConstants::step_type t = libmaus2::lcs::BaseConstants::STEP_RESET;
+
+						if (
+							getNumReverseEdges(q) == 0 || i == 0
+						)
+						{
+							int64_t lscore = (it[i] == g);
+
+							if ( lscore > score )
+							{
+								score = lscore;
+
+								if ( getNumReverseEdges(q) )
+								{
+									previ = getReverseEdge(q,0).to;
+									// move on graph without moving on query
+									// op = del
+									t = libmaus2::lcs::BaseConstants::STEP_DEL;
+								}
+								else if ( i )
+								{
+									prevj = i-1;
+									// move on query but no on graph
+									// op = ins
+									t = libmaus2::lcs::BaseConstants::STEP_INS;
+								}
+								else
+								{
+									assert (
+										getNumReverseEdges(q) == 0
+										&&
+										i == 0
+									);
+									// no move
+								}
+							}
+						}
+						else
+						{
+							for ( uint64_t j = 0; j < getNumReverseEdges(q); ++j )
+							{
+								uint64_t const p = getReverseEdge(q,j).to;
+
+								// assert ( S.find(std::pair<uint64_t,uint64_t>(p,i-1)) != S.end() );
+
+								bool const match = (it[i] == g);
+								int64_t const lscore = S(p,i-1).s + (match?1:0);
+
+								if ( lscore > score )
+								{
+									score = lscore;
+									previ = p;
+									prevj = i-1;
+									// op = match/mismatch
+									t = match ? libmaus2::lcs::BaseConstants::STEP_MATCH : libmaus2::lcs::BaseConstants::STEP_MISMATCH;
+								}
+							}
+						}
+
+						if ( i )
+						{
+							// assert ( S.find(std::pair<uint64_t,uint64_t>(q,i-1)) != S.end() );
+							int64_t const lscore = S(q,i-1).s;
+							if ( lscore > score )
+							{
+								score = lscore;
+								previ = q,
+								prevj = i-1;
+								// move on query but not on graph
+								// op = ins
+								t = libmaus2::lcs::BaseConstants::STEP_INS;
+							}
+						}
+						for ( uint64_t j = 0; j < getNumReverseEdges(q); ++j )
+						{
+							uint64_t const p = getReverseEdge(q,j).to;
+
+							//assert ( S.find(std::pair<uint64_t,uint64_t>(p,i)) != S.end() );
+							int64_t const lscore = S(p,i).s;
+
+							if ( lscore > score )
+							{
+								score = lscore;
+								previ = p;
+								prevj = i;
+								// move on graph but not on query
+								// op = del
+								t = libmaus2::lcs::BaseConstants::STEP_DEL;
+							}
+						}
+
+						S(q,i) = TraceNode(previ,prevj,score,t);
+					}
+
+					for ( uint64_t i = 0; i < getNumForwardEdges(q); ++i )
+					{
+						node_id_type t = getForwardEdge(q,i).to;
+
+						if ( ! --unfinished[t] )
+							Q.push_back(t);
+					}
+				}
+
+				#if 0
+				for ( uint64_t i = 0; i < nodelimit; ++i )
+				{
+					for ( uint64_t j = 0; j < n; ++j )
+					{
+						std::cerr << S(i,j).s << " ";
+					}
+					std::cerr << std::endl;
+				}
+				#endif
+
+				int64_t maxscore = std::numeric_limits<int64_t>::min();
+				uint64_t maxscorenode = 0;
+				for ( uint64_t i = 0; i < nodelimit; ++i )
+					if ( getNumForwardEdges(i) == 0 )
+					{
+						int64_t const lscore = S(i,n-1).s;
+
+						// std::cerr << "end node " << i << " score " << lscore << std::endl;
+
+						if ( lscore > maxscore )
+						{
+							maxscore = lscore;
+							maxscorenode = i;
+						}
+					}
+
+				// std::cerr << "maxscore=" << maxscore << " at node " << maxscorenode << std::endl;
+
+				uint64_t curi = maxscorenode;
+				uint64_t curj = n-1;
+
+				while ( true )
+				{
+					std::cerr << "i=" << curi << " j=" << curj << " t=" << S(curi,curj).t << std::endl;
+
+					if ( S(curi,curj).i == curi && S(curi,curj).j == curj )
+					{
+						break;
+					}
+					else
+					{
+						uint64_t const nexti = S(curi,curj).i;
+						uint64_t const nextj = S(curi,curj).j;
+						curi = nexti;
+						curj = nextj;
+					}
+				}
 			}
 		};
 

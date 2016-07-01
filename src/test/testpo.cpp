@@ -25,6 +25,8 @@ int main(int argc, char * argv[])
 		libmaus2::util::ArgParser const arg(argc,argv);
 
 		libmaus2::graph::POHashGraph G;
+
+		#if 0
 		G.insertEdge(0,1);
 		G.insertEdge(0,2);
 		G.insertEdge(1,2);
@@ -39,6 +41,8 @@ int main(int argc, char * argv[])
 		assert ( !G.haveForwardEdge(2,4) );
 		std::cerr << G.getMaxTo() << std::endl;
 		std::cerr << G.getMaxFrom() << std::endl;
+
+		// G.toDot(std::cout);
 
 		G.clear();
 		G.insertEdge(1,1);
@@ -55,6 +59,16 @@ int main(int argc, char * argv[])
 		assert ( !G.haveForwardEdge(2,4) );
 		std::cerr << G.getMaxTo() << std::endl;
 		std::cerr << G.getMaxFrom() << std::endl;
+		#endif
+
+		std::string const text = "PKMIVRPQKNETV";
+		G.setupSingle(text.begin(),text.size());
+		#if 0
+		G.toDot(std::cout);
+		#endif
+
+		std::string const query = "THKMLVRNETIM";
+		G.align(query.begin(),query.size());
 	}
 	catch(std::exception const & ex)
 	{
