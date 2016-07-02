@@ -69,6 +69,9 @@ int main(int argc, char * argv[])
 
 		std::string const query = "THKMLVRNETIM";
 		G.align(query.begin(),query.size());
+
+		std::cerr << "text = " << text << std::endl;
+		std::cerr << "query= " << query << std::endl;
 	}
 	catch(std::exception const & ex)
 	{

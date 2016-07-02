@@ -135,7 +135,7 @@ namespace libmaus2
 
 			inline static uint64_t hash(key_type const & v)
 			{
-				uint64_t V[2] = { v.from, v.edgeid };
+				uint64_t V[2] = { static_cast<uint64_t>(v.from), static_cast<uint64_t>(v.edgeid) };
 				return libmaus2::hashing::EvaHash::hash642(&V[0],2);
 			}
 		};
@@ -158,7 +158,7 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type shared_ptr_type;
 
-			typedef uint32_t node_id_type;
+			typedef int32_t node_id_type;
 			typedef uint32_t score_type;
 
 			libmaus2::util::SimpleHashMap<
@@ -322,7 +322,7 @@ namespace libmaus2
 				}
 			}
 
-			bool haveForwardEdge(uint64_t const from, uint64_t const to) const
+			bool haveForwardEdge(uint64_t const from, int64_t const to) const
 			{
 				if ( from < numforwardedgeso )
 				{
@@ -434,42 +434,36 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < n; ++i )
 					{
 						int64_t score = std::numeric_limits<int64_t>::min();
-						uint64_t previ = q;
-						uint64_t prevj = i;
+						int64_t previ = q;
+						int64_t prevj = i;
 						libmaus2::lcs::BaseConstants::step_type t = libmaus2::lcs::BaseConstants::STEP_RESET;
 
 						if (
 							getNumReverseEdges(q) == 0 || i == 0
 						)
 						{
-							int64_t lscore = (it[i] == g);
+							bool const match = it[i] == g;
+							int64_t lscore = match ? 1 : 0;
 
 							if ( lscore > score )
 							{
 								score = lscore;
+								t = match ? libmaus2::lcs::BaseConstants::STEP_MATCH : libmaus2::lcs::BaseConstants::STEP_MISMATCH;
 
-								if ( getNumReverseEdges(q) )
+								if ( i )
+								{
+									previ = -1;
+									prevj = i-1;
+								}
+								else if ( getNumReverseEdges(q) )
 								{
 									previ = getReverseEdge(q,0).to;
-									// move on graph without moving on query
-									// op = del
-									t = libmaus2::lcs::BaseConstants::STEP_DEL;
-								}
-								else if ( i )
-								{
-									prevj = i-1;
-									// move on query but no on graph
-									// op = ins
-									t = libmaus2::lcs::BaseConstants::STEP_INS;
+									prevj = -1;
 								}
 								else
 								{
-									assert (
-										getNumReverseEdges(q) == 0
-										&&
-										i == 0
-									);
-									// no move
+									previ = -1;
+									prevj = -1;
 								}
 							}
 						}
@@ -551,7 +545,7 @@ namespace libmaus2
 				#endif
 
 				int64_t maxscore = std::numeric_limits<int64_t>::min();
-				uint64_t maxscorenode = 0;
+				int64_t maxscorenode = -1;
 				for ( uint64_t i = 0; i < nodelimit; ++i )
 					if ( getNumForwardEdges(i) == 0 )
 					{
@@ -568,23 +562,36 @@ namespace libmaus2
 
 				// std::cerr << "maxscore=" << maxscore << " at node " << maxscorenode << std::endl;
 
-				uint64_t curi = maxscorenode;
-				uint64_t curj = n-1;
+				int64_t curi = maxscorenode;
+				int64_t curj = static_cast<int64_t>(n)-1;
 
-				while ( true )
+				while ( curi != -1 || curj != -1 )
 				{
-					std::cerr << "i=" << curi << " j=" << curj << " t=" << S(curi,curj).t << std::endl;
+					int64_t const score = (curi>=0&&curj>=0) ? S(curi,curj).s : 0;
+					libmaus2::lcs::BaseConstants::step_type t;
 
-					if ( S(curi,curj).i == curi && S(curi,curj).j == curj )
+					if ( curi != -1 && curj != -1 )
+						t = S(curi,curj).t;
+					else if ( curi == -1 )
+						t = libmaus2::lcs::BaseConstants::step_type::STEP_DEL;
+					else
+						t = libmaus2::lcs::BaseConstants::step_type::STEP_INS;
+
+					std::cerr << "i=" << curi << " j=" << curj << " t=" << t << std::endl;
+
+					if ( curi == -1 )
 					{
-						break;
+						curj -= 1;
+					}
+					else if ( curj == -1 )
+					{
+						curi -= 1;
 					}
 					else
 					{
-						uint64_t const nexti = S(curi,curj).i;
-						uint64_t const nextj = S(curi,curj).j;
-						curi = nexti;
-						curj = nextj;
+						TraceNode const & T = S(curi,curj);
+						curi = T.i;
+						curj = T.j;
 					}
 				}
 			}
