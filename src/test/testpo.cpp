@@ -61,6 +61,7 @@ int main(int argc, char * argv[])
 		std::cerr << G.getMaxFrom() << std::endl;
 		#endif
 
+		#if 0
 		std::string const text = "PKMIVRPQKNETV";
 		G.setupSingle(text.begin(),text.size());
 		#if 0
@@ -72,6 +73,19 @@ int main(int argc, char * argv[])
 
 		std::cerr << "text = " << text << std::endl;
 		std::cerr << "query= " << query << std::endl;
+
+		G.toDot(std::cout);
+		#endif
+
+		std::string q0 = "PKMIVRPQKNETG";
+		std::string q1 = "ALVRPQKNTRM";
+		std::string q2 = "THKMLVRNETAM";
+
+		G.setupSingle(q0.begin(),q0.size());
+		G.align(q1.begin(),q1.size());
+		G.align(q2.begin(),q2.size());
+
+		G.toDot(std::cout);
 	}
 	catch(std::exception const & ex)
 	{
