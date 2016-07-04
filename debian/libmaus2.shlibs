@@ -1,4 +1,4 @@
-libmaus2 2 libmaus2 (>= 2.0.216)
-libmaus2lsf 2 libmaus2 (>= 2.0.216)
-libmaus2_simd_align_128 2 libmaus2 (>= 2.0.216)
-libmaus2_simd_align_256 2 libmaus2 (>= 2.0.216)
+libmaus2 2 libmaus2 (>= 2.0.217)
+libmaus2lsf 2 libmaus2 (>= 2.0.217)
+libmaus2_simd_align_128 2 libmaus2 (>= 2.0.217)
+libmaus2_simd_align_256 2 libmaus2 (>= 2.0.217)
