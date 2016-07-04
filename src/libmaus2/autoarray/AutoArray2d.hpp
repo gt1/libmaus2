@@ -73,6 +73,15 @@ namespace libmaus2
 			AutoArray2d(uint64_t const rn, uint64_t const rm, bool const rinit = true) : n(rn), m(rm), A(n*m,rinit) {}
 			AutoArray2d(AutoArray2d<N,atype> const & o) : n(o.n), m(o.m), A(o.A) {}
 
+			void setup(uint64_t const rn, uint64_t const rm, bool const erase = true)
+			{
+				A.ensureSize(rn*rm);
+				n = rn;
+				m = rm;
+				if ( erase )
+					std::fill(A.begin(),A.begin()+n*m,N());
+			}
+
 			AutoArray2d<N,atype> & operator=(AutoArray2d<N,atype> const & o)
 			{
 				if ( this != &o )

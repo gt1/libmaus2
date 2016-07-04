@@ -36,7 +36,15 @@ namespace libmaus2
 
 				bool operator()(std::pair<uint64_t,libmaus2::dazzler::align::Overlap> const & A, std::pair<uint64_t,libmaus2::dazzler::align::Overlap> const & B) const
 				{
-					return comparator(B.second,A.second);
+					// B < A -> A > B
+					if ( comparator(B.second,A.second) )
+						return true;
+					// A < B -> B > A
+					else if ( comparator(A.second,B.second) )
+						return false;
+					// A == B, compare by id
+					else
+						return A.first > B.first;
 				}
 			};
 		}

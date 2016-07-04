@@ -58,6 +58,7 @@ namespace libmaus2
 							out << " ";
 							// ita++;
 							break;
+						default: break;
 					}
 				}
 				out << std::string(ita,a.end());
@@ -81,9 +82,36 @@ namespace libmaus2
 							out << " ";
 							// ita++;
 							break;
+						default:
+							break;
 					}
 				}
 				out << std::string(itb,b.end());
+				out << std::endl;
+
+				out << std::string(SPR.aclip_left,' ');
+
+				for ( align_iterator ta = rta; ta != rte; ++ta )
+				{
+					switch ( *ta )
+					{
+						case STEP_MATCH:
+							out.put('+');
+							break;
+						case STEP_MISMATCH:
+							out.put('-');
+							break;
+						case STEP_INS:
+							out.put('I');
+							break;
+						case STEP_DEL:
+							out.put('D');
+							// ita++;
+							break;
+						default:
+							break;
+					}
+				}
 				out << std::endl;
 
 				return out;

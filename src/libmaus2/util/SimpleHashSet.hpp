@@ -42,12 +42,27 @@ namespace libmaus2
 		};
 
 		template<typename _key_type>
-		struct SimpleHashSet : public SimpleHashSetConstants<_key_type>
+		struct SimpleHashSetHashFunction
 		{
 			typedef _key_type key_type;
 
+			static uint64_t hash(key_type const & v)
+			{
+				return libmaus2::hashing::EvaHash::hash642(
+					reinterpret_cast<uint64_t const *>(&v),
+					1
+				);
+			}
+		};
+
+		template<typename _key_type, typename _hash_function = SimpleHashSetHashFunction<_key_type> >
+		struct SimpleHashSet : public SimpleHashSetConstants<_key_type>
+		{
+			typedef _key_type key_type;
+			typedef _hash_function hash_function;
+
 			typedef SimpleHashSetConstants<key_type> base_type;
-			typedef SimpleHashSet<key_type> this_type;
+			typedef SimpleHashSet<key_type,hash_function> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			protected:
@@ -175,9 +190,10 @@ namespace libmaus2
 				std::fill(H.begin(),H.end(),base_type::unused());
 			}
 
-			uint64_t hash(uint64_t const v) const
+
+			uint64_t hash(key_type const & v) const
 			{
-				return libmaus2::hashing::EvaHash::hash642(&v,1) & hashmask;
+				return hash_function::hash(v) & hashmask;
 			}
 
 			inline uint64_t displace(uint64_t const p, uint64_t const v) const
