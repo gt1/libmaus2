@@ -63,7 +63,7 @@ namespace libmaus2
 
 					if ( f )
 					{
-						std::sort(B.begin(),B.begin()+f,comparator);
+						std::stable_sort(B.begin(),B.begin()+f,comparator);
 
 						for ( uint64_t i = 1; i < f; ++i )
 						{
