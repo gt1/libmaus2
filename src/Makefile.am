@@ -1251,7 +1251,8 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/HugePageAllocator.hpp \
 	libmaus2/util/StringAllocTypes.hpp \
 	libmaus2/util/Destructable.hpp \
-	libmaus2/util/SimpleQueue.hpp
+	libmaus2/util/SimpleQueue.hpp \
+	libmaus2/util/SimpleHashMapDisplaceMaskFunction.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
@@ -1384,7 +1385,9 @@ libmaus2aio_include_HEADERS=\
 	libmaus2/aio/ArrayFileContainer.hpp \
 	libmaus2/aio/ArrayInputStreamFactory.hpp \
 	libmaus2/aio/PairFileDecoder.hpp \
-	libmaus2/aio/SizeMonitorThread.hpp
+	libmaus2/aio/SizeMonitorThread.hpp \
+	libmaus2/aio/DebugLineOutputStreamBuffer.hpp \
+	libmaus2/aio/DebugLineOutputStream.hpp
 	
 libmaus2parallel_includedir=$(includedir)/libmaus2/parallel
 libmaus2parallel_include_HEADERS=\
@@ -1677,7 +1680,8 @@ libmaus2graph_include_HEADERS=\
 	libmaus2/graph/StronglyConnectedComponents.hpp \
 	libmaus2/graph/IdentityTargetProjector.hpp \
 	libmaus2/graph/ReachableVertices.hpp \
-	libmaus2/graph/TopologicalSorting.hpp
+	libmaus2/graph/TopologicalSorting.hpp \
+	libmaus2/graph/POGraph.hpp
 
 libmaus2btree_includedir=$(includedir)/libmaus2/btree
 libmaus2btree_include_HEADERS=\
@@ -2109,7 +2113,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testarrayinput \
 	testhugepages \
 	testsymcnt \
-	testgammapd
+	testgammapd \
+	testpo
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2661,3 +2666,7 @@ testsymcnt_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testgammapd_SOURCES  = test/testgammapd.cpp
 testgammapd_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testgammapd_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testpo_SOURCES  = test/testpo.cpp
+testpo_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testpo_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@

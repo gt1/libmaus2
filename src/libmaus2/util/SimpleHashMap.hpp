@@ -19,6 +19,7 @@
 #if ! defined(LIBMAUS2_UTIL_SIMPLEHASHMAP_HPP)
 #define LIBMAUS2_UTIL_SIMPLEHASHMAP_HPP
 
+#include <libmaus2/util/SimpleHashMapDisplaceMaskFunction.hpp>
 #include <libmaus2/util/SimpleHashMapHashCompute.hpp>
 #include <libmaus2/util/SimpleHashMapKeyPrint.hpp>
 #include <libmaus2/util/SimpleHashMapConstants.hpp>
@@ -34,15 +35,30 @@ namespace libmaus2
 {
 	namespace util
 	{
-		template<typename _key_type, typename _value_type>
-		struct SimpleHashMap : public SimpleHashMapConstants<_key_type>, public SimpleHashMapKeyPrint<_key_type>, public SimpleHashMapHashCompute<_key_type>
+		template<
+			typename _key_type,
+			typename _value_type,
+			typename _constants_type = SimpleHashMapConstants<_key_type>,
+			typename _hash_function = SimpleHashMapHashCompute<_key_type>,
+			typename _displace_mask_function = SimpleHashMapDisplaceMaskFunction<_key_type>,
+			typename _key_print_type = SimpleHashMapKeyPrint<_key_type>
+		>
+		struct SimpleHashMap :
+			public _constants_type,
+			public _key_print_type,
+			public _hash_function,
+			public _displace_mask_function
 		{
 			typedef _key_type key_type;
 			typedef _value_type value_type;
+			typedef _constants_type constants_type;
+			typedef _key_print_type key_print_type;
+			typedef _hash_function hash_function;
+			typedef _displace_mask_function displace_mask_function;
 
-			typedef SimpleHashMapConstants<key_type> base_type;
+			typedef constants_type base_type;
 			typedef std::pair<key_type,value_type> pair_type;
-			typedef SimpleHashMap<key_type,value_type> this_type;
+			typedef SimpleHashMap<key_type,value_type,constants_type,hash_function,displace_mask_function,key_print_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
@@ -281,14 +297,14 @@ namespace libmaus2
 				std::fill(H.begin(),H.begin()+hashsize,pair_type(base_type::unused(),value_type()));
 			}
 
-			inline uint64_t hash(uint64_t const v) const
+			inline uint64_t hash(key_type const & v) const
 			{
-				return SimpleHashMapHashCompute<_key_type>::hash(v) & hashmask;
+				return hash_function::hash(v) & hashmask;
 			}
 
-			inline uint64_t displace(uint64_t const p, uint64_t const v) const
+			inline uint64_t displace(uint64_t const p, key_type const & v) const
 			{
-				return (p + primes16[v&0xFFFFu]) & hashmask;
+				return (p + primes16[displace_mask_function::displaceMask(v)]) & hashmask;
 			}
 
 			uint64_t size() const
@@ -501,7 +517,7 @@ namespace libmaus2
 
 				libmaus2::exception::LibMausException lme;
 				lme.getStream() << "SimpleHashMap::getIndex called for non-existing key ";
-				SimpleHashMapKeyPrint<_key_type>::printKey(lme.getStream(),v);
+				key_print_type::printKey(lme.getStream(),v);
 				lme.getStream() << std::endl;
 				lme.finish();
 				throw lme;
@@ -581,7 +597,7 @@ namespace libmaus2
 					{
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "SimpleHashMap::get() called for key ";
-						SimpleHashMapKeyPrint<_key_type>::printKey(se.getStream(), v);
+						key_print_type::printKey(se.getStream(), v);
 						se.getStream() << " which is not contained." << std::endl;
 						se.finish();
 						throw se;
@@ -594,7 +610,7 @@ namespace libmaus2
 
 				::libmaus2::exception::LibMausException se;
 				se.getStream() << "SimpleHashMap::get() called for key ";
-				SimpleHashMapKeyPrint<_key_type>::printKey(se.getStream(),v);
+				key_print_type::printKey(se.getStream(),v);
 				se.getStream() << " which is not contained." << std::endl;
 				se.finish();
 				throw se;
