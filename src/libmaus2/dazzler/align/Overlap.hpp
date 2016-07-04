@@ -153,6 +153,16 @@ namespace libmaus2
 					return (flags & 1) != 0;
 				}
 
+				bool isPrimary() const
+				{
+					return (flags & 0x80000000ull) != 0;
+				}
+
+				void setPrimary()
+				{
+					flags |= 0x80000000ull;
+				}
+
 				uint64_t getNumErrors() const
 				{
 					return path.getNumErrors();

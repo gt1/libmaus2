@@ -56,15 +56,15 @@ namespace libmaus2
 			typedef _node_id_type node_id_type;
 
 			node_id_type from;
-			node_id_type edgeid;
+			node_id_type index;
 
 			POHashGraphKey() {}
-			POHashGraphKey(node_id_type const rfrom, node_id_type const redgeid)
-			: from(rfrom), edgeid(redgeid) {}
+			POHashGraphKey(node_id_type const rfrom, node_id_type const rindex)
+			: from(rfrom), index(rindex) {}
 
 			bool operator==(POHashGraphKey<node_id_type> const & O) const
 			{
-				return from == O.from && edgeid == O.edgeid;
+				return from == O.from && index == O.index;
 			}
 			bool operator!=(POHashGraphKey<node_id_type> const & O) const
 			{
@@ -75,7 +75,7 @@ namespace libmaus2
 		template<typename _node_id_type>
 		std::ostream & operator<<(std::ostream & out, POHashGraphKey<_node_id_type> const & P)
 		{
-			return out << "POHashGraphKey(from=" << P.from << ",edgeid=" << P.edgeid << ")";
+			return out << "POHashGraphKey(from=" << P.from << ",index=" << P.index << ")";
 		}
 
 		template<typename _node_id_type>
@@ -135,7 +135,7 @@ namespace libmaus2
 
 			inline static uint64_t hash(key_type const & v)
 			{
-				uint64_t V[2] = { static_cast<uint64_t>(v.from), static_cast<uint64_t>(v.edgeid) };
+				uint64_t V[2] = { static_cast<uint64_t>(v.from), static_cast<uint64_t>(v.index) };
 				return libmaus2::hashing::EvaHash::hash642(&V[0],2);
 			}
 		};
@@ -148,7 +148,7 @@ namespace libmaus2
 
 			static uint64_t displaceMask(key_type const & v)
 			{
-				return (v.from & 0xFFFFULL) ^ (v.edgeid);
+				return (v.from & 0xFFFFULL) ^ (v.index);
 			}
 		};
 
@@ -208,13 +208,29 @@ namespace libmaus2
 
 			libmaus2::autoarray::AutoArray2d<TraceNode> S;
 
+			libmaus2::util::SimpleHashMap<
+				POHashGraphKey<node_id_type>,
+				POGraphEdge<node_id_type>,
+				POHashGraphKeyConstants<node_id_type>,
+				POHashGraphKeyHashCompute<node_id_type>,
+				POHashGraphKeyDisplaceMaskFunction<node_id_type>,
+				POHashGraphKeyConstantsKeyPrint<node_id_type>
+			> alignedto;
+			libmaus2::autoarray::AutoArray<uint64_t> numalignedto;
+			uint64_t numalignedtoo;
+
+			libmaus2::autoarray::AutoArray<uint64_t> Atmp;
+
 			POHashGraph() :
-				forwardedges(0), numforwardedges(), numforwardedgeso(0),
-				reverseedges(0), numreverseedges(), numreverseedgeso(0),
+				forwardedges(8), numforwardedges(), numforwardedgeso(0),
+				reverseedges(8), numreverseedges(), numreverseedgeso(0),
 				nodelabels(), numnodelabels(0),
 				unfinished(),
 				Q(),
-				S()
+				S(),
+				alignedto(8),
+				numalignedto(),
+				numalignedtoo(0)
 			{
 
 			}
@@ -226,6 +242,54 @@ namespace libmaus2
 				forwardedges.clearFast();
 				reverseedges.clearFast();
 				numnodelabels = 0;
+				alignedto.clearFast();
+				numalignedtoo = 0;
+			}
+
+			void addAlignedTo(uint64_t const id, uint64_t const aid)
+			{
+				while ( ! (id < numalignedtoo) )
+					numalignedto.push(numalignedtoo,0);
+				assert ( id < numalignedtoo );
+
+				uint64_t const index = numalignedto[id]++;
+
+				alignedto.insertNonSyncExtend(
+					POHashGraphKey<node_id_type>(id,index),
+					POGraphEdge<node_id_type>(aid),
+					0.8 /* extend load */
+				);
+
+				assert ( alignedto.contains(POHashGraphKey<node_id_type>(id,index)) );
+			}
+
+			uint64_t getNumAlignedTo(uint64_t const id) const
+			{
+				if ( id < numalignedtoo )
+					return numalignedto[id];
+				else
+					return 0;
+			}
+
+			uint64_t getAlignedTo(uint64_t const id, uint64_t const aid) const
+			{
+				assert ( id < numalignedtoo );
+				assert ( aid < numalignedto[id] );
+
+				POGraphEdge<node_id_type> edge;
+				bool const ok = alignedto.contains(POHashGraphKey<node_id_type>(id,aid), edge);
+				assert ( ok );
+
+				return edge.to;
+			}
+
+			uint64_t getAllAlignedTo(uint64_t const id, libmaus2::autoarray::AutoArray<uint64_t> & Atmp) const
+			{
+				uint64_t const n = getNumAlignedTo(id);
+				Atmp.ensureSize(n);
+				for ( uint64_t i = 0; i < n; ++i )
+					Atmp[i] = getAlignedTo(id,i);
+				return n;
 			}
 
 			void addNode(uint64_t const id, char const symbol)
@@ -233,7 +297,15 @@ namespace libmaus2
 				while ( !(id < numnodelabels) )
 					nodelabels.push(numnodelabels,0);
 				assert ( id < numnodelabels );
+
+				#if 0
+				while ( !(id < numalignedtoo) )
+					numalignedto.push(numalignedtoo,0);
+				assert ( id < numalignedtoo );
+				#endif
+
 				nodelabels[id] = symbol;
+				//numalignedto[id] = 0;
 			}
 
 			uint64_t addNode(char const symbol)
@@ -259,25 +331,25 @@ namespace libmaus2
 					return 0;
 			}
 
-			POGraphEdge<node_id_type> getForwardEdge(uint64_t const from, uint64_t const edgeid) const
+			POGraphEdge<node_id_type> getForwardEdge(uint64_t const from, uint64_t const index) const
 			{
 				assert ( from < numforwardedgeso );
-				assert ( edgeid < numforwardedges[from] );
+				assert ( index < numforwardedges[from] );
 
 				POGraphEdge<node_id_type> edge;
-				bool const ok = forwardedges.contains(POHashGraphKey<node_id_type>(from,edgeid), edge);
+				bool const ok = forwardedges.contains(POHashGraphKey<node_id_type>(from,index), edge);
 				assert ( ok );
 
 				return edge;
 			}
 
-			POGraphEdge<node_id_type> getReverseEdge(uint64_t const to, uint64_t const edgeid) const
+			POGraphEdge<node_id_type> getReverseEdge(uint64_t const to, uint64_t const index) const
 			{
 				assert ( to < numreverseedgeso );
-				assert ( edgeid < numreverseedges[to] );
+				assert ( index < numreverseedges[to] );
 
 				POGraphEdge<node_id_type> edge;
-				bool const ok = reverseedges.contains(POHashGraphKey<node_id_type>(to,edgeid), edge);
+				bool const ok = reverseedges.contains(POHashGraphKey<node_id_type>(to,index), edge);
 				assert ( ok );
 
 				return edge;
@@ -289,10 +361,10 @@ namespace libmaus2
 					numforwardedges.push(numforwardedgeso,0);
 				assert ( from < numforwardedgeso );
 
-				uint64_t const edgeid = numforwardedges[from]++;
+				uint64_t const index = numforwardedges[from]++;
 
 				forwardedges.insertNonSyncExtend(
-					POHashGraphKey<node_id_type>(from,edgeid),
+					POHashGraphKey<node_id_type>(from,index),
 					POGraphEdge<node_id_type>(to),
 					0.8 /* extend load */
 				);
@@ -304,10 +376,10 @@ namespace libmaus2
 					numreverseedges.push(numreverseedgeso,0);
 				assert ( to < numreverseedgeso );
 
-				uint64_t const edgeid = numreverseedges[to]++;
+				uint64_t const index = numreverseedges[to]++;
 
 				reverseedges.insertNonSyncExtend(
-					POHashGraphKey<node_id_type>(to,edgeid),
+					POHashGraphKey<node_id_type>(to,index),
 					POGraphEdge<node_id_type>(from),
 					0.8 /* extend load */
 				);
@@ -390,7 +462,22 @@ namespace libmaus2
 
 				for ( int64_t i = 0; i <= maxnode; ++i )
 					if ( i < static_cast<int64_t>(numnodelabels) )
-						out << "\tnode_" << i << " [label=\"" << nodelabels[i] << "\"];\n";
+					{
+						out << "\tnode_" << i << " [label=\"" << nodelabels[i];
+
+						#if 0
+						for ( uint64_t j = 0; j < getNumAlignedTo(i); ++j )
+						{
+							out << ";" << getAlignedTo(i,j);
+						}
+						#endif
+
+						#if 0
+						out << ";" << i;
+						#endif
+
+						out << "\"];\n";
+					}
 					else
 						out << "\tnode_" << i << " [label=\"" << i << "\"];\n";
 
@@ -533,6 +620,8 @@ namespace libmaus2
 					}
 				}
 
+				// std::cerr << "left process loop" << std::endl;
+
 				#if 0
 				for ( uint64_t i = 0; i < nodelimit; ++i )
 				{
@@ -564,20 +653,122 @@ namespace libmaus2
 
 				int64_t curi = maxscorenode;
 				int64_t curj = static_cast<int64_t>(n)-1;
+				int64_t prevnode = -1;
 
 				while ( curi != -1 || curj != -1 )
 				{
-					int64_t const score = (curi>=0&&curj>=0) ? S(curi,curj).s : 0;
+					// int64_t const score = (curi>=0&&curj>=0) ? S(curi,curj).s : 0;
 					libmaus2::lcs::BaseConstants::step_type t;
 
 					if ( curi != -1 && curj != -1 )
 						t = S(curi,curj).t;
 					else if ( curi == -1 )
-						t = libmaus2::lcs::BaseConstants::step_type::STEP_DEL;
-					else
 						t = libmaus2::lcs::BaseConstants::step_type::STEP_INS;
+					else
+						t = libmaus2::lcs::BaseConstants::step_type::STEP_DEL;
 
-					std::cerr << "i=" << curi << " j=" << curj << " t=" << t << std::endl;
+					// std::cerr << "i=" << curi << " j=" << curj << " t=" << t << std::endl;
+
+					switch ( t )
+					{
+						case libmaus2::lcs::BaseConstants::step_type::STEP_MATCH:
+						{
+							// std::cerr << "match for " << it[curj] << std::endl;
+
+							// std::cerr << "prevnode=" << prevnode << std::endl;
+
+							if  (
+								prevnode != -1
+								&&
+								(! haveForwardEdge(curi,prevnode))
+							)
+							{
+								// std::cerr << "inserting edge " << curi << " " << prevnode << std::endl;
+								insertEdge(curi,prevnode);
+							}
+
+							prevnode = curi;
+							break;
+						}
+						case libmaus2::lcs::BaseConstants::step_type::STEP_MISMATCH:
+						{
+							assert ( curi >= 0 );
+							assert ( curj >= 0 );
+
+							// std::cerr << "mismatch " << nodelabels[curi] << " != " << it[curj] << std::endl;
+
+							// do we have a match in an aligned to
+							bool havematch = false;
+							// prevnode for next round
+							int64_t nextprevnode = curi;
+
+							for ( uint64_t j = 0; j < getNumAlignedTo(curi); ++j )
+							{
+								// std::cerr << "checking for aligned to " << getAlignedTo(curi,j) << " label " << nodelabels[getAlignedTo(curi,j)] << std::endl;
+								bool const lhavematch = (nodelabels[getAlignedTo(curi,j)] == it[curj]);
+								havematch = havematch || lhavematch;
+								if ( lhavematch )
+									nextprevnode = getAlignedTo(curi,j);
+							}
+
+							// we already have match, set edge to next node if it does not exists it
+							if ( havematch )
+							{
+								//std::cerr << "have match" << std::endl;
+
+								if (
+									prevnode != -1
+									&&
+									(! haveForwardEdge(nextprevnode,prevnode))
+								)
+									insertEdge(nextprevnode,prevnode);
+
+								// std::cerr << "setting prevnode to " << nextprevnode << std::endl;
+
+								prevnode = nextprevnode;
+							}
+							// no match, insert new node
+							else
+							{
+								uint64_t const id = addNode(it[curj]);
+								uint64_t const n = getAllAlignedTo(curi, Atmp);
+
+								for ( uint64_t i = 0; i < n; ++i )
+								{
+									addAlignedTo(id,Atmp[i]);
+									addAlignedTo(Atmp[i],id);
+								}
+
+								addAlignedTo(curi,id);
+								addAlignedTo(id,curi);
+
+								// connect up new node
+								if ( prevnode != -1 )
+									insertEdge(id,prevnode);
+
+								prevnode = id;
+							}
+
+							break;
+						}
+						case libmaus2::lcs::BaseConstants::step_type::STEP_INS:
+						{
+							uint64_t const id = addNode(it[curj]);
+							if ( prevnode != -1 )
+								insertEdge(id,prevnode);
+							prevnode = id;
+							break;
+						}
+						case libmaus2::lcs::BaseConstants::step_type::STEP_DEL:
+						{
+							break;
+						}
+						default:
+						{
+							std::cerr << "unknown op" << std::endl;
+							break;
+						}
+					}
 
 					if ( curi == -1 )
 					{
