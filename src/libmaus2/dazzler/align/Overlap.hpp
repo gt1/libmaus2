@@ -153,14 +153,19 @@ namespace libmaus2
 					return (flags & 1) != 0;
 				}
 
+				static uint64_t getPrimaryFlag()
+				{
+					return (1ull << 31);
+				}
+
 				bool isPrimary() const
 				{
-					return (flags & 0x80000000ull) != 0;
+					return (flags & getPrimaryFlag()) != 0;
 				}
 
 				void setPrimary()
 				{
-					flags |= 0x80000000ull;
+					flags |= getPrimaryFlag();
 				}
 
 				uint64_t getNumErrors() const
@@ -283,7 +288,22 @@ namespace libmaus2
 
 					path.tlen = path.path.size() << 1;
 
-					assert ( bsum == (bepos - bbpos) );
+					bool const ok = bsum == (bepos - bbpos);
+					if ( ! ok )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "Overlap::computePath: bsum=" << bsum << " != " << (bepos - bbpos) << std::endl;
+
+						std::pair<uint64_t,uint64_t> SL = ATC.getStringLengthUsed(ATC.ta,ATC.te);
+						lme.getStream() << "SL = " << SL.first << "," << SL.second << std::endl;
+						lme.getStream() << "aepos-abpos=" << aepos-abpos << std::endl;
+						lme.getStream() << "bepos-bbpos=" << bepos-bbpos << std::endl;
+						lme.getStream() << "ATC.te - ATC.ta=" << (ATC.te-ATC.ta) << std::endl;
+						lme.getStream() << "ATC.te - tc=" << (ATC.te-tc) << std::endl;
+
+						lme.finish();
+						throw lme;
+					}
 
 					return path;
 				}

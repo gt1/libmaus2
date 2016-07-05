@@ -1,3 +1,12 @@
+libmaus2 (2.0.219-1) unstable; urgency=medium
+
+  * add getPrimaryFlag in OverlapData class
+  * add getPrimaryFlag, isPrimary and setPrimary in Overlap class
+  * add more specific error message in Overlap::computePath
+  * add messages in BwtSelectSSA
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 05 Jul 2016 11:15:24 +0200
+
 libmaus2 (2.0.218-1) unstable; urgency=medium
 
   * add setPrimary/isPrimary in Overlap class
