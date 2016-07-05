@@ -343,6 +343,9 @@ void libmaus2::suffixsort::bwtb3m::BwtSelectSSA::computeSSA(
 	while ( numthreads && (numthreads * (minoutputfilesperthread + mininputfilesperthread)) > maxtmpfiles )
 		--numthreads;
 
+	if ( logstr )
+		*logstr << "[V] using " << numthreads << " threads" << std::endl;
+
 	assert ( numthreads );
 
 	// original bwt name
@@ -355,6 +358,9 @@ void libmaus2::suffixsort::bwtb3m::BwtSelectSSA::computeSSA(
 	}
 	else
 	{
+		if ( logstr )
+			*logstr << "[V] concatenating BWT files" << std::endl;
+
 		origbwt = tmpfilenamebase + "_concat.bwt";
 		libmaus2::util::TempFileRemovalContainer::addTempFile(origbwt);
 		libmaus2::huffman::RLEncoderStd::concatenate(Vbwt,origbwt,false /* do not remove input */);
@@ -370,11 +376,17 @@ void libmaus2::suffixsort::bwtb3m::BwtSelectSSA::computeSSA(
 		assert ( okrate );
 		bool const oknumsamples = SGI.getNext(numisasamples);
 		assert ( oknumsamples );
+
+		if ( logstr )
+			*logstr << "[V] got meta data, isasamplingrate=" << preisasamplingrate << " numisasamples=" << numisasamples << std::endl;
 	}
 
 	std::string const preisa = tmpfilenamebase + ".preisa";
 	libmaus2::util::TempFileRemovalContainer::addTempFile(preisa);
 	{
+		if ( logstr )
+			*logstr << "[V] writing (r,p) pairs" << std::endl;
+
 		libmaus2::aio::InputStreamInstance ISI(isafn);
 		ISI.clear();
 		ISI.seekg(2*sizeof(uint64_t));
@@ -399,6 +411,9 @@ void libmaus2::suffixsort::bwtb3m::BwtSelectSSA::computeSSA(
 		OSI.reset();
 	}
 
+	if ( logstr )
+		*logstr << "[V] sorting (r,p) pairs using " << maxsortmem << " memory" << std::endl;
+
 	std::string const tmpisa = tmpfilenamebase + "_isa_sort_tmp";
 	std::string const tmpsortedisa = tmpfilenamebase + "_isa_sorted_tmp";
 	libmaus2::util::TempFileRemovalContainer::addTempFile(tmpisa);
@@ -415,6 +430,10 @@ void libmaus2::suffixsort::bwtb3m::BwtSelectSSA::computeSSA(
 	);
 	libmaus2::aio::FileRemoval::removeFile(tmpisa);
 	libmaus2::aio::FileRemoval::removeFile(preisa);
+
+	if ( logstr )
+		*logstr << "[V] renaming" << std::endl;
+
 	libmaus2::aio::OutputStreamFactoryContainer::rename(tmpsortedisa,preisa);
 
 	std::string bwt = origbwt;

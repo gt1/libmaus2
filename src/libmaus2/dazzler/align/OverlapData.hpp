@@ -20,6 +20,7 @@
 
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/util/LELoad.hpp>
+#include <libmaus2/dazzler/align/Overlap.hpp>
 
 namespace libmaus2
 {
@@ -124,9 +125,15 @@ namespace libmaus2
 					return libmaus2::util::loadValueLE4(p + 5*sizeof(int32_t));
 				}
 
-				static int32_t getFlags(uint8_t const * p)
+				static uint32_t getFlags(uint8_t const * p)
 				{
 					return libmaus2::util::loadValueLE4(p + 6*sizeof(int32_t));
+				}
+
+				static bool getPrimaryFlag(uint8_t const * p)
+				{
+					uint32_t const flags = getFlags(p);
+					return (flags & libmaus2::dazzler::align::Overlap::getPrimaryFlag()) != 0;
 				}
 
 				static int32_t getARead(uint8_t const * p)
