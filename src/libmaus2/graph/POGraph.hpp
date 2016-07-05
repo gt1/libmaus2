@@ -152,6 +152,22 @@ namespace libmaus2
 			}
 		};
 
+		struct NodeInfo
+		{
+			char label;
+			uint64_t numalignedto;
+			uint64_t usecnt;
+
+			NodeInfo() : label(0), numalignedto(0), usecnt(0)
+			{
+
+			}
+			NodeInfo(char const rlabel) : label(rlabel), numalignedto(0), usecnt(0)
+			{
+
+			}
+		};
+
 		struct POHashGraph
 		{
 			typedef POHashGraph this_type;
@@ -183,7 +199,7 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray<uint64_t> numreverseedges;
 			uint64_t numreverseedgeso;
 
-			libmaus2::autoarray::AutoArray<char> nodelabels;
+			libmaus2::autoarray::AutoArray<NodeInfo> nodelabels;
 			uint64_t numnodelabels;
 
 			// used for align()
@@ -295,7 +311,7 @@ namespace libmaus2
 			void addNode(uint64_t const id, char const symbol)
 			{
 				while ( !(id < numnodelabels) )
-					nodelabels.push(numnodelabels,0);
+					nodelabels.push(numnodelabels,NodeInfo());
 				assert ( id < numnodelabels );
 
 				#if 0
@@ -304,7 +320,7 @@ namespace libmaus2
 				assert ( id < numalignedtoo );
 				#endif
 
-				nodelabels[id] = symbol;
+				nodelabels[id] = NodeInfo(symbol);
 				//numalignedto[id] = 0;
 			}
 
@@ -463,7 +479,7 @@ namespace libmaus2
 				for ( int64_t i = 0; i <= maxnode; ++i )
 					if ( i < static_cast<int64_t>(numnodelabels) )
 					{
-						out << "\tnode_" << i << " [label=\"" << nodelabels[i];
+						out << "\tnode_" << i << " [label=\"" << nodelabels[i].label << "," << nodelabels[i].usecnt;
 
 						#if 0
 						for ( uint64_t j = 0; j < getNumAlignedTo(i); ++j )
@@ -514,7 +530,7 @@ namespace libmaus2
 				while ( ! Q.empty() )
 				{
 					uint64_t const q = Q.pop_front();
-					char const g = nodelabels[q];
+					char const g = nodelabels[q].label;
 
 					// std::cerr << "processing " << q << " " << g << std::endl;
 
@@ -676,6 +692,7 @@ namespace libmaus2
 							// std::cerr << "match for " << it[curj] << std::endl;
 
 							// std::cerr << "prevnode=" << prevnode << std::endl;
+							nodelabels[curi].usecnt += 1;
 
 							if  (
 								prevnode != -1
@@ -705,7 +722,7 @@ namespace libmaus2
 							for ( uint64_t j = 0; j < getNumAlignedTo(curi); ++j )
 							{
 								// std::cerr << "checking for aligned to " << getAlignedTo(curi,j) << " label " << nodelabels[getAlignedTo(curi,j)] << std::endl;
-								bool const lhavematch = (nodelabels[getAlignedTo(curi,j)] == it[curj]);
+								bool const lhavematch = (nodelabels[getAlignedTo(curi,j)].label == it[curj]);
 								havematch = havematch || lhavematch;
 								if ( lhavematch )
 									nextprevnode = getAlignedTo(curi,j);
@@ -776,7 +793,10 @@ namespace libmaus2
 					}
 					else if ( curj == -1 )
 					{
-						curi -= 1;
+						if ( getNumReverseEdges(curi) )
+							curi = getReverseEdge(curi,0).to;
+						else
+							curi = -1;
 					}
 					else
 					{
