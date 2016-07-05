@@ -1,3 +1,10 @@
+libmaus2 (2.0.221-1) unstable; urgency=medium
+
+  * add match counting in POGraph
+  * follow reverse path in trace back on graph instead of decrementing node index
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 05 Jul 2016 15:45:21 +0200
+
 libmaus2 (2.0.220-1) unstable; urgency=medium
 
   * do not copy CIGAR string/data of unmapped mates
