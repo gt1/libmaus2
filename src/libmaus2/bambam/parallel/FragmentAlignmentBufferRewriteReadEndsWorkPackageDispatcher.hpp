@@ -184,6 +184,10 @@ namespace libmaus2
 						std::pair<int64_t,int64_t> MCP(-1,-1);
 						ssize_t firsti = -1;
 						ssize_t secondi = -1;
+						uint32_t firstiflags = 0;
+						uint32_t secondiflags = 0;
+						bool firstimapped = false;
+						bool secondimapped = false;
 						int64_t firsto = -1;
 						int64_t secondo = -1;
 						size_t ATA1len = 0;
@@ -210,6 +214,8 @@ namespace libmaus2
 									)
 									{
 										firsti = i;
+										firstiflags = flags;
+										firstimapped = !(firstiflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP);
 									}
 									else if (
 										(flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD2)
@@ -218,6 +224,8 @@ namespace libmaus2
 									)
 									{
 										secondi = i;
+										secondiflags = flags;
+										secondimapped = !(secondiflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP);
 									}
 								}
 							}
@@ -349,7 +357,11 @@ namespace libmaus2
 									P.second += ATA1len;
 									subbuf->replaceLength(offset,P.second);
 								}
-								if ( mateCigar1l >= 0 )
+								if (
+									firstimapped
+									&&
+									mateCigar1l >= 0
+								)
 								{
 									uint8_t const T[3] = { 'M', 'C', 'Z' };
 
@@ -405,7 +417,11 @@ namespace libmaus2
 									P.second += ATA2len;
 									subbuf->replaceLength(offset,P.second);
 								}
-								if ( mateCigar2l >= 0 )
+								if (
+									secondimapped
+									&&
+									mateCigar2l >= 0
+								)
 								{
 									uint8_t const T[3] = { 'M', 'C', 'Z' };
 
