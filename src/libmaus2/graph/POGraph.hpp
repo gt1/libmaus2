@@ -776,7 +776,10 @@ namespace libmaus2
 					}
 					else if ( curj == -1 )
 					{
-						curi -= 1;
+						if ( getNumReverseEdges(curi) )
+							curi = getReverseEdge(curi,0).to;
+						else
+							curi = -1;
 					}
 					else
 					{
