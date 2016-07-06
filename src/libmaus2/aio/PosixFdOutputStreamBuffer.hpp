@@ -543,7 +543,7 @@ namespace libmaus2
 				if ( (which & ::std::ios_base::out) )
 				{
 					doSync();
-					sp = doSeekAbsolute(fd,filename,sp,SEEK_SET);
+					writepos = sp = doSeekAbsolute(fd,filename,sp,SEEK_SET);
 					if ( checkfd != -1 )
 					{
 						::std::streampos const checksp = doSeekAbsolute(checkfd,filename,sp,SEEK_SET);
@@ -579,7 +579,7 @@ namespace libmaus2
 					/* seek via absolute position */
 					else
 					{
-						return seekpos(writepos + (pptr()-pbase()) + off, which);
+						return seekpos(static_cast< ::std::streamoff >(writepos + (pptr()-pbase())) + off,which);
 					}
 				}
 				else if ( way == ::std::ios_base::beg )
