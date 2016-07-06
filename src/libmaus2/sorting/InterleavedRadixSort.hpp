@@ -435,7 +435,7 @@ namespace libmaus2
 
 				uint64_t const n = ite-ita;
 				uint64_t const packsize = (n + tnumthreads - 1) / tnumthreads;
-				uint64_t const numthreads = (n + packsize - 1) / packsize;
+				uint64_t const numthreads = packsize ? ((n + packsize - 1) / packsize) : 0;
 
 				libmaus2::autoarray::AutoArray<uint64_t> Ahist((numthreads+1) * LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS, false);
 				libmaus2::autoarray::AutoArray<uint64_t> Athist(numthreads*numthreads* LIBMAUS2_SORTING_INTERLEAVEDRADIXSORT_NUM_BUCKETS, false);
