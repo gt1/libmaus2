@@ -1,3 +1,11 @@
+libmaus2 (2.0.223-1) unstable; urgency=medium
+
+  * add logstr parameter in PairFileSorting class
+  * add overlapparser_do_not_split_a mode in OverlapParser class
+  * add getData (non const), putFlags and addPrimaryFlag methods in OverlapData
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 07 Jul 2016 17:11:01 +0200
+
 libmaus2 (2.0.222-1) unstable; urgency=medium
 
   * add more checks in FastAToCompact4BigBand
