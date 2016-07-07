@@ -60,6 +60,25 @@ namespace libmaus2
 					}
 				}
 
+				std::pair<uint8_t *, uint8_t *> getData(uint64_t const i)
+				{
+					if ( i < overlapsInBuffer )
+					{
+						return
+							std::pair<uint8_t *, uint8_t *>(
+								Adata.begin() + Aoffsets[i],
+								Adata.begin() + Aoffsets[i] + Alength[i]
+							);
+					}
+					else
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "OverlapParser::getData(): index " << i << " is out of range" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+				}
+
 				std::string getDataAsString(uint64_t const i) const
 				{
 					std::pair<uint8_t const *, uint8_t const *> P = getData(i);
@@ -128,6 +147,26 @@ namespace libmaus2
 				static uint32_t getFlags(uint8_t const * p)
 				{
 					return libmaus2::util::loadValueLE4(p + 6*sizeof(int32_t));
+				}
+
+				static void putFlags(uint8_t * p, uint32_t const f)
+				{
+					p += 6*sizeof(int32_t);
+
+					p[0] = ((f>> 0) & 0xFF);
+					p[1] = ((f>> 8) & 0xFF);
+					p[2] = ((f>>16) & 0xFF);
+					p[3] = ((f>>24) & 0xFF);
+				}
+
+				static void addPrimaryFlag(uint8_t * p)
+				{
+					putFlags(
+						p,
+						getFlags(p)
+						|
+						libmaus2::dazzler::align::Overlap::getPrimaryFlag()
+					);
 				}
 
 				static bool getPrimaryFlag(uint8_t const * p)

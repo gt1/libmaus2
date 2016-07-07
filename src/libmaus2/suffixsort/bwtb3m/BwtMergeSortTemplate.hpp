@@ -3694,7 +3694,8 @@ namespace libmaus2
 				static std::string sortIsaFile(
 					libmaus2::util::TempFileNameGenerator & gtmpgen,
 					std::vector<std::string> const & mergedisaname, uint64_t const blockmem,
-					uint64_t const numthreads
+					uint64_t const numthreads,
+					std::ostream * logstr
 				)
 				{
 					// sort sampled inverse suffix array file
@@ -3702,7 +3703,7 @@ namespace libmaus2
 					std::string const mergeisatmpout = gtmpgen.getFileName(true);
 					::libmaus2::sorting::PairFileSorting::sortPairFile(
 						mergedisaname,mergeisatmp,true /* second comp */,
-						true,true,mergeisatmpout,blockmem/2/*par*/,numthreads /* parallel */,false /* delete input */);
+						true,true,mergeisatmpout,blockmem/2/*par*/,numthreads /* parallel */,false /* delete input */,logstr);
 					libmaus2::aio::FileRemoval::removeFile (mergeisatmp);
 					return mergeisatmpout;
 				}
@@ -3949,7 +3950,8 @@ namespace libmaus2
 						*pmergedsa /* output stream */,
 						blockmem/* /2 par in place now*/,
 						numthreads /* parallel */,
-						true /* delete input */
+						true /* delete input */,
+						logstr
 					);
 					pmergedsa->flush();
 					pmergedsa.reset();
@@ -3975,7 +3977,8 @@ namespace libmaus2
 						*pmergedisa /* output stream */,
 						blockmem/2/*par*/,
 						numthreads /* parallel */,
-						true /* delete input */
+						true /* delete input */,
+						logstr
 					);
 					if ( logstr )
 						(*logstr) << "done." << std::endl;
@@ -4961,7 +4964,7 @@ namespace libmaus2
 						// sort the sampled isa file
 						uint64_t const blockmem = memperthread; // memory per thread
 						// sort pre isa files by second component (position)
-						std::string const mergedisaname = sortIsaFile(gtmpgen,mergeresult.getFiles().getSampledISAVector(),blockmem,options.numthreads);
+						std::string const mergedisaname = sortIsaFile(gtmpgen,mergeresult.getFiles().getSampledISAVector(),blockmem,options.numthreads,logstr);
 
 						// compute sampled suffix array and sampled inverse suffix array
 						computeSampledSA(
