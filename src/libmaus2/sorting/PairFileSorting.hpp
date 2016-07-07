@@ -248,9 +248,29 @@ namespace libmaus2
 					numthreads
 				#endif
 					,
-				bool const deleteinput
+				bool const deleteinput,
+				std::ostream * logstr
 			)
 			{
+				if ( logstr )
+				{
+					(*logstr) << "[V] PairFileSorting::sortPairFileTemplate(";
+					(*logstr) << "filenames=[";
+					for ( uint64_t i = 0; i < filenames.size(); ++i )
+						(*logstr) << filenames[i] << ((i+1<filenames.size()) ? ";" : "");
+					(*logstr) << "]";
+					(*logstr) << ",tmpfilename=" << tmpfilename;
+					(*logstr) << ",second=" << second;
+					(*logstr) << ",keepfirst=" << keepfirst;
+					(*logstr) << ",keepsecond=" << keepsecond;
+					(*logstr) << ",bufsize=" << bufsize;
+					#if defined(_OPENMP)
+					(*logstr) << ",numthreads=" << numthreads;
+					#endif
+					(*logstr) << ",deleteinput=" << deleteinput;
+					(*logstr) << ")\n";
+				}
+
 				// number of pairs in input
 				uint64_t numpairs = 0;
 				// size of a pair in bytes
@@ -266,6 +286,9 @@ namespace libmaus2
 					numpairs += len / plen;
 				}
 
+				if ( logstr )
+					(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: numpairs=" << numpairs << std::endl;
+
 				// number of pairs per block
 				uint64_t const pairsperblock = (bufsize + plen -1)/plen;
 				// number of blocks
@@ -275,23 +298,56 @@ namespace libmaus2
 				// number of elements in last block
 				uint64_t const lastblock = (numblocks==fullblocks) ? pairsperblock : (numpairs - fullblocks*pairsperblock);
 
+				if ( logstr )
+					(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: pairsperblock=" << pairsperblock << std::endl;
+				if ( logstr )
+					(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: numblocks=" << numblocks << std::endl;
+				if ( logstr )
+					(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: fullblocks=" << fullblocks << std::endl;
+				if ( logstr )
+					(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: lastblock=" << lastblock << std::endl;
+
 				libmaus2::aio::ConcatInputStream::unique_ptr_type CIN(new libmaus2::aio::ConcatInputStream(filenames));
 				::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type SGO(
 					new ::libmaus2::aio::SynchronousGenericOutput<uint64_t>(tmpfilename,16*1024)
 				);
 				::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > A(std::min(pairsperblock,numpairs),false);
 
+				if ( logstr )
+					(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: A.size()=" << A.size() << std::endl;
+
 				uint64_t w = 0;
 				for ( uint64_t b = 0; b < numblocks; ++b )
 				{
 					uint64_t const blow = b * pairsperblock;
 					uint64_t const bhigh = std::min(blow+pairsperblock,numpairs);
+
+					if ( logstr )
+						(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: processing block b=" << b << " numblocks=" << numblocks << " blow=" << blow << " bhigh=" << bhigh << std::endl;
+
+					assert ( bhigh >= blow );
+					uint64_t const brange = bhigh-blow;
+
+					if ( logstr )
+						(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: brange=" << brange << std::endl;
+
+					assert ( brange <= A.size() );
 					std::pair<uint64_t,uint64_t> * P = A.begin();
-					std::pair<uint64_t,uint64_t> * Pe = P + (bhigh-blow);
+					std::pair<uint64_t,uint64_t> * Pe = P + brange;
+
+					if ( logstr )
+						(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: seeking CIN to " << (blow*plen) << std::endl;
 
 					CIN->clear();
 					CIN->seekg(blow * plen);
+
+					if ( logstr )
+						(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: setting up SGI" << std::endl;
+
 					libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(*CIN,16*1024);
+
+					if ( logstr )
+						(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: reading block data" << std::endl;
 
 					bool ok = true;
 					while ( P != Pe )
@@ -301,6 +357,9 @@ namespace libmaus2
 						P++;
 					}
 					assert ( ok );
+
+					if ( logstr )
+						(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: sorting block" << std::endl;
 
 					#if defined(_OPENMP)
 					if ( numthreads )
@@ -323,6 +382,9 @@ namespace libmaus2
 							std::sort(A.begin(),P,FirstComp<uint64_t,uint64_t>());
 					}
 
+					if ( logstr )
+						(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: writing data to SGO" << std::endl;
+
 					P = A.begin();
 					while ( P != Pe )
 					{
@@ -335,14 +397,23 @@ namespace libmaus2
 
 				assert ( w == numpairs );
 
+				if ( logstr )
+					(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: flusing/resetting" << std::endl;
+
 				SGO->flush();
 				SGO.reset();
 				CIN.reset();
 				A.release();
 
+				if ( logstr )
+					(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: removing tmp files" << std::endl;
+
 				if ( deleteinput )
 					for ( uint64_t i = 0; i < filenames.size(); ++i )
 						libmaus2::aio::FileRemoval::removeFile(filenames[i]);
+
+				if ( logstr )
+					(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: merging blocks" << std::endl;
 
 				if ( second )
 					mergeTriples< TripleSecondComparator<uint64_t,uint64_t,uint64_t>, out_type >(
@@ -363,12 +434,13 @@ namespace libmaus2
 				std::string const & outfilename,
 				uint64_t const bufsize, // = 256*1024*1024,
 				uint64_t const numthreads, // = false,
-				bool const deleteinput // = false
+				bool const deleteinput, // = false
+				std::ostream * logstr
 			)
 			{
 				typedef ::libmaus2::aio::SynchronousGenericOutput<uint64_t> out_type;
 				out_type SGOfinal(outfilename,16*1024);
-				sortPairFileTemplate<out_type>(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize,numthreads,deleteinput);
+				sortPairFileTemplate<out_type>(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize,numthreads,deleteinput,logstr);
 			}
 
 			static void sortPairFile(
@@ -380,12 +452,13 @@ namespace libmaus2
 				std::ostream & outstream,
 				uint64_t const bufsize, // = 256*1024*1024,
 				uint64_t const numthreads, // = false,
-				bool const deleteinput // = false
+				bool const deleteinput, // = false
+				std::ostream * logstr
 			)
 			{
 				typedef ::libmaus2::aio::SynchronousGenericOutput<uint64_t> out_type;
 				out_type SGOfinal(outstream,16*1024);
-				sortPairFileTemplate<out_type>(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize,numthreads,deleteinput);
+				sortPairFileTemplate<out_type>(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize,numthreads,deleteinput,logstr);
 			}
 		};
 	}

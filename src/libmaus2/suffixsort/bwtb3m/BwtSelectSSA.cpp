@@ -426,7 +426,8 @@ void libmaus2::suffixsort::bwtb3m::BwtSelectSSA::computeSSA(
 		tmpsortedisa,
 		maxsortmem,
 		numthreads /* parallel */,
-		true /* delete input */
+		true /* delete input */,
+		logstr
 	);
 	libmaus2::aio::FileRemoval::removeFile(tmpisa);
 	libmaus2::aio::FileRemoval::removeFile(preisa);
@@ -1118,7 +1119,8 @@ void libmaus2::suffixsort::bwtb3m::BwtSelectSSA::computeSSA(
 		resortedpairisa,
 		maxsortmem,
 		numthreads /* parallel */,
-		true /* delete input */
+		true /* delete input */,
+		logstr
 	);
 	libmaus2::aio::FileRemoval::removeFile(tmp);
 
