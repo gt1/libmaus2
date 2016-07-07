@@ -3,5 +3,5 @@ usr/lib/*/libmaus2.so.*	usr/lib/${DEB_HOST_MULTIARCH}/
 usr/lib/*/libmaus2_simd_align_128.so.*	usr/lib/${DEB_HOST_MULTIARCH}/
 usr/lib/*/libmaus2_simd_align_256.so.*	usr/lib/${DEB_HOST_MULTIARCH}/
 usr/lib/*/libmaus2lsf.so.*	usr/lib/${DEB_HOST_MULTIARCH}/
-usr/lib/*/libmaus2/2.0.222/libmaus2_*.so	usr/lib/${DEB_HOST_MULTIARCH}/libmaus2/2.0.222/
+usr/lib/*/libmaus2/2.0.223/libmaus2_*.so	usr/lib/${DEB_HOST_MULTIARCH}/libmaus2/2.0.223/
 usr/share/doc/libmaus2/changelog.gz usr/share/doc/libmaus2/
