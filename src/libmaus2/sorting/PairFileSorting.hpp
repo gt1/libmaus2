@@ -136,7 +136,8 @@ namespace libmaus2
 				std::string const & tmpfilename,
 				uint64_t const elnum,
 				uint64_t const lastblock,
-				out_type & SGOfinal
+				out_type & SGOfinal,
+				std::ostream * logstr
 			)
 			{
 				if ( numblocks )
@@ -151,13 +152,20 @@ namespace libmaus2
 
 					for ( uint64_t i = 0; i < numblocks; ++i )
 					{
-						uint64_t const rwords = (i+1==numblocks) ?
-									(lastblock?(2*lastblock):(2*elnum)) : (2*elnum);
+						bool const islastblock = (i+1==numblocks);
+						uint64_t const rwords = islastblock ? (lastblock?(2*lastblock):(2*elnum)) : (2*elnum);
+						uint64_t const bufsize = 16*1024;
+						uint64_t const offset = 2*i*elnum;
+
+						if ( logstr )
+						{
+							(*logstr) << "[V] PairFileSorting::mergeTriplesTemplate<" << keepfirst << "," << keepsecond << ">: setting up for block " << i << "/"
+								<< numblocks << " islastblock=" << islastblock << " rwords=" << rwords << " offset=" << offset << std::endl;
+						}
 
 						::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tini(
 							new ::libmaus2::aio::SynchronousGenericInput<uint64_t>(
-								tmpfilename,16*1024,2*i*elnum,
-								rwords
+								tmpfilename,bufsize,offset,rwords
 							)
 						);
 
@@ -174,6 +182,10 @@ namespace libmaus2
 						Q . push ( triple );
 					}
 
+					if ( logstr )
+					{
+						(*logstr) << "[V] PairFileSorting::mergeTriplesTemplates: setup complete for all blocks" << std::endl;
+					}
 
 					while ( Q.size() )
 					{
@@ -199,6 +211,13 @@ namespace libmaus2
 
 							Q.push(triple);
 						}
+						else
+						{
+							if ( logstr )
+							{
+								(*logstr) << "[V] PairFileSorting::mergeTriplesTemplates: merging complete for block " << id << std::endl;
+							}
+						}
 					}
 
 				}
@@ -212,23 +231,24 @@ namespace libmaus2
 				uint64_t const lastblock,
 				bool const keepfirst,
 				bool const keepsecond,
-				out_type & SGOfinal
+				out_type & SGOfinal,
+				std::ostream * logstr
 			)
 			{
 
 				if ( keepfirst )
 				{
 					if ( keepsecond )
-						mergeTriplesTemplate<comparator_type,out_type,true,true>(numblocks,tmpfilename,elnum,lastblock,SGOfinal);
+						mergeTriplesTemplate<comparator_type,out_type,true,true>(numblocks,tmpfilename,elnum,lastblock,SGOfinal,logstr);
 					else
-						mergeTriplesTemplate<comparator_type,out_type,true,false>(numblocks,tmpfilename,elnum,lastblock,SGOfinal);
+						mergeTriplesTemplate<comparator_type,out_type,true,false>(numblocks,tmpfilename,elnum,lastblock,SGOfinal,logstr);
 				}
 				else
 				{
 					if ( keepsecond )
-						mergeTriplesTemplate<comparator_type,out_type,false,true>(numblocks,tmpfilename,elnum,lastblock,SGOfinal);
+						mergeTriplesTemplate<comparator_type,out_type,false,true>(numblocks,tmpfilename,elnum,lastblock,SGOfinal,logstr);
 					else
-						mergeTriplesTemplate<comparator_type,out_type,false,false>(numblocks,tmpfilename,elnum,lastblock,SGOfinal);
+						mergeTriplesTemplate<comparator_type,out_type,false,false>(numblocks,tmpfilename,elnum,lastblock,SGOfinal,logstr);
 				}
 
 				SGOfinal.flush();
@@ -418,11 +438,14 @@ namespace libmaus2
 				if ( second )
 					mergeTriples< TripleSecondComparator<uint64_t,uint64_t,uint64_t>, out_type >(
 						numblocks,tmpfilename,pairsperblock,lastblock,
-						keepfirst,keepsecond,SGOfinal);
+						keepfirst,keepsecond,SGOfinal,logstr);
 				else
 					mergeTriples< TripleFirstComparator<uint64_t,uint64_t,uint64_t>, out_type >(
 						numblocks,tmpfilename,pairsperblock,lastblock,
-						keepfirst,keepsecond,SGOfinal);
+						keepfirst,keepsecond,SGOfinal,logstr);
+
+				if ( logstr )
+					(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: merged blocks" << std::endl;
 			}
 
 			static void sortPairFile(
