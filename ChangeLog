@@ -1,3 +1,9 @@
+libmaus2 (2.0.224-1) unstable; urgency=medium
+
+  * add more messages in PairFileSorting
+
+ -- German Tischler <tischler@mpi-cbg.de>  Sat, 09 Jul 2016 19:09:43 +0200
+
 libmaus2 (2.0.223-1) unstable; urgency=medium
 
   * add logstr parameter in PairFileSorting class
