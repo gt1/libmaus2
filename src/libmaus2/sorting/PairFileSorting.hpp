@@ -36,6 +36,7 @@
 #include <libmaus2/sorting/InPlaceParallelSort.hpp>
 
 #include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/util/Demangle.hpp>
 
 namespace libmaus2
 {
@@ -140,6 +141,20 @@ namespace libmaus2
 				std::ostream * logstr
 			)
 			{
+				if ( logstr )
+				{
+					(*logstr) << "[V] PairFileSorting::mergeTriplesTemplate"
+						<< "<"
+							<< libmaus2::util::Demangle::demangle<comparator_type>() << ","
+							<< libmaus2::util::Demangle::demangle<out_type>() << ","
+							<< keepfirst << ","
+							<< keepsecond << ">("
+						<< "numblocks=" << numblocks << ","
+						<< "tmpfilename=" << tmpfilename << ","
+						<< "elnum=" << elnum << ","
+						<< "lastblock=" << lastblock
+						<< ")\n";
+				}
 				if ( numblocks )
 				{
 					::libmaus2::autoarray::AutoArray < ::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > in(numblocks);
@@ -189,12 +204,14 @@ namespace libmaus2
 
 					while ( Q.size() )
 					{
-						if ( keepfirst )
-							SGOfinal.put(Q.top().first);
-						if ( keepsecond )
-							SGOfinal.put(Q.top().second);
+						triple_type const & ttop = Q.top();
 
-						uint64_t const id = Q.top().third;
+						if ( keepfirst )
+							SGOfinal.put(ttop.first);
+						if ( keepsecond )
+							SGOfinal.put(ttop.second);
+
+						uint64_t const id = ttop.third;
 
 						// std::cerr << Q.top().toString() << std::endl;
 
