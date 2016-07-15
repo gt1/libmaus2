@@ -2435,11 +2435,17 @@ namespace libmaus2
 				A.filterOutAux(MCfilter);
 				B.filterOutAux(MCfilter);
 
-				B.getCigarString(C);
-				A.putAuxString("MC", C.begin());
+				if ( B.isMapped() )
+				{
+					B.getCigarString(C);
+					A.putAuxString("MC", C.begin());
+				}
 
-				A.getCigarString(C);
-				B.putAuxString("MC", C.begin());
+				if ( A.isMapped() )
+				{
+					A.getCigarString(C);
+					B.putAuxString("MC", C.begin());
+				}
 			}
 
 			int64_t getNextCoordinate(libmaus2::autoarray::AutoArray<cigar_operation> & Aop) const
