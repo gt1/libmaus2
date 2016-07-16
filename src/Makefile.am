@@ -986,7 +986,10 @@ libmaus2rank_include_HEADERS=\
 	libmaus2/rank/DNARankMEMPosComparator.hpp \
 	libmaus2/rank/DNARankSMEMContext.hpp \
 	libmaus2/rank/DNARankSMEMComputation.hpp \
-	libmaus2/rank/DNARankGetPosition.hpp
+	libmaus2/rank/DNARankGetPosition.hpp \
+	libmaus2/rank/DNARankBiDirRangeSizeComparator.hpp \
+	libmaus2/rank/DNARankSuffixTreeNodeEnumeratorQueueElement.hpp \
+	libmaus2/rank/DNARankSuffixTreeNodeEnumerator.hpp
 
 libmaus2geometry_includedir=$(includedir)/libmaus2/geometry
 libmaus2geometry_include_HEADERS=\
