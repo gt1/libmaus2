@@ -119,6 +119,12 @@ namespace libmaus2
 				Q [ ( high++ ) & m ] = v;
 			}
 
+			value_type pop_back()
+			{
+				assert ( low != high );
+				return Q [ (--high) & m ];
+			}
+
 			value_type pop_front()
 			{
 				assert ( low != high );
