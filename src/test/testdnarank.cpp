@@ -15,6 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <libmaus2/rank/DNARankSuffixTreeNodeEnumerator.hpp>
 #include <libmaus2/rank/DNARank.hpp>
 #include <libmaus2/rank/DNARankBiDir.hpp>
 #include <libmaus2/util/ArgParser.hpp>
