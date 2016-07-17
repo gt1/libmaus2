@@ -1,3 +1,9 @@
+libmaus2 (2.0.228-1) unstable; urgency=medium
+
+  * add minlength and maxerr parameter in ChainNodeInfoSet/SMEMProcessor
+
+ -- German Tischler <tischler@mpi-cbg.de>  Sun, 17 Jul 2016 16:43:27 +0200
+
 libmaus2 (2.0.227-1) unstable; urgency=medium
 
   * add DNARankSuffixTreeNodeEnumerator class
