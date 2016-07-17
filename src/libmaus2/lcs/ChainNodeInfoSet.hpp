@@ -507,7 +507,12 @@ namespace libmaus2
 				return o && getChainScore() >= minscore;
 			}
 
-			void align(char const * query, uint64_t const querysize)
+			void align(
+				char const * query,
+				uint64_t const querysize,
+				uint64_t const minlength,
+				double const maxerr
+				)
 			{
 				if ( o && CNI[0].chainscore >= minscore )
 				{
@@ -586,7 +591,12 @@ namespace libmaus2
 							std::string() /* indent */,std::string() /* linesep */,libmaus2::fastx::remapChar);
 						#endif
 
-						Aalgn.push(aalgno,libmaus2::lcs::ChainAlignment(res,CNI[cur].xleft,CNI[cur].yleft,CNI[cur].xright-CNI[cur].xleft));
+						if (
+							res.aepos - res.abpos >= minlength
+							&&
+							res.getErrorRate() <= maxerr
+						)
+							Aalgn.push(aalgno,libmaus2::lcs::ChainAlignment(res,CNI[cur].xleft,CNI[cur].yleft,CNI[cur].xright-CNI[cur].xleft));
 
 						uint64_t const d_o = nnptrace.getDiagStrips(res.abpos,res.bbpos,D);
 
