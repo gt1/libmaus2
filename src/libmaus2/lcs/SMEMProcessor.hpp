@@ -128,7 +128,7 @@ namespace libmaus2
 
 			}
 
-			void handleChainQ(char const * query, uint64_t const querysize)
+			void handleChainQ(char const * query, uint64_t const querysize, uint64_t const minlength, double const maxerr)
 			{
 				libmaus2::lcs::Chain chain = chainQ.pop();
 				uint64_t const id = chain.getId(chainnodefreelist);
@@ -151,7 +151,7 @@ namespace libmaus2
 					backchain.returnNodes(chainnodefreelist);
 
 					CNIS.setup(ACH.get(),len);
-					CNIS.align(query,querysize);
+					CNIS.align(query,querysize,minlength,maxerr);
 
 					activechains.erase(activepop[i]);
 				}
@@ -220,7 +220,7 @@ namespace libmaus2
 				}
 			}
 
-			void handleChainEnd(char const * query, uint64_t const querysize)
+			void handleChainEnd(char const * query, uint64_t const querysize, uint64_t const minlength, double const maxerr)
 			{
 				uint64_t const rightmost = chainend.begin()->first;
 				uint64_t const chainid = chainend.begin()->second;
@@ -268,7 +268,7 @@ namespace libmaus2
 							uint64_t const chainproc = chainleftpending.pop();
 
 							while ( ! chainQ.empty() && chainQ.top().getLeftMost(chainnodefreelist) < chainproc )
-								handleChainQ(query,querysize);
+								handleChainQ(query,querysize,minlength,maxerr);
 						}
 					}
 
@@ -295,7 +295,9 @@ namespace libmaus2
 			void process(
 				libmaus2::rank::DNARankSMEMComputation::SMEMEnumerator<char const *> & senum,
 				char const * query,
-				uint64_t const querysize
+				uint64_t const querysize,
+				uint64_t const minlength = 0,
+				double const maxerr = std::numeric_limits<double>::max()
 			)
 			{
 				// uint64_t const maxocc = 500;
@@ -377,7 +379,7 @@ namespace libmaus2
 					}
 
 					while ( (!chainend.empty()) && (chainend.begin()->first+maxxdist < xleft) )
-						handleChainEnd(query,querysize);
+						handleChainEnd(query,querysize,minlength,maxerr);
 
 					uint64_t const inc = (smem.intv.size < maxocc) ? 1 : ((smem.intv.size+maxocc-1)/maxocc);
 					for ( uint64_t i = 0; i < smem.intv.size; i += inc )
@@ -546,9 +548,9 @@ namespace libmaus2
 				}
 
 				while ( !chainend.empty() )
-					handleChainEnd(query,querysize);
+					handleChainEnd(query,querysize,minlength,maxerr);
 				while ( ! chainQ.empty() )
-					handleChainQ(query,querysize);
+					handleChainQ(query,querysize,minlength,maxerr);
 
 				for ( std::map<uint64_t,libmaus2::lcs::Chain>::const_iterator ita = activechains.begin(); ita != activechains.end(); ++ita )
 				{
@@ -558,7 +560,7 @@ namespace libmaus2
 					backchain.returnNodes(chainnodefreelist);
 
 					CNIS.setup(ACH.get(),len);
-					CNIS.align(query,querysize);
+					CNIS.align(query,querysize,minlength,maxerr);
 				}
 
 				activechains.clear();
