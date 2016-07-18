@@ -612,9 +612,138 @@ void testsymrankpos()
 	}
 }
 
+struct PSC
+{
+	bool operator()(std::pair<uint64_t,uint64_t> const & A, std::pair<uint64_t,uint64_t> const & B) const
+	{
+		return A.second < B.second;
+	}
+};
+
+#include <libmaus2/sorting/PairFileSorting.hpp>
+
+void testpairfilesorting(uint64_t const n)
+{
+	std::vector< std::pair<uint64_t,uint64_t> > C(n);
+	for ( uint64_t i = 0; i < n; ++i )
+	{
+		C[i].first = i;
+		C[i].second = libmaus2::random::Random::rand64();
+	}
+
+	std::sort(C.begin(),C.end(),PSC());
+
+	std::string const fn = "mem://tmpfile";
+
+	{
+		libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO(fn,16*1024);
+		for ( uint64_t i = 0; i < n; ++i )
+		{
+			SGO.put(C[i].first);
+			SGO.put(C[i].second);
+		}
+		SGO.flush();
+	}
+
+	std::string const outfn = fn + ".out";
+
+	libmaus2::sorting::PairFileSorting::sortPairFile(
+		std::vector<std::string>(1,fn),
+		fn + "_tmp",
+		false /* second */,
+		true /* keep first */,
+		true /* keep second */,
+		outfn,
+		n / 32 * 2 * sizeof(uint64_t) /* bufsize */,
+		32 /* num threads */,
+		false /* delete input */,
+		4 /* fan in */,
+		&(std::cerr)
+	);
+
+	std::sort(C.begin(),C.end());
+
+	{
+		libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(outfn,16*1024);
+
+		for ( uint64_t i = 0; i < C.size(); ++i )
+		{
+			uint64_t a, b;
+			bool const a_ok = SGI.getNext(a);
+			assert ( a_ok );
+			bool const b_ok = SGI.getNext(b);
+			assert ( b_ok );
+
+			assert ( a == C[i].first );
+			assert ( b == C[i].second );
+		}
+	}
+}
+
+void testpairfilesortingSecond(uint64_t const n)
+{
+	std::vector< std::pair<uint64_t,uint64_t> > C(n);
+	for ( uint64_t i = 0; i < n; ++i )
+	{
+		C[i].second = i;
+		C[i].first = libmaus2::random::Random::rand64();
+	}
+
+	std::sort(C.begin(),C.end());
+
+	std::string const fn = "mem://tmpfile";
+
+	{
+		libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO(fn,16*1024);
+		for ( uint64_t i = 0; i < n; ++i )
+		{
+			SGO.put(C[i].first);
+			SGO.put(C[i].second);
+		}
+		SGO.flush();
+	}
+
+	std::string const outfn = fn + ".out";
+
+	libmaus2::sorting::PairFileSorting::sortPairFile(
+		std::vector<std::string>(1,fn),
+		fn + "_tmp",
+		true /* second */,
+		true /* keep first */,
+		true /* keep second */,
+		outfn,
+		n / 32 * 2 * sizeof(uint64_t) /* bufsize */,
+		32 /* num threads */,
+		false /* delete input */,
+		4 /* fan in */,
+		&(std::cerr)
+	);
+
+	std::sort(C.begin(),C.end(),PSC());
+
+	{
+		libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(outfn,16*1024);
+
+		for ( uint64_t i = 0; i < C.size(); ++i )
+		{
+			uint64_t a, b;
+			bool const a_ok = SGI.getNext(a);
+			assert ( a_ok );
+			bool const b_ok = SGI.getNext(b);
+			assert ( b_ok );
+
+			assert ( a == C[i].first );
+			assert ( b == C[i].second );
+		}
+	}
+}
+
 int main()
 {
 	{
+		testpairfilesortingSecond(16*1024*1024);
+		testpairfilesorting(16*1024*1024);
+
 		testrankpos();
 
 		testinplacesort2();
