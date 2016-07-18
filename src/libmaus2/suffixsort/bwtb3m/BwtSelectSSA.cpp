@@ -417,6 +417,7 @@ void libmaus2::suffixsort::bwtb3m::BwtSelectSSA::computeSSA(
 	std::string const tmpisa = tmpfilenamebase + "_isa_sort_tmp";
 	std::string const tmpsortedisa = tmpfilenamebase + "_isa_sorted_tmp";
 	libmaus2::util::TempFileRemovalContainer::addTempFile(tmpisa);
+	assert ( maxtmpfiles > 2 );
 	libmaus2::sorting::PairFileSorting::sortPairFile(
 		std::vector<std::string>(1,preisa),
 		tmpisa,
@@ -427,6 +428,7 @@ void libmaus2::suffixsort::bwtb3m::BwtSelectSSA::computeSSA(
 		maxsortmem,
 		numthreads /* parallel */,
 		true /* delete input */,
+		maxtmpfiles ? maxtmpfiles-1 : 0 /* fan in */,
 		logstr
 	);
 	libmaus2::aio::FileRemoval::removeFile(tmpisa);
@@ -1120,6 +1122,7 @@ void libmaus2::suffixsort::bwtb3m::BwtSelectSSA::computeSSA(
 		maxsortmem,
 		numthreads /* parallel */,
 		true /* delete input */,
+		maxtmpfiles ? maxtmpfiles-1 : 0,
 		logstr
 	);
 	libmaus2::aio::FileRemoval::removeFile(tmp);
