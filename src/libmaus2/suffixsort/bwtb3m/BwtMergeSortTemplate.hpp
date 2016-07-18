@@ -3693,8 +3693,10 @@ namespace libmaus2
 
 				static std::string sortIsaFile(
 					libmaus2::util::TempFileNameGenerator & gtmpgen,
-					std::vector<std::string> const & mergedisaname, uint64_t const blockmem,
+					std::vector<std::string> const & mergedisaname,
+					uint64_t const blockmem,
 					uint64_t const numthreads,
+					uint64_t const fanin,
 					std::ostream * logstr
 				)
 				{
@@ -3703,7 +3705,7 @@ namespace libmaus2
 					std::string const mergeisatmpout = gtmpgen.getFileName(true);
 					::libmaus2::sorting::PairFileSorting::sortPairFile(
 						mergedisaname,mergeisatmp,true /* second comp */,
-						true,true,mergeisatmpout,blockmem/2/*par*/,numthreads /* parallel */,false /* delete input */,logstr);
+						true,true,mergeisatmpout,blockmem/2/*par*/,numthreads /* parallel */,false /* delete input */,fanin,logstr);
 					libmaus2::aio::FileRemoval::removeFile (mergeisatmp);
 					return mergeisatmpout;
 				}
@@ -3824,6 +3826,7 @@ namespace libmaus2
 					uint64_t const sasamplingrate,
 					uint64_t const isasamplingrate,
 					uint64_t const blockmem,
+					uint64_t const fanin,
 					std::ostream * logstr
 				)
 				{
@@ -3951,6 +3954,7 @@ namespace libmaus2
 						blockmem/* /2 par in place now*/,
 						numthreads /* parallel */,
 						true /* delete input */,
+						fanin,
 						logstr
 					);
 					pmergedsa->flush();
@@ -3978,6 +3982,7 @@ namespace libmaus2
 						blockmem/2/*par*/,
 						numthreads /* parallel */,
 						true /* delete input */,
+						fanin,
 						logstr
 					);
 					if ( logstr )
@@ -4964,13 +4969,14 @@ namespace libmaus2
 						// sort the sampled isa file
 						uint64_t const blockmem = memperthread; // memory per thread
 						// sort pre isa files by second component (position)
-						std::string const mergedisaname = sortIsaFile(gtmpgen,mergeresult.getFiles().getSampledISAVector(),blockmem,options.numthreads,logstr);
+						std::string const mergedisaname = sortIsaFile(gtmpgen,mergeresult.getFiles().getSampledISAVector(),blockmem,options.numthreads,options.fanin,logstr);
 
 						// compute sampled suffix array and sampled inverse suffix array
 						computeSampledSA(
 							gtmpgen,fn,fs,IHWT,mergedisaname,options.outfn,
 							options.numthreads,lfblockmult,options.sasamplingrate,options.isasamplingrate,
 							options.mem,
+							options.fanin,
 							logstr
 						);
 

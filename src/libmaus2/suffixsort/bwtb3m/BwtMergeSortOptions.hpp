@@ -60,6 +60,7 @@ namespace libmaus2
 				bwt_merge_input_type inputtype;
 				uint64_t largelcpthres;
 				uint64_t verbose;
+				uint64_t fanin;
 
 				std::ostream & serialise(std::ostream & out) const
 				{
@@ -82,6 +83,7 @@ namespace libmaus2
 					libmaus2::util::NumberSerialisation::serialiseNumber(out,static_cast<int>(inputtype));
 					libmaus2::util::NumberSerialisation::serialiseNumber(out,largelcpthres);
 					libmaus2::util::NumberSerialisation::serialiseNumber(out,verbose);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,fanin);
 					return out;
 				}
 
@@ -106,6 +108,7 @@ namespace libmaus2
 					inputtype = static_cast<bwt_merge_input_type>(libmaus2::util::NumberSerialisation::deserialiseNumber(in));
 					largelcpthres = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 					verbose = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					fanin = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 					return in;
 				}
 
@@ -200,6 +203,11 @@ namespace libmaus2
 					return 0;
 				}
 
+				static uint64_t getDefaultFanIn()
+				{
+					return 32;
+				}
+
 				// compute default output file name from input file name
 				static std::string computeDefaultOutputFileName(std::string const & fn)
 				{
@@ -259,7 +267,8 @@ namespace libmaus2
 					bool rcomputeTermSymbolHwt = false,
 					uint64_t rwordsperthread = getDefaultWordsPerThread(),
 					uint64_t rlargelcpthres = getDefaultLargeLCPThres(),
-					uint64_t rverbose = getDefaultVerbose()
+					uint64_t rverbose = getDefaultVerbose(),
+					uint64_t rfanin = getDefaultFanIn()
 				) :
 				  numthreads(rnumthreads),
 				  fn(rfn),
@@ -279,7 +288,8 @@ namespace libmaus2
 				  sinputtype(rsinputtype),
 				  inputtype(parseInputType(sinputtype)),
 				  largelcpthres(rlargelcpthres),
-				  verbose(rverbose)
+				  verbose(rverbose),
+				  fanin(rfanin)
 				{
 
 				}
@@ -306,7 +316,8 @@ namespace libmaus2
 				  sinputtype(arginfo.getValue<std::string>("inputtype",getDefaultInputType())),
 				  inputtype(parseInputType(sinputtype)),
 				  largelcpthres(arginfo.getValueUnsignedNumeric<uint64_t>("largelcpthres", getDefaultLargeLCPThres())),
-				  verbose(arginfo.getValueUnsignedNumeric<uint64_t>("verbose", getDefaultVerbose()))
+				  verbose(arginfo.getValueUnsignedNumeric<uint64_t>("verbose", getDefaultVerbose())),
+				  fanin(arginfo.getValueUnsignedNumeric<uint64_t>("fanin", getDefaultFanIn()))
 				{
 
 				}
