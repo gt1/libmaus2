@@ -56,6 +56,17 @@ int main(int argc, char * argv[])
 		std::string const fn = arg[0];
 		libmaus2::rank::DNARank::unique_ptr_type Prank(libmaus2::rank::DNARank::loadFromRunLength(fn,numthreads));
 
+		#if 0
+		{
+			libmaus2::rank::DNARankSuffixTreeNodeEnumerator enumer(*Prank);
+			libmaus2::rank::DNARankSuffixTreeNodeEnumeratorQueueElement E;
+			while ( enumer.getNext(E) )
+			{
+				std::cerr << libmaus2::fastx::remapString(Prank->decode(E.intv.forw, E.sdepth)) << " " << E.intv.size << std::endl;
+			}
+		}
+		#endif
+
 		std::cerr << "[V] checking extract...";
 		libmaus2::autoarray::AutoArray<char> CC;
 		for ( uint64_t i = 0; i < 64*1024; ++i )
