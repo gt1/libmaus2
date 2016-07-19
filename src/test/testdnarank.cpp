@@ -23,6 +23,7 @@
 #include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/wavelet/ImpCompactHuffmanWaveletTree.hpp>
 #include <libmaus2/parallel/NumCpus.hpp>
+#include <libmaus2/fastx/acgtnMap.hpp>
 
 int main(int argc, char * argv[])
 {
@@ -60,9 +61,11 @@ int main(int argc, char * argv[])
 		{
 			libmaus2::rank::DNARankSuffixTreeNodeEnumerator enumer(*Prank);
 			libmaus2::rank::DNARankSuffixTreeNodeEnumeratorQueueElement E;
-			while ( enumer.getNext(E) )
+			unsigned int const k = 8;
+			while ( enumer.getNextBFS(E) && E.sdepth <= k )
 			{
-				std::cerr << libmaus2::fastx::remapString(Prank->decode(E.intv.forw, E.sdepth)) << " " << E.intv.size << std::endl;
+				if ( E.sdepth == k )
+					std::cerr << libmaus2::fastx::remapString(Prank->decode(E.intv.forw, E.sdepth)) << " " << E.intv.size << std::endl;
 			}
 		}
 		#endif
