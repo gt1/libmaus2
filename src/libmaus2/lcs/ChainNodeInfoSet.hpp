@@ -78,6 +78,32 @@ namespace libmaus2
 			int64_t algndommul;
 			int64_t algndomdiv;
 
+			bool idle() const
+			{
+				assert ( RSQ.empty() );
+				assert ( simpQ.empty() );
+				assert ( calctodo.empty() );
+				assert ( calcRtodo.empty() );
+				assert ( aligntodoQ.empty() );
+				assert ( alignVtodo.empty() );
+				assert ( alignVtodoout.empty() );
+
+				return
+					RSQ.empty()
+					&&
+					simpQ.empty()
+					&&
+					calctodo.empty()
+					&&
+					calcRtodo.empty()
+					&&
+					aligntodoQ.empty()
+					&&
+					alignVtodo.empty()
+					&&
+					alignVtodoout.empty();
+			}
+
 			#if defined(CHAINNODEINFOSET_DOT)
 			uint64_t chaindot;
 			#endif
@@ -678,6 +704,8 @@ namespace libmaus2
 
 						alignVtodo.swap(alignVtodoout);
 					}
+
+					alignVtodoout.clear();
 				}
 			}
 
