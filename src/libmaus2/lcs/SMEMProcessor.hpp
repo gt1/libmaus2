@@ -89,6 +89,32 @@ namespace libmaus2
 			uint64_t chaindommul;
 			uint64_t chaindomdiv;
 
+			bool idle() const
+			{
+				return
+					ST.idle()
+					&&
+					addQ.empty()
+					&&
+					remQ.empty()
+					&&
+					chainend.empty()
+					&&
+					chains.empty()
+					&&
+					chainleftend.empty()
+					&&
+					CNIS.idle()
+					&&
+					chainnodefreelist.idle()
+					&&
+					chainQ.empty()
+					&&
+					chainleftpending.empty()
+					&&
+					activechains.empty();
+			}
+
 			SMEMProcessor(
 				//libmaus2::fastx::FastAIndex const & rfaindex,
 				libmaus2::fastx::DNAIndexMetaDataBigBandBiDir const & rmeta,
@@ -300,6 +326,7 @@ namespace libmaus2
 				double const maxerr = std::numeric_limits<double>::max()
 			)
 			{
+				assert ( idle() );
 				// uint64_t const maxocc = 500;
 
 				ST.clear();
@@ -547,6 +574,57 @@ namespace libmaus2
 					}
 				}
 
+				// process add queue
+				while ( !addQ.empty() )
+				{
+					// get element
+					libmaus2::lcs::ChainAddQueueElement const & Q = addQ.top();
+					// compute element length
+					uint64_t const addsmemlen = Q.xright-Q.xleft;
+
+					// get position
+					uint64_t const yleft = Q.yleft;
+					uint64_t const yright = yleft + addsmemlen;
+
+					// assert ( yleft != Q.xleft );
+
+					// add into splay tree
+					ST.insert(libmaus2::lcs::ChainSplayTreeNode(Q.xright,yright,Q.chainid,Q.chainsubid));
+
+					// add to remove queue
+					libmaus2::lcs::ChainRemoveQueueElement RQE(
+						Q.xright /* right end on x */,
+						yright /* right end on y */,
+						Q.chainid,Q.chainsubid
+					);
+					//std::cerr << "RQE " << RQE << std::endl;
+					remQ.pushBump(RQE);
+
+					addQ.popvoid();
+				}
+
+				// process remove queue
+				while ( !remQ.empty() )
+				{
+					libmaus2::lcs::ChainRemoveQueueElement const & R = remQ.top();
+
+					// std::cerr << "removing " << R << std::endl;
+
+					libmaus2::util::SplayTree<libmaus2::lcs::ChainSplayTreeNode,libmaus2::lcs::ChainSplayTreeNodeComparator>::node_id_type s_id =
+						ST.find(libmaus2::lcs::ChainSplayTreeNode(R.xright,R.yright,R.chainid,R.chainsubid));
+
+					if ( s_id >= 0 )
+					{
+						ST.erase(libmaus2::lcs::ChainSplayTreeNode(R.xright,R.yright,R.chainid,R.chainsubid));
+					}
+					else
+					{
+						std::cerr << "[E] failed to find " << R << " in SplayTree" << std::endl;
+						assert ( s_id >= 0 );
+					}
+					remQ.popvoid();
+				}
+
 				while ( !chainend.empty() )
 					handleChainEnd(query,querysize,minlength,maxerr);
 				while ( ! chainQ.empty() )
@@ -564,10 +642,9 @@ namespace libmaus2
 				}
 
 				activechains.clear();
-
 				CNIS.cleanup();
 
-				assert ( chainleftend.size() == 0 );
+				assert ( idle() );
 			}
 
 			void printAlignments(uint64_t const minlength = 0)
