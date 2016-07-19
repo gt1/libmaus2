@@ -311,6 +311,11 @@ namespace libmaus2
 			SplayTree(base_type & rbase, comparator_type const & rcomparator = comparator_type())
 			: Pbase(), base(rbase), Aelements(base.getElementsArray()), comparator(rcomparator), root(-1) {}
 
+			bool idle() const
+			{
+				return base.idle() && (root == -1);
+			}
+
 			node_id_type getParent(node_id_type const node) const
 			{
 				if ( node != -1 )
