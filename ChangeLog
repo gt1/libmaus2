@@ -1,3 +1,11 @@
+libmaus2 (2.0.230-1) unstable; urgency=medium
+
+  * check object is idle before and after processing in SMEMProcessor
+  * add idle method in ChainNodeInfoSet and make sure object is idle after processing
+  * add idle method in SplayTree and ContainerElementFreeList
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 19 Jul 2016 10:45:46 +0200
+
 libmaus2 (2.0.229-1) unstable; urgency=medium
 
   * support limited fan in when merging in PairFileSorting

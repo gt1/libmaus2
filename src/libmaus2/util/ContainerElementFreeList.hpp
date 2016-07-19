@@ -46,6 +46,11 @@ namespace libmaus2
 			// high water in free list
 			uint64_t freelisthigh;
 
+			bool idle() const
+			{
+				return freelisthigh == Aelements.size();
+			}
+
 			/**
 			 * get unused node (from free list or newly allocated)
 			 **/
