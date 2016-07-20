@@ -172,7 +172,7 @@ namespace libmaus2
 		{
 			typedef POHashGraph this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus2::util::unique_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			typedef int32_t node_id_type;
 			typedef uint32_t score_type;
@@ -537,7 +537,7 @@ namespace libmaus2
 			{
 				typedef AlignContext this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus2::util::unique_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 				libmaus2::autoarray::AutoArray2d<TraceNode> S;
 				libmaus2::autoarray::AutoArray2d<uint64_t> U;
