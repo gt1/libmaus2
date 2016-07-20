@@ -177,6 +177,7 @@ namespace libmaus2
 			typedef int32_t node_id_type;
 			typedef uint32_t score_type;
 
+			// forward edges
 			libmaus2::util::SimpleHashMap<
 				POHashGraphKey<node_id_type>,
 				POGraphEdge<node_id_type>,
@@ -188,6 +189,7 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray<uint64_t> numforwardedges;
 			uint64_t numforwardedgeso;
 
+			// reverse edges
 			libmaus2::util::SimpleHashMap<
 				POHashGraphKey<node_id_type>,
 				POGraphEdge<node_id_type>,
@@ -199,13 +201,23 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray<uint64_t> numreverseedges;
 			uint64_t numreverseedgeso;
 
+			// node labels
 			libmaus2::autoarray::AutoArray<NodeInfo> nodelabels;
 			uint64_t numnodelabels;
 
-			// used for align()
-			libmaus2::autoarray::AutoArray<uint64_t> unfinished;
-			libmaus2::util::SimpleQueue<uint64_t> Q;
+			// node aligned to lists
+			libmaus2::util::SimpleHashMap<
+				POHashGraphKey<node_id_type>,
+				POGraphEdge<node_id_type>,
+				POHashGraphKeyConstants<node_id_type>,
+				POHashGraphKeyHashCompute<node_id_type>,
+				POHashGraphKeyDisplaceMaskFunction<node_id_type>,
+				POHashGraphKeyConstantsKeyPrint<node_id_type>
+			> alignedto;
+			libmaus2::autoarray::AutoArray<uint64_t> numalignedto;
+			uint64_t numalignedtoo;
 
+			// used for align()
 			struct TraceNode
 			{
 				node_id_type i;
@@ -222,31 +234,46 @@ namespace libmaus2
 				) : i(ri), j(rj), s(rs), t(rt) {}
 			};
 
+			libmaus2::autoarray::AutoArray<uint64_t> unfinished;
+			libmaus2::util::SimpleQueue<uint64_t> Q;
 			libmaus2::autoarray::AutoArray2d<TraceNode> S;
-
-			libmaus2::util::SimpleHashMap<
-				POHashGraphKey<node_id_type>,
-				POGraphEdge<node_id_type>,
-				POHashGraphKeyConstants<node_id_type>,
-				POHashGraphKeyHashCompute<node_id_type>,
-				POHashGraphKeyDisplaceMaskFunction<node_id_type>,
-				POHashGraphKeyConstantsKeyPrint<node_id_type>
-			> alignedto;
-			libmaus2::autoarray::AutoArray<uint64_t> numalignedto;
-			uint64_t numalignedtoo;
-
 			libmaus2::autoarray::AutoArray<uint64_t> Atmp;
+
+			POHashGraph & operator=(POHashGraph const & O)
+			{
+				if ( this != &O )
+				{
+					// copy graph data
+					forwardedges = O.forwardedges;
+					numforwardedges = O.numforwardedges.clone();
+					numforwardedgeso = O.numforwardedgeso;
+
+					reverseedges = O.reverseedges;
+					numreverseedges = O.numreverseedges.clone();
+					numreverseedgeso = O.numreverseedgeso;
+
+					nodelabels = O.nodelabels.clone();
+					numnodelabels = O.numnodelabels;
+
+					alignedto = O.alignedto;
+					numalignedto = O.numalignedto.clone();
+					numalignedtoo = O.numalignedtoo;
+
+					// we do not copy unfinished,Q,S,Atmp as they are tmp variables for align
+				}
+				return *this;
+			}
 
 			POHashGraph() :
 				forwardedges(8), numforwardedges(), numforwardedgeso(0),
 				reverseedges(8), numreverseedges(), numreverseedgeso(0),
 				nodelabels(), numnodelabels(0),
-				unfinished(),
-				Q(),
-				S(),
 				alignedto(8),
 				numalignedto(),
-				numalignedtoo(0)
+				numalignedtoo(0),
+				unfinished(),
+				Q(),
+				S()
 			{
 
 			}
@@ -506,7 +533,7 @@ namespace libmaus2
 				return out;
 			}
 
-			static void align(POHashGraph const & A, POHashGraph const & B)
+			static void align(POHashGraph & C, POHashGraph const & A, POHashGraph const & B)
 			{
 				int64_t const maxfrom_A = A.getMaxFrom();
 				int64_t const maxto_A = A.getMaxTo();
@@ -538,6 +565,10 @@ namespace libmaus2
 						}
 					}
 				}
+
+				int64_t mscore = std::numeric_limits<int64_t>::min();
+				int64_t mscorei = std::numeric_limits<int64_t>::min();
+				int64_t mscorej = std::numeric_limits<int64_t>::min();
 
 				// fill dynamic programming matrix
 				while ( ! Q.empty() )
@@ -645,6 +676,13 @@ namespace libmaus2
 
 					S(i,j) = TraceNode(previ,prevj,score,t);
 
+					if ( score > mscore )
+					{
+						mscore = score;
+						mscorei = i;
+						mscorej = j;
+					}
+
 					uint64_t const next_A = A.getNumForwardEdges(i);
 					uint64_t const next_B = B.getNumForwardEdges(j);
 
@@ -662,6 +700,111 @@ namespace libmaus2
 						}
 					}
 				}
+
+				// B mapping
+				libmaus2::autoarray::AutoArray<int64_t> BM(nodelimit_B,false);
+				libmaus2::autoarray::AutoArray<int64_t> BMA(nodelimit_B,false);
+				std::fill(BM.begin(), BM.end() ,std::numeric_limits<int64_t>::min());
+				std::fill(BMA.begin(),BMA.end(),std::numeric_limits<int64_t>::min());
+
+				while ( mscorei >= 0 && mscorej >= 0 )
+				{
+					TraceNode const & T = S(mscorei,mscorej);
+
+					//std::cerr << "mscorei=" << mscorei << " mscorej=" << mscorej << std::endl;
+
+					char const c_a = A.nodelabels[mscorei].label;
+					char const c_b = B.nodelabels[mscorej].label;
+
+					if (
+						T.t == libmaus2::lcs::BaseConstants::STEP_MATCH
+						||
+						T.t == libmaus2::lcs::BaseConstants::STEP_MISMATCH
+					)
+					{
+						// matching, fuse nodes
+						if ( c_a == c_b )
+						{
+							BM[mscorej] = mscorei;
+						}
+						// not matching
+						else
+						{
+							// check whether there is a node aligned to mscorei labeled with c_b
+							int64_t mscorei_alt = std::numeric_limits<int64_t>::min();
+
+							for ( uint64_t z = 0; z < A.getNumAlignedTo(mscorei); ++z )
+							{
+								uint64_t const lmscorei_alt = A.getAlignedTo(mscorei,z);
+
+								if ( A.nodelabels[lmscorei_alt].label == c_b )
+									mscorei_alt = lmscorei_alt;
+							}
+
+							// got one? fuse to it
+							if ( mscorei_alt >= 0 )
+							{
+								BM[mscorej] = mscorei_alt;
+							}
+							// no, align new node to mscorei
+							else
+							{
+								BMA[mscorej] = mscorei;
+							}
+						}
+
+						// std::cerr << "set BM[" << mscorej << "]=" << BM[mscorej] << " BMA[]=" << BMA[mscorej] << std::endl;
+					}
+
+					mscorei = T.i;
+					mscorej = T.j;
+				}
+
+				// copy A to C
+				C = A;
+
+				// assign new node ids for unaligned nodes in B
+				uint64_t nextnodeid = nodelimit_A;
+				for ( uint64_t i = 0; i < BM.size(); ++i )
+					if ( BM[i] < 0 )
+					{
+						BM[i] = nextnodeid++;
+						// assert ( BM[i] >= nodelimit_A );
+						C.addNode(BM[i],B.nodelabels[i].label);
+					}
+
+				// insert alignedto entries
+				libmaus2::autoarray::AutoArray<uint64_t> Atmp;
+				for ( uint64_t i = 0; i < BMA.size(); ++i )
+					if ( BMA[i] >= 0 )
+					{
+						// node id of B node
+						uint64_t const nodeid = BM[i];
+						// node aligned to in A
+						uint64_t const alignto = BMA[i];
+
+						uint64_t na = A.getAllAlignedTo(alignto,Atmp);
+						Atmp.push(na,alignto);
+
+						for ( uint64_t j = 0; j < na; ++j )
+						{
+							C.addAlignedTo(nodeid,Atmp[j]);
+							C.addAlignedTo(Atmp[j],nodeid);
+						}
+					}
+
+				// copy non redundant edges from B
+				for ( uint64_t i = 0; i < nodelimit_B; ++i )
+					for ( uint64_t j = 0; j < B.getNumForwardEdges(i); ++j )
+					{
+						uint64_t const btgt = B.getForwardEdge(i,j).to;
+
+						uint64_t const src = BM[i];
+						uint64_t const tgt = BM[btgt];
+
+						if ( !C.haveForwardEdge(src,tgt) )
+							C.insertEdge(src,tgt);
+					}
 			}
 
 			template<typename iterator>
