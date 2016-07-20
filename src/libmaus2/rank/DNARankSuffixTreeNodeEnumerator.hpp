@@ -28,19 +28,26 @@ namespace libmaus2
 	{
 		struct DNARankSuffixTreeNodeEnumerator
 		{
+			typedef DNARankSuffixTreeNodeEnumerator this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
 			libmaus2::rank::DNARank & rank;
 			libmaus2::util::SimpleQueue<DNARankSuffixTreeNodeEnumeratorQueueElement> Q;
 			libmaus2::rank::DNARankBiDirRange O[LIBMAUS2_RANK_DNARANK_SIGMA+1];
 			libmaus2::rank::DNARankBiDirRange OO[LIBMAUS2_RANK_DNARANK_SIGMA];
 			libmaus2::rank::DNARankBiDirRangeSizeComparator const comp;
 
-			DNARankSuffixTreeNodeEnumerator(
-				libmaus2::rank::DNARank & rrank
-			)
-			: rank(rrank), Q(), comp()
+			DNARankSuffixTreeNodeEnumerator(libmaus2::rank::DNARank & rrank) : rank(rrank), Q(), comp()
 			{
 				if ( rank.size() )
 					Q.push_back(DNARankSuffixTreeNodeEnumeratorQueueElement(rank.epsilonBi(),0));
+				O[LIBMAUS2_RANK_DNARANK_SIGMA].size = 0;
+			}
+
+			DNARankSuffixTreeNodeEnumerator(libmaus2::rank::DNARank & rrank, DNARankSuffixTreeNodeEnumeratorQueueElement const & E) : rank(rrank), Q(), comp()
+			{
+				Q.push_back(E);
 				O[LIBMAUS2_RANK_DNARANK_SIGMA].size = 0;
 			}
 
@@ -50,6 +57,44 @@ namespace libmaus2
 				{
 					// get next element from stack
 					E = Q.pop_back();
+
+					// compute possible extensions on the left
+					rank.backwardExtendBi(E.intv, &O[0]);
+
+					// sort descending by range size
+					std::stable_sort(&O[0],&O[LIBMAUS2_RANK_DNARANK_SIGMA],comp);
+
+					for ( uint64_t i = 0; O[i].size; ++i )
+					{
+						// compute possible extensions on the right
+						rank.forwardExtendBi(O[i], &OO[0]);
+
+						uint64_t nz = 0;
+						for ( uint64_t j = 0; j < LIBMAUS2_RANK_DNARANK_SIGMA; ++j )
+							nz += (OO[j].size != 0);
+
+						// if more than one extension on the right is possible
+						if ( nz > 1 )
+						{
+							// push element
+							Q.push_back(DNARankSuffixTreeNodeEnumeratorQueueElement(O[i],E.sdepth+1));
+						}
+					}
+
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+
+			bool getNextBFS(DNARankSuffixTreeNodeEnumeratorQueueElement & E)
+			{
+				if ( !Q.empty() )
+				{
+					// get next element from queue
+					E = Q.pop_front();
 
 					// compute possible extensions on the left
 					rank.backwardExtendBi(E.intv, &O[0]);

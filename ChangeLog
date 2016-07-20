@@ -1,3 +1,11 @@
+libmaus2 (2.0.231-1) unstable; urgency=medium
+
+  * add assignment operator in SimpleHashMap
+  * add PO/PO alignment in POGraph                                    
+  * add test code for suffix tree node enumerator
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 20 Jul 2016 15:05:17 +0200
+
 libmaus2 (2.0.230-1) unstable; urgency=medium
 
   * check object is idle before and after processing in SMEMProcessor

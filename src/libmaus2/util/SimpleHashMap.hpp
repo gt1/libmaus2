@@ -82,6 +82,21 @@ namespace libmaus2
 			::libmaus2::parallel::OMPLock elock;
 
 			public:
+			this_type & operator=(this_type const & O)
+			{
+				if ( this != &O )
+				{
+					slog = O.slog;
+					hashsize = O.hashsize;
+					hashmask = O.hashmask;
+					fill = O.fill;
+					H.resize(O.H.size());
+					std::copy(O.H.begin(),O.H.end(),H.begin());
+				}
+
+				return *this;
+			}
+
 			size_t byteSize() const
 			{
 				return
