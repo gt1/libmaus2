@@ -85,9 +85,22 @@ int main(int argc, char * argv[])
 		G.align(q1.begin(),q1.size());
 		G.align(q2.begin(),q2.size());
 
-		G.toDot(std::cout);
+		// G.toDot(std::cout);
 
-		libmaus2::graph::POHashGraph::align(G,G);
+		libmaus2::graph::POHashGraph PA;
+		PA.setupSingle(q0.begin(),q0.size());
+		libmaus2::graph::POHashGraph PB;
+		PB.setupSingle(q1.begin(),q1.size());
+		libmaus2::graph::POHashGraph PC;
+		PC.setupSingle(q2.begin(),q2.size());
+
+		libmaus2::graph::POHashGraph C;
+		libmaus2::graph::POHashGraph D;
+
+		libmaus2::graph::POHashGraph::align(C,PA,PB);
+		libmaus2::graph::POHashGraph::align(D,C,PC);
+
+		D.toDot(std::cout);
 	}
 	catch(std::exception const & ex)
 	{
