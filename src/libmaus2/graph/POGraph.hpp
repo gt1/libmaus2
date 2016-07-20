@@ -533,8 +533,15 @@ namespace libmaus2
 				return out;
 			}
 
+			/*
+			 * PO/PO alignment
+			 */
 			static void align(POHashGraph & C, POHashGraph const & A, POHashGraph const & B)
 			{
+				// we currenctly do not support having one of the graphs as parameter and result
+				assert ( &C != &A );
+				assert ( &C != &B );
+
 				int64_t const maxfrom_A = A.getMaxFrom();
 				int64_t const maxto_A = A.getMaxTo();
 				int64_t const maxnode_A = std::max(maxfrom_A,maxto_A);
@@ -710,11 +717,10 @@ namespace libmaus2
 				// copy A to C
 				C = A;
 
+				// trace back from maximum score
 				while ( mscorei >= 0 && mscorej >= 0 )
 				{
 					TraceNode const & T = S(mscorei,mscorej);
-
-					//std::cerr << "mscorei=" << mscorei << " mscorej=" << mscorej << std::endl;
 
 					char const c_a = A.nodelabels[mscorei].label;
 					char const c_b = B.nodelabels[mscorej].label;
@@ -756,14 +762,11 @@ namespace libmaus2
 								BMA[mscorej] = mscorei;
 							}
 						}
-
-						// std::cerr << "set BM[" << mscorej << "]=" << BM[mscorej] << " BMA[]=" << BMA[mscorej] << std::endl;
 					}
 
 					mscorei = T.i;
 					mscorej = T.j;
 				}
-
 
 				// assign new node ids for unaligned nodes in B
 				uint64_t nextnodeid = nodelimit_A;
