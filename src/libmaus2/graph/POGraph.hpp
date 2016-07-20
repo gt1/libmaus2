@@ -533,11 +533,34 @@ namespace libmaus2
 				return out;
 			}
 
+			struct AlignContext
+			{
+				typedef AlignContext this_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type shared_ptr_type;
+
+				libmaus2::autoarray::AutoArray2d<TraceNode> S;
+				libmaus2::autoarray::AutoArray2d<uint64_t> U;
+				libmaus2::util::SimpleQueue< std::pair<uint64_t,uint64_t> > Q;
+				libmaus2::autoarray::AutoArray<int64_t> BM;
+				libmaus2::autoarray::AutoArray<int64_t> BMA;
+				libmaus2::autoarray::AutoArray<uint64_t> Atmp;
+
+				AlignContext() {}
+			};
+
 			/*
 			 * PO/PO alignment
 			 */
-			static void align(POHashGraph & C, POHashGraph const & A, POHashGraph const & B)
+			static void align(POHashGraph & C, POHashGraph const & A, POHashGraph const & B, AlignContext & context)
 			{
+				libmaus2::autoarray::AutoArray2d<TraceNode> & context_S = context.S;
+				libmaus2::autoarray::AutoArray2d<uint64_t> & context_U = context.U;
+				libmaus2::util::SimpleQueue< std::pair<uint64_t,uint64_t> > & context_Q = context.Q;
+				libmaus2::autoarray::AutoArray<int64_t> & context_BM = context.BM;
+				libmaus2::autoarray::AutoArray<int64_t> & context_BMA = context.BMA;
+				libmaus2::autoarray::AutoArray<uint64_t> & context_Atmp = context.Atmp;
+
 				// we currenctly do not support having one of the graphs as parameter and result
 				assert ( &C != &A );
 				assert ( &C != &B );
@@ -552,9 +575,8 @@ namespace libmaus2
 				int64_t const maxnode_B = std::max(maxfrom_B,maxto_B);
 				uint64_t const nodelimit_B = maxnode_B+1;
 
-				libmaus2::autoarray::AutoArray2d<TraceNode> S(nodelimit_A,nodelimit_B);
-				libmaus2::autoarray::AutoArray2d<uint64_t> U(nodelimit_A,nodelimit_B);
-				libmaus2::util::SimpleQueue< std::pair<uint64_t,uint64_t> > Q;
+				context_S.setup(nodelimit_A,nodelimit_B);
+				context_U.setup(nodelimit_A,nodelimit_B);
 
 				// compute number of predecessors for each node
 				// put nodes with no predecessors in queue
@@ -565,10 +587,10 @@ namespace libmaus2
 					{
 						uint64_t const vb = B.getNumReverseEdges(j);
 						uint64_t const vc = va * vb;
-						U(i,j) =  vc;
+						context_U(i,j) =  vc;
 						if ( ! vc )
 						{
-							Q.push_back(std::pair<uint64_t,uint64_t>(i,j));
+							context_Q.push_back(std::pair<uint64_t,uint64_t>(i,j));
 						}
 					}
 				}
@@ -578,9 +600,9 @@ namespace libmaus2
 				int64_t mscorej = std::numeric_limits<int64_t>::min();
 
 				// fill dynamic programming matrix
-				while ( ! Q.empty() )
+				while ( ! context_Q.empty() )
 				{
-					std::pair<uint64_t,uint64_t> const P = Q.pop_front();
+					std::pair<uint64_t,uint64_t> const P = context_Q.pop_front();
 					uint64_t const i = P.first;
 					uint64_t const j = P.second;
 					int64_t previ = i;
@@ -639,7 +661,7 @@ namespace libmaus2
 							for ( uint64_t rj = 0; rj < pre_B; ++rj )
 							{
 								uint64_t const revj = B.getReverseEdge(j,rj).to;
-								int64_t const lscore = S(revi,revj).s + (match?1:0);
+								int64_t const lscore = context_S(revi,revj).s + (match?1:0);
 								if ( lscore > score )
 								{
 									score = lscore;
@@ -656,7 +678,7 @@ namespace libmaus2
 					for ( uint64_t ri = 0; ri < pre_A; ++ri )
 					{
 						uint64_t const revi = A.getReverseEdge(i,ri).to;
-						int64_t const lscore = S(revi,j).s;
+						int64_t const lscore = context_S(revi,j).s;
 						if ( lscore > score )
 						{
 							score = lscore;
@@ -671,7 +693,7 @@ namespace libmaus2
 					for ( uint64_t rj = 0; rj < pre_B; ++rj )
 					{
 						uint64_t const revj = B.getReverseEdge(j,rj).to;
-						int64_t const lscore = S(i,revj).s;
+						int64_t const lscore = context_S(i,revj).s;
 						if ( lscore > score )
 						{
 							score = lscore;
@@ -681,7 +703,7 @@ namespace libmaus2
 						}
 					}
 
-					S(i,j) = TraceNode(previ,prevj,score,t);
+					context_S(i,j) = TraceNode(previ,prevj,score,t);
 
 					if ( score > mscore )
 					{
@@ -700,19 +722,19 @@ namespace libmaus2
 						for ( uint64_t rj = 0; rj < next_B; ++rj )
 						{
 							uint64_t const forw_B = B.getForwardEdge(j,rj).to;
-							assert ( U(forw_A,forw_B) );
-							uint64_t const u = --U(forw_A,forw_B);
+							assert ( context_U(forw_A,forw_B) );
+							uint64_t const u = --context_U(forw_A,forw_B);
 							if ( !u )
-								Q.push_back(std::pair<uint64_t,uint64_t>(forw_A,forw_B));
+								context_Q.push_back(std::pair<uint64_t,uint64_t>(forw_A,forw_B));
 						}
 					}
 				}
 
 				// B mapping
-				libmaus2::autoarray::AutoArray<int64_t> BM(nodelimit_B,false);
-				libmaus2::autoarray::AutoArray<int64_t> BMA(nodelimit_B,false);
-				std::fill(BM.begin(), BM.end() ,std::numeric_limits<int64_t>::min());
-				std::fill(BMA.begin(),BMA.end(),std::numeric_limits<int64_t>::min());
+				context_BM.ensureSize(nodelimit_B);
+				context_BMA.ensureSize(nodelimit_B);
+				std::fill(context_BM.begin(), context_BM.end() ,std::numeric_limits<int64_t>::min());
+				std::fill(context_BMA.begin(),context_BMA.end(),std::numeric_limits<int64_t>::min());
 
 				// copy A to C
 				C = A;
@@ -720,7 +742,7 @@ namespace libmaus2
 				// trace back from maximum score
 				while ( mscorei >= 0 && mscorej >= 0 )
 				{
-					TraceNode const & T = S(mscorei,mscorej);
+					TraceNode const & T = context_S(mscorei,mscorej);
 
 					char const c_a = A.nodelabels[mscorei].label;
 					char const c_b = B.nodelabels[mscorej].label;
@@ -734,7 +756,7 @@ namespace libmaus2
 						// matching, fuse nodes
 						if ( c_a == c_b )
 						{
-							BM[mscorej] = mscorei;
+							context_BM[mscorej] = mscorei;
 							C.nodelabels[mscorei].usecnt += 1;
 						}
 						// not matching
@@ -754,12 +776,12 @@ namespace libmaus2
 							// got one? fuse to it
 							if ( mscorei_alt >= 0 )
 							{
-								BM[mscorej] = mscorei_alt;
+								context_BM[mscorej] = mscorei_alt;
 							}
 							// no, align new (existing in B) node to mscorei
 							else
 							{
-								BMA[mscorej] = mscorei;
+								context_BMA[mscorej] = mscorei;
 							}
 						}
 					}
@@ -770,31 +792,30 @@ namespace libmaus2
 
 				// assign new node ids for unaligned nodes in B
 				uint64_t nextnodeid = nodelimit_A;
-				for ( uint64_t i = 0; i < BM.size(); ++i )
-					if ( BM[i] < 0 )
+				for ( uint64_t i = 0; i < nodelimit_B; ++i )
+					if ( context_BM[i] < 0 )
 					{
-						BM[i] = nextnodeid++;
-						// assert ( BM[i] >= nodelimit_A );
-						C.addNode(BM[i],B.nodelabels[i].label);
+						context_BM[i] = nextnodeid++;
+						// assert ( context_BM[i] >= nodelimit_A );
+						C.addNode(context_BM[i],B.nodelabels[i].label);
 					}
 
 				// insert alignedto entries
-				libmaus2::autoarray::AutoArray<uint64_t> Atmp;
-				for ( uint64_t i = 0; i < BMA.size(); ++i )
-					if ( BMA[i] >= 0 )
+				for ( uint64_t i = 0; i < nodelimit_B; ++i )
+					if ( context_BMA[i] >= 0 )
 					{
 						// node id of B node
-						uint64_t const nodeid = BM[i];
+						uint64_t const nodeid = context_BM[i];
 						// node aligned to in A
-						uint64_t const alignto = BMA[i];
+						uint64_t const alignto = context_BMA[i];
 
-						uint64_t na = A.getAllAlignedTo(alignto,Atmp);
-						Atmp.push(na,alignto);
+						uint64_t na = A.getAllAlignedTo(alignto,context_Atmp);
+						context_Atmp.push(na,alignto);
 
 						for ( uint64_t j = 0; j < na; ++j )
 						{
-							C.addAlignedTo(nodeid,Atmp[j]);
-							C.addAlignedTo(Atmp[j],nodeid);
+							C.addAlignedTo(nodeid,context_Atmp[j]);
+							C.addAlignedTo(context_Atmp[j],nodeid);
 						}
 					}
 
@@ -804,8 +825,8 @@ namespace libmaus2
 					{
 						uint64_t const btgt = B.getForwardEdge(i,j).to;
 
-						uint64_t const src = BM[i];
-						uint64_t const tgt = BM[btgt];
+						uint64_t const src = context_BM[i];
+						uint64_t const tgt = context_BM[btgt];
 
 						if ( !C.haveForwardEdge(src,tgt) )
 							C.insertEdge(src,tgt);

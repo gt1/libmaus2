@@ -97,8 +97,9 @@ int main(int argc, char * argv[])
 		libmaus2::graph::POHashGraph C;
 		libmaus2::graph::POHashGraph D;
 
-		libmaus2::graph::POHashGraph::align(C,PA,PB);
-		libmaus2::graph::POHashGraph::align(D,C,PC);
+		libmaus2::graph::POHashGraph::AlignContext context;
+		libmaus2::graph::POHashGraph::align(C,PA,PB,context);
+		libmaus2::graph::POHashGraph::align(D,C,PC,context);
 
 		D.toDot(std::cout);
 	}
