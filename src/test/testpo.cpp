@@ -86,6 +86,8 @@ int main(int argc, char * argv[])
 		G.align(q2.begin(),q2.size());
 
 		G.toDot(std::cout);
+
+		libmaus2::graph::POHashGraph::align(G,G);
 	}
 	catch(std::exception const & ex)
 	{

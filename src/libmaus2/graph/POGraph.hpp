@@ -506,6 +506,164 @@ namespace libmaus2
 				return out;
 			}
 
+			static void align(POHashGraph const & A, POHashGraph const & B)
+			{
+				int64_t const maxfrom_A = A.getMaxFrom();
+				int64_t const maxto_A = A.getMaxTo();
+				int64_t const maxnode_A = std::max(maxfrom_A,maxto_A);
+				uint64_t const nodelimit_A = maxnode_A+1;
+
+				int64_t const maxfrom_B = B.getMaxFrom();
+				int64_t const maxto_B = B.getMaxTo();
+				int64_t const maxnode_B = std::max(maxfrom_B,maxto_B);
+				uint64_t const nodelimit_B = maxnode_B+1;
+
+				libmaus2::autoarray::AutoArray2d<TraceNode> S(nodelimit_A,nodelimit_B);
+				libmaus2::autoarray::AutoArray2d<uint64_t> U(nodelimit_A,nodelimit_B);
+				libmaus2::util::SimpleQueue< std::pair<uint64_t,uint64_t> > Q;
+
+				// compute number of predecessors for each node
+				// put nodes with no predecessors in queue
+				for ( uint64_t i = 0; i < nodelimit_A; ++i )
+				{
+					uint64_t const va = A.getNumReverseEdges(i);
+					for ( uint64_t j = 0; j < nodelimit_B; ++j )
+					{
+						uint64_t const vb = B.getNumReverseEdges(j);
+						uint64_t const vc = va * vb;
+						U(i,j) =  vc;
+						if ( ! vc )
+						{
+							Q.push_back(std::pair<uint64_t,uint64_t>(i,j));
+						}
+					}
+				}
+
+				// fill dynamic programming matrix
+				while ( ! Q.empty() )
+				{
+					std::pair<uint64_t,uint64_t> const P = Q.pop_front();
+					uint64_t const i = P.first;
+					uint64_t const j = P.second;
+					int64_t previ = i;
+					int64_t prevj = j;
+
+					uint64_t const pre_A = A.getNumReverseEdges(i);
+					uint64_t const pre_B = B.getNumReverseEdges(j);
+					uint64_t const pre_C = pre_A * pre_B;
+
+					char const c_a = A.nodelabels[i].label;
+					char const c_b = B.nodelabels[j].label;
+					bool const match = (c_a == c_b);
+
+					int64_t score = std::numeric_limits<int64_t>::min();
+					libmaus2::lcs::BaseConstants::step_type t = libmaus2::lcs::BaseConstants::STEP_RESET;
+
+					/*
+					 * match/mismatch
+					 */
+					if ( ! pre_C )
+					{
+						int64_t lscore = match ? 1 : 0;
+						if ( lscore > score )
+						{
+							score = lscore;
+							t = match ? libmaus2::lcs::BaseConstants::STEP_MATCH : libmaus2::lcs::BaseConstants::STEP_MISMATCH;
+
+							if ( ! pre_A && ! pre_B )
+							{
+								previ = -1;
+								prevj = -1;
+							}
+							else if ( pre_A )
+							{
+								previ = A.getReverseEdge(i,0).to;
+								prevj = -1;
+							}
+							else
+							{
+								assert ( pre_B );
+								previ = -1;
+								prevj = B.getReverseEdge(j,0).to;
+							}
+						}
+					}
+					else
+					{
+						assert ( pre_C );
+						assert ( pre_A );
+						assert ( pre_B );
+
+						for ( uint64_t ri = 0; ri < pre_A; ++ri )
+						{
+							uint64_t const revi = A.getReverseEdge(i,ri).to;
+
+							for ( uint64_t rj = 0; rj < pre_B; ++rj )
+							{
+								uint64_t const revj = B.getReverseEdge(j,rj).to;
+								int64_t const lscore = S(revi,revj).s + (match?1:0);
+								if ( lscore > score )
+								{
+									score = lscore;
+									t = match ? libmaus2::lcs::BaseConstants::STEP_MATCH : libmaus2::lcs::BaseConstants::STEP_MISMATCH;
+									previ = revi;
+									prevj = revj;
+								}
+							}
+						}
+					}
+					/*
+					 * deletion (move on A but not on B)
+					 */
+					for ( uint64_t ri = 0; ri < pre_A; ++ri )
+					{
+						uint64_t const revi = A.getReverseEdge(i,ri).to;
+						int64_t const lscore = S(revi,j).s;
+						if ( lscore > score )
+						{
+							score = lscore;
+							previ = revi;
+							prevj = j;
+							t = libmaus2::lcs::BaseConstants::STEP_DEL;
+						}
+					}
+					/*
+					 * insertion (move on B but not on A)
+					 */
+					for ( uint64_t rj = 0; rj < pre_B; ++rj )
+					{
+						uint64_t const revj = B.getReverseEdge(j,rj).to;
+						int64_t const lscore = S(i,revj).s;
+						if ( lscore > score )
+						{
+							score = lscore;
+							previ = i;
+							prevj = revj;
+							t = libmaus2::lcs::BaseConstants::STEP_INS;
+						}
+					}
+
+					S(i,j) = TraceNode(previ,prevj,score,t);
+
+					uint64_t const next_A = A.getNumForwardEdges(i);
+					uint64_t const next_B = B.getNumForwardEdges(j);
+
+					for ( uint64_t ri = 0; ri < next_A; ++ri )
+					{
+						uint64_t const forw_A = A.getForwardEdge(i,ri).to;
+
+						for ( uint64_t rj = 0; rj < next_B; ++rj )
+						{
+							uint64_t const forw_B = B.getForwardEdge(j,rj).to;
+							assert ( U(forw_A,forw_B) );
+							uint64_t const u = --U(forw_A,forw_B);
+							if ( !u )
+								Q.push_back(std::pair<uint64_t,uint64_t>(forw_A,forw_B));
+						}
+					}
+				}
+			}
+
 			template<typename iterator>
 			void align(iterator it, uint64_t const n)
 			{
