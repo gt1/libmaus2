@@ -707,6 +707,9 @@ namespace libmaus2
 				std::fill(BM.begin(), BM.end() ,std::numeric_limits<int64_t>::min());
 				std::fill(BMA.begin(),BMA.end(),std::numeric_limits<int64_t>::min());
 
+				// copy A to C
+				C = A;
+
 				while ( mscorei >= 0 && mscorej >= 0 )
 				{
 					TraceNode const & T = S(mscorei,mscorej);
@@ -726,6 +729,7 @@ namespace libmaus2
 						if ( c_a == c_b )
 						{
 							BM[mscorej] = mscorei;
+							C.nodelabels[mscorei].usecnt += 1;
 						}
 						// not matching
 						else
@@ -746,7 +750,7 @@ namespace libmaus2
 							{
 								BM[mscorej] = mscorei_alt;
 							}
-							// no, align new node to mscorei
+							// no, align new (existing in B) node to mscorei
 							else
 							{
 								BMA[mscorej] = mscorei;
@@ -760,8 +764,6 @@ namespace libmaus2
 					mscorej = T.j;
 				}
 
-				// copy A to C
-				C = A;
 
 				// assign new node ids for unaligned nodes in B
 				uint64_t nextnodeid = nodelimit_A;
