@@ -335,7 +335,7 @@ namespace libmaus2
 				return n;
 			}
 
-			void addNode(uint64_t const id, char const symbol)
+			uint64_t addNode(uint64_t const id, char const symbol)
 			{
 				while ( !(id < numnodelabels) )
 					nodelabels.push(numnodelabels,NodeInfo());
@@ -349,13 +349,14 @@ namespace libmaus2
 
 				nodelabels[id] = NodeInfo(symbol);
 				//numalignedto[id] = 0;
+
+				return id;
 			}
 
 			uint64_t addNode(char const symbol)
 			{
 				uint64_t const nodeid = numnodelabels;
-				addNode(nodeid,symbol);
-				return nodeid;
+				return addNode(nodeid,symbol);
 			}
 
 			uint64_t getNumForwardEdges(uint64_t const from) const
@@ -484,12 +485,18 @@ namespace libmaus2
 				clear();
 
 				if ( n )
-					addNode(*(it++));
+				{
+					uint64_t const nodeid = addNode(*(it++));
+					nodelabels[nodeid].usecnt = 1;
+					assert ( nodeid == 0 );
+				}
 
 				for ( uint64_t i = 1; i < n; ++i )
 				{
-					addNode(*(it++));
+					uint64_t const nodeid = addNode(*(it++));
+					assert ( nodeid == i );
 					insertEdge(i-1,i);
+					nodelabels[nodeid].usecnt = 1;
 				}
 			}
 
@@ -757,7 +764,7 @@ namespace libmaus2
 						if ( c_a == c_b )
 						{
 							context_BM[mscorej] = mscorei;
-							C.nodelabels[mscorei].usecnt += 1;
+							C.nodelabels[mscorei].usecnt += B.nodelabels[mscorej].usecnt;
 						}
 						// not matching
 						else
@@ -777,6 +784,7 @@ namespace libmaus2
 							if ( mscorei_alt >= 0 )
 							{
 								context_BM[mscorej] = mscorei_alt;
+								C.nodelabels[mscorei_alt].usecnt += B.nodelabels[mscorej].usecnt;
 							}
 							// no, align new (existing in B) node to mscorei
 							else
@@ -797,7 +805,9 @@ namespace libmaus2
 					{
 						context_BM[i] = nextnodeid++;
 						// assert ( context_BM[i] >= nodelimit_A );
-						C.addNode(context_BM[i],B.nodelabels[i].label);
+						uint64_t const cnodeid = C.addNode(context_BM[i],B.nodelabels[i].label);
+						assert ( static_cast<int64_t>(cnodeid) == context_BM[i] );
+						C.nodelabels[cnodeid].usecnt = B.nodelabels[i].usecnt;
 					}
 
 				// insert alignedto entries
