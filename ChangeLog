@@ -1,3 +1,11 @@
+libmaus2 (2.0.232-1) unstable; urgency=medium
+
+  * improve PO/PO alignment in POGraph class
+  * add serialiseKV and deserialiseKV methods in SimpleHashMap class
+  * rename memblock class in Convolution_fftw to avoid name collision with binom_fftw
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 21 Jul 2016 17:04:13 +0200
+
 libmaus2 (2.0.231-1) unstable; urgency=medium
 
   * add assignment operator in SimpleHashMap
