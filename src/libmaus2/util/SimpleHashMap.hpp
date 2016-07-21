@@ -141,6 +141,36 @@ namespace libmaus2
 				H.serialize(out);
 			}
 
+			template<typename key_serialiser, typename value_serialiser>
+			void serialiseKV(std::ostream & out, key_serialiser & K, value_serialiser & V) const
+			{
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,slog);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,hashsize);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,hashmask);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,fill);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,H.size());
+				for ( uint64_t i = 0; i < H.size(); ++i )
+				{
+					K.serialise(out,H[i].first);
+					V.serialise(out,H[i].second);
+				}
+			}
+
+			template<typename key_serialiser, typename value_serialiser>
+			void deserialiseKV(std::istream & in, key_serialiser & K, value_serialiser & V)
+			{
+				slog = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				hashsize = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				hashmask = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				fill = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				H.resize(::libmaus2::util::NumberSerialisation::deserialiseNumber(in));
+				for ( uint64_t i = 0; i < H.size(); ++i )
+				{
+					K.deserialise(in,H[i].first);
+					V.deserialise(in,H[i].second);
+				}
+			}
+
 			SimpleHashMap(std::istream & in)
 			:
 				slog(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
