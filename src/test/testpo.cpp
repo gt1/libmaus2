@@ -25,6 +25,7 @@ int main(int argc, char * argv[])
 		libmaus2::util::ArgParser const arg(argc,argv);
 
 		libmaus2::graph::POHashGraph G;
+		libmaus2::graph::POHashGraph::AlignContext context;
 
 		#if 0
 		G.insertEdge(0,1);
@@ -77,6 +78,7 @@ int main(int argc, char * argv[])
 		G.toDot(std::cout);
 		#endif
 
+		#if 1
 		std::string q0 = "PKMIVRPQKNETG";
 		std::string q1 = "ALVRPQKNTRM";
 		std::string q2 = "THKMLVRNETAM";
@@ -89,19 +91,35 @@ int main(int argc, char * argv[])
 
 		libmaus2::graph::POHashGraph PA;
 		PA.setupSingle(q0.begin(),q0.size());
+		PA.toSvg("PA");
 		libmaus2::graph::POHashGraph PB;
 		PB.setupSingle(q1.begin(),q1.size());
+		PB.toSvg("PB");
 		libmaus2::graph::POHashGraph PC;
 		PC.setupSingle(q2.begin(),q2.size());
+		PC.toSvg("PC");
 
 		libmaus2::graph::POHashGraph C;
 		libmaus2::graph::POHashGraph D;
 
-		libmaus2::graph::POHashGraph::AlignContext context;
 		libmaus2::graph::POHashGraph::align(C,PA,PB,context);
+		C.toSvg("C");
 		libmaus2::graph::POHashGraph::align(D,C,PC,context);
+		D.toSvg("D");
 
+		//C.toDot(std::cout);
 		D.toDot(std::cout);
+		#endif
+
+		#if 0
+		libmaus2::graph::POHashGraph S0; S0.deserialise("POG_000003_000006_000007_src0.ser");
+		libmaus2::graph::POHashGraph S1; S1.deserialise("POG_000003_000006_000007_src1.ser");
+		libmaus2::graph::POHashGraph S;
+		libmaus2::graph::POHashGraph::align(S,S0,S1,context);
+		S.toSvg("S");
+		S0.toSvg("S0");
+		S1.toSvg("S1");
+		#endif
 	}
 	catch(std::exception const & ex)
 	{

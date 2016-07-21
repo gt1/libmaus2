@@ -29,7 +29,7 @@
 #endif
 
 #if defined(LIBMAUS2_HAVE_FFTW)
-struct FFTWMemBlock
+struct FFTWConvMemBlock
 {
 	uint64_t const fftn;
 	fftw_complex * A;
@@ -43,7 +43,7 @@ struct FFTWMemBlock
 			throw std::bad_alloc();
 	}
 
-	FFTWMemBlock(size_t const rfftn, bool const rerase = true)
+	FFTWConvMemBlock(size_t const rfftn, bool const rerase = true)
 	: fftn(rfftn), A(allocate(fftn))
 	{
 		if ( rerase )
@@ -56,7 +56,7 @@ struct FFTWMemBlock
 			A[i][0] = A[i][1] = 0.0;
 	}
 
-	~FFTWMemBlock()
+	~FFTWConvMemBlock()
 	{
 		fftw_free(A);
 	}
@@ -72,8 +72,8 @@ struct Transform
 
 	uint64_t const size;
 	bool const forward;
-	FFTWMemBlock CCin;
-	FFTWMemBlock CCout;
+	FFTWConvMemBlock CCin;
+	FFTWConvMemBlock CCout;
 	fftw_plan plan;
 
 	Transform(uint64_t const rsize, bool const rforward) : size(rsize), forward(rforward), CCin(size), CCout(size), plan(fftw_plan_dft_1d(size,CCin.A,CCout.A,forward ? FFTW_FORWARD : FFTW_BACKWARD,0))
@@ -174,14 +174,14 @@ std::vector<double> libmaus2::math::Convolution::convolutionFFTW(
 	Transform::shared_ptr_type planB = getPlan(fftn,true);
 	Transform::shared_ptr_type planR = getPlan(fftn,false);
 
-	FFTWMemBlock & CCin_A = planA->CCin;
-	FFTWMemBlock & CCtmp_A = planA->CCout;
+	FFTWConvMemBlock & CCin_A = planA->CCin;
+	FFTWConvMemBlock & CCtmp_A = planA->CCout;
 
-	FFTWMemBlock & CCin_B = planB->CCin;
-	FFTWMemBlock & CCtmp_B = planB->CCout;
+	FFTWConvMemBlock & CCin_B = planB->CCin;
+	FFTWConvMemBlock & CCtmp_B = planB->CCout;
 
-	FFTWMemBlock & CCtmp_C = planR->CCin;
-	FFTWMemBlock & CCout = planR->CCout;
+	FFTWConvMemBlock & CCtmp_C = planR->CCin;
+	FFTWConvMemBlock & CCout = planR->CCout;
 
 	for ( uint64_t i = 0; i < RA.size(); ++i )
 		CCin_A.A[i][0] = RA[i];
