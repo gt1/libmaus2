@@ -43,6 +43,22 @@ namespace libmaus2
 
 			POGraphEdge() {}
 			POGraphEdge(node_id_type rto) : to(rto) {}
+			POGraphEdge(std::istream & in)
+			{
+				deserialise(in);
+			}
+
+			std::ostream & serialise(std::ostream & out) const
+			{
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,to);
+				return out;
+			}
+
+			std::istream & deserialise(std::istream & in)
+			{
+				to = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				return in;
+			}
 		};
 
 		template<typename node_id_type>
@@ -62,6 +78,10 @@ namespace libmaus2
 			POHashGraphKey() {}
 			POHashGraphKey(node_id_type const rfrom, node_id_type const rindex)
 			: from(rfrom), index(rindex) {}
+			POHashGraphKey(std::istream & in)
+			{
+				deserialise(in);
+			}
 
 			bool operator==(POHashGraphKey<node_id_type> const & O) const
 			{
@@ -70,6 +90,19 @@ namespace libmaus2
 			bool operator!=(POHashGraphKey<node_id_type> const & O) const
 			{
 				return ! (*this == O);
+			}
+
+			std::ostream & serialise(std::ostream & out) const
+			{
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,from);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,index);
+				return out;
+			}
+
+			void deserialise(std::istream & in)
+			{
+				from = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				index = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 			}
 		};
 
@@ -167,6 +200,30 @@ namespace libmaus2
 			{
 
 			}
+			NodeInfo(std::istream & in)
+			{
+				deserialise(in);
+			}
+
+			std::ostream & serialise(std::ostream & out) const
+			{
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,label);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,numalignedto);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,usecnt);
+				return out;
+			}
+
+			void deserialise(std::istream & in)
+			{
+				label = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				numalignedto = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				usecnt = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+			}
+
+			bool operator==(NodeInfo const & O) const
+			{
+				return label == O.label && numalignedto == O.numalignedto && usecnt == O.usecnt;
+			}
 		};
 
 		struct NodeInfoLabelComparator
@@ -190,6 +247,22 @@ namespace libmaus2
 			bool operator()(uint64_t const i, uint64_t const j) const
 			{
 				return I[i].label < I[j].label;
+			}
+		};
+
+		template<typename object_type>
+		struct POHashGraphIOHelper
+		{
+			std::ostream & serialise(std::ostream & out, object_type const & k)
+			{
+				k.serialise(out);
+				return out;
+			}
+
+			std::istream & deserialise(std::istream & in, object_type & k)
+			{
+				k.deserialise(in);
+				return in;
 			}
 		};
 
@@ -264,6 +337,168 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray2d<TraceNode> S;
 			libmaus2::autoarray::AutoArray<uint64_t> Atmp;
 
+			std::vector < NodeInfo > getNodeLabels() const
+			{
+				return std::vector < NodeInfo >(nodelabels.begin(),nodelabels.begin()+numnodelabels);
+			}
+
+			std::vector < std::pair<uint64_t,uint64_t> > getForwardEdges() const
+			{
+				std::vector < std::pair<uint64_t,uint64_t> > V;
+				for ( uint64_t i = 0; i < numforwardedgeso; ++i )
+				{
+					uint64_t const ne = getNumForwardEdges(i);
+					for ( uint64_t j = 0; j < ne; ++j )
+						V.push_back(
+							std::pair<uint64_t,uint64_t>(i,getForwardEdge(i,j).to)
+						);
+				}
+				return V;
+			}
+
+			std::vector < std::pair<uint64_t,uint64_t> > getSortedForwardEdges() const
+			{
+				std::vector < std::pair<uint64_t,uint64_t> > V;
+				for ( uint64_t i = 0; i < numforwardedgeso; ++i )
+				{
+					uint64_t const ne = getNumForwardEdges(i);
+					for ( uint64_t j = 0; j < ne; ++j )
+						V.push_back(
+							std::pair<uint64_t,uint64_t>(i,getForwardEdge(i,j).to)
+						);
+				}
+				std::sort(V.begin(),V.end());
+				return V;
+			}
+
+			std::vector < std::pair<uint64_t,uint64_t> > getReverseEdges() const
+			{
+				std::vector < std::pair<uint64_t,uint64_t> > V;
+				for ( uint64_t i = 0; i < numreverseedgeso; ++i )
+				{
+					uint64_t const ne = getNumReverseEdges(i);
+					for ( uint64_t j = 0; j < ne; ++j )
+						V.push_back(
+							std::pair<uint64_t,uint64_t>(i,getReverseEdge(i,j).to)
+						);
+				}
+				return V;
+			}
+
+			std::vector < std::pair<uint64_t,uint64_t> > getSortedReverseEdges() const
+			{
+				std::vector < std::pair<uint64_t,uint64_t> > V;
+				for ( uint64_t i = 0; i < numreverseedgeso; ++i )
+				{
+					uint64_t const ne = getNumReverseEdges(i);
+					for ( uint64_t j = 0; j < ne; ++j )
+						V.push_back(
+							std::pair<uint64_t,uint64_t>(i,getReverseEdge(i,j).to)
+						);
+				}
+				std::sort(V.begin(),V.end());
+				return V;
+			}
+
+			std::vector < std::pair<uint64_t,uint64_t> > getAlignedToVector() const
+			{
+				std::vector < std::pair<uint64_t,uint64_t> > V;
+				for ( uint64_t i = 0; i < numalignedtoo; ++i )
+				{
+					uint64_t const ne = numalignedto[i];
+					for ( uint64_t j = 0; j < ne; ++j )
+						V.push_back(
+							std::pair<uint64_t,uint64_t>(i,getAlignedTo(i,j))
+						);
+				}
+				return V;
+			}
+
+			std::ostream & serialise(std::ostream & out) const
+			{
+				assert ( checkConsistency() );
+
+				POHashGraphIOHelper< POHashGraphKey<node_id_type> > edge_key_helper;
+				POHashGraphIOHelper< POGraphEdge<node_id_type> > edge_value_helper;
+
+				// edges
+				forwardedges.serialiseKV(out,edge_key_helper,edge_value_helper);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,numforwardedgeso);
+				numforwardedges.serialize(out);
+
+				reverseedges.serialiseKV(out,edge_key_helper,edge_value_helper);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,numreverseedgeso);
+				numreverseedges.serialize(out);
+
+				// node labels
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,numnodelabels);
+				for ( uint64_t i = 0; i < numnodelabels; ++i )
+					nodelabels[i].serialise(out);
+
+				// aligned to
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,numalignedtoo);
+				for ( uint64_t i = 0; i < numalignedtoo; ++i )
+				{
+					uint64_t const na = getNumAlignedTo(i);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,na);
+					for ( uint64_t j = 0; j < na; ++j )
+					{
+						uint64_t const tgt = getAlignedTo(i,j);
+						libmaus2::util::NumberSerialisation::serialiseNumber(out,tgt);
+					}
+				}
+
+				return out;
+			}
+
+			void serialise(std::string const & fn) const
+			{
+				libmaus2::aio::OutputStreamInstance OSI(fn);
+				serialise(OSI);
+			}
+
+			void deserialise(std::istream & in)
+			{
+				clear();
+
+				POHashGraphIOHelper< POHashGraphKey<node_id_type> > edge_key_helper;
+				POHashGraphIOHelper< POGraphEdge<node_id_type> > edge_value_helper;
+
+				forwardedges.deserialiseKV(in,edge_key_helper,edge_value_helper);
+				numforwardedgeso = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				numforwardedges.deserialize(in);
+
+				reverseedges.deserialiseKV(in,edge_key_helper,edge_value_helper);
+				numreverseedgeso = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				numreverseedges.deserialize(in);
+
+				numnodelabels = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				nodelabels.ensureSize(numnodelabels);
+				for ( uint64_t i = 0; i < numnodelabels; ++i )
+					nodelabels[i].deserialise(in);
+
+				numalignedtoo = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				numalignedto.ensureSize(numalignedtoo);
+				std::fill(numalignedto.begin(),numalignedto.end(),0ull);
+				for ( uint64_t i = 0; i < numalignedtoo; ++i )
+				{
+					uint64_t const na = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					for ( uint64_t j = 0; j < na; ++j )
+					{
+						uint64_t const tgt = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+						addAlignedTo(i,tgt);
+					}
+				}
+
+				assert ( checkConsistency() );
+			}
+
+			void deserialise(std::string const & fn)
+			{
+				libmaus2::aio::InputStreamInstance ISI(fn);
+				deserialise(ISI);
+			}
+
 			POHashGraph & operator=(POHashGraph const & O)
 			{
 				if ( this != &O )
@@ -312,6 +547,15 @@ namespace libmaus2
 				numnodelabels = 0;
 				alignedto.clearFast();
 				numalignedtoo = 0;
+			}
+
+			bool isAlignedTo(uint64_t const src, uint64_t const tgt) const
+			{
+				uint64_t const na = getNumAlignedTo(src);
+				for ( uint64_t i = 0; i < na; ++i )
+					if ( getAlignedTo(src,i) == tgt )
+						return true;
+				return false;
 			}
 
 			void addAlignedTo(uint64_t const id, uint64_t const aid)
@@ -363,6 +607,33 @@ namespace libmaus2
 					return numalignedto[id];
 				else
 					return 0;
+			}
+
+			bool checkConsistency() const
+			{
+				return
+					checkAlignedToConsistency() &&
+					checkEdgeConsistency();
+			}
+
+			bool checkAlignedToConsistency() const
+			{
+				int64_t const maxnode = getMaxNode();
+				uint64_t const nodethres = maxnode+1;
+
+				bool ok = true;
+				for ( uint64_t i = 0; i < nodethres; ++i )
+				{
+					uint64_t const na = getNumAlignedTo(i);
+
+					for ( uint64_t j = 0; j < na; ++j )
+					{
+						uint64_t const to = getAlignedTo(i,j);
+						ok = ok && isAlignedTo(to,i);
+					}
+				}
+
+				return ok;
 			}
 
 			uint64_t getAlignedTo(uint64_t const id, uint64_t const aid) const
@@ -576,6 +847,11 @@ namespace libmaus2
 				return -1;
 			}
 
+			int64_t getMaxNode() const
+			{
+				return std::max(getMaxFrom(),getMaxTo());
+			}
+
 			template<typename iterator>
 			void setupSingle(iterator it, uint64_t const n)
 			{
@@ -687,6 +963,8 @@ namespace libmaus2
 			{
 				assert ( A.checkEdgeConsistency() );
 				assert ( B.checkEdgeConsistency() );
+				assert ( A.checkAlignedToConsistency() );
+				assert ( B.checkAlignedToConsistency() );
 
 				libmaus2::autoarray::AutoArray2d<TraceNode> & context_S = context.S;
 				libmaus2::autoarray::AutoArray2d<uint64_t> & context_U = context.U;
@@ -711,6 +989,19 @@ namespace libmaus2
 				int64_t const maxto_B = B.getMaxTo();
 				int64_t const maxnode_B = std::max(maxfrom_B,maxto_B);
 				uint64_t const nodelimit_B = maxnode_B+1;
+
+				for ( uint64_t i = 0; i < nodelimit_A; ++i )
+				{
+					uint64_t na = A.getAllAlignedTo(i,context_Atmp);
+					for ( uint64_t z = 0; z < na; ++z )
+						assert ( A.isAlignedTo(i,context_Atmp[z]) );
+				}
+				for ( uint64_t j = 0; j < nodelimit_B; ++j )
+				{
+					uint64_t nb = B.getAllAlignedTo(j,context_Btmp);
+					for ( uint64_t z = 0; z < nb; ++z )
+						assert ( B.isAlignedTo(j,context_Btmp[z]) );
+				}
 
 				context_S.setup(nodelimit_A,nodelimit_B);
 				context_U.setup(nodelimit_A,nodelimit_B);
@@ -922,6 +1213,8 @@ namespace libmaus2
 				{
 					TraceNode const  T = context_S(mscorei,mscorej);
 
+					// std::cerr << "trace " << mscorei << "," << mscorej << "," << T.t << std::endl;
+
 					// push aligned pair
 					if (
 						T.t == libmaus2::lcs::BaseConstants::STEP_MATCH
@@ -954,6 +1247,22 @@ namespace libmaus2
 					// sort by id
 					std::sort(context_Atmp.begin(),context_Atmp.begin()+na);
 					std::sort(context_Btmp.begin(),context_Btmp.begin()+nb);
+
+					libmaus2::autoarray::AutoArray<uint64_t> C_Atmp;
+					libmaus2::autoarray::AutoArray<uint64_t> C_Btmp;
+					uint64_t c_na = A.getAllAlignedTo(context_Atmp[0],C_Atmp);
+					C_Atmp.push(c_na,context_Atmp[0]);
+					uint64_t c_nb = B.getAllAlignedTo(context_Btmp[0],C_Btmp);
+					C_Btmp.push(c_nb,context_Btmp[0]);
+
+					std::sort(C_Atmp.begin(),C_Atmp.begin()+c_na);
+					std::sort(C_Btmp.begin(),C_Btmp.begin()+c_nb);
+
+					assert ( na == c_na );
+					assert ( nb == c_nb );
+
+					assert ( std::equal(context_Atmp.begin(),context_Atmp.begin()+na,C_Atmp.begin()));
+					assert ( std::equal(context_Btmp.begin(),context_Btmp.begin()+nb,C_Btmp.begin()));
 
 					context_AU.push(auo,std::pair<uint64_t,uint64_t>(context_Atmp[0],context_Btmp[0]));
 				}
@@ -1081,6 +1390,43 @@ namespace libmaus2
 						if ( !C.haveForwardEdge(src,tgt) )
 							C.insertEdge(src,tgt);
 					}
+
+				for ( uint64_t i = 0; i < nodelimit_A; ++i )
+				{
+					uint64_t na = A.getAllAlignedTo(i,context_Atmp);
+					for ( uint64_t z = 0; z < na; ++z )
+						assert ( C.isAlignedTo(i,context_Atmp[z]) );
+				}
+				for ( uint64_t j = 0; j < nodelimit_B; ++j )
+				{
+					uint64_t nb = B.getAllAlignedTo(j,context_Btmp);
+					for ( uint64_t z = 0; z < nb; ++z )
+						assert ( C.isAlignedTo(context_BM[j],context_BM[context_Btmp[z]]) );
+				}
+				for ( uint64_t z = 0; z < amo; ++z )
+				{
+					uint64_t const mscorei = context_AM[z].first;
+					uint64_t const mscorej = context_AM[z].second;
+					bool const ok =
+					(
+						static_cast<int64_t>(mscorei) == context_BM[mscorej]
+						||
+						C.isAlignedTo(
+							mscorei,
+							context_BM[mscorej]
+						)
+					);
+
+					if ( ! ok )
+					{
+						std::cerr << "missing aligned to " << mscorei << " " << mscorej << ":" << context_BM[mscorej] << std::endl;
+					}
+
+					assert ( ok );
+				}
+
+				assert ( C.checkEdgeConsistency() );
+				assert ( C.checkAlignedToConsistency() );
 			}
 
 			template<typename iterator>
