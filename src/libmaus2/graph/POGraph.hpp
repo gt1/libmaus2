@@ -25,6 +25,7 @@
 #include <libmaus2/util/SimpleHashMap.hpp>
 #include <libmaus2/util/SimpleQueue.hpp>
 #include <libmaus2/lcs/BaseConstants.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 
 namespace libmaus2
 {
@@ -168,6 +169,30 @@ namespace libmaus2
 			}
 		};
 
+		struct NodeInfoLabelComparator
+		{
+			bool operator()(NodeInfo const & A, NodeInfo const & B) const
+			{
+				return A.label < B.label;
+			}
+		};
+
+		struct NodeInfoLabelIndexComparator
+		{
+			NodeInfo const * I;
+
+			NodeInfoLabelIndexComparator(NodeInfo const * rI)
+			: I(rI)
+			{
+
+			}
+
+			bool operator()(uint64_t const i, uint64_t const j) const
+			{
+				return I[i].label < I[j].label;
+			}
+		};
+
 		struct POHashGraph
 		{
 			typedef POHashGraph this_type;
@@ -306,6 +331,32 @@ namespace libmaus2
 				assert ( alignedto.contains(POHashGraphKey<node_id_type>(id,index)) );
 			}
 
+			void putAlignedTo(uint64_t const * v, uint64_t const na)
+			{
+				for ( uint64_t i = 0; i < na; ++i )
+				{
+					uint64_t const src = v[i];
+
+					while ( ! (src < numalignedtoo) )
+						numalignedto.push(numalignedtoo,0);
+					assert ( src < numalignedtoo );
+
+					numalignedto[src] = 0;
+
+					for ( uint64_t j = 0; j < na; ++j )
+						if ( j != i )
+						{
+							uint64_t const index = numalignedto[src]++;
+
+							alignedto.insertNonSyncExtend(
+								POHashGraphKey<node_id_type>(src,index),
+								POGraphEdge<node_id_type>(v[j]),
+								0.8 /* extend load */
+							);
+						}
+				}
+			}
+
 			uint64_t getNumAlignedTo(uint64_t const id) const
 			{
 				if ( id < numalignedtoo )
@@ -373,6 +424,29 @@ namespace libmaus2
 					return numreverseedges[to];
 				else
 					return 0;
+			}
+
+			bool checkEdgeConsistency() const
+			{
+				bool ok = true;
+
+				for ( uint64_t i = 0; i < numforwardedgeso; ++i )
+					for ( uint64_t j = 0; j < numforwardedges[i]; ++j )
+					{
+						uint64_t src = i;
+						uint64_t tgt = getForwardEdge(src,j).to;
+						ok = ok && haveReverseEdge(tgt,src);
+					}
+
+				for ( uint64_t i = 0; i < numreverseedgeso; ++i )
+					for ( uint64_t j = 0; j < numreverseedges[i]; ++j )
+					{
+						uint64_t src = i;
+						uint64_t tgt = getReverseEdge(src,j).to;
+						ok = ok && haveForwardEdge(tgt,src);
+					}
+
+				return ok;
 			}
 
 			POGraphEdge<node_id_type> getForwardEdge(uint64_t const from, uint64_t const index) const
@@ -461,6 +535,29 @@ namespace libmaus2
 				}
 			}
 
+			bool haveReverseEdge(uint64_t const from, int64_t const to) const
+			{
+				if ( from < numreverseedgeso )
+				{
+					uint64_t const num = numreverseedges[from];
+
+					for ( uint64_t i = 0; i < num; ++i )
+					{
+						POGraphEdge<node_id_type> edge;
+						bool const ok = reverseedges.contains(POHashGraphKey<node_id_type>(from,i), edge);
+						assert ( ok );
+						if ( edge.to == to )
+							return true;
+					}
+
+					return false;
+				}
+				else
+				{
+					return false;
+				}
+			}
+
 			int64_t getMaxTo() const
 			{
 				for ( int64_t i = static_cast<int64_t>(numreverseedgeso)-1; i >= 0; --i )
@@ -500,6 +597,30 @@ namespace libmaus2
 				}
 			}
 
+			void toDot(std::string const & fn) const
+			{
+				libmaus2::aio::OutputStreamInstance OSI(fn);
+				toDot(OSI);
+			}
+
+			void toSvg(std::string const & fn) const
+			{
+				std::string const dotfn = fn + ".dot";
+				std::string const svgfn = fn + ".svg";
+				toDot(dotfn);
+				std::ostringstream comstr;
+				comstr << "dot -Tsvg <" << dotfn << " >" << svgfn;
+				int const r = system(comstr.str().c_str());
+
+				if ( r != EXIT_SUCCESS )
+				{
+					int const error = errno;
+					std::cerr << "failed: " << comstr.str() << ":" << strerror(error) << std::endl;
+				}
+
+				libmaus2::aio::FileRemoval::removeFile(dotfn);
+			}
+
 			std::ostream & toDot(std::ostream & out, std::string const & name = "pograph") const
 			{
 				out << "digraph " << name << " {\n";
@@ -513,9 +634,9 @@ namespace libmaus2
 				for ( int64_t i = 0; i <= maxnode; ++i )
 					if ( i < static_cast<int64_t>(numnodelabels) )
 					{
-						out << "\tnode_" << i << " [label=\"" << nodelabels[i].label << "," << nodelabels[i].usecnt;
+						out << "\tnode_" << i << " [label=\"" << nodelabels[i].label << "," << nodelabels[i].usecnt << "," << i;
 
-						#if 0
+						#if 1
 						for ( uint64_t j = 0; j < getNumAlignedTo(i); ++j )
 						{
 							out << ";" << getAlignedTo(i,j);
@@ -550,8 +671,11 @@ namespace libmaus2
 				libmaus2::autoarray::AutoArray2d<uint64_t> U;
 				libmaus2::util::SimpleQueue< std::pair<uint64_t,uint64_t> > Q;
 				libmaus2::autoarray::AutoArray<int64_t> BM;
-				libmaus2::autoarray::AutoArray<int64_t> BMA;
 				libmaus2::autoarray::AutoArray<uint64_t> Atmp;
+				libmaus2::autoarray::AutoArray<uint64_t> Btmp;
+				libmaus2::autoarray::AutoArray2d<uint64_t> C;
+				libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > AM;
+				libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > AU;
 
 				AlignContext() {}
 			};
@@ -561,12 +685,18 @@ namespace libmaus2
 			 */
 			static void align(POHashGraph & C, POHashGraph const & A, POHashGraph const & B, AlignContext & context)
 			{
+				assert ( A.checkEdgeConsistency() );
+				assert ( B.checkEdgeConsistency() );
+
 				libmaus2::autoarray::AutoArray2d<TraceNode> & context_S = context.S;
 				libmaus2::autoarray::AutoArray2d<uint64_t> & context_U = context.U;
 				libmaus2::util::SimpleQueue< std::pair<uint64_t,uint64_t> > & context_Q = context.Q;
 				libmaus2::autoarray::AutoArray<int64_t> & context_BM = context.BM;
-				libmaus2::autoarray::AutoArray<int64_t> & context_BMA = context.BMA;
 				libmaus2::autoarray::AutoArray<uint64_t> & context_Atmp = context.Atmp;
+				libmaus2::autoarray::AutoArray<uint64_t> & context_Btmp = context.Btmp;
+				libmaus2::autoarray::AutoArray2d<uint64_t> & context_C = context.C;
+				libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > context_AM = context.AM;
+				libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > context_AU = context.AU;
 
 				// we currenctly do not support having one of the graphs as parameter and result
 				assert ( &C != &A );
@@ -585,6 +715,11 @@ namespace libmaus2
 				context_S.setup(nodelimit_A,nodelimit_B);
 				context_U.setup(nodelimit_A,nodelimit_B);
 
+				context_C.setup(nodelimit_A,nodelimit_B);
+				for ( uint64_t i = 0; i < nodelimit_A; ++i )
+					for ( uint64_t j = 0; j < nodelimit_B; ++j )
+						context_C(i,j) = 0;
+
 				// compute number of predecessors for each node
 				// put nodes with no predecessors in queue
 				for ( uint64_t i = 0; i < nodelimit_A; ++i )
@@ -594,8 +729,8 @@ namespace libmaus2
 					{
 						uint64_t const vb = B.getNumReverseEdges(j);
 						uint64_t const vc = va * vb;
-						context_U(i,j) =  vc;
-						if ( ! vc )
+						context_U(i,j) =  va + vb + vc;
+						if ( ! context_U(i,j) )
 						{
 							context_Q.push_back(std::pair<uint64_t,uint64_t>(i,j));
 						}
@@ -614,6 +749,8 @@ namespace libmaus2
 					uint64_t const j = P.second;
 					int64_t previ = i;
 					int64_t prevj = j;
+
+					// std::cerr << "processing " << i << "," << j << std::endl;
 
 					uint64_t const pre_A = A.getNumReverseEdges(i);
 					uint64_t const pre_B = B.getNumReverseEdges(j);
@@ -668,6 +805,8 @@ namespace libmaus2
 							for ( uint64_t rj = 0; rj < pre_B; ++rj )
 							{
 								uint64_t const revj = B.getReverseEdge(j,rj).to;
+								// std::cerr << "accessing " << revi << "," << revj << " for match/mismatch" << std::endl;
+								assert ( context_C(revi,revj) );
 								int64_t const lscore = context_S(revi,revj).s + (match?1:0);
 								if ( lscore > score )
 								{
@@ -685,6 +824,8 @@ namespace libmaus2
 					for ( uint64_t ri = 0; ri < pre_A; ++ri )
 					{
 						uint64_t const revi = A.getReverseEdge(i,ri).to;
+						// std::cerr << "accessing " << revi << "," << j << " for del" << std::endl;
+						assert ( context_C(revi,j) );
 						int64_t const lscore = context_S(revi,j).s;
 						if ( lscore > score )
 						{
@@ -700,6 +841,8 @@ namespace libmaus2
 					for ( uint64_t rj = 0; rj < pre_B; ++rj )
 					{
 						uint64_t const revj = B.getReverseEdge(j,rj).to;
+						// std::cerr << "accessing " << i << "," << revj << " for ins" << std::endl;
+						assert ( context_C(i,revj) );
 						int64_t const lscore = context_S(i,revj).s;
 						if ( lscore > score )
 						{
@@ -711,8 +854,9 @@ namespace libmaus2
 					}
 
 					context_S(i,j) = TraceNode(previ,prevj,score,t);
+					context_C(i,j) = 1;
 
-					if ( score > mscore )
+					if ( score >= mscore )
 					{
 						mscore = score;
 						mscorei = i;
@@ -735,67 +879,145 @@ namespace libmaus2
 								context_Q.push_back(std::pair<uint64_t,uint64_t>(forw_A,forw_B));
 						}
 					}
+
+					for ( uint64_t ri = 0; ri < next_A; ++ri )
+					{
+						uint64_t const forw_A = A.getForwardEdge(i,ri).to;
+						assert ( context_U(forw_A,j) );
+						uint64_t const u = --context_U(forw_A,j);
+						if ( ! u )
+							context_Q.push_back(std::pair<uint64_t,uint64_t>(forw_A,j));
+					}
+
+					for ( uint64_t rj = 0; rj < next_B; ++rj )
+					{
+						uint64_t const forw_B = B.getForwardEdge(j,rj).to;
+						assert ( context_U(i,forw_B) );
+						uint64_t const u = --context_U(i,forw_B);
+						if ( ! u )
+							context_Q.push_back(std::pair<uint64_t,uint64_t>(i,forw_B));
+					}
 				}
+
+				#if 0
+				for ( uint64_t j = 0; j < nodelimit_B; ++j )
+				{
+					for ( uint64_t i = 0; i < nodelimit_A; ++i )
+						std::cerr << static_cast<int>(context_S(i,j).s) << ((i+1<nodelimit_A)?" ":"");
+					std::cerr << std::endl;
+				}
+				#endif
 
 				// B mapping
 				context_BM.ensureSize(nodelimit_B);
-				context_BMA.ensureSize(nodelimit_B);
 				std::fill(context_BM.begin(), context_BM.end() ,std::numeric_limits<int64_t>::min());
-				std::fill(context_BMA.begin(),context_BMA.end(),std::numeric_limits<int64_t>::min());
 
 				// copy A to C
 				C = A;
 
+				uint64_t amo = 0;
+
 				// trace back from maximum score
 				while ( mscorei >= 0 && mscorej >= 0 )
 				{
-					TraceNode const & T = context_S(mscorei,mscorej);
+					TraceNode const  T = context_S(mscorei,mscorej);
 
-					char const c_a = A.nodelabels[mscorei].label;
-					char const c_b = B.nodelabels[mscorej].label;
-
+					// push aligned pair
 					if (
 						T.t == libmaus2::lcs::BaseConstants::STEP_MATCH
 						||
 						T.t == libmaus2::lcs::BaseConstants::STEP_MISMATCH
 					)
-					{
-						// matching, fuse nodes
-						if ( c_a == c_b )
-						{
-							context_BM[mscorej] = mscorei;
-							C.nodelabels[mscorei].usecnt += B.nodelabels[mscorej].usecnt;
-						}
-						// not matching
-						else
-						{
-							// check whether there is a node aligned to mscorei labeled with c_b
-							int64_t mscorei_alt = std::numeric_limits<int64_t>::min();
-
-							for ( uint64_t z = 0; z < A.getNumAlignedTo(mscorei); ++z )
-							{
-								uint64_t const lmscorei_alt = A.getAlignedTo(mscorei,z);
-
-								if ( A.nodelabels[lmscorei_alt].label == c_b )
-									mscorei_alt = lmscorei_alt;
-							}
-
-							// got one? fuse to it
-							if ( mscorei_alt >= 0 )
-							{
-								context_BM[mscorej] = mscorei_alt;
-								C.nodelabels[mscorei_alt].usecnt += B.nodelabels[mscorej].usecnt;
-							}
-							// no, align new (existing in B) node to mscorei
-							else
-							{
-								context_BMA[mscorej] = mscorei;
-							}
-						}
-					}
+						// put on fuse list
+						context_AM.push(amo,std::pair<uint64_t,uint64_t>(mscorei,mscorej));
 
 					mscorei = T.i;
 					mscorej = T.j;
+				}
+
+				// compute representants for fuse lists
+				uint64_t auo = 0;
+
+				for ( uint64_t z = 0; z < amo; ++z )
+				{
+					uint64_t const mscorei = context_AM[z].first;
+					uint64_t const mscorej = context_AM[z].second;
+
+					// get all nodes aligned to mscorei
+					uint64_t na = A.getAllAlignedTo(mscorei,context_Atmp);
+					context_Atmp.push(na,mscorei);
+
+					// get all nodes aligned to mscorej
+					uint64_t nb = B.getAllAlignedTo(mscorej,context_Btmp);
+					context_Btmp.push(nb,mscorej);
+
+					// sort by id
+					std::sort(context_Atmp.begin(),context_Atmp.begin()+na);
+					std::sort(context_Btmp.begin(),context_Btmp.begin()+nb);
+
+					context_AU.push(auo,std::pair<uint64_t,uint64_t>(context_Atmp[0],context_Btmp[0]));
+				}
+
+				// sort representants
+				std::sort(context_AU.begin(),context_AU.begin()+auo);
+				// filter out duplicates
+				auo = std::unique(context_AU.begin(),context_AU.begin()+auo) - context_AU.begin();
+
+				// iterate over representants
+				for ( uint64_t z = 0; z < auo; ++z )
+				{
+					uint64_t const mscorei = context_AM[z].first;
+					uint64_t const mscorej = context_AM[z].second;
+
+					// get all nodes aligned to representant in A and B
+					uint64_t na = A.getAllAlignedTo(mscorei,context_Atmp);
+					context_Atmp.push(na,mscorei);
+					uint64_t nb = B.getAllAlignedTo(mscorej,context_Btmp);
+					context_Btmp.push(nb,mscorej);
+
+					// sort by label
+					std::sort(context_Atmp.begin(),context_Atmp.begin()+na,NodeInfoLabelIndexComparator(A.nodelabels.begin()));
+					for ( uint64_t i = 1; i < na; ++i )
+						assert (
+							A.nodelabels[context_Atmp[i-1]].label
+							<
+							A.nodelabels[context_Atmp[  i]].label
+						);
+					std::sort(context_Btmp.begin(),context_Btmp.begin()+nb,NodeInfoLabelIndexComparator(B.nodelabels.begin()));
+					for ( uint64_t i = 1; i < nb; ++i )
+						assert (
+							B.nodelabels[context_Btmp[i-1]].label
+							<
+							B.nodelabels[context_Btmp[  i]].label
+						);
+
+					// merge
+					uint64_t ia = 0, ib = 0;
+					while ( ia < na && ib < nb )
+					{
+						uint64_t const aidx = context_Atmp[ia];
+						uint64_t const bidx = context_Btmp[ib];
+						char const la = A.nodelabels[aidx].label;
+						char const lb = B.nodelabels[bidx].label;
+
+						if ( la < lb )
+							++ia;
+						else if ( lb < la )
+							++ib;
+						// same label
+						else
+						{
+							// fuse nodes
+							context_BM  [bidx]         =              aidx;
+							C.nodelabels[aidx].usecnt += B.nodelabels[bidx].usecnt;
+
+							++ia;
+							++ib;
+
+							assert ( ia == na || A.nodelabels[context_Atmp[ia]].label != la );
+							assert ( ib == nb || B.nodelabels[context_Btmp[ib]].label != lb );
+						}
+					}
 				}
 
 				// assign new node ids for unaligned nodes in B
@@ -809,25 +1031,43 @@ namespace libmaus2
 						assert ( static_cast<int64_t>(cnodeid) == context_BM[i] );
 						C.nodelabels[cnodeid].usecnt = B.nodelabels[i].usecnt;
 					}
-
-				// insert alignedto entries
+				// copy aligned to info from B to C for nodes which are not aligned to nodes in A
 				for ( uint64_t i = 0; i < nodelimit_B; ++i )
-					if ( context_BMA[i] >= 0 )
+					if ( context_BM[i] >= static_cast<int64_t>(nodelimit_A) )
 					{
-						// node id of B node
-						uint64_t const nodeid = context_BM[i];
-						// node aligned to in A
-						uint64_t const alignto = context_BMA[i];
-
-						uint64_t na = A.getAllAlignedTo(alignto,context_Atmp);
-						context_Atmp.push(na,alignto);
-
-						for ( uint64_t j = 0; j < na; ++j )
-						{
-							C.addAlignedTo(nodeid,context_Atmp[j]);
-							C.addAlignedTo(context_Atmp[j],nodeid);
-						}
+						uint64_t nb = B.getAllAlignedTo(i,context_Btmp);
+						for ( uint64_t j = 0; j < nb; ++j )
+							C.addAlignedTo(context_BM[i],context_BM[context_Btmp[j]]);
 					}
+
+				// iterate over representants
+				for ( uint64_t z = 0; z < auo; ++z )
+				{
+					uint64_t const mscorei = context_AM[z].first;
+					uint64_t const mscorej = context_AM[z].second;
+
+					// get all nodes aligned to representant in A and B
+					uint64_t na = A.getAllAlignedTo(mscorei,context_Atmp);
+					context_Atmp.push(na,mscorei);
+					uint64_t nb = B.getAllAlignedTo(mscorej,context_Btmp);
+					context_Btmp.push(nb,mscorej);
+
+					// map to C graph ids
+					for ( uint64_t i = 0; i < nb; ++i )
+						context_Btmp[i] = context_BM[context_Btmp[i]];
+
+					// append B nodes to A nodes to obtain list of C nodes
+					for ( uint64_t i = 0; i < nb; ++i )
+						context_Atmp.push(na,context_Btmp[i]);
+
+					// sort
+					std::sort(context_Atmp.begin(),context_Atmp.begin()+na);
+					// uniquify
+					na = std::unique(context_Atmp.begin(),context_Atmp.begin()+na)-context_Atmp.begin();
+
+					// inject align to data
+					C.putAlignedTo(context_Atmp.begin(),na);
+				}
 
 				// copy non redundant edges from B
 				for ( uint64_t i = 0; i < nodelimit_B; ++i )
