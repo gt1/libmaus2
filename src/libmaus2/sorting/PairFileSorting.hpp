@@ -348,7 +348,8 @@ namespace libmaus2
 							<< keepsecond << ">("
 						<< "numblocks=" << numblocks << ","
 						<< "tmpfilename=" << tmpfilename << ","
-						<< "elnum=" << elnum
+						<< "elnum=" << elnum << ","
+						<< "fanin=" << fanin
 						<< ")\n";
 				}
 
