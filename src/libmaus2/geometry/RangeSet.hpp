@@ -30,9 +30,14 @@ namespace libmaus2
 {
 	namespace geometry
 	{
-		template<typename element_type>
+		template<typename _element_type>
 		struct RangeSet
 		{
+			typedef _element_type element_type;
+			typedef RangeSet<element_type> this_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			std::map< uint64_t,std::vector<element_type> > bins;
 
 			int const k;
