@@ -113,6 +113,33 @@ namespace libmaus2
 				}
 			};
 
+			std::vector<Coordinates> mapCoordinatePairToList(uint64_t il, uint64_t ir) const
+			{
+				std::vector<Coordinates> V;
+
+				while ( il < ir )
+				{
+					std::pair<uint64_t,uint64_t> Pl = mapCoordinates(il);
+					std::pair<uint64_t,uint64_t> Pr = mapCoordinates(ir-1);
+
+					if ( Pl.first == Pr.first )
+					{
+						V.push_back(mapCoordinatePair(il,ir));
+						assert ( V.back().valid );
+						il = ir;
+					}
+					else
+					{
+						uint64_t top = L[Pl.first+1];
+						V.push_back(mapCoordinatePair(il,top));
+						assert ( V.back().valid );
+						il = top;
+					}
+				}
+
+				return V;
+			}
+
 			Coordinates mapCoordinatePair(uint64_t const il, uint64_t const ir) const
 			{
 				if ( ir <= il )

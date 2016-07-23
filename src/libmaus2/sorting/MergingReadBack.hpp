@@ -62,7 +62,7 @@ namespace libmaus2
 
 				bool operator()(std::pair<uint64_t, data_type> const & A, std::pair<uint64_t, data_type> const & B)
 				{
-					if ( A.second != B.second )
+					if ( ((*order)(A.second,B.second)) || ((*order)(B.second,A.second)) )
 						return (*order)(B.second,A.second);
 					else
 						return A.first > B.first;
