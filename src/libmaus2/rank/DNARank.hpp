@@ -39,11 +39,12 @@ namespace libmaus2
 {
 	namespace rank
 	{
-		struct DNARank
+		template<unsigned int cachelinesize>
+		struct DNARankTemplate
 		{
-			typedef DNARank this_type;
-			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef DNARankTemplate<cachelinesize> this_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			typedef libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_memalign_cacheline> D_type;
 
 			#define LIBMAUS2_RANK_DNARANK_SIGMA 4
@@ -51,7 +52,7 @@ namespace libmaus2
 			static unsigned int getSigma() { return LIBMAUS2_RANK_DNARANK_SIGMA; }
 			static unsigned int getLogSigma() { return 2; }
 			static unsigned int getBitsPerByte() { return 8; }
-			static unsigned int getCacheLineSize() { return 64; }
+			static unsigned int getCacheLineSize() { return cachelinesize; }
 			static unsigned int getWordsPerBlock() { return getCacheLineSize()/sizeof(uint64_t); }
 			static unsigned int getDictWordsPerBlock() { return (getSigma()-1); }
 			static unsigned int getDataWordsPerBlock() { return getWordsPerBlock() - getDictWordsPerBlock(); }
@@ -232,7 +233,7 @@ namespace libmaus2
 				std::cerr << "done." << std::endl;
 			}
 
-			DNARank() : n(0), B()
+			DNARankTemplate() : n(0), B()
 			{
 			}
 
@@ -1314,7 +1315,7 @@ namespace libmaus2
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 
-			DNARank const & getW() const
+			this_type const & getW() const
 			{
 				return *this;
 			}
@@ -1664,6 +1665,10 @@ namespace libmaus2
 				return D;
 			}
 		};
+
+		typedef DNARankTemplate<64> DNARank;
+		typedef DNARankTemplate<128> DNARank128;
+		typedef DNARankTemplate<256> DNARank256;
 	}
 }
 #endif

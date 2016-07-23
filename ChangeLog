@@ -1,3 +1,11 @@
+libmaus2 (2.0.234-1) unstable; urgency=medium
+
+  * make block size a template parameter in DNARank class
+  * remove requirement for != operator in MergingReadBack class
+  * add mapCoordinatePairToList method in DNAIndexMetaBigBandBiDir class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Sat, 23 Jul 2016 15:35:27 +0200
+
 libmaus2 (2.0.233-1) unstable; urgency=medium
 
   * add fanin parameter in verbose output of PairFileSorting
