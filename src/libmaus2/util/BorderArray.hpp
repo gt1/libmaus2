@@ -30,7 +30,7 @@ namespace libmaus2
 		struct BorderArray
 		{
 			private:
-			uint64_t const n;
+			uint64_t n;
 			libmaus2::autoarray::AutoArray<value_type> S;
 
 			/**
@@ -60,9 +60,19 @@ namespace libmaus2
 			}
 
 			public:
+			BorderArray() : n(0), S() {}
+
 			template<typename iterator>
-			BorderArray(iterator s, uint64_t const rn) : n(rn), S(n)
+			BorderArray(iterator s, uint64_t const rn) : n(0), S()
 			{
+				setup(s,rn);
+			}
+
+			template<typename iterator>
+			void setup(iterator s, uint64_t const rn)
+			{
+				n = rn;
+				S.ensureSize(n);
 				init(s);
 			}
 
