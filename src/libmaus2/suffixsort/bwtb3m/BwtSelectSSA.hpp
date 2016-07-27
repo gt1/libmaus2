@@ -46,6 +46,7 @@ namespace libmaus2
 					uint64_t numthreads,
 					uint64_t const maxsortmem,
 					uint64_t const maxtmpfiles,
+					uint64_t const maxsortfanin,
 					std::ostream * logstr
 				);
 			};

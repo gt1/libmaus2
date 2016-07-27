@@ -332,6 +332,7 @@ void libmaus2::suffixsort::bwtb3m::BwtSelectSSA::computeSSA(
 	uint64_t numthreads,
 	uint64_t const maxsortmem,
 	uint64_t const maxtmpfiles,
+	uint64_t const maxsortfanin,
 	std::ostream * logstr
 )
 {
@@ -428,7 +429,7 @@ void libmaus2::suffixsort::bwtb3m::BwtSelectSSA::computeSSA(
 		maxsortmem,
 		numthreads /* parallel */,
 		true /* delete input */,
-		maxtmpfiles ? maxtmpfiles-1 : 0 /* fan in */,
+		std::min(maxtmpfiles ? maxtmpfiles-1 : 0,maxsortfanin) /* fan in */,
 		logstr
 	);
 	libmaus2::aio::FileRemoval::removeFile(tmpisa);
@@ -1122,7 +1123,7 @@ void libmaus2::suffixsort::bwtb3m::BwtSelectSSA::computeSSA(
 		maxsortmem,
 		numthreads /* parallel */,
 		true /* delete input */,
-		maxtmpfiles ? maxtmpfiles-1 : 0,
+		std::min(maxtmpfiles ? maxtmpfiles-1 : 0,maxsortfanin),
 		logstr
 	);
 	libmaus2::aio::FileRemoval::removeFile(tmp);
