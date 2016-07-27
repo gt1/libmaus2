@@ -175,6 +175,30 @@ namespace libmaus2
 					return (flags & libmaus2::dazzler::align::Overlap::getPrimaryFlag()) != 0;
 				}
 
+				static bool getACompFlag(uint8_t const * p)
+				{
+					uint32_t const flags = getFlags(p);
+					return (flags & libmaus2::dazzler::align::Overlap::getACompFlag()) != 0;
+				}
+
+				static bool getStartFlag(uint8_t const * p)
+				{
+					uint32_t const flags = getFlags(p);
+					return (flags & libmaus2::dazzler::align::Overlap::getStartFlag()) != 0;
+				}
+
+				static bool getNextFlag(uint8_t const * p)
+				{
+					uint32_t const flags = getFlags(p);
+					return (flags & libmaus2::dazzler::align::Overlap::getNextFlag()) != 0;
+				}
+
+				static bool getBestFlag(uint8_t const * p)
+				{
+					uint32_t const flags = getFlags(p);
+					return (flags & libmaus2::dazzler::align::Overlap::getBestFlag()) != 0;
+				}
+
 				static int32_t getARead(uint8_t const * p)
 				{
 					return libmaus2::util::loadValueLE4(p + 7*sizeof(int32_t));
