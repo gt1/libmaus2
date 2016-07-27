@@ -185,12 +185,17 @@ namespace libmaus2
 					char const * readname,
 					// buffer for storing bam record,
 					libmaus2::bambam::parallel::FragmentAlignmentBufferFragment & FABR,
-					// is this the primary alignment for this read?
-					bool const primary,
+					// is this a secondary alignment?
+					bool const secondary,
+					// is this a supplementary alignment?
+					bool const supplementary,
 					// header
 					libmaus2::bambam::BamHeader const & bamheader
 				)
 				{
+					bool const primary =
+						(!secondary) && (!supplementary);
+
 					int64_t const aread = libmaus2::dazzler::align::OverlapData::getARead(OVL);
 					// int64_t const bread = libmaus2::dazzler::align::OverlapData::getBRead(OVL);
 					bool const bIsInverse = libmaus2::dazzler::align::OverlapData::getFlags(OVL) & 1;
@@ -329,7 +334,9 @@ namespace libmaus2
 						255, // mapq (none given)
 						(bIsInverse ? libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREVERSE : 0)
 						|
-						(primary ? 0 : libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSECONDARY)
+						(secondary ? libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSECONDARY : 0)
+						|
+						(supplementary ? libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSUPPLEMENTARY : 0)
 						,
 						Acigop.begin(),
 						cigp,
