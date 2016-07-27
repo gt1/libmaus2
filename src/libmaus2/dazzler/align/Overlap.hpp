@@ -158,6 +158,41 @@ namespace libmaus2
 					return (1ull << 31);
 				}
 
+				static uint64_t getACompFlag()
+				{
+					return 0x2;
+				}
+
+				static uint64_t getStartFlag()
+				{
+					return 0x4;
+				}
+
+				static uint64_t getNextFlag()
+				{
+					return 0x8;
+				}
+
+				static uint64_t getBestFlag()
+				{
+					return 0x10;
+				}
+
+				bool isAComp() const
+				{
+					return (flags & getACompFlag()) != 0;
+				}
+
+				bool isStart() const
+				{
+					return (flags & getStartFlag()) != 0;
+				}
+
+				bool isBest() const
+				{
+					return (flags & getBestFlag()) != 0;
+				}
+
 				bool isPrimary() const
 				{
 					return (flags & getPrimaryFlag()) != 0;

@@ -19,6 +19,9 @@
 #define LIBMAUS2_LCS_ALIGNMENTSTATISTICS_HPP
 
 #include <libmaus2/types/types.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <ostream>
 
 namespace libmaus2
@@ -49,6 +52,16 @@ namespace libmaus2
 
 			}
 
+			AlignmentStatistics(std::istream & in)
+			{
+				deserialise(in);
+			}
+
+			AlignmentStatistics(std::string const & fn)
+			{
+				deserialise(fn);
+			}
+
 			AlignmentStatistics & operator+=(AlignmentStatistics const & O)
 			{
 				matches += O.matches;
@@ -68,6 +81,36 @@ namespace libmaus2
 			uint64_t getEditDistance() const
 			{
 				return mismatches + insertions + deletions;
+			}
+
+			std::ostream & serialise(std::ostream & out) const
+			{
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,matches);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,mismatches);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,insertions);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,deletions);
+				return out;
+			}
+
+			void serialise(std::string const & fn) const
+			{
+				libmaus2::aio::OutputStreamInstance OSI(fn);
+				serialise(OSI);
+			}
+
+			std::istream & deserialise(std::istream & in)
+			{
+				matches = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				mismatches = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				insertions = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				deletions = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				return in;
+			}
+
+			void deserialise(std::string const & fn)
+			{
+				libmaus2::aio::InputStreamInstance ISI(fn);
+				deserialise(ISI);
 			}
 		};
 
