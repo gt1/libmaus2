@@ -150,7 +150,12 @@ namespace libmaus2
 
 				bool isInverse() const
 				{
-					return (flags & 1) != 0;
+					return (flags & getInverseFlag()) != 0;
+				}
+
+				static uint64_t getInverseFlag()
+				{
+					return 1;
 				}
 
 				static uint64_t getPrimaryFlag()
