@@ -35,24 +35,6 @@
 #include <libmaus2/sorting/InterleavedRadixSort.hpp>
 #include <libmaus2/parallel/NumCpus.hpp>
 
-#if 0
-#include <libmaus2/huffman/GenericEncoder.hpp>
-
-struct S
-{
-	template<typename writer_type>
-	void encode(writer_type & /* writer */)
-	{
-
-	}
-};
-
-void f()
-{
-	libmaus2::huffman::GenericEncoderTemplate<S,libmaus2::huffman::HuffmanEncoderFileStd> GE("f",4096);
-}
-#endif
-
 void testBlockSwapDifferent()
 {
 	uint8_t p[256];
