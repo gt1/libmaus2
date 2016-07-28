@@ -490,7 +490,7 @@ int libmaus2_bambam_ScramDecoder_Decode(libmaus2_bambam_ScramDecoder * object)
 
 	if ( r < 0 || ! (object->vseq) )
 	{
-		switch( scram_eof(in) )
+		switch( scram_eof(sdecoder) )
 		{
 			// normal EOF
 			case 1:
