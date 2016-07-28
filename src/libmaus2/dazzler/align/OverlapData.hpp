@@ -175,6 +175,12 @@ namespace libmaus2
 					return (flags & libmaus2::dazzler::align::Overlap::getPrimaryFlag()) != 0;
 				}
 
+				static bool getInverseFlag(uint8_t const * p)
+				{
+					uint32_t const flags = getFlags(p);
+					return (flags & libmaus2::dazzler::align::Overlap::getInverseFlag()) != 0;
+				}
+
 				static bool getACompFlag(uint8_t const * p)
 				{
 					uint32_t const flags = getFlags(p);
