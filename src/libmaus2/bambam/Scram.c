@@ -490,10 +490,20 @@ int libmaus2_bambam_ScramDecoder_Decode(libmaus2_bambam_ScramDecoder * object)
 
 	if ( r < 0 || ! (object->vseq) )
 	{
-		if ( !scram_eof(sdecoder) )
-			return -2;
-		else
-			return -1;
+		switch( scram_eof(in) )
+		{
+			// normal EOF
+			case 1:
+			// EOF without seeing EOF block (io_lib will warn about this)
+			case 2:
+				return -1;
+			// some error
+			case -1:
+			// no EOF
+			case 0:
+			default:
+				return -2;
+		}
 	}
 
 	seq = (bam_seq_t *)(object->vseq);
