@@ -62,3 +62,4 @@ removespace.sh
 test-driver
 test/*.log
 test/*.trs
+compile_os_x.sh
