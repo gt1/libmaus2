@@ -25,6 +25,7 @@
 #include <libmaus2/lcs/AlignerFactory.hpp>
 #include <libmaus2/lcs/DalignerLocalAlignment.hpp>
 #include <libmaus2/lcs/EditDistanceTraceContainer.hpp>
+#include <libmaus2/dazzler/align/RefMapEntryVector.hpp>
 
 namespace libmaus2
 {
@@ -74,6 +75,8 @@ namespace libmaus2
 
 				std::string const rgid;
 
+				libmaus2::dazzler::align::RefMapEntryVector const & refmap;
+
 				static libmaus2::lcs::Aligner::unique_ptr_type constructAligner()
 				{
 					std::set<libmaus2::lcs::AlignerFactory::aligner_type> const S = libmaus2::lcs::AlignerFactory::getSupportedAligners();
@@ -112,7 +115,13 @@ namespace libmaus2
 					}
 				}
 
-				LASToBamConverterBase(int64_t const rtspace, bool const rcalmdnm, supplementary_seq_strategy_t const rsupplementaryStrategy, std::string const & rrgid)
+				LASToBamConverterBase(
+					int64_t const rtspace,
+					bool const rcalmdnm,
+					supplementary_seq_strategy_t const rsupplementaryStrategy,
+					std::string const & rrgid,
+					libmaus2::dazzler::align::RefMapEntryVector const & rrefmap
+				)
 				:
 				  Apath(),
 				  #if defined(LIBMAUS2_HAVE_DALIGNER) && defined(USE_DALIGNER)
@@ -129,7 +138,8 @@ namespace libmaus2
 				  small(libmaus2::dazzler::align::AlignmentFile::tspaceToSmall(tspace)),
 				  calmdnm(rcalmdnm),
 				  supplementary_seq_strategy(rsupplementaryStrategy),
-				  rgid(rrgid)
+				  rgid(rrgid),
+				  refmap(rrefmap)
 				{
 
 				}
@@ -329,8 +339,8 @@ namespace libmaus2
 						// seqenc,
 						readname,
 						readnamee-readname,
-						aread, // ref id
-						abpos, // pos
+						refmap.at(aread).refid, // ref id
+						refmap.at(aread).offset + abpos, // pos
 						255, // mapq (none given)
 						(bIsInverse ? libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREVERSE : 0)
 						|

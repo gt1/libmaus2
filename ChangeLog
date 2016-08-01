@@ -1,3 +1,9 @@
+libmaus2 (2.0.241-1) unstable; urgency=medium
+
+  * add RefMapEntry/RefMapEntryVector clases and add RefMapEntryVector argument in LASToBamConverterBase
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 01 Aug 2016 13:58:14 +0200
+
 libmaus2 (2.0.240-1) unstable; urgency=medium
 
   * improve error detection in io_lib interface
