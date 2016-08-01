@@ -316,7 +316,9 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/TracePoint.hpp libmaus2/dazzler/align/OverlapParser.hpp \
 	libmaus2/dazzler/align/OverlapData.hpp libmaus2/dazzler/align/SimpleOverlapParser.hpp \
 	libmaus2/dazzler/align/SimpleOverlapVectorParser.hpp \
-	libmaus2/dazzler/align/LASToBamConverterBase.hpp
+	libmaus2/dazzler/align/LASToBamConverterBase.hpp \
+	libmaus2/dazzler/align/RefMapEntry.hpp \
+	libmaus2/dazzler/align/RefMapEntryVector.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
 libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp libmaus2/autoarray/AutoArrayMultiMap.hpp
