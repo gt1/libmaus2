@@ -98,10 +98,10 @@ namespace libmaus2
 								)
 									++h;
 
-								if ( h < spat.size() )
-								{
-									l = h;
+								l = h;
 
+								if ( l < spat.size() )
+								{
 									while (
 										h < spat.size() &&
 										libmaus2::fastx::mapChar(spat[h]) < 4
@@ -152,6 +152,7 @@ namespace libmaus2
 						for ( uint64_t inid = 0; FA.getNextPatternUnlocked(pattern); ++inid )
 						{
 							std::string const spat = pattern.spattern;
+							// std::cerr << "[V] processing " << pattern.sid << std::endl;
 							uint64_t l = 0;
 
 							while ( l < spat.size() )
@@ -163,10 +164,10 @@ namespace libmaus2
 								)
 									++h;
 
-								if ( h < spat.size() )
-								{
-									l = h;
+								l = h;
 
+								if ( l < spat.size() )
+								{
 									while (
 										h < spat.size() &&
 										libmaus2::fastx::mapChar(spat[h]) < 4
