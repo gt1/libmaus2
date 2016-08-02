@@ -180,6 +180,40 @@ namespace libmaus2
 					#endif
 				}
 
+				struct AuxTagAddRequest
+				{
+					virtual ~AuxTagAddRequest() {}
+					virtual void operator()(::libmaus2::fastx::UCharBuffer & tbuffer) const = 0;
+				};
+
+				struct AuxTagIntegerAddRequest : public AuxTagAddRequest
+				{
+					char const * tag;
+					int32_t v;
+
+					AuxTagIntegerAddRequest() : tag(0), v(-1) {}
+					AuxTagIntegerAddRequest(char const * rtag, int32_t const rv) : tag(rtag), v(rv) {}
+
+					virtual void operator()(::libmaus2::fastx::UCharBuffer & tbuffer) const
+					{
+						libmaus2::bambam::BamAlignmentEncoderBase::putAuxNumber(tbuffer,tag,'i',v);
+					}
+				};
+
+				struct AuxTagStringAddRequest : public AuxTagAddRequest
+				{
+					char const * tag;
+					char const * v;
+
+					AuxTagStringAddRequest() : tag(0), v(0) {}
+					AuxTagStringAddRequest(char const * rtag, char const * rv) : tag(rtag), v(rv) {}
+
+					virtual void operator()(::libmaus2::fastx::UCharBuffer & tbuffer) const
+					{
+						libmaus2::bambam::BamAlignmentEncoderBase::putAuxString(tbuffer,tag,v);
+					}
+				};
+
 				void convert(
 					// the overlap
 					uint8_t const * OVL,
@@ -200,7 +234,11 @@ namespace libmaus2
 					// is this a supplementary alignment?
 					bool const supplementary,
 					// header
-					libmaus2::bambam::BamHeader const & bamheader
+					libmaus2::bambam::BamHeader const & bamheader,
+					// aux tag add requests
+					AuxTagAddRequest const ** aux_a,
+					// aux tag add requests end
+					AuxTagAddRequest const ** aux_e
 				)
 				{
 					bool const primary =
@@ -415,6 +453,9 @@ namespace libmaus2
 
 					if ( rgid.size() )
 						libmaus2::bambam::BamAlignmentEncoderBase::putAuxString(tbuffer,"RG",rgid.c_str());
+
+					for ( AuxTagAddRequest const ** aux_c = aux_a; aux_c != aux_e; ++aux_c )
+						(**aux_c)(tbuffer);
 
 					libmaus2::math::IntegerInterval<int64_t> const covered = libmaus2::bambam::BamAlignmentDecoderBase::getCoveredReadInterval(tbuffer.begin());
 
