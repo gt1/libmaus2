@@ -1,3 +1,9 @@
+libmaus2 (2.0.242-1) unstable; urgency=medium
+
+  * add support for trimmed databases in RefMapEntryVector
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 02 Aug 2016 13:29:44 +0200
+
 libmaus2 (2.0.241-1) unstable; urgency=medium
 
   * add RefMapEntry/RefMapEntryVector clases and add RefMapEntryVector argument in LASToBamConverterBase
