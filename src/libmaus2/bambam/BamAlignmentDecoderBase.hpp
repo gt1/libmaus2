@@ -196,6 +196,29 @@ namespace libmaus2
 			}
 
 			/**
+			 * write FastQ + aux representation of alignment D into array T; T is reallocated if it is too small
+			 *
+			 * @param D alignment block
+			 * @param T output array
+			 * @return number of bytes written
+			 **/
+			static uint64_t putFastQAux(
+				uint8_t const * D,
+				uint64_t const blocksize,
+				BamAuxFilterVector const & tags,
+				libmaus2::autoarray::AutoArray<uint8_t> & T
+			)
+			{
+				bool anyaux = false;
+				uint64_t const len = getFastQAuxLength(D,blocksize,tags,anyaux);
+				if ( T.size() < len )
+					T = libmaus2::autoarray::AutoArray<uint8_t>(len);
+				putFastQAux(D,blocksize,tags,anyaux,T.begin());
+				return len;
+			}
+
+
+			/**
 			 * write FastQ representation of alignment D into array T; T is reallocated if it is too small
 			 *
 			 * @param D alignment block
@@ -271,6 +294,30 @@ namespace libmaus2
 
 				return
 					1 + namelen + ((flags & LIBMAUS2_BAMBAM_FPAIRED) ? 2 : 0) + 1 + // name line
+					lseq + 1 + // seq line
+					1 + 1 + // plus line
+					lseq + 1 // quality line
+					;
+			}
+
+			/**
+			 * get length of FastQ + aux representation for alignment block D in bytes
+			 *
+			 * @param D alignment block
+			 * @return length of FastQ entry
+			 **/
+			static uint64_t getFastQAuxLength(uint8_t const * D, uint64_t const blocksize, BamAuxFilterVector const & tags, bool & anyaux)
+			{
+				uint32_t const flags = getFlags(D);
+				uint64_t const namelen = getLReadName(D)-1;
+				uint64_t const lseq = getLseq(D);
+				libmaus2::util::CountPutObject CPO;
+				printAuxBlock(CPO,D,blocksize,tags,false);
+				uint64_t const auxlen = CPO.c ? (1 + CPO.c) : 0;
+				anyaux = (auxlen != 0);
+
+				return
+					1 + namelen + ((flags & LIBMAUS2_BAMBAM_FPAIRED) ? 2 : 0) + auxlen + 1 + // name line
 					lseq + 1 + // seq line
 					1 + 1 + // plus line
 					lseq + 1 // quality line
@@ -431,6 +478,80 @@ namespace libmaus2
 						*(it++) = '/';
 						*(it++) = '2';
 					}
+				}
+
+				*(it++) = '\n';
+
+				if ( flags & LIBMAUS2_BAMBAM_FREVERSE )
+					it = decodeReadRCIt(D,it,lseq);
+				else
+					it = decodeRead(D,it,lseq);
+
+				*(it++) = '\n';
+
+				*(it++) = '+';
+				*(it++) = '\n';
+
+				if ( flags & LIBMAUS2_BAMBAM_FREVERSE )
+				{
+					uint8_t const * const quale = getQual(D);
+					uint8_t const * qualc = quale + lseq;
+
+					while ( qualc != quale )
+						*(it++) = *(--qualc) + 33;
+				}
+				else
+				{
+					uint8_t const * qual = getQual(D);
+					uint8_t const * const quale = qual + lseq;
+
+					while ( qual != quale )
+						*(it++) = (*(qual++)) + 33;
+				}
+				*(it++) = '\n';
+
+				return it;
+			}
+
+			template<typename iterator>
+			static iterator putFastQAux(
+				uint8_t const * D,
+				uint64_t const blocksize,
+				BamAuxFilterVector const & tags,
+				bool const anyaux,
+				iterator it
+			)
+			{
+				uint32_t const flags = getFlags(D);
+				uint64_t const namelen = getLReadName(D)-1;
+				uint64_t const lseq = getLseq(D);
+				char const * rn = getReadName(D);
+				char const * rne = rn + namelen;
+
+				*(it++) = '@';
+				while ( rn != rne )
+					*(it++) = *(rn++);
+
+				if ( (flags & LIBMAUS2_BAMBAM_FPAIRED) )
+				{
+					if ( (flags & LIBMAUS2_BAMBAM_FREAD1) )
+					{
+						*(it++) = '/';
+						*(it++) = '1';
+					}
+					else
+					{
+						*(it++) = '/';
+						*(it++) = '2';
+					}
+				}
+
+				if ( anyaux )
+				{
+					*(it++) = ' ';
+					libmaus2::util::PutObject<iterator> PO(it);
+					printAuxBlock(PO,D,blocksize,tags,false);
+					it = PO.p;
 				}
 
 				*(it++) = '\n';
@@ -2201,7 +2322,8 @@ namespace libmaus2
 			 * @param D start of auxiliart field
 			 * @return string representation of auxiliary field starting at D
 			 **/
-			static void auxValueToString(std::ostream & ostr, uint8_t const * D)
+			template<typename stream_type>
+			static void auxValueToString(stream_type & ostr, uint8_t const * D)
 			{
 				// std::cerr << "\n[D] tag " << D[0] << D[1] << " type " << D[2] << std::endl;
 
@@ -3579,6 +3701,73 @@ namespace libmaus2
 				stream.write(pq,pqe-pq);
 			}
 
+			template<typename stream_type>
+			static void printAuxBlock(
+				stream_type & ostr, uint8_t const * E, uint64_t const blocksize
+			)
+			{
+				uint8_t const * aux = getAux(E);
+				uint8_t const * const auxe = E+blocksize;
+
+				while ( aux < auxe && *aux )
+				{
+					ostr.put('\t');
+					ostr.put(aux[0]);
+					ostr.put(aux[1]);
+					ostr.put(':');
+					switch ( aux[2] )
+					{
+						case 'c':
+						case 'C':
+						case 's':
+						case 'S':
+						case 'i':
+						case 'I': ostr.put('i'); break;
+						default: ostr.put(aux[2]); break;
+					}
+					ostr.put(':');
+					auxValueToString(ostr,aux);
+					aux = aux + getAuxLength(aux);
+				}
+			}
+
+			template<typename stream_type>
+			static void printAuxBlock(
+				stream_type & ostr, uint8_t const * E, uint64_t const blocksize, BamAuxFilterVector const & tags,
+				bool indent = false
+			)
+			{
+				uint8_t const * aux = getAux(E);
+				uint8_t const * const auxe = E+blocksize;
+
+				while ( aux < auxe && *aux )
+				{
+					if ( tags(aux[0],aux[1]) )
+					{
+						if ( indent )
+							ostr.put('\t');
+						else
+							indent = true;
+
+						ostr.put(aux[0]);
+						ostr.put(aux[1]);
+						ostr.put(':');
+						switch ( aux[2] )
+						{
+							case 'c':
+							case 'C':
+							case 's':
+							case 'S':
+							case 'i':
+							case 'I': ostr.put('i'); break;
+							default: ostr.put(aux[2]); break;
+						}
+						ostr.put(':');
+						auxValueToString(ostr,aux);
+					}
+					aux = aux + getAuxLength(aux);
+				}
+			}
 			/**
 			 * format alignment block E of size blocksize as SAM file line using the header
 			 * and the temporary memory block auxdata
@@ -3664,28 +3853,7 @@ namespace libmaus2
 					ostr.write(auxdata.qual.begin(),quallen);
 				}
 
-				uint8_t const * aux = getAux(E);
-
-				while ( aux < E+blocksize && *aux )
-				{
-					ostr.put('\t');
-					ostr.put(aux[0]);
-					ostr.put(aux[1]);
-					ostr.put(':');
-					switch ( aux[2] )
-					{
-						case 'c':
-						case 'C':
-						case 's':
-						case 'S':
-						case 'i':
-						case 'I': ostr.put('i'); break;
-						default: ostr.put(aux[2]); break;
-					}
-					ostr.put(':');
-					auxValueToString(ostr,aux);
-					aux = aux + getAuxLength(aux);
-				}
+				printAuxBlock(ostr,E,blocksize);
 			}
 
 			/**
