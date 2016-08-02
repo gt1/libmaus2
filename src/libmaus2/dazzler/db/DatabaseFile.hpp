@@ -904,7 +904,7 @@ namespace libmaus2
 					if ( i >= blocks.back().first )
 					{
 						libmaus2::exception::LibMausException lme;
-						lme.getStream() << "DatabaseFile::isInTrimmed(): index is out of range" << std::endl;
+						lme.getStream() << "DatabaseFile::isInTrimmed(): index " << i << " is out of range (excluded limit is " << blocks.back().first << ")" << std::endl;
 						lme.finish();
 						throw lme;
 					}
