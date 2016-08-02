@@ -83,7 +83,7 @@ namespace libmaus2
 						libmaus2::fastx::FastAReader::pattern_type pattern;
 						RefMapEntryVector V;
 
-						// uint64_t outid = 0;
+						uint64_t outid = 0;
 						for ( uint64_t inid = 0; FA.getNextPatternUnlocked(pattern); ++inid )
 						{
 							std::string const spat = pattern.spattern;
@@ -98,15 +98,17 @@ namespace libmaus2
 								)
 									++h;
 
-								if ( h < spat.size() )
-								{
-									l = h;
+								l = h;
 
+								if ( l < spat.size() )
+								{
 									while (
 										h < spat.size() &&
 										libmaus2::fastx::mapChar(spat[h]) < 4
 									)
 										++h;
+
+									assert ( outid == V.size() );
 
 									RefMapEntry E(inid,l);
 									V.push_back(E);
@@ -114,6 +116,74 @@ namespace libmaus2
 									assert ( h > l );
 
 									l = h;
+									outid += 1;
+								}
+							}
+						}
+
+						V.serialise(refmapfn);
+
+						return V;
+					}
+					else
+					{
+						return RefMapEntryVector(refmapfn);
+					}
+
+				}
+
+				template<typename db_type>
+				static RefMapEntryVector computeRefSplitMap(std::string const reffn, db_type const & DB)
+				{
+					std::string const refmapfn = reffn + ".refmap";
+
+					if (
+						(! libmaus2::util::GetFileSize::fileExists(refmapfn))
+						||
+						(libmaus2::util::GetFileSize::isOlder(refmapfn,reffn))
+					)
+					{
+						libmaus2::fastx::FastAReader FA(reffn);
+						libmaus2::fastx::FastAReader::pattern_type pattern;
+						RefMapEntryVector V;
+
+						// id in untrimmed database
+						uint64_t outid = 0;
+						for ( uint64_t inid = 0; FA.getNextPatternUnlocked(pattern); ++inid )
+						{
+							std::string const spat = pattern.spattern;
+							// std::cerr << "[V] processing " << pattern.sid << std::endl;
+							uint64_t l = 0;
+
+							while ( l < spat.size() )
+							{
+								uint64_t h = l;
+								while (
+									h < spat.size() &&
+									libmaus2::fastx::mapChar(spat[h]) >= 4
+								)
+									++h;
+
+								l = h;
+
+								if ( l < spat.size() )
+								{
+									while (
+										h < spat.size() &&
+										libmaus2::fastx::mapChar(spat[h]) < 4
+									)
+										++h;
+
+									if ( DB.isInTrimmed(outid) )
+									{
+										RefMapEntry E(inid,l);
+										V.push_back(E);
+									}
+
+									assert ( h > l );
+
+									l = h;
+									outid += 1;
 								}
 							}
 						}
