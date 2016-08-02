@@ -1,3 +1,9 @@
+libmaus2 (2.0.244-1) unstable; urgency=medium
+
+  * add passing of aux tags in LASToBamConverterBase
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 02 Aug 2016 17:30:01 +0200
+
 libmaus2 (2.0.243-1) unstable; urgency=medium
 
   * add facilities to copy aux tags to FastQ in BamAlignmentDecoderBase
