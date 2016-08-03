@@ -182,39 +182,65 @@ namespace libmaus2
 						throw lme;
 					}
 
-					libmaus2::aio::InputStreamInstance ISI(safn);
+					std::string const compactsafn = safn + ".compact";
 
-					typedef libmaus2::fm::SimpleSampledSA<libmaus2::lf::ImpCompactHuffmanWaveletLF> sa_type;
-
-					uint64_t s = 0;
-					uint64_t const samplingrate = sa_type::readUnsignedInt(ISI,s);
-
-					// read length of array
-					uint64_t arraylength;
-					::libmaus2::serialize::Serialize<uint64_t>::deserialize(ISI,&arraylength);
-
-					uint64_t todo = arraylength;
-					uint64_t const bs = 64*1024;
-					libmaus2::autoarray::AutoArray<uint64_t> B(bs,false);
-					uint64_t const b = n ? libmaus2::math::numbits(n-1) : 0;
-					libmaus2::bitio::CompactArray::shared_ptr_type PSA(new libmaus2::bitio::CompactArray(arraylength,b,0 /* pad */,false /* erase */));
-					libmaus2::bitio::CompactArray & SA = *PSA;
-
-					uint64_t z = 0;
-					while ( todo )
+					if (
+						libmaus2::util::GetFileSize::fileExists(compactsafn)
+						&&
+						libmaus2::util::GetFileSize::isOlder(safn,compactsafn)
+					)
 					{
-						uint64_t const pack = std::min(todo,bs);
-						::libmaus2::serialize::Serialize<uint64_t>::deserializeArray(ISI,B.begin(),pack);
-						for ( uint64_t i = 0; i < pack; ++i )
-							SA.set(z++,B[i]);
-						todo -= pack;
+						libmaus2::aio::InputStreamInstance ISI(compactsafn);
+						uint64_t const samplingrate = libmaus2::util::NumberSerialisation::deserialiseNumber(ISI);
+						libmaus2::bitio::CompactArray::shared_ptr_type PSA(new libmaus2::bitio::CompactArray(ISI));
+
+						CompactBareSimpleSampledSuffixArray CBSSSA;
+						CBSSSA.samplingrate = samplingrate;
+						CBSSSA.A = PSA;
+
+						return CBSSSA;
 					}
+					else
+					{
+						libmaus2::aio::InputStreamInstance ISI(safn);
 
-					CompactBareSimpleSampledSuffixArray CBSSSA;
-					CBSSSA.samplingrate = samplingrate;
-					CBSSSA.A = PSA;
+						typedef libmaus2::fm::SimpleSampledSA<libmaus2::lf::ImpCompactHuffmanWaveletLF> sa_type;
 
-					return CBSSSA;
+						uint64_t s = 0;
+						uint64_t const samplingrate = sa_type::readUnsignedInt(ISI,s);
+
+						// read length of array
+						uint64_t arraylength;
+						::libmaus2::serialize::Serialize<uint64_t>::deserialize(ISI,&arraylength);
+
+						uint64_t todo = arraylength;
+						uint64_t const bs = 64*1024;
+						libmaus2::autoarray::AutoArray<uint64_t> B(bs,false);
+						uint64_t const b = n ? libmaus2::math::numbits(n-1) : 0;
+						libmaus2::bitio::CompactArray::shared_ptr_type PSA(new libmaus2::bitio::CompactArray(arraylength,b,0 /* pad */,false /* erase */));
+						libmaus2::bitio::CompactArray & SA = *PSA;
+
+						uint64_t z = 0;
+						while ( todo )
+						{
+							uint64_t const pack = std::min(todo,bs);
+							::libmaus2::serialize::Serialize<uint64_t>::deserializeArray(ISI,B.begin(),pack);
+							for ( uint64_t i = 0; i < pack; ++i )
+								SA.set(z++,B[i]);
+							todo -= pack;
+						}
+
+						CompactBareSimpleSampledSuffixArray CBSSSA;
+						CBSSSA.samplingrate = samplingrate;
+						CBSSSA.A = PSA;
+
+						libmaus2::aio::OutputStreamInstance OSI(compactsafn);
+						libmaus2::util::NumberSerialisation::serialiseNumber(OSI,samplingrate);
+						PSA->serialize(OSI);
+						OSI.flush();
+
+						return CBSSSA;
+					}
 				}
 
 				/**
