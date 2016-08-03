@@ -642,7 +642,7 @@ namespace libmaus2
 				assert ( w == numpairs );
 
 				if ( logstr )
-					(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: flusing/resetting" << std::endl;
+					(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: flushing/resetting" << std::endl;
 
 				SGO->flush();
 				SGO.reset();
