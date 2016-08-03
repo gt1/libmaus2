@@ -36,6 +36,12 @@ namespace libmaus2
 
 				}
 
+				bool operator==(RefMapEntry const & O) const
+				{
+					return
+						refid == O.refid && offset == O.offset;
+				}
+
 				RefMapEntry(uint64_t const rrefid, uint64_t const roffset)
 				: refid(rrefid), offset(roffset)
 				{
