@@ -23,6 +23,7 @@
 #include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/util/GetFileSize.hpp>
 #include <libmaus2/fastx/FastAReader.hpp>
+#include <libmaus2/dazzler/db/DatabaseFile.hpp>
 
 namespace libmaus2
 {
@@ -39,6 +40,32 @@ namespace libmaus2
 				RefMapEntryVector(std::string const & fn)
 				{
 					deserialise(fn);
+				}
+
+				RefMapEntryVector(libmaus2::dazzler::db::DatabaseFile const & DB)
+				{
+					std::vector<libmaus2::dazzler::db::Read> V;
+					DB.getReadInterval(0, DB.indexbase.nreads, V);
+
+					for ( uint64_t i = 0; i < V.size(); ++i )
+					{
+						// origin,fpulse,rlen
+						std::vector < RefMapEntry >::push_back(
+							RefMapEntry(V[i].origin, V[i].fpulse)
+						);
+					}
+				}
+
+				bool operator==(RefMapEntryVector const & R) const
+				{
+					if ( std::vector < RefMapEntry >::size() != R.size() )
+						return false;
+
+					for ( uint64_t i = 0; i < std::vector < RefMapEntry >::size(); ++i )
+						if ( ! ((*this)[i] == R[i]) )
+							return false;
+
+					return true;
 				}
 
 				std::ostream & serialise(std::ostream & out) const
