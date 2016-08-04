@@ -187,7 +187,7 @@ namespace libmaus2
 					if (
 						libmaus2::util::GetFileSize::fileExists(compactsafn)
 						&&
-						libmaus2::util::GetFileSize::isOlder(safn,compactsafn)
+						(!libmaus2::util::GetFileSize::isOlder(compactsafn,safn))
 					)
 					{
 						libmaus2::aio::InputStreamInstance ISI(compactsafn);
