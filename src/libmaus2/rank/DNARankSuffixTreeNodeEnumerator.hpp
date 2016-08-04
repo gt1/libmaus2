@@ -111,7 +111,7 @@ namespace libmaus2
 						for ( uint64_t j = 0; j < LIBMAUS2_RANK_DNARANK_SIGMA; ++j )
 							nz += (OO[j].size != 0);
 
-						// if more than one extension on the right is possible
+						// if more than one extension on the right is possible (right maximal)
 						if ( nz > 1 )
 						{
 							// push element
