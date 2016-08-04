@@ -200,23 +200,21 @@ int main(int argc, char * argv[])
 
 		uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
 
-		#if 0
 		std::cerr << "[V] running short tests...\n";
 		testShort<libmaus2::rank::DNARank>(numthreads);
 		testShort<libmaus2::rank::DNARank128>(numthreads);
 		testShort<libmaus2::rank::DNARank256>(numthreads);
 		std::cerr << "[V] short tests done" << std::endl;
-		#endif
 
-		std::string const fn = arg[0];
-		#if 1
-		std::cerr << "[V] running long tests...\n";
-		testLong<libmaus2::rank::DNARank>(fn,numthreads);
-		testLong<libmaus2::rank::DNARank128>(fn,numthreads);
-		testLong<libmaus2::rank::DNARank256>(fn,numthreads);
-		std::cerr << "[V] long tests done" << std::endl;
-		#endif
-
+		if ( 0 < arg.size() )
+		{
+			std::string const fn = arg[0];
+			std::cerr << "[V] running long tests...\n";
+			testLong<libmaus2::rank::DNARank>(fn,numthreads);
+			testLong<libmaus2::rank::DNARank128>(fn,numthreads);
+			testLong<libmaus2::rank::DNARank256>(fn,numthreads);
+			std::cerr << "[V] long tests done" << std::endl;
+		}
 
 		#if 0
 		libmaus2::rank::DNARank::unique_ptr_type Prank(libmaus2::rank::DNARank::loadFromRunLength(fn,numthreads));
