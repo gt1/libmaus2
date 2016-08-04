@@ -105,7 +105,7 @@ namespace libmaus2
 					assert ( r_a[i] == r_b[i] );
 				assert ( std::accumulate(&r_a[0],&r_a[getSigma()],0ull) == n );
 
-				std::cerr << "checking...";
+				std::cerr << "checking operator[]...";
 				#if defined(_OPENMP)
 				#pragma omp parallel for num_threads(numthreads)
 				#endif
@@ -132,6 +132,7 @@ namespace libmaus2
 				}
 				std::cerr << "done." << std::endl;
 
+				std::cerr << "decoding text from run length...";
 				libmaus2::autoarray::AutoArray<char> C(n,false);
 				#if defined(_OPENMP)
 				#pragma omp parallel for num_threads(numthreads)
@@ -152,6 +153,7 @@ namespace libmaus2
 						C[i] = sym;
 					}
 				}
+				std::cerr << "done." << std::endl;
 
 				libmaus2::timing::RealTimeClock rtc; rtc.start();
 				std::cerr << "checking rankm...";
@@ -164,13 +166,14 @@ namespace libmaus2
 					for ( unsigned int j = 0; j < getSigma(); ++j )
 					{
 						ok = ok && ( acc[j] == racc[j] );
+						ok = ok && ( acc[j] == rankm(j,i) );
 					}
 					if ( ! ok )
 					{
 						std::cerr << "failed at " << i << "/" << n << std::endl;
 
 						for ( uint64_t j = 0; j < getSigma(); ++j )
-							std::cerr << acc[j] << "\t" << racc[j] << std::endl;
+							std::cerr << acc[j] << "\t" << racc[j] << "\t" << rankm(j,i) << std::endl;
 
 						assert ( ok );
 					}
@@ -201,16 +204,24 @@ namespace libmaus2
 				}
 				std::cerr << "done, " << (n/rtc.getElapsedSeconds()) << std::endl;
 
+				uint64_t numq =
+					std::min(
+						static_cast<uint64_t>(256*1024*1024),
+						static_cast<uint64_t>(32*n)
+					);
+				std::cerr << "[V] generating " << numq << " random queries...";
 				std::vector<uint64_t> RV;
-				for ( uint64_t i = 0; i < (256*1024*1024); ++i )
+				for ( uint64_t i = 0; i < numq; ++i )
 					RV.push_back(libmaus2::random::Random::rand64() % n);
-				std::cerr << "checking random...";
+				std::cerr << "done." << std::endl;
+
+				std::cerr << "checking random queries...";
 				rtc.start();
 				for ( uint64_t i = 0; i < RV.size(); ++i )
 					rankm(RV[i],&racc[0]);
 				std::cerr << "done, " << (RV.size()/rtc.getElapsedSeconds()) << std::endl;
 
-				std::cerr << "[V] Checking select...";
+				std::cerr << "[V] checking select...";
 				#if defined(_OPENMP)
 				#pragma omp parallel for num_threads(numthreads)
 				#endif
@@ -1460,7 +1471,7 @@ namespace libmaus2
 				P->computeD();
 
 				#if defined(LIBMAUS2_RANK_DNARANK_TESTFROMRUNLENGTH)
-				P->testFromRunLength(rl);
+				P->testFromRunLength(rl,numthreads);
 				#endif
 
 				return UNIQUE_PTR_MOVE(P);
