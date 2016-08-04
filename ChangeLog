@@ -1,3 +1,9 @@
+libmaus2 (2.0.248-1) unstable; urgency=medium
+
+  * add DNARank test program to automatic tests
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 04 Aug 2016 11:06:40 +0200
+
 libmaus2 (2.0.247-1) unstable; urgency=medium
 
   * implement caching mechanism for loadCompactBareSimpleSuffixArray in BwtMergeSortResult
