@@ -204,7 +204,11 @@ namespace libmaus2
 				}
 				std::cerr << "done, " << (n/rtc.getElapsedSeconds()) << std::endl;
 
-				uint64_t numq = 256*1024*1024;
+				uint64_t numq =
+					std::min(
+						static_cast<uint64_t>(256*1024*1024),
+						static_cast<uint64_t>(32*n)
+					);
 				std::cerr << "[V] generating " << numq << " random queries...";
 				std::vector<uint64_t> RV;
 				for ( uint64_t i = 0; i < numq; ++i )
