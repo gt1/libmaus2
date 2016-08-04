@@ -1,7 +1,7 @@
-TESTS=testAIO.sh testargparser.sh testarraydecode.sh testarrayinput.sh testautoarray2d.sh testbitbtree.sh testBitIO.sh testRank.sh
+TESTS=testAIO.sh testargparser.sh testarraydecode.sh testarrayinput.sh testautoarray2d.sh testbitbtree.sh testBitIO.sh testRank.sh testdnarank.sh
 TEST_ENVIRONMENT= 
 LOG_COMPILER=/bin/bash
-EXTRA_DIST=testAIO.sh configure.gz.sh base64decode.sh testargparser.sh testarraydecode.sh testarrayinput.sh testautoarray2d.sh testbitbtree.sh testBitIO.sh testRank.sh
+EXTRA_DIST=testAIO.sh configure.gz.sh base64decode.sh testargparser.sh testarraydecode.sh testarrayinput.sh testautoarray2d.sh testbitbtree.sh testBitIO.sh testRank.sh testdnarank.sh
 
 # skipped: testalignerspeed
 # testbamcat              testbamdamage           testbamheaderparser     testbammateerase        testbammergecoordinate  testbamrange            testbamtofastq          
