@@ -265,10 +265,14 @@ namespace libmaus2
 						Q . push ( triple );
 					}
 
+					uint64_t c = 0;
+
 					// merge
 					while ( Q.size() )
 					{
 						triple_type const & ttop = Q.top();
+
+						c += 1;
 
 						SGO.put(ttop.first);
 						SGO.put(ttop.second);
@@ -295,6 +299,15 @@ namespace libmaus2
 							if ( logstr )
 							{
 								(*logstr) << "[V] PairFileSorting::reduce: merging complete for block " << lowblock+id << std::endl;
+							}
+						}
+
+						if ( (c & ((1ull<<25)-1)) == 0 )
+						{
+							if ( logstr )
+							{
+								(*logstr) << "[V] PairFileSorting::reduce: " << c << "/" << n << " ("
+									<< static_cast<double>(c) / n << ")" << std::endl;
 							}
 						}
 					}
