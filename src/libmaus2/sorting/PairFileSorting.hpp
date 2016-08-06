@@ -46,6 +46,8 @@ namespace libmaus2
 	{
 		struct PairFileSorting
 		{
+			static bool const delaydelete;
+
 			template<typename first_type, typename second_type>
 			struct FirstComp
 			{
@@ -665,7 +667,7 @@ namespace libmaus2
 				if ( logstr )
 					(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: removing tmp files" << std::endl;
 
-				if ( deleteinput )
+				if ( deleteinput && (!delaydelete) )
 					for ( uint64_t i = 0; i < filenames.size(); ++i )
 						libmaus2::aio::FileRemoval::removeFile(filenames[i]);
 
@@ -680,6 +682,10 @@ namespace libmaus2
 					mergeTriples< TripleFirstComparator<uint64_t,uint64_t,uint64_t>, out_type >(
 						numblocks,tmpfilename,pairsperblock,
 						keepfirst,keepsecond,SGOfinal,fanin,logstr);
+
+				if ( deleteinput && delaydelete )
+					for ( uint64_t i = 0; i < filenames.size(); ++i )
+						libmaus2::aio::FileRemoval::removeFile(filenames[i]);
 
 				if ( logstr )
 					(*logstr) << "[V] PairFileSorting::sortPairFileTemplate: merged blocks" << std::endl;
