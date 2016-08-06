@@ -578,3 +578,31 @@ libmaus2::util::TempFileRemovalContainer::sighandler_t libmaus2::util::TempFileR
 libmaus2::util::TempFileRemovalContainer::sighandler_t libmaus2::util::TempFileRemovalContainer::sighuphandler = 0;
 libmaus2::util::TempFileRemovalContainer::sighandler_t libmaus2::util::TempFileRemovalContainer::sigpipehandler = 0;
 ::libmaus2::parallel::PosixSpinLock libmaus2::util::TempFileRemovalContainer::lock;
+
+#include <libmaus2/sorting/PairFileSorting.hpp>
+
+static bool getPairFileSortingDelayDelete()
+{
+	char const * envstr = getenv("LIBMAUS2_PAIRFILESORTING_DELAYDELETE");
+
+	if ( envstr )
+	{
+		std::string const senvstr(envstr);
+		std::istringstream istr(senvstr);
+		int v;
+		istr >> v;
+		if ( istr && istr.peek() == std::istream::traits_type::eof() )
+		{
+			std::cerr << "[V] setting libmaus2::sorting::PairFileSorting::delaydelete to " << v << std::endl;
+			return v;
+		}
+		else
+			return 0;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool const libmaus2::sorting::PairFileSorting::delaydelete = getPairFileSortingDelayDelete();
