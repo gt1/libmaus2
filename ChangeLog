@@ -1,3 +1,10 @@
+libmaus2 (2.0.250-1) unstable; urgency=medium
+
+  * implement LIBMAUS2_PAIRFILESORTING_DELAYDELETE option for PairFileSorting
+  * add progress report in PairFileSorting::reduce
+
+ -- German Tischler <tischler@mpi-cbg.de>  Sat, 06 Aug 2016 11:37:41 +0200
+
 libmaus2 (2.0.249-1) unstable; urgency=medium
 
   * change check for file age in loadCompactBareSimpleSuffixArray of BwtMergeSortResult
