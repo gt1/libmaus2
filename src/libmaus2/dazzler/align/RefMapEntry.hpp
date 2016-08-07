@@ -19,6 +19,7 @@
 #define LIBMAUS2_DAZZLER_ALIGN_REFMAPENTRY_HPP
 
 #include <libmaus2/util/NumberSerialisation.hpp>
+#include <sstream>
 
 namespace libmaus2
 {
@@ -65,6 +66,19 @@ namespace libmaus2
 					refid = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 					offset = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 					return in;
+				}
+
+				std::ostream & toString(std::ostream & out) const
+				{
+					out << "RefMapEntry(" << refid << "," << offset << ")";
+					return out;
+				}
+
+				std::string toString() const
+				{
+					std::ostringstream ostr;
+					toString(ostr);
+					return ostr.str();
 				}
 			};
 		}
