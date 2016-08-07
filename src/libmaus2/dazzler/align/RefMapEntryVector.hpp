@@ -46,12 +46,18 @@ namespace libmaus2
 				{
 					std::vector<libmaus2::dazzler::db::Read> V;
 					DB.getReadInterval(0, DB.indexbase.nreads, V);
+					int64_t oid = -1;
 
 					for ( uint64_t i = 0; i < V.size(); ++i )
 					{
+						if ( ! V[i].origin )
+							++oid;
+
+						assert ( oid >= 0 );
+
 						// origin,fpulse,rlen
 						std::vector < RefMapEntry >::push_back(
-							RefMapEntry(V[i].origin, V[i].fpulse)
+							RefMapEntry(static_cast<uint64_t>(oid), V[i].fpulse)
 						);
 					}
 				}
@@ -300,6 +306,23 @@ namespace libmaus2
 					}
 
 				}
+
+				std::ostream & toString(std::ostream & out) const
+				{
+					out << "RefMapEntryVector(";
+					for ( uint64_t i = 0; i < std::vector < RefMapEntry >::size(); ++i )
+						std::vector < RefMapEntry >::operator[](i).toString(out);
+					out << ")";
+					return out;
+				}
+
+				std::string toString() const
+				{
+					std::ostringstream ostr;
+					toString(ostr);
+					return ostr.str();
+				}
+
 			};
 		}
 	}
