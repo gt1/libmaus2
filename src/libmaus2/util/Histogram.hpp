@@ -232,6 +232,13 @@ namespace libmaus2
 			 * @param other histogram to be merged into this one
 			 **/
 			void merge(::libmaus2::util::Histogram const & other);
+
+			//! set all elements to zero
+			void clear()
+			{
+				std::fill(low.begin(),low.end(),0ull);
+				all.clear();
+			}
 		};
 	}
 }
