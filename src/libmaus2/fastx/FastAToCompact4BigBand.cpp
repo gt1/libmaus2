@@ -84,7 +84,9 @@ static std::string stripAfterDot(std::string const s)
 
 int libmaus2::fastx::FastAToCompact4BigBand::fastaToCompact4BigBand(
 	std::vector<std::string> const & inputfilenames,
+	// add reverse complement
 	bool const rc,
+	// add reverse complement to replace FastA file
 	bool const replrc,
 	std::ostream * logstr,
 	std::string outputfilename
@@ -322,9 +324,11 @@ int libmaus2::fastx::FastAToCompact4BigBand::fastaToCompact4BigBand(
 
 				if ( (!rci) || (rci && replrc) )
 				{
+					// recover human readable bases
 					for ( uint64_t j = 0; j < pattern.spattern.size(); ++j )
 						pattern.spattern[j] = rtable[pattern.spattern[j]];
 
+					// write fasta
 					(*replOSI) << '>' << pattern.sid << '\n';
 					(*replOSI).write(pattern.spattern.c_str(),pattern.spattern.size());
 					replOSI->put('\n');
