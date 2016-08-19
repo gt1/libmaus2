@@ -33,7 +33,7 @@ namespace libmaus2
 	{
 		struct FastABPGenerator
 		{
-			static void fastAToFastaBP(
+			static uint64_t fastAToFastaBP(
 				std::istream & fain,
 				std::ostream & finalout,
 				std::ostream * verboseout = 0,
@@ -316,6 +316,8 @@ namespace libmaus2
 					(*verboseout) << "[V] total number of bases      " << totalseqlen << std::endl;
 					(*verboseout) << "[V] bits per base              " << static_cast<double>(filepos*8)/totalseqlen << std::endl;
 				}
+
+				return filepos;
 			}
 		};
 	}
