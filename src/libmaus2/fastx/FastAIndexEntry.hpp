@@ -54,14 +54,15 @@ namespace libmaus2
 				deserialise(in);
 			}
 
-			std::ostream & serialise(std::ostream & out) const
+			uint64_t serialise(std::ostream & out) const
 			{
-				libmaus2::util::StringSerialisation::serialiseString(out,name);
-				libmaus2::util::NumberSerialisation::serialiseNumber(out,length);
-				libmaus2::util::NumberSerialisation::serialiseNumber(out,offset);
-				libmaus2::util::NumberSerialisation::serialiseNumber(out,basesperline);
-				libmaus2::util::NumberSerialisation::serialiseNumber(out,bytesperline);
-				return out;
+				uint64_t s = 0;
+				s += libmaus2::util::StringSerialisation::serialiseString(out,name);
+				s += libmaus2::util::NumberSerialisation::serialiseNumber(out,length);
+				s += libmaus2::util::NumberSerialisation::serialiseNumber(out,offset);
+				s += libmaus2::util::NumberSerialisation::serialiseNumber(out,basesperline);
+				s += libmaus2::util::NumberSerialisation::serialiseNumber(out,bytesperline);
+				return s;
 			}
 
 			void deserialise(std::istream & in)
@@ -71,7 +72,6 @@ namespace libmaus2
 				offset = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				basesperline = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				bytesperline = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
-				length = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 			}
 		};
 
