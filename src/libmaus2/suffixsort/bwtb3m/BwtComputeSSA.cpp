@@ -545,6 +545,8 @@ void libmaus2::suffixsort::bwtb3m::BwtComputeSSA::computeSSA(
 		#endif
 
 		assert ( Vsplitblocks.back() == n );
+
+		libmaus2::aio::FileRemoval::removeFile(blockhisttmp);
 	}
 	else
 	{
@@ -655,6 +657,8 @@ void libmaus2::suffixsort::bwtb3m::BwtComputeSSA::computeSSA(
 			) == n
 		);
 		#endif
+
+		libmaus2::aio::FileRemoval::removeFile(blockhisttmp);
 	}
 
 	libmaus2::parallel::PosixSpinLock salock;
@@ -1072,6 +1076,10 @@ void libmaus2::suffixsort::bwtb3m::BwtComputeSSA::computeSSA(
 		Aisaout[i]->flush();
 		Aisaout[i].reset();
 	}
+
+	if ( deletein )
+		for ( uint64_t i = 0; i < isain.size(); ++i )
+			libmaus2::aio::FileRemoval::removeFile(isain[i]);
 
 	libmaus2::aio::OutputStreamInstance::unique_ptr_type saout(new libmaus2::aio::OutputStreamInstance(libmaus2::util::OutputFileNameTools::clipOff(origbwt,".bwt") + ".sa"));
 	::libmaus2::serialize::Serialize<uint64_t>::serialize(*saout,sasamplingrate);

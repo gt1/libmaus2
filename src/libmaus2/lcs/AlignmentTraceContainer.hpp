@@ -326,6 +326,41 @@ namespace libmaus2
 					(Aapos == Bapos) && (Abpos == Bbpos);
 			}
 
+			static bool cross(step_type const * ta, step_type const * te, size_t apos, size_t bpos)
+			{
+				for ( ; ta != te; ++ta )
+				{
+					switch ( *ta )
+					{
+						case STEP_MATCH:
+						case STEP_MISMATCH:
+							if ( apos == bpos )
+							{
+								assert ( *ta == STEP_MATCH );
+								return true;
+							}
+
+							++apos, ++bpos;
+							break;
+						case STEP_INS:
+							++bpos;
+							break;
+						case STEP_DEL:
+							++apos;
+							break;
+						default:
+							break;
+					}
+				}
+
+				return false;
+			}
+
+			bool cross(size_t const apos, size_t const bpos) const
+			{
+				return cross(ta,te,apos,bpos);
+			}
+
 			static bool a_sync(
 				AlignmentTraceContainer const & A,
 				size_t Aapos,
