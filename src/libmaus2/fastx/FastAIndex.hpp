@@ -41,6 +41,52 @@ namespace libmaus2
 			std::vector<libmaus2::fastx::FastAIndexEntry> sequences;
 			std::map<std::string,uint64_t> shortNameToId;
 
+			uint64_t serialise(std::ostream & out) const
+			{
+				uint64_t s = 0;
+
+				s += libmaus2::util::NumberSerialisation::serialiseNumber(out,sequences.size());
+				for ( uint64_t i = 0; i < sequences.size(); ++i )
+					s += sequences[i].serialise(out);
+				s += libmaus2::util::NumberSerialisation::serialiseNumber(out,shortNameToId.size());
+				for ( std::map<std::string,uint64_t>::const_iterator ita = shortNameToId.begin(); ita != shortNameToId.end(); ++ita )
+				{
+					s += libmaus2::util::StringSerialisation::serialiseString(out,ita->first);
+					s += libmaus2::util::NumberSerialisation::serialiseNumber(out,ita->second);
+				}
+				return s;
+			}
+
+			void deserialise(std::istream & in)
+			{
+				sequences.resize(0);
+				uint64_t const nseq = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				for ( uint64_t i = 0; i < nseq; ++i )
+					sequences.push_back(libmaus2::fastx::FastAIndexEntry(in));
+				uint64_t const nshort = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				shortNameToId.clear();
+				for ( uint64_t i = 0; i < nshort; ++i )
+				{
+					std::string const key = libmaus2::util::StringSerialisation::deserialiseString(in);
+					uint64_t const val = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					shortNameToId[key] = val;
+				}
+			}
+
+			static unique_ptr_type loadSerialised(std::istream & in)
+			{
+				unique_ptr_type tptr(new this_type);
+				tptr->deserialise(in);
+				return UNIQUE_PTR_MOVE(tptr);
+			}
+
+			static unique_ptr_type loadSerialised(std::string const & fn)
+			{
+				libmaus2::aio::InputStreamInstance ISI(fn);
+				unique_ptr_type tptr(loadSerialised(ISI));
+				return UNIQUE_PTR_MOVE(tptr);
+			}
+
 			FastAIndex() : sequences()
 			{
 

@@ -22,6 +22,7 @@
 #include <string>
 #include <ostream>
 #include <libmaus2/types/types.hpp>
+#include <libmaus2/util/StringSerialisation.hpp>
 
 namespace libmaus2
 {
@@ -47,6 +48,31 @@ namespace libmaus2
 				uint64_t const rbasesperline,
 				uint64_t const rbytesperline
 			) : name(rname), length(rlength), offset(roffset), basesperline(rbasesperline), bytesperline(rbytesperline) {}
+
+			FastAIndexEntry(std::istream & in)
+			{
+				deserialise(in);
+			}
+
+			uint64_t serialise(std::ostream & out) const
+			{
+				uint64_t s = 0;
+				s += libmaus2::util::StringSerialisation::serialiseString(out,name);
+				s += libmaus2::util::NumberSerialisation::serialiseNumber(out,length);
+				s += libmaus2::util::NumberSerialisation::serialiseNumber(out,offset);
+				s += libmaus2::util::NumberSerialisation::serialiseNumber(out,basesperline);
+				s += libmaus2::util::NumberSerialisation::serialiseNumber(out,bytesperline);
+				return s;
+			}
+
+			void deserialise(std::istream & in)
+			{
+				name = libmaus2::util::StringSerialisation::deserialiseString(in);
+				length = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				offset = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				basesperline = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				bytesperline = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+			}
 		};
 
 		std::ostream & operator<<(std::ostream & out, FastAIndexEntry const & entry);
