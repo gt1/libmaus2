@@ -121,7 +121,7 @@ namespace libmaus2
 				}
 			}
 
-			std::string const & operator[](std::string const & key) const
+			std::string operator[](std::string const & key) const
 			{
 				typedef std::multimap<std::string,std::string>::const_iterator it_type;
 				std::pair<it_type,it_type> P = kvargs.equal_range(key);
