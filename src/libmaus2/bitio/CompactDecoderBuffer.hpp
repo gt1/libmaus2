@@ -40,7 +40,8 @@ namespace libmaus2
 			private:
 			static uint64_t const headersize = 4*sizeof(uint64_t);
 
-			::libmaus2::aio::InputStreamInstance stream;
+			::libmaus2::aio::InputStreamInstance::unique_ptr_type pstream;
+			::std::istream & stream;
 
 			// log of word size we are using
 			static unsigned int const loglog = 6;
@@ -67,7 +68,8 @@ namespace libmaus2
 				std::string const & filename,
 				::std::size_t rbuffersize
 			)
-			: stream(filename),
+			: pstream(new ::libmaus2::aio::InputStreamInstance(filename)),
+			  stream(*pstream),
 			  b(::libmaus2::bitio::CompactArray::deserializeNumber(stream)),
 			  n(::libmaus2::bitio::CompactArray::deserializeNumber(stream)),
 			  s(::libmaus2::bitio::CompactArray::deserializeNumber(stream)),
