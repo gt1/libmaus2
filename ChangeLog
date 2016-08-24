@@ -1,3 +1,9 @@
+libmaus2 (2.0.257-1) unstable; urgency=medium
+
+  * fix crashes due to wrong usage of demangling
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 24 Aug 2016 23:57:56 +0200
+
 libmaus2 (2.0.256-1) unstable; urgency=medium
 
   * fix compilation with gcc 4.1.2 
