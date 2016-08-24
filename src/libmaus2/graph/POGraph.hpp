@@ -1602,15 +1602,15 @@ namespace libmaus2
 					if ( curi != -1 && curj != -1 )
 						t = S(curi,curj).t;
 					else if ( curi == -1 )
-						t = libmaus2::lcs::BaseConstants::step_type::STEP_INS;
+						t = libmaus2::lcs::BaseConstants::STEP_INS;
 					else
-						t = libmaus2::lcs::BaseConstants::step_type::STEP_DEL;
+						t = libmaus2::lcs::BaseConstants::STEP_DEL;
 
 					// std::cerr << "i=" << curi << " j=" << curj << " t=" << t << std::endl;
 
 					switch ( t )
 					{
-						case libmaus2::lcs::BaseConstants::step_type::STEP_MATCH:
+						case libmaus2::lcs::BaseConstants::STEP_MATCH:
 						{
 							// std::cerr << "match for " << it[curj] << std::endl;
 
@@ -1630,7 +1630,7 @@ namespace libmaus2
 							prevnode = curi;
 							break;
 						}
-						case libmaus2::lcs::BaseConstants::step_type::STEP_MISMATCH:
+						case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
 						{
 							assert ( curi >= 0 );
 							assert ( curj >= 0 );
@@ -1691,7 +1691,7 @@ namespace libmaus2
 
 							break;
 						}
-						case libmaus2::lcs::BaseConstants::step_type::STEP_INS:
+						case libmaus2::lcs::BaseConstants::STEP_INS:
 						{
 							uint64_t const id = addNode(it[curj]);
 							if ( prevnode != -1 )
@@ -1699,7 +1699,7 @@ namespace libmaus2
 							prevnode = id;
 							break;
 						}
-						case libmaus2::lcs::BaseConstants::step_type::STEP_DEL:
+						case libmaus2::lcs::BaseConstants::STEP_DEL:
 						{
 							break;
 						}
