@@ -85,6 +85,28 @@ namespace libmaus2
 				setg(buffer.end(), buffer.end(), buffer.end());
 			}
 
+			CompactDecoderBuffer(
+				std::istream & rstream,
+				::std::size_t rbuffersize
+			)
+			: pstream(),
+			  stream(rstream),
+			  b(::libmaus2::bitio::CompactArray::deserializeNumber(stream)),
+			  n(::libmaus2::bitio::CompactArray::deserializeNumber(stream)),
+			  s(::libmaus2::bitio::CompactArray::deserializeNumber(stream)),
+			  as(::libmaus2::bitio::CompactArray::deserializeNumber(stream)),
+			  // smallest multiple aligning to bitsperentity bits
+			  alignmult(1ull << (loglog-::libmaus2::bitio::Ctz::ctz(b))),
+			  // make buffersize multiple of alignmult
+			  buffersize(((rbuffersize + alignmult-1)/alignmult)*alignmult),
+			  C(buffersize,b),
+			  buffer(buffersize,false),
+			  symsread(0)
+			{
+				setg(buffer.end(), buffer.end(), buffer.end());
+			}
+
+
 			uint64_t getB() const
 			{
 				return C.getB();
@@ -212,6 +234,12 @@ namespace libmaus2
 
 			CompactDecoderWrapper(std::string const & filename, uint64_t const buffersize = 64*1024)
 			: CompactDecoderBuffer(filename,buffersize), ::std::istream(this)
+			{
+
+			}
+
+			CompactDecoderWrapper(std::istream & in, uint64_t const buffersize = 64*1024)
+			: CompactDecoderBuffer(in,buffersize), ::std::istream(this)
 			{
 
 			}
