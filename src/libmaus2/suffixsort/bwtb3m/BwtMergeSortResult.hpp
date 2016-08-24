@@ -174,6 +174,25 @@ namespace libmaus2
 					{
 						return (*A)[i];
 					}
+
+					void deserialise(std::istream & ISI)
+					{
+						samplingrate = libmaus2::util::NumberSerialisation::deserialiseNumber(ISI);
+						libmaus2::bitio::CompactArray::shared_ptr_type PSA(new libmaus2::bitio::CompactArray(ISI));
+						A = PSA;
+					}
+
+					void deserialise(std::string const & fn)
+					{
+						libmaus2::aio::InputStreamInstance ISI(fn);
+						deserialise(ISI);
+					}
+
+					void serialise(std::ostream & out) const
+					{
+						libmaus2::util::NumberSerialisation::serialiseNumber(out,samplingrate);
+						A->serialize(out);
+					}
 				};
 
 				CompactBareSimpleSampledSuffixArray loadCompactBareSimpleSuffixArray(uint64_t const n) const
