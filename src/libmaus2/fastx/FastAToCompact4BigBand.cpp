@@ -190,14 +190,14 @@ int libmaus2::fastx::FastAToCompact4BigBand::fastaToCompact4BigBand(
 				ovec.push_back( metaOut->tellp() );
 
 				assert (
-					metaOut->tellp()
+					static_cast<int64_t>(metaOut->tellp())
 					==
 					static_cast<int64_t>(
-					sizeof(uint64_t) /* nseq */
-					+
-					2*sizeof(uint64_t)*rid
-					+
-					nsum * 2 * sizeof(uint64_t)
+						sizeof(uint64_t) /* nseq */
+						+
+						2*sizeof(uint64_t)*rid
+						+
+						nsum * 2 * sizeof(uint64_t)
 					)
 				);
 
@@ -313,7 +313,7 @@ int libmaus2::fastx::FastAToCompact4BigBand::fastaToCompact4BigBand(
 				//std::cerr << "[D] seekoff " << seekoff << std::endl;
 				metaOut->seekp(seekoff, std::ios::cur );
 				//std::cerr << "[D] after " << metaOut->tellp() << std::endl;
-				assert ( metaOut->tellp() == static_cast<int64_t>(nroff) );
+				assert ( static_cast<int64_t>(metaOut->tellp()) == static_cast<int64_t>(nroff) );
 				// write number of intervals replaced
 				libmaus2::util::NumberSerialisation::serialiseNumber(*metaOut,nr);
 				// skip interval bounds already written
@@ -368,7 +368,7 @@ int libmaus2::fastx::FastAToCompact4BigBand::fastaToCompact4BigBand(
 	{
 		// std::cerr << "[V] checking " << i << std::endl;
 
-		assert ( metaISI->tellg() == static_cast<int64_t>(ovec[i]) );
+		assert ( static_cast<int64_t>(metaISI->tellg()) == static_cast<int64_t>(ovec[i]) );
 
 		// length of sequence
 		uint64_t const l = libmaus2::util::NumberSerialisation::deserialiseNumber(*metaISI);
