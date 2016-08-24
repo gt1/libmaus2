@@ -163,12 +163,35 @@ namespace libmaus2
 
 				struct CompactBareSimpleSampledSuffixArray
 				{
+					typedef CompactBareSimpleSampledSuffixArray this_type;
+					typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+					typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
 					uint64_t samplingrate;
 					libmaus2::bitio::CompactArray::shared_ptr_type A;
 
 					uint64_t operator[](uint64_t const i) const
 					{
 						return (*A)[i];
+					}
+
+					void deserialise(std::istream & ISI)
+					{
+						samplingrate = libmaus2::util::NumberSerialisation::deserialiseNumber(ISI);
+						libmaus2::bitio::CompactArray::shared_ptr_type PSA(new libmaus2::bitio::CompactArray(ISI));
+						A = PSA;
+					}
+
+					void deserialise(std::string const & fn)
+					{
+						libmaus2::aio::InputStreamInstance ISI(fn);
+						deserialise(ISI);
+					}
+
+					void serialise(std::ostream & out) const
+					{
+						libmaus2::util::NumberSerialisation::serialiseNumber(out,samplingrate);
+						A->serialize(out);
 					}
 				};
 
