@@ -1,3 +1,12 @@
+libmaus2 (2.0.255-1) unstable; urgency=medium
+
+  * add serialise/deserialise in CompactBareSimpleSampledSuffixArray
+  * add stream based constructor for CompactDecoderBuffer/CompactDecoderWrapper
+  * refactor CompactDecoderBuffer
+  * add pointer types in CompactBareSimpleSampledSuffixArray
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 24 Aug 2016 12:48:38 +0200
+
 libmaus2 (2.0.254-1) unstable; urgency=medium
 
   * do not return reference to temporary in ArgParser::operator[]
