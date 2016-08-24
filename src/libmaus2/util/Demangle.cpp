@@ -28,14 +28,34 @@ std::string libmaus2::util::Demangle::demangleName(std::string const name)
 {
 	#if defined(__GNUC__)
 	int status = 0;
-	char buf[1024];
-	memset(buf,0,sizeof(buf));
-	size_t length = sizeof(buf);
-	__cxxabiv1::__cxa_demangle(name.c_str(),buf,&length,&status);
+	size_t length = 0;
+
+	char * demangled = __cxxabiv1::__cxa_demangle(name.c_str(),NULL,&length,&status);
+
+	// if demangling is successful
 	if ( status == 0 )
-		return std::string(buf); // ,buf+length);
+	{
+		try
+		{
+			// copy string
+			std::string const s(demangled);
+			// free block allocated by __cxa_demangle
+			::free(demangled);
+			return s;
+		}
+		catch(...)
+		{
+			// failed to construct string, do not leak memory
+			::free(demangled);
+			return name;
+		}
+	}
 	else
+	{
+		// free block
+		::free(demangled);
 		return name;
+	}
 	#else
 	return name;
 	#endif
