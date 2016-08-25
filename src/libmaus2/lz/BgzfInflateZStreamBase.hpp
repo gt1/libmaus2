@@ -74,10 +74,17 @@ namespace libmaus2
 				if ( zintf->z_inflateReset() != Z_OK )
 				{
 					::libmaus2::exception::LibMausException se;
-					se.getStream() << "BgzfInflate::decompressBlock(): inflateReset failed";
+					se.getStream() << "BgzfInflateZStreamBase::zreset(): inflateReset failed";
 					se.finish();
 					throw se;
 				}
+			}
+
+			uint32_t computeCrc(uint8_t const * data, uint64_t const l)
+			{
+				uint32_t crc = zintf->z_crc32(0L,Z_NULL,0);
+				crc = zintf->z_crc32(crc,reinterpret_cast<Bytef const*>(data),l);
+				return crc;
 			}
 
 			void zdecompress(
@@ -103,7 +110,7 @@ namespace libmaus2
 				if ( !ok )
 				{
 					::libmaus2::exception::LibMausException se;
-					se.getStream() << "BgzfInflate::decompressBlock(): inflate failed";
+					se.getStream() << "BgzfInflateZStreamBase::zdecompress(): inflate failed";
 					se.finish();
 					throw se;
 				}

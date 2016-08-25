@@ -30,16 +30,18 @@ namespace libmaus2
 			uint64_t compressed;
 			uint64_t uncompressed;
 			bool streameof;
+			uint32_t checksum;
 
-			BgzfInflateInfo() : compressed(0), uncompressed(0), streameof(false) {}
+			BgzfInflateInfo() : compressed(0), uncompressed(0), streameof(false), checksum(0) {}
 			BgzfInflateInfo(BgzfInflateInfo const & o)
-			: compressed(o.compressed), uncompressed(o.uncompressed), streameof(o.streameof) {}
+			: compressed(o.compressed), uncompressed(o.uncompressed), streameof(o.streameof), checksum(o.checksum) {}
 			BgzfInflateInfo(
 				uint64_t const rcompressed,
 				uint64_t const runcompressed,
-				bool const rstreameof
+				bool const rstreameof,
+				uint32_t const rchecksum
 			)
-			: compressed(rcompressed), uncompressed(runcompressed), streameof(rstreameof)
+			: compressed(rcompressed), uncompressed(runcompressed), streameof(rstreameof), checksum(rchecksum)
 			{
 
 			}
@@ -49,6 +51,7 @@ namespace libmaus2
 				compressed = o.compressed;
 				uncompressed = o.uncompressed;
 				streameof = o.streameof;
+				checksum = o.checksum;
 				return *this;
 			}
 		};

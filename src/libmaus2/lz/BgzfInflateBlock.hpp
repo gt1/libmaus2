@@ -79,12 +79,13 @@ namespace libmaus2
 
 				try
 				{
-					std::pair<uint64_t,uint64_t> preblockinfo = BgzfInflateBase::readBlock(stream);
+					BgzfInflateBase::BlockInfo preblockinfo = BgzfInflateBase::readBlock(stream);
 
 					blockinfo = ::libmaus2::lz::BgzfInflateInfo(
-						preblockinfo.first,
-						preblockinfo.second,
-						preblockinfo.second ? false : (stream.peek() == stream_type::traits_type::eof())
+						preblockinfo.payloadsize,
+						preblockinfo.uncompdatasize,
+						preblockinfo.uncompdatasize ? false : (stream.peek() == stream_type::traits_type::eof()),
+						preblockinfo.checksum
 					);
 
 					return blockinfo.uncompressed;
@@ -125,14 +126,11 @@ namespace libmaus2
 				if ( failed() )
 					return 0;
 
-				if ( ! blockinfo.uncompressed )
-					return 0;
-
 				try
 				{
 					BgzfInflateBase::decompressBlock(
 						reinterpret_cast<char *>(data.begin()),
-						std::make_pair(blockinfo.compressed,blockinfo.uncompressed)
+						BgzfInflateBase::BlockInfo(blockinfo.compressed,blockinfo.uncompressed,blockinfo.checksum)
 					);
 					return blockinfo.uncompressed;
 				}
@@ -186,7 +184,7 @@ namespace libmaus2
 
 				std::copy ( data.begin(), data.begin() + ndata, reinterpret_cast<uint8_t *>(ldata) );
 
-				blockinfo = ::libmaus2::lz::BgzfInflateInfo(0,0,true);
+				blockinfo = ::libmaus2::lz::BgzfInflateInfo(0,0,true,0 /* crc */);
 
 				return ndata;
 			}

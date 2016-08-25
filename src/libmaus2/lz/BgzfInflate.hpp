@@ -89,7 +89,7 @@ namespace libmaus2
 
 				/* return eof if terminate flag is set (we reached the end of the given interval) */
 				if ( terminated )
-					return BgzfInflateInfo(0,0,true);
+					return BgzfInflateInfo(0,0,true,0 /* crc */);
 
 				/* first block flag if we are processing an interval on the file */
 				bool const firstblock = haveoffsets && (compressedread == 0);
@@ -97,13 +97,13 @@ namespace libmaus2
 				bool const lastblock = haveoffsets && (compressedread == endoffset.getBlockOffset()-startoffset.getBlockOffset());
 
 				/* read block */
-				std::pair<uint64_t,uint64_t> const blockinfo = readBlock(stream);
+				BgzfInflateBase::BlockInfo const blockinfo = readBlock(stream);
 
 				/* copy compressed block if ostr is not null */
 				if ( ostr )
 				{
 					ostr->write(reinterpret_cast<char const *>(header.begin()),getBgzfHeaderSize());
-					ostr->write(reinterpret_cast<char const *>(block.begin()),blockinfo.first + getBgzfFooterSize());
+					ostr->write(reinterpret_cast<char const *>(block.begin()),blockinfo.payloadsize + getBgzfFooterSize());
 
 					if ( ! (*ostr) )
 					{
@@ -115,7 +115,7 @@ namespace libmaus2
 				}
 
 				/* check for empty block and flush copy stream if necessary */
-				if ( (! blockinfo.second) && ostr )
+				if ( (! blockinfo.uncompdatasize) && ostr )
 				{
 					ostr->flush();
 
@@ -151,12 +151,13 @@ namespace libmaus2
 				}
 
 				/* increase number of compressed bytes we have read by this block */
-				compressedread += getBgzfHeaderSize() + blockinfo.first + getBgzfFooterSize();
+				compressedread += getBgzfHeaderSize() + blockinfo.payloadsize + getBgzfFooterSize();
 
 				return BgzfInflateInfo(
-					blockinfo.first+getBgzfHeaderSize()+getBgzfFooterSize(),
+					blockinfo.payloadsize+getBgzfHeaderSize()+getBgzfFooterSize(),
 					gcnt,
-					gcnt ? false : (stream.peek() < 0)
+					gcnt ? false : (stream.peek() < 0),
+					blockinfo.checksum
 				);
 			}
 
