@@ -126,9 +126,6 @@ namespace libmaus2
 				if ( failed() )
 					return 0;
 
-				if ( ! blockinfo.uncompressed )
-					return 0;
-
 				try
 				{
 					BgzfInflateBase::decompressBlock(
