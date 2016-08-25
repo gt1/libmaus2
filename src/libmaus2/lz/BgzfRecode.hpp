@@ -34,7 +34,7 @@ namespace libmaus2
 			std::istream & in;
 			std::ostream & out;
 
-			std::pair<uint64_t,uint64_t> P;
+			libmaus2::lz::BgzfInflateBase::BlockInfo P;
 
 			std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback *> blockoutputcallbacks;
 
@@ -48,13 +48,13 @@ namespace libmaus2
 			{
 				P = inflatebase.readBlock(in);
 
-				if ( (! P.second) && (in.get() == std::istream::traits_type::eof()) )
-					return std::pair<uint64_t,bool>(P.second,true);
+				if ( (! P.uncompdatasize) && (in.get() == std::istream::traits_type::eof()) )
+					return std::pair<uint64_t,bool>(P.uncompdatasize,true);
 
 				inflatebase.decompressBlock(reinterpret_cast<char *>(deflatebase.pa),P);
-				deflatebase.pc = deflatebase.pa + P.second;
+				deflatebase.pc = deflatebase.pa + P.uncompdatasize;
 
-				return std::pair<uint64_t,bool>(P.second,false);
+				return std::pair<uint64_t,bool>(P.uncompdatasize,false);
 			}
 
 			uint64_t getBlock()
