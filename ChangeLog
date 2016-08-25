@@ -1,3 +1,12 @@
+libmaus2 (2.0.258-1) unstable; urgency=medium
+
+  * make sure call decompressBlock in BgzfInflateBlock even if uncompressed data size is zero to trigger optional check for correct checksum
+  * used signed output for tlen field in SAM output if BamAlignmentDecoderBase (when not using io_lib)
+  * add LIBMAUS2_LZ_BGZFINFLATEBASE_CHECKCRC environment variable to enable checking of checksums while decoding BGZF
+  * store crc when reading bgzf blocks
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 25 Aug 2016 15:33:18 +0200
+
 libmaus2 (2.0.257-1) unstable; urgency=medium
 
   * fix crashes due to wrong usage of demangling
