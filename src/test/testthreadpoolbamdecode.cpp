@@ -29,18 +29,18 @@ libmaus2::parallel::PosixMutex cerrmutex;
 struct BamThreadPoolDecodeBamParseQueueInfo
 {
 	uint64_t packageid;
-	std::pair<uint64_t,uint64_t> blockmeta;
+	libmaus2::lz::BgzfInflateBase::BlockInfo blockmeta;
 	uint64_t baseid;
 	uint64_t blockid;
 
 	BamThreadPoolDecodeBamParseQueueInfo()
-	: packageid(0), blockmeta(0,0), baseid(0), blockid(0)
+	: packageid(0), blockmeta(0,0,0), baseid(0), blockid(0)
 	{
 
 	}
 	BamThreadPoolDecodeBamParseQueueInfo(
 		uint64_t rpackageid,
-		std::pair<uint64_t,uint64_t> rblockmeta,
+		libmaus2::lz::BgzfInflateBase::BlockInfo rblockmeta,
 		uint64_t rbaseid,
 		uint64_t rblockid
 	)
@@ -376,7 +376,7 @@ struct BamThreadPoolDecodeDecompressPackage : public ::libmaus2::parallel::Threa
 {
 	BamThreadPoolDecodeContextBase * contextbase;
 
-	std::pair<uint64_t,uint64_t> blockmeta; // block size compressed and uncompressed
+	libmaus2::lz::BgzfInflateBase::BlockInfo blockmeta; // block size compressed and uncompressed
 	uint64_t baseid;
 	uint64_t blockid;
 
@@ -384,7 +384,7 @@ struct BamThreadPoolDecodeDecompressPackage : public ::libmaus2::parallel::Threa
 	BamThreadPoolDecodeDecompressPackage(
 		uint64_t const rpackageid,
 		BamThreadPoolDecodeContextBase * rcontextbase,
-		std::pair<uint64_t,uint64_t> rblockmeta,
+		libmaus2::lz::BgzfInflateBase::BlockInfo rblockmeta,
 		uint64_t rbaseid,
 		uint64_t rblockid
 
@@ -415,7 +415,7 @@ struct BamThreadPoolDecodeBamParsePackage : public ::libmaus2::parallel::ThreadW
 {
 	BamThreadPoolDecodeContextBase * contextbase;
 
-	std::pair<uint64_t,uint64_t> blockmeta; // block size compressed and uncompressed
+	libmaus2::lz::BgzfInflateBase::BlockInfo blockmeta; // block size compressed and uncompressed
 	uint64_t baseid;
 	uint64_t blockid;
 
@@ -423,7 +423,7 @@ struct BamThreadPoolDecodeBamParsePackage : public ::libmaus2::parallel::ThreadW
 	BamThreadPoolDecodeBamParsePackage(
 		uint64_t const rpackageid,
 		BamThreadPoolDecodeContextBase * rcontextbase,
-		std::pair<uint64_t,uint64_t> rblockmeta,
+		libmaus2::lz::BgzfInflateBase::BlockInfo rblockmeta,
 		uint64_t rbaseid,
 		uint64_t rblockid
 	)
@@ -517,7 +517,7 @@ struct BamThreadPoolDecodeReadPackageDispatcher : public libmaus2::parallel::Thr
 			uint64_t const nextInputBlockId = (contextbase.nextInputBlockId++);
 			uint64_t const baseid = contextbase.inflateBasesFreeList.deque();
 
-			std::pair<uint64_t,uint64_t> const blockmeta = contextbase.inflateBases[baseid]->readBlock(contextbase.in);
+			libmaus2::lz::BgzfInflateBase::BlockInfo const blockmeta = contextbase.inflateBases[baseid]->readBlock(contextbase.in);
 			contextbase.readCnt += 1;
 
 			#if 0
@@ -642,7 +642,7 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus2::parallel:
 		char * const decompressSpace = contextbase.getDecompressSpace(RP.baseid);
 
 		uint8_t const * pa = reinterpret_cast<uint8_t const *>(decompressSpace);
-		uint8_t const * pc = pa + RP.blockmeta.second;
+		uint8_t const * pc = pa + RP.blockmeta.uncompdatasize;
 
 		if ( (! contextbase.haveheader.get()) && (pa != pc) )
 		{
@@ -835,7 +835,7 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus2::parallel:
 			// move remaining data to start of buffer
 			memmove(reinterpret_cast<uint8_t *>(decompressSpace),pa,pc-pa);
 
-			RP.blockmeta.second = pc-pa;
+			RP.blockmeta.uncompdatasize = pc-pa;
 
 			#if 0
 			cerrmutex.lock();

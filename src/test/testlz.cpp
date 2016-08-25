@@ -105,7 +105,7 @@ void maskBamDuplicateFlag(std::istream & in, std::ostream & out, bool const verb
 	/* read and copy blocks until we have reached the end of the BAM header */
 	while ( (!haveheader) && rec.getBlock() )
 	{
-		std::copy ( rec.deflatebase.pa, rec.deflatebase.pa + rec.P.second,
+		std::copy ( rec.deflatebase.pa, rec.deflatebase.pa + rec.P.uncompdatasize,
 			std::back_insert_iterator < std::vector<uint8_t> > (headerstr) );
 
 		try
@@ -123,7 +123,7 @@ void maskBamDuplicateFlag(std::istream & in, std::ostream & out, bool const verb
 
 		if ( ! haveheader )
 		{
-			preblocksizes += rec.P.second;
+			preblocksizes += rec.P.uncompdatasize;
 			rec.putBlock();
 		}
 	}
@@ -139,7 +139,7 @@ void maskBamDuplicateFlag(std::istream & in, std::ostream & out, bool const verb
 	uint8_t const dupflagmask = static_cast<uint8_t>(~(4u));
 
 	/* while we have alignment data blocks */
-	while ( rec.P.second )
+	while ( rec.P.uncompdatasize )
 	{
 		uint8_t * pa       = rec.deflatebase.pa + blockskip;
 		uint8_t * const pc = rec.deflatebase.pc;

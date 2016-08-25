@@ -87,7 +87,7 @@ namespace libmaus2
 				if ( static_cast<ssize_t>(stream.gcount()) != static_cast<ssize_t>(getBgzfHeaderSize()) )
 				{
 					::libmaus2::exception::LibMausException se;
-					se.getStream() << "BgzfInflate::decompressBlock(): unexpected EOF while reading header";
+					se.getStream() << "BgzfInflateHeaderBase::readHeader(): unexpected EOF while reading header";
 					se.finish(false);
 					throw se;
 				}
@@ -98,7 +98,7 @@ namespace libmaus2
 				)
 				{
 					::libmaus2::exception::LibMausException se;
-					se.getStream() << "BgzfInflate::decompressBlock(): invalid header data";
+					se.getStream() << "BgzfInflateHeaderBase::readHeader(): invalid header data";
 					se.finish(false);
 					throw se;
 				}
@@ -108,7 +108,7 @@ namespace libmaus2
 				if ( cblocksize < getBgzfHeaderSize() + getBgzfFooterSize() )
 				{
 					::libmaus2::exception::LibMausException se;
-					se.getStream() << "BgzfInflate::decompressBlock(): invalid header data";
+					se.getStream() << "BgzfInflateHeaderBase::readHeader(): invalid header data";
 					se.finish(false);
 					throw se;
 				}

@@ -3702,6 +3702,29 @@ namespace libmaus2
 			}
 
 			template<typename stream_type>
+			static void printNumberSigned(stream_type & stream, int64_t v)
+			{
+				char pp[22];
+				char * pqe = &pp[22];
+				char * pq = pqe;
+
+				bool const sign = v < 0;
+				if ( sign )
+					v = -v;
+
+				do
+				{
+					*(--pq) = (v % 10)+'0';
+					v /= 10;
+				} while ( v );
+
+				if ( sign )
+					*(--pq) = '-';
+
+				stream.write(pq,pqe-pq);
+			}
+
+			template<typename stream_type>
 			static void printAuxBlock(
 				stream_type & ostr, uint8_t const * E, uint64_t const blocksize
 			)
@@ -3833,7 +3856,7 @@ namespace libmaus2
 				printNumber32(ostr,getNextPos(E)+1);
 				ostr.put('\t');
 
-				printNumber32(ostr,getTlen(E));
+				printNumberSigned(ostr,getTlen(E));
 				ostr.put('\t');
 
 				uint64_t const seqlen = decodeRead(E,auxdata.seq);

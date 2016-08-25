@@ -36,6 +36,8 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
+			static int checkCrc;
+
 			// space for compressed input data
 			::libmaus2::autoarray::AutoArray<uint8_t,::libmaus2::autoarray::alloc_type_memalign_pagesize> block;
 
@@ -44,6 +46,7 @@ namespace libmaus2
 			{
 			}
 
+			private:
 			/**
 			 * read bgzf block data plus footer (checksum + uncompressed size)
 			 *
@@ -52,7 +55,7 @@ namespace libmaus2
 			 * @return length of uncompressed block
 			 **/
 			template<typename stream_type>
-			uint64_t readData(stream_type & stream, uint64_t const payloadsize)
+			std::pair<uint64_t,uint64_t> readData(stream_type & stream, uint64_t const payloadsize)
 			{
 				// read block
 				stream.read(reinterpret_cast<char *>(block.begin()),payloadsize + 8);
@@ -64,6 +67,19 @@ namespace libmaus2
 					se.finish(false);
 					throw se;
 				}
+
+				#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN) && defined(LIBMAUS2_HAVE_i386)
+				uint32_t const checksum = *(reinterpret_cast<uint32_t const *>(block.begin()+payloadsize));
+				#else
+				uint32_t const checksum =
+					(static_cast<uint32_t>(block[payloadsize+0]) << 0)
+					|
+					(static_cast<uint32_t>(block[payloadsize+1]) << 8)
+					|
+					(static_cast<uint32_t>(block[payloadsize+2]) << 16)
+					|
+					(static_cast<uint32_t>(block[payloadsize+3]) << 24);
+				#endif
 
 				#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN) && defined(LIBMAUS2_HAVE_i386)
 				uint32_t const uncompdatasize = *(reinterpret_cast<uint32_t const *>(block.begin()+payloadsize+4));
@@ -87,8 +103,30 @@ namespace libmaus2
 
 				}
 
-				return uncompdatasize;
+				return std::pair<uint64_t,uint64_t>(uncompdatasize,checksum);
 			}
+
+			public:
+			struct BlockInfo
+			{
+				uint64_t payloadsize;
+				uint64_t uncompdatasize;
+				uint64_t checksum;
+
+				BlockInfo()
+				{
+
+				}
+
+				BlockInfo(
+					uint64_t const rpayloadsize,
+					uint64_t const runcompdatasize,
+					uint64_t const rchecksum
+				) : payloadsize(rpayloadsize), uncompdatasize(runcompdatasize), checksum(rchecksum)
+				{
+
+				}
+			};
 
 			/**
 			 * read a bgzf block from stream
@@ -97,13 +135,15 @@ namespace libmaus2
 			 * @return pair of compressed payload size (gzip block minus header and footer) and uncompressed size
 			 **/
 			template<typename stream_type>
-			std::pair<uint64_t,uint64_t> readBlock(stream_type & stream)
+			BlockInfo readBlock(stream_type & stream)
 			{
 				/* read block header */
 				uint64_t const payloadsize = readHeader(stream);
 
 				/* read block data and footer */
-				uint64_t const uncompdatasize = readData(stream,payloadsize);
+				std::pair<uint64_t,uint64_t> const P = readData(stream,payloadsize);
+				uint64_t const uncompdatasize = P.first;
+				uint64_t const checksum = P.second;
 
 				/* check consistency */
 				if ( (! payloadsize) && (uncompdatasize>0) )
@@ -114,7 +154,7 @@ namespace libmaus2
 					throw se;
 				}
 
-				return std::pair<uint64_t,uint64_t>(payloadsize,uncompdatasize);
+				return BlockInfo(payloadsize,uncompdatasize,checksum);
 			}
 
 			/**
@@ -124,10 +164,23 @@ namespace libmaus2
 			 * @param blockinfo pair as returned by readBlock method
 			 * @return number of bytes stored in decomp
 			 **/
-			uint64_t decompressBlock(char * const decomp, std::pair<uint64_t,uint64_t> const & blockinfo)
+			uint64_t decompressBlock(char * const decomp, BlockInfo const & blockinfo)
 			{
-				zdecompress(block.begin(),blockinfo.first,decomp,blockinfo.second);
-				return blockinfo.second;
+				zdecompress(block.begin(),blockinfo.payloadsize,decomp,blockinfo.uncompdatasize);
+
+				if ( checkCrc )
+				{
+					uint32_t const checksum = computeCrc(reinterpret_cast<uint8_t const *>(decomp),blockinfo.uncompdatasize);
+					if ( checksum != blockinfo.checksum )
+					{
+						libmaus2::exception::LibMausException se;
+						se.getStream() << "BgzfInflateBase::decompressBlock: broken BGZF file (CRC mismatch)" << std::endl;
+						se.finish();
+						throw se;
+					}
+				}
+
+				return blockinfo.uncompdatasize;
 			}
 		};
 	}

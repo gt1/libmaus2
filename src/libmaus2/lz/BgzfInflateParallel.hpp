@@ -122,7 +122,7 @@ namespace libmaus2
 
 				if ( terminated )
 				{
-					return BgzfInflateInfo(0,0,true);
+					return BgzfInflateInfo(0,0,true,0 /* crc */);
 				}
 
 				/* get object id */

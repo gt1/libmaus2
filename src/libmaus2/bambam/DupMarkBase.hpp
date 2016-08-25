@@ -399,7 +399,7 @@ namespace libmaus2
 				while ( (!haveheader) && (recactive = !(rec.getBlockPlusEOF().second)) )
 				{
 					libmaus2::util::GetObject<uint8_t const *> G(rec.deflatebase.pa);
-					std::pair<bool,uint64_t> const ps = bhps.parseHeader(G,rec.P.second);
+					std::pair<bool,uint64_t> const ps = bhps.parseHeader(G,rec.P.uncompdatasize);
 					haveheader = ps.first;
 					blockskip = ps.second; // bytes used for header in this block
 				}
@@ -409,7 +409,7 @@ namespace libmaus2
 					uint64_t const bytesused = (rec.deflatebase.pc - rec.deflatebase.pa) - blockskip;
 					memmove ( rec.deflatebase.pa, rec.deflatebase.pa + blockskip, bytesused );
 					rec.deflatebase.pc = rec.deflatebase.pa + bytesused;
-					rec.P.second = bytesused;
+					rec.P.uncompdatasize = bytesused;
 					blockskip = 0;
 
 					if ( ! bytesused )
