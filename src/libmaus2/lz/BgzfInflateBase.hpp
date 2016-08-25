@@ -36,6 +36,8 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
+			static int checkCrc;
+
 			// space for compressed input data
 			::libmaus2::autoarray::AutoArray<uint8_t,::libmaus2::autoarray::alloc_type_memalign_pagesize> block;
 
@@ -165,6 +167,19 @@ namespace libmaus2
 			uint64_t decompressBlock(char * const decomp, BlockInfo const & blockinfo)
 			{
 				zdecompress(block.begin(),blockinfo.payloadsize,decomp,blockinfo.uncompdatasize);
+
+				if ( checkCrc )
+				{
+					uint32_t const checksum = computeCrc(reinterpret_cast<uint8_t const *>(decomp),blockinfo.uncompdatasize);
+					if ( checksum != blockinfo.checksum )
+					{
+						libmaus2::exception::LibMausException se;
+						se.getStream() << "BgzfInflateBase::decompressBlock: broken BGZF file (CRC mismatch)" << std::endl;
+						se.finish();
+						throw se;
+					}
+				}
+
 				return blockinfo.uncompdatasize;
 			}
 		};
