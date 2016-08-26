@@ -74,7 +74,9 @@ libmaus2::math::GmpInteger::GmpInteger(
 		rv
 	#endif
 )
-: v(0)
+	#if defined(LIBMAUS2_HAVE_GMP)
+	: v(0)
+	#endif
 {
 	#if defined(LIBMAUS2_HAVE_GMP)
 	v = new MpzContainer();
@@ -118,7 +120,9 @@ libmaus2::math::GmpInteger::GmpInteger(
 		o
 	#endif
 )
-: v(0)
+	#if defined(LIBMAUS2_HAVE_GMP)
+	: v(0)
+	#endif
 {
 	#if defined(LIBMAUS2_HAVE_GMP)
 	v = new MpzContainer;

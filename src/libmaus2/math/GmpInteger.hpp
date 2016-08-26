@@ -39,7 +39,9 @@ namespace libmaus2
 		struct GmpInteger
 		{
 			private:
+			#if defined(LIBMAUS2_HAVE_GMP)
 			void * v;
+			#endif
 
 			friend GmpInteger operator+(GmpInteger const & A, GmpInteger const & B);
 			friend GmpInteger operator-(GmpInteger const & A, GmpInteger const & B);
