@@ -740,7 +740,7 @@ int main()
 
 		for ( unsigned int i = 0; i < sizeof(value_type); ++i )
 			keybytes[i] = i;
-		unsigned int const rounds = sizeof(value_type);
+		// unsigned int const rounds = sizeof(value_type);
 
 		std::cerr << "[V] generating random number array...";
 		libmaus2::autoarray::AutoArray<value_type> Vrand(1ull<<30,false);

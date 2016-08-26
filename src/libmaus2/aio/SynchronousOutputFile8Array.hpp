@@ -82,7 +82,13 @@ namespace libmaus2
 			 * @param tmpgen temporary file name generator
 			 * @param parallel if true then generate files in parallel
 			 **/
-			void init(uint64_t const numbuf, ::libmaus2::util::TempFileNameGenerator & tmpgen, bool const parallel = false, uint64_t const numthreads = 1)
+			void init(uint64_t const numbuf, ::libmaus2::util::TempFileNameGenerator & tmpgen, bool const parallel = false,
+				uint64_t const
+					#if defined(_OPENMP)
+					numthreads
+					#endif
+					= 1
+			)
 			{
 				filenames.resize(numbuf);
 

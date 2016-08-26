@@ -385,7 +385,7 @@ namespace libmaus2
 				bool ok = true;
 				while ( cur >= 0 )
 				{
-					for ( uint64_t i = 0; i < Atrace[cur].slide; ++i )
+					for ( int64_t i = 0; i < Atrace[cur].slide; ++i )
 						ok = ok && ((*(--ac)) == (*(--bc)));
 
 					switch ( Atrace[cur].step )
@@ -677,7 +677,7 @@ namespace libmaus2
 						o = 0;
 					}
 
-					for ( uint64_t i = 0; i < E.slide; ++i )
+					for ( int64_t i = 0; i < E.slide; ++i )
 					{
 						aline[o] = remapFunction(*(a++));
 						bline[o] = remapFunction(*(b++));

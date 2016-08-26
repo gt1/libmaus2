@@ -380,7 +380,11 @@ namespace libmaus2
 			};
 
 			// get length of vector of files in symbols
-			static uint64_t getLength(std::vector<std::string> const & filenames, uint64_t const numthreads)
+			static uint64_t getLength(std::vector<std::string> const & filenames, uint64_t const
+				#if defined(_OPENMP)
+				numthreads
+				#endif
+			)
 			{
 				libmaus2::parallel::PosixSpinLock lock;
 				uint64_t s = 0;
@@ -402,7 +406,11 @@ namespace libmaus2
 				return IDD.kacc;
 			}
 
-			static uint64_t getKLength(std::vector<std::string> const & fn, uint64_t const numthreads)
+			static uint64_t getKLength(std::vector<std::string> const & fn, uint64_t const
+				#if defined(_OPENMP)
+				numthreads
+				#endif
+			)
 			{
 				libmaus2::parallel::PosixSpinLock lock;
 				uint64_t s = 0;

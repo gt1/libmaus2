@@ -85,7 +85,10 @@ namespace libmaus2
 			static std::vector<ReadEndsBlockDecoderBaseCollectionInfo> constructInfo(
 				std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase> const & rinfo,
 				bool const parallelSetup,
-				uint64_t const numthreads
+				uint64_t const
+					#if defined(_OPENMP)
+					numthreads
+					#endif
 			)
 			{
 				std::vector<ReadEndsBlockDecoderBaseCollectionInfo> info(rinfo.size());

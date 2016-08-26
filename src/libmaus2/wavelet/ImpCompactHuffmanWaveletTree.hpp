@@ -232,7 +232,10 @@ namespace libmaus2
 				libmaus2::huffman::HuffmanTree const & rH,
 				uint64_t const numnodes,
 				std::vector<uint64_t> const & rnodepos,
-				uint64_t const numthreads
+				uint64_t const
+				#if defined(_OPENMP)
+					numthreads
+				#endif
 			)
 			: n(rn), H(new libmaus2::huffman::HuffmanTree(rH)), E(new libmaus2::huffman::HuffmanTree::EncodeTable(*H)), dicts(numnodes),
 			  maxdepth(0), nodepos(rnodepos)

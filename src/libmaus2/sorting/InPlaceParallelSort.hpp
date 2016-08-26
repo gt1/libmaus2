@@ -39,7 +39,14 @@ namespace libmaus2
 		struct InPlaceParallelSort
 		{
 			template<typename iterator>
-			static void parallelreverse(iterator a, iterator e, uint64_t const numthreads)
+			static void parallelreverse(
+				iterator a,
+				iterator e,
+				uint64_t const
+					#if defined(_OPENMP)
+					numthreads
+					#endif
+			)
 			{
 				uint64_t const n = e-a;
 				int64_t const l = n/2;
@@ -61,7 +68,11 @@ namespace libmaus2
 			}
 
 			template<typename copy_type>
-			static void blockswap(void * pa, void * pb, uint64_t const s, uint64_t const numthreads)
+			static void blockswap(void * pa, void * pb, uint64_t const s, uint64_t const
+				#if defined(_OPENMP)
+				numthreads
+				#endif
+			)
 			{
 				static uint64_t const parthres = 4096;
 

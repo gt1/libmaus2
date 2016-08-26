@@ -745,7 +745,10 @@ namespace libmaus2
                         	std::vector<std::string> const & filenames, uint64_t const fracs,
                         	uint64_t const mod /* = 1 */,
                         	bool const verbose /* = false */,
-                        	uint64_t const numthreads
+                        	uint64_t const
+                                        #if defined(_OPENMP)
+                        		numthreads
+                        		#endif
 			)
                         {
                                 std::string hash;
@@ -987,7 +990,14 @@ namespace libmaus2
                                 }
                         }
 
-                        static std::vector<FastInterval> buildIndex(std::vector < std::string > const & filenames, uint64_t const steps /* = 1 */, uint64_t const numthreads)
+                        static std::vector<FastInterval> buildIndex(
+                        	std::vector < std::string > const & filenames,
+                        	uint64_t const steps /* = 1 */,
+                        	uint64_t const
+	                                #if defined(_OPENMP)
+                        		numthreads
+                        		#endif
+			)
                         {
                                 std::vector < std::vector < FastInterval > > subintervalvec(filenames.size());
 
@@ -1037,7 +1047,14 @@ namespace libmaus2
 			        return UNIQUE_PTR_MOVE(Phist);
 			}
 
-			static ::libmaus2::util::Histogram::unique_ptr_type getHistogram(std::vector<std::string> const & filenames, std::vector<FastInterval> const & rinterval, uint64_t const numthreads)
+			static ::libmaus2::util::Histogram::unique_ptr_type getHistogram(
+				std::vector<std::string> const & filenames,
+				std::vector<FastInterval> const & rinterval,
+				uint64_t const
+	                                #if defined(_OPENMP)
+					numthreads
+					#endif
+			)
 			{
 			        ::libmaus2::util::Histogram::unique_ptr_type Phist(new ::libmaus2::util::Histogram());
 			        ::libmaus2::util::Histogram & hist = *Phist;

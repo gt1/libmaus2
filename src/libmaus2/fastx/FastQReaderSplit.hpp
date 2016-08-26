@@ -187,7 +187,14 @@ namespace libmaus2
                                 }
                         }
 
-                        static std::vector<FastInterval> buildIndex(std::vector < std::string > const & filenames, uint64_t const steps /* = 1 */, uint64_t const numthreads)
+                        static std::vector<FastInterval> buildIndex(
+                        	std::vector < std::string > const & filenames,
+                        	uint64_t const steps /* = 1 */,
+                        	uint64_t const
+	                                #if defined(_OPENMP)
+                        		numthreads
+                        		#endif
+			)
                         {
                                 std::vector < FastInterval > intervals;
 
