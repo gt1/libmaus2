@@ -22,6 +22,7 @@
 #if defined(__GNUC__)
 #include <cxxabi.h>
 #include <cstring>
+#include <cstdlib>
 #endif
 
 std::string libmaus2::util::Demangle::demangleName(std::string const name)
