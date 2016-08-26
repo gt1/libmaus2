@@ -433,7 +433,11 @@ namespace libmaus2
 				sampled_isa_type const & ISA,
 				uint64_t const n,
 				text_type const & text,
-				uint64_t const numthreads,
+				uint64_t const
+					#if defined(_OPENMP)
+					numthreads
+					#endif
+				,
 				bool const verbose
 			)
 			{
@@ -446,7 +450,7 @@ namespace libmaus2
 
 				#if defined(_OPENMP)
 				uint64_t const subblocksize = 64*1024;
-				uint64_t const superblocksize = subblocksize * omp_get_max_threads();
+				uint64_t const superblocksize = subblocksize * numthreads;
 				uint64_t const numsubblocks = (superblocksize + (subblocksize-1)) / subblocksize;
 				#else
 				uint64_t const subblocksize = 64*1024;

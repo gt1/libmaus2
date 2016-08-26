@@ -137,7 +137,12 @@ namespace libmaus2
                                 return DequeContext::unique_ptr_type(new DequeContext(0,fill));
                         }
 
-                        ::libmaus2::autoarray::AutoArray< DequeContext::unique_ptr_type > getContextList(uint64_t numcontexts, uint64_t const numthreads) const
+                        ::libmaus2::autoarray::AutoArray< DequeContext::unique_ptr_type > getContextList(uint64_t numcontexts,
+                        	uint64_t const
+	                                #if defined(_OPENMP)
+                        		numthreads
+                        		#endif
+			) const
                         {
                                 uint64_t const intervalsize = (n+numcontexts-1)/numcontexts;
                                 ::libmaus2::autoarray::AutoArray< DequeContext::unique_ptr_type > contexts(numcontexts);

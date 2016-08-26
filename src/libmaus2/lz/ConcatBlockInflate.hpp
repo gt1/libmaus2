@@ -79,7 +79,11 @@ namespace libmaus2
 			}
 
 			template<typename filename_container_type>
-			static std::vector<uint64_t> getSplitPoints(filename_container_type const & V, uint64_t const segments, uint64_t const numthreads)
+			static std::vector<uint64_t> getSplitPoints(filename_container_type const & V, uint64_t const segments, uint64_t const
+				#if defined(_OPENMP)
+				numthreads
+				#endif
+			)
 			{
 				std::vector<std::string> const VV(V.begin(),V.end());
 				uint64_t const n = BlockInflate::computeSize(VV);

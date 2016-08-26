@@ -59,7 +59,12 @@ namespace libmaus2
 				return sizeof(edge_target_type) + sizeof(edge_weight_type);
 			}
 
-			EdgeListTemplate(uint64_t const redgelow, uint64_t const redgehigh, uint64_t const rmaxedges, uint64_t const numthreads)
+			EdgeListTemplate(uint64_t const redgelow, uint64_t const redgehigh, uint64_t const rmaxedges,
+				uint64_t const
+					#if defined(_OPENMP)
+					numthreads
+					#endif
+			)
 			: edgelow(redgelow), edgehigh(redgehigh), maxedges(rmaxedges),
 			  edges( (edgehigh-edgelow)*maxedges, false ),
 			  weights( (edgehigh-edgelow)*maxedges, false )

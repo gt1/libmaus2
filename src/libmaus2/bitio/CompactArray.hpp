@@ -201,7 +201,10 @@ namespace libmaus2
 			static unique_ptr_type concat(
 				std::vector < std::string > const & filenames,
 				uint64_t const li, uint64_t const ri,
-				uint64_t const numthreads
+				uint64_t const
+					#if defined(_OPENMP)
+					numthreads
+					#endif
 			)
 			{
 				unique_ptr_type ptr;
@@ -438,7 +441,11 @@ namespace libmaus2
 
 			static unique_ptr_type concatOddEven(std::vector<std::string> const & filenames,
 				uint64_t const li, uint64_t const ri,
-				uint64_t const numthreads)
+				uint64_t const
+					#if defined(_OPENMP)
+					numthreads
+					#endif
+			)
 			{
 				unique_ptr_type ptr;
 

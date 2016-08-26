@@ -609,6 +609,11 @@ bool const libmaus2::sorting::PairFileSorting::delaydelete = getPairFileSortingD
 
 #include <libmaus2/lz/BgzfInflateBase.hpp>
 
+static int getDefaultCheckCrc()
+{
+	return 1;
+}
+
 static bool getCheckCrc()
 {
 	char const * envstr = getenv("LIBMAUS2_LZ_BGZFINFLATEBASE_CHECKCRC");
@@ -625,11 +630,11 @@ static bool getCheckCrc()
 			return v;
 		}
 		else
-			return 0;
+			return getDefaultCheckCrc();
 	}
 	else
 	{
-		return false;
+		return getDefaultCheckCrc();
 	}
 }
 

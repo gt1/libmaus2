@@ -1373,7 +1373,10 @@ namespace libmaus2
 					std::vector< ::libmaus2::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > const & fraginfo,
 					libmaus2::parallel::PosixSpinLock & globallock,
 					size_t const cachesize, // = 16*1024*1024
-					uint64_t const numthreads
+					uint64_t const
+						#if defined(_OPENMP)
+						numthreads
+						#endif
 				)
 				{
 					#if defined(_OPENMP)
@@ -1519,7 +1522,10 @@ namespace libmaus2
 					std::vector< ::libmaus2::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > const & pairinfo,
 					libmaus2::parallel::PosixSpinLock & globallock,
 					size_t const cachesize, // = 16*1024*1024
-					uint64_t const numthreads
+					uint64_t const
+						#if defined(_OPENMP)
+						numthreads
+						#endif
 				)
 				{
 					#if defined(_OPENMP)

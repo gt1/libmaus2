@@ -294,7 +294,10 @@ namespace libmaus2
 				::libmaus2::util::shared_ptr< ::libmaus2::huffman::HuffmanTreeNode >::type rsroot,
 				uint64_t const numnodes,
 				std::vector<uint64_t> const & rnodepos,
-				uint64_t const numthreads
+				uint64_t const
+					#if defined(_OPENMP)
+					numthreads
+					#endif
 			)
 			: n(rn), sroot(rsroot), dicts(numnodes), root(0), enctable(sroot.get()), maxdepth(0), nodepos(rnodepos)
 			{

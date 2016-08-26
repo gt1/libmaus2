@@ -56,7 +56,7 @@ namespace libmaus2
 			static bool isGzip(std::string const & fn)
 			{
 				libmaus2::aio::InputStreamInstance ISI(fn);
-				return isGzip(fn);
+				return isGzip(ISI);
 			}
 		};
 	}

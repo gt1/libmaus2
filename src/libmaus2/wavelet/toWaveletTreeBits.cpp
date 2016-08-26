@@ -211,7 +211,12 @@ namespace libmaus2
 			}
 		};
 
-		::libmaus2::autoarray::AutoArray<uint64_t> toWaveletTreeBitsParallel(::libmaus2::bitio::CompactArray * C, bool const verbose, uint64_t const numthreads)
+		::libmaus2::autoarray::AutoArray<uint64_t> toWaveletTreeBitsParallel(
+			::libmaus2::bitio::CompactArray * C, bool const verbose, uint64_t const
+				#if defined(_OPENMP)
+				numthreads
+				#endif
+		)
 		{
 			uint64_t const pn = ((C->n + 63) / 64)*64;
 			::libmaus2::autoarray::AutoArray<uint64_t> B( pn/64 , false );
