@@ -809,7 +809,11 @@ namespace libmaus2
 
 
 
-                        static std::vector<FastInterval> parallelIndex(std::vector<std::string> const & filenames, uint64_t const fracs, uint64_t const numthreads)
+			static std::vector<FastInterval> parallelIndex(std::vector<std::string> const & filenames, uint64_t const fracs, uint64_t const
+				#if defined(_OPENMP)
+				numthreads
+				#endif
+			)
                         {
                                 uint64_t const flen = ::libmaus2::util::GetFileSize::getFileSize(filenames);
                                 uint64_t const fracsize = (flen+fracs-1)/fracs;
