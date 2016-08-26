@@ -4181,7 +4181,7 @@ namespace libmaus2
 					int32_t const op = cigopin[i].first;
 					int32_t const len = cigopin[i].second;
 
-					for ( uint64_t j = 0; j < len; ++j )
+					for ( int64_t j = 0; j < len; ++j )
 						Vcigopout.push_back(static_cast<libmaus2::bambam::BamFlagBase::bam_cigar_ops>(op));
 					readpos += calmd_readadvance[op] * cigopin[i].second;
 				}
@@ -4197,7 +4197,7 @@ namespace libmaus2
 					{
 						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CMATCH:
 						{
-							for ( uint64_t j = 0; j < len; ++j )
+							for ( int64_t j = 0; j < len; ++j )
 							{
 								char const c_ref = *(itref);
 								char const c_read = *(it_r);
@@ -4217,7 +4217,7 @@ namespace libmaus2
 						}
 						default:
 						{
-							for ( uint64_t j = 0; j < len; ++j )
+							for ( int64_t j = 0; j < len; ++j )
 								Vcigopout.push_back(static_cast<libmaus2::bambam::BamFlagBase::bam_cigar_ops>(op));
 
 							refpos += calmd_refadvance[op] * len;
