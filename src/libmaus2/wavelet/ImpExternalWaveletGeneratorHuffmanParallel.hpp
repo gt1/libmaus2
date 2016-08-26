@@ -230,7 +230,11 @@ namespace libmaus2
 			}
 
 			template<typename ostream_type>
-			uint64_t createFinalStreamTemplate(ostream_type & out, uint64_t const numthreads)
+			uint64_t createFinalStreamTemplate(ostream_type & out, uint64_t const
+				#if defined(_OPENMP)
+				numthreads
+				#endif
+			)
 			{
 				for ( uint64_t i = 0; i < B.size(); ++i )
 					B[i]->flush(i+1==B.size());

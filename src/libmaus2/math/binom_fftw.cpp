@@ -50,7 +50,22 @@ struct FFTWMemBlock
 };
 #endif
 
-std::vector < libmaus2::math::GmpFloat > libmaus2::math::Binom::multiDimBinomialFFT(double const avg, double const coverage, uint64_t const d)
+std::vector < libmaus2::math::GmpFloat > libmaus2::math::Binom::multiDimBinomialFFT(
+	double const
+		#if defined(LIBMAUS2_HAVE_FFTW)
+		avg
+		#endif
+		,
+	double const
+		#if defined(LIBMAUS2_HAVE_FFTW)
+		coverage
+		#endif
+		,
+	uint64_t const
+		#if defined(LIBMAUS2_HAVE_FFTW)
+		d
+		#endif
+)
 {
 	#if defined(LIBMAUS2_HAVE_FFTW)
 	std::vector < libmaus2::math::GmpFloat > const BV = libmaus2::math::Binom::binomVector(avg,coverage,512);

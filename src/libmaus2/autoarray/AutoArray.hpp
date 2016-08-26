@@ -670,7 +670,11 @@ namespace libmaus2
 			 * return inverse array, if this is a permutation (undefined otherwise)
 			 * @return inverse array, if this is a permutation
 			 **/
-			this_type inverse(uint64_t const numthreads = 1) const
+			this_type inverse(uint64_t const
+				#if defined(_OPENMP)
+				numthreads = 1
+				#endif
+			) const
 			{
 				this_type I(n,false);
 				#if defined(_OPENMP)

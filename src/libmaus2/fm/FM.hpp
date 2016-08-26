@@ -70,13 +70,18 @@ namespace libmaus2
                                 lfrev.reset(0);
                         }
 
-                        bitio::CompactArray::unique_ptr_type toTextCompact(uint64_t const numthreads = 1) const
+                        bitio::CompactArray::unique_ptr_type toTextCompact(
+                        	uint64_t const
+	                                #if defined(_OPENMP)
+                        		numthreads
+                        		#endif
+                        		= 1
+			) const
                         {
                                 bitio::CompactArray::unique_ptr_type text ( new bitio::CompactArray(lf->getN(),lf->getB()) );
 
-                                uint64_t const minoffset = text->minparoffset();
-
                                 #if defined(_OPENMP)
+                                uint64_t const minoffset = text->minparoffset();
                                 uint64_t const blocksize = std::max ( minoffset , static_cast<uint64_t>(1024*1024) );
                                 #else
                                 uint64_t const blocksize = lf->getN();
@@ -394,7 +399,13 @@ namespace libmaus2
                         /**
                          * check the LCP array (quadratic time)
                          **/
-                        void checkLCP(uint64_t const numthreads = 1)
+                        void checkLCP(
+                        	uint64_t const
+	                        	#if defined(_OPENMP)
+                        		numthreads
+                        		#endif
+                        		= 1
+			)
                         {
                         	#if defined(_OPENMP)
                         	#pragma omp parallel for num_threads(numthreads)

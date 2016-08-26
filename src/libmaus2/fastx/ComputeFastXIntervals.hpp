@@ -34,7 +34,10 @@ namespace libmaus2
 				std::vector<std::string> const & filenames,
 				uint64_t const indexstep, /* = 512ull*1024ull, */
 				std::ostream & logfile,
-				uint64_t const numthreads
+				uint64_t const
+					#if defined(_OPENMP)
+					numthreads
+					#endif
 			)
 			{
 				#if defined(_OPENMP)

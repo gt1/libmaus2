@@ -809,7 +809,11 @@ namespace libmaus2
 
 
 
-                        static std::vector<FastInterval> parallelIndex(std::vector<std::string> const & filenames, uint64_t const fracs, uint64_t const numthreads)
+			static std::vector<FastInterval> parallelIndex(std::vector<std::string> const & filenames, uint64_t const fracs, uint64_t const
+				#if defined(_OPENMP)
+				numthreads
+				#endif
+			)
                         {
                                 uint64_t const flen = ::libmaus2::util::GetFileSize::getFileSize(filenames);
                                 uint64_t const fracsize = (flen+fracs-1)/fracs;
@@ -861,7 +865,14 @@ namespace libmaus2
 			        return UNIQUE_PTR_MOVE(Phist);
 			}
 
-			static ::libmaus2::util::Histogram::unique_ptr_type getHistogram(std::vector<std::string> const & filenames, std::vector<FastInterval> const & rinterval, uint64_t const numthreads)
+			static ::libmaus2::util::Histogram::unique_ptr_type getHistogram(
+				std::vector<std::string> const & filenames,
+				std::vector<FastInterval> const & rinterval,
+				uint64_t const
+	                                #if defined(_OPENMP)
+					numthreads
+					#endif
+			)
 			{
 			        ::libmaus2::util::Histogram::unique_ptr_type Phist(new ::libmaus2::util::Histogram());
 			        ::libmaus2::util::Histogram & hist = *Phist;

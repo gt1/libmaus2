@@ -291,7 +291,7 @@ namespace libmaus2
                         : Psemaphore(new libmaus2::parallel::PosixSemaphore),
                           semaphore(*Psemaphore),
                           lock(),
-                          numwait(0), Q(), terminated(0), terminatedthreshold(rterminatedthreshold)
+                          numwait(0), Q(comp), terminated(0), terminatedthreshold(rterminatedthreshold)
                         {
 
                         }

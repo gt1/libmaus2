@@ -359,7 +359,13 @@ namespace libmaus2
 				addFile(std::vector<std::string>(1,fn));
 			}
 
-			std::vector<std::string> merge(std::string const & outputfilenameprefix, uint64_t const numthreads)
+			std::vector<std::string> merge(
+				std::string const & outputfilenameprefix,
+				uint64_t const
+					#if defined(_OPENMP)
+					numthreads
+					#endif
+			)
 			{
 				// set up merge queue Q
 				std::priority_queue<libmaus2::gamma::SparseGammaGapMultiFile> Q;

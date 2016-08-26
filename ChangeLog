@@ -1,3 +1,9 @@
+libmaus2 (2.0.259-1) unstable; urgency=medium
+
+  * fix unitialised field bug in WaveletTree class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 26 Aug 2016 15:53:45 +0200
+
 libmaus2 (2.0.258-1) unstable; urgency=medium
 
   * make sure call decompressBlock in BgzfInflateBlock even if uncompressed data size is zero to trigger optional check for correct checksum

@@ -81,7 +81,12 @@ namespace libmaus2
 				return (n+blocksize-1) / blocksize;
 			}
 
-			double getAvgBlockBitLength(uint64_t const numthreads) const
+			double getAvgBlockBitLength(
+				uint64_t const
+					#if defined(_OPENMP)
+					numthreads
+					#endif
+			) const
 			{
 				uint64_t const nb = getNumBlocks();
 				libmaus2::parallel::SynchronousCounter<uint64_t> cnt;

@@ -545,7 +545,13 @@ namespace libmaus2
 				return UNIQUE_PTR_MOVE(ptr);
 			}
 
-			IndexDecoderDataArray(std::vector<std::string> const & filenames, uint64_t const numthreads)
+			IndexDecoderDataArray(
+				std::vector<std::string> const & filenames,
+				uint64_t const
+					#if defined(_OPENMP)
+					numthreads
+					#endif
+			)
 			{
 				libmaus2::autoarray::AutoArray<uint8_t> Vnonempty(filenames.size(),false);
 				std::vector<IndexDecoderData> LVIDD(filenames.size());

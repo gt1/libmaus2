@@ -235,7 +235,11 @@ namespace libmaus2
 				rsize += sizeof(symsperblock);
 			}
 
-			void checkSelect(uint64_t const numthreads) const
+			void checkSelect(uint64_t const
+				#if defined(_OPENMP)
+				numthreads
+				#endif
+			) const
 			{
 				std::cerr << "checking next1na...";
 				#if defined(_OPENMP)

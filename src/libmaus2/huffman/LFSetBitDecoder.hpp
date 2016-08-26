@@ -247,7 +247,13 @@ namespace libmaus2
 				return libmaus2::gamma::GammaPDIndexDecoderBase::getNumValues(fn);
 			}
 
-			static uint64_t getLength(std::vector<std::string> const & Vfn, uint64_t const numthreads)
+			static uint64_t getLength(
+				std::vector<std::string> const & Vfn,
+				uint64_t const
+					#if defined(_OPENMP)
+					numthreads
+					#endif
+			)
 			{
 				uint64_t volatile s = 0;
 				libmaus2::parallel::PosixSpinLock lock;

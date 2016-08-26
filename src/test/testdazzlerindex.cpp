@@ -25,7 +25,7 @@ int main(int argc, char * argv[])
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
 
 		std::string const lasfn = arginfo.getUnparsedRestArg(0);
-		int64_t const tspace = libmaus2::dazzler::align::AlignmentFile::getTSpace(lasfn);
+		// int64_t const tspace = libmaus2::dazzler::align::AlignmentFile::getTSpace(lasfn);
 
 		int64_t first_a_read = -1;
 		{
@@ -42,10 +42,22 @@ int main(int argc, char * argv[])
 			libmaus2::aio::InputStreamInstance indexISI(indexname);
 
 			uint64_t off = 0;
-			uint64_t const omax = libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(indexISI,off);
-			uint64_t const ttot = libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(indexISI,off);
-			uint64_t const smax = libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(indexISI,off);
-			uint64_t const tmax = libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(indexISI,off);
+			#if 0
+			uint64_t const omax =
+			#endif
+				libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(indexISI,off);
+			#if 0
+			uint64_t const ttot =
+			#endif
+				libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(indexISI,off);
+			#if 0
+			uint64_t const smax =
+			#endif
+				libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(indexISI,off);
+			#if 0
+			uint64_t const tmax =
+			#endif
+				libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(indexISI,off);
 			std::map<uint64_t,uint64_t> imap;
 			uint64_t z = first_a_read;
 			while ( indexISI.peek() != std::istream::traits_type::eof() )

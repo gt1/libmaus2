@@ -818,7 +818,11 @@ namespace libmaus2
 						// the gap array
 						gap_array & G,
 						// number of threads
-						uint64_t const numthreads,
+						uint64_t const
+							#if defined(_OPENMP)
+							numthreads
+							#endif
+						,
 						// log stream
 						std::ostream * logstr
 				)

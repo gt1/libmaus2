@@ -73,7 +73,10 @@ uint64_t libmaus2::util::Concat::concatParallel(
 	std::vector < std::string > const & files,
 	std::string const & outputfilename,
 	bool const rem,
-	uint64_t const numthreads
+	uint64_t const
+		#if defined(_OPENMP)
+		numthreads
+		#endif
 )
 {
 	::libmaus2::autoarray::AutoArray<uint64_t> P(files.size()+1);

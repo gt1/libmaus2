@@ -1031,7 +1031,7 @@ namespace libmaus2
 
 						// std::cerr << algnres << " " << n << " " << m  << std::endl;
 
-						if ( algnres.aepos - algnres.abpos >= minlength )
+						if ( static_cast<int64_t>(algnres.aepos - algnres.abpos) >= static_cast<int64_t>(minlength) )
 						{
 							std::pair<int64_t,int64_t> DB = tracecontainer.getDiagonalBand(apos,bpos);
 							DB.first >>= bucketlog;
