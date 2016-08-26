@@ -398,6 +398,7 @@ namespace libmaus2
 							case 0: r += symcnt(w,0x0000000000000000ULL); break;
 							case 1: r += symcnt(w,0x5555555555555555ULL); break;
 							case 2: r += symcnt(w,0xAAAAAAAAAAAAAAAAULL); break;
+							default: break;
 						}
 					}
 
@@ -411,6 +412,7 @@ namespace libmaus2
 							case 0: r += symcnt(w,0x0000000000000000ULL,omask); break;
 							case 1: r += symcnt(w,0x5555555555555555ULL,omask); break;
 							case 2: r += symcnt(w,0xAAAAAAAAAAAAAAAAULL,omask); break;
+							default: break;
 						}
 					}
 
@@ -681,7 +683,7 @@ namespace libmaus2
 
 						if ( IP.size != P.first.size )
 						{
-							if ( static_cast<int64_t>(P.second)-(ip+1) >= minlen )
+							if ( static_cast<int64_t>(P.second)-(ip+1) >= static_cast<int64_t>(minlen) )
 								Vmem.push_back(DNARankMEM(P.first,ip+1,P.second));
 						}
 						if ( IP.size >= minfreq )
@@ -696,7 +698,7 @@ namespace libmaus2
 					std::pair<libmaus2::rank::DNARankBiDirRange,uint64_t> const & P = Vcur[i];
 					if ( P.first.size >= minfreq )
 					{
-						if ( static_cast<int64_t>(P.second)-(ip+1) >= minlen )
+						if ( static_cast<int64_t>(P.second)-(ip+1) >= static_cast<int64_t>(minlen) )
 							Vmem.push_back(DNARankMEM(P.first,ip+1,P.second));
 					}
 				}
