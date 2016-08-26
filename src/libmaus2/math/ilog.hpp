@@ -26,7 +26,7 @@ namespace libmaus2
 {
 	namespace math
 	{
-		static unsigned int ilog(uint64_t m)
+		static inline unsigned int ilog(uint64_t m)
 		{
 			unsigned int l = 0;
 
