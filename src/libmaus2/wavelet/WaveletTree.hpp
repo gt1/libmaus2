@@ -1612,8 +1612,8 @@ namespace libmaus2
 				symbol_type sym;
 
 				EnumerateRangeSymbolsStackElement() : NodePortion(), visit(0), sym(0) {}
-				EnumerateRangeSymbolsStackElement(NodePortion const & portion) : NodePortion(portion), sym(0) {}
-				EnumerateRangeSymbolsStackElement(NodePortion const & portion, symbol_type const rsym) : NodePortion(portion), sym(rsym) {}
+				EnumerateRangeSymbolsStackElement(NodePortion const & portion) : NodePortion(portion), sym(0), visit(0) {}
+				EnumerateRangeSymbolsStackElement(NodePortion const & portion, symbol_type const rsym) : NodePortion(portion), sym(rsym), visit(0) {}
 
 				unsigned int depth() const
 				{
