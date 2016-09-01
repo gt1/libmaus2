@@ -450,7 +450,14 @@ namespace libmaus2
 
 					uint64_t const maxerr =
 						std::max(
-							(std::max(refpatch.size(),query.size())-std::min(refpatch.size(),query.size()))
+							static_cast<uint64_t>(
+								std::max(
+									refpatch.size(),query.size()
+								)-
+								std::min(
+									refpatch.size(),query.size()
+								)
+							)
 							,
 							static_cast<uint64_t>(std::floor(m * errrate+0.5))
 						);

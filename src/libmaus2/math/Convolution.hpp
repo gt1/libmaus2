@@ -46,7 +46,7 @@ namespace libmaus2
 					// i-j < B.size() -> i-j+1 <= B.size() -> i-B.size()+1 <= j -> j >= i-B.size()+1
 
 					uint64_t const start = (i >= B.size()-1) ? (i-B.size()+1) : 0;
-					uint64_t const end = std::min(i+1,A.size());
+					uint64_t const end = std::min(i+1,static_cast<uint64_t>(A.size()));
 
 					for ( uint64_t j = start; j < end; ++j )
 					{
