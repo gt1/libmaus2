@@ -1,3 +1,11 @@
+libmaus2 (2.0.261-1) unstable; urgency=medium
+
+  * do not include parallel/algorithm in PairFileSorting as recent versions of clang choke on
+  * Added a seperate disconnect method to circumvent the iRODS 4.19 crash (patch by Andrew Whitwham)
+  * add size change functionality in BitVector class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Sat, 17 Sep 2016 20:16:09 +0200
+
 libmaus2 (2.0.260-1) unstable; urgency=medium
 
   * add include directive required for free() in Demangle
