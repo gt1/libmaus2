@@ -61,8 +61,11 @@ namespace libmaus2
 				IRodsFileBase::unique_ptr_type tptr(openFile(irodsSystem,filename));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
+
 			IRodsSystem();
 			~IRodsSystem();
+
+    	    	    	void disconnect(void);
 
 			#if defined(LIBMAUS2_HAVE_IRODS)
 			virtual rcComm_t * getComm()

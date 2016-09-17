@@ -24,7 +24,7 @@
 #include <string>
 #include <queue>
 
-#if defined(_OPENMP)
+#if 0 // defined(_OPENMP)
 #include <parallel/algorithm>
 #endif
 

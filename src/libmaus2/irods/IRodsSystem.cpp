@@ -236,6 +236,17 @@ std::string libmaus2::irods::IRodsSystem::parseIRodsURI(std::string const & uri,
 }
 #endif
 
+void libmaus2::irods::IRodsSystem::disconnect(void) {
+	#if defined(LIBMAUS2_HAVE_IRODS)
+	// close all connections
+	for ( std::map<std::string, rcComm_t *>::iterator itr = comms.begin(); itr != comms.end(); ++itr )
+	{
+	    	rcDisconnect(itr->second);
+	}
+
+	comms.clear();
+	#endif
+}
 
 
 libmaus2::irods::IRodsSystem::IRodsSystem()
@@ -275,10 +286,6 @@ libmaus2::irods::IRodsSystem::~IRodsSystem()
 	if ( prevpipesighandler != SIG_DFL )
 		signal(SIGPIPE, prevpipesighandler);
 
-	// close connection
-	for ( std::map<std::string, rcComm_t *>::iterator itr = comms.begin(); itr != comms.end(); ++itr )
-	{
-	    	rcDisconnect(itr->second);
-	}
+	disconnect();
 	#endif
 }

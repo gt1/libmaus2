@@ -45,7 +45,7 @@ namespace libmaus2
 			static unsigned int const bitsperword = 8*sizeof(data_type);
 			static unsigned int const bitsperwordshift = ::libmaus2::math::MetaLog2<bitsperword>::log;
 
-			uint64_t const n;
+			uint64_t n;
 			::libmaus2::autoarray::AutoArray<_data_type> A;
 
 			typedef ::libmaus2::util::AssignmentProxy<this_type,bool> BitVectorProxy;
@@ -79,7 +79,27 @@ namespace libmaus2
 			{
 
 			}
-			BitVectorTemplate(uint64_t const rn, uint64_t const pad = 0) : n(rn), A( (n+bitsperword-1)/bitsperword + pad ) {}
+
+			static uint64_t getW(uint64_t const rn, uint64_t const pad = 0)
+			{
+				uint64_t const w = (rn+bitsperword-1)/bitsperword + pad;
+				return w;
+			}
+
+			BitVectorTemplate(uint64_t const rn, uint64_t const pad = 0) : n(rn), A( getW(rn,pad) ) {}
+
+			void setup(uint64_t const rn, uint64_t const pad = 0)
+			{
+				n = rn;
+				A.release();
+				A = ::libmaus2::autoarray::AutoArray<_data_type>(getW(rn,pad));
+			}
+
+			void ensureSize(uint64_t const rn, uint64_t const pad = 0)
+			{
+				if ( A.size() < getW(rn,pad) )
+					setup(rn,pad);
+			}
 
 			virtual ~BitVectorTemplate() {}
 
