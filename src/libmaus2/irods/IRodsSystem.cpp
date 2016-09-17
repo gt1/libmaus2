@@ -243,11 +243,11 @@ void libmaus2::irods::IRodsSystem::disconnect(void) {
 	{
 	    	rcDisconnect(itr->second);
 	}
-	
+
 	comms.clear();
 	#endif
 }
-    
+
 
 libmaus2::irods::IRodsSystem::IRodsSystem()
   #if defined(LIBMAUS2_HAVE_IRODS)
@@ -285,7 +285,7 @@ libmaus2::irods::IRodsSystem::~IRodsSystem()
 	#if defined(LIBMAUS2_HAVE_IRODS)
 	if ( prevpipesighandler != SIG_DFL )
 		signal(SIGPIPE, prevpipesighandler);
-		
+
 	disconnect();
 	#endif
 }
