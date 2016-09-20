@@ -63,7 +63,7 @@ namespace libmaus2
 				}
 			}
 
-			// reorder by index bit order reversal
+			// reorder by index bit order reversal in place. Takes time O(n log^2 n)
 			template<typename iterator>
 			static void bitReverseReorder(iterator A, uint64_t const n)
 			{
