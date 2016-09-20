@@ -1,3 +1,9 @@
+libmaus2 (2.0.262-1) unstable; urgency=medium
+
+  * add simple FFT function not relying on fftw library
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 20 Sep 2016 08:34:19 +0200
+
 libmaus2 (2.0.261-1) unstable; urgency=medium
 
   * do not include parallel/algorithm in PairFileSorting as recent versions of clang choke on

@@ -407,6 +407,7 @@ namespace libmaus2
 
 			/**
 			 * same as binomVector(p,coverage*d,.) computed by means of convolution of d instances of binomVector(p,coverage,.) using FFT
+			 * this requires the fftw library
 			 **/
 			static std::vector < libmaus2::math::GmpFloat > multiDimBinomialFFT(double const avg, double const coverage, uint64_t const d);
 		};
