@@ -80,6 +80,11 @@ struct Transform
 	{
 	}
 
+	~Transform()
+	{
+		fftw_destroy_plan(plan);
+	}
+
 	void reset()
 	{
 		CCin.erase();
@@ -216,5 +221,14 @@ std::vector<double> libmaus2::math::Convolution::convolutionFFTW(
 	lme.getStream() << "[E] libmaus2::math::Convolution::convolutionFFTW: libmaus2 is built without fftw support" << std::endl;
 	lme.finish();
 	throw lme;
+	#endif
+}
+
+void libmaus2::math::Convolution::cleanup()
+{
+	#if defined(LIBMAUS2_HAVE_FFTW)
+	libmaus2::parallel::ScopePosixMutex slock(planlock);
+	forwardPlans.clear();
+	backwardPlans.clear();
 	#endif
 }
