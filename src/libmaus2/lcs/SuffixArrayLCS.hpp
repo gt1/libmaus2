@@ -103,6 +103,33 @@ namespace libmaus2
 				) : maxlcp(rmaxlcp), maxpos_a(rmaxpos_a), maxpos_b(rmaxpos_b) {}
 			};
 
+			static LCSResult lcsmin(std::string a, std::string b)
+			{
+				std::vector<char> V;
+				for ( uint64_t i = 0; i < a.size(); ++i )
+					V.push_back(a[i]);
+				for ( uint64_t i = 0; i < b.size(); ++i )
+					V.push_back(b[i]);
+				std::sort(V.begin(),V.end());
+				V.resize(::std::unique(V.begin(),V.end())-V.begin());
+
+				uint64_t const mapsize = static_cast<uint64_t>(std::numeric_limits<unsigned char>::max()) + 1;
+
+				std::vector < unsigned char > M(mapsize,0);
+
+				for ( uint64_t i = 0; i < V.size(); ++i )
+					M [ static_cast<unsigned char>(V[i]) ] = i;
+
+				for ( uint64_t i = 0; i < a.size(); ++i )
+					a[i] = static_cast<char>(M [ static_cast<unsigned char>(a[i]) ]);
+				for ( uint64_t i = 0; i < b.size(); ++i )
+					b[i] = static_cast<char>(M [ static_cast<unsigned char>(b[i]) ]);
+
+				assert ( V.size() <= 254 );
+
+				return lcs<254>(a,b);
+			}
+
 			template<unsigned int alphabet_size>
 			static LCSResult lcs(std::string const & a, std::string const & b)
 			{
