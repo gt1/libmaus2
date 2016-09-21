@@ -142,6 +142,49 @@ namespace libmaus2
 				return p-A.begin();
 			}
 
+			static std::pair<step_type const *, step_type const *> getMaxMatch(step_type const * ta, step_type const * te)
+			{
+				step_type const * tc = ta;
+				std::pair<step_type const *, step_type const *> I(te,te);
+
+				while ( tc != te )
+				{
+					while ( tc != te && *tc != STEP_MATCH )
+						++tc;
+
+					step_type const * tx = tc;
+
+					while ( tx != te && *tx == STEP_MATCH )
+						++tx;
+
+					if ( tx-tc > I.second-I.first )
+					{
+						I.first = tc;
+						I.second = tx;
+					}
+
+					tc = tx;
+				}
+
+				return I;
+			}
+
+			std::pair<step_type const *, step_type const *> getMaxMatch() const
+			{
+				return getMaxMatch(ta,te);
+			}
+
+			static std::pair<uint64_t,uint64_t> getMaxMatchOffset(step_type const * ta, step_type const * te)
+			{
+				std::pair<step_type const *, step_type const *> P = getMaxMatch(ta,te);
+				return getStringLengthUsed(ta,P.first);
+			}
+
+			std::pair<uint64_t,uint64_t> getMaxMatchOffset() const
+			{
+				return getMaxMatchOffset(ta,te);
+			}
+
 			void reset()
 			{
 				ta = te = trace.end();
