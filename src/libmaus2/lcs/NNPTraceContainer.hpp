@@ -704,9 +704,9 @@ namespace libmaus2
 						out << linesep;
 					firstline = false;
 
-					out << indent << aline << "\n";
-					out << indent << bline << "\n";
-					out << indent << opline << "\n";
+					out << indent << aline.substr(0,o) << "\n";
+					out << indent << bline.substr(0,o) << "\n";
+					out << indent << opline.substr(0,o) << "\n";
 					o = 0;
 				}
 			}

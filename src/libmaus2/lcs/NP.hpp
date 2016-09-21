@@ -94,6 +94,35 @@ namespace libmaus2
 					return npTemplate<iter_a,iter_b,false>(a,ae,b,be);
 			}
 
+			template<typename iter_a, typename iter_b>
+			void splitAlign(
+				iter_a const a, iter_a const ae, iter_b const b, iter_b const be,
+				libmaus2::lcs::AlignmentTraceContainer & ATC,
+				bool const self_check = false
+			)
+			{
+				np(a,ae,b,be,self_check);
+
+				np(a,ae,b,be,self_check);
+				std::pair<uint64_t,uint64_t> const MM = getMaxMatchOffset();
+
+				iter_a as = a + MM.first;
+				iter_b bs = b + MM.second;
+
+				typedef ::std::reverse_iterator<iter_a> rev_iter_a;
+				typedef ::std::reverse_iterator<iter_a> rev_iter_b;
+
+				np(rev_iter_a(as),rev_iter_a(a),rev_iter_b(bs),rev_iter_b(b),self_check);
+
+				ATC.reset();
+				std::reverse(ta,te);
+				ATC.push(*this);
+
+				np(as,ae,bs,be,self_check);
+
+				ATC.push(*this);
+			}
+
 			template<typename iter_a, typename iter_b, bool self_check>
 			int npTemplate(iter_a const a, iter_a const ae, iter_b const b, iter_b const be)
 			{
