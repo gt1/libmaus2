@@ -60,6 +60,35 @@ namespace libmaus2
 				// return result
 				return next;
 			}
+
+			/**
+			 * algorithm nsv
+			 *
+			 * NEXT[r] : smallest rank s such that s>r and SUF[s]<SUF[r]
+			 **/
+			template<typename iterator>
+			static void nsv(iterator SUF, uint64_t const n, ::libmaus2::autoarray::AutoArray< typename std::iterator_traits<iterator>::value_type > & next)
+			{
+				// allocate result array
+				next.ensureSize(n);
+
+				// do not crash for n==0
+				if ( n )
+				{
+					// initialize next for rank n-1
+					next[n-1] = n;
+				}
+
+				// compute next for the remaining ranks
+				for ( int64_t r = static_cast<int64_t>(n)-2; r >= 0; --r )
+				{
+					uint64_t t = static_cast<uint64_t>(r) + 1;
+
+					while ( (t < n) && (SUF[t] >= SUF[r]) )
+						t = next[t];
+					next[r] = t;
+				}
+			}
 		};
 	}
 }
@@ -99,6 +128,32 @@ namespace libmaus2
 
 				// return result
 				return prev;
+			}
+
+			/**
+			 * algorithm PREVonly
+			 *
+			 * PREV[r] : largest rank s such that s<r and SUF[s]<SUF[r]
+			 **/
+			template<typename iterator>
+			static void psv(iterator SUF, uint64_t const n, ::libmaus2::autoarray::AutoArray< typename std::iterator_traits<iterator>::value_type > & prev)
+			{
+				// allocate result array
+				prev.ensureSize(n);
+
+				// do not crash for n==0
+				if ( n )
+					prev[0] = n;
+
+				for ( uint64_t r = 1; r < n; ++r )
+				{
+					int64_t t = r - 1;
+
+					while ( (t != n) && (SUF[t] >= SUF[r]) )
+						t = prev[t];
+
+					prev[r] = t;
+				}
 			}
 		};
 	}
