@@ -1,3 +1,10 @@
+libmaus2 (2.0.264-1) unstable; urgency=medium
+
+  * add output operator for RealTimeClock
+  * add psv/nsv functions variants not taking AutoArray object as argument
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 26 Sep 2016 09:44:40 +0200
+
 libmaus2 (2.0.263-1) unstable; urgency=medium
 
   * add lcsmin function in SuffixArrayLCS
