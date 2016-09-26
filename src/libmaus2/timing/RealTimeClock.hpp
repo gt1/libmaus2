@@ -230,6 +230,7 @@ namespace libmaus2
 			}
 		};
 #endif
+		std::ostream & operator<<(std::ostream & out, RealTimeClock const & rtc);
 	}
 }
 #endif
