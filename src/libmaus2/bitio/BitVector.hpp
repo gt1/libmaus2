@@ -120,6 +120,14 @@ namespace libmaus2
 			{
 				::libmaus2::bitio::putBit(A.get(),i,b);
 			}
+			void set(uint64_t const i)
+			{
+				::libmaus2::bitio::setBit(A.get(),i);
+			}
+			void erase(uint64_t const i)
+			{
+				::libmaus2::bitio::eraseBit(A.get(),i);
+			}
 			void setSync(uint64_t const i, bool b)
 			{
 				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
