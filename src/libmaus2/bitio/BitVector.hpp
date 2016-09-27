@@ -268,6 +268,14 @@ namespace libmaus2
 					assert ( lsbSlow(i) == lsb(i) );
 
 			}
+
+			uint64_t getRank() const
+			{
+				uint64_t c = 0;
+				for ( uint64_t i = 0; i < A.size(); ++i )
+					c += libmaus2::rank::PopCnt8<sizeof(long)>::popcnt8(A[i]);
+				return c;
+			}
 		};
 
 		typedef BitVectorTemplate<uint64_t> BitVector8;
