@@ -132,9 +132,14 @@ namespace libmaus2
 						/* open file and seek to block */
 						openNewFile();
 						/* decode block in question */
-						bool const blockok = decodeBlock();
+						#if ! defined(NDEBUG)
+						bool const blockok =
+						#endif
+							decodeBlock();
+						#if ! defined(NDEBUG)
 						assert ( blockok );
 						assert ( static_cast<int64_t>(offset) < (pe-pc) );
+						#endif
 
 						/* symbol offset of block (sum over elements of previous blocks) */
 						uint64_t symoffset = idda.data[FBO.fileptr].getValueCnt(FBO.blockptr);
@@ -184,8 +189,13 @@ namespace libmaus2
 						/* open file and seek to block */
 						openNewFile();
 						/* decode block in question */
-						bool const blockok = decodeBlock();
+						#if ! defined(NDEBUG)
+						bool const blockok =
+						#endif
+							decodeBlock();
+						#if ! defined(NDEBUG)
 						assert ( blockok );
+						#endif
 
 						/* key/symbol offset of block (sum over elements of previous blocks) */
 						uint64_t kvoffset = idda.data[FBO.fileptr].getKeyValueCnt(FBO.blockptr);

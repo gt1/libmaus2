@@ -47,8 +47,13 @@ namespace libmaus2
 				CIS.seekg(-8,std::ios::end);
 				libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(CIS,1);
 				uint64_t n = 0;
-				bool const ok = SGI.getNext(n);
+				#if ! defined(NDEBUG)
+				bool const ok =
+				#endif
+					SGI.getNext(n);
+				#if ! defined(NDEBUG)
 				assert ( ok );
+				#endif
 				return n;
 			}
 
@@ -106,8 +111,13 @@ namespace libmaus2
 						new libmaus2::aio::SynchronousGenericInput<uint64_t>(*istr,1)
 					);
 
-					bool const ok = nSGI->getNext(bitsleft);
+					#if ! defined(NDEBUG)
+					bool const ok =
+					#endif
+						nSGI->getNext(bitsleft);
+					#if ! defined(NDEBUG)
 					assert ( ok );
+					#endif
 
 					// number of complete words to skip
 					uint64_t wordskip = O.second / 64;
@@ -184,8 +194,13 @@ namespace libmaus2
 					shift = static_cast<int>(bitsinword)-1;
 					bitsleft -= bitsinword;
 
-					bool const ok = SGI->getNext(v);
+					#if ! defined(NDEBUG)
+					bool const ok =
+					#endif
+						SGI->getNext(v);
+					#if ! defined(NDEBUG)
 					assert ( ok );
+					#endif
 				}
 			}
 

@@ -503,9 +503,14 @@ void checkCaches()
 
 	for ( unsigned int i = 0; i < (1u<<16); ++i )
 	{
-		unsigned int const b = EC16.popcnt(i);
+		#if ! defined(NDEBUG)
+		unsigned int const b =
+		#endif
+			EC16.popcnt(i);
 		// std::cerr << i << "\t" << EC16.encode(i) << "\t" << static_cast<int>(EC16.max_n[b]) << "\t" << static_cast<int>(EC16.bits_n[b]) << std::endl;
+		#if ! defined(NDEBUG)
 		assert ( DC16.decode(EC16.encode(i),b) == i );
+		#endif
 	}
 
 	unsigned int const bb = 16;
@@ -1169,10 +1174,14 @@ void checkStreams64(unsigned int const n)
 	::libmaus2::autoarray::AutoArray<uint64_t> inbuf(totalwords,false);
 	memcpy(inbuf.get(),sostr.str().c_str(),totalwords*8);
 
+	#if ! defined(NDEBUG)
 	uint64_t p = 0;
+	#endif
 	for ( unsigned int i = 0; i < n; ++i )
 	{
+		#if ! defined(NDEBUG)
 		assert ( ::libmaus2::bitio::readBinary(inbuf.get(),p,B[i]) == V[i] );
+		#endif
 	}
 }
 
@@ -1366,7 +1375,9 @@ void checkRandomRnvGeneric()
 			{
 				for ( unsigned int k = 0; k < (1ull<<W.getB()); ++k )
 				{
+					#if ! defined(NDEBUG)
 					uint64_t val = W.rnvGeneric(i,j,k);
+					#endif
 
 					uint64_t valval = std::numeric_limits<uint64_t>::max();
 					for ( unsigned int z = i; z < j; ++z )
@@ -1374,7 +1385,9 @@ void checkRandomRnvGeneric()
 							valval = W[z];
 
 					// std::cerr << "k=" << k << " val=" << val << " valval=" << valval << std::endl;
+					#if ! defined(NDEBUG)
 					assert ( val == valval );
+					#endif
 				}
 			}
 	}
@@ -1721,9 +1734,14 @@ void testrl(std::vector<bool> const & B)
 
 	for ( uint64_t i = 0; i < B.size(); ++i )
 		RLBVG.putbit(B[i]);
-	uint64_t const size = RLBVG.flush();
 
+	#if ! defined(NDEBUG)
+	uint64_t const size =
+	#endif
+		RLBVG.flush();
+	#if ! defined(NDEBUG)
 	assert ( size == ostr.str().size() );
+	#endif
 	// std::cerr << "size=" << size << " str=" << ostr.str().size() << std::endl;
 
 	#if 1
@@ -1766,9 +1784,11 @@ void testrl(std::vector<bool> const & B)
 			// std::cerr << i << "\t" << B[i] << "\t" << RLBV.get(i) << "\t" << r1 << "\t" << RLBV.rank1(i) << std::endl;
 			assert ( B[i] == RLBVint[i] );
 			assert ( r1 == RLBVint.rank1(i) );
-			unsigned int sym;
 
+			#if ! defined(NDEBUG)
+			unsigned int sym;
 			assert ( r1 == RLBVint.inverseSelect1(i,sym) );
+			#endif
 		}
 	}
 }

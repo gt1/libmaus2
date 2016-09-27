@@ -66,8 +66,13 @@ namespace libmaus2
 					unsigned int const restbits = bits-bav;
 					stream_data_type code = (v >> ((CHAR_BIT*sizeof(stream_data_type))-bav)) << restbits;
 
-					bool const ok = stream.getNext(v);
+					#if ! defined(NDEBUG)
+					bool const ok =
+					#endif
+						stream.getNext(v);
+					#if ! defined(NDEBUG)
 					assert ( ok );
+					#endif
 					// v = stream.get();
 					bav = (CHAR_BIT*sizeof(stream_data_type));
 
@@ -113,8 +118,13 @@ namespace libmaus2
 					while ( true )
 					{
 						// read next word
-						bool const ok = stream.getNext(v);
+						#if ! defined(NDEBUG)
+						bool const ok =
+						#endif
+							stream.getNext(v);
+						#if ! defined(NDEBUG)
 						assert ( ok );
+						#endif
 						bav = (CHAR_BIT*sizeof(stream_data_type));
 
 						if ( expect_true ( base_type::isNonNull(v) ) )
@@ -155,8 +165,14 @@ namespace libmaus2
 					cl1 -= bav;
 
 					// read next word
-					bool const ok = stream.getNext(v);
+					#if ! defined(NDEBUG)
+					bool const ok =
+					#endif
+						stream.getNext(v);
+					#if ! defined(NDEBUG)
 					assert ( ok );
+					#endif
+
 					bav = (CHAR_BIT*sizeof(stream_data_type));
 
 					code = leftShift(code,cl1);

@@ -740,19 +740,25 @@ namespace libmaus2
 					}
 				}
 
+				#if ! defined(NDEBUG)
 				uint64_t minv;
+				#endif
 				uint64_t mini;
 				unsigned int minlevel;
 
 				if ( rminv < lminv )
 				{
+					#if ! defined(NDEBUG)
 					minv = rminv;
+					#endif
 					mini = rmini;
 					minlevel = rminlevel;
 				}
 				else
 				{
+					#if ! defined(NDEBUG)
 					minv = lminv;
+					#endif
 					mini = lmini;
 					minlevel = lminlevel;
 				}
@@ -771,6 +777,7 @@ namespace libmaus2
 						assert ( (*this)(minlevel,mini) == minv );
 				}
 
+				#if ! defined(NDEBUG)
 				if ( rmmtreedebug )
 				{
 					uint64_t dminv = std::numeric_limits<uint64_t>::max();
@@ -785,6 +792,7 @@ namespace libmaus2
 					assert ( minv == dminv );
 					assert ( mini == dmini );
 				}
+				#endif
 
 				return mini;
 			}

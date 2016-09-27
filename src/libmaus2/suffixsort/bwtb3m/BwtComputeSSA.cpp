@@ -187,8 +187,13 @@ struct PreIsaInput
 
 		if ( ok )
 		{
-			bool const ok2 = SGI.getNext(P.second);
+			#if !defined(NDEBUG)
+			bool const ok2 =
+			#endif
+				SGI.getNext(P.second);
+			#if !defined(NDEBUG)
 			assert ( ok2 );
+			#endif
 		}
 
 		return ok;

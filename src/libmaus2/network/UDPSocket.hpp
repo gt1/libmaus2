@@ -641,8 +641,13 @@ namespace libmaus2
 							for ( uint64_t j = 0; j < BON.fill(); ++j )
 							{
 								::libmaus2::autoarray::AutoArray<uint8_t> const dgram = parentsocket->readMessage<uint8_t>();
-								uint64_t const k = decodePackage<N>(dgram,A.get(),n,paybytes);
+								#if ! defined(NDEBUG)
+								uint64_t const k =
+								#endif
+									decodePackage<N>(dgram,A.get(),n,paybytes);
+								#if ! defined(NDEBUG)
 								assert ( k == BON.pa[j] );
+								#endif
 							}
 							BON.reset();
 						}
@@ -653,8 +658,13 @@ namespace libmaus2
 					for ( uint64_t j = 0; j < BON.fill(); ++j )
 					{
 						::libmaus2::autoarray::AutoArray<uint8_t> const dgram = parentsocket->readMessage<uint8_t>();
-						uint64_t const k = decodePackage<N>(dgram,A.get(),n,paybytes);
+						#if ! defined(NDEBUG)
+						uint64_t const k =
+						#endif
+							decodePackage<N>(dgram,A.get(),n,paybytes);
+						#if ! defined(NDEBUG)
 						assert ( k == BON.pa[j] );
+						#endif
 					}
 					BON.reset();
 				}

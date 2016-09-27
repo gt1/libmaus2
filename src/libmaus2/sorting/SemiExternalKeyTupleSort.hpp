@@ -200,8 +200,13 @@ namespace libmaus2
 					typename libmaus2::aio::SynchronousGenericInput<data_type>::unique_ptr_type TSin(new libmaus2::aio::SynchronousGenericInput<data_type>(conc,8*1024));
 					uint64_t snum = 1;
 					data_type pv;
-					bool const pvok = TSin->getNext(pv);
+					#if ! defined(NDEBUG)
+					bool const pvok =
+					#endif
+						TSin->getNext(pv);
+					#if !defined(NDEBUG)
 					assert ( pvok );
+					#endif
 
 					data_type tv;
 					while ( TSin->getNext(tv) && (key_projector_type::project(tv)>>nonradixbits)==(key_projector_type::project(pv)>>nonradixbits) )

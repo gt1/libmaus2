@@ -743,7 +743,9 @@ namespace libmaus2
 
 							::libmaus2::util::GetObject<uint8_t const *> G(A.begin()+T.bleft);
 
+							#if ! defined(NDEBUG)
 							uint64_t const prewords = tmpSGO->getWrittenWords();
+							#endif
 							uint64_t numsyms0 = 0;
 							uint64_t numsyms1 = 0;
 							unsigned int av = 64;
@@ -831,9 +833,13 @@ namespace libmaus2
 							}
 
 
+							#if ! defined(NDEBUG)
 							uint64_t const postwords = tmpSGO->getWrittenWords();
-							uint64_t const wordswritten = postwords-prewords;
+							uint64_t const wordswritten =
+								postwords-prewords;
+
 							assert ( wordswritten == nodewordcnt[lnodeid-1] );
+							#endif
 
 							if ( radixsort )
 							{
@@ -1277,7 +1283,10 @@ namespace libmaus2
 
 							::libmaus2::util::GetObject<uint8_t const *> G(A.begin()+T.bleft);
 
-							uint64_t const prewords = tmpSGO->getWrittenWords();
+							#if ! defined(NDEBUG)
+							uint64_t const prewords =
+							#endif
+								tmpSGO->getWrittenWords();
 							uint64_t numsyms0 = 0;
 							uint64_t numsyms1 = 0;
 							unsigned int av = 64;
@@ -1365,9 +1374,14 @@ namespace libmaus2
 							}
 
 
-							uint64_t const postwords = tmpSGO->getWrittenWords();
+							#if ! defined(NDEBUG)
+							uint64_t const postwords =
+							#endif
+								tmpSGO->getWrittenWords();
+							#if ! defined(NDEBUG)
 							uint64_t const wordswritten = postwords-prewords;
 							assert ( wordswritten == nodewordcnt[lnodeid-1] );
+							#endif
 
 							if ( radixsort )
 							{
@@ -1894,7 +1908,10 @@ namespace libmaus2
 
 							::libmaus2::util::GetObject<uint8_t const *> G(A.begin()+T.bleft);
 
-							uint64_t const prewords = tmpSGO->getWrittenWords();
+							#if ! defined(NDEBUG)
+							uint64_t const prewords =
+							#endif
+								tmpSGO->getWrittenWords();
 							uint64_t numsyms0 = 0;
 							uint64_t numsyms1 = 0;
 							unsigned int av = 64;
@@ -1981,10 +1998,14 @@ namespace libmaus2
 								tmpSGO->put(outword);
 							}
 
-
-							uint64_t const postwords = tmpSGO->getWrittenWords();
+							#if ! defined(NDEBUG)
+							uint64_t const postwords =
+							#endif
+								tmpSGO->getWrittenWords();
+							#if ! defined(NDEBUG)
 							uint64_t const wordswritten = postwords-prewords;
 							assert ( wordswritten == nodewordcnt[lnodeid-1] );
+							#endif
 
 							if ( radixsort )
 							{

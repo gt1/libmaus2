@@ -65,13 +65,23 @@ void testImpExternalWaveletGenerator()
 	std::vector<uint64_t> R(1ull << b,0);
 	for ( uint64_t i = 0; i < IWT.size(); ++i )
 	{
-		std::pair<uint64_t,uint64_t> IS = IWT.inverseSelect(i);
+		#if ! defined(NDEBUG)
+		std::pair<uint64_t,uint64_t> IS =
+		#endif
+			IWT.inverseSelect(i);
+		#if ! defined(NDEBUG)
 		assert ( IS.first == V[i] );
 		assert ( IS.second == R[V[i]] );
+		#endif
 
-		uint64_t const s = IWT.select(V[i],R[V[i]]);
+		#if ! defined(NDEBUG)
+		uint64_t const s =
+		#endif
+			IWT.select(V[i],R[V[i]]);
 		// std::cerr << "expect " << i << " got " << s << std::endl;
+		#if ! defined(NDEBUG)
 		assert ( s == i );
+		#endif
 
 		R [ V[i] ] ++;
 		assert ( IWT.rank(V[i],i) == R[V[i]] );
@@ -190,15 +200,28 @@ void testHuffmanWavelet()
 		for ( uint64_t j = 0; j < symar.size(); ++j )
 		{
 			int64_t const sym = symar[j];
-			uint64_t const ra = i ? IHWT.rank(sym,i-1) : 0;
-			uint64_t const rb = IHWT.rankm(sym,i);
+			#if ! defined(NDEBUG)
+			uint64_t const ra =
+			#endif
+				i ? IHWT.rank(sym,i-1) : 0;
+			#if ! defined(NDEBUG)
+			uint64_t const rb =
+			#endif
+				IHWT.rankm(sym,i);
+			#if ! defined(NDEBUG)
 			assert ( ra == rb );
+			#endif
 		}
 
 		for ( uint64_t j = 0; j < symar.size(); ++j )
 		{
-			int64_t const sym = symar[j];
+			#if ! defined(NDEBUG)
+			int64_t const sym =
+			#endif
+				symar[j];
+			#if ! defined(NDEBUG)
 			assert ( IHWT.rankm(sym,i) == rmap[sym] );
+			#endif
 		}
 
 		assert ( IHWT.inverseSelect(i).second == IHWT.rankm(text[i],i) );
@@ -210,8 +233,13 @@ void testHuffmanWavelet()
 
 		for ( uint64_t j = 0; j < symar.size(); ++j )
 		{
-			int64_t const sym = symar[j];
+			#if ! defined(NDEBUG)
+			int64_t const sym =
+			#endif
+				symar[j];
+			#if ! defined(NDEBUG)
 			assert ( IHWT.rank(sym,i) == rmap[sym] );
+			#endif
 		}
 
 		assert ( IHWT.inverseSelect(i).first == text[i] );

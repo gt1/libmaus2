@@ -259,7 +259,10 @@ namespace libmaus2
 					std::vector< std::pair<std::string,std::string> > KV = chr.getSortedKeyValuePairs();
 
 					std::string m5, ur;
-					bool havem5 = false, haveur = false;
+					bool havem5 = false;
+					#if ! defined(NDEBUG)
+					bool haveur = false;
+					#endif
 
 					for ( size_t i = 0; i < KV.size(); ++i )
 						if ( KV[i].first == "M5" )
@@ -269,13 +272,17 @@ namespace libmaus2
 						}
 						else if ( KV[i].first == "UR" )
 						{
+							#if ! defined(NDEBUG)
 							haveur = true;
+							#endif
 							ur = KV[i].second;
 						}
 
 					if ( ! havem5 )
 					{
+						#if ! defined(NDEBUG)
 						assert ( haveur );
+						#endif
 
 						if ( M.find(ur) == M.end() )
 						{
@@ -1093,7 +1100,13 @@ namespace libmaus2
 					name.resize(l_name-1);
 					for ( uint64_t j = 0 ; j < name.size(); ++j )
 						name[j] = getByte(in);
-					int c = getByte(in); assert ( c == 0 );
+					#if ! defined(NDEBUG)
+					int c =
+					#endif
+						getByte(in);
+					#if ! defined(NDEBUG)
+					assert ( c == 0 );
+					#endif
 					uint64_t l_ref = getLEInteger(in,4);
 					chromosomes.push_back( ::libmaus2::bambam::Chromosome(name,l_ref) );
 				}

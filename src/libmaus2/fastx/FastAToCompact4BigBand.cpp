@@ -205,7 +205,10 @@ int libmaus2::fastx::FastAToCompact4BigBand::fastaToCompact4BigBand(
 				libmaus2::util::NumberSerialisation::serialiseNumber(*metaOut,pattern.spattern.size());
 				lvec.push_back(pattern.spattern.size());
 				// number of N areas
-				uint64_t nroff = metaOut->tellp();
+				#if ! defined(NDEBUG)
+				uint64_t nroff =
+				#endif
+					metaOut->tellp();
 				libmaus2::util::NumberSerialisation::serialiseNumber(*metaOut,0);
 
 				// map symbols
@@ -313,7 +316,9 @@ int libmaus2::fastx::FastAToCompact4BigBand::fastaToCompact4BigBand(
 				//std::cerr << "[D] seekoff " << seekoff << std::endl;
 				metaOut->seekp(seekoff, std::ios::cur );
 				//std::cerr << "[D] after " << metaOut->tellp() << std::endl;
+				#if ! defined(NDEBUG)
 				assert ( static_cast<int64_t>(metaOut->tellp()) == static_cast<int64_t>(nroff) );
+				#endif
 				// write number of intervals replaced
 				libmaus2::util::NumberSerialisation::serialiseNumber(*metaOut,nr);
 				// skip interval bounds already written
@@ -362,8 +367,13 @@ int libmaus2::fastx::FastAToCompact4BigBand::fastaToCompact4BigBand(
 
 	libmaus2::aio::InputStreamInstance::unique_ptr_type metaISI(new libmaus2::aio::InputStreamInstance(metaoutputfilename));
 	// number of sequences
-	uint64_t const rnseq = libmaus2::util::NumberSerialisation::deserialiseNumber(*metaISI);
+	#if ! defined(NDEBUG)
+	uint64_t const rnseq =
+	#endif
+		libmaus2::util::NumberSerialisation::deserialiseNumber(*metaISI);
+	#if ! defined(NDEBUG)
 	assert ( nseq == rnseq );
+	#endif
 	for ( uint64_t i = 0; i < nseq; ++i )
 	{
 		// std::cerr << "[V] checking " << i << std::endl;

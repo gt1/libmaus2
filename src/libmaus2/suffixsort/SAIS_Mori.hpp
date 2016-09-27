@@ -604,11 +604,13 @@ namespace libmaus2
     template<typename string_type, typename sarray_type, typename index_type>
     int
     saisxx(string_type T, sarray_type SA, index_type n, index_type k = 256) {
+    #if ! defined(NDEBUG)
     typedef typename std::iterator_traits<sarray_type>::value_type savalue_type;
       assert((std::numeric_limits<index_type>::min)() < 0);
       assert((std::numeric_limits<savalue_type>::min)() < 0);
       assert((std::numeric_limits<savalue_type>::max)() == (std::numeric_limits<index_type>::max)());
       assert((std::numeric_limits<savalue_type>::min)() == (std::numeric_limits<index_type>::min)());
+    #endif
       if((n < 0) || (k <= 0)) { return -1; }
       if(n <= 1) { if(n == 1) { SA[0] = 0; } return 0; }
       return saisxx_private::suffixsort(T, SA, 0, n, k, false);
@@ -626,13 +628,15 @@ namespace libmaus2
     template<typename string_type, typename sarray_type, typename index_type>
     index_type
     saisxx_bwt(string_type T, string_type U, sarray_type A, index_type n, index_type k = 256) {
-    typedef typename std::iterator_traits<sarray_type>::value_type savalue_type;
-    typedef typename TextValueType<string_type>::value_type char_type;
       index_type i, pidx;
+    typedef typename TextValueType<string_type>::value_type char_type;
+    #if ! defined(NDEBUG)
+    typedef typename std::iterator_traits<sarray_type>::value_type savalue_type;
       assert((std::numeric_limits<index_type>::min)() < 0);
       assert((std::numeric_limits<savalue_type>::min)() < 0);
       assert((std::numeric_limits<savalue_type>::max)() == (std::numeric_limits<index_type>::max)());
       assert((std::numeric_limits<savalue_type>::min)() == (std::numeric_limits<index_type>::min)());
+    #endif
       if((n < 0) || (k <= 0)) { return -1; }
       if(n <= 1) { if(n == 1) { U[0] = T[0]; } return n; }
       pidx = saisxx_private::suffixsort(T, A, 0, n, k, true);

@@ -101,8 +101,13 @@ namespace libmaus2
 
 				for ( uint64_t i = 1; i < filenames.size(); ++i )
 				{
-					unsigned int const albits_i = getAlBits(filenames[i]);
+					#if ! defined(NDEBUG)
+					unsigned int const albits_i =
+					#endif
+						getAlBits(filenames[i]);
+					#if ! defined(NDEBUG)
 					assert ( albits_i == albits_0 );
+					#endif
 				}
 
 				return albits_0;

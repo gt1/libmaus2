@@ -247,9 +247,15 @@ namespace libmaus2
 				#endif
 				for ( int64_t r = 0; r < static_cast<int64_t>(ISS.n1-1); ++r )
 				{
-					uint64_t const i1 = ISS.select1(r);
-					uint64_t const i2 = ISS.next1NotAdjacent(i1);
+					uint64_t const i1 =
+						ISS.select1(r);
+					#if ! defined(NDEBUG)
+					uint64_t const i2 =
+					#endif
+						ISS.next1NotAdjacent(i1);
+					#if ! defined(NDEBUG)
 					assert ( i2 == ISS.select1(r+1) );
+					#endif
 				}
 				std::cerr << "done." << std::endl;
 
@@ -259,10 +265,18 @@ namespace libmaus2
 				#endif
 				for ( int64_t r = 0; r < static_cast<int64_t>(ISS.n1); ++r )
 				{
-					uint64_t i1 = ISS.select1(r);
-					uint64_t ir = ICLR.select1(r);
+					#if ! defined(NDEBUG)
+					uint64_t i1 =
+					#endif
+						ISS.select1(r);
+					#if ! defined(NDEBUG)
+					uint64_t ir =
+					#endif
+						ICLR.select1(r);
 					// std::cerr << "got " << i1 << " expected " << ir << std::endl;
+					#if ! defined(NDEBUG)
 					assert ( i1 == ir );
+					#endif
 				}
 				std::cerr << "done." << std::endl;
 			}
