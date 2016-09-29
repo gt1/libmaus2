@@ -1294,34 +1294,28 @@ if test "${debug}" = "yes" ; then
         LDFLAGS="${LDFLAGS} -rdynamic"
 	openmp="no"
 	LIBMAUS2_DEBUG_COMPILED="#define LIBMAUS2_DEBUG_COMPILED"
-else
-	if test "${profile}" = "yes" ; then
-	        CXXFLAGS="${CXXFLAGS} -g -pg"
-	        CFLAGS="${CFLAGS} -g -pg"
-	        LDFLAGS="${LDFLAGS} -rdynamic"
-	else
-		if test "${optimization}" = "yes" ; then
-			case ${CXX} in
-				g++)
-					CXXFLAGS="${CXXFLAGS} -O3"
-					CFLAGS="${CFLAGS} -O3"
-				        LDFLAGS="${LDFLAGS} -rdynamic"
-					;;
-				*-mingw32msvc-g++)
-					CXXFLAGS="${CXXFLAGS} -O3"
-					CFLAGS="${CFLAGS} -O3"
-				        LDFLAGS="${LDFLAGS} -rdynamic"
-					;;
-				cl.exe)
-					CXXFLAGS="${CXXFLAGS} -O2 -Ob2 -Ot -Oy"
-					;;
-			esac
-		fi
-
-	fi
+elif test "${optimization}" = "yes" ; then
+	case ${CXX} in
+		g++)
+			CXXFLAGS="${CXXFLAGS} -O3"
+			CFLAGS="${CFLAGS} -O3"
+			LDFLAGS="${LDFLAGS} -rdynamic"
+			;;
+		*-mingw32msvc-g++)
+			CXXFLAGS="${CXXFLAGS} -O3"
+			CFLAGS="${CFLAGS} -O3"
+			LDFLAGS="${LDFLAGS} -rdynamic"
+			;;
+		cl.exe)
+			CXXFLAGS="${CXXFLAGS} -O2 -Ob2 -Ot -Oy"
+			;;
+	esac
 fi
 
-
+if test "${profile}" = "yes" ; then
+	CXXFLAGS="${CXXFLAGS} -g -pg"
+	CFLAGS="${CFLAGS} -g -pg"
+fi
 
 AC_LANG_PUSH([C++])
 CPPFLAGS_SAVE="${CPPFLAGS}"
@@ -3207,6 +3201,10 @@ TESTPROGS="${TESTPROGS} testparallelbamvalidation testparallelbamrewrite testbam
 TESTPROGS="${TESTPROGS} testmapperm testexternalmemoryindex testfastqtobam testsamrecoding testdazzlerdb testnd testfastashred testalignerspeed testfastasingleline testdazzleralignmentrewrite"
 TESTPROGS="${TESTPROGS} testxz testdazzlerindex testargparser testfragmentenvelope testdnarank testlowbits testfastaexplode testfaextract testmurmur3 testpairalign testsplaytree testbwtconstruction testbwtconstructionfasta"
 TESTPROGS="${TESTPROGS} testarrayinput testhugepages testsymcnt testgammapd testpo"
+
+if test "${mavx2}" = "yes" ; then
+	TESTPROGS="${TESTPROGS} testavx"
+fi
 
 HDF5CPPFLAGS=
 HDF5CXXFLAGS=

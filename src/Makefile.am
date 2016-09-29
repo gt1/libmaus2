@@ -2121,7 +2121,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testhugepages \
 	testsymcnt \
 	testgammapd \
-	testpo
+	testpo \
+	testavx
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2677,3 +2678,8 @@ testgammapd_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testpo_SOURCES  = test/testpo.cpp
 testpo_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testpo_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testavx_SOURCES  = test/testavx.cpp
+testavx_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testavx_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+testavx_CXXFLAGS = ${AM_CXXFLAGS} @MAVX2@
