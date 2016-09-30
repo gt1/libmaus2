@@ -161,36 +161,20 @@ static void process(std::vector<std::string> const & V)
 			LIBMAUS2_SIMD_WORD_TYPE vecu = _mm256_i32gather_epi32(reinterpret_cast<int const *>(A.begin()),vecI,1);
 
 			static uint8_t const shufu[] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE)))) = {
-				0,4,8,12,
-				2,6,10,14,
-				1,5,9,13,
-				3,7,11,15,
-				2,6,10,14,
-				0,4,8,12,
-				3,7,11,15,
-				1,5,9,13
+				0,4,8,12,2,6,10,14,1,5,9,13,3,7,11,15,
+				2,6,10,14,0,4,8,12,3,7,11,15,1,5,9,13
 			};
-
 			static uint8_t const shufv[] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE)))) = {
-				2,6,10,14,
-				0,4,8,12,
-				3,7,11,15,
-				1,5,9,13,
-				0,4,8,12,
-				2,6,10,14,
-				1,5,9,13,
-				3,7,11,15
+				2,6,10,14,0,4,8,12,3,7,11,15,1,5,9,13,
+				0,4,8,12,2,6,10,14,1,5,9,13,3,7,11,15
 			};
-
 			static uint8_t const maxlowu[] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE)))) = {
-				0xff,0xff,0xff,0xff,
-				0,0,0,0,
-				0xff,0xff,0xff,0xff,
-				0,0,0,0,
-				0,0,0,0,
-				0xff,0xff,0xff,0xff,
-				0,0,0,0,
-				0xff,0xff,0xff,0xff,
+				0xff,0xff,0xff,0xff,0,0,0,0,0xff,0xff,0xff,0xff,0,0,0,0,
+				0,0,0,0,0xff,0xff,0xff,0xff,0,0,0,0,0xff,0xff,0xff,0xff
+			};
+			static uint8_t const maxlowv[] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE)))) = {
+				0,0,0,0,0xff,0xff,0xff,0xff,0,0,0,0,0xff,0xff,0xff,0xff,
+				0xff,0xff,0xff,0xff,0,0,0,0,0xff,0xff,0xff,0xff,0,0,0,0
 			};
 
 			LIBMAUS2_SIMD_WORD_TYPE vecv = vecu;
@@ -207,16 +191,6 @@ static void process(std::vector<std::string> const & V)
 
 			std::cerr << "vecv original=" << formatRegister(vecv) << std::endl;
 
-			static uint8_t const maxlowv[] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE)))) = {
-				0,0,0,0,
-				0xff,0xff,0xff,0xff,
-				0,0,0,0,
-				0xff,0xff,0xff,0xff,
-				0xff,0xff,0xff,0xff,
-				0,0,0,0,
-				0xff,0xff,0xff,0xff,
-				0,0,0,0
-			};
 
 			vecv = LIBMAUS2_SIMD_AND(LIBMAUS2_SIMD_SHUFFLE(vecv,vecshufv),LIBMAUS2_SIMD_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE const *>(&maxlowu[0])));
 
