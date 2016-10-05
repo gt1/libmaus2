@@ -115,109 +115,217 @@ static std::string numString(uint64_t const from, uint64_t const to)
 
 // _mm256_set1_epi8
 
-static void process(std::vector<std::string> const & V)
+static void process(std::string const & q, std::vector<std::string> const & V)
 {
-	uint64_t maxlen = 0;
-	for ( uint64_t i = 0; i < V.size(); ++i )
-		maxlen = std::max(maxlen,static_cast<uint64_t>(V[i].size()));
-
+	static uint64_t const wordsize = sizeof(LIBMAUS2_SIMD_WORD_TYPE);
 	typedef int32_t gather_word_type;
 	static uint64_t const gather_align_size = sizeof(gather_word_type);
-	// align maxlen to gather length
-	maxlen = ((maxlen + gather_align_size - 1) / gather_align_size )*gather_align_size;
-	// packing size for gather (number of strings gathered over in first level)
-	static uint64_t const pack_size = sizeof(LIBMAUS2_SIMD_WORD_TYPE); //; / sizeof(gather_word_type);
-	uint64_t const numpacks = (V.size() + pack_size - 1)/pack_size;
-
-	std::cerr << "maxlen=" << maxlen << std::endl;
-	std::cerr << "packsize=" << pack_size << std::endl;
-
-	uint64_t const numinputstrings = numpacks*pack_size;
-	libmaus2::autoarray::AutoArray<uint8_t,libmaus2::autoarray::alloc_type_memalign_pagesize> A(maxlen * numinputstrings);
-	// ( A.size() + 1 ) * numstrings
-	libmaus2::autoarray::AutoArray<LIBMAUS2_SIMD_WORD_TYPE,libmaus2::autoarray::alloc_type_memalign_pagesize> B(1);
-
-	for ( uint64_t i = 0; i < V.size(); ++i )
-	{
-		char const * s = V[i].c_str();
-		std::copy(s,s+V[i].size(),A.begin() + i * maxlen);
-	}
-
-	uint32_t I[8] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE))));
-
+	uint64_t const numbatches = (V.size() + wordsize - 1)/wordsize;
+	
 	static uint64_t const strings_per_gather = (sizeof(LIBMAUS2_SIMD_WORD_TYPE)/sizeof(gather_word_type));
-
-	for ( uint64_t a = 0; a < maxlen / gather_align_size; ++a )
-		for ( uint64_t b = 0; b < numinputstrings / strings_per_gather; ++b )
+	
+	for ( uint64_t batchid = 0; batchid < numbatches; ++batchid )
+	{
+		uint64_t const batchlow = batchid * wordsize;
+		uint64_t const batchhigh = std::min(batchlow + wordsize,static_cast<uint64_t>(V.size()));
+		uint64_t const batchsize = batchhigh-batchlow;
+		
+		std::vector<std::string>::const_iterator itlow = V.begin()+batchlow;
+		std::vector<std::string>::const_iterator ithigh = V.begin()+batchhigh;
+		std::vector < std::pair<uint64_t,uint64_t> > Vlen;
+	
+		uint64_t maxlen = 0;
+		for ( std::vector<std::string>::const_iterator it = itlow; it != ithigh; ++it )
 		{
-			std::cerr << std::endl << std::endl << "a=" << a << " b=" << b << std::endl;
-
-			for ( uint64_t i = 0, j = a*gather_align_size+b*strings_per_gather*maxlen; i < sizeof(I)/sizeof(I[0]); ++i, j += maxlen )
-				I[i] = j;
-
-			LIBMAUS2_SIMD_WORD_TYPE const vecI = LIBMAUS2_SIMD_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE const *>(&I[0]));
-			std::cerr << "vecI=" << formatRegister(vecI) << std::endl;
-
-			LIBMAUS2_SIMD_WORD_TYPE vecu = _mm256_i32gather_epi32(reinterpret_cast<int const *>(A.begin()),vecI,1);
-
-			static uint8_t const shufu[] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE)))) = {
-				0,4,8,12,2,6,10,14,1,5,9,13,3,7,11,15,
-				2,6,10,14,0,4,8,12,3,7,11,15,1,5,9,13
-			};
-			static uint8_t const shufv[] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE)))) = {
-				2,6,10,14,0,4,8,12,3,7,11,15,1,5,9,13,
-				0,4,8,12,2,6,10,14,1,5,9,13,3,7,11,15
-			};
-			static uint8_t const maxlowu[] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE)))) = {
-				0xff,0xff,0xff,0xff,0,0,0,0,0xff,0xff,0xff,0xff,0,0,0,0,
-				0,0,0,0,0xff,0xff,0xff,0xff,0,0,0,0,0xff,0xff,0xff,0xff
-			};
-			static uint8_t const maxlowv[] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE)))) = {
-				0,0,0,0,0xff,0xff,0xff,0xff,0,0,0,0,0xff,0xff,0xff,0xff,
-				0xff,0xff,0xff,0xff,0,0,0,0,0xff,0xff,0xff,0xff,0,0,0,0
-			};
-
-			LIBMAUS2_SIMD_WORD_TYPE vecv = vecu;
-
-			std::cerr << "vecu original=" << formatRegister(vecu) << std::endl;
-
-			LIBMAUS2_SIMD_WORD_TYPE const vecshufu = LIBMAUS2_SIMD_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE const *>(&shufu[0]));
-
-			vecu = LIBMAUS2_SIMD_AND(LIBMAUS2_SIMD_SHUFFLE(vecu,vecshufu),LIBMAUS2_SIMD_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE const *>(&maxlowu[0])));
-
-			std::cerr << "vecu shuffled=" << formatRegister(vecu) << std::endl;
-
-			LIBMAUS2_SIMD_WORD_TYPE const vecshufv = LIBMAUS2_SIMD_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE const *>(&shufv[0]));
-
-			std::cerr << "vecv original=" << formatRegister(vecv) << std::endl;
-
-
-			vecv = LIBMAUS2_SIMD_AND(LIBMAUS2_SIMD_SHUFFLE(vecv,vecshufv),LIBMAUS2_SIMD_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE const *>(&maxlowu[0])));
-
-			std::cerr << "vecv shuffled=" << formatRegister(vecv) << std::endl;
-
-			vecu = LIBMAUS2_SIMD_OR(vecu,LIBMAUS2_SIMD_PERMUTE(vecu,vecu,1 | (8<<4)));
-
-			std::cerr << formatRegister(vecu) << std::endl;
-
-			vecv = LIBMAUS2_SIMD_OR(vecv,LIBMAUS2_SIMD_PERMUTE(vecv,vecv,8 | (2<<4)));
-
-			std::cerr << formatRegister(vecv) << std::endl;
-
-			LIBMAUS2_SIMD_WORD_TYPE const w = LIBMAUS2_SIMD_PERMUTE(vecu,vecv,0 | (3<<4));
-
-			std::cerr << formatRegister(w) << std::endl;
-			std::cerr << formatRegister(w,V) << std::endl;
+			maxlen = std::max(maxlen,static_cast<uint64_t>(it->size()));
+			Vlen.push_back(
+				std::pair<uint64_t,uint64_t>(it->size(),it-itlow)
+			);
 		}
+		
+		std::sort(Vlen.begin(),Vlen.end());
+		uint64_t vleno = 0;
+
+		// align maxlen to gather length
+		maxlen = ((maxlen + gather_align_size - 1) / gather_align_size )*gather_align_size;
+
+		// packing size for gather (number of strings gathered over in first level)
+		static uint64_t const pack_size = sizeof(LIBMAUS2_SIMD_WORD_TYPE); //; / sizeof(gather_word_type);
+		uint64_t const numpacks = (batchsize + pack_size - 1)/pack_size;
+
+		std::cerr << "maxlen=" << maxlen << std::endl;
+		std::cerr << "packsize=" << pack_size << std::endl;
+
+		uint64_t const numinputstrings = numpacks*pack_size;
+		libmaus2::autoarray::AutoArray<uint8_t,libmaus2::autoarray::alloc_type_memalign_pagesize> A(maxlen * wordsize);
+		libmaus2::autoarray::AutoArray<LIBMAUS2_SIMD_WORD_TYPE,libmaus2::autoarray::alloc_type_memalign_pagesize> B(numinputstrings / strings_per_gather);
+
+		libmaus2::autoarray::AutoArray<LIBMAUS2_SIMD_WORD_TYPE,libmaus2::autoarray::alloc_type_memalign_pagesize> M0(q.size()+1);
+		libmaus2::autoarray::AutoArray<LIBMAUS2_SIMD_WORD_TYPE,libmaus2::autoarray::alloc_type_memalign_pagesize> M1(q.size()+1);
+		for ( uint64_t i = 0; i < M0.size(); ++i )
+			M0[i] = _mm256_set1_epi8(i);
+
+		std::cerr << "B.size()=" << B.size() << std::endl;
+
+		for ( std::vector<std::string>::const_iterator it = itlow; it != ithigh; ++it )
+		{
+			char const * s = it->c_str();
+			std::copy(s,s+it->size(),A.begin() + (it-itlow) * maxlen);
+		}
+
+		uint32_t I[8] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE))));
+			
+		for ( uint64_t i = 0; i < M0.size(); ++i )
+		{
+			std::cerr << "M0 " << formatRegister(M0[i]) << std::endl;;
+		}
+
+		uint8_t baseerr = 1;
+		for ( uint64_t a = 0; a < maxlen / gather_align_size; ++a )
+		{
+			for ( uint64_t b = 0; b < numinputstrings / strings_per_gather; ++b )
+			{
+				std::cerr << std::endl << std::endl << "a=" << a << " b=" << b << std::endl;
+
+				for ( uint64_t i = 0, j = a*gather_align_size+b*strings_per_gather*maxlen; i < sizeof(I)/sizeof(I[0]); ++i, j += maxlen )
+					I[i] = j;
+
+				LIBMAUS2_SIMD_WORD_TYPE const vecI = LIBMAUS2_SIMD_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE const *>(&I[0]));
+				std::cerr << "vecI=" << formatRegister(vecI) << std::endl;
+
+				LIBMAUS2_SIMD_WORD_TYPE vecu = _mm256_i32gather_epi32(reinterpret_cast<int const *>(A.begin()),vecI,1);
+
+				static uint8_t const shufu[] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE)))) = {
+					0,4,8,12,2,6,10,14,1,5,9,13,3,7,11,15,
+					2,6,10,14,0,4,8,12,3,7,11,15,1,5,9,13
+				};
+				static uint8_t const shufv[] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE)))) = {
+					2,6,10,14,0,4,8,12,3,7,11,15,1,5,9,13,
+					0,4,8,12,2,6,10,14,1,5,9,13,3,7,11,15
+				};
+				static uint8_t const maxlowu[] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE)))) = {
+					0xff,0xff,0xff,0xff,0,0,0,0,0xff,0xff,0xff,0xff,0,0,0,0,
+					0,0,0,0,0xff,0xff,0xff,0xff,0,0,0,0,0xff,0xff,0xff,0xff
+				};
+				static uint8_t const maxlowv[] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE)))) = {
+					0,0,0,0,0xff,0xff,0xff,0xff,0,0,0,0,0xff,0xff,0xff,0xff,
+					0xff,0xff,0xff,0xff,0,0,0,0,0xff,0xff,0xff,0xff,0,0,0,0
+				};
+
+				LIBMAUS2_SIMD_WORD_TYPE vecv = vecu;
+
+				std::cerr << "vecu original=" << formatRegister(vecu) << std::endl;
+
+				LIBMAUS2_SIMD_WORD_TYPE const vecshufu = LIBMAUS2_SIMD_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE const *>(&shufu[0]));
+
+				vecu = LIBMAUS2_SIMD_AND(LIBMAUS2_SIMD_SHUFFLE(vecu,vecshufu),LIBMAUS2_SIMD_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE const *>(&maxlowu[0])));
+
+				std::cerr << "vecu shuffled=" << formatRegister(vecu) << std::endl;
+
+				LIBMAUS2_SIMD_WORD_TYPE const vecshufv = LIBMAUS2_SIMD_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE const *>(&shufv[0]));
+
+				std::cerr << "vecv original=" << formatRegister(vecv) << std::endl;
+
+				vecv = LIBMAUS2_SIMD_AND(LIBMAUS2_SIMD_SHUFFLE(vecv,vecshufv),LIBMAUS2_SIMD_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE const *>(&maxlowu[0])));
+
+				std::cerr << "vecv shuffled=" << formatRegister(vecv) << std::endl;
+
+				vecu = LIBMAUS2_SIMD_OR(vecu,LIBMAUS2_SIMD_PERMUTE(vecu,vecu,1 | (8<<4)));
+
+				std::cerr << formatRegister(vecu) << std::endl;
+
+				vecv = LIBMAUS2_SIMD_OR(vecv,LIBMAUS2_SIMD_PERMUTE(vecv,vecv,8 | (2<<4)));
+
+				std::cerr << formatRegister(vecv) << std::endl;
+
+				LIBMAUS2_SIMD_WORD_TYPE const w = LIBMAUS2_SIMD_PERMUTE(vecu,vecv,0 | (3<<4));
+
+				std::cerr << formatRegister(w) << std::endl;
+				std::cerr << formatRegister(w,V) << std::endl;
+				
+				LIBMAUS2_SIMD_STORE(B.begin()+b,w);
+			}
+			
+
+			for ( uint64_t b = 0; b < numinputstrings / strings_per_gather; ++b )
+			{
+				uint64_t const lbaseerr = baseerr++;
+				M1[0] = _mm256_set1_epi8(lbaseerr);
+				
+				std::cerr << "base err " << formatRegister(M1[0]) << std::endl;
+				
+				for ( uint64_t i = 0; i < 4; ++i )
+				{
+					I[2*i+0] = i * sizeof(LIBMAUS2_SIMD_WORD_TYPE)+0 + b*8;
+					I[2*i+1] = i * sizeof(LIBMAUS2_SIMD_WORD_TYPE)+4 + b*8;
+				}
+
+				LIBMAUS2_SIMD_WORD_TYPE const vecI = LIBMAUS2_SIMD_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE const *>(&I[0]));
+				std::cerr << "vecI=" << formatRegister(vecI) << std::endl;
+
+				LIBMAUS2_SIMD_WORD_TYPE vecg = _mm256_i32gather_epi32(reinterpret_cast<int const *>(B.begin()),vecI,1);
+				std::cerr << formatRegister(vecg,V) << std::endl;
+				
+				for ( uint64_t i = 0; i < q.size(); ++i )
+				{
+					LIBMAUS2_SIMD_WORD_TYPE const qw = _mm256_set1_epi8(q[i]);
+					std::cerr << "qw=" << formatRegister(qw) << std::endl;
+					
+					LIBMAUS2_SIMD_WORD_TYPE const top  = _mm256_adds_epi8(M0[i+1],_mm256_set1_epi8(1));
+					LIBMAUS2_SIMD_WORD_TYPE const left = _mm256_adds_epi8(M1[i],_mm256_set1_epi8(1));
+					LIBMAUS2_SIMD_WORD_TYPE const diag = _mm256_adds_epi8(_mm256_andnot_si256(_mm256_cmpeq_epi8(vecg,qw),_mm256_set1_epi8(1)),M0[i]);
+					
+					M1[i+1] = _mm256_min_epi8(_mm256_min_epi8(top,left),diag);
+					
+					#if 0
+					M1[i], // left
+					M0[i+1], // top
+					M0[i] // diag
+					#endif
+				}			
+				M0.swap(M1);
+				
+				while ( vleno < Vlen.size() && Vlen[vleno].first == lbaseerr )
+				{
+					__m128i const T = Vlen[vleno].second >= 16 ? _mm256_extractf128_si256 (M0[lbaseerr], 1) : _mm256_extractf128_si256 (M0[lbaseerr], 0);
+					int e;
+					
+					switch ( Vlen[vleno].second & 0xf )
+					{
+						case 0: e = _mm_extract_epi8(T,0); break;
+						case 1: e = _mm_extract_epi8(T,1); break;
+						case 2: e = _mm_extract_epi8(T,2); break;
+						case 3: e = _mm_extract_epi8(T,3); break;
+						case 4: e = _mm_extract_epi8(T,4); break;
+						case 5: e = _mm_extract_epi8(T,5); break;
+						case 6: e = _mm_extract_epi8(T,6); break;
+						case 7: e = _mm_extract_epi8(T,7); break;
+						case 8: e = _mm_extract_epi8(T,8); break;
+						case 9: e = _mm_extract_epi8(T,9); break;
+						case 10: e = _mm_extract_epi8(T,10); break;
+						case 11: e = _mm_extract_epi8(T,11); break;
+						case 12: e = _mm_extract_epi8(T,12); break;
+						case 13: e = _mm_extract_epi8(T,13); break;
+						case 14: e = _mm_extract_epi8(T,14); break;
+						case 15: e = _mm_extract_epi8(T,15); break;
+					}
+					
+					std::cerr << "end of " << Vlen[vleno].second << " error " << e << std::endl;
+					++vleno;
+				}
+			}
+		}
+	}
 }
 
 int main()
 {
 	std::vector<std::string> V;
 	for ( uint64_t i = 0; i < 32; ++i )
-		V.push_back(numString(i*8,(i+1)*8));
+		V.push_back(numString(i*11,(i+1)*11));
 
-	process(V);
+	std::string q = numString(0,11);
+	process(q,V);
 
 	#if 0
 	uint8_t A[] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE)))) = {
