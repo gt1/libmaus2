@@ -153,8 +153,10 @@ static void process(std::string const & q, std::vector<std::string> const & V)
 		static uint64_t const pack_size = sizeof(LIBMAUS2_SIMD_WORD_TYPE); //; / sizeof(gather_word_type);
 		uint64_t const numpacks = (batchsize + pack_size - 1)/pack_size;
 
+		#if 0
 		std::cerr << "maxlen=" << maxlen << std::endl;
 		std::cerr << "packsize=" << pack_size << std::endl;
+		#endif
 
 		uint64_t const numinputstrings = numpacks*pack_size;
 		libmaus2::autoarray::AutoArray<uint8_t,libmaus2::autoarray::alloc_type_memalign_pagesize> A(maxlen * wordsize);
@@ -165,7 +167,7 @@ static void process(std::string const & q, std::vector<std::string> const & V)
 		for ( uint64_t i = 0; i < M0.size(); ++i )
 			M0[i] = _mm256_set1_epi8(i);
 
-		std::cerr << "B.size()=" << B.size() << std::endl;
+		// std::cerr << "B.size()=" << B.size() << std::endl;
 
 		for ( std::vector<std::string>::const_iterator it = itlow; it != ithigh; ++it )
 		{
@@ -174,24 +176,26 @@ static void process(std::string const & q, std::vector<std::string> const & V)
 		}
 
 		uint32_t I[8] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE))));
-			
+		
+		#if 0	
 		for ( uint64_t i = 0; i < M0.size(); ++i )
 		{
 			std::cerr << "M0 " << formatRegister(M0[i]) << std::endl;;
 		}
+		#endif
 
 		uint8_t baseerr = 1;
 		for ( uint64_t a = 0; a < maxlen / gather_align_size; ++a )
 		{
 			for ( uint64_t b = 0; b < numinputstrings / strings_per_gather; ++b )
 			{
-				std::cerr << std::endl << std::endl << "a=" << a << " b=" << b << std::endl;
+				//std::cerr << std::endl << std::endl << "a=" << a << " b=" << b << std::endl;
 
 				for ( uint64_t i = 0, j = a*gather_align_size+b*strings_per_gather*maxlen; i < sizeof(I)/sizeof(I[0]); ++i, j += maxlen )
 					I[i] = j;
 
 				LIBMAUS2_SIMD_WORD_TYPE const vecI = LIBMAUS2_SIMD_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE const *>(&I[0]));
-				std::cerr << "vecI=" << formatRegister(vecI) << std::endl;
+				// std::cerr << "vecI=" << formatRegister(vecI) << std::endl;
 
 				LIBMAUS2_SIMD_WORD_TYPE vecu = _mm256_i32gather_epi32(reinterpret_cast<int const *>(A.begin()),vecI,1);
 
@@ -214,45 +218,46 @@ static void process(std::string const & q, std::vector<std::string> const & V)
 
 				LIBMAUS2_SIMD_WORD_TYPE vecv = vecu;
 
-				std::cerr << "vecu original=" << formatRegister(vecu) << std::endl;
+				//std::cerr << "vecu original=" << formatRegister(vecu) << std::endl;
 
 				LIBMAUS2_SIMD_WORD_TYPE const vecshufu = LIBMAUS2_SIMD_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE const *>(&shufu[0]));
 
 				vecu = LIBMAUS2_SIMD_AND(LIBMAUS2_SIMD_SHUFFLE(vecu,vecshufu),LIBMAUS2_SIMD_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE const *>(&maxlowu[0])));
 
-				std::cerr << "vecu shuffled=" << formatRegister(vecu) << std::endl;
+				//std::cerr << "vecu shuffled=" << formatRegister(vecu) << std::endl;
 
 				LIBMAUS2_SIMD_WORD_TYPE const vecshufv = LIBMAUS2_SIMD_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE const *>(&shufv[0]));
 
-				std::cerr << "vecv original=" << formatRegister(vecv) << std::endl;
+				//std::cerr << "vecv original=" << formatRegister(vecv) << std::endl;
 
 				vecv = LIBMAUS2_SIMD_AND(LIBMAUS2_SIMD_SHUFFLE(vecv,vecshufv),LIBMAUS2_SIMD_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE const *>(&maxlowu[0])));
 
-				std::cerr << "vecv shuffled=" << formatRegister(vecv) << std::endl;
+				//std::cerr << "vecv shuffled=" << formatRegister(vecv) << std::endl;
 
 				vecu = LIBMAUS2_SIMD_OR(vecu,LIBMAUS2_SIMD_PERMUTE(vecu,vecu,1 | (8<<4)));
 
-				std::cerr << formatRegister(vecu) << std::endl;
+				//std::cerr << formatRegister(vecu) << std::endl;
 
 				vecv = LIBMAUS2_SIMD_OR(vecv,LIBMAUS2_SIMD_PERMUTE(vecv,vecv,8 | (2<<4)));
 
-				std::cerr << formatRegister(vecv) << std::endl;
+				//std::cerr << formatRegister(vecv) << std::endl;
 
 				LIBMAUS2_SIMD_WORD_TYPE const w = LIBMAUS2_SIMD_PERMUTE(vecu,vecv,0 | (3<<4));
 
-				std::cerr << formatRegister(w) << std::endl;
-				std::cerr << formatRegister(w,V) << std::endl;
+				//std::cerr << formatRegister(w) << std::endl;
+				//std::cerr << formatRegister(w,V) << std::endl;
 				
 				LIBMAUS2_SIMD_STORE(B.begin()+b,w);
 			}
 			
+			LIBMAUS2_SIMD_WORD_TYPE const vone = _mm256_set1_epi8(1);
 
 			for ( uint64_t b = 0; b < numinputstrings / strings_per_gather; ++b )
 			{
 				uint64_t const lbaseerr = baseerr++;
 				M1[0] = _mm256_set1_epi8(lbaseerr);
 				
-				std::cerr << "base err " << formatRegister(M1[0]) << std::endl;
+				// std::cerr << "base err " << formatRegister(M1[0]) << std::endl;
 				
 				for ( uint64_t i = 0; i < 4; ++i )
 				{
@@ -261,27 +266,21 @@ static void process(std::string const & q, std::vector<std::string> const & V)
 				}
 
 				LIBMAUS2_SIMD_WORD_TYPE const vecI = LIBMAUS2_SIMD_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE const *>(&I[0]));
-				std::cerr << "vecI=" << formatRegister(vecI) << std::endl;
+				// std::cerr << "vecI=" << formatRegister(vecI) << std::endl;
 
 				LIBMAUS2_SIMD_WORD_TYPE vecg = _mm256_i32gather_epi32(reinterpret_cast<int const *>(B.begin()),vecI,1);
-				std::cerr << formatRegister(vecg,V) << std::endl;
+				//std::cerr << formatRegister(vecg,V) << std::endl;
 				
 				for ( uint64_t i = 0; i < q.size(); ++i )
 				{
 					LIBMAUS2_SIMD_WORD_TYPE const qw = _mm256_set1_epi8(q[i]);
-					std::cerr << "qw=" << formatRegister(qw) << std::endl;
+					// std::cerr << "qw=" << formatRegister(qw) << std::endl;
 					
-					LIBMAUS2_SIMD_WORD_TYPE const top  = _mm256_adds_epi8(M0[i+1],_mm256_set1_epi8(1));
-					LIBMAUS2_SIMD_WORD_TYPE const left = _mm256_adds_epi8(M1[i],_mm256_set1_epi8(1));
-					LIBMAUS2_SIMD_WORD_TYPE const diag = _mm256_adds_epi8(_mm256_andnot_si256(_mm256_cmpeq_epi8(vecg,qw),_mm256_set1_epi8(1)),M0[i]);
+					LIBMAUS2_SIMD_WORD_TYPE const top  = _mm256_adds_epi8(M0[i+1],vone);
+					LIBMAUS2_SIMD_WORD_TYPE const left = _mm256_adds_epi8(M1[i],vone);
+					LIBMAUS2_SIMD_WORD_TYPE const diag = _mm256_adds_epi8(_mm256_andnot_si256(_mm256_cmpeq_epi8(vecg,qw),vone),M0[i]);
 					
-					M1[i+1] = _mm256_min_epi8(_mm256_min_epi8(top,left),diag);
-					
-					#if 0
-					M1[i], // left
-					M0[i+1], // top
-					M0[i] // diag
-					#endif
+					M1[i+1] = _mm256_min_epi8(_mm256_min_epi8(top,left),diag);					
 				}			
 				M0.swap(M1);
 				
@@ -321,8 +320,10 @@ static void process(std::string const & q, std::vector<std::string> const & V)
 int main()
 {
 	std::vector<std::string> V;
-	for ( uint64_t i = 0; i < 32; ++i )
+	for ( uint64_t i = 0; i < 5; ++i )
 		V.push_back(numString(i*11,(i+1)*11));
+
+	V[0][5] = 7;
 
 	std::string q = numString(0,11);
 	process(q,V);
