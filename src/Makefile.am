@@ -33,7 +33,8 @@ libmaus2_simd_align_256_la_SOURCES = \
 	libmaus2/lcs/SimdX86BandedGlobalAlignmentY256_16.cpp \
 	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16.cpp \
 	libmaus2/lcs/SimdX86GlobalAlignmentY256_8.cpp \
-	libmaus2/lcs/SimdX86GlobalAlignmentY256_16.cpp
+	libmaus2/lcs/SimdX86GlobalAlignmentY256_16.cpp \
+	libmaus2/lcs/AlignmentOneAgainstManyAVX2.cpp
 libmaus2_simd_align_256_la_CXXFLAGS = @MSSE2@ @MSSSE3@ @MSSE41@ @MAVX2@ @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS}
 libmaus2_simd_align_256_la_LDFLAGS = @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 
@@ -322,7 +323,8 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/RefMapEntryVector.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
-libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp libmaus2/autoarray/AutoArrayMultiMap.hpp
+libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp libmaus2/autoarray/AutoArrayMultiMap.hpp \
+	libmaus2/autoarray/GenericAlignedAllocation.hpp
 
 libmaus2index_includedir=$(includedir)/libmaus2/index/
 libmaus2index_include_HEADERS = libmaus2/index/ExternalMemoryIndexGenerator.hpp \
