@@ -331,6 +331,30 @@ namespace libmaus2
 				return low;
 			}
 
+			/**
+			 * search for maximum k s.t. binomRowUpper(p,n,k,prec) >= lim using binary search
+			 **/
+			static uint64_t binomRowUpperLimit(double const p, uint64_t const n, double const lim)
+			{
+				uint64_t low = 0;
+				uint64_t high = n+1;
+
+				while ( high-low > 1 )
+				{
+					uint64_t const m = (high + low)>>1;
+					double const pp = binomRowUpper(p,m,n);
+
+					// m is valid
+					if ( pp >= lim )
+						low = m;
+					// m is invalid
+					else
+						high = m;
+				}
+
+				return low;
+			}
+
 			static libmaus2::math::Rational<libmaus2::math::GmpInteger> binomRowUpperAsRational(libmaus2::math::Rational<libmaus2::math::GmpInteger> const p, uint64_t const k, uint64_t const n)
 			{
 				libmaus2::math::Rational<libmaus2::math::GmpInteger> r = libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(0));
