@@ -156,6 +156,12 @@ struct AlignmentOneAgainstManyAVX2Context
 	libmaus2::util::Destructable::unique_ptr_type M0;
 	uint64_t M1size;
 	libmaus2::util::Destructable::unique_ptr_type M1;
+
+	uint64_t EM0size;
+	libmaus2::util::Destructable::unique_ptr_type EM0;
+	uint64_t EM1size;
+	libmaus2::util::Destructable::unique_ptr_type EM1;
+
 	uint64_t Asize;
 	libmaus2::util::Destructable::unique_ptr_type A;
 
@@ -167,7 +173,7 @@ struct AlignmentOneAgainstManyAVX2Context
 
 	public:
 	AlignmentOneAgainstManyAVX2Context()
-	: M0size(0), M1size(0), Asize(0),
+	: M0size(0), M1size(0), EM0size(0), EM1size(0), Asize(0),
 	  B(libmaus2::autoarray::GenericAlignedAllocation::allocateU(
 	  	sizeof(LIBMAUS2_SIMD_WORD_TYPE) * (sizeof(LIBMAUS2_SIMD_WORD_TYPE) / strings_per_gather),
 	  	sizeof(LIBMAUS2_SIMD_WORD_TYPE),
@@ -188,6 +194,16 @@ struct AlignmentOneAgainstManyAVX2Context
 	LIBMAUS2_SIMD_WORD_TYPE * getM1()
 	{
 		return reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE *>(M1->getObject());
+	}
+
+	LIBMAUS2_SIMD_WORD_TYPE * getEM0()
+	{
+		return reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE *>(EM0->getObject());
+	}
+
+	LIBMAUS2_SIMD_WORD_TYPE * getEM1()
+	{
+		return reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE *>(EM1->getObject());
 	}
 
 	uint8_t * getA()
@@ -234,6 +250,38 @@ struct AlignmentOneAgainstManyAVX2Context
 			);
 			M1 = UNIQUE_PTR_MOVE(TM1);
 			M1size = n;
+		}
+	}
+
+	void ensureSizeEM0(uint64_t const n)
+	{
+		if ( n > EM0size )
+		{
+			libmaus2::util::Destructable::unique_ptr_type TEM0(
+				libmaus2::autoarray::GenericAlignedAllocation::allocateU(
+					n * sizeof(LIBMAUS2_SIMD_WORD_TYPE),
+					sizeof(LIBMAUS2_SIMD_WORD_TYPE),
+					sizeof(LIBMAUS2_SIMD_WORD_TYPE)
+				)
+			);
+			EM0 = UNIQUE_PTR_MOVE(TEM0);
+			EM0size = n;
+		}
+	}
+
+	void ensureSizeEM1(uint64_t const n)
+	{
+		if ( n > EM1size )
+		{
+			libmaus2::util::Destructable::unique_ptr_type TEM1(
+				libmaus2::autoarray::GenericAlignedAllocation::allocateU(
+					n * sizeof(LIBMAUS2_SIMD_WORD_TYPE),
+					sizeof(LIBMAUS2_SIMD_WORD_TYPE),
+					sizeof(LIBMAUS2_SIMD_WORD_TYPE)
+				)
+			);
+			EM1 = UNIQUE_PTR_MOVE(TEM1);
+			EM1size = n;
 		}
 	}
 
@@ -309,6 +357,13 @@ void libmaus2::lcs::AlignmentOneAgainstManyAVX2::process(
 	LIBMAUS2_SIMD_WORD_TYPE * M1 = ccontext->getM1();
 	uint32_t * const I = ccontext->getI();
 	LIBMAUS2_SIMD_WORD_TYPE * const B = ccontext->getB();
+
+	#if 0
+	ccontext->ensureSizeEM0(Msize);
+	ccontext->ensureSizeEM1(Msize);
+	LIBMAUS2_SIMD_WORD_TYPE * EM0 = ccontext->getEM0();
+	LIBMAUS2_SIMD_WORD_TYPE * EM1 = ccontext->getEM1();
+	#endif
 
 	// batch size for processing strings in V
 	uint64_t const numbatches = (MAo + AlignmentOneAgainstManyAVX2Context::wordsize - 1)/AlignmentOneAgainstManyAVX2Context::wordsize;
