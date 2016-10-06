@@ -35,13 +35,15 @@
 #define LIBMAUS2_SIMD_OR              _mm256_or_si256
 #define LIBMAUS2_SIMD_PERMUTE         _mm256_permute2f128_si256
 #define LIBMAUS2_SIMD_SET1            _mm256_set1_epi8
-#define LIBMAUS2_SIMD_ADDS            _mm256_adds_epi8
+#define LIBMAUS2_SIMD_ADDS            _mm256_adds_epu8
 #define LIBMAUS2_SIMD_GATHER          _mm256_i32gather_epi32
 #define LIBMAUS2_SIMD_ANDNOT          _mm256_andnot_si256
 #define LIBMAUS2_SIMD_CMPEQ           _mm256_cmpeq_epi8
-#define LIBMAUS2_SIMD_MIN             _mm256_min_epi8
+#define LIBMAUS2_SIMD_MIN             _mm256_min_epu8
 #define LIBMAUS2_SIMD_EXTRACT128      _mm256_extractf128_si256
 #define LIBMAUS2_SIMD_EXTRACT8        _mm_extract_epi8
+
+// #define AVX2_DEBUG
 
 #if defined(AVX2_DEBUG)
 static std::ostream & printRegister(std::ostream & out, LIBMAUS2_SIMD_WORD_TYPE const reg)
@@ -77,6 +79,20 @@ static std::string formatRegister(LIBMAUS2_SIMD_WORD_TYPE const reg)
 {
 	std::ostringstream ostr;
 	printRegister(ostr,reg);
+	return ostr.str();
+}
+
+static std::string formatRegisterChar(LIBMAUS2_SIMD_WORD_TYPE const reg)
+{
+	std::ostringstream ostr;
+	printRegisterChar(ostr,reg);
+	return ostr.str();
+}
+
+static std::string formatRegisterCharNoSep(LIBMAUS2_SIMD_WORD_TYPE const reg)
+{
+	std::ostringstream ostr;
+	printRegisterCharNoSep(ostr,reg);
 	return ostr.str();
 }
 
@@ -142,12 +158,24 @@ struct AlignmentOneAgainstManyAVX2Context
 	libmaus2::util::Destructable::unique_ptr_type M1;
 	uint64_t Asize;
 	libmaus2::util::Destructable::unique_ptr_type A;
-	LIBMAUS2_SIMD_WORD_TYPE B[sizeof(LIBMAUS2_SIMD_WORD_TYPE) / strings_per_gather] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE))));
-	uint32_t I[Isize] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE))));
+
+	libmaus2::util::Destructable::unique_ptr_type B;
+
+	// LIBMAUS2_SIMD_WORD_TYPE B[sizeof(LIBMAUS2_SIMD_WORD_TYPE) / strings_per_gather] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE))));
+
+	libmaus2::util::Destructable::unique_ptr_type I;
 
 	public:
 	AlignmentOneAgainstManyAVX2Context()
-	: M0size(0), M1size(0), Asize(0)
+	: M0size(0), M1size(0), Asize(0),
+	  B(libmaus2::autoarray::GenericAlignedAllocation::allocateU(
+	  	sizeof(LIBMAUS2_SIMD_WORD_TYPE) * (sizeof(LIBMAUS2_SIMD_WORD_TYPE) / strings_per_gather),
+	  	sizeof(LIBMAUS2_SIMD_WORD_TYPE),
+	  	sizeof(LIBMAUS2_SIMD_WORD_TYPE))),
+	  I(libmaus2::autoarray::GenericAlignedAllocation::allocateU(
+	  	sizeof(LIBMAUS2_SIMD_WORD_TYPE),
+	  	sizeof(LIBMAUS2_SIMD_WORD_TYPE),
+	  	sizeof(LIBMAUS2_SIMD_WORD_TYPE)))
 	{
 
 	}
@@ -169,12 +197,12 @@ struct AlignmentOneAgainstManyAVX2Context
 
 	uint32_t * getI()
 	{
-		return &I[0];
+		return reinterpret_cast<uint32_t *>(I->getObject());
 	}
 
 	LIBMAUS2_SIMD_WORD_TYPE * getB()
 	{
-		return &B[0];
+		return reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE *>(B->getObject());
 	}
 
 	void ensureSizeM0(uint64_t const n)
@@ -257,6 +285,9 @@ libmaus2::lcs::AlignmentOneAgainstManyAVX2::AlignmentOneAgainstManyAVX2()
 	#endif
 }
 
+#include <libmaus2/lcs/NP.hpp>
+#include <libmaus2/aio/StreamLock.hpp>
+
 void libmaus2::lcs::AlignmentOneAgainstManyAVX2::process(
 	uint8_t const * qa,
 	uint8_t const * qe,
@@ -330,42 +361,59 @@ void libmaus2::lcs::AlignmentOneAgainstManyAVX2::process(
 		for ( std::pair<uint8_t const *,uint64_t> const * it = itlow; it != ithigh; ++it )
 		{
 			std::copy(it->first,it->first + it->second,A + (it-itlow) * maxlen);
+			// std::cerr << "copied " << std::string(A + (it-itlow) * maxlen, A + (it-itlow) * maxlen+it->second) << std::endl;
 		}
 
 		uint64_t const gather_loops = (batchsize + AlignmentOneAgainstManyAVX2Context::strings_per_gather - 1)/AlignmentOneAgainstManyAVX2Context::strings_per_gather;
 
-		// packing size for gather (number of strings gathered over in first level)
-		static uint64_t const pack_size = sizeof(LIBMAUS2_SIMD_WORD_TYPE); //; / sizeof(gather_word_type);
-		uint64_t const numpacks = (batchsize + pack_size - 1)/pack_size;
+		// std::cerr << "gather_loops=" << gather_loops << std::endl;
 
-		assert ( numpacks == 1 );
+		// packing size for gather (number of strings gathered over in first level)
+		// static uint64_t const pack_size = sizeof(LIBMAUS2_SIMD_WORD_TYPE); //; / sizeof(gather_word_type);
+		// uint64_t const numpacks = (batchsize + pack_size - 1)/pack_size;
+
+		// assert ( numpacks == 1 );
 
 		#if 0
 		std::cerr << "maxlen=" << maxlen << std::endl;
 		std::cerr << "packsize=" << pack_size << std::endl;
 		#endif
 
-		uint64_t const numinputstrings = numpacks*pack_size;
+		// uint64_t const numinputstrings = numpacks*pack_size;
 
 		// first row of alignment matrix for all strings in batch
 		for ( uint64_t i = 0; i < Msize; ++i )
+		{
 			M0[i] = LIBMAUS2_SIMD_SET1(i);
+			// std::cerr << "M0[" << i << "]=" << formatRegister(M0[i]) << std::endl;
+		}
 
 		uint8_t baseerr = 1;
 		// iterate of string gather intervals (blocks of 4 bytes)
 		for ( uint64_t a = 0; a < maxlen / AlignmentOneAgainstManyAVX2Context::gather_align_size; ++a )
 		{
+			// std::cerr << "a=" << a << std::endl;
+
 			for ( uint64_t b = 0; b < gather_loops; ++b )
 			{
 				//std::cerr << std::endl << std::endl << "a=" << a << " b=" << b << std::endl;
 
-				for ( uint64_t i = 0, j = a*AlignmentOneAgainstManyAVX2Context::gather_align_size+b*AlignmentOneAgainstManyAVX2Context::strings_per_gather*maxlen; i < AlignmentOneAgainstManyAVX2Context::Isize; ++i, j += maxlen )
+				for (
+					uint64_t i = 0,
+					j =
+						a*AlignmentOneAgainstManyAVX2Context::gather_align_size+
+						b*AlignmentOneAgainstManyAVX2Context::strings_per_gather*maxlen;
+						i < AlignmentOneAgainstManyAVX2Context::Isize;
+						++i, j += maxlen
+				)
 					I[i] = j;
 
 				LIBMAUS2_SIMD_WORD_TYPE const vecI = LIBMAUS2_SIMD_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE const *>(I));
-				// std::cerr << "vecI=" << formatRegister(vecI) << std::endl;
+				//std::cerr << "vecI=" << formatRegister(vecI) << std::endl;
 
 				LIBMAUS2_SIMD_WORD_TYPE vecu = LIBMAUS2_SIMD_GATHER(reinterpret_cast<int const *>(A),vecI,1);
+
+				//std::cerr << formatRegisterChar(vecu) << std::endl;
 
 				static uint8_t const shufu[] __attribute__((aligned(sizeof(LIBMAUS2_SIMD_WORD_TYPE)))) = {
 					0,4,8,12,2,6,10,14,1,5,9,13,3,7,11,15,
@@ -415,15 +463,28 @@ void libmaus2::lcs::AlignmentOneAgainstManyAVX2::process(
 
 				LIBMAUS2_SIMD_WORD_TYPE const w = LIBMAUS2_SIMD_PERMUTE(vecu,vecv,0 | (3<<4));
 
-				//std::cerr << formatRegister(w) << std::endl;
+				// std::cerr << formatRegisterCharNoSep(w) << std::endl;
 				//std::cerr << formatRegister(w,V) << std::endl;
 
-				LIBMAUS2_SIMD_STORE(&(B[0])+b,w);
+				#if 0
+				for ( uint64_t i = 0; i < 32; ++i )
+				{
+					uint64_t const stringid = batchlow + b * AlignmentOneAgainstManyAVX2Context::strings_per_gather + (i % 8);
+					uint64_t const offset = i / 8 + a * AlignmentOneAgainstManyAVX2Context::gather_align_size;
+
+					// std::cerr << "i=" << i << " stringid=" << stringid << " offset=" << offset << std::endl;
+
+					if ( stringid < MAo && offset < MA[stringid].second )
+						assert ( formatRegisterCharNoSep(w)[i] == MA[stringid].first[offset] );
+				}
+				#endif
+
+				LIBMAUS2_SIMD_STORE(B+b,w);
 			}
 
 			LIBMAUS2_SIMD_WORD_TYPE const vone = LIBMAUS2_SIMD_SET1(1);
 
-			for ( uint64_t b = 0; b < numinputstrings / AlignmentOneAgainstManyAVX2Context::strings_per_gather; ++b )
+			for ( uint64_t b = 0; b < sizeof(LIBMAUS2_SIMD_WORD_TYPE) / AlignmentOneAgainstManyAVX2Context::strings_per_gather; ++b )
 			{
 				uint64_t const lbaseerr = baseerr++;
 				M1[0] = LIBMAUS2_SIMD_SET1(lbaseerr);
@@ -439,8 +500,23 @@ void libmaus2::lcs::AlignmentOneAgainstManyAVX2::process(
 				LIBMAUS2_SIMD_WORD_TYPE const vecI = LIBMAUS2_SIMD_LOAD_ALIGNED(reinterpret_cast<LIBMAUS2_SIMD_WORD_TYPE const *>(&(I[0])));
 				// std::cerr << "vecI=" << formatRegister(vecI) << std::endl;
 
-				LIBMAUS2_SIMD_WORD_TYPE vecg = LIBMAUS2_SIMD_GATHER(reinterpret_cast<int const *>(&(B[0])),vecI,1);
-				//std::cerr << formatRegister(vecg,V) << std::endl;
+				LIBMAUS2_SIMD_WORD_TYPE vecg = LIBMAUS2_SIMD_GATHER(reinterpret_cast<int const *>(B),vecI,1);
+				// std::cerr << formatRegisterCharNoSep(vecg) << std::endl;
+
+				#if 0
+				for ( uint64_t i = 0; i < 32; ++i )
+				{
+					uint64_t const stringid = batchlow + i;
+					uint64_t const offset = a * AlignmentOneAgainstManyAVX2Context::gather_align_size + b;
+
+					if ( stringid < MAo && offset < MA[i].second )
+						assert (
+							formatRegisterCharNoSep(vecg)[i]
+							==
+							MA[stringid].first[offset]
+						);
+				}
+				#endif
 
 				for ( uint64_t i = 0; i < qsize; ++i )
 				{
@@ -455,10 +531,28 @@ void libmaus2::lcs::AlignmentOneAgainstManyAVX2::process(
 				}
 				std::swap(M0,M1);
 
+				#if 0
+				for ( uint64_t i = 0; i < qsize+1; ++i )
+				{
+					std::cerr
+						<< "*" << i << ":"
+						<< ((i==lbaseerr)?"*":"")
+						<< formatRegister(M0[i]) << std::endl;
+				}
+				#endif
+
 				while ( vleno < vleni && Vlen[vleno].first == lbaseerr )
 				{
-					__m128i const T = Vlen[vleno].second >= 16 ? LIBMAUS2_SIMD_EXTRACT128 (M0[lbaseerr], 1) : LIBMAUS2_SIMD_EXTRACT128 (M0[lbaseerr], 0);
-					int e;
+					uint64_t const stringid = Vlen[vleno].second;
+
+					__m128i const T =
+						stringid >= 16
+							?
+							LIBMAUS2_SIMD_EXTRACT128 (M0[qsize], 1)
+							:
+							LIBMAUS2_SIMD_EXTRACT128 (M0[qsize], 0)
+						;
+					uint8_t e;
 
 					switch ( Vlen[vleno].second & 0xf )
 					{
@@ -487,6 +581,30 @@ void libmaus2::lcs::AlignmentOneAgainstManyAVX2::process(
 			}
 		}
 	}
+
+	#if defined(ALIGNMENT_ONE_AGAINST_MANY_AVX2_DEBUG)
+	libmaus2::lcs::NP np;
+	for ( uint64_t i = 0; i < MAo; ++i )
+	{
+		np.align(qa,qe-qa,MA[i].first,MA[i].second);
+
+		bool const ok = E[i] == np.getTraceContainer().getAlignmentStatistics().getEditDistance();
+		if ( !ok )
+		{
+			if ( ! ok )
+			{
+				libmaus2::aio::StreamLock::cerrlock.lock();
+				std::cerr << "Failure for " << MAo << " entry " << i << " SIMD " << E[i] << " NP " << np.getTraceContainer().getAlignmentStatistics().getEditDistance() << std::endl;
+				std::cerr << "std::string const q=\"" << std::string(qa,qe) << "\";" << std::endl;
+				for ( uint64_t j = 0; j < MAo; ++j )
+					std::cerr << "V.push_back(std::string(\"" << std::string(MA[j].first,MA[j].first+MA[j].second) << "\"));" << std::endl;
+				libmaus2::aio::StreamLock::cerrlock.unlock();
+			}
+			assert ( ok );
+		}
+	}
+	#endif
+
 	#else
 	for ( uint64_t i = 0; i < MAo; ++i )
 	{
