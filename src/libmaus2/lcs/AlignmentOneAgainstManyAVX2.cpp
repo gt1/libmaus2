@@ -17,6 +17,9 @@
 */
 
 #include <libmaus2/lcs/AlignmentOneAgainstManyAVX2.hpp>
+#include <libmaus2/autoarray/GenericAlignedAllocation.hpp>
+#include <libmaus2/lcs/NP.hpp>
+#include <libmaus2/aio/StreamLock.hpp>
 
 #include <ostream>
 #include <sstream>
@@ -136,7 +139,6 @@ static std::string formatRegister(
 }
 #endif
 
-#include <libmaus2/autoarray/GenericAlignedAllocation.hpp>
 
 struct AlignmentOneAgainstManyAVX2Context
 {
@@ -333,8 +335,6 @@ libmaus2::lcs::AlignmentOneAgainstManyAVX2::AlignmentOneAgainstManyAVX2()
 	#endif
 }
 
-#include <libmaus2/lcs/NP.hpp>
-#include <libmaus2/aio/StreamLock.hpp>
 
 void libmaus2::lcs::AlignmentOneAgainstManyAVX2::process(
 	uint8_t const * qa,
