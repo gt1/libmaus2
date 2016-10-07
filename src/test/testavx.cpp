@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus2/lcs/AlignmentOneAgainstManyAVX2.hpp>
+#include <libmaus2/lcs/AlignmentOneAgainstManyFactory.hpp>
 
 static std::string numString(uint64_t const from, uint64_t const to)
 {
@@ -122,8 +122,10 @@ int main()
 	}
 
 	libmaus2::autoarray::AutoArray<uint64_t> E;
-	libmaus2::lcs::AlignmentOneAgainstManyAVX2 aligner;
-	aligner.process(qa,qe,U.begin(),U.size(),E);
+	libmaus2::lcs::AlignmentOneAgainstManyInterface::unique_ptr_type aligner(
+		libmaus2::lcs::AlignmentOneAgainstManyFactory::uconstruct()
+	);
+	aligner->process(qa,qe,U.begin(),U.size(),E);
 	for ( uint64_t i = 0; i < U.size(); ++i )
 	{
 		std::cerr << "U[" << i << "]=" << E[i] << std::endl;

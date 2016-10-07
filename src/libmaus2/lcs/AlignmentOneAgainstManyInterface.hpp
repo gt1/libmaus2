@@ -15,35 +15,28 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_LCS_ALIGNMENTONEAGAINSTMANYAVX2_HPP)
-#define LIBMAUS2_LCS_ALIGNMENTONEAGAINSTMANYAVX2_HPP
+#if ! defined(LIBMAUS2_LCS_ALIGNMENTONEAGAINSTMANYINTERFACE_HPP)
+#define LIBMAUS2_LCS_ALIGNMENTONEAGAINSTMANYINTERFACE_HPP
 
-#include <libmaus2/util/Destructable.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
-#if ! defined(LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2)
-#include <libmaus2/lcs/NP.hpp>
-#endif
-#include <libmaus2/lcs/AlignmentOneAgainstManyInterface.hpp>
 
 namespace libmaus2
 {
 	namespace lcs
 	{
-		struct AlignmentOneAgainstManyAVX2 : public libmaus2::lcs::AlignmentOneAgainstManyInterface
+		struct AlignmentOneAgainstManyInterface
 		{
-			libmaus2::util::Destructable::unique_ptr_type context;
+			typedef AlignmentOneAgainstManyInterface this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			#if ! defined(LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2)
-			libmaus2::lcs::NP np;
-			#endif
+			virtual ~AlignmentOneAgainstManyInterface() {}
 
-			AlignmentOneAgainstManyAVX2();
-
-			void process(
+			virtual void process(
 				uint8_t const * qa, uint8_t const * qe,
 				std::pair<uint8_t const *,uint64_t> const * MA,uint64_t const MAo,
 				libmaus2::autoarray::AutoArray<uint64_t> & E
-			);
+			) = 0;
 		};
 	}
 }

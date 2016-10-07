@@ -1149,6 +1149,122 @@ if test \
 fi
 AC_MSG_RESULT([${LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16}])
 
+
+have_mm256_and_si256=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${mavx2}" = "yes" -a "${have_mm256_load_si256}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MAVX2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm256_and_si256])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t ymm[sizeof(__m256i)] __attribute__((aligned(sizeof(__m256i)))) = {
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+};
+__m256i reg = _mm256_load_si256(reinterpret_cast<__m256i const *>(&ymm[0]));
+reg = _mm256_and_si256(reg,reg);
+],[have_mm256_and_si256=yes],[have_mm256_and_si256=no])
+	AC_MSG_RESULT([${have_mm256_and_si256}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm256_i32gather_epi32=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${mavx2}" = "yes" -a "${have_mm256_load_si256}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MAVX2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm256_i32gather_epi32])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t ymm[sizeof(__m256i)] __attribute__((aligned(sizeof(__m256i)))) = {
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+};
+__m256i reg = _mm256_load_si256(reinterpret_cast<__m256i const *>(&ymm[0]));
+int base[16];
+reg = _mm256_i32gather_epi32(&base[0],reg,1);
+],[have_mm256_i32gather_epi32=yes],[have_mm256_i32gather_epi32=no])
+	AC_MSG_RESULT([${have_mm256_i32gather_epi32}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm256_extractf128_si256=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${mavx2}" = "yes" -a "${have_mm256_load_si256}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MAVX2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm256_extractf128_si256])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t ymm[sizeof(__m256i)] __attribute__((aligned(sizeof(__m256i)))) = {
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+};
+__m256i reg = _mm256_load_si256(reinterpret_cast<__m256i const *>(&ymm[0]));
+__m128i reg128 = _mm256_extractf128_si256(reg,0);
+],[have_mm256_extractf128_si256=yes],[have_mm256_extractf128_si256=no])
+	AC_MSG_RESULT([${have_mm256_extractf128_si256}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm256_set1_epi8=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${mavx2}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MAVX2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm256_set1_epi8])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+__m256i reg = _mm256_set1_epi8(1);
+],[have_mm256_set1_epi8=yes],[have_mm256_set1_epi8=no])
+	AC_MSG_RESULT([${have_mm256_set1_epi8}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm_extract_epi8=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${have_mm_load_si128}" = "yes" -a "${msse41}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MSSE2} ${MSSE41}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm_extract_epi8])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t xmm[sizeof(__m128i)] __attribute__((aligned(sizeof(__m128i)))) = {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
+__m128i reg = _mm_load_si128(reinterpret_cast<__m128i const *>(&xmm[0]));
+int c = _mm_extract_epi8(reg,0);
+	],[have_mm_extract_epi8=yes],[have_mm_extract_epi8=no])
+	AC_MSG_RESULT([${have_mm_extract_epi8}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2=no
+AC_MSG_CHECKING([whether the C++ compiler supports all intrinsics required for one to many global alignment using AVX2])
+if test \
+	"${have_mm256_load_si256}" = "yes"  -a \
+	"${have_mm256_loadu_si256}" = "yes"  -a \
+	"${have_mm256_store_si256}" = "yes"  -a \
+	"${have_mm256_andnot_si256}" = "yes"  -a \
+	"${have_mm256_or_si256}" = "yes"  -a \
+	"${have_mm256_cmpeq_epi8}" = "yes"  -a \
+	"${have_mm256_adds_epu8}" = "yes"  -a \
+	"${have_mm256_shuffle_epi8}" = "yes"  -a \
+	"${have_mm256_permute2f128_si256}" = "yes"  -a \
+	"${have_mm256_min_epu8}" = "yes" -a \
+	"${have_mm256_and_si256}" = "yes" -a \
+	"${have_mm256_set1_epi8}" = "yes" -a \
+	"${have_mm256_i32gather_epi32}" = "yes" -a \
+	"${have_mm256_extractf128_si256}" = "yes" -a \
+	"${have_mm_extract_epi8}" = "yes" ; then
+	LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2=yes
+fi
+AC_MSG_RESULT([${LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2}])
+
 if test "${LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_8}" = "yes" ; then
 	LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_8="#define LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_8"
 else
@@ -1168,6 +1284,11 @@ if test "${LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16}" = "yes" ; then
 	LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16="#define LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16"
 else
 	LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16=
+fi
+if test "${LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2}" = "yes" ; then
+	LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2="#define LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2"
+else
+	LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2=
 fi
 
 if test "${nullx}" = "yes" ; then
@@ -3729,4 +3850,5 @@ AC_SUBST([FFTWLIBS])
 AC_SUBST([TESTDIR])
 AC_SUBST([LIBMAUS2_HAVE_AVX])
 AC_SUBST([LIBMAUS2_HAVE_AVX2])
+AC_SUBST([LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2])
 AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2lsf.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc libmaus2fftw.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp test/Makefile)

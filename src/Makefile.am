@@ -1954,7 +1954,10 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/ChainRemoveQueueElementComparator.hpp \
 	libmaus2/lcs/ChainLeftMostComparator.hpp \
 	libmaus2/lcs/SMEMProcessor.hpp \
-	libmaus2/lcs/AlignmentOneAgainstManyAVX2.hpp
+	libmaus2/lcs/AlignmentOneAgainstManyAVX2.hpp \
+	libmaus2/lcs/AlignmentOneAgainstManyInterface.hpp \
+	libmaus2/lcs/AlignmentOneAgainstManyGeneric.hpp \
+	libmaus2/lcs/AlignmentOneAgainstManyFactory.hpp
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp

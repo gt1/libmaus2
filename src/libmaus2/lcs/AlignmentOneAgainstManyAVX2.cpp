@@ -25,7 +25,7 @@
 #include <sstream>
 #include <iostream>
 
-#if defined(LIBMAUS2_HAVE_AVX2)
+#if defined(LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2)
 #include <immintrin.h>
 
 #define LIBMAUS2_SIMD_WORD_TYPE       __m256i
@@ -313,7 +313,7 @@ void destructAlignmentOneAgainstManyAVX2Context(void * object)
 
 libmaus2::lcs::AlignmentOneAgainstManyAVX2::AlignmentOneAgainstManyAVX2()
 {
-	#if defined(LIBMAUS2_HAVE_AVX2)
+	#if defined(LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2)
 	AlignmentOneAgainstManyAVX2Context * ccontext = NULL;
 
 	try
@@ -332,9 +332,13 @@ libmaus2::lcs::AlignmentOneAgainstManyAVX2::AlignmentOneAgainstManyAVX2()
 		delete ccontext;
 		throw;
 	}
+	#else
+	libmaus2::exception::LibMausException lme;
+	lme.getStream() << "[E] libmaus2::lcs::AlignmentOneAgainstManyAVX2::AlignmentOneAgainstManyAVX2: no compiled support for AVX2" << std::endl;
+	lme.finish();
+	throw lme;
 	#endif
 }
-
 
 void libmaus2::lcs::AlignmentOneAgainstManyAVX2::process(
 	uint8_t const * qa,
@@ -346,7 +350,7 @@ void libmaus2::lcs::AlignmentOneAgainstManyAVX2::process(
 {
 	E.ensureSize(MAo);
 
-	#if defined(LIBMAUS2_HAVE_AVX2)
+	#if defined(LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2)
 	AlignmentOneAgainstManyAVX2Context * ccontext = reinterpret_cast<AlignmentOneAgainstManyAVX2Context *>(context->getObject());
 
 	uint64_t const qsize = qe-qa;
@@ -660,11 +664,5 @@ void libmaus2::lcs::AlignmentOneAgainstManyAVX2::process(
 	}
 	#endif
 
-	#else
-	for ( uint64_t i = 0; i < MAo; ++i )
-	{
-		np.align(qa,qe-qa,MA[i].first,MA[i].second);
-		E [ i ] = np.getTraceContainer().getAlignmentStatistics().getEditDistance();
-	}
 	#endif
 }

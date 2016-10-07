@@ -15,35 +15,32 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_LCS_ALIGNMENTONEAGAINSTMANYAVX2_HPP)
-#define LIBMAUS2_LCS_ALIGNMENTONEAGAINSTMANYAVX2_HPP
+#if ! defined(LIBMAUS2_LCS_ALIGNMENTONEAGAINSTMANYGENERIC_HPP)
+#define LIBMAUS2_LCS_ALIGNMENTONEAGAINSTMANYGENERIC_HPP
 
-#include <libmaus2/util/Destructable.hpp>
-#include <libmaus2/autoarray/AutoArray.hpp>
-#if ! defined(LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2)
-#include <libmaus2/lcs/NP.hpp>
-#endif
 #include <libmaus2/lcs/AlignmentOneAgainstManyInterface.hpp>
+#include <libmaus2/lcs/NP.hpp>
 
 namespace libmaus2
 {
 	namespace lcs
 	{
-		struct AlignmentOneAgainstManyAVX2 : public libmaus2::lcs::AlignmentOneAgainstManyInterface
+		struct AlignmentOneAgainstManyGeneric : public libmaus2::lcs::AlignmentOneAgainstManyInterface
 		{
-			libmaus2::util::Destructable::unique_ptr_type context;
-
-			#if ! defined(LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2)
 			libmaus2::lcs::NP np;
-			#endif
-
-			AlignmentOneAgainstManyAVX2();
 
 			void process(
 				uint8_t const * qa, uint8_t const * qe,
 				std::pair<uint8_t const *,uint64_t> const * MA,uint64_t const MAo,
 				libmaus2::autoarray::AutoArray<uint64_t> & E
-			);
+			)
+			{
+				for ( uint64_t i = 0; i < MAo; ++i )
+				{
+					np.align(qa,qe-qa,MA[i].first,MA[i].second);
+					E [ i ] = np.getTraceContainer().getAlignmentStatistics().getEditDistance();
+				}
+			}
 		};
 	}
 }
