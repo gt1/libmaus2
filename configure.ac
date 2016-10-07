@@ -553,6 +553,22 @@ fi
 
 AC_LANG_PUSH([C++])
 CXXFLAGS_SAVE="${CXXFLAGS}"
+CXXFLAGS="-mavx"
+AC_MSG_CHECKING([whether the C++ compiler supports the -mavx flag])
+AC_TRY_COMPILE([],[],[mavx=yes],[mavx=no])
+AC_MSG_RESULT([${mavx}])
+CXXFLAGS="${CXXFLAGS_SAVE}"
+AC_LANG_POP
+
+MAVX=
+LIBMAUS2_HAVE_AVX=
+if test "${mavx}" = "yes" ; then
+	MAVX="-mavx"
+	LIBMAUS2_HAVE_AVX="#define LIBMAUS2_HAVE_AVX"
+fi
+
+AC_LANG_PUSH([C++])
+CXXFLAGS_SAVE="${CXXFLAGS}"
 CXXFLAGS="-mavx2"
 AC_MSG_CHECKING([whether the C++ compiler supports the -mavx2 flag])
 AC_TRY_COMPILE([],[],[mavx2=yes],[mavx2=no])
@@ -3711,5 +3727,6 @@ AC_SUBST([FFTWCPPFLAGS])
 AC_SUBST([FFTWLDFLAGS])
 AC_SUBST([FFTWLIBS])
 AC_SUBST([TESTDIR])
+AC_SUBST([LIBMAUS2_HAVE_AVX])
 AC_SUBST([LIBMAUS2_HAVE_AVX2])
 AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2lsf.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc libmaus2fftw.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp test/Makefile)
