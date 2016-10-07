@@ -25,7 +25,6 @@
 #include <iostream>
 #include <cstring>
 #include <cstdlib>
-#include <malloc.h>
 
 namespace libmaus2
 {
