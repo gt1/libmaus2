@@ -260,11 +260,13 @@ void testSmaller()
 
 						// std::cerr << "*** new range ***" << " l=" << left << " r=" << right << " sym=" << static_cast<char>(sym) << " rank=" << SOBC.second[sym-hwt.enctable.minsym] << std::endl;
 
+						#if ! defined(NDEBUG)
 						uint64_t wtsmaller = hwt.smaller ( sym, left, right );
 
 						// std::cerr << "left=" << left << " right=" << right << " sym=" << sym << " smaller=" << smaller << " wtsmaller=" << wtsmaller << std::endl;
 
 						assert ( wtsmaller == smaller );
+						#endif
 					}
 	}
 
@@ -321,11 +323,13 @@ void testSmaller()
 
 						// std::cerr << "*** new range ***" << " l=" << left << " r=" << right << " sym=" << static_cast<char>(sym) << " rank=" << SOBC.second[sym-hwt.enctable.minsym] << std::endl;
 
+						#if ! defined(NDEBUG)
 						uint64_t wtsmaller = hwt.smaller ( sym, left, right );
 
 						// std::cerr << "left=" << left << " right=" << right << " sym=" << sym << " smaller=" << smaller << " wtsmaller=" << wtsmaller << std::endl;
 
 						assert ( wtsmaller == smaller );
+						#endif
 					}
 	}
 }
@@ -669,9 +673,14 @@ int main()
 
 		for ( uint64_t i = 0; i < s.size(); ++i )
 		{
-			uint8_t c = s[i];
+			#if ! defined(NDEBUG)
+			uint8_t c =
+			#endif
+				s[i];
+			#if ! defined(NDEBUG)
 			assert ( CE.getCode(c).second == E[c].second );
 			assert ( CE.getCode(c).first == E[c].first.A[0] );
+			#endif
 		}
 
 		// return 0;
@@ -734,16 +743,26 @@ int main()
 	rtc.start();
 	for ( uint64_t i = 0; i < A.size(); ++i )
 	{
-		uint8_t sym = cane.fastDecode(BIB);
+		#if ! defined(NDEBUG)
+		uint8_t sym =
+		#endif
+			cane.fastDecode(BIB);
 		// std::cout << sym;
+		#if ! defined(NDEBUG)
 		assert ( sym == A[i] );
+		#endif
 	}
 	BIB.flush();
 	for ( uint64_t i = 0; i < A.size(); ++i )
 	{
-		uint8_t sym = cane.slowDecode(BIB);
+		#if ! defined(NDEBUG)
+		uint8_t sym =
+		#endif
+			cane.slowDecode(BIB);
 		// std::cout << sym;
+		#if ! defined(NDEBUG)
 		assert ( sym == A[i] );
+		#endif
 	}
 	BIB.flush();
 	std::cerr << "Fast " << rtc.getElapsedSeconds() << std::endl;

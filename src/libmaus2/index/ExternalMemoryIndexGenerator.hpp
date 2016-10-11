@@ -133,8 +133,11 @@ namespace libmaus2
 						uint64_t gpos = levelstarts[level];
 						uint64_t ppos = gpos + incnt * record_size;
 
+						#if ! defined(NDEBUG)
 						// expected position of get pointer after handling level
 						uint64_t const egpos = ppos;
+						#endif
+
 						// expected position of put pointer after handling level
 						uint64_t const eppos = ppos + outcnt * record_size;
 
@@ -189,9 +192,14 @@ namespace libmaus2
 							wc = wa;
 						}
 
-						bool const pok = static_cast<off_t>(stream.tellg()) == static_cast<off_t>(egpos);
+						#if ! defined(NDEBUG)
+						bool const pok =
+							static_cast<off_t>(stream.tellg()) == static_cast<off_t>(egpos);
+						#endif
+						#if ! defined(NDEBUG)
 						assert ( pok );
 						assert ( ppos == eppos );
+						#endif
 
 						incnt = outcnt;
 						level += 1;

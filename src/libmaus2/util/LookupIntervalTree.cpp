@@ -62,6 +62,12 @@ void libmaus2::util::LookupIntervalTree::test(bool setupRandom) const
 	for ( uint64_t i = 0; i < 64*1024; ++i )
 	{
 		uint64_t const v = ::libmaus2::random::Random::rand64() & ((1ull << (rangebits))-1);
-		assert ( find(v) == I.find(v) );
+		if ( find(v) != I.find(v) )
+		{
+			libmaus2::exception::LibMausException lme;
+			lme.getStream() << "libmaus2::util::LookupIntervalTree::test() failed" << std::endl;
+			lme.finish();
+			throw lme;
+		}
 	}
 }

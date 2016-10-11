@@ -1498,19 +1498,23 @@ namespace libmaus2
 										}
 
 										uint64_t const left_cnt = innernode->data[left_index].cnt;
+										#if ! defined(NDEBUG)
 										uint64_t const middle_cnt = innernode->data[middle_index].cnt;
 										uint64_t const total_cnt = left_cnt + middle_cnt;
+										#endif
 										uint64_t const left_ptr = innernode->data[left_index].ptr;
 										uint64_t const middle_ptr = innernode->data[middle_index].ptr;
 										leaf_type * const left_leaf =  &(getLeaf(left_ptr));
 										leaf_type * const middle_leaf = &(getLeaf(middle_ptr));
 
+										#if ! defined(NDEBUG)
 										uint64_t const new_left_cnt = (total_cnt + 2)/3;
 										uint64_t const new_rest_cnt = total_cnt - new_left_cnt;
 										uint64_t const new_middle_cnt = (new_rest_cnt + 1)/2;
 										uint64_t const new_right_cnt = new_rest_cnt - new_middle_cnt;
 
 										assert ( (new_left_cnt + new_middle_cnt + new_right_cnt) == total_cnt );
+										#endif
 
 										::libmaus2::uint::UInt<2*w> U = middle_leaf->data;
 										U <<= left_cnt;

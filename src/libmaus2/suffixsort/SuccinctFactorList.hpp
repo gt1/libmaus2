@@ -943,8 +943,13 @@ namespace libmaus2
 				if ( ! B[bhigh-1]->pushExplicitWord(word,len) )
 				{
 					pushBlock();
-					bool const ok = B[bhigh-1]->pushExplicitWord(word,len);
+					#if ! defined(NDEBUG)
+					bool const ok =
+					#endif
+						B[bhigh-1]->pushExplicitWord(word,len);
+					#if ! defined(NDEBUG)
 					assert ( ok );
+					#endif
 				}
 			}
 
@@ -955,8 +960,13 @@ namespace libmaus2
 				if ( ! B[bhigh-1]->push(i,j,k) )
 				{
 					pushBlock();
-					bool const ok = B[bhigh-1]->push(i,j,k);
+					#if ! defined(NDEBUG)
+					bool const ok =
+					#endif
+						B[bhigh-1]->push(i,j,k);
+					#if ! defined(NDEBUG)
 					assert ( ok );
+					#endif
 				}
 			}
 

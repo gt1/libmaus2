@@ -80,7 +80,10 @@ namespace libmaus2
 						throw lme;
 					}
 
-					int const cd = in.get();
+					#if ! defined(NDEBUG)
+					int const cd =
+					#endif
+						in.get();
 					assert ( cd == s[i] );
 
 					i += 1;
@@ -98,8 +101,13 @@ namespace libmaus2
 				)
 				{
 					ostr.put(c);
-					int const cd = in.get();
+					#if ! defined(NDEBUG)
+					int const cd =
+					#endif
+						in.get();
+					#if ! defined(NDEBUG)
 					assert ( cd == c );
+					#endif
 				}
 
 				if ( c == std::istream::traits_type::eof() )

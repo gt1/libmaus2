@@ -1019,17 +1019,24 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < n; ++i )
 				{
 					smap [ s[i] ]++;
-					uint64_t srank = smap[s[i]];
+					#if ! defined(NDEBUG)
+					uint64_t srank =
+					#endif
+						smap[s[i]];
 
 					#if 0
 					std::pair < ::libmaus2::uint::UInt < lookupwords >, unsigned int > code = H0.enctable [ s[i] ];
 					#endif
 
-					uint64_t frank = H0.rank(s[i],i);
+					#if ! defined(NDEBUG)
+					uint64_t frank =
+					#endif
+						H0.rank(s[i],i);
 
+					#if ! defined(NDEBUG)
 					assert ( srank == frank );
-
 					assert ( H0.select(s[i],frank-1) == i );
+					#endif
 
 					/*
 					std::cerr << "i=" << i << " select=" << H0.select(s[i],frank-1) << std::endl;

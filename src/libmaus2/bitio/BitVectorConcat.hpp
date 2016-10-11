@@ -75,7 +75,13 @@ namespace libmaus2
 					{
 						uint64_t w;
 						bool const ok = in.getNext(w);
-						assert ( ok );
+						if ( ! ok )
+						{
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "BitVectorConcat::concatenateBitVectors(): input failure\n";
+							lme.finish();
+							throw lme;
+						}
 						writer.write(w,sizeof(uint64_t)*8);
 					}
 
@@ -83,7 +89,13 @@ namespace libmaus2
 					{
 						uint64_t w;
 						bool const ok = in.getNext(w);
-						assert ( ok );
+						if ( ! ok )
+						{
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "BitVectorConcat::concatenateBitVectors(): input failure\n";
+							lme.finish();
+							throw lme;
+						}
 						unsigned int const shift = 8*sizeof(uint64_t)-rbits;
 						// std::cerr << "shift=" << shift << std::endl;
 						writer.write ( w >> shift, rbits );

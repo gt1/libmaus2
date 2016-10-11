@@ -48,6 +48,12 @@ namespace libmaus2
 
 			}
 
+			uint64_t byteSize() const
+			{
+				return
+					H.byteSize() + sizeof(f) + sizeof(comp);
+			}
+
 			uint64_t free() const
 			{
 				return H.size() - f;

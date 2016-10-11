@@ -331,8 +331,13 @@ namespace libmaus2
 							uint64_t vr = 0;
 							for ( uint64_t j = 0; j < decoders.size(); ++j )
 								vr += decoders[j]->decode();
-							uint64_t const vn = wdec.decode();
+							#if ! defined(NDEBUG)
+							uint64_t const vn =
+							#endif
+								wdec.decode();
+							#if ! defined(NDEBUG)
 							assert ( vr == vn );
+							#endif
 						}
 						std::cerr << "done." << std::endl;
 					}

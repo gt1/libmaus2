@@ -132,8 +132,13 @@ void libmaus2::util::PosixExecute::executeOld(::libmaus2::util::ArgInfo const & 
 		close(stderrfd);
 
 		int status = 0;
-		pid_t const wpid = waitpid(pid, &status, 0);
+		#if ! defined(NDEBUG)
+		pid_t const wpid =
+		#endif
+			waitpid(pid, &status, 0);
+		#if ! defined(NDEBUG)
 		assert ( wpid == pid );
+		#endif
 
 		out = loadFile(stdoutfilename);
 		err = loadFile(stderrfilename);

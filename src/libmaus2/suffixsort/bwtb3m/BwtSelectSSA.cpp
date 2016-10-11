@@ -190,8 +190,13 @@ struct PreIsaInput
 
 		if ( ok )
 		{
-			bool const ok2 = SGI.getNext(P.second);
+			#if ! defined(NDEBUG)
+			bool const ok2 =
+			#endif
+				SGI.getNext(P.second);
+			#if ! defined(NDEBUG)
 			assert ( ok2 );
+			#endif
 		}
 
 		return ok;
@@ -373,10 +378,20 @@ void libmaus2::suffixsort::bwtb3m::BwtSelectSSA::computeSSA(
 	{
 		libmaus2::aio::InputStreamInstance ISI(isafn);
 		libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(ISI,2);
-		bool const okrate = SGI.getNext(preisasamplingrate);
+		#if ! defined(NDEBUG)
+		bool const okrate =
+		#endif
+			SGI.getNext(preisasamplingrate);
+		#if ! defined(NDEBUG)
 		assert ( okrate );
-		bool const oknumsamples = SGI.getNext(numisasamples);
+		#endif
+		#if ! defined(NDEBUG)
+		bool const oknumsamples =
+		#endif
+			SGI.getNext(numisasamples);
+		#if ! defined(NDEBUG)
 		assert ( oknumsamples );
+		#endif
 
 		if ( logstr )
 			*logstr << "[V] got meta data, isasamplingrate=" << preisasamplingrate << " numisasamples=" << numisasamples << std::endl;
@@ -399,8 +414,13 @@ void libmaus2::suffixsort::bwtb3m::BwtSelectSSA::computeSSA(
 		for ( uint64_t i = 0; i < numisasamples; ++i )
 		{
 			uint64_t v;
-			bool const ok = SGI.getNext(v);
+			#if ! defined(NDEBUG)
+			bool const ok =
+			#endif
+				SGI.getNext(v);
+			#if ! defined(NDEBUG)
 			assert ( ok );
+			#endif
 
 			SGO->put(v);
 			SGO->put(i*preisasamplingrate);

@@ -1197,6 +1197,7 @@ namespace libmaus2
 				if ( P.second != P.first && text[P.second-1] == '\r' )
 					--P.second;
 
+				#if ! defined(NDEBUG)
 				bool const isRG =
 					P.second-P.first >= 3 &&
 					text[P.first+0] == '@' &&
@@ -1204,6 +1205,7 @@ namespace libmaus2
 					text[P.first+2] == 'G';
 
 				assert ( isRG );
+				#endif
 
 				uint64_t j = P.first;
 				while (
@@ -1263,6 +1265,7 @@ namespace libmaus2
 				if ( P.second != P.first && text[P.second-1] == '\r' )
 					--P.second;
 
+				#if ! defined(NDEBUG)
 				bool const isRG =
 					P.second-P.first >= 3 &&
 					text[P.first+0] == '@' &&
@@ -1270,6 +1273,7 @@ namespace libmaus2
 					text[P.first+2] == 'G';
 
 				assert ( isRG );
+				#endif
 
 				uint64_t j = P.first;
 				while (

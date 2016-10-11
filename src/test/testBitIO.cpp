@@ -647,8 +647,13 @@ void testBitVectorIO()
 
 	for ( uint64_t i = 0; i < n0+n1; ++i )
 	{
-		bool const bit = bin.readBit();
+		#if ! defined(NDEBUG)
+		bool const bit =
+		#endif
+			bin.readBit();
+		#if ! defined(NDEBUG)
 		assert ( bit == bits[i] );
+		#endif
 	}
 
 	for ( uint64_t offset = 0; offset <= n0+n1; ++offset )
@@ -658,8 +663,13 @@ void testBitVectorIO()
 
 		for ( uint64_t j = offset; j < n0+n1; ++j )
 		{
-			bool const bit = bin.readBit();
+			#if ! defined(NDEBUG)
+			bool const bit =
+			#endif
+				bin.readBit();
+			#if ! defined(NDEBUG)
 			assert ( bit == bits[j] );
+			#endif
 		}
 	}
 

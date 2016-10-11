@@ -120,6 +120,14 @@ namespace libmaus2
 			{
 				::libmaus2::bitio::putBit(A.get(),i,b);
 			}
+			void set(uint64_t const i)
+			{
+				::libmaus2::bitio::setBit(A.get(),i);
+			}
+			void erase(uint64_t const i)
+			{
+				::libmaus2::bitio::eraseBit(A.get(),i);
+			}
 			void setSync(uint64_t const i, bool b)
 			{
 				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
@@ -267,6 +275,14 @@ namespace libmaus2
 				for ( uint64_t i = 1; i < 1ull << 34; ++i )
 					assert ( lsbSlow(i) == lsb(i) );
 
+			}
+
+			uint64_t getRank() const
+			{
+				uint64_t c = 0;
+				for ( uint64_t i = 0; i < A.size(); ++i )
+					c += libmaus2::rank::PopCnt8<sizeof(long)>::popcnt8(A[i]);
+				return c;
 			}
 		};
 

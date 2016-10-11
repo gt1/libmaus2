@@ -70,7 +70,9 @@ void testPosixFdInput()
 		PFIS.seekg(i,std::ios::beg);
 
 		int c = -1;
+		#if ! defined(NDEBUG)
 		uint64_t p = i;
+		#endif
 		while ( ( c = PFIS.get() ) != std::istream::traits_type::eof() )
 		{
 			assert ( c == A[p++] );
@@ -346,7 +348,10 @@ void testPutBack()
 		{
 			for ( uint64_t i = 0 ; i < putbacksize; ++i )
 			{
-				int const c = PFIS.get();
+				#if ! defined(NDEBUG)
+				int const c =
+				#endif
+					PFIS.get();
 				assert ( c >= 0 );
 				assert ( c == A[z+i] );
 			}

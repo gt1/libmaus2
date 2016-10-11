@@ -294,9 +294,18 @@ struct BalancedParentheses : public BalancedParenthesesBase
 			}
 			else
 			{
-				uint64_t const v0 = S.top(); S.pop();
-				uint64_t const v1 = IS.top(); IS.pop();
+				uint64_t const v0 =
+					S.top();
+				S.pop();
+				#if ! defined(NDEBUG)
+				uint64_t const v1 =
+				#endif
+					IS.top();
+				IS.pop();
+
+				#if ! defined(NDEBUG)
 				assert ( v0 == v1 );
+				#endif
 
 				uint64_t const cl = lookupFindClose(UB,v0);
 
@@ -313,6 +322,7 @@ struct BalancedParentheses : public BalancedParenthesesBase
 
 				assert ( ol == v0 );
 
+				#if ! defined(NDEBUG)
 				unsigned int const blocksize = 64;
 				assert (
 					lookupFindCloseOrFar(UB,v0,blocksize) == lookupFindClose(UB,v0)
@@ -332,6 +342,7 @@ struct BalancedParentheses : public BalancedParenthesesBase
 						lookupFindOpenOrFar(UB,i,blocksize) == std::numeric_limits<uint64_t>::max()
 					)
 				);
+				#endif
 
 				// std::cerr << "v0=" << v0 << " v1=" << v1 << std::endl;
 			}

@@ -257,10 +257,20 @@ namespace libmaus2
 
 						// read first element
 						uint64_t a = 0, b = 0;
-						bool const aok = in[block - lowblock]->getNext(a);
+						#if ! defined(NDEBUG)
+						bool const aok =
+						#endif
+							in[block - lowblock]->getNext(a);
+						#if ! defined(NDEBUG)
 						assert ( aok );
-						bool const bok = in[block - lowblock]->getNext(b);
+						#endif
+						#if ! defined(NDEBUG)
+						bool const bok =
+						#endif
+							in[block - lowblock]->getNext(b);
+						#if ! defined(NDEBUG)
 						assert ( bok );
+						#endif
 
 						triple_type triple(a,b,block-lowblock);
 
@@ -289,8 +299,13 @@ namespace libmaus2
 						if ( in[id]->getNext(a) )
 						{
 							uint64_t b = 0;
-							bool const bok = in[id]->getNext(b);
+							#if !defined(NDEBUG)
+							bool const bok =
+							#endif
+								in[id]->getNext(b);
+							#if ! defined(NDEBUG)
 							assert ( bok );
+							#endif
 
 							triple_type triple(a,b,id);
 
@@ -409,10 +424,18 @@ namespace libmaus2
 					in[i] = UNIQUE_PTR_MOVE(tini);
 
 					uint64_t a = 0, b = 0;
-					bool const aok = in[i]->getNext(a);
-					bool const bok = in[i]->getNext(b);
+					#if !defined(NDEBUG)
+					bool const aok =
+					#endif
+						in[i]->getNext(a);
+					#if !defined(NDEBUG)
+					bool const bok =
+					#endif
+						in[i]->getNext(b);
+					#if !defined(NDEBUG)
 					assert ( aok );
 					assert ( bok );
+					#endif
 
 					triple_type triple(a,b,i);
 
@@ -443,8 +466,13 @@ namespace libmaus2
 					if ( in[id]->getNext(a) )
 					{
 						uint64_t b = 0;
-						bool const bok = in[id]->getNext(b);
+						#if !defined(NDEBUG)
+						bool const bok =
+						#endif
+							in[id]->getNext(b);
+						#if !defined(NDEBUG)
 						assert ( bok );
+						#endif
 
 						triple_type triple(a,b,id);
 
