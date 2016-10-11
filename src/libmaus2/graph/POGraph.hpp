@@ -642,8 +642,13 @@ namespace libmaus2
 				assert ( aid < numalignedto[id] );
 
 				POGraphEdge<node_id_type> edge;
-				bool const ok = alignedto.contains(POHashGraphKey<node_id_type>(id,aid), edge);
+				#if ! defined(NDEBUG)
+				bool const ok =
+				#endif
+					alignedto.contains(POHashGraphKey<node_id_type>(id,aid), edge);
+				#if ! defined(NDEBUG)
 				assert ( ok );
+				#endif
 
 				return edge.to;
 			}
@@ -726,8 +731,13 @@ namespace libmaus2
 				assert ( index < numforwardedges[from] );
 
 				POGraphEdge<node_id_type> edge;
-				bool const ok = forwardedges.contains(POHashGraphKey<node_id_type>(from,index), edge);
+				#if ! defined(NDEBUG)
+				bool const ok =
+				#endif
+					forwardedges.contains(POHashGraphKey<node_id_type>(from,index), edge);
+				#if ! defined(NDEBUG)
 				assert ( ok );
+				#endif
 
 				return edge;
 			}
@@ -738,8 +748,13 @@ namespace libmaus2
 				assert ( index < numreverseedges[to] );
 
 				POGraphEdge<node_id_type> edge;
-				bool const ok = reverseedges.contains(POHashGraphKey<node_id_type>(to,index), edge);
+				#if ! defined(NDEBUG)
+				bool const ok =
+				#endif
+					reverseedges.contains(POHashGraphKey<node_id_type>(to,index), edge);
+				#if ! defined(NDEBUG)
 				assert ( ok );
+				#endif
 
 				return edge;
 			}
@@ -792,8 +807,13 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < num; ++i )
 					{
 						POGraphEdge<node_id_type> edge;
-						bool const ok = forwardedges.contains(POHashGraphKey<node_id_type>(from,i), edge);
+						#if ! defined(NDEBUG)
+						bool const ok =
+						#endif
+							forwardedges.contains(POHashGraphKey<node_id_type>(from,i), edge);
+						#if ! defined(NDEBUG)
 						assert ( ok );
+						#endif
 						if ( edge.to == to )
 							return true;
 					}
@@ -815,8 +835,14 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < num; ++i )
 					{
 						POGraphEdge<node_id_type> edge;
-						bool const ok = reverseedges.contains(POHashGraphKey<node_id_type>(from,i), edge);
+
+						#if ! defined(NDEBUG)
+						bool const ok =
+						#endif
+							reverseedges.contains(POHashGraphKey<node_id_type>(from,i), edge);
+						#if ! defined(NDEBUG)
 						assert ( ok );
+						#endif
 						if ( edge.to == to )
 							return true;
 					}

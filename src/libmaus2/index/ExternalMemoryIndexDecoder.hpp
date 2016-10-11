@@ -133,9 +133,11 @@ namespace libmaus2
 
 							for ( int64_t l = i; l >= 0 && cache[l]; --l, jj <<= inner_level_log )
 							{
+								#if ! defined(NDEBUG)
 								record_type const & ref = (*(cache[i]))[j];
 								record_type const & check = (*(cache[l]))[jj];
 								assert( ref.equal(check) );
+								#endif
 							}
 						}
 					}

@@ -35,6 +35,39 @@ namespace libmaus2
 		 * @param bit
 		 **/
 		template<typename iterator>
+		inline void setBit1(iterator A, uint64_t const offset)
+		{
+			static const uint8_t insone[] = { (1U<<7 ), (1U<<6 ), (1U<<5 ), (1U<<4 ), (1U<<3) , (1U<<2 ), (1U<<1 ), (1U<<0 ) };
+			uint64_t const wordoffset = offset>>3;
+			uint64_t const bitoffset = offset&0x7u;
+			A[wordoffset] |= insone[bitoffset];
+		}
+		/**
+		 * put one bit
+		 * @param A bit vector
+		 * @param offset
+		 * @param bit
+		 **/
+		template<typename iterator>
+		inline void eraseBit1(iterator A, uint64_t const offset)
+		{
+			static const uint8_t maskone[] = {
+				static_cast<uint8_t>(~(static_cast<uint8_t>(1)<<7)), static_cast<uint8_t>(~(static_cast<uint8_t>(1)<<6)),
+				static_cast<uint8_t>(~(static_cast<uint8_t>(1)<<5)), static_cast<uint8_t>(~(static_cast<uint8_t>(1)<<4)),
+				static_cast<uint8_t>(~(static_cast<uint8_t>(1)<<3)), static_cast<uint8_t>(~(static_cast<uint8_t>(1)<<2)),
+				static_cast<uint8_t>(~(static_cast<uint8_t>(1)<<1)), static_cast<uint8_t>(~(static_cast<uint8_t>(1)<<0))
+			};
+			uint64_t const wordoffset = offset>>3;
+			uint64_t const bitoffset = offset&0x7u;
+			A[wordoffset] &= maskone[bitoffset];
+		}
+		/**
+		 * put one bit
+		 * @param A bit vector
+		 * @param offset
+		 * @param bit
+		 **/
+		template<typename iterator>
 		inline void putBit1(iterator A, uint64_t const offset, uint8_t v)
 		{
 			static const uint8_t maskone[] = {
@@ -126,6 +159,44 @@ namespace libmaus2
 			return __sync_fetch_and_and (A+wordoffset,maskone[bitoffset]) & setone[bitoffset];
 		}
 		#endif
+		/**
+		 * put one bit
+		 * @param A bit vector
+		 * @param offset
+		 * @param bit
+		 **/
+		template<typename iterator>
+		inline void setBit2(iterator A, uint64_t const offset)
+		{
+			static const uint16_t insone[] = {
+				(1U<<15), (1U<<14), (1U<<13), (1U<<12), (1U<<11), (1U<<10), (1U<<9 ), (1U<<8 ),
+				(1U<<7 ), (1U<<6 ), (1U<<5 ), (1U<<4 ), (1U<<3) , (1U<<2 ), (1U<<1 ), (1U<<0 )
+			};
+			uint64_t const wordoffset = offset>>4;
+			uint64_t const bitoffset = offset&0xfu;
+			A[wordoffset] |= insone[bitoffset];
+		}
+		/**
+		 * put one bit
+		 * @param A bit vector
+		 * @param offset
+		 * @param bit
+		 **/
+		template<typename iterator>
+		inline void eraseBit2(iterator A, uint64_t const offset)
+		{
+			static const uint16_t maskone[] = {
+				static_cast<uint16_t>(~(static_cast<uint16_t>(1)<<15)), static_cast<uint16_t>(~(static_cast<uint16_t>(1)<<14)), static_cast<uint16_t>(~(static_cast<uint16_t>(1)<<13)),
+				static_cast<uint16_t>(~(static_cast<uint16_t>(1)<<12)), static_cast<uint16_t>(~(static_cast<uint16_t>(1)<<11)), static_cast<uint16_t>(~(static_cast<uint16_t>(1)<<10)),
+				static_cast<uint16_t>(~(static_cast<uint16_t>(1)<<9)),  static_cast<uint16_t>(~(static_cast<uint16_t>(1)<<8)),  static_cast<uint16_t>(~(static_cast<uint16_t>(1)<<7)),
+				static_cast<uint16_t>(~(static_cast<uint16_t>(1)<<6)),  static_cast<uint16_t>(~(static_cast<uint16_t>(1)<<5)),  static_cast<uint16_t>(~(static_cast<uint16_t>(1)<<4)),
+				static_cast<uint16_t>(~(static_cast<uint16_t>(1)<<3)),  static_cast<uint16_t>(~(static_cast<uint16_t>(1)<<2)),  static_cast<uint16_t>(~(static_cast<uint16_t>(1)<<1)),
+				static_cast<uint16_t>(~(static_cast<uint16_t>(1)<<0))
+			};
+			uint64_t const wordoffset = offset>>4;
+			uint64_t const bitoffset = offset&0xfu;
+			A[wordoffset] &= maskone[bitoffset];
+		}
 		/**
 		 * put one bit
 		 * @param A bit vector
@@ -273,6 +344,44 @@ namespace libmaus2
 			return __sync_fetch_and_and (A+wordoffset,maskone[bitoffset]) & setone[bitoffset];
 		}
 		#endif
+		/**
+		 * set one bit
+		 * @param A bit vector
+		 * @param offset
+		 * @param bit
+		 **/
+		template<typename iterator>
+		inline void setBit4(iterator A, uint64_t const offset)
+		{
+			static const uint32_t insone[] = {
+				(1UL<<31), (1UL<<30), (1UL<<29), (1UL<<28), (1UL<<27), (1UL<<26), (1UL<<25), (1UL<<24),
+				(1UL<<23), (1UL<<22), (1UL<<21), (1UL<<20), (1UL<<19), (1UL<<18), (1UL<<17), (1UL<<16),
+				(1UL<<15), (1UL<<14), (1UL<<13), (1UL<<12), (1UL<<11), (1UL<<10), (1UL<<9 ), (1UL<<8 ),
+				(1UL<<7 ), (1UL<<6 ), (1UL<<5 ), (1UL<<4 ), (1UL<<3) , (1UL<<2 ), (1UL<<1 ), (1UL<<0 )
+			};
+			uint64_t const wordoffset = offset>>5;
+			uint64_t const bitoffset = offset&0x1fu;
+			A[wordoffset] |= insone[bitoffset];
+		}
+		/**
+		 * put one bit
+		 * @param A bit vector
+		 * @param offset
+		 * @param bit
+		 **/
+		template<typename iterator>
+		inline void eraseBit4(iterator A, uint64_t const offset)
+		{
+			static const uint32_t maskone[] = {
+				~(static_cast<uint32_t>(1)<<31), ~(static_cast<uint32_t>(1)<<30), ~(static_cast<uint32_t>(1)<<29), ~(static_cast<uint32_t>(1)<<28), ~(static_cast<uint32_t>(1)<<27), ~(static_cast<uint32_t>(1)<<26), ~(static_cast<uint32_t>(1)<<25), ~(static_cast<uint32_t>(1)<<24),
+				~(static_cast<uint32_t>(1)<<23), ~(static_cast<uint32_t>(1)<<22), ~(static_cast<uint32_t>(1)<<21), ~(static_cast<uint32_t>(1)<<20), ~(static_cast<uint32_t>(1)<<19), ~(static_cast<uint32_t>(1)<<18), ~(static_cast<uint32_t>(1)<<17), ~(static_cast<uint32_t>(1)<<16),
+				~(static_cast<uint32_t>(1)<<15), ~(static_cast<uint32_t>(1)<<14), ~(static_cast<uint32_t>(1)<<13), ~(static_cast<uint32_t>(1)<<12), ~(static_cast<uint32_t>(1)<<11), ~(static_cast<uint32_t>(1)<<10), ~(static_cast<uint32_t>(1)<<9), ~(static_cast<uint32_t>(1)<<8),
+				~(static_cast<uint32_t>(1)<<7), ~(static_cast<uint32_t>(1)<<6), ~(static_cast<uint32_t>(1)<<5), ~(static_cast<uint32_t>(1)<<4), ~(static_cast<uint32_t>(1)<<3), ~(static_cast<uint32_t>(1)<<2), ~(static_cast<uint32_t>(1)<<1), ~(static_cast<uint32_t>(1)<<0)
+			};
+			uint64_t const wordoffset = offset>>5;
+			uint64_t const bitoffset = offset&0x1fu;
+			A[wordoffset] &= maskone[bitoffset];
+		}
 		/**
 		 * put one bit
 		 * @param A bit vector
@@ -489,6 +598,52 @@ namespace libmaus2
 			uint64_t const bitoffset = offset&0x3fu;
 
 			A[wordoffset] = (A[wordoffset] & maskone[bitoffset]) | insone[(bitoffset<<1)|v];
+		}
+		/**
+		 * set one bit
+		 * @param A bit vector
+		 * @param offset
+		 * @param bit
+		 **/
+		template<typename iterator>
+		inline void setBit8(iterator A, uint64_t const offset)
+		{
+			static const uint64_t insone[] = {
+				(1ULL<<63), (1ULL<<62), (1ULL<<61), (1ULL<<60), (1ULL<<59), (1ULL<<58), (1ULL<<57), (1ULL<<56),
+				(1ULL<<55), (1ULL<<54), (1ULL<<53), (1ULL<<52), (1ULL<<51), (1ULL<<50), (1ULL<<49), (1ULL<<48),
+				(1ULL<<47), (1ULL<<46), (1ULL<<45), (1ULL<<44), (1ULL<<43), (1ULL<<42), (1ULL<<41), (1ULL<<40),
+				(1ULL<<39), (1ULL<<38), (1ULL<<37), (1ULL<<36), (1ULL<<35), (1ULL<<34), (1ULL<<33), (1ULL<<32),
+				(1ULL<<31), (1ULL<<30), (1ULL<<29), (1ULL<<28), (1ULL<<27), (1ULL<<26), (1ULL<<25), (1ULL<<24),
+				(1ULL<<23), (1ULL<<22), (1ULL<<21), (1ULL<<20), (1ULL<<19), (1ULL<<18), (1ULL<<17), (1ULL<<16),
+				(1ULL<<15), (1ULL<<14), (1ULL<<13), (1ULL<<12), (1ULL<<11), (1ULL<<10), (1ULL<<9 ), (1ULL<<8 ),
+				(1ULL<<7 ), (1ULL<<6 ), (1ULL<<5 ), (1ULL<<4 ), (1ULL<<3) , (1ULL<<2 ), (1ULL<<1 ), (1ULL<<0 )
+			};
+			uint64_t const wordoffset = offset>>6;
+			uint64_t const bitoffset = offset&0x3fu;
+			A[wordoffset] |= insone[bitoffset];
+		}
+		/**
+		 * erase one bit
+		 * @param A bit vector
+		 * @param offset
+		 * @param bit
+		 **/
+		template<typename iterator>
+		inline void eraseBit8(iterator A, uint64_t const offset)
+		{
+			static const uint64_t maskone[] = {
+				~(1ULL<<63), ~(1ULL<<62), ~(1ULL<<61), ~(1ULL<<60), ~(1ULL<<59), ~(1ULL<<58), ~(1ULL<<57), ~(1ULL<<56),
+				~(1ULL<<55), ~(1ULL<<54), ~(1ULL<<53), ~(1ULL<<52), ~(1ULL<<51), ~(1ULL<<50), ~(1ULL<<49), ~(1ULL<<48),
+				~(1ULL<<47), ~(1ULL<<46), ~(1ULL<<45), ~(1ULL<<44), ~(1ULL<<43), ~(1ULL<<42), ~(1ULL<<41), ~(1ULL<<40),
+				~(1ULL<<39), ~(1ULL<<38), ~(1ULL<<37), ~(1ULL<<36), ~(1ULL<<35), ~(1ULL<<34), ~(1ULL<<33), ~(1ULL<<32),
+				~(1ULL<<31), ~(1ULL<<30), ~(1ULL<<29), ~(1ULL<<28), ~(1ULL<<27), ~(1ULL<<26), ~(1ULL<<25), ~(1ULL<<24),
+				~(1ULL<<23), ~(1ULL<<22), ~(1ULL<<21), ~(1ULL<<20), ~(1ULL<<19), ~(1ULL<<18), ~(1ULL<<17), ~(1ULL<<16),
+				~(1ULL<<15), ~(1ULL<<14), ~(1ULL<<13), ~(1ULL<<12), ~(1ULL<<11), ~(1ULL<<10), ~(1ULL<<9), ~(1ULL<<8),
+				~(1ULL<<7), ~(1ULL<<6), ~(1ULL<<5), ~(1ULL<<4), ~(1ULL<<3), ~(1ULL<<2), ~(1ULL<<1), ~(1ULL<<0)
+			};
+			uint64_t const wordoffset = offset>>6;
+			uint64_t const bitoffset = offset&0x3fu;
+			A[wordoffset] &= maskone[bitoffset];
 		}
 		#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 		/**
@@ -753,6 +908,44 @@ namespace libmaus2
 		}
 
 		#endif
+		/**
+		 * put one bit
+		 * @param A bit vector
+		 * @param offset
+		 * @param bit
+		 **/
+		template<typename iterator>
+		inline void setBit(iterator A, uint64_t const offset)
+		{
+			typedef typename std::iterator_traits<iterator>::value_type value_type;
+
+			switch( sizeof(value_type) )
+			{
+				case 8:          return setBit8(A,offset);
+				case 4:          return setBit4(A,offset);
+				case 2:          return setBit2(A,offset);
+				case 1: default: return setBit1(A,offset);
+			}
+		}
+		/**
+		 * put one bit
+		 * @param A bit vector
+		 * @param offset
+		 * @param bit
+		 **/
+		template<typename iterator>
+		inline void eraseBit(iterator A, uint64_t const offset)
+		{
+			typedef typename std::iterator_traits<iterator>::value_type value_type;
+
+			switch( sizeof(value_type) )
+			{
+				case 8:          return eraseBit8(A,offset);
+				case 4:          return eraseBit4(A,offset);
+				case 2:          return eraseBit2(A,offset);
+				case 1: default: return eraseBit1(A,offset);
+			}
+		}
 		/**
 		 * put one bit
 		 * @param A bit vector

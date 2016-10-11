@@ -341,7 +341,9 @@ namespace libmaus2
 				for ( uint64_t s = 0 ; s < nums; ++s )
 					for ( uint64_t tl = 0; tl < sbsize/lbsize && l < numl; ++l, ++tl )
 					{
+						#if ! defined(NDEBUG)
 						uint64_t o = SE[s] + LE[l]; // code offset
+						#endif
 
 						uint64_t mc = 0; // total 1 bits accu
 						uint64_t cc = 0; // code position
@@ -349,7 +351,9 @@ namespace libmaus2
 						{
 							// estimate for code position
 							uint64_t const est = entropy_estimate_up(M[m],tm << mbbitwidth);
+							#if ! defined(NDEBUG)
 							assert ( minipos(m) == o + est );
+							#endif
 							assert ( est >= cc );
 
 							while ( cc < est )

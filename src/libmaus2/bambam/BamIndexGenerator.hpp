@@ -919,9 +919,14 @@ namespace libmaus2
 						)
 						{
 							std::cerr << "[W] BamIndexGenerator::flush: warning, skipping data for linear chunk " << peekLinearChunk(linCIS) << std::endl;
-							std::pair<int64_t,uint64_t> const P = countLinearChunks(linCIS);
+							#if ! defined(NDEBUG)
+							std::pair<int64_t,uint64_t> const P =
+							#endif
+								countLinearChunks(linCIS);
+							#if ! defined(NDEBUG)
 							assert ( P.first != -1 );
 							assert ( P.first < static_cast<int64_t>(i) );
+							#endif
 						}
 
 						if ( peekLinearChunk(linCIS) != -1 && peekLinearChunk(linCIS) == static_cast<int64_t>(i) )

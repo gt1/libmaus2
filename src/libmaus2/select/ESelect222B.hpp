@@ -381,8 +381,10 @@ namespace libmaus2
 				MLr = UNIQUE_PTR_MOVE(tMLr);
 
 				uint64_t largemini = MLr->rank1(m - 1);
+				#if ! defined(NDEBUG)
 				uint64_t smallmini = MLr->rank0(m - 1);
 				assert ( largemini + smallmini == static_cast<uint64_t>(m) );
+				#endif
 
 				if ( largemini )
 					LM = autoarray::AutoArray<uint32_t>(largemini * mbones,false);

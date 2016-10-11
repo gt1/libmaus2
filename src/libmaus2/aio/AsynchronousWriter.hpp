@@ -157,8 +157,13 @@ namespace libmaus2
 				{
 					aiocb *waitlist[1] = { &contexts[low%numbuffers] };
 					aio_suspend (waitlist,1,0);
-					ssize_t ret = aio_return ( &contexts[low%numbuffers] );
+					#if ! defined(NDEBUG)
+					ssize_t ret =
+					#endif
+						aio_return ( &contexts[low%numbuffers] );
+					#if ! defined(NDEBUG)
 					assert ( ret == static_cast<ssize_t>(contexts[low%numbuffers].aio_nbytes) ) ;
+					#endif
 					// std::cerr << "WRITTEN: " << ret << " requested " << contexts[low%numbuffers].aio_nbytes << std::endl;
 
 					low++;

@@ -155,9 +155,14 @@ namespace libmaus2
 				assert ( it != mergehandoutq.end() );
 
 				packetid = it->first;
-				bool const ok = it->second->getNextDispatchId(subid);
+				#if ! defined(NDEBUG)
+				bool const ok =
+				#endif
+					it->second->getNextDispatchId(subid);
 
+				#if ! defined(NDEBUG)
 				assert ( ok );
+				#endif
 
 				// is this the last subid?
 				if ( it->second->isHandoutFinished() )

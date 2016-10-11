@@ -91,8 +91,13 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < n; ++i )
 				{
 					input_type v;
-					bool ok = in.getNext(v);
+					#if ! defined(NDEBUG)
+					bool ok =
+					#endif
+						in.getNext(v);
+					#if ! defined(NDEBUG)
 					assert ( ok );
+					#endif
 					A[i] = v;
 				}
 

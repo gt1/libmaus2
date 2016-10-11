@@ -578,13 +578,29 @@ namespace libmaus2
 
                         static std::string getNameAtPos(std::vector<std::string> const & filenames, uint64_t const pos)
                         {
-                        	uint64_t const flen = ::libmaus2::util::GetFileSize::getFileSize(filenames);
+                        	#if ! defined(NDEBUG)
+                        	uint64_t const flen =
+                        	#endif
+                        		::libmaus2::util::GetFileSize::getFileSize(filenames);
+				#if ! defined(NDEBUG)
 				assert ( pos < flen );
+				#endif
                                 ::libmaus2::aio::SynchronousFastReaderBase istr(filenames,16,1024,pos);
-                                assert ( istr.getNextCharacter() == '@' );
+                                #if ! defined(NDEBUG)
+                                char const nextchar =
+                                #endif
+                                	istr.getNextCharacter();
+                                #if ! defined(NDEBUG)
+                                assert ( nextchar == '@' );
+                                #endif
                                 std::string name;
-                                bool const ok = istr.getLine(name);
+                                #if ! defined(NDEBUG)
+                                bool const ok =
+                                #endif
+                                	istr.getLine(name);
+				#if ! defined(NDEBUG)
                                 assert ( ok );
+                                #endif
                                 return name;
                         }
 

@@ -168,7 +168,6 @@ namespace libmaus2
 			 **/
 			rank_type R;
 
-
 			bool operator()(uint64_t const l, uint64_t const i) const
 			{
 				return ::libmaus2::bitio::getBit(W, l*n+i);
@@ -662,6 +661,11 @@ namespace libmaus2
 				    uint64_t const rn,
 				    uint64_t const rb)
 			: n(rn), b(rb), AW( ), W( rW ), R(W,align64(n*b)) {}
+
+			uint64_t byteSize() const
+			{
+				return sizeof(n) + sizeof(b) + AW.byteSize() + R.byteSize();
+			}
 
 			static uint64_t readUnsignedInt(::std::istream & in)
 			{

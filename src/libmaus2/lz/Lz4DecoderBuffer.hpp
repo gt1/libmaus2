@@ -200,9 +200,14 @@ namespace libmaus2
 					throw se;
 				}
 
-				int const decompsize = decompressBlock(cbuffer.begin(),buffer.begin(),compressedsize,buffer.size());
+				#if ! defined(NDEBUG)
+				int const decompsize =
+				#endif
+					decompressBlock(cbuffer.begin(),buffer.begin(),compressedsize,buffer.size());
 
+				#if ! defined(NDEBUG)
 				assert ( decompsize == static_cast<int>(uncompressedsize) );
+				#endif
 
 				setg(buffer.begin(),buffer.begin(),buffer.begin()+uncompressedsize);
 

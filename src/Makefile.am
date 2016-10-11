@@ -33,7 +33,8 @@ libmaus2_simd_align_256_la_SOURCES = \
 	libmaus2/lcs/SimdX86BandedGlobalAlignmentY256_16.cpp \
 	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16.cpp \
 	libmaus2/lcs/SimdX86GlobalAlignmentY256_8.cpp \
-	libmaus2/lcs/SimdX86GlobalAlignmentY256_16.cpp
+	libmaus2/lcs/SimdX86GlobalAlignmentY256_16.cpp \
+	libmaus2/lcs/AlignmentOneAgainstManyAVX2.cpp
 libmaus2_simd_align_256_la_CXXFLAGS = @MSSE2@ @MSSSE3@ @MSSE41@ @MAVX2@ @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS}
 libmaus2_simd_align_256_la_LDFLAGS = @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 
@@ -322,7 +323,8 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/RefMapEntryVector.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
-libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp libmaus2/autoarray/AutoArrayMultiMap.hpp
+libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp libmaus2/autoarray/AutoArrayMultiMap.hpp \
+	libmaus2/autoarray/GenericAlignedAllocation.hpp
 
 libmaus2index_includedir=$(includedir)/libmaus2/index/
 libmaus2index_include_HEADERS = libmaus2/index/ExternalMemoryIndexGenerator.hpp \
@@ -1951,7 +1953,11 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/Chain.hpp \
 	libmaus2/lcs/ChainRemoveQueueElementComparator.hpp \
 	libmaus2/lcs/ChainLeftMostComparator.hpp \
-	libmaus2/lcs/SMEMProcessor.hpp
+	libmaus2/lcs/SMEMProcessor.hpp \
+	libmaus2/lcs/AlignmentOneAgainstManyAVX2.hpp \
+	libmaus2/lcs/AlignmentOneAgainstManyInterface.hpp \
+	libmaus2/lcs/AlignmentOneAgainstManyGeneric.hpp \
+	libmaus2/lcs/AlignmentOneAgainstManyFactory.hpp
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp
@@ -2121,7 +2127,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testhugepages \
 	testsymcnt \
 	testgammapd \
-	testpo
+	testpo \
+	testavx
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2677,3 +2684,8 @@ testgammapd_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testpo_SOURCES  = test/testpo.cpp
 testpo_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testpo_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testavx_SOURCES  = test/testavx.cpp
+testavx_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testavx_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+testavx_CXXFLAGS = ${AM_CXXFLAGS} @MAVX2@

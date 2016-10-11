@@ -60,6 +60,11 @@ namespace libmaus2
 			uint32_t const d;
 			::libmaus2::autoarray::AutoArray<uint32_t> M;
 
+			uint64_t byteSize() const
+			{
+				return sizeof(n) + sizeof(d) + M.byteSize();
+			}
+
 			uint32_t m(uint32_t h, uint32_t i) const { return h?M[(h-1)*n+i]:i; }
 
 			QuickDynamicRMQ(array_iterator rA, uint32_t const rn)

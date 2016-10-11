@@ -839,10 +839,15 @@ namespace libmaus2
 				// ::std::cerr << "done." << ::std::endl;
 
 				// ::std::cerr << "merge scan...";
-				bool const mergeok = mergeScan ( acode , offset , n, dectable, enctable, revtable );
+				#if ! defined(NDEBUG)
+				bool const mergeok =
+				#endif
+					mergeScan ( acode , offset , n, dectable, enctable, revtable );
 				// ::std::cerr << "done." << ::std::endl;
 
+				#if ! defined(NDEBUG)
 				assert ( mergeok );
+				#endif
 			}
 
 			static void huffmanSortRecursive(uint64_t * const acode, uint64_t const offset, uint64_t const n, huffman::HuffmanTreeNode const * root)
@@ -1085,7 +1090,10 @@ namespace libmaus2
 
 				uncompressHuffmanCoded(acode.get(), 0 /* bit offset */, lowhalf /* syms */, firsthighsym, enctable,dectable,root.get(),dectable0,dectable1,enctable0,enctable1);
 
-				bool const mergeok = mergeScan ( acode.get() , 0, n, dectable, enctable, revtable );
+				#if ! defined(NDEBUG)
+				bool const mergeok =
+				#endif
+					mergeScan ( acode.get() , 0, n, dectable, enctable, revtable );
 				assert ( mergeok );
 
 				// ::std::cerr << "mergeok: " << mergeok << ::std::endl;

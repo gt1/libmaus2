@@ -185,9 +185,17 @@ namespace libmaus2
 								ISGO.put(r);
 							}
 
-							int64_t syma = CRWR.get();
-							int64_t symb = IHWT[r];
+							#if ! defined(NDEBUG)
+							int64_t syma =
+							#endif
+								CRWR.get();
+							#if ! defined(NDEBUG)
+							int64_t symb =
+							#endif
+								IHWT[r];
+							#if ! defined(NDEBUG)
 							assert ( syma == symb );
+							#endif
 							// (*logstr) << "(" << syma << "," << symb << ")";
 
 							r = IHWT(r);
@@ -212,9 +220,17 @@ namespace libmaus2
 								ISGO.put(r);
 							}
 
-							int64_t syma = CRWR.get();
-							int64_t symb = IHWT[r];
+							#if ! defined(NDEBUG)
+							int64_t syma =
+							#endif
+								CRWR.get();
+							#if ! defined(NDEBUG)
+							int64_t symb =
+							#endif
+								IHWT[r];
+							#if ! defined(NDEBUG)
 							assert ( syma == symb );
+							#endif
 							// (*logstr) << "(" << syma << "," << symb << ")";
 
 							r = IHWT(r);
@@ -1807,8 +1823,13 @@ namespace libmaus2
 								SGGFS.checkMergeSingle();
 							else
 							{
-								bool const tsemok = tsem.trywait();
+								#if ! defined(NDEBUG)
+								bool const tsemok =
+								#endif
+									tsem.trywait();
+								#if ! defined(NDEBUG)
 								assert ( tsemok );
+								#endif
 								running = false;
 							}
 						}

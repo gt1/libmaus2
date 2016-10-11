@@ -252,8 +252,13 @@ namespace libmaus2
                                         for ( uint64_t i = 0; i < wv; ++i )
                                         {
                                                 uint64_t vv;
-                                                bool vok = filein.getNext(vv);
+                                                #if ! defined(NDEBUG)
+                                                bool vok =
+                                                #endif
+                                                	filein.getNext(vv);
+						#if ! defined(NDEBUG)
                                                 assert ( vok );
+                                                #endif
                                                 M [ hv ] . push_back(vv);
                                         }
 

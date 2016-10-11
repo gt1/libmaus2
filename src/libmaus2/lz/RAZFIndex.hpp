@@ -101,7 +101,10 @@ namespace libmaus2
 				in.clear();
 				in.seekg(-2*sizeof(uint64_t),std::ios::end);
 
-				uint64_t const indexpos = in.tellg();
+				#if ! defined(NDEBUG)
+				uint64_t const indexpos =
+				#endif
+					in.tellg();
 
 				uncompressed = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				compressed = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
@@ -120,7 +123,9 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < indexsize; ++i )
 					celloffsets[i] = libmaus2::util::NumberSerialisation::deserialiseNumber(in,sizeof(uint32_t));
 
+				#if ! defined(NDEBUG)
 				assert ( static_cast<int64_t>(in.tellg()) == static_cast<int64_t>(indexpos) );
+				#endif
 
 				in.clear();
 				in.seekg(0,std::ios::beg);

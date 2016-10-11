@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include <cassert>
+#include <libmaus2/autoarray/GenericAlignedAllocation.hpp>
 #include <libmaus2/serialize/Serialize.hpp>
 #include <libmaus2/util/unique_ptr.hpp>
 #include <libmaus2/util/shared_ptr.hpp>
@@ -74,6 +75,126 @@
 #include <libmaus2/parallel/PosixSpinLock.hpp>
 #endif
 
+#if ! defined(LIBMAUS2_AUTOARRAY_ALLOCTYPE_HPP)
+#define LIBMAUS2_AUTOARRAY_ALLOCTYPE_HPP
+namespace libmaus2
+{
+	namespace autoarray
+	{
+		enum alloc_type {
+			alloc_type_cxx = 0,
+			alloc_type_c = 1,
+			alloc_type_memalign_cacheline = 2,
+			alloc_type_memalign_pagesize = 3,
+			alloc_type_hugepages = 4,
+			alloc_type_hugepages_memalign_cacheline = 5,
+			alloc_type_hugepages_memalign_pagesize = 6
+		};
+	}
+}
+#endif
+
+namespace libmaus2
+{
+	namespace autoarray
+	{
+		/**
+		 * class for the allocation of memory
+		 **/
+		template<typename N, alloc_type atype>
+		struct AlignedAllocation
+		{
+			/**
+			 * allocate n elements of type N
+			 * @param n number of elements to allocate
+			 * @return pointer to allocated memory
+			 **/
+			static N * alignedAllocate(uint64_t const n, uint64_t const);
+			/**
+			 * free memory allocate through alignedAllocate
+			 * @param alignedp pointer to memory to be freed
+			 **/
+			static void freeAligned(N * alignedp);
+		};
+
+		/**
+		 * class for the allocation of memory: special version for aligned allocation
+		 **/
+		template<typename N>
+		struct AlignedAllocation<N,alloc_type_memalign_cacheline>
+		{
+			/**
+			 * allocate n elements of type N aligned to an address aligned to a multiple of align
+			 * @param n number of elements to allocate
+			 * @param align requested multiplier for address
+			 * @return pointer to allocated memory
+			 **/
+			static N * alignedAllocate(uint64_t const n, uint64_t const align);
+			/**
+			 * free memory allocate through alignedAllocate
+			 * @param alignedp pointer to memory to be freed
+			 **/
+			static void freeAligned(N * alignedp);
+		};
+
+		/**
+		 * class for the allocation of memory: special version for aligned allocation
+		 **/
+		template<typename N>
+		struct AlignedAllocation<N,alloc_type_memalign_pagesize>
+		{
+			/**
+			 * allocate n elements of type N aligned to an address aligned to a multiple of align
+			 * @param n number of elements to allocate
+			 * @param align requested multiplier for address
+			 * @return pointer to allocated memory
+			 **/
+			static N * alignedAllocate(uint64_t const n, uint64_t const align);
+			/**
+			 * free memory allocate through alignedAllocate
+			 * @param alignedp pointer to memory to be freed
+			 **/
+			static void freeAligned(N * alignedp);
+		};
+
+		template<typename N, alloc_type atype>
+		N * AlignedAllocation<N,atype>::alignedAllocate(uint64_t const n, uint64_t const)
+		{
+			return new N[n];
+		}
+
+		template<typename N, alloc_type atype>
+		void AlignedAllocation<N,atype>::freeAligned(N * alignedp)
+		{
+			delete [] alignedp;
+		}
+
+		template<typename N>
+		N * AlignedAllocation<N,alloc_type_memalign_cacheline>::alignedAllocate(uint64_t const n, uint64_t const align)
+		{
+			return reinterpret_cast<N *>(GenericAlignedAllocation::allocate(n, align, sizeof(N)));
+		}
+
+		template<typename N>
+		void AlignedAllocation<N,alloc_type_memalign_cacheline>::freeAligned(N * alignedp)
+		{
+			GenericAlignedAllocation::deallocate(alignedp);
+		}
+
+		template<typename N>
+		N * AlignedAllocation<N,alloc_type_memalign_pagesize>::alignedAllocate(uint64_t const n, uint64_t const align)
+		{
+			return reinterpret_cast<N *>(GenericAlignedAllocation::allocate(n, align, sizeof(N)));
+		}
+
+		template<typename N>
+		void AlignedAllocation<N,alloc_type_memalign_pagesize>::freeAligned(N * alignedp)
+		{
+			GenericAlignedAllocation::deallocate(alignedp);
+		}
+	}
+}
+
 namespace libmaus2
 {
 	namespace autoarray
@@ -86,16 +207,6 @@ namespace libmaus2
 		#elif defined(_OPENMP)
 		extern ::libmaus2::parallel::OMPLock AutoArray_lock;
 		#endif
-
-		enum alloc_type {
-			alloc_type_cxx = 0,
-			alloc_type_c = 1,
-			alloc_type_memalign_cacheline = 2,
-			alloc_type_memalign_pagesize = 3,
-			alloc_type_hugepages = 4,
-			alloc_type_hugepages_memalign_cacheline = 5,
-			alloc_type_hugepages_memalign_pagesize = 6
-		};
 
 		#if defined(LIBMAUS2_AUTOARRAY_AUTOARRAYTRACE)
 		template<unsigned int n>
@@ -165,65 +276,6 @@ namespace libmaus2
 			 * @return true iff *this != o
 			 **/
 			bool operator!=(AutoArrayMemUsage const & o) const;
-		};
-
-		/**
-		 * class for the allocation of memory
-		 **/
-		template<typename N, alloc_type atype>
-		struct AlignedAllocation
-		{
-			/**
-			 * allocate n elements of type N
-			 * @param n number of elements to allocate
-			 * @return pointer to allocated memory
-			 **/
-			static N * alignedAllocate(uint64_t const n, uint64_t const);
-			/**
-			 * free memory allocate through alignedAllocate
-			 * @param alignedp pointer to memory to be freed
-			 **/
-			static void freeAligned(N * alignedp);
-		};
-
-		/**
-		 * class for the allocation of memory: special version for aligned allocation
-		 **/
-		template<typename N>
-		struct AlignedAllocation<N,alloc_type_memalign_cacheline>
-		{
-			/**
-			 * allocate n elements of type N aligned to an address aligned to a multiple of align
-			 * @param n number of elements to allocate
-			 * @param align requested multiplier for address
-			 * @return pointer to allocated memory
-			 **/
-			static N * alignedAllocate(uint64_t const n, uint64_t const align);
-			/**
-			 * free memory allocate through alignedAllocate
-			 * @param alignedp pointer to memory to be freed
-			 **/
-			static void freeAligned(N * alignedp);
-		};
-
-		/**
-		 * class for the allocation of memory: special version for aligned allocation
-		 **/
-		template<typename N>
-		struct AlignedAllocation<N,alloc_type_memalign_pagesize>
-		{
-			/**
-			 * allocate n elements of type N aligned to an address aligned to a multiple of align
-			 * @param n number of elements to allocate
-			 * @param align requested multiplier for address
-			 * @return pointer to allocated memory
-			 **/
-			static N * alignedAllocate(uint64_t const n, uint64_t const align);
-			/**
-			 * free memory allocate through alignedAllocate
-			 * @param alignedp pointer to memory to be freed
-			 **/
-			static void freeAligned(N * alignedp);
 		};
 
 		/**
@@ -1744,84 +1796,6 @@ namespace libmaus2
 		}
 		#endif
 
-
-		template<typename N, alloc_type atype>
-		N * AlignedAllocation<N,atype>::alignedAllocate(uint64_t const n, uint64_t const)
-		{
-			return new N[n];
-		}
-
-		template<typename N, alloc_type atype>
-		void AlignedAllocation<N,atype>::freeAligned(N * alignedp)
-		{
-			delete [] alignedp;
-		}
-
-		template<typename N>
-		N * AlignedAllocation<N,alloc_type_memalign_cacheline>::alignedAllocate(uint64_t const n, uint64_t const align)
-		{
-			uint64_t const allocbytes = (sizeof(N *) - 1) + align  + n * sizeof(N);
-			uint8_t * const allocp = new uint8_t[ allocbytes ];
-			uint8_t * const alloce = allocp + allocbytes;
-			uint64_t const mod = reinterpret_cast<uint64_t>(allocp) % align;
-
-			uint8_t * alignedp = mod ? (allocp + (align-mod)) : allocp;
-			assert ( reinterpret_cast<uint64_t>(alignedp) % align == 0 );
-
-			while ( (alignedp - allocp) < static_cast<ptrdiff_t>(sizeof(N *)) )
-				alignedp += align;
-
-			assert ( reinterpret_cast<uint64_t>(alignedp) % align == 0 );
-			assert ( alloce - alignedp >= static_cast<ptrdiff_t>(n*sizeof(N)) );
-			assert ( alignedp-allocp >= static_cast<ptrdiff_t>(sizeof(uint8_t *)) );
-
-			(reinterpret_cast<uint8_t **>(alignedp))[-1] = allocp;
-
-			return reinterpret_cast<N *>(alignedp);
-		}
-
-		template<typename N>
-		void AlignedAllocation<N,alloc_type_memalign_cacheline>::freeAligned(N * alignedp)
-		{
-			if ( alignedp )
-				// delete [] (reinterpret_cast<uint8_t **>((alignedp)))[-1];
-				delete [] (
-					(uint8_t **)(alignedp)
-				)[-1];
-		}
-
-		template<typename N>
-		N * AlignedAllocation<N,alloc_type_memalign_pagesize>::alignedAllocate(uint64_t const n, uint64_t const align)
-		{
-			uint64_t const allocbytes = (sizeof(N *) - 1) + align  + n * sizeof(N);
-			uint8_t * const allocp = new uint8_t[ allocbytes ];
-			uint8_t * const alloce = allocp + allocbytes;
-			uint64_t const mod = reinterpret_cast<uint64_t>(allocp) % align;
-
-			uint8_t * alignedp = mod ? (allocp + (align-mod)) : allocp;
-			assert ( reinterpret_cast<uint64_t>(alignedp) % align == 0 );
-
-			while ( (alignedp - allocp) < static_cast<ptrdiff_t>(sizeof(N *)) )
-				alignedp += align;
-
-			assert ( reinterpret_cast<uint64_t>(alignedp) % align == 0 );
-			assert ( alloce - alignedp >= static_cast<ptrdiff_t>(n*sizeof(N)) );
-			assert ( alignedp-allocp >= static_cast<ptrdiff_t>(sizeof(uint8_t *)) );
-
-			(reinterpret_cast<uint8_t **>(alignedp))[-1] = allocp;
-
-			return reinterpret_cast<N *>(alignedp);
-		}
-
-		template<typename N>
-		void AlignedAllocation<N,alloc_type_memalign_pagesize>::freeAligned(N * alignedp)
-		{
-			if ( alignedp )
-				// delete [] (reinterpret_cast<uint8_t **>((alignedp)))[-1];
-				delete [] (
-					(uint8_t **)(alignedp)
-				)[-1];
-		}
 
 		template<typename N, alloc_type atype>
 		bool operator==(AutoArray<N,atype> const & A, AutoArray<N,atype> const & B)
