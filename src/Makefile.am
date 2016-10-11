@@ -2123,6 +2123,7 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testsplaytree \
 	testbwtconstruction \
 	testbwtconstructionfasta \
+	testdnasuffixtrav \
 	testarrayinput \
 	testhugepages \
 	testsymcnt \
@@ -2656,6 +2657,10 @@ testpairalign_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testsplaytree_SOURCES  = test/testsplaytree.cpp
 testsplaytree_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testsplaytree_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testdnasuffixtrav_SOURCES  = test/testdnasuffixtrav.cpp
+testdnasuffixtrav_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testdnasuffixtrav_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 
 testbwtconstruction_SOURCES  = test/testbwtconstruction.cpp
 testbwtconstruction_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
