@@ -1,3 +1,10 @@
+libmaus2 (2.0.266-1) unstable; urgency=medium
+
+  * add toupper method in Pattern class
+  * fix memory allocation in AlignmentOneAgainstManyGeneric
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 12 Oct 2016 11:46:13 +0200
+
 libmaus2 (2.0.265-1) unstable; urgency=medium
 
   * add factory for AlignmentOneAgainstMany concept

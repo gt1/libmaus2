@@ -35,6 +35,8 @@ namespace libmaus2
 				libmaus2::autoarray::AutoArray<uint64_t> & E
 			)
 			{
+				E.ensureSize(MAo);
+
 				for ( uint64_t i = 0; i < MAo; ++i )
 				{
 					np.align(qa,qe-qa,MA[i].first,MA[i].second);
