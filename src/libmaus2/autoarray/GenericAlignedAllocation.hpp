@@ -86,7 +86,7 @@ namespace libmaus2
 				}
 				return alignedp;
 				#else
-				uint64_t const allocbytes = (sizeof(N *) - 1) + align  + n * objsize;
+				uint64_t const allocbytes = (sizeof(uint8_t *) - 1) + align  + n * objsize;
 				uint8_t * const allocp = new uint8_t[ allocbytes ];
 				uint8_t * const alloce = allocp + allocbytes;
 				uint64_t const mod = reinterpret_cast<uint64_t>(allocp) % align;
@@ -94,12 +94,12 @@ namespace libmaus2
 				uint8_t * alignedp = mod ? (allocp + (align-mod)) : allocp;
 				assert ( reinterpret_cast<uint64_t>(alignedp) % align == 0 );
 
-				while ( (alignedp - allocp) < static_cast<ptrdiff_t>(sizeof(N *)) )
+				while ( (alignedp - allocp) < static_cast< ::std::ptrdiff_t > (sizeof(uint8_t *)) )
 					alignedp += align;
 
 				assert ( reinterpret_cast<uint64_t>(alignedp) % align == 0 );
-				assert ( alloce - alignedp >= static_cast<ptrdiff_t>(n*objsize) );
-				assert ( alignedp-allocp >= static_cast<ptrdiff_t>(sizeof(uint8_t *)) );
+				assert ( alloce - alignedp >= static_cast< ::std::ptrdiff_t >(n*objsize) );
+				assert ( alignedp-allocp >= static_cast< ::std::ptrdiff_t >(sizeof(uint8_t *)) );
 
 				(reinterpret_cast<uint8_t **>(alignedp))[-1] = allocp;
 
