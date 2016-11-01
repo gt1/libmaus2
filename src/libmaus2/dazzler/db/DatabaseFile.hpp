@@ -60,6 +60,8 @@ namespace libmaus2
 
 				std::string bpspath;
 
+				libmaus2::rank::ImpCacheLineRank::unique_ptr_type Ptrim;
+
 				struct PairFirstComparator
 				{
 					bool operator()(upair const & A, upair const & B) const
@@ -230,7 +232,6 @@ namespace libmaus2
 
 
 
-				libmaus2::rank::ImpCacheLineRank::unique_ptr_type Ptrim;
 
 				static std::string getPath(std::string const & s)
 				{
