@@ -24,6 +24,8 @@
 #include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <libmaus2/dazzler/db/Read.hpp>
 #include <libmaus2/rank/ImpCacheLineRank.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
+#include <libmaus2/math/numbits.hpp>
 
 namespace libmaus2
 {
@@ -1282,6 +1284,62 @@ namespace libmaus2
 						R.deserialise(*Pidxfile);
 						V[i-low] = R.rlen;
 					}
+				}
+
+				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
+				typedef ::libmaus2::bitio::SynchronousCompactArray read_length_array_type;
+				#else
+				typedef ::libmaus2::bitio::CompactArray read_length_array_type;
+				#endif
+
+				typedef read_length_array_type::unique_ptr_type read_length_array_ptr_type;
+
+				read_length_array_ptr_type getReadLengthArray(uint64_t const numthreads) const
+				{
+					uint64_t const b = libmaus2::math::numbits(indexbase.maxlen);
+					uint64_t const n = size();
+
+					uint64_t const readsperthread = (n + numthreads - 1)/numthreads;
+
+					read_length_array_ptr_type tptr(new read_length_array_type(n,b,0/*pad*/,0/*erase*/));
+
+					#if !defined(LIBMAUS2_HAVE_SYNC_OPS)
+					libmaus2::parallel::OMPLock lock;
+					#endif
+
+					#if defined(_OPENMP)
+					#pragma omp parallel for num_threads(numthreads)
+					#endif
+					for ( uint64_t t = 0; t < numthreads ; ++t )
+					{
+						uint64_t const low = t * readsperthread;
+						uint64_t const high = std::min(low+readsperthread,n);
+
+						libmaus2::aio::InputStreamInstance idxfile(idxpath);
+						libmaus2::dazzler::db::Read R;
+
+						for ( uint64_t i = low; i < high; ++i )
+						{
+							uint64_t const mappedindex = Ptrim->select1(i);
+
+							if (
+								static_cast<int64_t>(idxfile.tellg()) != static_cast<int64_t>(indexoffset + mappedindex * Read::serialisedSize)
+							)
+								idxfile.seekg(indexoffset + mappedindex * Read::serialisedSize);
+
+							R.deserialise(idxfile);
+
+							#if defined(LIBMAUS2_HAVE_SYNC_OPS)
+							tptr->set(i,R.rlen);
+							#else
+							libmaus2::parallel::ScopeLock slock(lock);
+							tptr->set(i,R.rlen);
+							#endif
+						}
+
+					}
+
+					return UNIQUE_PTR_MOVE(tptr);
 				}
 
 				void getAllReads(std::vector<Read> & V) const
