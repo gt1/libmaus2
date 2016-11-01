@@ -1,3 +1,10 @@
+libmaus2 (2.0.267-1) unstable; urgency=medium
+
+  * do not store mate cigar string if it is empty/undefined
+  * fix compilation in absence of posix_memalign
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 01 Nov 2016 09:25:56 +0100
+
 libmaus2 (2.0.266-1) unstable; urgency=medium
 
   * add toupper method in Pattern class
