@@ -360,7 +360,7 @@ namespace libmaus2
 								if (
 									firstimapped
 									&&
-									mateCigar1l >= 0
+									mateCigar1l > 0
 								)
 								{
 									uint8_t const T[3] = { 'M', 'C', 'Z' };
@@ -420,7 +420,7 @@ namespace libmaus2
 								if (
 									secondimapped
 									&&
-									mateCigar2l >= 0
+									mateCigar2l > 0
 								)
 								{
 									uint8_t const T[3] = { 'M', 'C', 'Z' };
