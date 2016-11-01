@@ -358,7 +358,7 @@ namespace libmaus2
 									subbuf->replaceLength(offset,P.second);
 								}
 								if (
-									firstimapped
+									secondimapped
 									&&
 									mateCigar1l > 0
 								)
@@ -418,7 +418,7 @@ namespace libmaus2
 									subbuf->replaceLength(offset,P.second);
 								}
 								if (
-									secondimapped
+									firstimapped
 									&&
 									mateCigar2l > 0
 								)
