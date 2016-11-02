@@ -1,3 +1,11 @@
+libmaus2 (2.0.269-1) unstable; urgency=medium
+
+  * add some decodeRead variants in DatabaseFile
+  * add getReadLengthArray method in DatabaseFile
+  * add KmerRepeatDetector and ReadContainer classes
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 02 Nov 2016 12:10:30 +0100
+
 libmaus2 (2.0.268-1) unstable; urgency=medium
 
   * fix check for whether mate is mapped when copying mate cigar string in FragmentAlignmentBufferRewriteReadEndsWorkPackageDispatcher

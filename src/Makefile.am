@@ -1535,7 +1535,9 @@ libmaus2fastx_include_HEADERS=\
 	libmaus2/fastx/FastAToCompact4BigBand.hpp \
 	libmaus2/fastx/FastAIndexGenerator.hpp \
 	libmaus2/fastx/CoordinateCacheBiDir.hpp \
-	libmaus2/fastx/KmerFreqInWindowStats.hpp
+	libmaus2/fastx/KmerFreqInWindowStats.hpp \
+	libmaus2/fastx/ReadContainer.hpp \
+	libmaus2/fastx/KmerRepeatDetector.hpp
 
 libmaus2timing_includedir=$(includedir)/libmaus2/timing
 libmaus2timing_include_HEADERS=\
