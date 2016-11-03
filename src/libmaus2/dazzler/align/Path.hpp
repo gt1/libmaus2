@@ -21,6 +21,7 @@
 #include <libmaus2/dazzler/db/InputBase.hpp>
 #include <libmaus2/dazzler/db/OutputBase.hpp>
 #include <utility>
+#include <cassert>
 
 namespace libmaus2
 {
@@ -39,6 +40,72 @@ namespace libmaus2
 				int32_t bbpos;
 				int32_t aepos;
 				int32_t bepos;
+
+				bool isEmpty() const
+				{
+					return abpos == aepos;
+				}
+
+				uint64_t getBSpan() const
+				{
+					uint64_t b = 0;
+					for ( uint64_t i = 0; i < path.size(); ++i )
+						b += path[i].second;
+					return b;
+				}
+
+				void alignToTracePoints(int64_t const tspace)
+				{
+					assert ( tlen = path.size() * 2 );
+					assert ( (bepos-bbpos) == static_cast<int64_t>(getBSpan()) );
+
+					int64_t const nabpos = ((abpos + tspace - 1) / tspace)*tspace;
+					int64_t const naepos = (aepos / tspace) * tspace;
+
+					if ( nabpos == naepos )
+					{
+						path.resize(0);
+						tlen = diffs = abpos = aepos = bbpos = bepos = 0;
+					}
+					else
+					{
+						if ( nabpos != abpos )
+						{
+							assert ( path.size() != 0 );
+							tracepoint const tpf = path.front();
+							std::copy(path.begin()+1,path.end(),path.begin());
+							path.pop_back();
+
+							tlen -= 2;
+							abpos  = nabpos;
+							bbpos += tpf.second;
+							diffs -= tpf.first;
+
+							assert ( tlen = path.size() * 2 );
+							assert ( (bepos-bbpos) == static_cast<int64_t>(getBSpan()) );
+						}
+						if ( naepos != aepos )
+						{
+							assert ( path.size() != 0 );
+							tracepoint const tpe = path.back();
+							path.pop_back();
+
+							tlen -= 2;
+							aepos = naepos;
+							bepos -= tpe.second;
+							diffs -= tpe.first;
+
+							assert ( tlen = path.size() * 2 );
+							assert ( (bepos-bbpos) == static_cast<int64_t>(getBSpan()) );
+						}
+					}
+
+					assert ( abpos % tspace == 0 );
+					assert ( aepos % tspace == 0 );
+					assert ( (aepos-abpos)/tspace == static_cast<int64_t>(path.size()) );
+					assert ( tlen = path.size() * 2 );
+					assert ( (bepos-bbpos) == static_cast<int64_t>(getBSpan()) );
+				}
 
 				bool pathValidSmall(bool const small) const
 				{

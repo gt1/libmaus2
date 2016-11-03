@@ -38,6 +38,16 @@ namespace libmaus2
 				int32_t aread;
 				int32_t bread;
 
+				void alignToTracePoints(int64_t const tspace)
+				{
+					path.alignToTracePoints(tspace);
+				}
+
+				bool isEmpty() const
+				{
+					return path.isEmpty();
+				}
+
 				bool operator<(Overlap const & O) const
 				{
 					if ( aread != O.aread )
