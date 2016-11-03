@@ -20,6 +20,8 @@
 
 #include <libmaus2/dazzler/db/InputBase.hpp>
 #include <libmaus2/dazzler/db/OutputBase.hpp>
+#include <libmaus2/math/IntegerInterval.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 #include <utility>
 #include <cassert>
 
@@ -41,6 +43,49 @@ namespace libmaus2
 				int32_t aepos;
 				int32_t bepos;
 
+				Path filter(std::pair<int32_t,int32_t> const & I, int64_t const tspace) const
+				{
+					assert ( I.first % tspace == 0 );
+					assert ( I.second % tspace == 0 );
+
+					Path P;
+
+					assert ( I.first >= abpos );
+					assert ( I.second <= aepos );
+
+					uint64_t numskip = 0;
+					P.abpos = abpos;
+					P.bbpos = bbpos;
+
+					for ( ; P.abpos < I.first; numskip++ )
+					{
+						P.bbpos += path[numskip].second;
+
+						if ( P.abpos % tspace == 0 )
+							P.abpos += tspace;
+						else
+							P.abpos = ( (P.abpos + tspace - 1) / tspace ) * tspace;
+					}
+
+					P.diffs = 0;
+					P.aepos = P.abpos;
+					P.bepos = P.bbpos;
+
+					for ( ; P.aepos < I.second; numskip++ )
+					{
+						P.aepos += tspace;
+						P.bepos += path[numskip].second;
+						P.diffs += path[numskip].first;
+						P.path.push_back(path[numskip]);
+					}
+
+					P.tlen = P.path.size() * 2;
+
+					assert ( (P.bepos-P.bbpos) == static_cast<int64_t>(P.getBSpan()) );
+
+					return P;
+				}
+
 				bool isEmpty() const
 				{
 					return abpos == aepos;
@@ -52,6 +97,30 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < path.size(); ++i )
 						b += path[i].second;
 					return b;
+				}
+
+				template<typename iterator>
+				uint64_t filterIntervals(
+					iterator a,
+					iterator e,
+					libmaus2::autoarray::AutoArray < std::pair< int32_t,int32_t > > & O
+				) const
+				{
+					uint64_t o = 0;
+					libmaus2::math::IntegerInterval<int64_t> const A(abpos,aepos-1);
+
+					for ( ; a != e; ++a )
+					{
+						libmaus2::math::IntegerInterval<int64_t> const B(a->first,static_cast<int64_t>(a->second) - 1);
+						libmaus2::math::IntegerInterval<int64_t> const I = libmaus2::math::IntegerInterval<int64_t>::intersection(A,B);
+
+						if ( ! I.isEmpty() )
+						{
+							O.push(o,std::pair< int32_t,int32_t >(I.from,I.to+1));
+						}
+					}
+
+					return o;
 				}
 
 				void alignToTracePoints(int64_t const tspace)
