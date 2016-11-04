@@ -43,6 +43,11 @@ namespace libmaus2
 				int32_t aepos;
 				int32_t bepos;
 
+				double getErrorRate() const
+				{
+					return (aepos > abpos) ? (static_cast<double>(diffs) / static_cast<double>(aepos-abpos)) : 0.0;
+				}
+
 				Path filter(std::pair<int32_t,int32_t> const & I, int64_t const tspace) const
 				{
 					assert ( I.first % tspace == 0 );

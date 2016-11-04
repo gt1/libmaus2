@@ -38,6 +38,11 @@ namespace libmaus2
 				int32_t aread;
 				int32_t bread;
 
+                                double getErrorRate() const
+				{
+					return path.getErrorRate();
+                                }
+
 				Overlap filter(std::pair<int32_t,int32_t> const & I, int64_t const tspace) const
 				{
 					Overlap OVL = *this;
