@@ -1,3 +1,12 @@
+libmaus2 (2.0.270-1) unstable; urgency=medium
+
+  * fix crash due to missing initialisation in SimdX86GlobalAlignmentTemplate when one of the input sequences is empty
+  * add getErrorRate method in Overlap/Path
+  * add filter method in Overlap/Path classes
+  * add alignToTracePoints method in Overlap and Path classes
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 04 Nov 2016 12:13:52 +0100
+
 libmaus2 (2.0.269-1) unstable; urgency=medium
 
   * add some decodeRead variants in DatabaseFile
