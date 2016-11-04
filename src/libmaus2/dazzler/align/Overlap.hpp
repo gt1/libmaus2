@@ -38,6 +38,38 @@ namespace libmaus2
 				int32_t aread;
 				int32_t bread;
 
+                                double getErrorRate() const
+				{
+					return path.getErrorRate();
+                                }
+
+				Overlap filter(std::pair<int32_t,int32_t> const & I, int64_t const tspace) const
+				{
+					Overlap OVL = *this;
+					OVL.path = path.filter(I,tspace);
+					return OVL;
+				}
+
+				template<typename iterator>
+				uint64_t filterIntervals(
+					iterator a,
+					iterator e,
+					libmaus2::autoarray::AutoArray < std::pair< int32_t,int32_t > > & O
+				) const
+				{
+					return path.filterIntervals(a,e,O);
+				}
+
+				void alignToTracePoints(int64_t const tspace)
+				{
+					path.alignToTracePoints(tspace);
+				}
+
+				bool isEmpty() const
+				{
+					return path.isEmpty();
+				}
+
 				bool operator<(Overlap const & O) const
 				{
 					if ( aread != O.aread )
