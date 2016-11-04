@@ -225,6 +225,11 @@ namespace libmaus2
 					return (flags & getStartFlag()) != 0;
 				}
 
+				bool isNext() const
+				{
+					return (flags & getNextFlag()) != 0;
+				}
+
 				bool isBest() const
 				{
 					return (flags & getBestFlag()) != 0;
