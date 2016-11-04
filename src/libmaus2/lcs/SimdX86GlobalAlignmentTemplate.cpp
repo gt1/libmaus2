@@ -140,6 +140,7 @@ void libmaus2::lcs::LIBMAUS2_SIMD_CLASS_NAME::align(
 	{
 		if ( l_b > libmaus2::lcs::AlignmentTraceContainer::capacity() )
 			libmaus2::lcs::AlignmentTraceContainer::resize(l_b);
+		libmaus2::lcs::AlignmentTraceContainer::ta = libmaus2::lcs::AlignmentTraceContainer::te;
 		for ( uint64_t i = 0; i < l_b; ++i )
 			*(--libmaus2::lcs::AlignmentTraceContainer::ta) = STEP_INS;
 	}
@@ -147,6 +148,7 @@ void libmaus2::lcs::LIBMAUS2_SIMD_CLASS_NAME::align(
 	{
 		if ( l_a > libmaus2::lcs::AlignmentTraceContainer::capacity() )
 			libmaus2::lcs::AlignmentTraceContainer::resize(l_a);
+		libmaus2::lcs::AlignmentTraceContainer::ta = libmaus2::lcs::AlignmentTraceContainer::te;
 		for ( uint64_t i = 0; i < l_a; ++i )
 			*(--libmaus2::lcs::AlignmentTraceContainer::ta) = STEP_DEL;
 	}
