@@ -637,7 +637,9 @@ libmaus2bambam_include_HEADERS = libmaus2/bambam/DecoderBase.hpp libmaus2/bambam
 	libmaus2/bambam/StrCmpNumRecode.hpp \
 	libmaus2/bambam/PileVectorElement.hpp \
 	libmaus2/bambam/CigarStringReader.hpp \
-	libmaus2/bambam/BamAlignmentHashComparator.hpp
+	libmaus2/bambam/BamAlignmentHashComparator.hpp \
+	libmaus2/bambam/CigarRunLengthDecoder.hpp \
+	libmaus2/bambam/CigarDecoder.hpp
 
 libmaus2bambamparallel_includedir=$(includedir)/libmaus2/bambam/parallel/
 libmaus2bambamparallel_include_HEADERS = \

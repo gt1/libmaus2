@@ -38,6 +38,11 @@ namespace libmaus2
 				int32_t aread;
 				int32_t bread;
 
+				int32_t getBBlockOffset(uint64_t const i) const
+				{
+					return path.getBBlockOffset(i);
+				}
+
                                 double getErrorRate() const
 				{
 					return path.getErrorRate();
