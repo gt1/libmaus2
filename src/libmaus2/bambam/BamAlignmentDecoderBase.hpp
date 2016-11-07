@@ -19,6 +19,7 @@
 #if ! defined(LIBMAUS2_BAMBAM_BAMALIGNMENTDECODERBASE_HPP)
 #define LIBMAUS2_BAMBAM_BAMALIGNMENTDECODERBASE_HPP
 
+#include <libmaus2/bambam/CigarDecoder.hpp>
 #include <libmaus2/bambam/BamAuxSortingBuffer.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/bambam/AlignmentValidity.hpp>
@@ -1048,6 +1049,22 @@ namespace libmaus2
 			 * @return code of i'th cigar operation from D
 			 **/
 			static uint32_t getCigarFieldOp(uint8_t const * D, uint64_t const i) {  return (getCigarField(D,i) >> 0) & ((1ull<<(4))-1); }
+
+			/**
+			 * get a CIGAR vector decoder for an alignment block
+			 *
+			 * @param D alignment block
+			 * @return cigar decoder
+			 **/
+			static CigarRunLengthDecoder getCigarRunLengthDecoder(uint8_t const * D)
+			{
+				return CigarRunLengthDecoder(getCigar(D),getNCigar(D));
+			}
+
+			static CigarDecoder getCigarDecoder(uint8_t const * D)
+			{
+				return CigarDecoder(CigarRunLengthDecoder(getCigar(D),getNCigar(D)));
+			}
 
 			/**
 			 * get number of insertions(+)/padding(+)/deletions(-) before first matching/mismatching base
