@@ -383,6 +383,92 @@ namespace libmaus2
 				return false;
 			}
 
+
+			/**
+			 * get a CIGAR vector decoder for an alignment block
+			 *
+			 * @param D alignment block
+			 * @return cigar decoder
+			 **/
+			CigarRunLengthDecoder getCigarRunLengthDecoder() const
+			{
+				return libmaus2::bambam::BamAlignmentDecoderBase::getCigarRunLengthDecoder(D.begin());
+			}
+
+			CigarDecoder getCigarDecoder() const
+			{
+				return libmaus2::bambam::BamAlignmentDecoderBase::getCigarDecoder(D.begin());
+			}
+
+			/**
+			 *
+			 **/
+			static uint64_t getRefCommon(
+				BamAlignment const & A,
+				BamAlignment const & B,
+				libmaus2::autoarray::AutoArray< std::pair<uint32_t,uint32_t> > & V
+			)
+			{
+				uint64_t o = 0;;
+
+				if ( A.isUnmap() || B.isUnmap() )
+					return o;
+				assert ( A.isMapped() && B.isMapped() );
+
+				if ( A.getRefID() != B.getRefID() )
+					return o;
+
+				libmaus2::math::IntegerInterval<int64_t> const IA = A.getReferenceInterval();
+				libmaus2::math::IntegerInterval<int64_t> const IB = B.getReferenceInterval();
+
+				if ( libmaus2::math::IntegerInterval<int64_t>::intersection(IA,IB).isEmpty() )
+					return o;
+
+				std::vector<std::pair<int64_t,int64_t> > VA;
+				std::vector<std::pair<int64_t,int64_t> > VB;
+				A.getMappingPositionPairs(VA);
+				B.getMappingPositionPairs(VB);
+
+				uint64_t ia = 0, ib = 0;
+
+
+				while ( ia < VA.size() && ib < VB.size() )
+				{
+					if ( VA[ia].first < VB[ib].first )
+						++ia;
+					else if ( VB[ib].first < VA[ia].first )
+						++ib;
+					else
+					{
+						assert ( VA[ia].first == VB[ib].first );
+
+						uint64_t ja = ia;
+						uint64_t jb = ib;
+
+						while ( ja < VA.size() && VA[ja].first == VA[ia].first )
+							++ja;
+						while ( jb < VB.size() && VB[jb].first == VB[ib].first )
+							++jb;
+
+						for ( uint64_t i = ia; i < ja; ++i )
+							for ( uint64_t j = ib; j < jb; ++j )
+								V.push(o,
+									std::pair<uint32_t,uint32_t>(
+										VA[i].second,
+										VB[j].second
+									)
+								);
+
+						ia = ja;
+						ib = jb;
+					}
+				}
+
+				std::sort(V.begin(),V.begin()+o);
+
+				return o;
+			}
+
 			/**
 			 * @return number of bytes before the query sequence in the alignment
 			 **/
