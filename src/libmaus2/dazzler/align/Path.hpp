@@ -43,6 +43,16 @@ namespace libmaus2
 				int32_t aepos;
 				int32_t bepos;
 
+				int32_t getBBlockOffset(uint64_t const i) const
+				{
+					uint64_t o = 0;
+
+					for ( uint64_t j = 0; j < i; ++j )
+						o += path[j].second;
+
+					return o;
+				}
+
 				double getErrorRate() const
 				{
 					return (aepos > abpos) ? (static_cast<double>(diffs) / static_cast<double>(aepos-abpos)) : 0.0;
