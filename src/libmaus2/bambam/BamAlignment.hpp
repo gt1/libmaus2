@@ -429,9 +429,10 @@ namespace libmaus2
 				A.getMappingPositionPairs(VA);
 				B.getMappingPositionPairs(VB);
 
+				std::sort(VA.begin(),VA.end());
+				std::sort(VB.begin(),VB.end());
+
 				uint64_t ia = 0, ib = 0;
-
-
 				while ( ia < VA.size() && ib < VB.size() )
 				{
 					if ( VA[ia].first < VB[ib].first )
@@ -452,12 +453,16 @@ namespace libmaus2
 
 						for ( uint64_t i = ia; i < ja; ++i )
 							for ( uint64_t j = ib; j < jb; ++j )
+							{
+								assert ( VA[i].first == VB[j].first );
+
 								V.push(o,
 									std::pair<uint32_t,uint32_t>(
 										VA[i].second,
 										VB[j].second
 									)
 								);
+							}
 
 						ia = ja;
 						ib = jb;
