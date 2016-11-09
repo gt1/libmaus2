@@ -4134,6 +4134,134 @@ namespace libmaus2
 				return Vout;
 			}
 
+			static uint64_t getPileVector(
+				libmaus2::autoarray::AutoArray < PileVectorElement > & Vout,
+				uint8_t const * B,
+				libmaus2::autoarray::AutoArray<cigar_operation> & cigopin,
+				libmaus2::autoarray::AutoArray<char> & readdata,
+				uint64_t const readid = 0
+			)
+			{
+				static const bool calmd_preterm[] =
+				{
+					true, // LIBMAUS2_BAMBAM_CMATCH = 0,
+					false, // LIBMAUS2_BAMBAM_CINS = 1,
+					false, // LIBMAUS2_BAMBAM_CDEL = 2,
+					false, // LIBMAUS2_BAMBAM_CREF_SKIP = 3,
+					false, // LIBMAUS2_BAMBAM_CSOFT_CLIP = 4,
+					false, // LIBMAUS2_BAMBAM_CHARD_CLIP = 5,
+					false, // LIBMAUS2_BAMBAM_CPAD = 6,
+					true, // LIBMAUS2_BAMBAM_CEQUAL = 7,
+					true // LIBMAUS2_BAMBAM_CDIFF = 8
+				};
+				static const uint8_t calmd_readadvance[] =
+				{
+					1, // LIBMAUS2_BAMBAM_CMATCH = 0,
+					1, // LIBMAUS2_BAMBAM_CINS = 1,
+					0, // LIBMAUS2_BAMBAM_CDEL = 2,
+					0, // LIBMAUS2_BAMBAM_CREF_SKIP = 3,
+					1, // LIBMAUS2_BAMBAM_CSOFT_CLIP = 4,
+					0, // LIBMAUS2_BAMBAM_CHARD_CLIP = 5,
+					0, // LIBMAUS2_BAMBAM_CPAD = 6,
+					1, // LIBMAUS2_BAMBAM_CEQUAL = 7,
+					1 // LIBMAUS2_BAMBAM_CDIFF = 8
+				};
+
+				static const uint8_t calmd_refadvance[] =
+				{
+					1, // LIBMAUS2_BAMBAM_CMATCH = 0,
+					0, // LIBMAUS2_BAMBAM_CINS = 1,
+					1, // LIBMAUS2_BAMBAM_CDEL = 2,
+					1, // LIBMAUS2_BAMBAM_CREF_SKIP = 3,
+					0, // LIBMAUS2_BAMBAM_CSOFT_CLIP = 4,
+					0, // LIBMAUS2_BAMBAM_CHARD_CLIP = 5,
+					0, // LIBMAUS2_BAMBAM_CPAD = 6,
+					1, // LIBMAUS2_BAMBAM_CEQUAL = 7,
+					1 // LIBMAUS2_BAMBAM_CDIFF = 8
+				};
+
+				uint32_t const numcigin = getCigarOperations(B,cigopin);
+				uint64_t i = 0;
+				int64_t refpos = getPos(B);
+				int64_t const refid = getRefID(B);
+				decodeRead(B, readdata);
+				char const * it_r = readdata.begin();
+				uint64_t readpos = 0;
+
+				for ( ; i < numcigin && (! calmd_preterm[cigopin[i].first]); ++i )
+				{
+					int32_t const op = cigopin[i].first;
+					int32_t const len = cigopin[i].second;
+					readpos += calmd_readadvance[op] * len;
+					it_r += calmd_readadvance[op] * len;
+				}
+
+				uint64_t o = 0;
+				for ( ; i < numcigin; ++i )
+				{
+					int32_t const op = cigopin[i].first;
+					int32_t const len = cigopin[i].second;
+
+					switch ( op )
+					{
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CINS:
+						{
+							for ( int64_t i = 0; i < len; ++i )
+							{
+								PileVectorElement PP
+								(
+									refid,
+									readid,
+									refpos,
+									-len+i,
+									readpos+i,
+									static_cast<int32_t>(readdata.size() - (readpos+i)) - 1,
+									it_r[i]
+								);
+								Vout.push(o,PP);
+							}
+							break;
+						}
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDEL:
+						{
+							for ( int64_t i = 0; i < len; ++i )
+							{
+								PileVectorElement PP(refid,readid,refpos+i,0,readpos,static_cast<int32_t>(readdata.size()-readpos)-1,'-');
+								Vout.push(o,PP);
+							}
+							break;
+						}
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CMATCH:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF:
+						{
+							for ( int64_t i = 0; i < len; ++i )
+							{
+								PileVectorElement PP
+								(
+									refid,
+									readid,
+									refpos+i,
+									0,
+									readpos+i,
+									static_cast<int32_t>(readdata.size() - (readpos+i)) - 1,
+									it_r[i]
+								);
+								Vout.push(o,PP);
+							}
+							break;
+						}
+					}
+
+					refpos += calmd_refadvance[op] * len;
+					readpos += calmd_readadvance[op] * len;
+					// itref += calmd_refadvance[op] * len;
+					it_r += calmd_readadvance[op] * len;
+				}
+
+				return o;
+			}
+
 			template<typename it_a>
 			static uint64_t recalculateCigar(
 				uint8_t const * B,
