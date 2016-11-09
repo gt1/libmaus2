@@ -1,3 +1,11 @@
+libmaus2 (2.0.273-1) unstable; urgency=medium
+
+  * add getPileVector variants in BamAlignmentDecoderBase/BamAlignment
+  * add TrueOverlap/TrueOverlapStats class
+  * add some checks in BamAlignment
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 09 Nov 2016 17:12:24 +0100
+
 libmaus2 (2.0.272-1) unstable; urgency=medium
 
   * add CigarRunLengthDecoder/CigarDecoder classes

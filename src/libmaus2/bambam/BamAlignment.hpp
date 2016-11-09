@@ -429,9 +429,10 @@ namespace libmaus2
 				A.getMappingPositionPairs(VA);
 				B.getMappingPositionPairs(VB);
 
+				std::sort(VA.begin(),VA.end());
+				std::sort(VB.begin(),VB.end());
+
 				uint64_t ia = 0, ib = 0;
-
-
 				while ( ia < VA.size() && ib < VB.size() )
 				{
 					if ( VA[ia].first < VB[ib].first )
@@ -452,12 +453,16 @@ namespace libmaus2
 
 						for ( uint64_t i = ia; i < ja; ++i )
 							for ( uint64_t j = ib; j < jb; ++j )
+							{
+								assert ( VA[i].first == VB[j].first );
+
 								V.push(o,
 									std::pair<uint32_t,uint32_t>(
 										VA[i].second,
 										VB[j].second
 									)
 								);
+							}
 
 						ia = ja;
 						ib = jb;
@@ -2568,6 +2573,16 @@ namespace libmaus2
 			void getCigarStats(libmaus2::autoarray::AutoArray<uint64_t> & A, bool const erase = true) const
 			{
 				libmaus2::bambam::BamAlignmentDecoderBase::getCigarStats(D.begin(),A,erase);
+			}
+
+			uint64_t getPileVector(
+				libmaus2::autoarray::AutoArray < PileVectorElement > & Vout,
+				libmaus2::autoarray::AutoArray<cigar_operation> & cigopin,
+				libmaus2::autoarray::AutoArray<char> & readdata,
+				uint64_t const readid = 0
+			) const
+			{
+				return libmaus2::bambam::BamAlignmentDecoderBase::getPileVector(Vout,D.begin(),cigopin,readdata,readid);
 			}
 
 			std::vector< PileVectorElement > getPileVector(libmaus2::autoarray::AutoArray<cigar_operation> & cigopin, libmaus2::autoarray::AutoArray<char> & readdata, uint64_t const readid = 0) const
