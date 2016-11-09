@@ -68,6 +68,24 @@ namespace libmaus2
 
 					// get common bases on reference
 					uint64_t const o = libmaus2::bambam::BamAlignment::getRefCommon(A,B,V);
+					int const arev = A.isReverse();
+					int const brev = B.isReverse();
+					int rev = (arev+brev)%2;
+
+					if ( A.isReverse() )
+					{
+						uint64_t const alen = A.getLseq();
+
+						for ( uint64_t i = 0; i < o; ++i )
+							V[i].first = alen - V[i].first - 1;
+					}
+					if ( B.isReverse() )
+					{
+						uint64_t const blen = B.getLseq();
+
+						for ( uint64_t i = 0; i < o; ++i )
+							V[i].second = blen - V[i].second - 1;
+					}
 
 					if ( o )
 					{
@@ -84,6 +102,19 @@ namespace libmaus2
 							ATC,
 							aligner
 						);
+
+						if ( OVL.isInverse() )
+						{
+							rev += 1;
+							rev %= 2;
+
+							uint64_t const blen = B.getLseq();
+
+							for ( uint64_t i = 0; i < o; ++i )
+								V[i].second = blen - V[i].second - 1;
+						}
+
+						std::sort(V.begin(),V.begin()+o);
 
 						#if 0
 						libmaus2::lcs::AlignmentPrint::printAlignmentLines(
@@ -115,7 +146,7 @@ namespace libmaus2
 								{
 									assert ( astr[apos] == bstr[bpos] );
 
-									if ( apos >= V[0].first && apos <= V[o-1].first )
+									// if ( apos >= V[0].first && apos <= V[o-1].first )
 									{
 										std::pair <
 											std::pair<uint32_t,uint32_t> const *,
@@ -130,6 +161,8 @@ namespace libmaus2
 										else
 										{
 											#if 0
+											std::cerr << "apos=" << apos << " bpos=" << bpos << " " << A.isReverse() << " " << B.isReverse() << std::endl;
+
 											std::pair<uint32_t,uint32_t> const * L = std::lower_bound(V.begin(),V.begin()+o,std::pair<uint32_t,uint32_t>(apos,bpos));
 											if ( L != V.begin() )
 											{
@@ -175,13 +208,19 @@ namespace libmaus2
 						}
 						else
 						{
-							// std::cerr << "dropping " << OVL << std::endl;
+							#if 0
+							std::cerr << "dropping " << OVL << std::endl;
+							#endif
 
-							std::string const sta = A.getRead();
-							std::string const stb = B.getRead();
+							std::string const sta = A.isReverse() ? A.getReadRC() : A.getRead();
+							std::string const stb = (B.isReverse() ^ OVL.isInverse()) ? B.getReadRC() : B.getRead();
 
-							for ( uint64_t i = 0; i < o; ++i )
-								assert ( sta[V[i].first] == stb[V[i].second] );
+							if ( rev )
+								for ( uint64_t i = 0; i < o; ++i )
+									assert ( sta[V[i].first] == libmaus2::fastx::invertUnmapped(stb[V[i].second]) );
+							else
+								for ( uint64_t i = 0; i < o; ++i )
+									assert ( sta[V[i].first] == stb[V[i].second] );
 
 							#if 0
 							for ( uint64_t i = 0; i < o; ++i )
