@@ -42,7 +42,7 @@ namespace libmaus2
 			 * @param cigar SAM type string representation of cigar
 			 * @return encoded cigar operation vector (pairs of operation and length)
 			 **/
-			static std::vector<cigar_operation> parseCigarString(std::string cigar);
+			static std::vector<cigar_operation> parseCigarString(std::string const & cigar);
 			/**
 			 * parse cigar string
 			 *
