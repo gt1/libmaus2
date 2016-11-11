@@ -1,3 +1,10 @@
+libmaus2 (2.0.274-1) unstable; urgency=medium
+
+  * use fixed with float output for error rate in AlignmentStatistics
+  * avoid division by zero in getErrorRate() of AlignmentStatistics
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 11 Nov 2016 11:01:57 +0100
+
 libmaus2 (2.0.273-1) unstable; urgency=medium
 
   * add getPileVector variants in BamAlignmentDecoderBase/BamAlignment

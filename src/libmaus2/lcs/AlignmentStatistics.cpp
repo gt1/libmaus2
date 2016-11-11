@@ -16,15 +16,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <libmaus2/lcs/AlignmentStatistics.hpp>
+#include <sstream>
 
 std::ostream & libmaus2::lcs::operator<<(std::ostream & out, libmaus2::lcs::AlignmentStatistics const & A)
 {
+	std::ostringstream sostr;
+	sostr << std::fixed << std::setprecision(10) << A.getErrorRate();
+
 	return out << "AlignmentStatistics("
 		<< "matches=" << A.matches << ","
 		<< "mismatches=" << A.mismatches << ","
 		<< "insertions=" << A.insertions << ","
 		<< "deletions=" << A.deletions  << ","
 		<< "editdistance=" << A.mismatches+A.insertions+A.deletions << ","
-		<< "erate=" << A.getErrorRate()
+		<< "erate=" << sostr.str()
 		<< ")";
 }
