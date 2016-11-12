@@ -468,11 +468,51 @@ namespace libmaus2
 					);
 				uint32_t const cflags = (cigarlen > 0xFFFFul) ? (flags | libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FCIGAR32) : flags;
 
-				assert ( namelen+1 < (1ul << 8) );
-				assert ( mapq < (1ul << 8) );
-				assert ( bin < (1ul << 16) );
-				assert ( flags < (1ul << 16) );
-				assert ( cigarlen < (1ul << 16) );
+				bool const nameok = namelen+1 < (1ul << 8);
+				if ( ! nameok )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "BamAlignmentEncoderBase::encodeAlignment: name \"" << std::string(name,name+namelen) << "\"  is too long " << namelen << std::endl;
+					lme.finish();
+					throw lme;
+				}
+				assert ( nameok );
+				bool const mapqok = mapq < (1ul << 8);
+				if ( ! mapqok )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "BamAlignmentEncoderBase::encodeAlignment: mapq " << mapq << " out of range" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+				assert ( mapqok );
+				bool const binok = bin < (1ul << 16);
+				if ( ! binok )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "BamAlignmentEncoderBase::encodeAlignment: bin " << bin << " out of range" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+				assert ( binok );
+				bool const flagsok = flags < (1ul << 16);
+				if ( ! flagsok )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "BamAlignmentEncoderBase::encodeAlignment: flags " << flags << " out of range" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+				assert ( flagsok );
+				bool const cigarlenok = cigarlen < (1ul << 16);
+				if ( ! cigarlenok )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "BamAlignmentEncoderBase::encodeAlignment: cigarlen " << cigarlen << " out of range" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+				assert ( cigarlenok );
 
 				putLE<buffer_type, int32_t>(buffer,refid); // offset 0
 				putLE<buffer_type, int32_t>(buffer,pos);   // offset 4
