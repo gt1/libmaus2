@@ -22,30 +22,32 @@
 #include <cassert>
 #include <sstream>
 
-std::vector< libmaus2::bambam::cigar_operation > libmaus2::bambam::CigarStringParser::parseCigarString(std::string cigar)
+std::vector< libmaus2::bambam::cigar_operation > libmaus2::bambam::CigarStringParser::parseCigarString(std::string const & cigar)
 {
 	std::vector<cigar_operation> ops;
+	std::string::const_iterator ita = cigar.begin();
+	std::string::const_iterator const ite = cigar.end();
 
-	while ( cigar.size() )
+	while ( ita != ite )
 	{
-		assert ( isdigit(cigar[0]) );
+		assert ( isdigit(ita[0]) );
 
 		uint64_t numlen = 0;
-		while ( numlen < cigar.size() && isdigit(cigar[numlen]) )
+		while ( ita+numlen != ite && isdigit(ita[numlen]) )
 			numlen++;
 
-		std::string const nums = cigar.substr(0,numlen);
+		std::string const nums(ita,ita+numlen);
 		std::istringstream istr(nums);
 		uint64_t num = 0;
 		istr >> num;
 
-		cigar = cigar.substr(numlen);
+		ita += numlen;
 
 		uint32_t op = 0;
 
-		assert ( cigar.size() );
+		assert ( ita != ite );
 
-		switch ( cigar[0] )
+		switch ( ita[0] )
 		{
 			case 'M':
 				op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CMATCH;
@@ -79,7 +81,7 @@ std::vector< libmaus2::bambam::cigar_operation > libmaus2::bambam::CigarStringPa
 				break;
 		}
 
-		cigar = cigar.substr(1);
+		ita += 1;
 
 		ops.push_back(cigar_operation(op,num));
 	}

@@ -497,7 +497,8 @@ libmaus2lz_include_HEADERS = libmaus2/lz/Inflate.hpp libmaus2/lz/Deflate.hpp lib
 	libmaus2/lz/XzInputStream.hpp \
 	libmaus2/lz/BlockInflate.hpp \
 	libmaus2/lz/ConcatBlockInflate.hpp \
-	libmaus2/lz/ZlibInterface.hpp
+	libmaus2/lz/ZlibInterface.hpp \
+	libmaus2/lz/BgzfInflateFile.hpp
 
 libmaus2bambam_includedir=$(includedir)/libmaus2/bambam/
 libmaus2bambam_include_HEADERS = libmaus2/bambam/DecoderBase.hpp libmaus2/bambam/Chromosome.hpp \
@@ -641,7 +642,10 @@ libmaus2bambam_include_HEADERS = libmaus2/bambam/DecoderBase.hpp libmaus2/bambam
 	libmaus2/bambam/CigarStringReader.hpp \
 	libmaus2/bambam/BamAlignmentHashComparator.hpp \
 	libmaus2/bambam/CigarRunLengthDecoder.hpp \
-	libmaus2/bambam/CigarDecoder.hpp
+	libmaus2/bambam/CigarDecoder.hpp \
+	libmaus2/bambam/BamNumericalIndexGenerator.hpp \
+	libmaus2/bambam/BamNumericalIndexDecoder.hpp \
+	libmaus2/bambam/BamNumericalIndexBase.hpp
 
 libmaus2bambamparallel_includedir=$(includedir)/libmaus2/bambam/parallel/
 libmaus2bambamparallel_include_HEADERS = \

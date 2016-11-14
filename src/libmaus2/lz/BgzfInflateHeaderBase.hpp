@@ -98,7 +98,7 @@ namespace libmaus2
 				)
 				{
 					::libmaus2::exception::LibMausException se;
-					se.getStream() << "BgzfInflateHeaderBase::readHeader(): invalid header data";
+					se.getStream() << "BgzfInflateHeaderBase::readHeader(): invalid header data (unexpected bytes)";
 					se.finish(false);
 					throw se;
 				}
@@ -108,7 +108,7 @@ namespace libmaus2
 				if ( cblocksize < getBgzfHeaderSize() + getBgzfFooterSize() )
 				{
 					::libmaus2::exception::LibMausException se;
-					se.getStream() << "BgzfInflateHeaderBase::readHeader(): invalid header data";
+					se.getStream() << "BgzfInflateHeaderBase::readHeader(): invalid header data (blocksize too big)";
 					se.finish(false);
 					throw se;
 				}

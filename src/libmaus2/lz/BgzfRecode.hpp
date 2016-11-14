@@ -34,7 +34,7 @@ namespace libmaus2
 			std::istream & in;
 			std::ostream & out;
 
-			libmaus2::lz::BgzfInflateBase::BlockInfo P;
+			libmaus2::lz::BgzfInflateBase::BaseBlockInfo P;
 
 			std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback *> blockoutputcallbacks;
 
