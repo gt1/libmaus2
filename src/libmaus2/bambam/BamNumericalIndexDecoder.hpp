@@ -21,6 +21,7 @@
 
 #include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/parallel/PosixSpinLock.hpp>
 #include <libmaus2/bambam/BamNumericalIndexBase.hpp>
 #include <libmaus2/lz/BgzfInflate.hpp>
 #include <libmaus2/bambam/BamAlignmentDecoder.hpp>
@@ -39,6 +40,7 @@ namespace libmaus2
 			private:
 			libmaus2::aio::InputStreamInstance::unique_ptr_type Pstream;
 			std::istream & in;
+			libmaus2::parallel::PosixSpinLock inlock;
 
 			uint64_t const alcnt;
 			uint64_t const mod;
@@ -69,8 +71,9 @@ namespace libmaus2
 				return mod;
 			}
 			
-			std::pair<uint64_t,uint64_t> operator[](uint64_t const i) const
+			std::pair<uint64_t,uint64_t> operator[](uint64_t const i)
 			{
+				libmaus2::parallel::ScopePosixSpinLock slock(inlock);
 				in.clear();
 				in.seekg(2*sizeof(uint64_t) + 2*sizeof(uint64_t)*i, std::ios::beg );
 				uint64_t const fileoff = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
@@ -78,14 +81,14 @@ namespace libmaus2
 				return std::pair<uint64_t,uint64_t>(fileoff,blockoff);
 			}
 			
-			libmaus2::lz::BgzfInflateFile::unique_ptr_type getStreamAt(std::string const & bamfn, uint64_t const id) const
+			libmaus2::lz::BgzfInflateFile::unique_ptr_type getStreamAt(std::string const & bamfn, uint64_t const id)
 			{
 				libmaus2::bambam::BamAlignment algn;
 				
 				if ( id < getAlignmentCount() )
 				{
 					std::pair<uint64_t,uint64_t> const off = (*this)[id / mod];
-					std::cerr << "off=" << off.first << "," << off.second << std::endl;
+					// std::cerr << "off=" << off.first << "," << off.second << std::endl;
 					libmaus2::lz::BgzfInflateFile::unique_ptr_type tptr(new libmaus2::lz::BgzfInflateFile(bamfn,off.first,off.second));
 					uint64_t const m = id % mod;
 					for ( uint64_t i = 0; i < m; ++i )
