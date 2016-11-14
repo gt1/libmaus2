@@ -97,7 +97,7 @@ namespace libmaus2
 				bool const lastblock = haveoffsets && (compressedread == endoffset.getBlockOffset()-startoffset.getBlockOffset());
 
 				/* read block */
-				BgzfInflateBase::BlockInfo const blockinfo = readBlock(stream);
+				BgzfInflateBase::BaseBlockInfo const blockinfo = readBlock(stream);
 
 				/* copy compressed block if ostr is not null */
 				if ( ostr )

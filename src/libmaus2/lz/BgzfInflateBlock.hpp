@@ -79,10 +79,10 @@ namespace libmaus2
 
 				try
 				{
-					BgzfInflateBase::BlockInfo preblockinfo = BgzfInflateBase::readBlock(stream);
+					BgzfInflateBase::BaseBlockInfo preblockinfo = BgzfInflateBase::readBlock(stream);
 
 					blockinfo = ::libmaus2::lz::BgzfInflateInfo(
-						preblockinfo.payloadsize,
+						preblockinfo.compdatasize,
 						preblockinfo.uncompdatasize,
 						preblockinfo.uncompdatasize ? false : (stream.peek() == stream_type::traits_type::eof()),
 						preblockinfo.checksum
@@ -130,7 +130,12 @@ namespace libmaus2
 				{
 					BgzfInflateBase::decompressBlock(
 						reinterpret_cast<char *>(data.begin()),
-						BgzfInflateBase::BlockInfo(blockinfo.compressed,blockinfo.uncompressed,blockinfo.checksum)
+						BgzfInflateBase::BaseBlockInfo(
+							blockinfo.compressed - libmaus2::lz::BgzfConstants::getBgzfHeaderSize() - libmaus2::lz::BgzfConstants::getBgzfFooterSize(),
+							blockinfo.uncompressed,
+							blockinfo.checksum,
+							blockinfo.compressed
+						)
 					);
 					return blockinfo.uncompressed;
 				}

@@ -107,22 +107,24 @@ namespace libmaus2
 			}
 
 			public:
-			struct BlockInfo
+			struct BaseBlockInfo
 			{
 				uint64_t payloadsize;
 				uint64_t uncompdatasize;
 				uint64_t checksum;
+				uint64_t compdatasize;
 
-				BlockInfo()
+				BaseBlockInfo()
 				{
 
 				}
 
-				BlockInfo(
+				BaseBlockInfo(
 					uint64_t const rpayloadsize,
 					uint64_t const runcompdatasize,
-					uint64_t const rchecksum
-				) : payloadsize(rpayloadsize), uncompdatasize(runcompdatasize), checksum(rchecksum)
+					uint64_t const rchecksum,
+					uint64_t const rcompdatasize
+				) : payloadsize(rpayloadsize), uncompdatasize(runcompdatasize), checksum(rchecksum), compdatasize(rcompdatasize)
 				{
 
 				}
@@ -135,7 +137,7 @@ namespace libmaus2
 			 * @return pair of compressed payload size (gzip block minus header and footer) and uncompressed size
 			 **/
 			template<typename stream_type>
-			BlockInfo readBlock(stream_type & stream)
+			BaseBlockInfo readBlock(stream_type & stream)
 			{
 				/* read block header */
 				uint64_t const payloadsize = readHeader(stream);
@@ -154,7 +156,7 @@ namespace libmaus2
 					throw se;
 				}
 
-				return BlockInfo(payloadsize,uncompdatasize,checksum);
+				return BaseBlockInfo(payloadsize,uncompdatasize,checksum,payloadsize + getBgzfHeaderSize() + getBgzfFooterSize());
 			}
 
 			/**
@@ -164,7 +166,7 @@ namespace libmaus2
 			 * @param blockinfo pair as returned by readBlock method
 			 * @return number of bytes stored in decomp
 			 **/
-			uint64_t decompressBlock(char * const decomp, BlockInfo const & blockinfo)
+			uint64_t decompressBlock(char * const decomp, BaseBlockInfo const & blockinfo)
 			{
 				zdecompress(block.begin(),blockinfo.payloadsize,decomp,blockinfo.uncompdatasize);
 
