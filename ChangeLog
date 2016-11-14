@@ -1,3 +1,13 @@
+libmaus2 (2.0.275-1) unstable; urgency=medium
+
+  * add BgzfInflateFile
+  * add BamNumericalIndexer(Base|Generator|Decoder)
+  * fix indexing in parallel decoding mode
+  * replace some asserts with exceptions in BamAlignmentEncoderBase
+  * make cigar string parsing subquadratic
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 14 Nov 2016 13:44:15 +0100
+
 libmaus2 (2.0.274-1) unstable; urgency=medium
 
   * use fixed with float output for error rate in AlignmentStatistics
