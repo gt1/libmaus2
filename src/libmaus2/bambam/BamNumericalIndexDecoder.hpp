@@ -53,24 +53,24 @@ namespace libmaus2
 			  mod(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 			  numblocks( (alcnt+mod-1)/mod )
 			{
-			
+
 			}
-			
+
 			uint64_t size() const
 			{
 				return numblocks;
 			}
-			
+
 			uint64_t getAlignmentCount() const
 			{
 				return alcnt;
 			}
-			
+
 			uint64_t getBlockSize() const
 			{
 				return mod;
 			}
-			
+
 			std::pair<uint64_t,uint64_t> operator[](uint64_t const i)
 			{
 				libmaus2::parallel::ScopePosixSpinLock slock(inlock);
@@ -80,11 +80,11 @@ namespace libmaus2
 				uint64_t const blockoff = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				return std::pair<uint64_t,uint64_t>(fileoff,blockoff);
 			}
-			
+
 			libmaus2::lz::BgzfInflateFile::unique_ptr_type getStreamAt(std::string const & bamfn, uint64_t const id)
 			{
 				libmaus2::bambam::BamAlignment algn;
-				
+
 				if ( id < getAlignmentCount() )
 				{
 					std::pair<uint64_t,uint64_t> const off = (*this)[id / mod];

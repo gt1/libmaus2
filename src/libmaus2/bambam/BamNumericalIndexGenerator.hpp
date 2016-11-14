@@ -47,10 +47,10 @@ namespace libmaus2
 			private:
 			/* parser state types */
 			enum parsestate { state_reading_blocklen,  state_post_skip };
-			
+
 			libmaus2::aio::OutputStreamInstance::unique_ptr_type Pindexstr;
 			std::ostream & indexstr;
-			
+
 			uint64_t const indexmod;
 
 			::libmaus2::bambam::BamHeader header;
@@ -80,7 +80,7 @@ namespace libmaus2
 
 			bool blocksetup;
 			bool flushed;
-			
+
 			void setup()
 			{
 				libmaus2::util::NumberSerialisation::serialiseNumber(indexstr,0);
@@ -117,7 +117,7 @@ namespace libmaus2
 			{
 				setup();
 			}
-			
+
 			void flush()
 			{
 				if ( ! flushed )
@@ -127,11 +127,11 @@ namespace libmaus2
 					libmaus2::util::NumberSerialisation::serialiseNumber(indexstr,alcnt);
 					indexstr.flush();
 					Pindexstr.reset();
-					
+
 					flushed = true;
 				}
 			}
-			
+
 			~BamNumericalIndexGenerator()
 			{
 				flush();
@@ -141,7 +141,7 @@ namespace libmaus2
 			void addBlock(uint8_t const * Bbegin, uint64_t const compsize, uint64_t const uncompsize)
 			{
 				// std::cerr << "addBlock(" << compsize << "," << uncompsize << ")" << std::endl;
-			
+
 				uint8_t const * pa = Bbegin; // buffer current pointer
 				uint8_t const * pc = pa + uncompsize; // buffer end pointer
 
@@ -164,7 +164,7 @@ namespace libmaus2
 						pc = Bbegin + uncompsize;
 
 						// std::cerr << "header complete, " << (pa != pc) << std::endl;
-						
+
 						if ( pa != pc )
 						{
 							// start of compressed block
@@ -185,7 +185,7 @@ namespace libmaus2
 						alcmpstart = cacct - rinfo.first;
 						// start of alignment in uncompressed block
 						alstart = pa - Bbegin;
-						
+
 						// std::cerr << "blocksetup (2) " << alcmpstart << " " << alstart << std::endl;
 
 						blocksetup = true;
@@ -259,7 +259,7 @@ namespace libmaus2
 									// offset in block
 									uint64_t const nextalstart =
 										(pc != pa) ? (pa - Bbegin) : 0;
-										
+
 									if ( alcnt % indexmod == 0 )
 									{
 										libmaus2::util::NumberSerialisation::serialiseNumber(indexstr,alcmpstart);
@@ -279,7 +279,7 @@ namespace libmaus2
 					}
 				}
 			}
-			
+
 			template<typename stream_type>
 			static uint64_t indexStream(stream_type & infl, std::string const indexfn, uint64_t const mod, bool const verbose)
 			{
@@ -298,18 +298,18 @@ namespace libmaus2
 				}
 				if ( verbose )
 					std::cerr << std::endl;
-			
+
 				return csize;
 			}
-			
+
 			static void indexFile(std::string const & fn, std::string const & indexfn, uint64_t const mod, uint64_t const numthreads, bool const verbose = false)
 			{
 				libmaus2::aio::InputStreamInstance in(fn);
 				uint64_t csize;
-				
+
 				std::string const tmpindexfn = indexfn + ".tmp";
 				libmaus2::util::TempFileRemovalContainer::addTempFile(tmpindexfn);
-				
+
 				if ( numthreads <= 1 )
 				{
 					libmaus2::lz::BgzfInflate<std::istream> infl(in);
@@ -320,11 +320,11 @@ namespace libmaus2
 					libmaus2::lz::BgzfInflateParallel infl(in,numthreads);
 					csize = indexStream(infl,tmpindexfn,mod,verbose);
 				}
-				
+
 				libmaus2::aio::OutputStreamFactoryContainer::rename(tmpindexfn,indexfn);
-				
+
 				bool const ok = (csize == libmaus2::util::GetFileSize::getFileSize(fn));
-				
+
 				if ( ! ok )
 				{
 					std::cerr << "[W] warning csize=" << csize << " != filesize=" << libmaus2::util::GetFileSize::getFileSize(fn) << std::endl;
@@ -333,7 +333,7 @@ namespace libmaus2
 
 			static void indexFileCheck(std::string const & fn, std::string const & indexfn, uint64_t const mod, uint64_t const numthreads, bool const verbose = false)
 			{
-				if ( 
+				if (
 					!libmaus2::util::GetFileSize::fileExists(indexfn)
 					||
 					libmaus2::util::GetFileSize::isOlder(indexfn,fn)
@@ -344,14 +344,14 @@ namespace libmaus2
 			static std::string indexFileCheck(std::string const & fn, uint64_t const mod, uint64_t const numthreads, bool const verbose = false)
 			{
 				std::string const indexfn = getIndexName(fn);
-				
-				if ( 
+
+				if (
 					!libmaus2::util::GetFileSize::fileExists(indexfn)
 					||
 					libmaus2::util::GetFileSize::isOlder(indexfn,fn)
 				)
 					indexFile(fn,indexfn,mod,numthreads,verbose);
-				
+
 				return indexfn;
 			}
 		};

@@ -30,7 +30,7 @@ namespace libmaus2
 		{
 			libmaus2::aio::InputStreamInstance::unique_ptr_type PISI;
 			std::istream & in;
-			
+
 			BgzfInflateFileBase(std::istream & rin, uint64_t const fileoff = 0) : in(rin)
 			{
 				in.clear();
@@ -42,7 +42,7 @@ namespace libmaus2
 				in.seekg(fileoff,std::ios::beg);
 			}
 		};
-		
+
 		struct BgzfInflateFile : public BgzfInflateFileBase, public BgzfInflateStream
 		{
 			typedef BgzfInflateFile this_type;
