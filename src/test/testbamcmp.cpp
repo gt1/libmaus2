@@ -32,29 +32,6 @@ int main(int argc, char * argv[])
 		std::string const fna = arginfo.getUnparsedRestArg(0);
 		std::string const fnb = arginfo.getUnparsedRestArg(1);
 
-		{
-			std::string const indexfn = libmaus2::bambam::BamNumericalIndexGenerator::indexFileCheck(fna,1024,libmaus2::parallel::NumCpus::getNumLogicalProcessors(),true);
-			// std::string const indexfn = libmaus2::bambam::BamNumericalIndexGenerator::indexFileCheck(fna,1024,1,true);
-			libmaus2::bambam::BamNumericalIndexDecoder indexdec(indexfn);
-
-			std::cerr << indexdec.getAlignmentCount() << std::endl;
-			std::cerr << indexdec.getBlockSize() << std::endl;
-
-			for ( uint64_t i = 0; i < indexdec.size(); ++i )
-				std::cerr << "index[" << i << "]=(" << indexdec[i].first << "," << indexdec[i].second << ")" << std::endl;
-
-			libmaus2::bambam::BamAlignment algn;
-			for ( uint64_t i = 0; i < 4096; ++i )
-			{
-				libmaus2::lz::BgzfInflateFile::unique_ptr_type tptr(indexdec.getStreamAt(fna,i));
-				libmaus2::bambam::BamAlignmentDecoder::readAlignmentGz(*tptr,algn);
-				std::cerr << "name " << algn.getName() << std::endl;
-			}
-		}
-
-		return 0;
-
-
 		libmaus2::bambam::BamDecoder bama(fna);
 		libmaus2::bambam::BamDecoder bamb(fnb);
 
