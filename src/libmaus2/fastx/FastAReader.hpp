@@ -291,6 +291,7 @@ namespace libmaus2
                                 reader_type reader(filename);
                                 libmaus2::aio::OutputStreamInstance OSI(indexfn);
 				reader.enumerateOffsets(OSI,steps);
+				OSI.flush();
                         }
 
 
