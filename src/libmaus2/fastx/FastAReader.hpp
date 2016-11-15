@@ -238,11 +238,61 @@ namespace libmaus2
 				return V;
                         }
 
+                        std::ostream & enumerateOffsets(std::ostream & indexstr, uint64_t const steps = 1)
+                        {
+                        	uint64_t numint = 0;
+
+				if ( foundnextmarker )
+				{
+	                                uint64_t count = 0;
+
+					do
+					{
+						uint64_t const o = reader_base_type::getC() - 1;
+						uint64_t const scount = count;
+						uint64_t gpatlen = 0;
+						uint64_t minlen = std::numeric_limits<uint64_t>::max();
+						uint64_t maxlen = 0;
+
+						for ( uint64_t i = 0; i < steps && foundnextmarker; ++i )
+						{
+						        uint64_t patlen;
+							skipPattern(patlen);
+							count++;
+							gpatlen += patlen;
+							minlen = std::min(minlen,static_cast<uint64_t>(patlen));
+							maxlen = std::max(maxlen,static_cast<uint64_t>(patlen));
+						}
+
+                                                uint64_t const endo =
+                                                        foundnextmarker ?
+                                                                (reader_base_type::getC() - 1)
+                                                                :
+                                                                (reader_base_type::getC());
+
+						FastInterval FI(scount,count,o,endo,gpatlen,minlen,maxlen);
+						FI.serialise(indexstr);
+						numint++;
+					}
+        	                        while ( foundnextmarker );
+                        	}
+
+				return indexstr;
+                        }
+
                         static std::vector<FastInterval> enumerateOffsets(std::string const & filename, uint64_t const steps = 1)
                         {
                                 reader_type reader(filename);
 				return reader.enumerateOffsets(steps);
                         }
+
+                        static void enumerateOffsets(std::string const & filename, std::string const & indexfn, uint64_t const steps = 1)
+                        {
+                                reader_type reader(filename);
+                                libmaus2::aio::OutputStreamInstance OSI(indexfn);
+				reader.enumerateOffsets(OSI,steps);
+                        }
+
 
                         static std::string getIndexFileName(std::string const & filename, uint64_t const steps)
                         {
