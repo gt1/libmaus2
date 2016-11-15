@@ -27,7 +27,8 @@
 #include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <libmaus2/index/ExternalMemoryIndexDecoder.hpp>
 #include <libmaus2/aio/InputStreamInstance.hpp>
-
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
 
 namespace libmaus2
 {
@@ -361,10 +362,17 @@ namespace libmaus2
 				static std::string constructIndex(std::string const & aligns, std::ostream * verbstr = 0)
 				{
 					std::string const indexfn = getIndexName(aligns);
+					std::string const indexfntmp = indexfn + ".tmp";
+					libmaus2::util::TempFileRemovalContainer::addTempFile(indexfntmp);
+
 					std::string const dalignerindexfn = getDalignerIndexName(aligns);
-					libmaus2::index::ExternalMemoryIndexGenerator<OverlapMeta,base_level_log,inner_level_log> EMIG(indexfn);
-					EMIG.setup();
-					libmaus2::aio::OutputStreamInstance::unique_ptr_type DOFS(new libmaus2::aio::OutputStreamInstance(dalignerindexfn));
+					std::string const dalignerindexfntmp = dalignerindexfn + ".tmp";
+					libmaus2::util::TempFileRemovalContainer::addTempFile(dalignerindexfntmp);
+
+					typedef libmaus2::index::ExternalMemoryIndexGenerator<OverlapMeta,base_level_log,inner_level_log> indexer_type;
+					indexer_type::unique_ptr_type EMIG(new indexer_type(indexfntmp));
+					EMIG->setup();
+					libmaus2::aio::OutputStreamInstance::unique_ptr_type DOFS(new libmaus2::aio::OutputStreamInstance(dalignerindexfntmp));
 
 					uint64_t doffset = 0;
 					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(*DOFS,0,doffset);
@@ -439,9 +447,9 @@ namespace libmaus2
 							sdeg += OVL.path.tlen; // add to trace points per pile
 						}
 
-						if ( ((lp++) & EMIG.base_index_mask) == 0 )
+						if ( ((lp++) & EMIG->base_index_mask) == 0 )
 						{
-							EMIG.put(
+							EMIG->put(
 								OverlapMeta(OVL),
 								std::pair<uint64_t,uint64_t>(P.second,0)
 							);
@@ -474,7 +482,11 @@ namespace libmaus2
 					DOFS->flush();
 					DOFS.reset();
 
-					EMIG.flush();
+					EMIG->flush();
+					EMIG.reset();
+
+					libmaus2::aio::OutputStreamFactoryContainer::rename(indexfntmp,indexfn);
+					libmaus2::aio::OutputStreamFactoryContainer::rename(dalignerindexfntmp,dalignerindexfn);
 
 					return indexfn;
 				}
