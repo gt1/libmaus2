@@ -2139,7 +2139,9 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testsymcnt \
 	testgammapd \
 	testpo \
-	testavx
+	testavx \
+	testserialisedsorting \
+	testbamnumericalindex
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2704,3 +2706,11 @@ testavx_SOURCES  = test/testavx.cpp
 testavx_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testavx_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testavx_CXXFLAGS = ${AM_CXXFLAGS} @MAVX2@
+
+testserialisedsorting_SOURCES  = test/testserialisedsorting.cpp
+testserialisedsorting_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testserialisedsorting_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testbamnumericalindex_SOURCES  = test/testbamnumericalindex.cpp
+testbamnumericalindex_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testbamnumericalindex_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
