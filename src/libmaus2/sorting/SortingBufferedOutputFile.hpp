@@ -67,6 +67,48 @@ namespace libmaus2
 				return UNIQUE_PTR_MOVE(ptr);
 			}
 		};
+
+		template<typename _data_type, typename _order_type = std::less<_data_type> >
+		struct SerialisingSortingBufferedOutputFile
+		{
+			typedef _data_type data_type;
+			typedef _order_type order_type;
+			typedef SerialisingSortingBufferedOutputFile<data_type,order_type> this_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::sorting::SerialisingMergingReadBack<data_type,order_type> merger_type;
+			typedef typename libmaus2::sorting::SerialisingMergingReadBack<data_type,order_type>::unique_ptr_type merger_ptr_type;
+
+			std::string const filename;
+			libmaus2::aio::OutputStreamInstance::unique_ptr_type PCOS;
+			typename libmaus2::aio::SerialisingSortingBufferedOutput<data_type,order_type>::unique_ptr_type SBO;
+
+			SerialisingSortingBufferedOutputFile(std::string const & rfilename, uint64_t const bufsize = 1024ull)
+			: filename(rfilename), PCOS(new libmaus2::aio::OutputStreamInstance(filename)), SBO(new libmaus2::aio::SerialisingSortingBufferedOutput<data_type,order_type>(*PCOS,bufsize))
+			{
+			}
+
+			void put(data_type v)
+			{
+				SBO->put(v);
+			}
+
+			merger_ptr_type getMerger(uint64_t const backblocksize = 1024ull, uint64_t const maxfan = 16ull)
+			{
+				SBO->flush();
+				std::vector< typename libmaus2::aio::SerialisingSortingBufferedOutput<data_type,order_type>::BlockDescriptor > blocksizes = SBO->getBlockSizes();
+				SBO.reset();
+				PCOS->flush();
+				PCOS.reset();
+
+				blocksizes = libmaus2::sorting::SerialisingMergingReadBack<data_type,order_type>::premerge(filename,blocksizes,maxfan,backblocksize);
+
+				typename libmaus2::sorting::SerialisingMergingReadBack<data_type,order_type>::unique_ptr_type ptr(
+					new libmaus2::sorting::SerialisingMergingReadBack<data_type,order_type>(filename,blocksizes,backblocksize)
+				);
+
+				return UNIQUE_PTR_MOVE(ptr);
+			}
+		};
 	}
 }
 #endif

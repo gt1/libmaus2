@@ -163,12 +163,22 @@ namespace libmaus2
 				uint64_t const rmaxlen)
 			: low(rlow), high(rhigh), fileoffset(rfileoffset), fileoffsethigh(rfileoffsethigh), numsyms(rnumsyms),
 			  minlen(rminlen), maxlen(rmaxlen) {}
+			FastInterval(std::istream & in)
+			{
+				*this = deserialise(in);
+			}
 
 			static std::string serialise(FastInterval const & F)
 			{
 				std::ostringstream ostr;
 				serialise(ostr,F);
 				return ostr.str();
+			}
+
+			std::ostream & serialise(std::ostream & out) const
+			{
+				serialise(out,*this);
+				return out;
 			}
 
 			std::string serialise() const

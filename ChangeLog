@@ -1,3 +1,16 @@
+libmaus2 (2.0.276-1) unstable; urgency=medium
+
+  * add test programs for bam numerical indexing and sorting of serialised data
+  * remove code moved to different program in testbamcmp
+  * add missing flush call at end of enumerateOffsets in FastAReader  
+  * add external memory capable enumerateOffsets method in FastAReader
+  * add SerialisingSortingBufferedOutputFile class in src/libmaus2/sorting/SortingBufferedOutputFile.hpp
+  * add serialisation for FastInterval class
+  * add SerialisingMergingReadBack in libmaus2/sorting/MergingReadBack.hpp 
+  * add SerialisingSortingBufferedOutput in libmaus2/aio/BufferedOutput.hpp
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 15 Nov 2016 14:12:37 +0100
+
 libmaus2 (2.0.275-1) unstable; urgency=medium
 
   * add BgzfInflateFile

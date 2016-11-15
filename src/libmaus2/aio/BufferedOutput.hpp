@@ -386,6 +386,124 @@ namespace libmaus2
 				return blocksizes;
 			}
 		};
+
+		/**
+		 * class for sorting buffer file output
+		 **/
+		template<typename _data_type, typename _order_type = std::less<_data_type> >
+		struct SerialisingSortingBufferedOutput : public BufferedOutputBase<_data_type>
+		{
+			//! data type
+			typedef _data_type data_type;
+			//! order type
+			typedef _order_type order_type;
+			//! this type
+			typedef SerialisingSortingBufferedOutput<data_type,order_type> this_type;
+			//! base class type
+			typedef BufferedOutputBase<data_type> base_type;
+			//! unique pointer type
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			//! order pointer type
+			typedef typename ::libmaus2::util::unique_ptr<order_type>::type order_ptr_type;
+
+			struct BlockDescriptor
+			{
+				uint64_t numel;
+				uint64_t fileptr;
+
+				BlockDescriptor() {}
+				BlockDescriptor(uint64_t const rnumel, uint64_t const rfileptr) : numel(rnumel), fileptr(rfileptr) {}
+			};
+
+			private:
+			std::ostream & out;
+			order_ptr_type Porder;
+			order_type & order;
+			std::vector<BlockDescriptor> blocksizes;
+
+			public:
+			/**
+			 * constructor
+			 *
+			 * @param rout output stream
+			 * @param bufsize size of buffer in elements
+			 **/
+			SerialisingSortingBufferedOutput(std::ostream & rout, uint64_t const bufsize)
+			: BufferedOutputBase<_data_type>(bufsize), out(rout), Porder(new order_type), order(*Porder), blocksizes()
+			{
+
+			}
+
+			/**
+			 * constructor
+			 *
+			 * @param rout output stream
+			 * @param bufsize size of buffer in elements
+			 * @param rorder sort order
+			 **/
+			SerialisingSortingBufferedOutput(std::ostream & rout, uint64_t const bufsize, order_type & rorder)
+			: BufferedOutputBase<_data_type>(bufsize), out(rout), Porder(), order(rorder), blocksizes()
+			{
+
+			}
+
+			/**
+			 * destructor
+			 **/
+			~SerialisingSortingBufferedOutput()
+			{
+				flush();
+			}
+
+			/**
+			 * flush the buffer
+			 **/
+			void flush()
+			{
+				base_type::flush();
+				out.flush();
+			}
+
+			/**
+			 * write buffer to output stream
+			 **/
+			virtual void writeBuffer()
+			{
+				if ( base_type::fill() )
+				{
+					std::sort(base_type::pa,base_type::pc,order);
+
+					uint64_t const fileptr = out.tellp();
+
+					for ( data_type const * pi = base_type::pa; pi != base_type::pc; ++pi )
+					{
+						pi->serialise(out);
+
+						if ( ! out )
+						{
+							::libmaus2::exception::LibMausException se;
+							se.getStream() << "SerialisingSortingBufferedOutput: Failed to write" << std::endl;
+							se.finish();
+							throw se;
+						}
+					}
+
+					blocksizes.push_back(BlockDescriptor(base_type::fill(),fileptr));
+
+					base_type::reset();
+				}
+			}
+
+			/**
+			 * get block sizes (number of elements written in each block)
+			 *
+			 * @return block size vector
+			 **/
+			std::vector<BlockDescriptor> const & getBlockSizes() const
+			{
+				return blocksizes;
+			}
+		};
 	}
 }
 #endif
