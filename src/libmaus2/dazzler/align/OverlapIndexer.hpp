@@ -362,11 +362,11 @@ namespace libmaus2
 				static std::string constructIndex(std::string const & aligns, std::ostream * verbstr = 0)
 				{
 					std::string const indexfn = getIndexName(aligns);
-					std::string const indexfntmp = indexfn + ".tmp";
+					std::string const indexfntmp = indexfn + libmaus2::util::ArgInfo::getDefaultTmpFileName(std::string()) + ".tmp";
 					libmaus2::util::TempFileRemovalContainer::addTempFile(indexfntmp);
 
 					std::string const dalignerindexfn = getDalignerIndexName(aligns);
-					std::string const dalignerindexfntmp = dalignerindexfn + ".tmp";
+					std::string const dalignerindexfntmp = dalignerindexfn + libmaus2::util::ArgInfo::getDefaultTmpFileName(std::string()) + ".tmp";
 					libmaus2::util::TempFileRemovalContainer::addTempFile(dalignerindexfntmp);
 
 					typedef libmaus2::index::ExternalMemoryIndexGenerator<OverlapMeta,base_level_log,inner_level_log> indexer_type;

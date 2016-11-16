@@ -1,3 +1,9 @@
+libmaus2 (2.0.278-1) unstable; urgency=medium
+
+  * use more specific tmp file names in OverlapIndexer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 16 Nov 2016 13:36:37 +0100
+
 libmaus2 (2.0.277-1) unstable; urgency=medium
 
   * create indexes under different name and rename in the end in OverlapIndexer (avoid broken indexes at program cancellation)
