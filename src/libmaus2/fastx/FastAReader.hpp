@@ -256,7 +256,7 @@ namespace libmaus2
 
 						for ( uint64_t i = 0; i < steps && foundnextmarker; ++i )
 						{
-						        uint64_t patlen;
+						        uint64_t patlen = 0;
 							skipPattern(patlen);
 							count++;
 							gpatlen += patlen;

@@ -33,6 +33,7 @@
 #include <libmaus2/bambam/BamNumericalIndexBase.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
 #include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
 namespace libmaus2
 {
@@ -307,7 +308,7 @@ namespace libmaus2
 				libmaus2::aio::InputStreamInstance in(fn);
 				uint64_t csize;
 
-				std::string const tmpindexfn = indexfn + ".tmp";
+				std::string const tmpindexfn = indexfn + libmaus2::util::ArgInfo::getDefaultTmpFileName(std::string())  + ".tmp";
 				libmaus2::util::TempFileRemovalContainer::addTempFile(tmpindexfn);
 
 				if ( numthreads <= 1 )
