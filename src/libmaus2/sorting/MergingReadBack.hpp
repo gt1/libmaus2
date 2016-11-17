@@ -331,6 +331,23 @@ namespace libmaus2
 				}
 			}
 
+			void setup()
+			{
+				for ( uint64_t i = 0; i < blocksizes.size(); ++i )
+				{
+					subblocks[i] = SubBlock(
+						blocks.begin() + i * backblocksize,
+						blocks.begin() + i * backblocksize,
+						blocks.begin() + i * backblocksize
+					);
+
+					data_type v;
+					bool const ok = getNext(i,v);
+					if ( ok )
+						Q.push(std::pair<uint64_t,data_type>(i,v));
+				}
+			}
+
 			public:
 			SerialisingMergingReadBack(
 				std::string const & filename,
@@ -355,24 +372,40 @@ namespace libmaus2
 				// sub block meta information (pointers)
 				subblocks(blocksizes.size())
 			{
-				for ( uint64_t i = 0; i < blocksizes.size(); ++i )
-				{
-					subblocks[i] = SubBlock(
-						blocks.begin() + i * backblocksize,
-						blocks.begin() + i * backblocksize,
-						blocks.begin() + i * backblocksize
-					);
+				setup();
+			}
 
-					data_type v;
-					bool const ok = getNext(i,v);
-					if ( ok )
-						Q.push(std::pair<uint64_t,data_type>(i,v));
-				}
+			SerialisingMergingReadBack(
+				std::string const & filename,
+				std::vector< typename libmaus2::aio::SerialisingSortingBufferedOutput<data_type,order_type>::BlockDescriptor > const & rblocksizes,
+				order_type & rorder,
+				uint64_t const rbackblocksize = 1024
+			)
+			:
+				// input streams
+				PCIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename)),
+				// order pointer
+				Porder(),
+				// order
+				order(rorder),
+				// heap order adapter
+				HOA(&order),
+				// block sizes
+				blocksizes(rblocksizes),
+				// read back block size
+				backblocksize(rbackblocksize),
+				// block data
+				blocks(backblocksize*blocksizes.size(),false),
+				// sub block meta information (pointers)
+				subblocks(blocksizes.size())
+			{
+				setup();
 			}
 
 			static std::vector< typename libmaus2::aio::SerialisingSortingBufferedOutput<data_type,order_type>::BlockDescriptor > mergeStep(
 				std::string const & filename,
 				std::vector< typename libmaus2::aio::SerialisingSortingBufferedOutput<data_type,order_type>::BlockDescriptor > const & blocksizes,
+				order_type & order,
 				uint64_t const maxfan = 16, uint64_t const rbackblocksize = 1024
 			)
 			{
@@ -390,7 +423,7 @@ namespace libmaus2
 					uint64_t const p_high = std::min(p_low+packsize,static_cast<uint64_t>(blocksizes.size()));
 					std::vector< typename libmaus2::aio::SerialisingSortingBufferedOutput<data_type,order_type>::BlockDescriptor > const
 						subblocksizes(blocksizes.begin()+p_low,blocksizes.begin()+p_high);
-					SerialisingMergingReadBack<data_type,order_type> MRB(filename,subblocksizes,rbackblocksize);
+					SerialisingMergingReadBack<data_type,order_type> MRB(filename,subblocksizes,order,rbackblocksize);
 					data_type v;
 					uint64_t c = 0;
 					while ( MRB.getNext(v) )
@@ -412,13 +445,14 @@ namespace libmaus2
 			static std::vector< typename libmaus2::aio::SerialisingSortingBufferedOutput<data_type,order_type>::BlockDescriptor > premerge(
 				std::string const & filename,
 				std::vector< typename libmaus2::aio::SerialisingSortingBufferedOutput<data_type,order_type>::BlockDescriptor > blocksizes,
+				order_type & order,
 				uint64_t const maxfan = 16, uint64_t const rbackblocksize = 1024
 			)
 			{
 				while ( blocksizes.size() > maxfan )
 				{
 					uint64_t const oldsize = blocksizes.size();
-					blocksizes = mergeStep(filename,blocksizes,maxfan,rbackblocksize);
+					blocksizes = mergeStep(filename,blocksizes,order,maxfan,rbackblocksize);
 					std::cerr << "[V] pre merged " << oldsize << " to " << blocksizes.size() << std::endl;
 				}
 				return blocksizes;
