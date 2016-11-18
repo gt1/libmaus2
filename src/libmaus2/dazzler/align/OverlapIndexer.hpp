@@ -29,6 +29,7 @@
 #include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
 namespace libmaus2
 {

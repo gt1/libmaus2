@@ -46,8 +46,8 @@ namespace libmaus2
 		struct BgzfInflateFile : public BgzfInflateFileBase, public BgzfInflateStream
 		{
 			typedef BgzfInflateFile this_type;
-			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			BgzfInflateFile(std::istream & in, uint64_t const fileoff = 0, uint64_t const blockoff = 0)
 			: BgzfInflateFileBase(in,fileoff), BgzfInflateStream(BgzfInflateFileBase::in)
