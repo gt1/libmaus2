@@ -19,6 +19,6 @@
 
 std::ostream & libmaus2::bambam::operator<<(std::ostream & out, PileVectorElement const & P)
 {
-	out << "PileVectorElement(" << P.refid << "," << P.readid << "," << P.refpos << "," << P.predif << "," << P.readpos << "," << P.readbackpos << "," << P.sym << ")";
+	out << "PileVectorElement(" << P.refid << "," << P.readid << "," << P.refpos << "," << P.predif << "," << P.readpos << "," << P.readbackpos << "," << P.sym << "," << P.cigoff << ")";
 	return out;
 }
