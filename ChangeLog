@@ -1,3 +1,9 @@
+libmaus2 (2.0.281-1) unstable; urgency=medium
+
+  * add missing include directive
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 18 Nov 2016 22:05:20 +0100
+
 libmaus2 (2.0.280-1) unstable; urgency=medium
 
   * add FastaPeeker
