@@ -645,7 +645,8 @@ libmaus2bambam_include_HEADERS = libmaus2/bambam/DecoderBase.hpp libmaus2/bambam
 	libmaus2/bambam/CigarDecoder.hpp \
 	libmaus2/bambam/BamNumericalIndexGenerator.hpp \
 	libmaus2/bambam/BamNumericalIndexDecoder.hpp \
-	libmaus2/bambam/BamNumericalIndexBase.hpp
+	libmaus2/bambam/BamNumericalIndexBase.hpp \
+	libmaus2/bambam/BamPeeker.hpp
 
 libmaus2bambamparallel_includedir=$(includedir)/libmaus2/bambam/parallel/
 libmaus2bambamparallel_include_HEADERS = \
@@ -1546,7 +1547,8 @@ libmaus2fastx_include_HEADERS=\
 	libmaus2/fastx/CoordinateCacheBiDir.hpp \
 	libmaus2/fastx/KmerFreqInWindowStats.hpp \
 	libmaus2/fastx/ReadContainer.hpp \
-	libmaus2/fastx/KmerRepeatDetector.hpp
+	libmaus2/fastx/KmerRepeatDetector.hpp \
+	libmaus2/fastx/FastaPeeker.hpp
 
 libmaus2timing_includedir=$(includedir)/libmaus2/timing
 libmaus2timing_include_HEADERS=\

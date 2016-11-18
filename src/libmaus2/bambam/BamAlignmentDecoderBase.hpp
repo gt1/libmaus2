@@ -4058,6 +4058,7 @@ namespace libmaus2
 				decodeRead(B, readdata);
 				char const * it_r = readdata.begin();
 				uint64_t readpos = 0;
+				uint64_t cigoff = 0;
 
 				for ( ; i < numcigin && (! calmd_preterm[cigopin[i].first]); ++i )
 				{
@@ -4065,6 +4066,7 @@ namespace libmaus2
 					int32_t const len = cigopin[i].second;
 					readpos += calmd_readadvance[op] * len;
 					it_r += calmd_readadvance[op] * len;
+					cigoff += len;
 				}
 
 				std::vector< PileVectorElement > Vout;
@@ -4088,7 +4090,8 @@ namespace libmaus2
 									-len+i,
 									readpos+i,
 									static_cast<int32_t>(readdata.size() - (readpos+i)) - 1,
-									it_r[i]
+									it_r[i],
+									cigoff++
 								);
 								Vout.push_back(PP);
 							}
@@ -4098,7 +4101,7 @@ namespace libmaus2
 						{
 							for ( int64_t i = 0; i < len; ++i )
 							{
-								PileVectorElement PP(refid,readid,refpos+i,0,readpos,static_cast<int32_t>(readdata.size()-readpos)-1,'-');
+								PileVectorElement PP(refid,readid,refpos+i,0,readpos,static_cast<int32_t>(readdata.size()-readpos)-1,'-',cigoff++);
 								Vout.push_back(PP);
 							}
 							break;
@@ -4117,12 +4120,16 @@ namespace libmaus2
 									0,
 									readpos+i,
 									static_cast<int32_t>(readdata.size() - (readpos+i)) - 1,
-									it_r[i]
+									it_r[i],
+									cigoff++
 								);
 								Vout.push_back(PP);
 							}
 							break;
 						}
+						default:
+							cigoff += len;
+							break;
 					}
 
 					refpos += calmd_refadvance[op] * len;
@@ -4187,6 +4194,7 @@ namespace libmaus2
 				decodeRead(B, readdata);
 				char const * it_r = readdata.begin();
 				uint64_t readpos = 0;
+				uint64_t cigoff = 0;
 
 				for ( ; i < numcigin && (! calmd_preterm[cigopin[i].first]); ++i )
 				{
@@ -4194,6 +4202,7 @@ namespace libmaus2
 					int32_t const len = cigopin[i].second;
 					readpos += calmd_readadvance[op] * len;
 					it_r += calmd_readadvance[op] * len;
+					cigoff += len;
 				}
 
 				uint64_t o = 0;
@@ -4216,7 +4225,8 @@ namespace libmaus2
 									-len+i,
 									readpos+i,
 									static_cast<int32_t>(readdata.size() - (readpos+i)) - 1,
-									it_r[i]
+									it_r[i],
+									cigoff++
 								);
 								Vout.push(o,PP);
 							}
@@ -4226,7 +4236,7 @@ namespace libmaus2
 						{
 							for ( int64_t i = 0; i < len; ++i )
 							{
-								PileVectorElement PP(refid,readid,refpos+i,0,readpos,static_cast<int32_t>(readdata.size()-readpos)-1,'-');
+								PileVectorElement PP(refid,readid,refpos+i,0,readpos,static_cast<int32_t>(readdata.size()-readpos)-1,'-',cigoff++);
 								Vout.push(o,PP);
 							}
 							break;
@@ -4245,12 +4255,16 @@ namespace libmaus2
 									0,
 									readpos+i,
 									static_cast<int32_t>(readdata.size() - (readpos+i)) - 1,
-									it_r[i]
+									it_r[i],
+									cigoff++
 								);
 								Vout.push(o,PP);
 							}
 							break;
 						}
+						default:
+							cigoff += len;
+							break;
 					}
 
 					refpos += calmd_refadvance[op] * len;

@@ -34,6 +34,7 @@ namespace libmaus2
 			int32_t readpos;
 			int32_t readbackpos;
 			char sym;
+			uint64_t cigoff;
 
 			PileVectorElement(
 				int32_t rrefid = 0,
@@ -42,9 +43,10 @@ namespace libmaus2
 				int32_t rpredif = 0,
 				int32_t rreadpos = 0,
 				int32_t rreadbackpos = 0,
-				char rsym = 0
+				char rsym = 0,
+				uint64_t const rcigoff = 0
 			)
-			: refid(rrefid), readid(rreadid), refpos(rrefpos), predif(rpredif), readpos(rreadpos), readbackpos(rreadbackpos), sym(rsym)
+			: refid(rrefid), readid(rreadid), refpos(rrefpos), predif(rpredif), readpos(rreadpos), readbackpos(rreadbackpos), sym(rsym), cigoff(rcigoff)
 			{
 
 			}
@@ -62,6 +64,7 @@ namespace libmaus2
 				libmaus2::util::NumberSerialisation::serialiseSignedNumber(out,readpos);
 				libmaus2::util::NumberSerialisation::serialiseSignedNumber(out,readbackpos);
 				libmaus2::util::NumberSerialisation::serialiseSignedNumber(out,sym);
+				libmaus2::util::NumberSerialisation::serialiseSignedNumber(out,cigoff);
 			}
 
 			void deserialise(std::istream & in)
@@ -72,6 +75,7 @@ namespace libmaus2
 				readpos = libmaus2::util::NumberSerialisation::deserialiseSignedNumber(in);
 				readbackpos = libmaus2::util::NumberSerialisation::deserialiseSignedNumber(in);
 				sym = libmaus2::util::NumberSerialisation::deserialiseSignedNumber(in);
+				cigoff = libmaus2::util::NumberSerialisation::deserialiseSignedNumber(in);
 			}
 
 			bool operator<(PileVectorElement const & o) const
