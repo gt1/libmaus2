@@ -453,7 +453,7 @@ namespace libmaus2
 				{
 					uint64_t const oldsize = blocksizes.size();
 					blocksizes = mergeStep(filename,blocksizes,order,maxfan,rbackblocksize);
-					std::cerr << "[V] pre merged " << oldsize << " to " << blocksizes.size() << std::endl;
+					// std::cerr << "[V] pre merged " << oldsize << " to " << blocksizes.size() << std::endl;
 				}
 				return blocksizes;
 			}
