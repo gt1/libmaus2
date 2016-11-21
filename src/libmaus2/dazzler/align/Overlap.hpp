@@ -33,6 +33,10 @@ namespace libmaus2
 		{
 			struct Overlap : public libmaus2::dazzler::db::InputBase, public libmaus2::dazzler::db::OutputBase
 			{
+				typedef Overlap this_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
 				Path path;
 				uint32_t flags;
 				int32_t aread;
