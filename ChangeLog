@@ -1,3 +1,9 @@
+libmaus2 (2.0.282-1) unstable; urgency=medium
+
+  * add pointer types in Overlap class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 21 Nov 2016 11:19:24 +0100
+
 libmaus2 (2.0.281-1) unstable; urgency=medium
 
   * add missing include directive
