@@ -62,11 +62,11 @@ namespace libmaus2
 
 					switch ( op )
 					{
-						case 0: // M
-						case 2: // D
-						case 3: // S
-						case 7: // =
-						case 8: // X
+						case BamFlagBase::LIBMAUS2_BAMBAM_CMATCH: // match
+						case BamFlagBase::LIBMAUS2_BAMBAM_CDEL: // del
+						case BamFlagBase::LIBMAUS2_BAMBAM_CREF_SKIP: // refskip
+						case BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL: // equal
+						case BamFlagBase::LIBMAUS2_BAMBAM_CDIFF: // diff
 							end += len;
 					}
 				}
@@ -461,10 +461,11 @@ namespace libmaus2
 					?
 					(cigarlen >> 16)
 					:
-					(flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP) ?
-						((pos < 0) ? 4680 : reg2bin(pos,0))
+					(
+						(flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP) ?
+						((pos < 0) ? 4680 : reg2bin(pos,pos+1))
 						:
-						reg2bin(pos,endpos(pos,cigar,cigarlen)
+						reg2bin(pos,endpos(pos,cigar,cigarlen))
 					);
 				uint32_t const cflags = (cigarlen > 0xFFFFul) ? (flags | libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FCIGAR32) : flags;
 
@@ -606,10 +607,11 @@ namespace libmaus2
 					?
 					(cigarlen >> 16)
 					:
-					(flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP) ?
-						((pos < 0) ? 4680 : reg2bin(pos,0))
+					(
+						(flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP) ?
+						((pos < 0) ? 4680 : reg2bin(pos,pos+1))
 						:
-						reg2bin(pos,endpos(pos,cigar,cigarlen)
+						reg2bin(pos,endpos(pos,cigar,cigarlen))
 					);
 				uint32_t const cflags = (cigarlen > 0xFFFFul) ? (flags | libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FCIGAR32) : flags;
 
