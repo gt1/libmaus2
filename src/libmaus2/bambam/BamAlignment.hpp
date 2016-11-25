@@ -1690,10 +1690,20 @@ namespace libmaus2
 			 **/
 			uint64_t computeBin() const
 			{
-				uint64_t const rbeg = getPos();
-				uint64_t const rend = rbeg + getReferenceLength();
-				uint64_t const bin = libmaus2::bambam::BamAlignmentEncoderBase::reg2bin(rbeg,rend);
-				return bin;
+				if ( isMapped() )
+				{
+					uint64_t const rbeg = getPos();
+					uint64_t const rend = rbeg + getReferenceLength();
+					uint64_t const bin = libmaus2::bambam::BamAlignmentEncoderBase::reg2bin(rbeg,rend);
+					return bin;
+				}
+				else
+				{
+					if ( getPos() < 0 )
+						return 4680;
+					else
+						return libmaus2::bambam::BamAlignmentEncoderBase::reg2bin(getPos(),getPos()+1);
+				}
 			}
 
 			/**

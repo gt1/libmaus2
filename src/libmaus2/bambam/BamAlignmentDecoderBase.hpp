@@ -978,7 +978,7 @@ namespace libmaus2
 						if ( getPos(D) < 0 )
 							return 4680; // reg2bin(-1,0)
 						else
-							return BamAlignmentReg2Bin::reg2bin(getPos(D),0);
+							return BamAlignmentReg2Bin::reg2bin(getPos(D),getPos(D)+1);
 					}
 					else
 						// compute bin from alignment data
@@ -5323,10 +5323,22 @@ namespace libmaus2
 			 **/
 			static uint64_t computeBin(uint8_t const * D)
 			{
-				uint64_t const rbeg = getPos(D);
-				uint64_t const rend = rbeg + getReferenceLength(D);
-				uint64_t const bin = ::libmaus2::bambam::BamAlignmentReg2Bin::reg2bin(rbeg,rend);
-				return bin;
+				uint16_t const flags = getFlags(D);
+				int64_t const rbeg = getPos(D);
+
+				if ( flags & LIBMAUS2_BAMBAM_FUNMAP )
+				{
+					if ( rbeg < 0 )
+						return 4680; // reg2bin(-1,0)
+					else
+						return ::libmaus2::bambam::BamAlignmentReg2Bin::reg2bin(rbeg,rbeg+1);
+				}
+				else
+				{
+					uint64_t const rend = rbeg + getReferenceLength(D);
+					uint64_t const bin = ::libmaus2::bambam::BamAlignmentReg2Bin::reg2bin(rbeg,rend);
+					return bin;
+				}
 			}
 
 			/**

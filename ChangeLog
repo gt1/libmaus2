@@ -1,3 +1,12 @@
+libmaus2 (2.0.283-1) unstable; urgency=medium
+
+  * add interface for reporting optical duplicates' ranks in DupMarkBase
+  * replace constants by symbolics and fix computation of bins for unmapped reads in BamAlignmentEncoderBase
+  * fix bin computation for unmapped reads in BamAlignmentDecoderBase
+  * fix computeBin() function in BamAlignment for unmapped reads
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 25 Nov 2016 13:12:06 +0100
+
 libmaus2 (2.0.282-1) unstable; urgency=medium
 
   * add pointer types in Overlap class

@@ -66,12 +66,19 @@ namespace libmaus2
 				}
 			};
 
-			template<typename iterator, typename projector>
-			static uint64_t markDuplicatePairs(
+			struct MarkOptical
+			{
+				virtual ~MarkOptical() {}
+				virtual void operator()(uint64_t const) = 0;
+			};
+
+			template<typename iterator, typename projector, bool bmarkopt>
+			static uint64_t markDuplicatePairsOpt(
 				iterator const lfrags_a,
 				iterator const lfrags_e,
 				::libmaus2::bambam::DupSetCallback & DSC,
-				unsigned int const optminpixeldif = 100
+				unsigned int const optminpixeldif,
+				MarkOptical * markopt
 			)
 			{
 				if ( lfrags_e-lfrags_a > 1 )
@@ -111,13 +118,21 @@ namespace libmaus2
 						// search top end of tile
 						while (
 							high != lfrags_e &&
+							// same read group
 							projector::deref(*high).getReadGroup() == projector::deref(*low).getReadGroup() &&
+							// same tile
 							projector::deref(*high).getTile() == projector::deref(*low).getTile() )
 						{
 							++high;
 						}
 
-						if ( high-low > 1 && projector::deref(*low).getTile() )
+						if (
+							// more than one
+							high-low > 1
+							&&
+							// tile not undefined
+							projector::deref(*low).getTile()
+						)
 						{
 							#if defined(DEBUG)
 							std::cerr << "[D] Range " << high-low << std::endl; // << " for " << projector::deref(*low) << std::endl;
@@ -130,9 +145,13 @@ namespace libmaus2
 							{
 								for (
 									iterator j = i+1;
-									j != high && projector::deref(*j).getX() - projector::deref(*i).getX() <= optminpixeldif;
+									j != high
+									&&
+									// within range for X?
+									projector::deref(*j).getX() - projector::deref(*i).getX() <= optminpixeldif;
 									++j
 								)
+									// within range for Y?
 									if (
 										::libmaus2::math::iabs(
 											static_cast<int64_t>(projector::deref(*i).getY())
@@ -141,10 +160,12 @@ namespace libmaus2
 										)
 										<= optminpixeldif
 									)
-								{
-									opt [ j - low ] = true;
-									haveoptdup = true;
-								}
+									{
+										// mark j as optical duplicate in Boolean vector
+										opt [ j - low ] = true;
+										// we have found at least one optical duplicate
+										haveoptdup = true;
+									}
 							}
 
 							if ( haveoptdup )
@@ -153,7 +174,18 @@ namespace libmaus2
 								uint64_t numopt = 0;
 								for ( uint64_t i = 0; i < opt.size(); ++i )
 									if ( opt[i] )
+									{
 										numopt++;
+
+										if ( bmarkopt )
+										{
+											ReadEndsBase const & REB = projector::deref(low[i]);
+											uint64_t const i1 = REB.getRead1IndexInFile();
+											uint64_t const i2 = REB.getRead2IndexInFile();
+											(*markopt)(i1);
+											(*markopt)(i2);
+										}
+									}
 
 								DSC.addOpticalDuplicates(lib,numopt);
 							}
@@ -177,6 +209,29 @@ namespace libmaus2
 				return lfragssize ? 2*(lfragssize - 1) : 0;
 			}
 
+			template<typename iterator, typename projector>
+			static uint64_t markDuplicatePairs(
+				iterator const lfrags_a,
+				iterator const lfrags_e,
+				::libmaus2::bambam::DupSetCallback & DSC,
+				unsigned int const optminpixeldif = 100
+			)
+			{
+				return markDuplicatePairsOpt<iterator,projector,false /* bmarkopt */>(lfrags_a,lfrags_e,DSC,optminpixeldif,0 /* mark opt */);
+			}
+
+			template<typename iterator, typename projector>
+			static uint64_t markDuplicatePairs(
+				iterator const lfrags_a,
+				iterator const lfrags_e,
+				::libmaus2::bambam::DupSetCallback & DSC,
+				MarkOptical * markopt,
+				unsigned int const optminpixeldif = 100
+			)
+			{
+				return markDuplicatePairsOpt<iterator,projector,true /* bmarkopt */>(lfrags_a,lfrags_e,DSC,optminpixeldif,markopt);
+			}
+
 			template<typename iterator>
 			static uint64_t markDuplicatePairs(
 				iterator const lfrags_a,
@@ -188,20 +243,75 @@ namespace libmaus2
 				return markDuplicatePairs<iterator,MarkDuplicateProjectorIdentity>(lfrags_a,lfrags_e,DSC,optminpixeldif);
 			}
 
-			static uint64_t markDuplicatePairsVector(std::vector< ::libmaus2::bambam::ReadEnds > & lfrags, ::libmaus2::bambam::DupSetCallback & DSC, unsigned int const optminpixeldif = 100)
+			template<typename iterator>
+			static uint64_t markDuplicatePairs(
+				iterator const lfrags_a,
+				iterator const lfrags_e,
+				::libmaus2::bambam::DupSetCallback & DSC,
+				MarkOptical * markopt,
+				unsigned int const optminpixeldif = 100
+			)
+			{
+				return markDuplicatePairs<iterator,MarkDuplicateProjectorIdentity>(lfrags_a,lfrags_e,DSC,markopt,optminpixeldif);
+			}
+
+			static uint64_t markDuplicatePairsVector(
+				std::vector< ::libmaus2::bambam::ReadEnds > & lfrags,
+				::libmaus2::bambam::DupSetCallback & DSC,
+				unsigned int const optminpixeldif = 100
+			)
 			{
 				return markDuplicatePairs<std::vector<libmaus2::bambam::ReadEnds>::iterator,MarkDuplicateProjectorIdentity>(lfrags.begin(),lfrags.end(),DSC,optminpixeldif);
 			}
 
+			static uint64_t markDuplicatePairsVector(
+				std::vector< ::libmaus2::bambam::ReadEnds > & lfrags,
+				::libmaus2::bambam::DupSetCallback & DSC,
+				MarkOptical * markopt,
+				unsigned int const optminpixeldif = 100
+			)
+			{
+				return markDuplicatePairs<std::vector<libmaus2::bambam::ReadEnds>::iterator,MarkDuplicateProjectorIdentity>(lfrags.begin(),lfrags.end(),DSC,markopt,optminpixeldif);
+			}
+
 			template<typename iterator>
-			static uint64_t markDuplicatePairsPointers(iterator const lfrags_a, iterator const lfrags_e, ::libmaus2::bambam::DupSetCallback & DSC, unsigned int const optminpixeldif = 100)
+			static uint64_t markDuplicatePairsPointers(
+				iterator const lfrags_a,
+				iterator const lfrags_e,
+				::libmaus2::bambam::DupSetCallback & DSC,
+				unsigned int const optminpixeldif = 100
+			)
 			{
 				return markDuplicatePairs<iterator,MarkDuplicateProjectorPointerDereference>(lfrags_a,lfrags_e,DSC,optminpixeldif);
 			}
 
-			static uint64_t markDuplicatePairs(std::vector< ::libmaus2::bambam::ReadEnds > & lfrags, ::libmaus2::bambam::DupSetCallback & DSC)
+			template<typename iterator>
+			static uint64_t markDuplicatePairsPointers(
+				iterator const lfrags_a,
+				iterator const lfrags_e,
+				::libmaus2::bambam::DupSetCallback & DSC,
+				MarkOptical * markopt,
+				unsigned int const optminpixeldif = 100
+			)
+			{
+				return markDuplicatePairs<iterator,MarkDuplicateProjectorPointerDereference>(lfrags_a,lfrags_e,DSC,markopt,optminpixeldif);
+			}
+
+			static uint64_t markDuplicatePairs(
+				std::vector< ::libmaus2::bambam::ReadEnds > & lfrags,
+				::libmaus2::bambam::DupSetCallback & DSC
+			)
 			{
 				return markDuplicatePairsVector(lfrags,DSC);
+			}
+
+			static uint64_t markDuplicatePairs(
+				std::vector< ::libmaus2::bambam::ReadEnds > & lfrags,
+				::libmaus2::bambam::DupSetCallback & DSC,
+				MarkOptical * markopt
+			)
+			{
+				return markDuplicatePairsVector(lfrags,DSC,markopt);
 			}
 
 			template<typename iterator, typename projector>
