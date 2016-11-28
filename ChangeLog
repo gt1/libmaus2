@@ -1,3 +1,9 @@
+libmaus2 (2.0.285-1) unstable; urgency=medium
+
+  * add notes about releases to README.md
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 28 Nov 2016 10:31:25 +0100
+
 libmaus2 (2.0.284-1) unstable; urgency=medium
 
   * add rank of reference read for optical duplicates in DupMarkBase opt interface
