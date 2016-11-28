@@ -41,14 +41,17 @@ namespace libmaus2
 				PairReadEndsMergeWorkPackageFinishedInterface & mergeFinishedInterface;
 				AddDuplicationMetricsInterface & addDuplicationMetricsInterface;
 				int verbose;
+				unsigned int const optminpixeldif;
 
 				PairReadEndsMergeWorkPackageDispatcher(
 					PairReadEndsMergeWorkPackageReturnInterface & rpackageReturnInterface,
 					PairReadEndsMergeWorkPackageFinishedInterface & rmergeFinishedInterface,
-					AddDuplicationMetricsInterface & raddDuplicationMetricsInterface
+					AddDuplicationMetricsInterface & raddDuplicationMetricsInterface,
+					unsigned int const roptminpixeldif
 				) : libmaus2::parallel::SimpleThreadWorkPackageDispatcher(),
 				    packageReturnInterface(rpackageReturnInterface), mergeFinishedInterface(rmergeFinishedInterface),
-				    addDuplicationMetricsInterface(raddDuplicationMetricsInterface)
+				    addDuplicationMetricsInterface(raddDuplicationMetricsInterface),
+				    optminpixeldif(roptminpixeldif)
 				{
 
 				}
@@ -95,11 +98,12 @@ namespace libmaus2
 							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
 							std::cerr << "PairReadEndsMergeWorkPackageDispatcher package " << P << " calling pairindexset.merge" << std::endl;
 						}
-						pairindexset.merge(
+						pairindexset.mergePairs(
 							BP->REQ.SMI,
 							libmaus2::bambam::DupMarkBase::isDupPair,
 							libmaus2::bambam::DupMarkBase::markDuplicatePairs,
-							dvec);
+							dvec,
+							optminpixeldif);
 						if ( verbose )
 						{
 							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);

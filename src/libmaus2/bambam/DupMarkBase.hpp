@@ -35,6 +35,8 @@
 #include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <libmaus2/bambam/BamHeaderParserStateBase.hpp>
 #include <libmaus2/bambam/BamAlignmentSnappyInput.hpp>
+#include <libmaus2/bambam/OptNameReader.hpp>
+#include <libmaus2/bambam/BamBlockWriterBaseFactory.hpp>
 
 namespace libmaus2
 {
@@ -93,7 +95,15 @@ namespace libmaus2
 
 					iterator lfrags_m = lfrags_a;
 					for ( iterator lfrags_c = lfrags_a+1; lfrags_c != lfrags_e; ++lfrags_c )
-						if ( projector::deref(*lfrags_c).getScore() > maxscore )
+						if (
+							projector::deref(*lfrags_c).getScore() > maxscore
+							||
+							(
+								projector::deref(*lfrags_c).getScore() == maxscore
+								&&
+								projector::deref(*lfrags_c).getRead1IndexInFile() < projector::deref(*lfrags_m).getRead1IndexInFile()
+							)
+						)
 						{
 							maxscore = projector::deref(*lfrags_c).getScore();
 							lfrags_m = lfrags_c;
@@ -134,8 +144,10 @@ namespace libmaus2
 							projector::deref(*low).getTile()
 						)
 						{
-							#if defined(DEBUG)
-							std::cerr << "[D] Range " << high-low << std::endl; // << " for " << projector::deref(*low) << std::endl;
+							// #define OPTDEBUG
+
+							#if defined(OPTDEBUG)
+							std::cerr << "[D] Range " << high-low << " for " << projector::deref(*low) << std::endl;
 							#endif
 
 							std::vector<bool> opt(high-low,false);
@@ -162,9 +174,31 @@ namespace libmaus2
 										<= optminpixeldif
 									)
 									{
-										// mark j as optical duplicate in Boolean vector
-										opt [ j - low ] = true;
-										optref [ j - low ] = i - low;
+										ReadEndsBase const & REBj = projector::deref(*j);
+										ReadEndsBase const & REBi = projector::deref(*i);
+
+										// mark duplicate with lower score (or if both have the same score,
+										// then make sure we do not mark the one as an optical duplicate
+										// which we leave unmarked for general duplicates)
+										if (
+											REBj.getScore() > REBj.getScore()
+											||
+											(
+												REBj.getScore() == REBj.getScore()
+												&&
+												REBj.getRead1IndexInFile() < REBi.getRead1IndexInFile()
+											)
+										)
+										{
+											opt    [ i - low ] = true;
+											optref [ i - low ] = j - low;
+										}
+										else
+										{
+											opt    [ j - low ] = true;
+											optref [ j - low ] = i - low;
+										}
+
 										// we have found at least one optical duplicate
 										haveoptdup = true;
 									}
@@ -308,6 +342,15 @@ namespace libmaus2
 			)
 			{
 				return markDuplicatePairsVector(lfrags,DSC);
+			}
+
+			static uint64_t markDuplicatePairs(
+				std::vector< ::libmaus2::bambam::ReadEnds > & lfrags,
+				::libmaus2::bambam::DupSetCallback & DSC,
+				unsigned int const optminpixeldif
+			)
+			{
+				return markDuplicatePairsVector(lfrags,DSC,optminpixeldif);
 			}
 
 			static uint64_t markDuplicatePairs(
@@ -916,6 +959,72 @@ namespace libmaus2
 						<< std::endl;
 			}
 
+			template<typename decoder_type>
+			static void markOptDuplicatesInFileTemplate(
+				::libmaus2::util::ArgInfo const & arginfo,
+				bool const verbose,
+				::libmaus2::bambam::BamHeader const & bamheader,
+				uint64_t const maxrank,
+				uint64_t const mod,
+				::libmaus2::bambam::DupSetCallback const & DSC,
+				decoder_type & decoder,
+				std::string const & progid,
+				std::string const & packageversion,
+				std::string const & optnamefn,
+				std::string const & odtag,
+				libmaus2::bambam::BamBlockWriterBase & writer
+			)
+			{
+				::libmaus2::bambam::BamHeader::unique_ptr_type uphead(::libmaus2::bambam::BamHeaderUpdate::updateHeader(arginfo,bamheader,progid,packageversion));
+
+				libmaus2::timing::RealTimeClock globrtc, locrtc;
+				globrtc.start(); locrtc.start();
+				uint64_t const bmod = libmaus2::math::nextTwoPow(mod);
+				uint64_t const bmask = bmod-1;
+
+				libmaus2::bambam::OptNameReader ONR(optnamefn);
+				libmaus2::bambam::OptName ON;
+				libmaus2::bambam::BamAuxFilterVector BAFV;
+				BAFV.set("od");
+
+				// rewrite file and mark duplicates
+				libmaus2::bambam::BamAlignment & alignment = decoder.getAlignment();
+				uint32_t const dup = ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FDUP;
+				uint32_t const notdup = ~dup;
+				for ( uint64_t r = 0; decoder.readAlignment(); ++r )
+				{
+					if ( DSC.isMarked(r) )
+						alignment.putFlags(alignment.getFlags() | dup);
+					else
+						alignment.putFlags(alignment.getFlags() & notdup);
+
+					alignment.filterOutAux(BAFV);
+					if ( ONR.peekNext(ON) && ON.rank == r )
+					{
+						alignment.putAuxString(odtag,ON.refreadname);
+						ONR.getNext(ON);
+					}
+
+					writer.writeAlignment(alignment);
+
+					if ( verbose && ((r+1) & bmask) == 0 )
+					{
+						std::cerr << "[V] Marked " << (r+1) << " (" << (r+1)/(1024*1024) << "," << static_cast<double>(r+1)/maxrank << ")"
+							<< " time " << locrtc.getElapsedSeconds()
+							<< " total " << globrtc.formatTime(globrtc.getElapsedSeconds())
+							<< " "
+							<< libmaus2::util::MemUsage()
+							<< std::endl;
+						locrtc.start();
+					}
+				}
+
+				if ( verbose )
+					std::cerr << "[V] Marked " << maxrank << "(" << maxrank/(1024*1024) << "," << 1 << ")" << " total for marking time " << globrtc.formatTime(globrtc.getElapsedSeconds())
+						<< " "
+						<< libmaus2::util::MemUsage()
+						<< std::endl;
+			}
 
 			template<typename decoder_type, typename writer_type, typename dup_writer_type>
 			static void removeDuplicatesFromFileTemplate(
@@ -968,6 +1077,72 @@ namespace libmaus2
 						<< libmaus2::util::MemUsage()
 						<< std::endl;
 
+			}
+
+			template<typename decoder_type, typename writer_type, typename dup_writer_type>
+			static void removeOptDuplicatesFromFileTemplate(
+				bool const verbose,
+				uint64_t const maxrank,
+				uint64_t const mod,
+				::libmaus2::bambam::DupSetCallback const & DSC,
+				decoder_type & decoder,
+				writer_type & writer,
+				dup_writer_type * dupwriter,
+				std::string const & optnamefn,
+				std::string const & odtag
+			)
+			{
+				libmaus2::timing::RealTimeClock globrtc, locrtc;
+				globrtc.start(); locrtc.start();
+				uint64_t const bmod = libmaus2::math::nextTwoPow(mod);
+				uint64_t const bmask = bmod-1;
+
+				libmaus2::bambam::OptNameReader ONR(optnamefn);
+				libmaus2::bambam::OptName ON;
+				libmaus2::bambam::BamAuxFilterVector BAFV;
+				BAFV.set("od");
+
+				// rewrite file and mark duplicates
+				libmaus2::bambam::BamAlignment & alignment = decoder.getAlignment();
+				uint32_t const dup = ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FDUP;
+				uint32_t const notdup = ~dup;
+				for ( uint64_t r = 0; decoder.readAlignment(); ++r )
+				{
+					alignment.filterOutAux(BAFV);
+					if ( ONR.peekNext(ON) && ON.rank == r )
+					{
+						alignment.putAuxString(odtag,ON.refreadname);
+						ONR.getNext(ON);
+					}
+
+					if ( ! DSC.isMarked(r) )
+					{
+						alignment.putFlags(alignment.getFlags() & notdup);
+						writer.writeAlignment(alignment);
+					}
+					else if ( dupwriter )
+					{
+						alignment.putFlags(alignment.getFlags() | dup);
+						dupwriter->writeAlignment(alignment);
+					}
+
+					if ( verbose && ((r+1) & bmask) == 0 )
+					{
+						std::cerr << "[V] Filtered " << (r+1) << " (" << (r+1)/(1024*1024) << "," << static_cast<double>(r+1)/maxrank << ")"
+							<< " time " << locrtc.getElapsedSeconds()
+							<< " total " << globrtc.formatTime(globrtc.getElapsedSeconds())
+							<< " "
+							<< libmaus2::util::MemUsage()
+							<< std::endl;
+						locrtc.start();
+					}
+				}
+
+				if ( verbose )
+					std::cerr << "[V] Filtered " << maxrank << "(" << maxrank/(1024*1024) << "," << 1 << ")" << " total for marking time " << globrtc.formatTime(globrtc.getElapsedSeconds())
+						<< " "
+						<< libmaus2::util::MemUsage()
+						<< std::endl;
 			}
 
 			static void markDuplicatesInFile(
@@ -1209,6 +1384,217 @@ namespace libmaus2
 						}
 					}
 				}
+
+				if ( Pmd5cb )
+				{
+					Pmd5cb->saveDigestAsFile(md5filename);
+				}
+				if ( Pindex )
+				{
+					Pindex->flush(std::string(indexfilename));
+				}
+				if ( Pdupmd5cb )
+				{
+					Pdupmd5cb->saveDigestAsFile(dupmd5filename);
+				}
+				if ( Pdupindex )
+				{
+					Pdupindex->flush(std::string(dupindexfilename));
+				}
+			}
+
+			static void markOptDuplicatesInFile(
+				::libmaus2::util::ArgInfo const & arginfo,
+				bool const verbose,
+				::libmaus2::bambam::BamHeader const & bamheader,
+				uint64_t const maxrank,
+				uint64_t const mod,
+				::libmaus2::bambam::DupSetCallback const & DSC,
+				std::string const & recompressedalignments,
+				bool const rewritebam,
+				std::string const & tmpfilenameindex,
+				std::string const & progid,
+				std::string const & packageversion,
+				bool const defaultrmdup,
+				bool const defaultmd5,
+				bool const defaultindex,
+				std::string const & optnamefn,
+				std::string const & odtag
+			)
+			{
+				bool const rmdup = arginfo.getValue<int>("rmdup",defaultrmdup);
+				bool const outputisfile = arginfo.hasArg("O") && (arginfo.getUnparsedValue("O","") != "");
+				std::string outputfilename = outputisfile ? arginfo.getUnparsedValue("O","") : "";
+				std::string dupoutputfilename = rmdup ? arginfo.getUnparsedValue("D","") : std::string();
+				std::string md5filename;
+				std::string indexfilename;
+				std::string dupmd5filename;
+				std::string dupindexfilename;
+
+				std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback * > cbs;
+				::libmaus2::lz::BgzfDeflateOutputCallbackMD5::unique_ptr_type Pmd5cb;
+				if ( arginfo.getValue<unsigned int>("md5",defaultmd5) )
+				{
+					if ( arginfo.hasArg("md5filename") &&  arginfo.getUnparsedValue("md5filename","") != "" )
+						md5filename = arginfo.getUnparsedValue("md5filename","");
+					else if ( outputisfile )
+						md5filename = outputfilename + ".md5";
+					else
+						std::cerr << "[V] no filename for md5 given, not creating hash" << std::endl;
+
+					if ( md5filename.size() )
+					{
+						::libmaus2::lz::BgzfDeflateOutputCallbackMD5::unique_ptr_type Tmd5cb(new ::libmaus2::lz::BgzfDeflateOutputCallbackMD5);
+						Pmd5cb = UNIQUE_PTR_MOVE(Tmd5cb);
+						cbs.push_back(Pmd5cb.get());
+					}
+				}
+				libmaus2::bambam::BgzfDeflateOutputCallbackBamIndex::unique_ptr_type Pindex;
+				if ( arginfo.getValue<unsigned int>("index",defaultindex) )
+				{
+					if ( arginfo.hasArg("indexfilename") &&  arginfo.getUnparsedValue("indexfilename","") != "" )
+						indexfilename = arginfo.getUnparsedValue("indexfilename","");
+					else if ( outputisfile )
+						indexfilename = outputfilename + ".bai";
+					else
+						std::cerr << "[V] no filename for index given, not creating index" << std::endl;
+
+					if ( indexfilename.size() )
+					{
+						libmaus2::bambam::BgzfDeflateOutputCallbackBamIndex::unique_ptr_type Tindex(new libmaus2::bambam::BgzfDeflateOutputCallbackBamIndex(tmpfilenameindex));
+						Pindex = UNIQUE_PTR_MOVE(Tindex);
+						cbs.push_back(Pindex.get());
+					}
+				}
+				std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback * > * Pcbs = 0;
+				if ( cbs.size() )
+					Pcbs = &cbs;
+
+				/* dup file, if any */
+				std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback * > dupcbs;
+				::libmaus2::lz::BgzfDeflateOutputCallbackMD5::unique_ptr_type Pdupmd5cb;
+				if ( dupoutputfilename.size() && arginfo.getValue<unsigned int>("dupmd5",defaultmd5) )
+				{
+					if ( arginfo.hasArg("dupmd5filename") &&  arginfo.getUnparsedValue("dupmd5filename","") != "" )
+						dupmd5filename = arginfo.getUnparsedValue("dupmd5filename","");
+					else
+						dupmd5filename = dupoutputfilename + ".md5";
+
+					if ( dupmd5filename.size() )
+					{
+						::libmaus2::lz::BgzfDeflateOutputCallbackMD5::unique_ptr_type Tdupmd5cb(new ::libmaus2::lz::BgzfDeflateOutputCallbackMD5);
+						Pdupmd5cb = UNIQUE_PTR_MOVE(Tdupmd5cb);
+						dupcbs.push_back(Pdupmd5cb.get());
+					}
+				}
+				libmaus2::bambam::BgzfDeflateOutputCallbackBamIndex::unique_ptr_type Pdupindex;
+				if ( dupoutputfilename.size() && arginfo.getValue<unsigned int>("dupindex",defaultindex) )
+				{
+					if ( arginfo.hasArg("dupindexfilename") &&  arginfo.getUnparsedValue("dupindexfilename","") != "" )
+						dupindexfilename = arginfo.getUnparsedValue("dupindexfilename","");
+					else if ( outputisfile )
+						dupindexfilename = dupoutputfilename + ".bai";
+
+					if ( dupindexfilename.size() )
+					{
+						libmaus2::bambam::BgzfDeflateOutputCallbackBamIndex::unique_ptr_type Tdupindex(new libmaus2::bambam::BgzfDeflateOutputCallbackBamIndex(tmpfilenameindex+"_dup"));
+						Pdupindex = UNIQUE_PTR_MOVE(Tdupindex);
+						dupcbs.push_back(Pdupindex.get());
+					}
+				}
+				std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback * > * Pdupcbs = 0;
+				if ( dupcbs.size() )
+					Pdupcbs = &dupcbs;
+
+				#if 0
+				cbs.push_back(&md5cb);
+				cbs.push_back(&indexcb);
+				#endif
+
+				::libmaus2::bambam::BamHeader::unique_ptr_type uphead(::libmaus2::bambam::BamHeaderUpdate::updateHeader(arginfo,bamheader,progid,packageversion));
+				libmaus2::bambam::BamBlockWriterBase::unique_ptr_type writer(libmaus2::bambam::BamBlockWriterBaseFactory::construct(*uphead,arginfo,Pcbs));
+
+				// remove duplicates
+				if ( rmdup )
+				{
+					::libmaus2::bambam::BamHeader::unique_ptr_type uphead(::libmaus2::bambam::BamHeaderUpdate::updateHeader(arginfo,bamheader,progid,packageversion));
+
+					bool const inputisbam = (arginfo.hasArg("I") && (arginfo.getValue<std::string>("I","") != "")) || rewritebam;
+
+					libmaus2::bambam::BamBlockWriterBase::unique_ptr_type dupwriter;
+
+					if ( dupoutputfilename.size() )
+					{
+						libmaus2::util::ArgInfo darginfo = arginfo;
+						darginfo.replaceKey("O",dupoutputfilename);
+						libmaus2::bambam::BamBlockWriterBase::unique_ptr_type twriter(libmaus2::bambam::BamBlockWriterBaseFactory::construct(*uphead,darginfo,Pdupcbs));
+						dupwriter = UNIQUE_PTR_MOVE(twriter);
+					}
+
+					if ( inputisbam )
+					{
+						// multiple input files
+						if ( arginfo.getPairCount("I") > 1 )
+						{
+							std::vector<std::string> const inputfilenames = arginfo.getPairValues("I");
+							libmaus2::bambam::BamMergeCoordinate decoder(inputfilenames);
+							decoder.disableValidation();
+							removeOptDuplicatesFromFileTemplate(verbose,maxrank,mod,DSC,decoder,*writer,dupwriter.get(),optnamefn,odtag);
+						}
+						// single input file
+						else
+						{
+							std::string const inputfilename =
+								(arginfo.hasArg("I") && (arginfo.getValue<std::string>("I","") != ""))
+								?
+								arginfo.getValue<std::string>("I","I")
+								:
+								recompressedalignments;
+
+							::libmaus2::bambam::BamDecoder decoder(inputfilename);
+							decoder.disableValidation();
+							removeOptDuplicatesFromFileTemplate(verbose,maxrank,mod,DSC,decoder,*writer,dupwriter.get(),optnamefn,odtag);
+						}
+					}
+					else
+					{
+						libmaus2::bambam::BamAlignmentSnappyInput decoder(recompressedalignments);
+						removeOptDuplicatesFromFileTemplate(verbose,maxrank,mod,DSC,decoder,*writer,dupwriter.get(),optnamefn,odtag);
+					}
+				}
+				// mark duplicates
+				else
+				{
+					// multiple input files
+					if ( arginfo.getPairCount("I") > 1 )
+					{
+						std::vector<std::string> const inputfilenames = arginfo.getPairValues("I");
+						libmaus2::bambam::BamMergeCoordinate decoder(inputfilenames);
+						decoder.disableValidation();
+						markOptDuplicatesInFileTemplate(arginfo,verbose,bamheader,maxrank,mod,DSC,decoder,progid,packageversion,optnamefn,odtag,*writer);
+					}
+					else if ( arginfo.hasArg("I") && (arginfo.getValue<std::string>("I","") != "") )
+					{
+						std::string const inputfilename = arginfo.getValue<std::string>("I","I");
+						libmaus2::bambam::BamDecoder decoder(inputfilename);
+						markOptDuplicatesInFileTemplate(arginfo,verbose,bamheader,maxrank,mod,DSC,decoder,progid,packageversion,optnamefn,odtag,*writer);
+					}
+					else
+					{
+						if ( rewritebam )
+						{
+							libmaus2::bambam::BamDecoder decoder(recompressedalignments);
+							markOptDuplicatesInFileTemplate(arginfo,verbose,bamheader,maxrank,mod,DSC,decoder,progid,packageversion,optnamefn,odtag,*writer);
+						}
+						else
+						{
+							libmaus2::bambam::BamAlignmentSnappyInput decoder(recompressedalignments);
+							markOptDuplicatesInFileTemplate(arginfo,verbose,bamheader,maxrank,mod,DSC,decoder,progid,packageversion,optnamefn,odtag,*writer);
+						}
+					}
+				}
+
+				writer.reset();
 
 				if ( Pmd5cb )
 				{

@@ -351,6 +351,139 @@ namespace libmaus2
 
 				return std::pair<uint64_t,uint64_t>(rcnt,dupcnt);
 			}
+
+			std::pair<uint64_t,uint64_t> mergePairs(
+				std::vector< std::pair<uint64_t,uint64_t> > V,
+				bool (*isDup)(::libmaus2::bambam::ReadEndsBase const &, ::libmaus2::bambam::ReadEndsBase const &),
+				uint64_t (*markDuplicate)(std::vector< ::libmaus2::bambam::ReadEnds > & lfrags, ::libmaus2::bambam::DupSetCallback & DSC, unsigned int const optminpixeldif),
+				::libmaus2::bambam::DupSetCallback & DSC,
+				unsigned int const optminpixeldif
+			)
+			{
+				uint64_t exp = 0;
+				for ( uint64_t i = 0; i < V.size(); ++i )
+				{
+					assert ( V[i].second >= V[i].first );
+					exp += V[i].second-V[i].first;
+				}
+
+				libmaus2::autoarray::AutoArray<libmaus2::aio::InputStream::unique_ptr_type> datastreams(info.size());
+				libmaus2::autoarray::AutoArray<libmaus2::lz::SnappyInputStream::unique_ptr_type> zdatastreams(size());
+				libmaus2::bambam::ReadEnds R;
+
+				for ( uint64_t i = 0; i < info.size(); ++i )
+				{
+					// open data stream
+					libmaus2::aio::InputStream::unique_ptr_type tptr(
+						libmaus2::aio::InputStreamFactoryContainer::constructUnique(info[i].datafilename)
+					);
+					datastreams[i] = UNIQUE_PTR_MOVE(tptr);
+
+					// set up uncompressors
+					for ( uint64_t j = 0; j < info[i].indexoffset.size(); ++j )
+					{
+						uint64_t const blockid    = O[i] + j;
+						uint64_t const vlow = V[blockid].first;
+						uint64_t const vhigh = V[blockid].second;
+
+						if ( vlow < vhigh )
+						{
+							uint64_t const subblockid = vlow / getBaseBlockSize();
+							std::pair<uint64_t,uint64_t> const zoffset = getOffset(blockid,subblockid);
+
+							libmaus2::lz::SnappyInputStream::unique_ptr_type zptr(
+								new libmaus2::lz::SnappyInputStream(
+									*(datastreams[i]),
+									zoffset.first,
+									true /* set pos */
+								)
+							);
+							zptr->ignore(zoffset.second);
+
+							uint64_t const rskip = vlow - subblockid * getBaseBlockSize();
+							for ( uint64_t k = 0; k < rskip; ++k )
+								R.get(*zptr);
+
+							zdatastreams[blockid] = UNIQUE_PTR_MOVE(zptr);
+						}
+					}
+				}
+
+				//! pair of list index and ReadEnds object
+				typedef std::pair<uint64_t,::libmaus2::bambam::ReadEnds> qtype;
+				//! merge heap
+				std::priority_queue<qtype,std::vector<qtype>,::libmaus2::bambam::ReadEndsHeapPairComparator> Q;
+
+				for ( uint64_t i = 0; i < V.size(); ++i )
+					if ( V[i].first < V[i].second )
+					{
+						R.get(*(zdatastreams[i]));
+						Q.push(qtype(i,R));
+						V[i].first++;
+					}
+
+				std::vector< ::libmaus2::bambam::ReadEnds > RV;
+
+				uint64_t dupcnt = 0;
+				uint64_t rcnt = 0;
+				bool prevvalid = false;
+				::libmaus2::bambam::ReadEnds prev;
+
+				while ( Q.size() )
+				{
+					qtype const P = Q.top();
+					Q.pop();
+
+					if ( prevvalid )
+					{
+						assert ( prev < P.second );
+					}
+					prevvalid = true;
+					prev = P.second;
+
+					rcnt += 1;
+
+					if ( RV.size() && ! isDup(RV.back(),P.second) )
+					{
+						#if 0
+						if ( RV.size() > 1 )
+						{
+							std::cerr << std::string(80,'-') << std::endl;
+							for ( uint64_t i = 0; i < RV.size(); ++i )
+								std::cerr << RV[i] << std::endl;
+						}
+						#endif
+
+						dupcnt += markDuplicate(RV,DSC,optminpixeldif);
+
+						RV.resize(0);
+					}
+					RV.push_back(P.second);
+
+					// P.second.put(SOS);
+
+					if ( V[P.first].first < V[P.first].second )
+					{
+						R.get(*(zdatastreams[P.first]));
+						Q.push(qtype(P.first,R));
+						V[P.first].first++;
+					}
+				}
+
+				#if 0
+				if ( RV.size() > 1 )
+				{
+					std::cerr << std::string(80,'-') << std::endl;
+					for ( uint64_t i = 0; i < RV.size(); ++i )
+						std::cerr << RV[i] << std::endl;
+				}
+				#endif
+				dupcnt += markDuplicate(RV,DSC,optminpixeldif);
+
+				assert ( exp == rcnt );
+
+				return std::pair<uint64_t,uint64_t>(rcnt,dupcnt);
+			}
 		};
 	}
 }

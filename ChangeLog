@@ -1,3 +1,15 @@
+libmaus2 (2.0.286-1) unstable; urgency=medium
+
+  * add optminpixeldif argument in BlockSortControl/PairReadEndsMergeWorkPackageDispatcher  
+  * add mergePairs method in ReadEndsBlockIndexSet to allow passing optminpixeldif argument
+  * be more deterministic about which read pairs are marked as duplicates/optical duplicates
+  * use align in/out factories in marking optical routines
+  * add OptName/OptNameReader classes
+  * fix tile,x,y parsing for larger number of read name fields in ReadEndsBase
+  * add BamAlignmentInputCallbackBamRef and BamAlignmentInputCallbackSnappyRef classes
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 28 Nov 2016 17:53:29 +0100
+
 libmaus2 (2.0.285-1) unstable; urgency=medium
 
   * add notes about releases to README.md
