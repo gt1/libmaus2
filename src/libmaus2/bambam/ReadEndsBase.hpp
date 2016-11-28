@@ -489,9 +489,32 @@ namespace libmaus2
 				for ( uint8_t const * c = readname; c != readnamee; ++c )
 					cnt [ (static_cast<int>(*c) - ':') == 0 ] ++;
 
-				bool const rnparseok = (cnt[1] <= 4) && (cnt[1] >= 2);
+				bool const rnparseok = (cnt[1] >= 2);
 
-				return rnparseok;
+				if ( ! rnparseok )
+					return false;
+
+				uint8_t const * p = readnamee;
+
+				// parse up to first ':' from back
+				while ( p[-1] >= '0' && p[-1] <= '9' )
+					--p;
+				if ( p[-1] != ':' )
+					return false;
+				--p;
+
+				// parse up to second ':' from back
+				while ( p[-1] >= '0' && p[-1] <= '9' )
+					--p;
+				if ( p[-1] != ':' )
+					return false;
+				--p;
+
+				// parse up to front of read name third ':' from back
+				while ( p != readname && p[-1] >= '0' && p[-1] <= '9' )
+					--p;
+
+				return (p == readname) || (p[-1] == ':');
 			}
 
 			/**

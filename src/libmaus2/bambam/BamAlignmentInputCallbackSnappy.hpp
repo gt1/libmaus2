@@ -65,6 +65,50 @@ namespace libmaus2
 				SFOS->flush();
 			}
 		};
+
+		template<typename _update_base_type = libmaus2::bambam::BamAlignmentInputPositionCallbackNull>
+		struct BamAlignmentInputCallbackSnappyRef :
+			public ::libmaus2::bambam::CollatingBamDecoderAlignmentInputCallback
+		{
+			typedef _update_base_type update_base_type;
+			typedef typename update_base_type::unique_ptr_type update_base_ptr_type;
+			typedef BamAlignmentInputCallbackSnappyRef<update_base_type> this_type;
+
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
+			uint64_t als;
+			::libmaus2::lz::SnappyFileOutputStream::unique_ptr_type SFOS;
+			update_base_ptr_type update_base;
+
+			BamAlignmentInputCallbackSnappyRef(std::string const & filename, libmaus2::bambam::BamHeader const & /* bamheader */, update_base_ptr_type & rupdate_base)
+			: als(0), SFOS(new ::libmaus2::lz::SnappyFileOutputStream(filename)), update_base(UNIQUE_PTR_MOVE(rupdate_base))
+			{
+
+			}
+
+			~BamAlignmentInputCallbackSnappyRef()
+			{
+				flush();
+			}
+
+			void operator()(::libmaus2::bambam::BamAlignment const & A)
+			{
+				als++;
+				update_base->updatePosition(A);
+				A.serialise(*SFOS);
+			}
+
+			void flush()
+			{
+				SFOS->flush();
+			}
+
+			update_base_type * getUpdateBase()
+			{
+				return update_base.get();
+			}
+		};
 	}
 }
 #endif
