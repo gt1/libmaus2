@@ -134,8 +134,10 @@ namespace libmaus2
 							projector::deref(*low).getTile()
 						)
 						{
-							#if defined(DEBUG)
-							std::cerr << "[D] Range " << high-low << std::endl; // << " for " << projector::deref(*low) << std::endl;
+							#define OPTDEBUG
+
+							#if defined(OPTDEBUG)
+							std::cerr << "[D] Range " << high-low << " for " << projector::deref(*low) << std::endl;
 							#endif
 
 							std::vector<bool> opt(high-low,false);
