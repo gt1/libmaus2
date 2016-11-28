@@ -69,7 +69,7 @@ namespace libmaus2
 			struct MarkOptical
 			{
 				virtual ~MarkOptical() {}
-				virtual void operator()(uint64_t const) = 0;
+				virtual void operator()(uint64_t const, uint64_t const) = 0;
 			};
 
 			template<typename iterator, typename projector, bool bmarkopt>
@@ -139,6 +139,7 @@ namespace libmaus2
 							#endif
 
 							std::vector<bool> opt(high-low,false);
+							std::vector<uint64_t> optref(high-low);
 							bool haveoptdup = false;
 
 							for ( iterator i = low; i+1 != high; ++i )
@@ -163,6 +164,7 @@ namespace libmaus2
 									{
 										// mark j as optical duplicate in Boolean vector
 										opt [ j - low ] = true;
+										optref [ j - low ] = i - low;
 										// we have found at least one optical duplicate
 										haveoptdup = true;
 									}
@@ -180,10 +182,13 @@ namespace libmaus2
 										if ( bmarkopt )
 										{
 											ReadEndsBase const & REB = projector::deref(low[i]);
+											ReadEndsBase const & REBref = projector::deref(low[optref[i]]);
 											uint64_t const i1 = REB.getRead1IndexInFile();
 											uint64_t const i2 = REB.getRead2IndexInFile();
-											(*markopt)(i1);
-											(*markopt)(i2);
+											uint64_t const iref1 = REBref.getRead1IndexInFile();
+											uint64_t const iref2 = REBref.getRead2IndexInFile();
+											(*markopt)(i1,iref1);
+											(*markopt)(i2,iref2);
 										}
 									}
 
