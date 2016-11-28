@@ -1,3 +1,10 @@
+libmaus2 (2.0.284-1) unstable; urgency=medium
+
+  * add rank of reference read for optical duplicates in DupMarkBase opt interface
+  * fix size of copied stream block in BgzfInflateParallelThread
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 28 Nov 2016 10:14:52 +0100
+
 libmaus2 (2.0.283-1) unstable; urgency=medium
 
   * add interface for reporting optical duplicates' ranks in DupMarkBase
