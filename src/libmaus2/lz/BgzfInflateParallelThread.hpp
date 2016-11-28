@@ -110,9 +110,12 @@ namespace libmaus2
 									inflatecontext.inflateB[objectid]->getBgzfHeaderSize()
 								);
 								// payload and footer
+								assert ( inflatecontext.inflateB[objectid]->blockinfo.compressed >= inflatecontext.inflateB[objectid]->getBgzfHeaderSize() );
 								inflatecontext.copyostr->write(
 									reinterpret_cast<char const *>(inflatecontext.inflateB[objectid]->block.begin()),
-									inflatecontext.inflateB[objectid]->blockinfo.compressed + inflatecontext.inflateB[objectid]->getBgzfFooterSize()
+									inflatecontext.inflateB[objectid]->blockinfo.compressed
+									-
+									inflatecontext.inflateB[objectid]->getBgzfHeaderSize()
 								);
 
 								// flush output stream if block is empty (might be EOF)
