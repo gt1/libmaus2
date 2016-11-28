@@ -95,7 +95,15 @@ namespace libmaus2
 
 					iterator lfrags_m = lfrags_a;
 					for ( iterator lfrags_c = lfrags_a+1; lfrags_c != lfrags_e; ++lfrags_c )
-						if ( projector::deref(*lfrags_c).getScore() > maxscore )
+						if (
+							projector::deref(*lfrags_c).getScore() > maxscore
+							||
+							(
+								projector::deref(*lfrags_c).getScore() == maxscore
+								&&
+								projector::deref(*lfrags_c).getRead1IndexInFile() < projector::deref(*lfrags_m).getRead1IndexInFile()
+							)
+						)
 						{
 							maxscore = projector::deref(*lfrags_c).getScore();
 							lfrags_m = lfrags_c;
@@ -109,9 +117,6 @@ namespace libmaus2
 							#endif
 							DSC(projector::deref(*lfrags_c));
 						}
-
-					// rank of read 1 of non dup marked read pair
-					uint64_t const maxindexinfile = projector::deref(*lfrags_m).getRead1IndexInFile();
 
 					// check for optical duplicates
 					std::sort ( lfrags_a, lfrags_e, ::libmaus2::bambam::OpticalComparator() );
@@ -176,9 +181,13 @@ namespace libmaus2
 										// then make sure we do not mark the one as an optical duplicate
 										// which we leave unmarked for general duplicates)
 										if (
-											REBj.getRead1IndexInFile() == maxindexinfile
+											REBj.getScore() > REBj.getScore()
 											||
-											REBi.getScore() < REBj.getScore()
+											(
+												REBj.getScore() == REBj.getScore()
+												&&
+												REBj.getRead1IndexInFile() < REBi.getRead1IndexInFile()
+											)
 										)
 										{
 											opt    [ i - low ] = true;
@@ -333,6 +342,15 @@ namespace libmaus2
 			)
 			{
 				return markDuplicatePairsVector(lfrags,DSC);
+			}
+
+			static uint64_t markDuplicatePairs(
+				std::vector< ::libmaus2::bambam::ReadEnds > & lfrags,
+				::libmaus2::bambam::DupSetCallback & DSC,
+				unsigned int const optminpixeldif
+			)
+			{
+				return markDuplicatePairsVector(lfrags,DSC,optminpixeldif);
 			}
 
 			static uint64_t markDuplicatePairs(
