@@ -469,7 +469,8 @@ namespace libmaus2
 					std::string const & rtempfileprefix,
 					std::string const & rhash,
 					bool const rfixmates = true,
-					bool const rdupmarksupport = true
+					bool const rdupmarksupport = true,
+					unsigned int const roptminpixeldif = 100
 				)
 				:
 					procrtc(true),
@@ -504,7 +505,7 @@ namespace libmaus2
 					PRECFWPDid(STP.getNextDispatcherId()),
 					FREMWPD(*this,*this,*this),
 					FREMWPDid(STP.getNextDispatcherId()),
-					PREMWPD(*this,*this,*this),
+					PREMWPD(*this,*this,*this,roptminpixeldif),
 					PREMWPDid(STP.getNextDispatcherId()),
 					SPWPD(*this,*this,*this,*this,*this),
 					SPWPDid(STP.getNextDispatcherId()),
