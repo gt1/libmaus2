@@ -37,6 +37,7 @@
 #include <libmaus2/bambam/BamAlignmentSnappyInput.hpp>
 #include <libmaus2/bambam/OptNameReader.hpp>
 #include <libmaus2/bambam/BamBlockWriterBaseFactory.hpp>
+#include <libmaus2/bambam/BamMultiAlignmentDecoderFactory.hpp>
 
 namespace libmaus2
 {
@@ -959,7 +960,7 @@ namespace libmaus2
 						<< std::endl;
 			}
 
-			template<typename decoder_type>
+			template<typename decoder_type, bool putmatecigar>
 			static void markOptDuplicatesInFileTemplate(
 				::libmaus2::util::ArgInfo const & arginfo,
 				bool const verbose,
@@ -972,7 +973,8 @@ namespace libmaus2
 				std::string const & packageversion,
 				std::string const & optnamefn,
 				std::string const & odtag,
-				libmaus2::bambam::BamBlockWriterBase & writer
+				libmaus2::bambam::BamBlockWriterBase & writer,
+				std::string const & matecigarfn
 			)
 			{
 				::libmaus2::bambam::BamHeader::unique_ptr_type uphead(::libmaus2::bambam::BamHeaderUpdate::updateHeader(arginfo,bamheader,progid,packageversion));
@@ -986,6 +988,14 @@ namespace libmaus2
 				libmaus2::bambam::OptName ON;
 				libmaus2::bambam::BamAuxFilterVector BAFV;
 				BAFV.set("od");
+
+				libmaus2::bambam::OptNameReader::unique_ptr_type MCR;
+				if ( putmatecigar )
+				{
+					libmaus2::bambam::OptNameReader::unique_ptr_type tMCR(new libmaus2::bambam::OptNameReader(matecigarfn));
+					MCR = UNIQUE_PTR_MOVE(tMCR);
+					BAFV.set("MC");
+				}
 
 				// rewrite file and mark duplicates
 				libmaus2::bambam::BamAlignment & alignment = decoder.getAlignment();
@@ -1003,6 +1013,11 @@ namespace libmaus2
 					{
 						alignment.putAuxString(odtag,ON.refreadname);
 						ONR.getNext(ON);
+					}
+					if ( putmatecigar && MCR->peekNext(ON) && ON.rank == r )
+					{
+						alignment.putAuxString("MC",ON.refreadname);
+						MCR->getNext(ON);
 					}
 
 					writer.writeAlignment(alignment);
@@ -1079,7 +1094,7 @@ namespace libmaus2
 
 			}
 
-			template<typename decoder_type, typename writer_type, typename dup_writer_type>
+			template<typename decoder_type, typename writer_type, typename dup_writer_type, bool putmatecigar>
 			static void removeOptDuplicatesFromFileTemplate(
 				bool const verbose,
 				uint64_t const maxrank,
@@ -1089,7 +1104,8 @@ namespace libmaus2
 				writer_type & writer,
 				dup_writer_type * dupwriter,
 				std::string const & optnamefn,
-				std::string const & odtag
+				std::string const & odtag,
+				std::string const & matecigarfn
 			)
 			{
 				libmaus2::timing::RealTimeClock globrtc, locrtc;
@@ -1102,6 +1118,14 @@ namespace libmaus2
 				libmaus2::bambam::BamAuxFilterVector BAFV;
 				BAFV.set("od");
 
+				libmaus2::bambam::OptNameReader::unique_ptr_type MCR;
+				if ( putmatecigar )
+				{
+					libmaus2::bambam::OptNameReader::unique_ptr_type tMCR(new libmaus2::bambam::OptNameReader(matecigarfn));
+					MCR = UNIQUE_PTR_MOVE(tMCR);
+					BAFV.set("MC");
+				}
+
 				// rewrite file and mark duplicates
 				libmaus2::bambam::BamAlignment & alignment = decoder.getAlignment();
 				uint32_t const dup = ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FDUP;
@@ -1113,6 +1137,11 @@ namespace libmaus2
 					{
 						alignment.putAuxString(odtag,ON.refreadname);
 						ONR.getNext(ON);
+					}
+					if ( putmatecigar && MCR->peekNext(ON) && ON.rank == r )
+					{
+						alignment.putAuxString("MC",ON.refreadname);
+						MCR->getNext(ON);
 					}
 
 					if ( ! DSC.isMarked(r) )
@@ -1404,7 +1433,7 @@ namespace libmaus2
 			}
 
 			static void markOptDuplicatesInFile(
-				::libmaus2::util::ArgInfo const & arginfo,
+				::libmaus2::util::ArgInfo arginfo,
 				bool const verbose,
 				::libmaus2::bambam::BamHeader const & bamheader,
 				uint64_t const maxrank,
@@ -1419,9 +1448,27 @@ namespace libmaus2
 				bool const defaultmd5,
 				bool const defaultindex,
 				std::string const & optnamefn,
-				std::string const & odtag
+				std::string const & odtag,
+				std::string const & matecigarfn = std::string()
 			)
 			{
+				std::vector<std::string> I = arginfo.getPairValues("I");
+				uint64_t o = 0;
+				for ( uint64_t i = 0; i < I.size(); ++i )
+					if ( I[i].size() )
+						I[o++] = I[i];
+				I.resize(o);
+
+				if ( ! I.size() && rewritebam )
+				{
+					I.push_back(recompressedalignments);
+					arginfo.replaceKey("inputformat","bam");
+				}
+
+				arginfo.removeKey("I");
+				for ( uint64_t i = 0; i < I.size(); ++i )
+					arginfo.insertKey("I",I[i]);
+
 				bool const rmdup = arginfo.getValue<int>("rmdup",defaultrmdup);
 				bool const outputisfile = arginfo.hasArg("O") && (arginfo.getUnparsedValue("O","") != "");
 				std::string outputfilename = outputisfile ? arginfo.getUnparsedValue("O","") : "";
@@ -1518,9 +1565,6 @@ namespace libmaus2
 				if ( rmdup )
 				{
 					::libmaus2::bambam::BamHeader::unique_ptr_type uphead(::libmaus2::bambam::BamHeaderUpdate::updateHeader(arginfo,bamheader,progid,packageversion));
-
-					bool const inputisbam = (arginfo.hasArg("I") && (arginfo.getValue<std::string>("I","") != "")) || rewritebam;
-
 					libmaus2::bambam::BamBlockWriterBase::unique_ptr_type dupwriter;
 
 					if ( dupoutputfilename.size() )
@@ -1531,66 +1575,75 @@ namespace libmaus2
 						dupwriter = UNIQUE_PTR_MOVE(twriter);
 					}
 
-					if ( inputisbam )
+					if ( arginfo.hasArg("I") )
 					{
-						// multiple input files
-						if ( arginfo.getPairCount("I") > 1 )
-						{
-							std::vector<std::string> const inputfilenames = arginfo.getPairValues("I");
-							libmaus2::bambam::BamMergeCoordinate decoder(inputfilenames);
-							decoder.disableValidation();
-							removeOptDuplicatesFromFileTemplate(verbose,maxrank,mod,DSC,decoder,*writer,dupwriter.get(),optnamefn,odtag);
-						}
-						// single input file
-						else
-						{
-							std::string const inputfilename =
-								(arginfo.hasArg("I") && (arginfo.getValue<std::string>("I","") != ""))
-								?
-								arginfo.getValue<std::string>("I","I")
-								:
-								recompressedalignments;
+						libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type inwrap(
+							libmaus2::bambam::BamMultiAlignmentDecoderFactory::construct(arginfo,false /* put rank */,0 /* copystr */,std::cin /* istdin */,false,false /* stream */)
+						);
+						libmaus2::bambam::BamAlignmentDecoder & decoder = inwrap->getDecoder();
+						decoder.disableValidation();
 
-							::libmaus2::bambam::BamDecoder decoder(inputfilename);
-							decoder.disableValidation();
-							removeOptDuplicatesFromFileTemplate(verbose,maxrank,mod,DSC,decoder,*writer,dupwriter.get(),optnamefn,odtag);
-						}
+						if ( matecigarfn.size() )
+							removeOptDuplicatesFromFileTemplate<
+								libmaus2::bambam::BamAlignmentDecoder,
+								libmaus2::bambam::BamBlockWriterBase,
+								libmaus2::bambam::BamBlockWriterBase,
+								true
+							>(verbose,maxrank,mod,DSC,decoder,*writer,dupwriter.get(),optnamefn,odtag,matecigarfn);
+						else
+							removeOptDuplicatesFromFileTemplate<
+								libmaus2::bambam::BamAlignmentDecoder,
+								libmaus2::bambam::BamBlockWriterBase,
+								libmaus2::bambam::BamBlockWriterBase,
+								false
+							>(verbose,maxrank,mod,DSC,decoder,*writer,dupwriter.get(),optnamefn,odtag,matecigarfn);
 					}
 					else
 					{
+						assert ( ! rewritebam );
+
 						libmaus2::bambam::BamAlignmentSnappyInput decoder(recompressedalignments);
-						removeOptDuplicatesFromFileTemplate(verbose,maxrank,mod,DSC,decoder,*writer,dupwriter.get(),optnamefn,odtag);
+						if ( matecigarfn.size() )
+							removeOptDuplicatesFromFileTemplate<
+								libmaus2::bambam::BamAlignmentSnappyInput,
+								libmaus2::bambam::BamBlockWriterBase,
+								libmaus2::bambam::BamBlockWriterBase,
+								true
+							>(verbose,maxrank,mod,DSC,decoder,*writer,dupwriter.get(),optnamefn,odtag,matecigarfn);
+						else
+							removeOptDuplicatesFromFileTemplate<
+								libmaus2::bambam::BamAlignmentSnappyInput,
+								libmaus2::bambam::BamBlockWriterBase,
+								libmaus2::bambam::BamBlockWriterBase,
+								false
+							>(verbose,maxrank,mod,DSC,decoder,*writer,dupwriter.get(),optnamefn,odtag,matecigarfn);
 					}
 				}
 				// mark duplicates
 				else
 				{
-					// multiple input files
-					if ( arginfo.getPairCount("I") > 1 )
+					if ( arginfo.hasArg("I") )
 					{
-						std::vector<std::string> const inputfilenames = arginfo.getPairValues("I");
-						libmaus2::bambam::BamMergeCoordinate decoder(inputfilenames);
+						libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type inwrap(
+							libmaus2::bambam::BamMultiAlignmentDecoderFactory::construct(arginfo,false /* put rank */,0 /* copystr */,std::cin /* istdin */,false,false /* stream */)
+						);
+						libmaus2::bambam::BamAlignmentDecoder & decoder = inwrap->getDecoder();
 						decoder.disableValidation();
-						markOptDuplicatesInFileTemplate(arginfo,verbose,bamheader,maxrank,mod,DSC,decoder,progid,packageversion,optnamefn,odtag,*writer);
-					}
-					else if ( arginfo.hasArg("I") && (arginfo.getValue<std::string>("I","") != "") )
-					{
-						std::string const inputfilename = arginfo.getValue<std::string>("I","I");
-						libmaus2::bambam::BamDecoder decoder(inputfilename);
-						markOptDuplicatesInFileTemplate(arginfo,verbose,bamheader,maxrank,mod,DSC,decoder,progid,packageversion,optnamefn,odtag,*writer);
+
+						if ( matecigarfn.size() )
+							markOptDuplicatesInFileTemplate<libmaus2::bambam::BamAlignmentDecoder,true >(arginfo,verbose,bamheader,maxrank,mod,DSC,decoder,progid,packageversion,optnamefn,odtag,*writer,matecigarfn);
+						else
+							markOptDuplicatesInFileTemplate<libmaus2::bambam::BamAlignmentDecoder,false>(arginfo,verbose,bamheader,maxrank,mod,DSC,decoder,progid,packageversion,optnamefn,odtag,*writer,matecigarfn);
 					}
 					else
 					{
-						if ( rewritebam )
-						{
-							libmaus2::bambam::BamDecoder decoder(recompressedalignments);
-							markOptDuplicatesInFileTemplate(arginfo,verbose,bamheader,maxrank,mod,DSC,decoder,progid,packageversion,optnamefn,odtag,*writer);
-						}
+						assert ( ! rewritebam );
+
+						libmaus2::bambam::BamAlignmentSnappyInput decoder(recompressedalignments);
+						if ( matecigarfn.size() )
+							markOptDuplicatesInFileTemplate<libmaus2::bambam::BamAlignmentSnappyInput,true >(arginfo,verbose,bamheader,maxrank,mod,DSC,decoder,progid,packageversion,optnamefn,odtag,*writer,matecigarfn);
 						else
-						{
-							libmaus2::bambam::BamAlignmentSnappyInput decoder(recompressedalignments);
-							markOptDuplicatesInFileTemplate(arginfo,verbose,bamheader,maxrank,mod,DSC,decoder,progid,packageversion,optnamefn,odtag,*writer);
-						}
+							markOptDuplicatesInFileTemplate<libmaus2::bambam::BamAlignmentSnappyInput,false>(arginfo,verbose,bamheader,maxrank,mod,DSC,decoder,progid,packageversion,optnamefn,odtag,*writer,matecigarfn);
 					}
 				}
 
