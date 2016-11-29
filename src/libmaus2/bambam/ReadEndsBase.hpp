@@ -497,21 +497,21 @@ namespace libmaus2
 				uint8_t const * p = readnamee;
 
 				// parse up to first ':' from back
-				while ( p[-1] >= '0' && p[-1] <= '9' )
+				while ( D[p[-1]] )
 					--p;
 				if ( p[-1] != ':' )
 					return false;
 				--p;
 
 				// parse up to second ':' from back
-				while ( p[-1] >= '0' && p[-1] <= '9' )
+				while ( D[p[-1]] )
 					--p;
 				if ( p[-1] != ':' )
 					return false;
 				--p;
 
 				// parse up to front of read name third ':' from back
-				while ( p != readname && p[-1] >= '0' && p[-1] <= '9' )
+				while ( p != readname && D[p[-1]] )
 					--p;
 
 				return (p == readname) || (p[-1] == ':');
@@ -549,24 +549,35 @@ namespace libmaus2
 							break;
 					}
 
+				// parse tile
 				uint8_t const * t = sem[2];
-				while ( D[*t] )
+				tile = 0;
+				while ( *t != ':' )
 				{
+					assert ( D[*t] );
 					tile *= 10;
 					tile += *(t++)-'0';
 				}
+				assert ( *t == ':' );
 				tile += 1;
 
+				// parse x
 				t = sem[1];
-				while ( D[*t] )
+				x = 0;
+				while ( *t != ':' )
 				{
+					assert ( D[*t] );
 					x *= 10;
 					x += *(t++)-'0';
 				}
+				assert ( *t == ':' );
 
+				// parse y
 				t = sem[0];
-				while ( D[*t] )
+				y = 0;
+				while ( t != readnamee )
 				{
+					assert ( D[*t] );
 					y *= 10;
 					y += *(t++)-'0';
 				}
