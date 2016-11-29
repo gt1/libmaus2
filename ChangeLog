@@ -1,3 +1,10 @@
+libmaus2 (2.0.288-1) unstable; urgency=medium
+
+  * move output operator for DuplicationMetrics to libmaus2::bambam namespace
+  * fix buffer overflows in coordinate parsing (tile,x,y) of ReadEndsBase
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 29 Nov 2016 12:20:08 +0100
+
 libmaus2 (2.0.287-1) unstable; urgency=medium
 
   * use input factories in opt dup marking of DupMarkBase where possible and add mate cigar insertion option 

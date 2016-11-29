@@ -364,15 +364,15 @@ namespace libmaus2
 				return MO;
 			}
 		};
+
+		/**
+		 * print DuplicationMetrics object on output stream out
+		 *
+		 * @param out output stream
+		 * @param M duplication metrics object
+		 * @return output stream
+		 **/
+		std::ostream & operator<<(std::ostream & out, libmaus2::bambam::DuplicationMetrics const & M);
 	}
 }
-
-/**
- * print DuplicationMetrics object on output stream out
- *
- * @param out output stream
- * @param M duplication metrics object
- * @return output stream
- **/
-std::ostream & operator<<(std::ostream & out, libmaus2::bambam::DuplicationMetrics const & M);
 #endif

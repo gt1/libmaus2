@@ -25,7 +25,7 @@
  */
 #include <libmaus2/bambam/DuplicationMetrics.hpp>
 
-std::ostream & operator<<(std::ostream & out, libmaus2::bambam::DuplicationMetrics const & M)
+std::ostream & libmaus2::bambam::operator<<(std::ostream & out, libmaus2::bambam::DuplicationMetrics const & M)
 {
 	out << "unmapped\t" << M.unmapped << std::endl;
 	out << "unpaired\t" << M.unpaired << std::endl;
