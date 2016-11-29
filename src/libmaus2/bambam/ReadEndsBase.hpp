@@ -517,50 +517,6 @@ namespace libmaus2
 				return (p == readname) || (p[-1] == ':');
 			}
 
-			/**
-			 * parse optical parameters from read name
-			 *
-			 * assumes tile, x and y are separated by the last 2 ":" in the read name
-			 *
-			 * @param readname name start pointer
-			 * @param readnamee name end pointer
-			 * @param RE ReadEndsBase object to be filled
-			 **/
-			static void parseReadNameTile(uint8_t const * readname, uint8_t const * readnamee, ::libmaus2::bambam::ReadEndsBase & RE)
-			{
-				uint8_t const * sem[4];
-				sem[2] = readname;
-				uint8_t const ** psem = &sem[0];
-				uint8_t const * c = readnamee;
-				for ( --c; c >= readname; --c )
-					if ( *c == ':' )
-						*(psem++) = c+1;
-
-				uint8_t const * t = sem[2];
-				RE.tile = 0;
-				while ( D[*t] )
-				{
-					RE.tile *= 10;
-					RE.tile += *(t++)-'0';
-				}
-				RE.tile += 1;
-
-				t = sem[1];
-				RE.x = 0;
-				while ( D[*t] )
-				{
-					RE.x *= 10;
-					RE.x += *(t++)-'0';
-				}
-
-				t = sem[0];
-				RE.y = 0;
-				while ( D[*t] )
-				{
-					RE.y *= 10;
-					RE.y += *(t++)-'0';
-				}
-			}
 
 			/**
 			 * parse optical parameters from read name
@@ -579,13 +535,19 @@ namespace libmaus2
 				uint32_t & y
 			)
 			{
-				uint8_t const * sem[4];
+				static unsigned int const semsize = 3;
+				uint8_t const * sem[semsize];
+				uint8_t const ** seme = &sem[0] + sizeof(sem)/sizeof(sem[0]);
 				sem[2] = readname;
 				uint8_t const ** psem = &sem[0];
 				uint8_t const * c = readnamee;
 				for ( --c; c >= readname; --c )
 					if ( *c == ':' )
+					{
 						*(psem++) = c+1;
+						if ( psem == seme )
+							break;
+					}
 
 				uint8_t const * t = sem[2];
 				while ( D[*t] )
@@ -608,6 +570,20 @@ namespace libmaus2
 					y *= 10;
 					y += *(t++)-'0';
 				}
+			}
+
+			/**
+			 * parse optical parameters from read name
+			 *
+			 * assumes tile, x and y are separated by the last 2 ":" in the read name
+			 *
+			 * @param readname name start pointer
+			 * @param readnamee name end pointer
+			 * @param RE ReadEndsBase object to be filled
+			 **/
+			static void parseReadNameTile(uint8_t const * readname, uint8_t const * readnamee, ::libmaus2::bambam::ReadEndsBase & RE)
+			{
+				parseReadNameTile(readname,readnamee,RE.tile,RE.x,RE.y);
 			}
 
 			/**
