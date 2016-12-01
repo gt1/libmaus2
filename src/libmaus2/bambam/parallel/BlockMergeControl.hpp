@@ -655,6 +655,7 @@ namespace libmaus2
 					{
 						libmaus2::bambam::parallel::GenericInputControlReadWorkPackage * package = readWorkPackages.getPackage();
 						*package = libmaus2::bambam::parallel::GenericInputControlReadWorkPackage(0 /* prio */, GICRPDid, data[streamid].get());
+						package->subid = 0; // first package
 						STP.enque(package);
 					}
 				}
@@ -774,19 +775,22 @@ namespace libmaus2
 
 						{
 							BamBlockIndexingWorkPackage * package = indexingWorkPackages.getPackage();
-							*package = BamBlockIndexingWorkPackage(0,BBIWPDid,GICCP,Pbamindexgenerator.get());
+							*package = BamBlockIndexingWorkPackage(0 /* prio */,BBIWPDid,GICCP,Pbamindexgenerator.get());
+							package->subid = GICCP.absid;
 							STP.enque(package);
 						}
 
 						{
 							libmaus2::bambam::parallel::GenericInputControlBlockWritePackage * package = writeWorkPackages.getPackage();
 							*package = libmaus2::bambam::parallel::GenericInputControlBlockWritePackage(0/*prio*/, GICBWPDid, GICCP, &out);
+							package->subid = GICCP.absid;
 							STP.enque(package);
 						}
 
 						{
 							FileChecksumBlockWorkPackage * package = checksumWorkPackages.getPackage();
 							*package = FileChecksumBlockWorkPackage(0 /* prio */, FCBWPDid, GICCP, filechecksum);
+							package->subid = GICCP.absid;
 							STP.enque(package);
 						}
 					}
@@ -953,6 +957,7 @@ namespace libmaus2
 						*package = libmaus2::bambam::parallel::GenericInputControlBlockCompressionWorkPackage(
 							0 /* prio */,GICBCWPDid,readylist[i]
 						);
+						package->subid = readylist[i].absid;
 						STP.enque(package);
 					}
 				}
@@ -961,6 +966,7 @@ namespace libmaus2
 				{
 					SamEncodingWorkPackageWrapper * package = samEncodingWorkPackages.getPackage();
 					*package = SamEncodingWorkPackageWrapper(0/*prio*/,SEWPDid,reinterpret_cast<SamEncodingWorkPackage *>(workpackage));
+					package->subid = package->package->inblockid;
 					STP.enque(package);
 				}
 
@@ -968,6 +974,7 @@ namespace libmaus2
 				{
 					CramEncodingWorkPackage * package = cramEncodingWorkPackages.getPackage();
 					*package = CramEncodingWorkPackage(0/*prio*/,CEWPDid,workpackage,PcramEncoder.get());
+					package->subid = 0; // change me
 					STP.enque(package);
 				}
 
@@ -1108,10 +1115,12 @@ namespace libmaus2
 
 						CramOutputBlockWritePackage * package = cramWriteWorkPackages.getPackage();
 						*package = CramOutputBlockWritePackage(0/*prio*/, COBWPDid, block, &out);
+						package->subid = ((block->blockid + 1) << 32) | block->subblockid;
 						STP.enque(package);
 
 						CramOutputBlockChecksumPackage * cpackage = cramChecksumWorkPackages.getPackage();
 						*cpackage = CramOutputBlockChecksumPackage(0/*prio*/, COBCPDid, block, filechecksum);
+						cpackage->subid = ((block->blockid + 1) << 32) | block->subblockid;
 						STP.enque(cpackage);
 					}
 				}
@@ -1548,6 +1557,7 @@ namespace libmaus2
 						{
 							libmaus2::bambam::parallel::GenericInputControlReorderWorkPackage * package = rewriteWorkPackages.getPackage();
 							*package = libmaus2::bambam::parallel::GenericInputControlReorderWorkPackage(0/* prio */, GICRWPDid, block,ptr, packs[i], i);
+							package->subid = (block->id << 32) | i;
 							STP.enque(package);
 						}
 
@@ -1655,6 +1665,7 @@ namespace libmaus2
 
 								libmaus2::bambam::parallel::GenericInputMergeWorkPackage<heap_element_type> * package = mergeWorkPackages.getPackage();
 								*package = libmaus2::bambam::parallel::GenericInputMergeWorkPackage<heap_element_type>(0/*prio*/,GIMWPDid,&data,&mergeheap,buffer);
+								package->subid = buffer->id;
 								STP.enque(package);
 							}
 						}
@@ -1812,6 +1823,7 @@ namespace libmaus2
 					{
 						libmaus2::bambam::parallel::GenericInputBamParseWorkPackage * package = parseWorkPackages.getPackage();
 						*package = libmaus2::bambam::parallel::GenericInputBamParseWorkPackage(0/*prio*/,GIBPWPDid,libmaus2::bambam::parallel::GenericInputBamParseObject(&(data[streamid]->parseInfo),block));
+						package->subid = block->blockid;
 						STP.enque(package);
 					}
 				}
@@ -1851,6 +1863,7 @@ namespace libmaus2
 						{
 							libmaus2::bambam::parallel::GenericInputControlReadWorkPackage * package = readWorkPackages.getPackage();
 							*package = libmaus2::bambam::parallel::GenericInputControlReadWorkPackage(0 /* prio */, GICRPDid, data[streamid].get());
+							package->subid = 0; // serial, no prio
 							STP.enque(package);
 						}
 					}
@@ -1873,6 +1886,7 @@ namespace libmaus2
 					{
 						// input block id
 						uint64_t const blockid = data[streamid]->decompressionpending.top().block->meta.blockid;
+						uint64_t const subblockid = data[streamid]->decompressionpending.top().subblockid;
 
 						libmaus2::bambam::parallel::GenericInputControlSubBlockPending pend = data[streamid]->decompressionpending.top();
 						data[streamid]->decompressionpending.pop();
@@ -1889,6 +1903,7 @@ namespace libmaus2
 
 						libmaus2::bambam::parallel::GenericInputBgzfDecompressionWorkPackage * package = decompressWorkPackages.getPackage();
 						*package = libmaus2::bambam::parallel::GenericInputBgzfDecompressionWorkPackage(0/*prio*/,GIBDWPDid,pend);
+						package->subid = ((blockid + 1) << 32) || subblockid;
 						STP.enque(package);
 
 						data[streamid]->decompressionpendingnext.second += 1;
