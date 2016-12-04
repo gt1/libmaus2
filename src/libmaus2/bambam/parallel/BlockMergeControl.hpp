@@ -322,6 +322,8 @@ namespace libmaus2
 
 				bool const bamindex;
 
+				libmaus2::timing::RealTimeClock rtc;
+
 				void enqueHeader()
 				{
 					switch ( block_merge_output_format )
@@ -651,6 +653,8 @@ namespace libmaus2
 
 				void addPending()
 				{
+					rtc.start();
+
 					for ( uint64_t streamid = 0; streamid < data.size(); ++streamid )
 					{
 						libmaus2::bambam::parallel::GenericInputControlReadWorkPackage * package = readWorkPackages.getPackage();
@@ -1595,7 +1599,7 @@ namespace libmaus2
 
 						if ( (mergedReads / (1024*1024) != mergedReadsLastPrint / (1024*1024)) )
 						{
-							std::cerr << "[V] " << mergedReads << std::endl;
+							std::cerr << "[V] " << mergedReads << " " << rtc.formatTime(rtc.getElapsedSeconds()) << std::endl;
 							mergedReadsLastPrint = mergedReads;
 						}
 					}
