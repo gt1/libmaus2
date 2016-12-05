@@ -95,6 +95,26 @@ namespace libmaus2
 
 				Node() : sp(0), ep(0) {}
 				Node(uint64_t const rsp, uint64_t const rep) : sp(rsp), ep(rep) {}
+
+				bool operator==(Node const & N) const
+				{
+					return N.sp == sp && N.ep == ep;
+				}
+
+				bool operator!=(Node const & N) const
+				{
+					return !(*this==N);
+				}
+
+				bool isLeaf() const
+				{
+					return ep-sp == 1;
+				}
+
+				uint64_t size() const
+				{
+					return (ep > sp) ? (ep-sp) : 0;
+				}
 			};
 
 			template<typename iterator>
@@ -151,10 +171,45 @@ namespace libmaus2
 			{
 				if ( node.ep - node.sp > 1 )
 					return (*LCP)[RMM->rmq(node.sp+1,node.ep-1)];
+				#if 0
 				else if ( node.ep-node.sp == 1 )
 					return n-(*SSA)[node.sp];
+				#endif
 				else
 					return std::numeric_limits<uint64_t>::max();
+			}
+
+			std::ostream & printNodeContext(std::ostream & out, Node const & N, uint64_t const n) const
+			{
+				assert ( sdepth(N) >= n );
+
+				std::map < int64_t, uint64_t > M = LF->getW().enumerateSymbolsInRange(N.sp,N.ep);
+				out << "(";
+				for ( std::map < int64_t, uint64_t >::const_iterator ita = M.begin(); ita != M.end(); ++ita )
+					out << ita->first;
+				out << ")";
+
+				for ( uint64_t j = 0; j < n; ++j )
+					out << letter(N.sp,j);
+
+				out << "(";
+				if ( sdepth(N) == n )
+				{
+					Node node = firstChild(N);
+					while ( node.ep != node.sp )
+					{
+						out << letter(node.sp,n);
+						node = nextSibling(node);
+					}
+				}
+				else
+				{
+					assert ( sdepth(N) > n );
+					out << letter(N.sp,n);
+				}
+				out << ")";
+
+				return out;
 			}
 
 			/**
@@ -221,6 +276,27 @@ namespace libmaus2
 				}
 
 				return it-ita;
+			}
+
+			/*
+			 * enumerate children
+			 */
+			uint64_t enumerateChildren(Node const & par, libmaus2::autoarray::AutoArray<Node> & A) const
+			{
+				Node node = firstChild(par);
+				uint64_t o = 0;
+
+				while ( node.ep - node.sp )
+				{
+					A.push(o,node);
+
+					if ( node.ep == par.ep )
+						break;
+
+					node = Node(node.ep, RMM->nsv(node.ep,(*LCP)[node.ep]+1));
+				}
+
+				return o;
 			}
 
 			/*

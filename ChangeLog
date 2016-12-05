@@ -1,3 +1,17 @@
+libmaus2 (2.0.289-1) unstable; urgency=medium
+
+  * add operator==/operator!=/isLeaf and size methods in CompressedSuffixTree::Node
+  * change semantics of CompressedSuffixTree::sdepth to return infinity/max for leafs
+  * add AutoArray based CompressedSuffixTree::enumerateChildren method
+  * add CompressedSuffixTree::printNodeContext
+  * check for sorting thread failure in sortAndMerge function of SortingOverlapOutputBuffer
+  * add getTracePoints and true overlap flag in Overlap class
+  * add runtime reporting in BlockMergeControl
+  * add priorisation of packages in BlockSortControl/BlockMergeControl
+  * add lock for accessing blockid in GenericInputSingleData
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 05 Dec 2016 16:36:13 +0100
+
 libmaus2 (2.0.288-1) unstable; urgency=medium
 
   * move output operator for DuplicationMetrics to libmaus2::bambam namespace
