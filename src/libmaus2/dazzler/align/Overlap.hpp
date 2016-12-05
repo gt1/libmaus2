@@ -204,6 +204,11 @@ namespace libmaus2
 					return (1ull << 31);
 				}
 
+				static uint64_t getTrueFlag()
+				{
+					return (1ull << 30);
+				}
+
 				static uint64_t getACompFlag()
 				{
 					return 0x2;
@@ -247,6 +252,11 @@ namespace libmaus2
 				bool isPrimary() const
 				{
 					return (flags & getPrimaryFlag()) != 0;
+				}
+
+				bool isTrue() const
+				{
+					return (flags & getTrueFlag()) != 0;
 				}
 
 				void setPrimary()
@@ -1265,6 +1275,37 @@ namespace libmaus2
 						V.push_back(TracePoint(a_i,b_i,traceid));
 					else
 						V.push_back(TracePoint(path.abpos,path.bbpos,traceid));
+				}
+
+				uint64_t getTracePoints(int64_t const tspace, uint64_t const traceid, libmaus2::autoarray::AutoArray<TracePoint> & V, uint64_t o = 0) const
+				{
+					// current point on A
+					int32_t a_i = ( path.abpos / tspace ) * tspace;
+					// current point on B
+					int32_t b_i = ( path.bbpos );
+
+					for ( size_t i = 0; i < path.path.size(); ++i )
+					{
+						// block start point on A
+						int32_t const a_i_0 = std::max ( a_i, static_cast<int32_t>(path.abpos) );
+						// block end point on A
+						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(path.aepos) );
+						// block end point on B
+						int32_t const b_i_1 = b_i + path.path[i].second;
+
+						V.push(o,TracePoint(a_i_0,b_i,traceid));
+
+						// update start points
+						b_i = b_i_1;
+						a_i = a_i_1;
+					}
+
+					if ( o )
+						V.push(o,TracePoint(a_i,b_i,traceid));
+					else
+						V.push(o,TracePoint(path.abpos,path.bbpos,traceid));
+
+					return o;
 				}
 
 				std::vector<TracePoint> getSwappedTracePoints(int64_t const tspace, uint64_t const traceid) const

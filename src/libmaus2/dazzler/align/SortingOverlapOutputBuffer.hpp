@@ -594,23 +594,45 @@ namespace libmaus2
 					uint64_t volatile tmpid = 0;
 					libmaus2::parallel::PosixSpinLock S;
 
+					int volatile failed = 0;
+
 					#if defined(_OPENMP)
 					#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 					#endif
 					for ( uint64_t i = 0; i < infilenames.size(); ++i )
 					{
-						std::ostringstream fnostr;
+						try
 						{
-						libmaus2::parallel::ScopePosixSpinLock slock(S);
-						fnostr << tmpfilebase << "_" << (tmpid++);
-						}
-						std::string const fn = fnostr.str();
-						libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
-						libmaus2::util::TempFileRemovalContainer::addTempFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(fn));
-						libmaus2::dazzler::align::SortingOverlapOutputBuffer<comparator_type>::sortFile(infilenames[i],fn);
+							std::ostringstream fnostr;
+							{
+							libmaus2::parallel::ScopePosixSpinLock slock(S);
+							fnostr << tmpfilebase << "_" << (tmpid++);
+							}
+							std::string const fn = fnostr.str();
+							libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
+							libmaus2::util::TempFileRemovalContainer::addTempFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(fn));
+							libmaus2::dazzler::align::SortingOverlapOutputBuffer<comparator_type>::sortFile(infilenames[i],fn);
 
-						libmaus2::parallel::ScopePosixSpinLock slock(S);
-						infilenames[i] = fn;
+							libmaus2::parallel::ScopePosixSpinLock slock(S);
+							infilenames[i] = fn;
+						}
+						catch(std::exception const & ex)
+						{
+							{
+								libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+								std::cerr << ex.what() << std::endl;
+							}
+							libmaus2::parallel::ScopePosixSpinLock slock(S);
+							failed = 1;
+						}
+					}
+
+					if ( failed )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "SortingOverlapOutputBuffer::sortAndMerge: failed to sort single input files" << std::endl;
+						lme.finish();
+						throw lme;
 					}
 
 					while ( infilenames.size() > 1 )

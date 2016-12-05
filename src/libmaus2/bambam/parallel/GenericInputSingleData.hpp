@@ -90,6 +90,8 @@ namespace libmaus2
 				uint64_t const streamid;
 				// block id, protected by inlock
 				uint64_t volatile blockid;
+				// read lock
+				libmaus2::parallel::PosixSpinLock blockidlock;
 
 				public:
 				// block size, constant, no lock needed
@@ -242,13 +244,15 @@ namespace libmaus2
 					return streamid;
 				}
 
-				uint64_t getBlockId() const
+				uint64_t getBlockId()
 				{
+					libmaus2::parallel::ScopePosixSpinLock slock(blockidlock);
 					return blockid;
 				}
 
 				void incrementBlockId()
 				{
+					libmaus2::parallel::ScopePosixSpinLock slock(blockidlock);
 					blockid++;
 				}
 			};
