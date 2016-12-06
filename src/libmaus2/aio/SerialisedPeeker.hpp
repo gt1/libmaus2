@@ -34,7 +34,7 @@ namespace libmaus2
 
 			libmaus2::aio::InputStreamInstance::unique_ptr_type PISI;
 			std::istream & ISI;
-			
+
 			bool rawGet(data_type & D)
 			{
 				if ( ISI.peek() == std::istream::traits_type::eof() )
@@ -45,23 +45,23 @@ namespace libmaus2
 					return true;
 				}
 			}
-			
+
 			data_type slot;
 			bool slotfilled;
-			
+
 			SerialisedPeeker(std::istream & rISI) : ISI(rISI), slotfilled(false) {}
 			SerialisedPeeker(std::string const & fn) : PISI(new libmaus2::aio::InputStreamInstance(fn)), ISI(*PISI), slotfilled(false) {}
-			
+
 			bool peekNext(data_type & D)
 			{
 				slotfilled = slotfilled || rawGet(slot);
-				
+
 				if ( slotfilled )
 					D = slot;
-				
+
 				return slotfilled;
 			}
-			
+
 			bool getNext(data_type & D)
 			{
 				if ( slotfilled )
