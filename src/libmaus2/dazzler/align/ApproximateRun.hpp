@@ -47,6 +47,14 @@ namespace libmaus2
 
 				std::vector<int64_t> other;
 
+				ApproximateRun()
+				{}
+
+				ApproximateRun(std::istream & in)
+				{
+					deserialise(in);
+				}
+
 				uint64_t serialise(std::ostream & out) const
 				{
 					uint64_t offset = 0;
