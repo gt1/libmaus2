@@ -649,7 +649,8 @@ libmaus2bambam_include_HEADERS = libmaus2/bambam/DecoderBase.hpp libmaus2/bambam
 	libmaus2/bambam/BamNumericalIndexBase.hpp \
 	libmaus2/bambam/BamPeeker.hpp \
 	libmaus2/bambam/OptName.hpp \
-	libmaus2/bambam/OptNameReader.hpp
+	libmaus2/bambam/OptNameReader.hpp \
+	libmaus2/bambam/BamAccessor.hpp
 
 libmaus2bambamparallel_includedir=$(includedir)/libmaus2/bambam/parallel/
 libmaus2bambamparallel_include_HEADERS = \
