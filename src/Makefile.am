@@ -322,7 +322,8 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/RefMapEntry.hpp \
 	libmaus2/dazzler/align/RefMapEntryVector.hpp \
 	libmaus2/dazzler/align/TrueOverlapStats.hpp \
-	libmaus2/dazzler/align/TrueOverlap.hpp
+	libmaus2/dazzler/align/TrueOverlap.hpp \
+	libmaus2/dazzler/align/AlignmentWriterArray.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
 libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp libmaus2/autoarray/AutoArrayMultiMap.hpp \
@@ -648,7 +649,8 @@ libmaus2bambam_include_HEADERS = libmaus2/bambam/DecoderBase.hpp libmaus2/bambam
 	libmaus2/bambam/BamNumericalIndexBase.hpp \
 	libmaus2/bambam/BamPeeker.hpp \
 	libmaus2/bambam/OptName.hpp \
-	libmaus2/bambam/OptNameReader.hpp
+	libmaus2/bambam/OptNameReader.hpp \
+	libmaus2/bambam/BamAccessor.hpp
 
 libmaus2bambamparallel_includedir=$(includedir)/libmaus2/bambam/parallel/
 libmaus2bambamparallel_include_HEADERS = \
@@ -1408,7 +1410,8 @@ libmaus2aio_include_HEADERS=\
 	libmaus2/aio/SizeMonitorThread.hpp \
 	libmaus2/aio/DebugLineOutputStreamBuffer.hpp \
 	libmaus2/aio/DebugLineOutputStream.hpp \
-	libmaus2/aio/TempFileArray.hpp
+	libmaus2/aio/TempFileArray.hpp \
+	libmaus2/aio/SerialisedPeeker.hpp
 	
 libmaus2parallel_includedir=$(includedir)/libmaus2/parallel
 libmaus2parallel_include_HEADERS=\
