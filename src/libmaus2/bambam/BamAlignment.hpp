@@ -2627,7 +2627,7 @@ namespace libmaus2
 				}
 
 				uint64_t const ins = H[BamFlagBase::LIBMAUS2_BAMBAM_CINS];
-				uint64_t const del = H[BamFlagBase::LIBMAUS2_BAMBAM_CINS];
+				uint64_t const del = H[BamFlagBase::LIBMAUS2_BAMBAM_CDEL];
 				uint64_t const dif = H[BamFlagBase::LIBMAUS2_BAMBAM_CDIFF];
 				uint64_t const eq = H[BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL];
 
