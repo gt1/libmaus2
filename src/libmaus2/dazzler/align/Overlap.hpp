@@ -1241,6 +1241,39 @@ namespace libmaus2
 					return V;
 				}
 
+				uint64_t getTraceBlocks(int64_t const tspace, libmaus2::autoarray::AutoArray<TraceBlock> & A, uint64_t o = 0, bool fullonly = false) const
+				{
+					// current point on A
+					int32_t a_i = ( path.abpos / tspace ) * tspace;
+					// current point on B
+					int32_t b_i = ( path.bbpos );
+
+					for ( size_t i = 0; i < path.path.size(); ++i )
+					{
+						// block start point on A
+						int32_t const a_i_0 = std::max ( a_i, static_cast<int32_t>(path.abpos) );
+						// block end point on A
+						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(path.aepos) );
+						// block end point on B
+						int32_t const b_i_1 = b_i + path.path[i].second;
+
+						if ( (! fullonly) || (a_i_1-a_i_0 == tspace) )
+							A.push(o,
+								TraceBlock(
+									std::pair<int64_t,int64_t>(a_i_0,a_i_1),
+									std::pair<int64_t,int64_t>(b_i,b_i_1),
+									path.path[i].first
+								)
+							);
+
+						// update start points
+						b_i = b_i_1;
+						a_i = a_i_1;
+					}
+
+					return o;
+				}
+
 				std::vector<TracePoint> getTracePoints(int64_t const tspace, uint64_t const traceid) const
 				{
 					std::vector<TracePoint> V;
