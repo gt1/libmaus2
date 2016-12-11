@@ -41,11 +41,17 @@ namespace libmaus2
 			uint64_t length;
 			uint64_t rightmost;
 			uint64_t covercount;
+			uint64_t refid;
 
 			Chain()
-			: head(std::numeric_limits<uint64_t>::max()), last(std::numeric_limits<uint64_t>::max()), length(0), rightmost(0), covercount(0)
+			: head(std::numeric_limits<uint64_t>::max()), last(std::numeric_limits<uint64_t>::max()), length(0), rightmost(0), covercount(0), refid(0)
 			{
 
+			}
+
+			uint64_t getRefID() const
+			{
+				return refid;
 			}
 
 			uint64_t getRange(libmaus2::util::ContainerElementFreeList<ChainNode> & nodes) const
