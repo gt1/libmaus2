@@ -78,6 +78,8 @@ namespace libmaus2
 			int64_t algndommul;
 			int64_t algndomdiv;
 
+			bool domsameref;
+
 			bool idle() const
 			{
 				assert ( RSQ.empty() );
@@ -141,10 +143,12 @@ namespace libmaus2
 				uint64_t const ralgndommul,
 				uint64_t const ralgndomdiv,
 				uint64_t const rmaxwerr,
-				uint64_t const rmaxback
+				uint64_t const rmaxback,
+				bool const rdomsameref
 			) : minscore(rminscore), n(rn), text(rtext), meta(rmeta), RS(n),
 			    nnp(rmaxwerr,rmaxback),
-			    fracmul(rfracmul), fracdiv(rfracdiv), algndommul(ralgndommul), algndomdiv(ralgndomdiv)
+			    fracmul(rfracmul), fracdiv(rfracdiv), algndommul(ralgndommul), algndomdiv(ralgndomdiv),
+			    domsameref(rdomsameref)
 				#if defined(CHAINNODEINFOSET_DOT)
 				,chaindot(0)
 				#endif
@@ -537,7 +541,8 @@ namespace libmaus2
 				char const * query,
 				uint64_t const querysize,
 				uint64_t const minlength,
-				double const maxerr
+				double const maxerr,
+				uint64_t const refid
 				)
 			{
 				if ( o && CNI[0].chainscore >= minscore )
@@ -622,7 +627,7 @@ namespace libmaus2
 							&&
 							res.getErrorRate() <= maxerr
 						)
-							Aalgn.push(aalgno,libmaus2::lcs::ChainAlignment(res,CNI[cur].xleft,CNI[cur].yleft,CNI[cur].xright-CNI[cur].xleft));
+							Aalgn.push(aalgno,libmaus2::lcs::ChainAlignment(res,CNI[cur].xleft,CNI[cur].yleft,CNI[cur].xright-CNI[cur].xleft,refid));
 
 						uint64_t const d_o = nnptrace.getDiagStrips(res.abpos,res.bbpos,D);
 
@@ -725,6 +730,7 @@ namespace libmaus2
 					uint64_t const aepos = Aalgn[i].res.aepos;
 					// uint64_t const alen = aepos-abpos;
 					libmaus2::math::IntegerInterval<int64_t> Ii(abpos,aepos-1);
+					uint64_t const refidi = Aalgn[i].refid;
 
 					while ( (! active.empty()) && active.begin()->res.aepos < abpos )
 					{
@@ -739,12 +745,15 @@ namespace libmaus2
 					{
 						uint64_t const back_abpos = ita->res.abpos;
 						uint64_t const back_aepos = ita->res.aepos;
+						uint64_t const refidj = ita->refid;
 						// uint64_t const backlen = back_aepos - back_abpos;
 
 						libmaus2::math::IntegerInterval<int64_t> Ia(back_abpos,back_aepos-1);
 						libmaus2::math::IntegerInterval<int64_t> Ic = Ii.intersection(Ia);
 
 						if (
+							((!domsameref) || (refidi == refidj))
+							&&
 							Ic.diameter() >= static_cast<int64_t>((fracmul * Ii.diameter()) / fracdiv)
 							&&
 							// Ia.diameter() >= 2 * Ii.diameter()
@@ -758,6 +767,8 @@ namespace libmaus2
 							covered = true;
 						}
 						else if (
+							((!domsameref) || (refidi == refidj))
+							&&
 							Ic.diameter() >= static_cast<int64_t>((fracmul * Ia.diameter()) / fracdiv)
 							&&
 							// Ii.diameter() >= 2 * Ia.diameter()
