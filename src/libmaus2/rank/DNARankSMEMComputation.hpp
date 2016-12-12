@@ -215,6 +215,70 @@ namespace libmaus2
 				}
 			};
 
+			/**
+			 * enumerator for kmers
+			 **/
+			template<typename iterator>
+			struct KmerEnumerator
+			{
+				libmaus2::rank::DNARank const & rank;
+				libmaus2::rank::DNARankKmerCache const * cache;
+				iterator const it;
+				uint64_t const left;
+				uint64_t const right;
+				uint64_t const minfreq;
+				uint64_t const kmersize;
+				uint64_t next;
+
+				KmerEnumerator(
+					libmaus2::rank::DNARank const & rrank,
+					iterator rit,
+					uint64_t const rleft,
+					uint64_t const rright,
+					uint64_t const rminfreq,
+					uint64_t const rkmersize
+				) : rank(rrank), cache(0), it(rit), left(rleft), right(rright), minfreq(rminfreq), kmersize(rkmersize), next(left)
+				{
+				}
+
+				KmerEnumerator(
+					libmaus2::rank::DNARank const & rrank,
+					libmaus2::rank::DNARankKmerCache const * rcache,
+					iterator rit,
+					uint64_t const rleft,
+					uint64_t const rright,
+					uint64_t const rminfreq,
+					uint64_t const rkmersize
+				) : rank(rrank), cache(rcache), it(rit), left(rleft), right(rright), minfreq(rminfreq), kmersize(rkmersize), next(left)
+				{
+				}
+
+				bool getNext(DNARankMEM & mem)
+				{
+					while ( next < right )
+					{
+						uint64_t const p = next++;
+						
+						std::pair<uint64_t,uint64_t> const P = 
+							cache ?
+								cache->search(it+p,kmersize)
+								:
+								rank.backwardSearch(it+p,kmersize);
+						
+						if ( P.second - P.first && P.second-P.first >= minfreq )
+						{
+							mem.left = next;
+							mem.right = next + kmersize;
+							mem.intv = rank.backwardSearchBi(it+p,kmersize);
+							assert ( mem.intv.size == P.second-P.first );
+							return true;
+						}
+					}
+					
+					return false;
+				}
+			};
+
 			template<typename iterator>
 			static void smemSerial(
 				libmaus2::rank::DNARank const & rank,

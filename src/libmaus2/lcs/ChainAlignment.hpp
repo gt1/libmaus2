@@ -33,10 +33,11 @@ namespace libmaus2
 			#if 0
 			libmaus2::lcs::NNPTraceContainer::shared_ptr_type nnptrace;
 			#endif
+			uint64_t refid;
 
 			ChainAlignment() {}
-			ChainAlignment(libmaus2::lcs::NNPAlignResult const & rres, uint64_t const rseedposa, uint64_t const rseedposb, uint64_t const rseedlength)
-			: res(rres), seedposa(rseedposa), seedposb(rseedposb), seedlength(rseedlength)
+			ChainAlignment(libmaus2::lcs::NNPAlignResult const & rres, uint64_t const rseedposa, uint64_t const rseedposb, uint64_t const rseedlength, uint64_t rrefid)
+			: res(rres), seedposa(rseedposa), seedposb(rseedposb), seedlength(rseedlength), refid(rrefid)
 			{
 
 			}
