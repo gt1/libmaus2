@@ -597,17 +597,29 @@ namespace libmaus2
 					{
 						case STEP_INS:
 							cur -= 1;
-							to = std::max(to,cur);
 							break;
 						case STEP_DEL:
 							cur += 1;
+							break;
+						case STEP_MATCH:
 							from = std::min(from,cur);
+							to = std::max(to,cur);
 							break;
 						default:
 							break;
 
 					}
 				}
+			}
+
+			std::pair<int64_t,int64_t> getDiagonalBand(int64_t const apos = 0, int64_t const bpos = 0) const
+			{
+				std::pair<int64_t,int64_t> P;
+				int64_t const d = apos-bpos;
+				getDiagonalBand(ta,te,P.first,P.second);
+				P.first += d;
+				P.second += d;
+				return P;
 			}
 
 			static void swapRoles(step_type * ta, step_type * te)
