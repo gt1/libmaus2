@@ -204,7 +204,7 @@ namespace libmaus2
 					libmaus2::math::IntegerInterval<int64_t> Iback(backchain.getLeftMost(chainnodefreelist),static_cast<int64_t>(backchain.rightmost-1));
 					// intersect with interval of new chain
 					libmaus2::math::IntegerInterval<int64_t> Isec = Icur.intersection(Iback);
-					
+
 					if (
 						((!domsameref) || (ita->second.getRefID() == chain.getRefID()) )
 						&&
@@ -260,7 +260,7 @@ namespace libmaus2
 				libmaus2::lcs::Chain const & chain = chains.find(chainid)->second;
 				uint64_t const chainleftmost = chain.getLeftMost(chainnodefreelist);
 				uint64_t const refid = chain.getRefID();
-				
+
 				uint64_t const len = chain.getInfo(chainnodefreelist, ACH);
 				assert ( len == chain.length );
 				assert ( len );
@@ -562,7 +562,7 @@ namespace libmaus2
 								parentsubid = std::numeric_limits<uint64_t>::max();
 
 								assert ( chains.find(chainid) == chains.end() );
-								
+
 								libmaus2::lcs::Chain nchain;
 								nchain.rightmost = smem.right;
 								nchain.refid = coL.first;
