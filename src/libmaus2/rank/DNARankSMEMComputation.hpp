@@ -258,13 +258,13 @@ namespace libmaus2
 					while ( next < right )
 					{
 						uint64_t const p = next++;
-						
-						std::pair<uint64_t,uint64_t> const P = 
+
+						std::pair<uint64_t,uint64_t> const P =
 							cache ?
 								cache->search(it+p,kmersize)
 								:
 								rank.backwardSearch(it+p,kmersize);
-						
+
 						if ( P.second - P.first && P.second-P.first >= minfreq )
 						{
 							mem.left = next;
@@ -274,7 +274,7 @@ namespace libmaus2
 							return true;
 						}
 					}
-					
+
 					return false;
 				}
 			};
