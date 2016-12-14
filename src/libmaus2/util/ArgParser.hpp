@@ -113,6 +113,17 @@ namespace libmaus2
 				return restargs.size();
 			}
 
+			static std::string charToOct(char const c)
+			{
+				unsigned char const u = static_cast<unsigned char>(c);
+				int const i = static_cast<int>(u);
+
+				std::ostringstream ostr;
+				ostr << std::setw(3) << std::setfill('0') << std::oct << i;
+
+				return ostr.str();
+			}
+
 			std::ostream & printArgs(std::ostream & out, std::string const & prefix = std::string()) const
 			{
 				for ( uint64_t i = 0; i < args.size(); ++i )
@@ -125,13 +136,17 @@ namespace libmaus2
 					{
 						char const c = args[i][j];
 
-						if ( ::isprint(c) && !::isspace(c) )
+						if (
+							::isalnum(c)
+							|| c == '/'
+							|| c == '-'
+							|| c == '.'
+						)
 							out.put(c);
 						else
 						{
-							unsigned char const u = static_cast<unsigned char>(c);
 							out.put('\\');
-							out << std::setw(3) << std::setfill('0') << static_cast<int>(u) << std::setw(0);
+							out << charToOct(c);
 						}
 					}
 
