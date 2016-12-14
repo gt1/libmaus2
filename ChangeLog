@@ -1,3 +1,9 @@
+libmaus2 (2.0.294-1) unstable; urgency=medium
+
+  * add printArgs method in ArgParser class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 14 Dec 2016 14:05:31 +0100
+
 libmaus2 (2.0.293-1) unstable; urgency=medium
 
   * fix getDiagonalBand and add new variant of it in AlignmentTraceContainer

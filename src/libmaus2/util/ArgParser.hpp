@@ -24,6 +24,7 @@
 #include <libmaus2/util/Demangle.hpp>
 #include <map>
 #include <cassert>
+#include <iomanip>
 
 namespace libmaus2
 {
@@ -38,6 +39,7 @@ namespace libmaus2
 			std::string progname;
 			std::string commandline;
 
+			std::vector<std::string> args;
 			std::multimap<std::string,std::string> kvargs;
 			std::vector<std::string> restargs;
 
@@ -63,6 +65,9 @@ namespace libmaus2
 
 			ArgParser(int const argc, char * argv[])
 			{
+				for ( int i = 0; i < argc; ++i )
+					args.push_back(argv[i]);
+
 				if ( argc )
 					progname = argv[0];
 
@@ -106,6 +111,41 @@ namespace libmaus2
 			size_t size() const
 			{
 				return restargs.size();
+			}
+
+			std::ostream & printArgs(std::ostream & out, std::string const & prefix = std::string()) const
+			{
+				for ( uint64_t i = 0; i < args.size(); ++i )
+				{
+					out << prefix;
+
+					out << "args[" << i << "]=";
+
+					for ( uint64_t j = 0; j < args[i].size(); ++j )
+					{
+						char const c = args[i][j];
+
+						if ( ::isprint(c) && !::isspace(c) )
+							out.put(c);
+						else
+						{
+							unsigned char const u = static_cast<unsigned char>(c);
+							out.put('\\');
+							out << std::setw(3) << std::setfill('0') << static_cast<int>(u) << std::setw(0);
+						}
+					}
+
+					out.put('\n');
+				}
+
+				return out;
+			}
+
+			std::string printArgs(std::string const & prefix = std::string()) const
+			{
+				std::ostringstream ostr;
+				printArgs(ostr,prefix);
+				return ostr.str();
 			}
 
 			std::string const & operator[](size_t const i) const
