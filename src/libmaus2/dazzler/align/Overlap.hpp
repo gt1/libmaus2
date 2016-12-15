@@ -845,28 +845,29 @@ namespace libmaus2
 						// block end point on B
 						int32_t const b_i_1 = b_i + path.path[i].second;
 
-						if (
-							(
-								(a_i_1 - a_i_0) == tspace
-								&&
-								(a_i_0 % tspace == 0)
-								&&
-								(a_i_1 % tspace == 0)
-							)
-							||
-							(
-								a_i_1 == rlen
-							)
-						)
-						{
-							#if 0
-							if ( a_i_0 == path.abpos )
-								std::cerr << "start block" << std::endl;
-							if ( a_i_1 == rlen )
-								std::cerr << "end block" << std::endl;
-							#endif
+						bool const blockleftaligned = (a_i_0 % tspace == 0);
+						bool const blockrightaligned = (a_i_1 % tspace == 0 );
+						bool const blocknonempty = (a_i_1 > a_i_0);
+						bool const fullblock = blockleftaligned && blockrightaligned && blocknonempty;
 
+						if ( fullblock )
+						{
 							H [ a_i / tspace ][path.path[i].first]++;
+						}
+						// last block on read
+						else if ( blockleftaligned && (a_i_1 == rlen) )
+						{
+							// block size
+							int64_t const l = rlen - a_i_0;
+							assert ( l < tspace );
+							// errors scaled
+							uint64_t const ue = std::floor((path.path[i].first * (static_cast<double>(l) / static_cast<double>(tspace)))+0.5);
+							// error fraction
+							uint64_t const ur = std::floor((ue                 * (static_cast<double>(tspace) / static_cast<double>(l)))+0.5);
+
+							// save
+							if ( ur == path.path[i].second )
+								H [ a_i / tspace ][ue]++;
 						}
 
 						// update start points
@@ -1466,27 +1467,11 @@ namespace libmaus2
 						// block end point on B
 						int32_t const b_i_1 = b_i + path.path[i].second;
 
-						if (
-							(
-								(a_i_1 - a_i_0) == tspace
-								&&
-								(a_i_0 % tspace == 0)
-								&&
-								(a_i_1 % tspace == 0)
-								&&
-								path.path[i].first <= ethres
-							)
-							||
-							(
-								(a_i_1 == path.aepos)
-								&&
-								(path.path[i].first <= ethres)
-							)
-						)
-						{
+						bool const fullblock = ((a_i_0-a_i_1) == tspace) && ((a_i_0 % tspace) == 0);
+						assert ( (!fullblock) || (a_i_1 % tspace == 0) );
+
+						if ( fullblock && path.path[i].first <= ethres )
 							M . at ( i ) = path.path[i].first;
-							// assert ( a_i / tspace == i );
-						}
 
 						// update start points
 						b_i = b_i_1;
