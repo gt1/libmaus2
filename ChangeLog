@@ -1,3 +1,9 @@
+libmaus2 (2.0.296-1) unstable; urgency=medium
+
+  * rewrite fillErrorHistogram in Overlap class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 15 Dec 2016 14:50:19 +0100
+
 libmaus2 (2.0.295-1) unstable; urgency=medium
 
   * update character escaping in ArgParser
