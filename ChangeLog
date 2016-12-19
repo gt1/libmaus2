@@ -1,3 +1,9 @@
+libmaus2 (2.0.297-1) unstable; urgency=medium
+
+  * add OverlapProperCheck class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 19 Dec 2016 23:27:40 +0100
+
 libmaus2 (2.0.296-1) unstable; urgency=medium
 
   * rewrite fillErrorHistogram in Overlap class
