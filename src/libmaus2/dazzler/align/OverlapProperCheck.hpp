@@ -104,7 +104,26 @@ namespace libmaus2
 
 				}
 
-				bool operator()(libmaus2::dazzler::align::Overlap const & OVL, int64_t const tspace, int const verbose = 0, std::ostream * out = 0) const
+				struct OverlapProperCheckInfo
+				{
+					bool proper;
+					bool termleft;
+					bool termright;
+
+					OverlapProperCheckInfo() {}
+					OverlapProperCheckInfo(
+						bool const rproper,
+						bool const rtermleft,
+						bool const rtermright
+					) : proper(rproper), termleft(rtermleft), termright(rtermright) {}
+				};
+
+				OverlapProperCheckInfo operator()(
+					libmaus2::dazzler::align::Overlap const & OVL,
+					int64_t const tspace,
+					int const verbose = 0,
+					std::ostream * out = 0
+				) const
 				{
 					unsigned char const * aa = inqual.Adata->begin() + anno[OVL.aread];
 					unsigned char const * ae = inqual.Adata->begin() + anno[OVL.aread+1];
@@ -215,11 +234,11 @@ namespace libmaus2
 
 						bool const proper = term_left && term_right;
 
-						return proper;
+						return OverlapProperCheckInfo(proper,term_left,term_right);
 					}
 					else
 					{
-						return false;
+						return OverlapProperCheckInfo(false,false,false);
 					}
 				}
 			};
