@@ -1,3 +1,9 @@
+libmaus2 (2.0.298-1) unstable; urgency=medium
+
+  * change return type of OverlapProperCheck to return more information
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 20 Dec 2016 20:37:28 +0100
+
 libmaus2 (2.0.297-1) unstable; urgency=medium
 
   * add OverlapProperCheck class
