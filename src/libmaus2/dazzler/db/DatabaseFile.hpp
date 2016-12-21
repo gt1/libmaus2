@@ -860,7 +860,10 @@ namespace libmaus2
 					}
 				};
 
-				static DBFileSet::unique_ptr_type copyToPrefix(std::string const & s, std::string const & dstprefix, bool const registertmp = true)
+				static DBFileSet::unique_ptr_type copyToPrefix(
+					std::string const & s, std::string const & dstprefix, bool const registertmp = true,
+					std::vector<std::string> const * tracklist = 0
+				)
 				{
 					if ( ! libmaus2::util::GetFileSize::fileExists(s) )
 					{
@@ -909,6 +912,29 @@ namespace libmaus2
 					libmaus2::util::GetFileSize::copy(s,dstfn);
 					libmaus2::util::GetFileSize::copy(idxpath,dstidx);
 					libmaus2::util::GetFileSize::copy(bpspath,dstbps);
+
+					if ( tracklist )
+					{
+						for ( uint64_t i = 0; i < tracklist->size(); ++i )
+						{
+							std::string const & trackname = tracklist->at(i);
+
+							std::string const annosrc = path + "/." + root + "." + trackname + ".anno";
+							std::string const annodst = dstprefix + "/." + root + "." + trackname + ".anno";
+							std::string const datasrc = path + "/." + root + "." + trackname + ".data";
+							std::string const datadst = dstprefix + "/." + root + "." + trackname + ".data";
+
+							if ( registertmp )
+								libmaus2::util::TempFileRemovalContainer::addTempFile(annodst);
+
+							libmaus2::util::GetFileSize::copy(annosrc,annodst);
+
+							if ( registertmp )
+								libmaus2::util::TempFileRemovalContainer::addTempFile(datadst);
+
+							libmaus2::util::GetFileSize::copy(datasrc,datadst);
+						}
+					}
 
 					if ( registertmp )
 					{
