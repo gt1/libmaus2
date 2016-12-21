@@ -1,3 +1,10 @@
+libmaus2 (2.0.299-1) unstable; urgency=medium
+
+  * add tracklist in DatabaseFile::copyToPrefix
+  * add getErrorForBase/getMaxErrorForRange methods in OverlapProperCheck class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 21 Dec 2016 14:57:51 +0100
+
 libmaus2 (2.0.298-1) unstable; urgency=medium
 
   * change return type of OverlapProperCheck to return more information

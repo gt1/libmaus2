@@ -118,6 +118,49 @@ namespace libmaus2
 					) : proper(rproper), termleft(rtermleft), termright(rtermright) {}
 				};
 
+				double getErrorForBase(uint64_t const rid, int64_t pos, int64_t const tspace, bool const rc) const
+				{
+					if ( rc )
+						pos = (*RL)[rid]-pos-1;
+
+					return ( inqual.Adata->begin() + anno[rid] ) [ pos / tspace ] / escale;
+				}
+
+				double getMaxErrorForRange(uint64_t const rid, int64_t bpos, int64_t epos, int64_t const tspace, bool const rc) const
+				{
+					#if defined(OVERLAP_PROPER_CHECK_GET_MAX_ERROR_FOR_RANGE_DEBUG)
+					double refe = 0.0;
+					for ( int64_t i = bpos; i < epos; ++i )
+						refe = std::max(refe,getErrorForBase(rid,i,tspace,rc));
+					#endif
+
+					if ( rc )
+					{
+						int64_t const l = (*RL)[rid];
+
+						std::swap(bpos,epos);
+						bpos = l - bpos;
+						epos = l - epos;
+					}
+
+					int64_t blow = bpos / tspace;
+					int64_t bhigh = (epos-1) / tspace;
+
+					unsigned char const * aa = inqual.Adata->begin() + anno[rid];
+
+					uint64_t maxe = 0;
+					for ( int64_t i = blow; i <= bhigh; ++i )
+						maxe = std::max(maxe,static_cast<uint64_t>(aa[i]));
+
+					double const res = maxe / escale;
+
+					#if defined(OVERLAP_PROPER_CHECK_GET_MAX_ERROR_FOR_RANGE_DEBUG)
+					assert ( res == refe );
+					#endif
+
+					return res;
+				}
+
 				OverlapProperCheckInfo operator()(
 					libmaus2::dazzler::align::Overlap const & OVL,
 					int64_t const tspace,
