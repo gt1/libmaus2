@@ -38,7 +38,7 @@ int main(int argc, char * argv[])
 
 		if ( first_a_read != -1 )
 		{
-			std::string const indexname = libmaus2::dazzler::align::OverlapIndexer::getDalignerIndexName(lasfn);
+			std::string const indexname = libmaus2::dazzler::align::DalignerIndexDecoder::getDalignerIndexName(lasfn);
 			libmaus2::aio::InputStreamInstance indexISI(indexname);
 
 			uint64_t off = 0;
