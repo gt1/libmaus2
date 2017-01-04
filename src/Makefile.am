@@ -324,7 +324,9 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/TrueOverlapStats.hpp \
 	libmaus2/dazzler/align/TrueOverlap.hpp \
 	libmaus2/dazzler/align/AlignmentWriterArray.hpp \
-	libmaus2/dazzler/align/OverlapProperCheck.hpp
+	libmaus2/dazzler/align/OverlapProperCheck.hpp \
+	libmaus2/dazzler/align/DalignerIndexDecoder.hpp \
+	libmaus2/dazzler/align/AlignmentFileDecoder.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
 libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp libmaus2/autoarray/AutoArrayMultiMap.hpp \
