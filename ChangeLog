@@ -1,3 +1,9 @@
+libmaus2 (2.0.301-1) unstable; urgency=medium
+
+  * add support for opening file via Daligner index (.idx) files
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 04 Jan 2017 18:03:06 +0100
+
 libmaus2 (2.0.300-1) unstable; urgency=medium
 
   * allow passing of index file name in OverlapIndexer

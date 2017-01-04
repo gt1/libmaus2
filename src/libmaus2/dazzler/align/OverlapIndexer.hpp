@@ -18,6 +18,7 @@
 #if ! defined(LIBMAUS2_DAZZLER_ALIGN_OVERLAPINDEXER_HPP)
 #define LIBMAUS2_DAZZLER_ALIGN_OVERLAPINDEXER_HPP
 
+#include <libmaus2/dazzler/align/AlignmentFileDecoder.hpp>
 #include <libmaus2/dazzler/align/AlignmentFileRegion.hpp>
 #include <libmaus2/util/CountPutObject.hpp>
 #include <libmaus2/index/ExternalMemoryIndexGenerator.hpp>
@@ -30,6 +31,7 @@
 #include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
 #include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
 
 namespace libmaus2
 {
@@ -78,19 +80,7 @@ namespace libmaus2
 					}
 				}
 
-				static std::string getDalignerIndexName(std::string const & aligns)
-				{
-					std::string::size_type const p = aligns.find_last_of('/');
 
-					if ( p == std::string::npos )
-						return std::string(".") + aligns + std::string(".idx");
-					else
-					{
-						std::string const prefix = aligns.substr(0,p);
-						std::string const suffix = aligns.substr(p+1);
-						return prefix + "/." + suffix + ".idx";
-					}
-				}
 
 				static bool haveIndex(std::string const & aligns)
 				{
@@ -395,6 +385,21 @@ namespace libmaus2
 					return UNIQUE_PTR_MOVE(tptr);
 				}
 
+
+				static AlignmentFileDecoder::unique_ptr_type openAlignmentFileAt(
+					std::string const & aligns,
+					int64_t afrom, // lower bound, included
+					int64_t ato, // upper bound, not included
+					DalignerIndexDecoder & index
+				)
+				{
+					uint64_t const pb = index[afrom];
+					uint64_t const pe = index[ato];
+
+					AlignmentFileDecoder::unique_ptr_type tptr(new AlignmentFileDecoder(aligns,index.tspace,pb,pe));
+					return UNIQUE_PTR_MOVE(tptr);
+				}
+
 				static AlignmentFileRegion::unique_ptr_type openAlignmentFileRegion(
 					std::string const & aligns,
 					int64_t afrom, // lower bound, included
@@ -459,7 +464,7 @@ namespace libmaus2
 					std::string const indexfntmp = indexfn + libmaus2::util::ArgInfo::getDefaultTmpFileName(std::string()) + ".tmp";
 					libmaus2::util::TempFileRemovalContainer::addTempFile(indexfntmp);
 
-					std::string const dalignerindexfn = getDalignerIndexName(aligns);
+					std::string const dalignerindexfn = DalignerIndexDecoder::getDalignerIndexName(aligns);
 					std::string const dalignerindexfntmp = dalignerindexfn + libmaus2::util::ArgInfo::getDefaultTmpFileName(std::string()) + ".tmp";
 					libmaus2::util::TempFileRemovalContainer::addTempFile(dalignerindexfntmp);
 
@@ -484,7 +489,9 @@ namespace libmaus2
 					bool haveprev = false;
 					uint64_t lp = 0;
 					int64_t nextid = 0;
-					std::pair<bool,uint64_t> P;
+					// initialise to point to first record of alignment file
+					// (which is the end of the file if file is empty)
+					std::pair<bool,uint64_t> P(false,libmaus2::dazzler::align::AlignmentFile::getSerialisedHeaderSize());
 
 					// maximum trace length
 					int64_t tmax = 0;
