@@ -484,7 +484,9 @@ namespace libmaus2
 					bool haveprev = false;
 					uint64_t lp = 0;
 					int64_t nextid = 0;
-					std::pair<bool,uint64_t> P;
+					// initialise to point to first record of alignment file
+					// (which is the end of the file if file is empty)
+					std::pair<bool,uint64_t> P(false,libmaus2::dazzler::align::AlignmentFile::getSerialisedHeaderSize());
 
 					// maximum trace length
 					int64_t tmax = 0;
