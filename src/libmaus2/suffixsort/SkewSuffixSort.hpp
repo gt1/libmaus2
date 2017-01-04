@@ -530,7 +530,7 @@ namespace libmaus2
 					// list of suffixes at positions i mod 3 = 2
 					elem_type const L2len = n/3;
 					::libmaus2::autoarray::AutoArray<elem_type> AL2(L2len,false); elem_type * L2 = AL2.get();
-					for ( elem_type i = 2; i < n; i += 3 ) *(L2++) = i; L2 = AL2.get();
+					for ( elem_type i = 2; i < n; i += 3 ) { *(L2++) = i; } L2 = AL2.get();
 					// sort
 					OffsetBucketSort<elem_type,elem_type,1>::offsetBucketSort(s,n,L2,L2len,zsize);
 					OffsetBucketSort<key_type,elem_type,0>::offsetBucketSort(y,n,L2,L2len,K);

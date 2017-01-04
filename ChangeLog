@@ -1,3 +1,9 @@
+libmaus2 (2.0.300-1) unstable; urgency=medium
+
+  * allow passing of index file name in OverlapIndexer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 04 Jan 2017 15:41:49 +0100
+
 libmaus2 (2.0.299-1) unstable; urgency=medium
 
   * add tracklist in DatabaseFile::copyToPrefix
