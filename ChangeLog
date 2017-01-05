@@ -1,3 +1,9 @@
+libmaus2 (2.0.302-1) unstable; urgency=medium
+
+  * add copying of dazzler Database to array memory
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 05 Jan 2017 10:57:13 +0100
+
 libmaus2 (2.0.301-1) unstable; urgency=medium
 
   * add support for opening file via Daligner index (.idx) files
