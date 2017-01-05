@@ -27,6 +27,7 @@
 #include <libmaus2/bitio/CompactArray.hpp>
 #include <libmaus2/math/numbits.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/aio/ArrayFileSet.hpp>
 
 namespace libmaus2
 {
@@ -612,7 +613,7 @@ namespace libmaus2
 					else
 					{
 						libmaus2::exception::LibMausException lme;
-						lme.getStream() << "Cannot find database file" << std::endl;
+						lme.getStream() << "Cannot find database file " << s << std::endl;
 						lme.finish();
 						throw lme;
 					}
@@ -860,6 +861,118 @@ namespace libmaus2
 					}
 				};
 
+				struct DBArrayFileSet
+				{
+					typedef DBArrayFileSet this_type;
+					typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+					typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
+					libmaus2::autoarray::AutoArray<char> Adb;
+					libmaus2::autoarray::AutoArray<char> Aidx;
+					libmaus2::autoarray::AutoArray<char> Abps;
+
+					libmaus2::aio::ArrayFileSet<char const *>::unique_ptr_type PAFS;
+
+					DBArrayFileSet(
+						libmaus2::autoarray::AutoArray<char> & rAdb,
+						libmaus2::autoarray::AutoArray<char> & rAidx,
+						libmaus2::autoarray::AutoArray<char> & rAbps
+					) : Adb(rAdb), Aidx(rAidx), Abps(rAbps)
+					{
+						std::vector< std::pair<char const *,char const *> > Vdata;
+						Vdata.push_back(std::pair<char const *,char const *>(Adb.begin(),Adb.end()));
+						Vdata.push_back(std::pair<char const *,char const *>(Aidx.begin(),Aidx.end()));
+						Vdata.push_back(std::pair<char const *,char const *>(Abps.begin(),Abps.end()));
+						std::vector< std::string > Vfn;
+						Vfn.push_back("readsdir/reads.db");
+						Vfn.push_back("readsdir/.reads.idx");
+						Vfn.push_back("readsdir/.reads.bps");
+
+						libmaus2::aio::ArrayFileSet<char const *>::unique_ptr_type tptr(
+							new libmaus2::aio::ArrayFileSet<char const *>(Vdata,Vfn)
+						);
+
+						PAFS = UNIQUE_PTR_MOVE(tptr);
+					}
+
+					~DBArrayFileSet()
+					{
+					}
+
+					std::string getDBURL() const
+					{
+						return PAFS->getURL(0);
+					}
+				};
+
+				static DBArrayFileSet::unique_ptr_type copyToArrays(
+					std::string const & s
+					#if 0
+						,
+					std::vector<std::string> const * tracklist = 0
+					#endif
+				)
+				{
+					if ( ! libmaus2::util::GetFileSize::fileExists(s) )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::copyToArrays: file " << s << " does not exist or is not accessible" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					bool const isdb = endsOn(s,".db");
+					bool const isdam = endsOn(s,".dam");
+					bool const issup = isdb || isdam;
+
+					if ( ! issup )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::copyToArrays: file " << s << " is not supported (file name does not end in .db or .dam)" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					std::string const path = getPath(s);
+					std::string const root = isdam ? getRoot(s,".dam") : getRoot(s,".db");
+
+					std::string dbpath;
+
+					if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(path + "/" + root + ".db") )
+						dbpath = path + "/" + root + ".db";
+					else if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(path + "/" + root + ".dam") )
+						dbpath = path + "/" + root + ".dam";
+					else
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::copyToPrefix: cannot construct db file name" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					std::string const idxpath = path + "/." + root + ".idx";
+					std::string const bpspath = path + "/." + root + ".bps";
+
+					libmaus2::autoarray::AutoArray<char> Adb = libmaus2::autoarray::AutoArray<char>::readFile(dbpath);
+					libmaus2::autoarray::AutoArray<char> Aidx = libmaus2::autoarray::AutoArray<char>::readFile(idxpath);
+					libmaus2::autoarray::AutoArray<char> Abps = libmaus2::autoarray::AutoArray<char>::readFile(bpspath);
+
+					DBArrayFileSet::unique_ptr_type PAFS(new DBArrayFileSet(Adb,Aidx,Abps));
+
+					#if 0
+					if ( tracklist )
+					{
+						for ( uint64_t i = 0; i < tracklist->size(); ++i )
+						{
+							std::string const & trackname = tracklist->at(i);
+							std::string const annosrc = path + "/." + root + "." + trackname + ".anno";
+							std::string const datasrc = path + "/." + root + "." + trackname + ".data";
+						}
+					}
+					#endif
+
+					return UNIQUE_PTR_MOVE(PAFS);
+				}
 				static DBFileSet::unique_ptr_type copyToPrefix(
 					std::string const & s, std::string const & dstprefix, bool const registertmp = true,
 					std::vector<std::string> const * tracklist = 0
