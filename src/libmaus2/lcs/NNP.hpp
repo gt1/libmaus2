@@ -228,7 +228,8 @@ namespace libmaus2
 				iterator be,
 				NNPTraceContainer & tracecontainer,
 				int64_t const minband = getDefaultMinDiag(),
-				int64_t const maxband = getDefaultMaxDiag()
+				int64_t const maxband = getDefaultMaxDiag(),
+				bool const runsuffixpositive = true
 			)
 			{
 				uint64_t oactivediag = 0;
@@ -631,7 +632,8 @@ namespace libmaus2
 				#endif
 
 				tracecontainer.otrace = otrace;
-				tracecontainer.suffixPositive();
+				if ( runsuffixpositive )
+					tracecontainer.suffixPositive();
 
 				if ( ! forward )
 					tracecontainer.reverse();
@@ -647,19 +649,20 @@ namespace libmaus2
 				int64_t const minband = getDefaultMinDiag(),
 				int64_t const maxband = getDefaultMaxDiag(),
 				bool const forward = true,
-				bool const self = false
+				bool const self = false,
+				bool const runsuffixpositive = true
 			)
 			{
 				if ( forward )
 					if ( self )
-						alignTemplate<iterator,true,true>(ab,ae,bb,be,tracecontainer,minband,maxband);
+						alignTemplate<iterator,true,true>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
 					else
-						alignTemplate<iterator,true,false>(ab,ae,bb,be,tracecontainer,minband,maxband);
+						alignTemplate<iterator,true,false>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
 				else
 					if ( self )
-						alignTemplate<iterator,false,true>(ab,ae,bb,be,tracecontainer,minband,maxband);
+						alignTemplate<iterator,false,true>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
 					else
-						alignTemplate<iterator,false,false>(ab,ae,bb,be,tracecontainer,minband,maxband);
+						alignTemplate<iterator,false,false>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
 			}
 
 
@@ -670,7 +673,8 @@ namespace libmaus2
 				// set valid diagonal band to avoid self matches when a and b are the same string
 				bool const self = false,
 				int64_t minfdiag = getDefaultMinDiag(),
-				int64_t maxfdiag = getDefaultMaxDiag()
+				int64_t maxfdiag = getDefaultMaxDiag(),
+				bool const runsuffixpositive = true
 			)
 			{
 				tracecontainer.reset();
@@ -694,13 +698,13 @@ namespace libmaus2
 				if ( maxfdiag != getDefaultMaxDiag() )
 					minrdiag = -maxfdiag;
 
-				align(ab,ab+seedposa,bb,bb+seedposb,tracecontainer,minrdiag,maxrdiag,false /* forward */,self);
+				align(ab,ab+seedposa,bb,bb+seedposb,tracecontainer,minrdiag,maxrdiag,false /* forward */,self,runsuffixpositive);
 
 				int64_t const revroot = tracecontainer.traceid;
 				std::pair<uint64_t,uint64_t> const SLF = tracecontainer.getStringLengthUsed();
 
 				// run forward alignment from seedpos
-				align(ab+seedposa,ae,bb+seedposb,be,tracecontainer,minfdiag,maxfdiag,true /* forward */,self);
+				align(ab+seedposa,ae,bb+seedposb,be,tracecontainer,minfdiag,maxfdiag,true /* forward */,self,runsuffixpositive);
 				int64_t const forroot = tracecontainer.traceid;
 				std::pair<uint64_t,uint64_t> const SLR = tracecontainer.getStringLengthUsed();
 
