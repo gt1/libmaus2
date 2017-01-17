@@ -1946,6 +1946,7 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/BandedAligner.hpp \
 	libmaus2/lcs/BandedAlignerFactory.hpp \
 	libmaus2/lcs/NP.hpp \
+	libmaus2/lcs/NPL.hpp \
 	libmaus2/lcs/NNP.hpp \
 	libmaus2/lcs/NNPTraceElement.hpp \
 	libmaus2/lcs/NNPTraceContainer.hpp \
@@ -2153,7 +2154,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testpo \
 	testavx \
 	testserialisedsorting \
-	testbamnumericalindex
+	testbamnumericalindex \
+	testnpl
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2726,3 +2728,8 @@ testserialisedsorting_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 testbamnumericalindex_SOURCES  = test/testbamnumericalindex.cpp
 testbamnumericalindex_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testbamnumericalindex_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testnpl_SOURCES  = test/testnpl.cpp
+testnpl_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testnpl_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
+testnpl_LDFLAGS  = ${AM_LDFLAGS}
