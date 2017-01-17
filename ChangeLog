@@ -1,3 +1,10 @@
+libmaus2 (2.0.303-1) unstable; urgency=medium
+
+  * add NPL class 
+  * add option to avoid suffixPositive call in NPL
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 17 Jan 2017 15:21:06 +0100
+
 libmaus2 (2.0.302-1) unstable; urgency=medium
 
   * add copying of dazzler Database to array memory
