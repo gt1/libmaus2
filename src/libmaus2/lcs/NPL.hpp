@@ -127,7 +127,7 @@ namespace libmaus2
 				NPElement * DN = DO.begin() + sn;
 
 				// diagonal containing bottom right of matrix
-				int fdiag = std::numeric_limits<int64_t>::max();
+				int64_t fdiag = std::numeric_limits<int64_t>::max();
 
 				// how far do we get without an error?
 				{
@@ -145,14 +145,14 @@ namespace libmaus2
 				}
 
 				int d = 1;
-				if ( DP[0].offset >= std::min(an,bn) )
+				if ( DP[0].offset >= static_cast<int64_t>(std::min(an,bn)) )
 				{
-					assert ( DP[0].offset == std::min(an,bn) );
+					assert ( DP[0].offset == static_cast<int64_t>(std::min(an,bn)) );
 					fdiag = 0;
 				}
 				else
 				{
-					assert ( DP[0].offset < std::min(an,bn) );
+					assert ( DP[0].offset < static_cast<int64_t>(std::min(an,bn)) );
 
 					if ( static_cast<int64_t>(trace.size()) < id+3 )
 						trace.resize(id+3);
