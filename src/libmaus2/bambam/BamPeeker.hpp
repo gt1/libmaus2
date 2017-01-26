@@ -26,12 +26,16 @@ namespace libmaus2
 	{
 		struct BamPeeker
 		{
-			libmaus2::bambam::BamDecoder dec;
+			libmaus2::bambam::BamDecoder::unique_ptr_type Pdec;
+			libmaus2::bambam::BamAlignmentDecoder & dec;
 			libmaus2::bambam::BamAlignment slot;
 			bool slotfilled;
 
 			BamPeeker(std::string const & fn)
-			: dec(fn), slot(), slotfilled(false) {}
+			: Pdec(new libmaus2::bambam::BamDecoder(fn)), dec(*Pdec), slot(), slotfilled(false) {}
+
+			BamPeeker(libmaus2::bambam::BamAlignmentDecoder & rdec)
+			: Pdec(), dec(rdec), slot(), slotfilled(false) {}
 
 			bool getNext(libmaus2::bambam::BamAlignment & ralgn)
 			{
