@@ -1,3 +1,9 @@
+libmaus2 (2.0.304-1) unstable; urgency=medium
+
+  * add BamAlignmentDecoder ref based constructor in BamPeeker class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 26 Jan 2017 17:32:47 +0100
+
 libmaus2 (2.0.303-1) unstable; urgency=medium
 
   * add NPL class 
