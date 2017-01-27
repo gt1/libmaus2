@@ -111,11 +111,64 @@ namespace libmaus2
 				libmaus2::bambam::ProgramHeaderLinesMerge::unique_ptr_type tprogramHeaderLinesMergeInfo(new libmaus2::bambam::ProgramHeaderLinesMerge(H));
 				programHeaderLinesMergeInfo = UNIQUE_PTR_MOVE(tprogramHeaderLinesMergeInfo);
 
+				// get HD line fields
+				std::vector < std::pair<std::string,std::string> > VHDP;
+				for ( uint64_t i = 0; i < inputbamheaders.size(); ++i )
+				{
+					std::vector<libmaus2::bambam::HeaderLine> VHD = libmaus2::bambam::HeaderLine::extractLinesByType(inputbamheaders[i]->text,"HD");
+					if ( VHD.size() )
+					{
+						libmaus2::bambam::HeaderLine const & H = VHD.front();
+						for ( std::map<std::string,std::string>::const_iterator ita = H.M.begin(); ita != H.M.end(); ++ita )
+							VHDP.push_back(*ita);
+					}
+				}
+
+				// sort by tag
+				std::sort(VHDP.begin(),VHDP.end());
+
+				// extract consistent tags present in all HD lines
+				std::map<std::string,std::string> MHD;
+				uint64_t l = 0;
+				while ( l < VHDP.size() )
+				{
+					uint64_t h = l+1;
+					while ( h < VHDP.size() && VHDP[l].first == VHDP[h].first )
+						++h;
+
+					// we have the right number
+					if ( h-l == inputbamheaders.size() )
+					{
+						// check for consistent value
+						bool eq = true;
+						for ( uint64_t i = l+1; i < h; ++i )
+							eq = eq && (VHDP[i].second == VHDP[l].second);
+						if ( eq )
+							MHD[VHDP[l].first] = VHDP[l].second;
+					}
+
+					l = h;
+				}
+
+				std::string const VN = (MHD.find("VN") != MHD.end()) ? MHD.find("VN")->second : "1.5";
+
 				std::ostringstream headertextstr;
+				headertextstr << "@HD\tVN:" << VN;
+
 				if ( inputbamheaders.size() == 1 )
-					headertextstr << "@HD\tVN:1.5\tSO:" << libmaus2::bambam::BamHeader::getSortOrderStatic(inputbamheaders[0]->text) << std::endl;
+					headertextstr << "\tSO:" << libmaus2::bambam::BamHeader::getSortOrderStatic(inputbamheaders[0]->text);
 				else
-					headertextstr << "@HD\tVN:1.5\tSO:unknown" << std::endl;
+					headertextstr << "\tSO:unknown";
+
+				for ( std::map<std::string,std::string>::const_iterator ita = MHD.begin(); ita != MHD.end(); ++ita )
+				{
+					std::string const & key = ita->first;
+
+					if ( key != "VN" && key != "SO" )
+						headertextstr << "\t" << key << ":" << ita->second;
+				}
+
+				headertextstr << "\n";
 
 				for ( uint64_t i = 0; i < chromosomeMergeInfo->chromosomes.size(); ++i )
 					headertextstr << chromosomeMergeInfo->chromosomes[i].createLine() << "\n";
