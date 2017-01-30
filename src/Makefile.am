@@ -265,7 +265,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/lcs/ChainNodeInfo.cpp \
 	libmaus2/lcs/ChainRemoveQueueElement.cpp \
 	libmaus2/lcs/ChainSplayTreeNode.cpp \
-	libmaus2/timing/RealTimeClock.cpp
+	libmaus2/timing/RealTimeClock.cpp \
+	libmaus2/aio/PosixFdOutputStreamFactory.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 

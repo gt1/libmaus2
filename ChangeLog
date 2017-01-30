@@ -1,3 +1,9 @@
+libmaus2 (2.0.306-1) unstable; urgency=medium
+
+  * avoid failure in rename over device boundaries in PosixFdOutputStreamFactory
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 30 Jan 2017 13:56:21 +0100
+
 libmaus2 (2.0.305-1) unstable; urgency=medium
 
   * add HD line field merging in BamCatHeader
