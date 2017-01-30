@@ -35,6 +35,8 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
+			void copy(std::string const & from, std::string const & to);
+
 			virtual ~PosixFdOutputStreamFactory() {}
 			virtual libmaus2::aio::OutputStream::unique_ptr_type constructUnique(std::string const & filename)
 			{
@@ -71,10 +73,19 @@ namespace libmaus2
 				if ( ::rename(from.c_str(),to.c_str()) == -1 )
 				{
 					int const error = errno;
-					libmaus2::exception::LibMausException lme;
-					lme.getStream() << "PosixFdOutputStreamFactory::rename(" << from << "," << to << "): " << strerror(error) << std::endl;
-					lme.finish();
-					throw lme;
+
+					if ( error == EXDEV )
+					{
+						copy(from,to);
+						::remove(from.c_str());
+					}
+					else
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "PosixFdOutputStreamFactory::rename(" << from << "," << to << "): " << strerror(error) << std::endl;
+						lme.finish();
+						throw lme;
+					}
 				}
 			}
 			virtual void mkdir(std::string const & name, uint64_t const mode)
