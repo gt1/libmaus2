@@ -247,6 +247,14 @@ namespace libmaus2
 				libmaus2::parallel::ScopePosixSpinLock slock(dispatcherslock);
 				dispatchers[id] = D;
 			}
+			void removeDispatcher(uint64_t const id)
+			{
+				libmaus2::parallel::ScopePosixSpinLock slock(dispatcherslock);
+				libmaus2::util::unordered_map<uint64_t,SimpleThreadWorkPackageDispatcher *>::type::iterator it =
+					dispatchers.find(id);
+				assert ( it != dispatchers.end() );
+				dispatchers.erase(id);
+			}
 			uint64_t getNextDispatcherId()
 			{
 				libmaus2::parallel::ScopePosixSpinLock slock(dispatcherslock);
