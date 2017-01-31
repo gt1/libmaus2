@@ -171,6 +171,7 @@ namespace libmaus2
 
 			// dispatcher map
 			libmaus2::util::unordered_map<uint64_t,SimpleThreadWorkPackageDispatcher *>::type dispatchers;
+			libmaus2::parallel::PosixSpinLock dispatcherslock;
 
 			SimpleThreadPool(
 				uint64_t const rnumthreads
@@ -231,17 +232,24 @@ namespace libmaus2
 			}
 			SimpleThreadWorkPackageDispatcher * getDispatcher(libmaus2::parallel::SimpleThreadWorkPackage * P)
 			{
-				libmaus2::util::unordered_map<uint64_t,SimpleThreadWorkPackageDispatcher *>::type::iterator it =
-					dispatchers.find(P->dispatcherid);
-				assert ( it != dispatchers.end() );
-				return it->second;
+				SimpleThreadWorkPackageDispatcher * R;
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(dispatcherslock);
+					libmaus2::util::unordered_map<uint64_t,SimpleThreadWorkPackageDispatcher *>::type::iterator it =
+						dispatchers.find(P->dispatcherid);
+					assert ( it != dispatchers.end() );
+					R = it->second;
+				}
+				return R;
 			}
 			void registerDispatcher(uint64_t const id, SimpleThreadWorkPackageDispatcher * D)
 			{
+				libmaus2::parallel::ScopePosixSpinLock slock(dispatcherslock);
 				dispatchers[id] = D;
 			}
 			uint64_t getNextDispatcherId()
 			{
+				libmaus2::parallel::ScopePosixSpinLock slock(dispatcherslock);
 				while ( dispatchers.find(nextDispatcherId) != dispatchers.end() )
 					++nextDispatcherId;
 				return nextDispatcherId++;
