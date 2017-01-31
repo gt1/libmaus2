@@ -214,6 +214,23 @@ namespace libmaus2
 					}
 				};
 
+				struct AuxTagCopyAddRequest : public AuxTagAddRequest
+				{
+					uint8_t const * d;
+					uint64_t l;
+
+					AuxTagCopyAddRequest() : d(0), l(0) {}
+					AuxTagCopyAddRequest(
+						uint8_t const * rd,
+						uint64_t const rl
+					) : d(rd), l(rl) {}
+
+					virtual void operator()(::libmaus2::fastx::UCharBuffer & tbuffer) const
+					{
+						tbuffer.put(d,l);
+					}
+				};
+
 				void convert(
 					// the overlap
 					uint8_t const * OVL,
