@@ -38,6 +38,7 @@ namespace libmaus2
 
 			std::string progname;
 			std::string commandline;
+			std::string commandlinecoded;
 
 			std::vector<std::string> args;
 			std::multimap<std::string,std::string> kvargs;
@@ -51,6 +52,41 @@ namespace libmaus2
 				for ( int i = 0; i < argc; ++i )
 				{
 					clostr << argv[i];
+					if ( i+1 < argc )
+						clostr << ' ';
+				}
+
+				return clostr.str();
+			}
+
+			static std::string reconstructCommandLineCoded(int argc, char * argv[])
+			{
+				std::ostringstream clostr;
+
+				// "reconstruct" command line
+				for ( int i = 0; i < argc; ++i )
+				{
+					std::string const s = argv[i];
+
+					for ( uint64_t i = 0; i < s.size(); ++i )
+					{
+						int const c = static_cast<unsigned char>(s[i]);
+
+						if (
+							::isalnum(c)
+							|| c == '/'
+							|| c == '-'
+							|| c == '.'
+							|| c == '_'
+						)
+							clostr.put(c);
+						else
+						{
+							clostr.put('\\');
+							clostr << charToOct(c);
+						}
+					}
+
 					if ( i+1 < argc )
 						clostr << ' ';
 				}
@@ -106,6 +142,7 @@ namespace libmaus2
 				}
 
 				commandline = reconstructCommandLine(argc,argv);
+				commandlinecoded = reconstructCommandLineCoded(argc,argv);
 			}
 
 			size_t size() const

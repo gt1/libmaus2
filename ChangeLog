@@ -1,3 +1,12 @@
+libmaus2 (2.0.308-1) unstable; urgency=medium
+
+  * add AuxTagCopyAddRequest class in LASToBamConverterBase
+  * add enumerateAuxTags variants in BamAlignmentDecoderBase
+  * add commandlinecoded attribute in ArgParser class
+  * add pointer types in LineBufferFastAReader
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 31 Jan 2017 16:27:58 +0100
+
 libmaus2 (2.0.307-1) unstable; urgency=medium
 
   * implement SimpleThreadPool based parallelism in InterleavedRadixSort

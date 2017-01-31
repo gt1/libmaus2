@@ -3000,6 +3000,88 @@ namespace libmaus2
 				return 0;
 			}
 
+			struct AuxInfo
+			{
+				uint8_t tag[2];
+				uint64_t o;
+				uint64_t l;
+
+				AuxInfo(uint8_t const rta = 0, uint8_t const rtb = 0, uint64_t ro = 0, uint64_t rl = 0)
+				: o(ro), l(rl)
+				{
+					tag[0] = rta;
+					tag[1] = rtb;
+				}
+			};
+
+			/**
+			 * enumerate aux tags in array A; A will be resized if needed
+			 *
+			 * @param E alignment block
+			 * @param blocksize size of alignment block
+			 * @param A array for storing aux tag info
+			 * @return number of markers stored
+			 **/
+			static uint64_t enumerateAuxTags(
+				uint8_t const * E, uint64_t const blocksize,
+				libmaus2::autoarray::AutoArray < AuxInfo > & A
+			)
+			{
+				uint8_t const * aux = getAux(E);
+				uint64_t cnt = 0;
+
+				while ( aux < E+blocksize )
+				{
+					if ( cnt == A.size() )
+						A.resize(std::max(static_cast<uint64_t>(1),2*A.size()));
+
+					assert ( cnt < A.size() );
+
+					uint64_t l = getAuxLength(aux);
+
+					A[cnt++] = AuxInfo(aux[0],aux[1],aux-E,l);
+
+					aux = aux + l;
+				}
+
+				return cnt;
+			}
+
+			/**
+			 * enumerate aux tags in array A; A will be resized if needed
+			 *
+			 * @param E alignment block
+			 * @param blocksize size of alignment block
+			 * @param A array for storing aux tag info
+			 * @return number of markers stored
+			 **/
+			static uint64_t enumerateAuxTagsFilterOut(
+				uint8_t const * E, uint64_t const blocksize,
+				libmaus2::autoarray::AutoArray < AuxInfo > & A,
+				BamAuxFilterVector const & tags
+			)
+			{
+				uint8_t const * aux = getAux(E);
+				uint64_t cnt = 0;
+
+				while ( aux < E+blocksize )
+				{
+					uint64_t l = getAuxLength(aux);
+
+					if ( !tags(aux[0],aux[1]) )
+					{
+						if ( cnt == A.size() )
+							A.resize(std::max(static_cast<uint64_t>(1),2*A.size()));
+						assert ( cnt < A.size() );
+						A[cnt++] = AuxInfo(aux[0],aux[1],aux-E,l);
+					}
+
+					aux = aux + l;
+				}
+
+				return cnt;
+			}
+
 			/**
 			 * enumerate aux tags in array A; A will be resized if needed
 			 *

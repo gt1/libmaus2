@@ -27,6 +27,10 @@ namespace libmaus2
 	{
 		struct LineBufferFastAReader
 		{
+			typedef LineBufferFastAReader this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
 			libmaus2::util::LineBuffer LB;
 			libmaus2::autoarray::AutoArray<char> M;
 
