@@ -1,3 +1,12 @@
+libmaus2 (2.0.307-1) unstable; urgency=medium
+
+  * implement SimpleThreadPool based parallelism in InterleavedRadixSort
+  * add removeDispatcher method in SimpleThreadPool class
+  * change threading in parallel decoding of FastaBPDecoder from OpenMP to thread pooling via SimpleThreadPool
+  * add locking to dispatcher handling in SimpleThreadPool
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 31 Jan 2017 13:15:19 +0100
+
 libmaus2 (2.0.306-1) unstable; urgency=medium
 
   * avoid failure in rename over device boundaries in PosixFdOutputStreamFactory

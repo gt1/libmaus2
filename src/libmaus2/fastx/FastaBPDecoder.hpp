@@ -22,6 +22,8 @@
 #include <libmaus2/fastx/FastaBPSequenceDecoder.hpp>
 #include <libmaus2/fastx/FastAInfo.hpp>
 #include <libmaus2/util/PrefixSums.hpp>
+#include <libmaus2/parallel/SimpleThreadPool.hpp>
+#include <libmaus2/parallel/LockedQueue.hpp>
 
 namespace libmaus2
 {
@@ -330,8 +332,167 @@ namespace libmaus2
 				uint64_t length;
 			};
 
+			struct Dispatchable
+			{
+				virtual ~Dispatchable() {}
+				virtual void dispatch() = 0;
+			};
+
+			struct ThreadOpenStreams : public Dispatchable
+			{
+				uint64_t t;
+				std::string fn;
+				libmaus2::autoarray::AutoArray<libmaus2::aio::InputStreamInstance::unique_ptr_type> * AISI;
+				libmaus2::parallel::PosixSemaphore * fin_sem;
+
+				ThreadOpenStreams() {}
+				ThreadOpenStreams(
+					uint64_t rt,
+					std::string const & rfn,
+					libmaus2::autoarray::AutoArray<libmaus2::aio::InputStreamInstance::unique_ptr_type> * rAISI,
+					libmaus2::parallel::PosixSemaphore * rfin_sem
+				) : t(rt), fn(rfn), AISI(rAISI), fin_sem(rfin_sem)
+				{}
+
+				void dispatch()
+				{
+					libmaus2::aio::InputStreamInstance::unique_ptr_type Tptr(new libmaus2::aio::InputStreamInstance(fn));
+					(*AISI)[t] = UNIQUE_PTR_MOVE(Tptr);
+					fin_sem->post();
+				}
+			};
+
+			struct ThreadGetSequenceLengths : public Dispatchable
+			{
+				uint64_t i;
+				bool addrc;
+				libmaus2::parallel::LockedQueue < libmaus2::aio::InputStreamInstance * > * LQ;
+				std::vector<SequenceMeta> * Vseqmeta;
+				FastaBPDecoderTemplate<remap_type> const * decoder;
+				libmaus2::parallel::PosixSemaphore * fin_sem;
+
+				ThreadGetSequenceLengths() {}
+				ThreadGetSequenceLengths(
+					uint64_t ri,
+					bool raddrc,
+					libmaus2::parallel::LockedQueue < libmaus2::aio::InputStreamInstance * > * rLQ,
+					std::vector<SequenceMeta> * rVseqmeta,
+					FastaBPDecoderTemplate<remap_type> const * rdecoder,
+					libmaus2::parallel::PosixSemaphore * rfin_sem
+				) : i(ri), addrc(raddrc), LQ(rLQ), Vseqmeta(rVseqmeta), decoder(rdecoder), fin_sem(rfin_sem)
+				{
+
+				}
+
+				void dispatch()
+				{
+					libmaus2::aio::InputStreamInstance * ISI = LQ->dequeFront();
+
+					Vseqmeta->at(i).length = decoder->getSequenceLength(*ISI,i);
+					if ( addrc )
+						Vseqmeta->at(decoder->numseq+i) = Vseqmeta->at(i);
+
+					LQ->push_front(ISI);
+
+					fin_sem->post();
+				}
+			};
+
+			template<libmaus2::autoarray::alloc_type atype>
+			struct ThreadDecode : public Dispatchable
+			{
+				libmaus2::parallel::LockedQueue < libmaus2::aio::InputStreamInstance * > * LQ;
+				bool pad;
+				libmaus2::autoarray::AutoArray<char,atype> * Aseq;
+				std::vector<SequenceMeta> * Vseqmeta;
+				libmaus2::parallel::PosixSemaphore * fin_sem;
+				char padsym;
+				uint64_t i;
+				bool addrc;
+				FastaBPDecoderTemplate<remap_type> const * decoder;
+
+				ThreadDecode() {}
+				ThreadDecode(
+					libmaus2::parallel::LockedQueue < libmaus2::aio::InputStreamInstance * > * rLQ,
+					bool rpad,
+					libmaus2::autoarray::AutoArray<char,atype> * rAseq,
+					std::vector<SequenceMeta> * rVseqmeta,
+					libmaus2::parallel::PosixSemaphore * rfin_sem,
+					char rpadsym,
+					uint64_t ri,
+					bool raddrc,
+					FastaBPDecoderTemplate<remap_type> const * rdecoder
+				) : LQ(rLQ), pad(rpad), Aseq(rAseq), Vseqmeta(rVseqmeta), fin_sem(rfin_sem), padsym(rpadsym), i(ri), addrc(raddrc), decoder(rdecoder)
+				{
+
+				}
+
+				void dispatch()
+				{
+					libmaus2::aio::InputStreamInstance * ISI = LQ->dequeFront();
+
+					if ( pad )
+						(*Aseq)[(*Vseqmeta)[i].datastart] = padsym;
+
+					char * const datastart = (*Aseq).begin()+(*Vseqmeta)[i].firstbase;
+
+					decoder->decodeSequence(*ISI,i,datastart,(*Vseqmeta)[i].length);
+
+					if ( addrc )
+					{
+						char * inp = datastart + (*Vseqmeta)[i].length;
+						char * outp = (*Aseq).begin()+(*Vseqmeta)[decoder->numseq + i].firstbase;
+
+						while ( inp != datastart )
+							*(outp++) = remap_type::invertBase(*(--inp));
+
+						if ( pad )
+							(*Aseq)[(*Vseqmeta)[decoder->numseq+i].datastart] = padsym;
+					}
+
+					LQ->push_front(ISI);
+
+					fin_sem->post();
+				}
+			};
+
+			struct DispatchableWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
+			{
+				Dispatchable * dispatchable;
+
+				DispatchableWorkPackage() {}
+				DispatchableWorkPackage(
+					uint64_t const rpriority, uint64_t const rdispatcherid, Dispatchable * rdispatchable
+				) : libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), dispatchable(rdispatchable) {}
+
+				char const * getPackageName() const
+				{
+					return "DispatchableWorkPackage";
+				}
+			};
+
+			struct DispatchableWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
+			{
+				typedef DispatchableWorkPackageDispatcher this_type;
+				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
+				void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				{
+					DispatchableWorkPackage * DP = dynamic_cast<DispatchableWorkPackage *>(P);
+					DP->dispatchable->dispatch();
+				}
+			};
+
+			static void semWait(libmaus2::parallel::PosixSemaphore & finsem, uint64_t const num)
+			{
+				for ( uint64_t i = 0; i < num; ++i )
+					finsem.wait();
+			}
+
 			template<libmaus2::autoarray::alloc_type atype>
 			void decodeSequencesParallel(
+				libmaus2::parallel::SimpleThreadPool & STP,
 				std::string const & fn, uint64_t const numthreads,
 				libmaus2::autoarray::AutoArray<char,atype> & Aseq,
 				std::vector<SequenceMeta> & Vseqmeta,
@@ -344,31 +505,36 @@ namespace libmaus2
 
 				Vseqmeta.resize(addrc ? (2*numseq) : numseq);
 
+				libmaus2::parallel::PosixSemaphore fin_sem;
+
+				uint64_t const dispid = STP.getNextDispatcherId();
+				DispatchableWorkPackageDispatcher disp;
+				STP.registerDispatcher(dispid,&disp);
+
 				libmaus2::autoarray::AutoArray<libmaus2::aio::InputStreamInstance::unique_ptr_type> AISI(numthreads);
-				#if defined(_OPENMP)
-				#pragma omp parallel for num_threads(numthreads)
-				#endif
+				std::vector < ThreadOpenStreams > VOS(numthreads);
+				std::vector < DispatchableWorkPackage > DVOS(numthreads);
 				for ( uint64_t t = 0; t < numthreads; ++t )
 				{
-					libmaus2::aio::InputStreamInstance::unique_ptr_type Tptr(new libmaus2::aio::InputStreamInstance(fn));
-					AISI[t] = UNIQUE_PTR_MOVE(Tptr);
+					VOS[t] = ThreadOpenStreams(t,fn,&AISI,&fin_sem);
+					DVOS[t] = DispatchableWorkPackage(0,dispid,&VOS[t]);
+					STP.enque(&DVOS[t]);
 				}
+				semWait(fin_sem,numthreads);
 
-				#if defined(_OPENMP)
-				#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
-				#endif
+				libmaus2::parallel::LockedQueue < libmaus2::aio::InputStreamInstance * > LQ;
+				for ( uint64_t t = 0; t < numthreads; ++t )
+					LQ.push_back(AISI[t].get());
+
+				std::vector < ThreadGetSequenceLengths > VGSL(numseq);
+				std::vector < DispatchableWorkPackage > DVGSL(numseq);
 				for ( uint64_t i = 0; i < numseq; ++i )
 				{
-					#if defined(_OPENMP)
-					uint64_t const t = omp_get_thread_num();
-					#else
-					uint64_t const t = 0;
-					#endif
-
-					Vseqmeta.at(i).length = getSequenceLength(*(AISI[t]),i);
-					if ( addrc )
-						Vseqmeta.at(numseq+i) = Vseqmeta[i];
+					VGSL[i] = ThreadGetSequenceLengths(i,addrc,&LQ,&Vseqmeta,this,&fin_sem);
+					DVGSL[i] = DispatchableWorkPackage(0,dispid,&VGSL[i]);
+					STP.enque(&DVGSL[i]);
 				}
+				semWait(fin_sem,numseq);
 
 				uint64_t sum = 0;
 				for ( uint64_t i = 0; i < Vseqmeta.size(); ++i )
@@ -382,39 +548,35 @@ namespace libmaus2
 				Aseq.release();
 				Aseq = libmaus2::autoarray::AutoArray<char,atype>(sum,false);
 
-				#if defined(_OPENMP)
-				#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
-				#endif
+				std::vector < ThreadDecode<atype> > VD(numseq);
+				std::vector < DispatchableWorkPackage > DVD(numseq);
 				for ( uint64_t i = 0; i < numseq; ++i )
 				{
-					#if defined(_OPENMP)
-					uint64_t const t = omp_get_thread_num();
-					#else
-					uint64_t const t = 0;
-					#endif
-
-					if ( pad )
-						Aseq[Vseqmeta[i].datastart] = padsym;
-
-					char * const datastart = Aseq.begin()+Vseqmeta[i].firstbase;
-
-					decodeSequence(*(AISI[t]),i,datastart,Vseqmeta[i].length);
-
-					if ( addrc )
-					{
-						char * inp = datastart + Vseqmeta[i].length;
-						char * outp = Aseq.begin()+Vseqmeta[numseq + i].firstbase;
-
-						while ( inp != datastart )
-							*(outp++) = remap_type::invertBase(*(--inp));
-
-						if ( pad )
-							Aseq[Vseqmeta[numseq+i].datastart] = padsym;
-					}
+					VD[i] = ThreadDecode<atype>(&LQ,pad,&Aseq,&Vseqmeta,&fin_sem,padsym,i,addrc,this);
+					DVD[i] = DispatchableWorkPackage(0,dispid,&VD[i]);
+					STP.enque(&DVD[i]);
 				}
+				semWait(fin_sem,numseq);
 
 				if ( pad )
 					Aseq[sum-1] = padsym;
+
+				STP.removeDispatcher(dispid);
+			}
+
+			template<libmaus2::autoarray::alloc_type atype>
+			void decodeSequencesParallel(
+				std::string const & fn, uint64_t const numthreads,
+				libmaus2::autoarray::AutoArray<char,atype> & Aseq,
+				std::vector<SequenceMeta> & Vseqmeta,
+				bool const pad = false,
+				char padsym = 4,
+				bool const addrc = false
+			) const
+			{
+				libmaus2::parallel::SimpleThreadPool STP(numthreads);
+				decodeSequencesParallel(STP,fn,numthreads,Aseq,Vseqmeta,pad,padsym,addrc);
+				STP.terminate();
 			}
 
 			uint64_t getNumSeq() const
