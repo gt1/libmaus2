@@ -1,3 +1,9 @@
+libmaus2 (2.0.309-1) unstable; urgency=medium
+
+  * allow adding aux tags in convertUnmapped function of LASToBamConverterBase
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 01 Feb 2017 12:55:58 +0100
+
 libmaus2 (2.0.308-1) unstable; urgency=medium
 
   * add AuxTagCopyAddRequest class in LASToBamConverterBase
