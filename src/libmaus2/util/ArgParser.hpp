@@ -178,6 +178,7 @@ namespace libmaus2
 							|| c == '/'
 							|| c == '-'
 							|| c == '.'
+							|| c == '_'
 						)
 							out.put(c);
 						else
