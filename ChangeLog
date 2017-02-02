@@ -1,3 +1,9 @@
+libmaus2 (2.0.310-1) unstable; urgency=medium
+
+  * do not recode underscore symbol in argument list of ArgParser
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 02 Feb 2017 11:20:36 +0100
+
 libmaus2 (2.0.309-1) unstable; urgency=medium
 
   * allow adding aux tags in convertUnmapped function of LASToBamConverterBase
