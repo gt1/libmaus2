@@ -72,6 +72,35 @@ int main(int argc, char * argv[])
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
 
+		{
+			std::string const lasfn = arginfo.getUnparsedRestArg(0);
+			libmaus2::dazzler::db::DatabaseFile DB(lasfn);
+			DB.computeTrimVector();
+
+			for ( uint64_t low = 0; low <= DB.size(); ++low )
+			{
+				for ( uint64_t high = low; high <= DB.size(); ++high )
+				{
+					std::cerr << "low=" << low << " high=" << high << std::endl;
+
+					libmaus2::dazzler::db::DatabaseFile::ReadDataRange::unique_ptr_type R(
+						DB.decodeReadIntervalParallel(low,high,32,true)
+					);
+
+					for ( uint64_t i = low; i < high; ++i )
+					{
+						std::string const r = libmaus2::fastx::reverseComplementUnmapped(DB[i]);
+						std::string const s = (*R)[i-low];
+						assert ( r.size() == s.size() );
+						assert ( s == r );
+						// std::cerr << (*R)[i] << std::endl;
+					}
+				}
+			}
+
+			return 0;
+		}
+
 		#if 1
 		{
 			std::string const lasfn = arginfo.getUnparsedRestArg(0);
