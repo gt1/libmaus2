@@ -67,9 +67,24 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray<DiagElement,libmaus2::autoarray::alloc_type_c> Ancontrol;
 			DiagElement * ncontrol;
 
+			static unsigned int getDefaultMinCorrelectionPercentage()
+			{
+				return 55;
+			}
+
+			static unsigned int getDefaultMaxErrorPercentage()
+			{
+				return 100 - getDefaultMinCorrelectionPercentage();
+			}
+
+			static unsigned int getWindowSize()
+			{
+				return CHAR_BIT*sizeof(uint64_t);
+			}
+
 			static unsigned int getDefaultMaxWindowError()
 			{
-				return 24;
+				return (getDefaultMaxErrorPercentage() * getWindowSize()) / 100;
 			}
 
 			static int64_t getDefaultMaxBack()
@@ -111,52 +126,74 @@ namespace libmaus2
 			{
 			}
 
-			template<typename iterator>
+			template<typename iterator, bool uniquetermval>
 			static uint64_t slide(iterator a, iterator ae, iterator b, iterator be)
 			{
-				ptrdiff_t const alen = ae-a;
-				ptrdiff_t const blen = be-b;
-
-				if ( alen <= blen )
+				if ( uniquetermval )
 				{
 					iterator as = a;
-					while ( a != ae && *a == *b )
+					while ( *a == *b )
 						++a, ++b;
-					return a - as;
+					return a-as;
 				}
 				else
 				{
-					iterator bs = b;
-					while ( b != be && *a == *b )
-						++a, ++b;
-					return b-bs;
+					ptrdiff_t const alen = ae-a;
+					ptrdiff_t const blen = be-b;
+
+					if ( alen <= blen )
+					{
+						iterator as = a;
+						while ( a != ae && *a == *b )
+							++a, ++b;
+						return a - as;
+					}
+					else
+					{
+						iterator bs = b;
+						while ( b != be && *a == *b )
+							++a, ++b;
+						return b-bs;
+					}
 				}
 			}
 
-			template<typename iterator>
+			template<typename iterator, bool uniquetermval>
 			static uint64_t slider(iterator a, iterator ae, iterator b, iterator be)
 			{
-				ptrdiff_t const alen = ae-a;
-				ptrdiff_t const blen = be-b;
-
-				if ( alen <= blen )
+				if ( uniquetermval )
 				{
 					iterator ac = ae;
 
-					while ( ac-- != a )
-						if ( *(--be) != *ac )
-							break;
+					while ( *(--ac) == *(--be) )
+					{}
 
 					return (ae-ac)-1;
 				}
 				else
 				{
-					iterator bc = be;
-					while ( bc-- != b )
-						if ( *(--ae) != *bc )
-							break;
+					ptrdiff_t const alen = ae-a;
+					ptrdiff_t const blen = be-b;
 
-					return (be-bc)-1;
+					if ( alen <= blen )
+					{
+						iterator ac = ae;
+
+						while ( ac-- != a )
+							if ( *(--be) != *ac )
+								break;
+
+						return (ae-ac)-1;
+					}
+					else
+					{
+						iterator bc = be;
+						while ( bc-- != b )
+							if ( *(--ae) != *bc )
+								break;
+
+						return (be-bc)-1;
+					}
 				}
 			}
 
@@ -224,7 +261,7 @@ namespace libmaus2
 			}
 
 
-			template<typename iterator, bool forward, bool self>
+			template<typename iterator, bool forward, bool self, bool uniquetermval>
 			void alignTemplate(
 				iterator ab,
 				iterator ae,
@@ -260,7 +297,7 @@ namespace libmaus2
 					active = true;
 
 					allocate(0,0,Acontrol,control);
-					control[0].offset = forward ? slide(ab,ae,bb,be) : slider(ab,ae,bb,be);
+					control[0].offset = forward ? slide<iterator,uniquetermval>(ab,ae,bb,be) : slider<iterator,uniquetermval>(ab,ae,bb,be);
 					control[0].score = control[0].offset;
 					control[0].evec = 0;
 					control[0].id = otrace;
@@ -472,7 +509,7 @@ namespace libmaus2
 								{
 									int64_t const aoff = apre + offdiag;
 									int64_t const boff = bpre + offdiag;
-									int64_t const slidelen = forward ? slide(ab+aoff,ae,bb+boff,be) : slider(ab,ae-aoff,bb,be-boff);
+									int64_t const slidelen = forward ? slide<iterator,uniquetermval>(ab+aoff,ae,bb+boff,be) : slider<iterator,uniquetermval>(ab,ae-aoff,bb,be-boff);
 									uint64_t const newevec = (slidelen < 64) ? (((control[d].evec << 1) | 1) << slidelen) : 0;
 									unsigned int const numerr = popcnt(newevec);
 
@@ -503,7 +540,7 @@ namespace libmaus2
 									int64_t const aoff = apre + offtop;
 									int64_t const boff = bpre + offtop;
 
-									int64_t const slidelen = forward ? slide(ab+aoff,ae,bb+boff,be) : slider(ab,ae-aoff,bb,be-boff);
+									int64_t const slidelen = forward ? slide<iterator,uniquetermval>(ab+aoff,ae,bb+boff,be) : slider<iterator,uniquetermval>(ab,ae-aoff,bb,be-boff);
 									uint64_t const newevec = (slidelen < 64) ? (((control[d+1].evec << 1) | 1) << slidelen) : 0;
 									unsigned int const numerr = popcnt(newevec);
 
@@ -534,7 +571,7 @@ namespace libmaus2
 								{
 									int64_t const aoff = apre + offdiag;
 									int64_t const boff = bpre + offdiag;
-									int64_t const slidelen = forward ? slide(ab+aoff,ae,bb+boff,be) : slider(ab,ae-aoff,bb,be-boff);
+									int64_t const slidelen = forward ? slide<iterator,uniquetermval>(ab+aoff,ae,bb+boff,be) : slider<iterator,uniquetermval>(ab,ae-aoff,bb,be-boff);
 									uint64_t const newevec = (slidelen < 64) ? (((control[d].evec << 1) | 1) << slidelen) : 0;
 									unsigned int const numerr = popcnt(newevec);
 
@@ -563,7 +600,7 @@ namespace libmaus2
 									//assert ( offleft >= 0 );
 									int64_t const aoff = apre + offleft;
 									int64_t const boff = bpre + offleft;
-									int64_t const slidelen = forward ? slide(ab+aoff,ae,bb+boff,be) : slider(ab,ae-aoff,bb,be-boff);
+									int64_t const slidelen = forward ? slide<iterator,uniquetermval>(ab+aoff,ae,bb+boff,be) : slider<iterator,uniquetermval>(ab,ae-aoff,bb,be-boff);
 									uint64_t const newevec = (slidelen < 64) ? (((control[d-1].evec << 1) | 1) << slidelen) : 0;
 									unsigned int const numerr = popcnt(newevec);
 
@@ -661,19 +698,36 @@ namespace libmaus2
 				int64_t const maxband = getDefaultMaxDiag(),
 				bool const forward = true,
 				bool const self = false,
-				bool const runsuffixpositive = true
+				bool const runsuffixpositive = true,
+				bool const uniquetermval = false
 			)
 			{
-				if ( forward )
-					if ( self )
-						alignTemplate<iterator,true,true>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
+				if ( uniquetermval )
+				{
+					if ( forward )
+						if ( self )
+							alignTemplate<iterator,true,true,true>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
+						else
+							alignTemplate<iterator,true,false,true>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
 					else
-						alignTemplate<iterator,true,false>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
+						if ( self )
+							alignTemplate<iterator,false,true,true>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
+						else
+							alignTemplate<iterator,false,false,true>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
+				}
 				else
-					if ( self )
-						alignTemplate<iterator,false,true>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
+				{
+					if ( forward )
+						if ( self )
+							alignTemplate<iterator,true,true,false>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
+						else
+							alignTemplate<iterator,true,false,false>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
 					else
-						alignTemplate<iterator,false,false>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
+						if ( self )
+							alignTemplate<iterator,false,true,false>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
+						else
+							alignTemplate<iterator,false,false,false>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
+				}
 			}
 
 
@@ -685,7 +739,8 @@ namespace libmaus2
 				bool const self = false,
 				int64_t minfdiag = getDefaultMinDiag(),
 				int64_t maxfdiag = getDefaultMaxDiag(),
-				bool const runsuffixpositive = true
+				bool const runsuffixpositive = true,
+				bool const uniquetermval = false
 			)
 			{
 				tracecontainer.reset();
@@ -709,13 +764,13 @@ namespace libmaus2
 				if ( maxfdiag != getDefaultMaxDiag() )
 					minrdiag = -maxfdiag;
 
-				align(ab,ab+seedposa,bb,bb+seedposb,tracecontainer,minrdiag,maxrdiag,false /* forward */,self,runsuffixpositive);
+				align(ab,ab+seedposa,bb,bb+seedposb,tracecontainer,minrdiag,maxrdiag,false /* forward */,self,runsuffixpositive,uniquetermval);
 
 				int64_t const revroot = tracecontainer.traceid;
 				std::pair<uint64_t,uint64_t> const SLF = tracecontainer.getStringLengthUsed();
 
 				// run forward alignment from seedpos
-				align(ab+seedposa,ae,bb+seedposb,be,tracecontainer,minfdiag,maxfdiag,true /* forward */,self,runsuffixpositive);
+				align(ab+seedposa,ae,bb+seedposb,be,tracecontainer,minfdiag,maxfdiag,true /* forward */,self,runsuffixpositive,uniquetermval);
 				int64_t const forroot = tracecontainer.traceid;
 				std::pair<uint64_t,uint64_t> const SLR = tracecontainer.getStringLengthUsed();
 
