@@ -89,7 +89,7 @@ int main(int argc, char * argv[])
 
 					for ( uint64_t i = low; i < high; ++i )
 					{
-						std::string const r = libmaus2::fastx::reverseComplementUnmapped(DB[i]);
+						std::string const r = libmaus2::fastx::mapString(libmaus2::fastx::reverseComplementUnmapped(DB[i]));
 						std::string const s = (*R)[i-low];
 						assert ( r.size() == s.size() );
 						assert ( s == r );
