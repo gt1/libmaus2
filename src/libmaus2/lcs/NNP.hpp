@@ -62,9 +62,9 @@ namespace libmaus2
 			// discard traces which are this far more back than the furthest
 			int64_t const maxback;
 
-			libmaus2::autoarray::AutoArray<DiagElement> Acontrol;
+			libmaus2::autoarray::AutoArray<DiagElement,libmaus2::autoarray::alloc_type_c> Acontrol;
 			DiagElement * control;
-			libmaus2::autoarray::AutoArray<DiagElement> Ancontrol;
+			libmaus2::autoarray::AutoArray<DiagElement,libmaus2::autoarray::alloc_type_c> Ancontrol;
 			DiagElement * ncontrol;
 
 			static unsigned int getDefaultMaxWindowError()
@@ -162,7 +162,8 @@ namespace libmaus2
 
 			static void
 				allocate(
-					int64_t const mindiag, int64_t const maxdiag, libmaus2::autoarray::AutoArray<DiagElement> & Acontrol,
+					int64_t const mindiag, int64_t const maxdiag,
+					libmaus2::autoarray::AutoArray<DiagElement,libmaus2::autoarray::alloc_type_c> & Acontrol,
 					DiagElement * & control
 				)
 			{
@@ -190,12 +191,15 @@ namespace libmaus2
 					// new max absolute diagonal index
 					ptrdiff_t const newabsdiag = std::max(2*oldabsdiag,one);
 
-					libmaus2::autoarray::AutoArray<DiagElement> Anewcontrol(2*newabsdiag+1);
+					libmaus2::autoarray::AutoArray<DiagElement,libmaus2::autoarray::alloc_type_c> Anewcontrol(2*newabsdiag+1,false);
 					std::copy(Acontrol.begin(),Acontrol.end(),Anewcontrol.begin() + (newabsdiag - oldabsdiag));
 
 					DiagElement * newcontrol = Anewcontrol.begin() + newabsdiag;
+
+					#if defined(LIBMAUS2_LCS_NNP_DEBUG)
 					for ( int64_t i = -oldabsdiag; i <= oldabsdiag; ++i )
 						assert ( newcontrol[i] == control[i] );
+					#endif
 
 					Acontrol = Anewcontrol;
 					control = newcontrol;
@@ -246,7 +250,7 @@ namespace libmaus2
 
 				tracecontainer.traceid = -1;
 
-				libmaus2::autoarray::AutoArray<NNPTraceElement> & Atrace = tracecontainer.Atrace;
+				libmaus2::autoarray::AutoArray<NNPTraceElement,libmaus2::autoarray::alloc_type_c> & Atrace = tracecontainer.Atrace;
 
 				bool active = false;
 				bool foundalignment = false;
@@ -280,7 +284,7 @@ namespace libmaus2
 					active = false;
 
 					// allocate control for next round
-					assert ( oactivediag );
+					// assert ( oactivediag );
 					allocate(
 						Aactivediag[0]-1,
 						Aactivediag[oactivediag-1]+1,Ancontrol,ncontrol);
@@ -304,8 +308,8 @@ namespace libmaus2
 						int64_t const prevd = d-1;
 						int64_t const nextd = d+1;
 
-						bool const prevactive = (i   > 0          ) && (Aactivediag.at(i-1) == prevd);
-						bool const nextactive = (i+1 < oactivediag) && (Aactivediag.at(i+1) == nextd);
+						bool const prevactive = (i   > 0          ) && (Aactivediag[i-1] == prevd);
+						bool const nextactive = (i+1 < oactivediag) && (Aactivediag[i+1] == nextd);
 
 						// std::cerr << "d=" << d << " prevd=" << prevd << " nextd=" << nextd << std::endl;
 
@@ -346,12 +350,15 @@ namespace libmaus2
 
 					int64_t maxroundoffset = -1;
 
+					// make space
+					Atrace.ensureSize(otrace + compdiago);
+
 					// iterate over diagonals for next round
 					for ( uint64_t di = 0; di < compdiago; ++di )
 					{
 						int64_t const d = Acompdiag[di].d;
 
-						assert ( d >= minband && d <= maxband );
+						// assert ( d >= minband && d <= maxband );
 
 						bool const prevactive = Acompdiag[di].prevactive;
 						bool const nextactive = Acompdiag[di].nextactive;
@@ -375,8 +382,8 @@ namespace libmaus2
 						// offsets on a and b due to diagonal
 						int64_t const apre = (d >= 0) ? d : 0;
 						int64_t const bpre = (d >= 0) ? 0 : -d;
-						assert ( apre >= 0 );
-						assert ( bpre >= 0 );
+						//assert ( apre >= 0 );
+						//assert ( bpre >= 0 );
 						// maximum offset on this diagonal
 						int64_t const maxoffset = std::min(alen-apre,blen-bpre);
 
@@ -482,13 +489,14 @@ namespace libmaus2
 											maxscoretraceid = ncontrol[d].id;
 										}
 
-										Atrace.push(otrace,NNPTraceElement(libmaus2::lcs::BaseConstants::STEP_MISMATCH,slidelen,control[d].id));
+										//assert ( otrace < Atrace.size() );
+										Atrace[otrace++] = NNPTraceElement(libmaus2::lcs::BaseConstants::STEP_MISMATCH,slidelen,control[d].id);
 									}
 								}
 							}
 							else // offtop maximal
 							{
-								assert ( offtop >= 0 );
+								//assert ( offtop >= 0 );
 
 								if ( (!thisactive) || (offtop > control[d].offset) )
 								{
@@ -512,7 +520,8 @@ namespace libmaus2
 											maxscoretraceid = ncontrol[d].id;
 										}
 
-										Atrace.push(otrace,NNPTraceElement(libmaus2::lcs::BaseConstants::STEP_INS,slidelen,control[d+1].id));
+										//assert ( otrace < Atrace.size() );
+										Atrace[otrace++] = NNPTraceElement(libmaus2::lcs::BaseConstants::STEP_INS,slidelen,control[d+1].id);
 									}
 								}
 							}
@@ -542,7 +551,8 @@ namespace libmaus2
 											maxscoretraceid = ncontrol[d].id;
 										}
 
-										Atrace.push(otrace,NNPTraceElement(libmaus2::lcs::BaseConstants::STEP_MISMATCH,slidelen,control[d].id));
+										//assert ( otrace < Atrace.size() );
+										Atrace[otrace++] = NNPTraceElement(libmaus2::lcs::BaseConstants::STEP_MISMATCH,slidelen,control[d].id);
 									}
 								}
 							}
@@ -550,7 +560,7 @@ namespace libmaus2
 							{
 								if ( (!thisactive) || (offleft > control[d].offset) )
 								{
-									assert ( offleft >= 0 );
+									//assert ( offleft >= 0 );
 									int64_t const aoff = apre + offleft;
 									int64_t const boff = bpre + offleft;
 									int64_t const slidelen = forward ? slide(ab+aoff,ae,bb+boff,be) : slider(ab,ae-aoff,bb,be-boff);
@@ -570,7 +580,8 @@ namespace libmaus2
 											maxscoretraceid = ncontrol[d].id;
 										}
 
-										Atrace.push(otrace,NNPTraceElement(libmaus2::lcs::BaseConstants::STEP_DEL,slidelen,control[d-1].id));
+										//assert ( otrace < Atrace.size() );
+										Atrace[otrace++] = NNPTraceElement(libmaus2::lcs::BaseConstants::STEP_DEL,slidelen,control[d-1].id);
 									}
 								}
 							}
