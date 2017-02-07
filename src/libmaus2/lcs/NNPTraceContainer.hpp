@@ -33,16 +33,25 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			libmaus2::autoarray::AutoArray<NNPTraceElement> Atrace;
+			libmaus2::autoarray::AutoArray<NNPTraceElement,libmaus2::autoarray::alloc_type_c> Atrace;
 			int64_t traceid;
 			uint64_t otrace;
+
+			void alloc(uint64_t const n)
+			{
+				if ( Atrace.size() < n )
+				{
+					Atrace.resize(0);
+					Atrace = libmaus2::autoarray::AutoArray<NNPTraceElement,libmaus2::autoarray::alloc_type_c>(n,false);
+				}
+			}
 
 			NNPTraceContainer() : traceid(-1), otrace(0)
 			{}
 
 			void copyFrom(NNPTraceContainer const & O)
 			{
-				Atrace.ensureSize(O.Atrace.size());
+				alloc(O.Atrace.size());
 				std::copy(O.Atrace.begin(),O.Atrace.end(),Atrace.begin());
 				traceid = O.traceid;
 				otrace = O.otrace;
@@ -1244,7 +1253,9 @@ namespace libmaus2
 				return cr;
 			}
 
-			static void computeTrace(libmaus2::autoarray::AutoArray<NNPTraceElement> const & Atrace, int64_t const traceid, libmaus2::lcs::AlignmentTraceContainer & ATC)
+			static void computeTrace(
+				libmaus2::autoarray::AutoArray<NNPTraceElement,libmaus2::autoarray::alloc_type_c> const & Atrace,
+				int64_t const traceid, libmaus2::lcs::AlignmentTraceContainer & ATC)
 			{
 				uint64_t reserve = 0;
 				for ( int64_t curtraceid = traceid ; curtraceid >= 0; curtraceid = Atrace[curtraceid].parent )
