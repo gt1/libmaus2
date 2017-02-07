@@ -419,6 +419,57 @@ namespace libmaus2
 					return rlen;
 				}
 
+				static size_t decodeReadNoDecode(
+					std::istream & bpsstream,
+					char * const C,
+					int32_t const rlen
+				)
+				{
+					bpsstream.read(C + (rlen - (rlen+3)/4),(rlen+3)/4);
+					if ( bpsstream.gcount() != (rlen+3)/4 )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::dazzler::db::Read::decode(): input failure" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					unsigned char * p = reinterpret_cast<unsigned char *>(C + ( rlen - ((rlen+3)>>2) ));
+					char * o = C;
+					for ( int32_t i = 0; i < (rlen>>2); ++i )
+					{
+						unsigned char v = *(p++);
+
+						*(o++) = ((v >> 6)&3);
+						*(o++) = ((v >> 4)&3);
+						*(o++) = ((v >> 2)&3);
+						*(o++) = ((v >> 0)&3);
+					}
+					if ( rlen & 3 )
+					{
+						unsigned char v = *(p++);
+						size_t rest = rlen - ((rlen>>2)<<2);
+
+						if ( rest )
+						{
+							*(o++) = ((v >> 6)&3);
+							rest--;
+						}
+						if ( rest )
+						{
+							*(o++) = ((v >> 4)&3);
+							rest--;
+						}
+						if ( rest )
+						{
+							*(o++) = ((v >> 2)&3);
+							rest--;
+						}
+					}
+
+					return rlen;
+				}
+
 				static size_t decodeReadRC(
 					std::istream & bpsstream,
 					char * const C,
@@ -465,6 +516,59 @@ namespace libmaus2
 						if ( rest )
 						{
 							*(--o) = libmaus2::fastx::remapChar((v >> 2)&3);
+							rest--;
+						}
+					}
+
+					return rlen;
+				}
+
+				static size_t decodeReadRCNoDecode(
+					std::istream & bpsstream,
+					char * const C,
+					int32_t const rlen
+				)
+				{
+					int64_t const inbytes = (rlen+3)/4;
+					bpsstream.read(C,inbytes);
+					if ( bpsstream.gcount() != inbytes )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::dazzler::db::Read::decode(): input failure" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					std::reverse(C,C+inbytes);
+
+					unsigned char * p = reinterpret_cast<unsigned char *>(C+inbytes);
+					char * o = C + rlen;
+					for ( int32_t i = 0; i < (rlen>>2); ++i )
+					{
+						unsigned char v = (*(--p)) ^ 0xFF;
+
+						*(--o) = ((v >> 6)&3);
+						*(--o) = ((v >> 4)&3);
+						*(--o) = ((v >> 2)&3);
+						*(--o) = ((v >> 0)&3);
+					}
+					if ( rlen & 3 )
+					{
+						unsigned char v = (*(--p)) ^ 0xFF;
+						size_t rest = rlen - ((rlen>>2)<<2);
+
+						if ( rest )
+						{
+							*(--o) = ((v >> 6)&3);
+							rest--;
+						}
+						if ( rest )
+						{
+							*(--o) = ((v >> 4)&3);
+							rest--;
+						}
+						if ( rest )
+						{
+							*(--o) = ((v >> 2)&3);
 							rest--;
 						}
 					}
@@ -1618,11 +1722,12 @@ namespace libmaus2
 				}
 
 				template<typename it>
-				void getReadLengthArray(uint64_t const low, uint64_t const high, it A) const
+				uint64_t getReadLengthArray(uint64_t const low, uint64_t const high, it A) const
 				{
 					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
 					std::istream & idxfile = *Pidxfile;
 
+					uint64_t maxlen = 0;
 					for ( uint64_t j = low; j < high; ++j )
 					{
 						uint64_t const mappedindex = Ptrim->select1(j);
@@ -1632,14 +1737,19 @@ namespace libmaus2
 
 						Read const R(*Pidxfile);
 						A[j-low] = R.rlen;
+						maxlen = std::max(maxlen,static_cast<uint64_t>(R.rlen));
 					}
+
+					return maxlen;
 				}
 
 				template<typename it>
-				void getReadLengthArrayParallel(uint64_t const low, uint64_t const high, it A, uint64_t const numthreads) const
+				uint64_t getReadLengthArrayParallel(uint64_t const low, uint64_t const high, it A, uint64_t const numthreads) const
 				{
 					uint64_t const size = high-low;
 					uint64_t const packsize = (size + numthreads - 1)/numthreads;
+					uint64_t maxlen = 0;
+					libmaus2::parallel::PosixSpinLock lock;
 
 					#if defined(_OPENMP)
 					#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
@@ -1648,8 +1758,14 @@ namespace libmaus2
 					{
 						uint64_t const l = std::min(low + t * packsize,high);
 						uint64_t const h = std::min(l + packsize,high);
-						getReadLengthArray(l,h,A + (l-low));
+						uint64_t const lmaxlen = getReadLengthArray(l,h,A + (l-low));
+
+						lock.lock();
+						maxlen = std::max(maxlen,lmaxlen);
+						lock.unlock();
 					}
+
+					return maxlen;
 				}
 
 				struct ReadDataRange
@@ -1661,16 +1777,29 @@ namespace libmaus2
 					libmaus2::autoarray::AutoArray<uint8_t> D;
 					libmaus2::autoarray::AutoArray<uint64_t> L;
 					uint64_t n;
+					uint64_t maxlen;
 
-					ReadDataRange() : n(0) {}
+					ReadDataRange() : n(0), maxlen(0) {}
 
 					std::string operator[](uint64_t const i) const
 					{
-						return
-							std::string(
-								D.begin()+L[i],
-								D.begin()+L[i+1]
-							);
+						std::pair<uint8_t const *, uint8_t const *> P = get(i);
+						return std::string(P.first,P.second);
+					}
+
+					std::pair<uint8_t const *, uint8_t const *> get(uint64_t const i) const
+					{
+						assert ( i < size() );
+
+						uint8_t const * p = D.begin() + L[i] + 2*i + 1;
+						uint64_t const l = L[i+1]-L[i];
+
+						return std::pair<uint8_t const *, uint8_t const *>(p,p + l);
+					}
+
+					uint64_t size() const
+					{
+						return n;
 					}
 				};
 
@@ -1687,6 +1816,8 @@ namespace libmaus2
 					libmaus2::aio::InputStream::unique_ptr_type Pbasestr(openBaseStream());
 					std::istream & basestr = *Pbasestr;
 
+					uint8_t * p = R.D.begin() + R.L[low] + 2*low;
+
 					for ( uint64_t j = low; j < high; ++j )
 					{
 						uint64_t const mappedindex = Ptrim->select1(base + j);
@@ -1699,11 +1830,18 @@ namespace libmaus2
 						if ( static_cast<int64_t>(basestr.tellg()) != RE.boff )
 							basestr.seekg(RE.boff,std::ios::beg);
 
+						assert ( RE.rlen == R.L[j+1] - R.L[j] );
+
+						*(p++) = 4;
 						if ( rc )
-							decodeReadRC(basestr,reinterpret_cast<char * >(R.D.begin() + R.L[j]),RE.rlen);
+							decodeReadRCNoDecode(basestr,reinterpret_cast<char * >(p),RE.rlen);
 						else
-							decodeRead(basestr,reinterpret_cast<char * >(R.D.begin() + R.L[j]),RE.rlen);
+							decodeReadNoDecode(basestr,reinterpret_cast<char * >(p),RE.rlen);
+						p += RE.rlen;
+						*(p++) = 4;
 					}
+
+					assert ( p == R.D.begin() + R.L[high] + 2*high );
 				}
 
 				ReadDataRange::unique_ptr_type decodeReadIntervalParallel(uint64_t const low, uint64_t const high, uint64_t const numthreads, bool const rc) const
@@ -1711,9 +1849,9 @@ namespace libmaus2
 					ReadDataRange::unique_ptr_type tptr(new ReadDataRange);
 					tptr->n = high-low;
 					tptr->L.resize(tptr->n + 1);
-					getReadLengthArrayParallel(low,high,tptr->L.begin(),numthreads);
+					tptr->maxlen = getReadLengthArrayParallel(low,high,tptr->L.begin(),numthreads);
 					libmaus2::util::PrefixSums::parallelPrefixSums(tptr->L.begin(),tptr->L.end(),numthreads);
-					tptr->D.resize(tptr->L[tptr->n]);
+					tptr->D.resize(tptr->L[tptr->n]+2*tptr->n);
 
 					uint64_t const size = high-low;
 					uint64_t const packsize = (size+numthreads-1)/numthreads;
