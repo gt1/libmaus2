@@ -84,7 +84,7 @@ int main(int argc, char * argv[])
 					std::cerr << "low=" << low << " high=" << high << std::endl;
 
 					libmaus2::dazzler::db::DatabaseFile::ReadDataRange::unique_ptr_type R(
-						DB.decodeReadIntervalParallel(low,high,32,true)
+						DB.decodeReadIntervalParallel(low,high,32,true,4)
 					);
 
 					for ( uint64_t i = low; i < high; ++i )
