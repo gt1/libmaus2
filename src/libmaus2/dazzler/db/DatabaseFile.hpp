@@ -1744,7 +1744,12 @@ namespace libmaus2
 				}
 
 				template<typename it>
-				uint64_t getReadLengthArrayParallel(uint64_t const low, uint64_t const high, it A, uint64_t const numthreads) const
+				uint64_t getReadLengthArrayParallel(
+					uint64_t const low,
+					uint64_t const high,
+					it A,
+					uint64_t const numthreads
+				) const
 				{
 					uint64_t const size = high-low;
 					uint64_t const packsize = (size + numthreads - 1)/numthreads;
@@ -1808,7 +1813,8 @@ namespace libmaus2
 					ReadDataRange & R,
 					uint64_t const base,
 					uint64_t const low,
-					uint64_t const high
+					uint64_t const high,
+					uint8_t const termval
 				) const
 				{
 					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
@@ -1832,19 +1838,25 @@ namespace libmaus2
 
 						assert ( RE.rlen == R.L[j+1] - R.L[j] );
 
-						*(p++) = 4;
+						*(p++) = termval;
 						if ( rc )
 							decodeReadRCNoDecode(basestr,reinterpret_cast<char * >(p),RE.rlen);
 						else
 							decodeReadNoDecode(basestr,reinterpret_cast<char * >(p),RE.rlen);
 						p += RE.rlen;
-						*(p++) = 4;
+						*(p++) = termval;
 					}
 
 					assert ( p == R.D.begin() + R.L[high] + 2*high );
 				}
 
-				ReadDataRange::unique_ptr_type decodeReadIntervalParallel(uint64_t const low, uint64_t const high, uint64_t const numthreads, bool const rc) const
+				ReadDataRange::unique_ptr_type decodeReadIntervalParallel(
+					uint64_t const low,
+					uint64_t const high,
+					uint64_t const numthreads,
+					bool const rc,
+					uint8_t const termval
+				) const
 				{
 					ReadDataRange::unique_ptr_type tptr(new ReadDataRange);
 					tptr->n = high-low;
@@ -1863,9 +1875,9 @@ namespace libmaus2
 						uint64_t const l = std::min(i*packsize,size);
 						uint64_t const h = std::min(l+packsize,size);
 						if ( rc )
-							decodeReadDataInterval<true>(*tptr,low,l,h);
+							decodeReadDataInterval<true>(*tptr,low,l,h,termval);
 						else
-							decodeReadDataInterval<false>(*tptr,low,l,h);
+							decodeReadDataInterval<false>(*tptr,low,l,h,termval);
 					}
 
 					return UNIQUE_PTR_MOVE(tptr);
