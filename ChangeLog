@@ -1,3 +1,9 @@
+libmaus2 (2.0.311-1) unstable; urgency=medium
+
+  * add parallel decoding in DatabaseFile
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 07 Feb 2017 18:01:24 +0100
+
 libmaus2 (2.0.310-1) unstable; urgency=medium
 
   * do not recode underscore symbol in argument list of ArgParser
