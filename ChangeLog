@@ -1,3 +1,10 @@
+libmaus2 (2.0.312-1) unstable; urgency=medium
+
+  * add unique term val option for NNP class
+  * add termval option for decodeReadIntervalParallel method in DatabaseFile
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 08 Feb 2017 00:17:07 +0100
+
 libmaus2 (2.0.311-1) unstable; urgency=medium
 
   * add parallel decoding in DatabaseFile
