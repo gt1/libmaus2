@@ -513,7 +513,7 @@ namespace libmaus2
 									uint64_t const newevec = (slidelen < 64) ? (((control[d].evec << 1) | 1) << slidelen) : 0;
 									unsigned int const numerr = popcnt(newevec);
 
-									if ( numerr < maxwerr )
+									if ( numerr <= maxwerr )
 									{
 										ncontrol[d].offset = offdiag + slidelen;
 										ncontrol[d].score = control[d].score - 1 + slidelen;
@@ -544,7 +544,7 @@ namespace libmaus2
 									uint64_t const newevec = (slidelen < 64) ? (((control[d+1].evec << 1) | 1) << slidelen) : 0;
 									unsigned int const numerr = popcnt(newevec);
 
-									if ( numerr < maxwerr )
+									if ( numerr <= maxwerr )
 									{
 										ncontrol[d].offset = offtop + slidelen;
 										ncontrol[d].id = otrace;
@@ -575,7 +575,7 @@ namespace libmaus2
 									uint64_t const newevec = (slidelen < 64) ? (((control[d].evec << 1) | 1) << slidelen) : 0;
 									unsigned int const numerr = popcnt(newevec);
 
-									if ( numerr < maxwerr )
+									if ( numerr <= maxwerr )
 									{
 										ncontrol[d].offset = offdiag + slidelen;
 										ncontrol[d].id = otrace;
@@ -604,7 +604,7 @@ namespace libmaus2
 									uint64_t const newevec = (slidelen < 64) ? (((control[d-1].evec << 1) | 1) << slidelen) : 0;
 									unsigned int const numerr = popcnt(newevec);
 
-									if ( numerr < maxwerr )
+									if ( numerr <= maxwerr )
 									{
 										ncontrol[d].offset = offleft + slidelen;
 										ncontrol[d].id = otrace;
