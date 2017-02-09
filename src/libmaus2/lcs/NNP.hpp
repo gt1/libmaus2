@@ -69,7 +69,7 @@ namespace libmaus2
 
 			static unsigned int getDefaultMinCorrelectionPercentage()
 			{
-				return 55;
+				return 62;
 			}
 
 			static unsigned int getDefaultMaxErrorPercentage()
