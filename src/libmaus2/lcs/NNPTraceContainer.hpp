@@ -520,6 +520,184 @@ namespace libmaus2
 				return dif;
 			}
 
+			static unsigned int popcnt(uint64_t const w)
+			{
+				return libmaus2::rank::PopCnt8<sizeof(long)>::popcnt8(w);
+			}
+
+			std::pair<uint64_t,uint64_t> clipEndWindowError(uint64_t const e)
+			{
+				uint64_t c = endWindowError(e);
+
+				uint64_t adel = 0;
+				uint64_t bdel = 0;
+
+				// std::cerr << "c=" << c << std::endl;
+
+				while ( c && traceid >= 0 )
+				{
+					uint64_t const nodeslidelen = Atrace[traceid].slide;
+					uint64_t const nodeoplen = (Atrace[traceid].step != libmaus2::lcs::BaseConstants::STEP_RESET) ? 1 : 0;
+					uint64_t const nodelen = nodeslidelen + nodeoplen;
+
+					if ( c >= nodelen )
+					{
+						adel += nodeslidelen +
+							((Atrace[traceid].step == libmaus2::lcs::BaseConstants::STEP_DEL)
+							||
+							(Atrace[traceid].step == libmaus2::lcs::BaseConstants::STEP_MISMATCH))
+							;
+						bdel += nodeslidelen +
+							((Atrace[traceid].step == libmaus2::lcs::BaseConstants::STEP_INS)
+							||
+							(Atrace[traceid].step == libmaus2::lcs::BaseConstants::STEP_MISMATCH))
+							;
+						c -= nodelen;
+						//std::cerr << "deleting node " << Atrace[traceid] << " of len " << nodelen << " adel " << adel << " bdel " << bdel << std::endl;
+						traceid = Atrace[traceid].parent;
+					}
+					else
+					{
+						adel += c;
+						bdel += c;
+						//std::cerr << "reducing node " << Atrace[traceid] << " of len " << nodelen << " by " << c << " adel " << adel << " bdel " << bdel << std::endl;
+						assert ( nodeslidelen >= c );
+						Atrace[traceid].slide -= c;
+						c = 0;
+					}
+				}
+
+				return std::pair<uint64_t,uint64_t>(adel,bdel);
+			}
+
+			uint64_t endWindowError(uint64_t const e) const
+			{
+				uint64_t const wbits = CHAR_BIT*sizeof(uint64_t);
+				uint64_t v = 0;
+				uint64_t l = 0;
+				int64_t cur = traceid;
+				uint64_t rest = 0;
+
+				while ( cur >= 0 && l < wbits )
+				{
+					uint64_t const toadd  = wbits - l;
+					uint64_t const slide = Atrace[cur].slide;
+					uint64_t const use = std::min(toadd,slide);
+
+					v <<= use;
+					l += use;
+
+					if ( l < wbits )
+					{
+						if ( Atrace[cur].step != libmaus2::lcs::BaseConstants::STEP_RESET )
+						{
+							v <<= 1;
+							v |= 1;
+							l += 1;
+						}
+						cur = Atrace[cur].parent;
+
+						if ( l == wbits && cur >= 0 )
+						{
+							rest = Atrace[cur].slide;
+						}
+					}
+					else
+					{
+						assert ( l == wbits );
+						rest = slide - use;
+					}
+				}
+
+				uint64_t rclip = 0;
+
+				if ( l >= wbits )
+				{
+					assert ( l == wbits );
+
+					// last window is good enough
+					if ( popcnt(v) <= e )
+					{
+						rclip = 0;
+					}
+					else
+					{
+						// last window + rest of current slide is enough
+						if ( popcnt(v << rest) <= e )
+						{
+							// figure out how many matches we need to add
+							uint64_t clip = 0;
+
+							while ( rest && popcnt(v) > e )
+							{
+								rest--;
+								clip++;
+								v <<= 1;
+							}
+							assert ( popcnt(v) <= e );
+
+							rclip = clip;
+						}
+						// last window + rest of current slide is not enough
+						else
+						{
+							// add rest of current operation
+							uint64_t clip = rest;
+							v <<= rest;
+							if ( Atrace[cur].step != libmaus2::lcs::BaseConstants::STEP_RESET )
+							{
+								v <<= 1;
+								v |= 1;
+								clip += 1;
+							}
+
+							cur = Atrace[cur].parent;
+
+							while ( cur >= 0 )
+							{
+								rest = Atrace[cur].slide;
+
+								if ( popcnt(v << rest) <= e )
+								{
+									while ( rest && (popcnt(v) > e) )
+									{
+										rest--;
+										clip++;
+										v <<= 1;
+									}
+									assert ( popcnt(v) <= e );
+
+									rclip = clip;
+									break;
+								}
+								else
+								{
+									v <<= rest;
+									clip += rest;
+
+									if ( Atrace[cur].step != libmaus2::lcs::BaseConstants::STEP_RESET )
+									{
+										v <<= 1;
+										v |= 1;
+										clip += 1;
+									}
+									cur = Atrace[cur].parent;
+								}
+							}
+
+							if ( cur < 0 )
+								rclip = clip + wbits;
+						}
+					}
+				}
+				else
+				{
+					rclip = 0;
+				}
+
+				return rclip;
+			}
+
 			void suffixPositive(
 				int64_t const match_score    = PenaltyConstants::gain_match,
 			        int64_t const mismatch_score = PenaltyConstants::penalty_subst,
