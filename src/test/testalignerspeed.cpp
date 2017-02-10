@@ -15,6 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <libmaus2/lcs/NNPCor.hpp>
 #include <libmaus2/lcs/NNP.hpp>
 
 #include <iostream>
@@ -71,16 +72,16 @@ int main(int argc, char * argv[])
 
 		libmaus2::random::Random::setup();
 
-		#if 0
+		#if 1
 		{
 			std::string const a = "AGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAATAGAT";
 
 			for ( uint64_t seedposa = 0; seedposa < a.size(); ++seedposa )
 				for ( uint64_t seedposb = 0; seedposb < a.size(); ++seedposb )
 				{
-					libmaus2::lcs::NNP nnp;
+					libmaus2::lcs::NNPCor nnp;
 					libmaus2::lcs::NNPTraceContainer tracecontainer;
-					nnp.align(
+					libmaus2::lcs::NNPAlignResult res = nnp.align(
 						a.begin(),
 						a.end(),
 						seedposa,
@@ -95,7 +96,26 @@ int main(int argc, char * argv[])
 
 					libmaus2::lcs::AlignmentTraceContainer ATC;
 					tracecontainer.computeTrace(ATC);
+
+					std::pair<uint64_t,uint64_t> const SLA = ATC.getStringLengthUsed();
+					assert ( SL == SLA );
+
 					std::cerr << ATC.traceToString() << std::endl;
+
+					ATC.checkAlignment(
+						ATC.ta,
+						ATC.te,
+						a.begin()+res.abpos,
+						a.begin()+res.bbpos
+					);
+
+					#if 0
+					std::cerr << SL.first << "," << SL.second << std::endl;
+					std::cerr << res.aepos-res.abpos << "," << res.bepos-res.bbpos << std::endl;
+					#endif
+
+					assert ( SLA.first == res.aepos-res.abpos );
+					assert ( SLA.second == res.bepos-res.bbpos );
 
 					#if 0
 					libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,
@@ -268,8 +288,9 @@ int main(int argc, char * argv[])
 				b.begin(),
 				b.end(),
 				tracecontainer,
-				-3,
-				std::numeric_limits<int64_t>::max()
+				false,
+				-3 /* mindiag */,
+				std::numeric_limits<int64_t>::max() /* maxdiag */
 			);
 
 			std::pair<uint64_t,uint64_t> const SL = tracecontainer.getStringLengthUsed();

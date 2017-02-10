@@ -192,7 +192,7 @@ namespace libmaus2
                                         {
                                                 int const error = errno;
                                                 libmaus2::exception::LibMausException lme;
-                                                lme.getStream() << "~MutexLock: " << strerror(error) << std::endl;
+                                                lme.getStream() << "TerminatableSynchronousQueue::deque: pthread_cond_wait " << strerror(error) << std::endl;
                                                 lme.finish();
                                                 throw lme;
                                         }
