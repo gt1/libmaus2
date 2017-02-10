@@ -1784,6 +1784,11 @@ namespace libmaus2
 					uint64_t n;
 					uint64_t maxlen;
 
+					uint64_t byteSize() const
+					{
+						return D.byteSize() + L.byteSize() + sizeof(n) + sizeof(maxlen);
+					}
+
 					ReadDataRange() : n(0), maxlen(0) {}
 
 					std::string operator[](uint64_t const i) const

@@ -15,8 +15,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_LCS_NNP_HPP)
-#define LIBMAUS2_LCS_NNP_HPP
+#if ! defined(LIBMAUS2_LCS_NNPCOR_HPP)
+#define LIBMAUS2_LCS_NNPCOR_HPP
 
 #include <libmaus2/lcs/NNPAlignResult.hpp>
 #include <libmaus2/lcs/NNPTraceContainer.hpp>
@@ -30,9 +30,9 @@ namespace libmaus2
 {
 	namespace lcs
 	{
-		struct NNP
+		struct NNPCor
 		{
-			typedef NNP this_type;
+			typedef NNPCor this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
@@ -57,41 +57,51 @@ namespace libmaus2
 				}
 			};
 
-			// discard traces which have more than this number of errors in the last 64 columns
+			// maximimum correlation error when clipping
+			unsigned int const maxcerr;
+			// discard traces which have more than this number of errors in the last 64 columns (local error check)
 			unsigned int const maxwerr;
 			// discard traces which are this far more back than the furthest
 			int64_t const maxback;
+			// unique terminal value used
+			bool const funiquetermval;
+			//
+			bool const runsuffixpositive;
 
 			libmaus2::autoarray::AutoArray<DiagElement,libmaus2::autoarray::alloc_type_c> Acontrol;
 			DiagElement * control;
 			libmaus2::autoarray::AutoArray<DiagElement,libmaus2::autoarray::alloc_type_c> Ancontrol;
 			DiagElement * ncontrol;
 
-			static unsigned int getDefaultMinCorrelectionPercentage()
-			{
-				return 62;
-			}
-
-			static unsigned int getDefaultMaxErrorPercentage()
-			{
-				return 100 - getDefaultMinCorrelectionPercentage();
-			}
-
 			static unsigned int getWindowSize()
 			{
 				return CHAR_BIT*sizeof(uint64_t);
 			}
 
-			static unsigned int getDefaultMaxWindowError()
+			static double getDefaultMinCorrelation()
 			{
-				return (getDefaultMaxErrorPercentage() * getWindowSize()) / 100;
+				return 0.7;
 			}
 
-			static int64_t getDefaultMaxBack()
+			static double getDefaultMinLocalCorrelation()
+			{
+				return 0.53;
+			}
+
+			static bool getDefaultUniqueTermVal()
+			{
+				return false;
+			}
+
+			static bool getDefaultRunSuffixPositive()
+			{
+				return true;
+			}
+
+			static unsigned int getDefaultMaxBack()
 			{
 				return 75;
 			}
-
 
 			struct CompInfo
 			{
@@ -114,13 +124,19 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray<CompInfo> Acompdiag;
 			libmaus2::autoarray::AutoArray<int64_t> Aactivediag;
 
-			NNP(
-				unsigned int const rmaxwerr = getDefaultMaxWindowError(),
-				int64_t const rmaxback = getDefaultMaxBack()
+			NNPCor(
+				double const mincor = getDefaultMinCorrelation(),
+				double const minlocalcor = getDefaultMinLocalCorrelation(),
+				int64_t const rmaxback = getDefaultMaxBack(),
+				bool const rfuniquetermval = getDefaultUniqueTermVal(),
+				bool const rrunsuffixpositive = getDefaultRunSuffixPositive()
 			)
 			:
-				maxwerr(rmaxwerr),
+				maxcerr( std::floor(( 1.0 - mincor      ) * getWindowSize() + 0.5) ),
+				maxwerr( std::floor(( 1.0 - minlocalcor ) * getWindowSize() + 0.5) ),
 				maxback(rmaxback),
+				funiquetermval(rfuniquetermval),
+				runsuffixpositive(rrunsuffixpositive),
 				Acontrol(1), control(Acontrol.begin()),
 				Ancontrol(1), ncontrol(Ancontrol.begin())
 			{
@@ -269,8 +285,7 @@ namespace libmaus2
 				iterator be,
 				NNPTraceContainer & tracecontainer,
 				int64_t const minband = getDefaultMinDiag(),
-				int64_t const maxband = getDefaultMaxDiag(),
-				bool const runsuffixpositive = true
+				int64_t const maxband = getDefaultMaxDiag()
 			)
 			{
 				uint64_t oactivediag = 0;
@@ -680,8 +695,11 @@ namespace libmaus2
 				#endif
 
 				tracecontainer.otrace = otrace;
+
+				#if 0
 				if ( runsuffixpositive )
 					tracecontainer.suffixPositive();
+				#endif
 
 				if ( ! forward )
 					tracecontainer.reverse();
@@ -698,7 +716,6 @@ namespace libmaus2
 				int64_t const maxband = getDefaultMaxDiag(),
 				bool const forward = true,
 				bool const self = false,
-				bool const runsuffixpositive = true,
 				bool const uniquetermval = false
 			)
 			{
@@ -706,27 +723,27 @@ namespace libmaus2
 				{
 					if ( forward )
 						if ( self )
-							alignTemplate<iterator,true,true,true>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
+							alignTemplate<iterator,true,true,true>(ab,ae,bb,be,tracecontainer,minband,maxband);
 						else
-							alignTemplate<iterator,true,false,true>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
+							alignTemplate<iterator,true,false,true>(ab,ae,bb,be,tracecontainer,minband,maxband);
 					else
 						if ( self )
-							alignTemplate<iterator,false,true,true>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
+							alignTemplate<iterator,false,true,true>(ab,ae,bb,be,tracecontainer,minband,maxband);
 						else
-							alignTemplate<iterator,false,false,true>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
+							alignTemplate<iterator,false,false,true>(ab,ae,bb,be,tracecontainer,minband,maxband);
 				}
 				else
 				{
 					if ( forward )
 						if ( self )
-							alignTemplate<iterator,true,true,false>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
+							alignTemplate<iterator,true,true,false>(ab,ae,bb,be,tracecontainer,minband,maxband);
 						else
-							alignTemplate<iterator,true,false,false>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
+							alignTemplate<iterator,true,false,false>(ab,ae,bb,be,tracecontainer,minband,maxband);
 					else
 						if ( self )
-							alignTemplate<iterator,false,true,false>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
+							alignTemplate<iterator,false,true,false>(ab,ae,bb,be,tracecontainer,minband,maxband);
 						else
-							alignTemplate<iterator,false,false,false>(ab,ae,bb,be,tracecontainer,minband,maxband,runsuffixpositive);
+							alignTemplate<iterator,false,false,false>(ab,ae,bb,be,tracecontainer,minband,maxband);
 				}
 			}
 
@@ -738,9 +755,7 @@ namespace libmaus2
 				// set valid diagonal band to avoid self matches when a and b are the same string
 				bool const self = false,
 				int64_t minfdiag = getDefaultMinDiag(),
-				int64_t maxfdiag = getDefaultMaxDiag(),
-				bool const runsuffixpositive = true,
-				bool const uniquetermval = false
+				int64_t maxfdiag = getDefaultMaxDiag()
 			)
 			{
 				tracecontainer.reset();
@@ -764,25 +779,44 @@ namespace libmaus2
 				if ( maxfdiag != getDefaultMaxDiag() )
 					minrdiag = -maxfdiag;
 
-				align(ab,ab+seedposa,bb,bb+seedposb,tracecontainer,minrdiag,maxrdiag,false /* forward */,self,runsuffixpositive,uniquetermval);
+				align(ab,ab+seedposa,bb,bb+seedposb,tracecontainer,minrdiag,maxrdiag,false /* forward */,self,funiquetermval);
 
 				int64_t const revroot = tracecontainer.traceid;
 				std::pair<uint64_t,uint64_t> const SLF = tracecontainer.getStringLengthUsed();
 
 				// run forward alignment from seedpos
-				align(ab+seedposa,ae,bb+seedposb,be,tracecontainer,minfdiag,maxfdiag,true /* forward */,self,runsuffixpositive,uniquetermval);
+				align(ab+seedposa,ae,bb+seedposb,be,tracecontainer,minfdiag,maxfdiag,true /* forward */,self,funiquetermval);
 				int64_t const forroot = tracecontainer.traceid;
 				std::pair<uint64_t,uint64_t> const SLR = tracecontainer.getStringLengthUsed();
 
 				// concatenate traces
 				tracecontainer.traceid = tracecontainer.concat(revroot,forroot);
 
+				std::pair<uint64_t,uint64_t> Dback = tracecontainer.clipEndWindowError(maxcerr);
+
+				if ( runsuffixpositive )
+				{
+					std::pair<uint64_t,uint64_t> Sback = tracecontainer.suffixPositive();
+					Dback.first += Sback.first;
+					Dback.second += Sback.second;
+				}
+
+				tracecontainer.reverse();
+				std::pair<uint64_t,uint64_t> Dfront = tracecontainer.clipEndWindowError(maxcerr);
+				if ( runsuffixpositive )
+				{
+					std::pair<uint64_t,uint64_t> Sfront = tracecontainer.suffixPositive();
+					Dfront.first += Sfront.first;
+					Dfront.second += Sfront.second;
+				}
+				tracecontainer.reverse();
+
 				// count number of errors
 				uint64_t const dif = tracecontainer.getNumDif();
-				uint64_t const abpos = seedposa - SLF.first;
-				uint64_t const bbpos = seedposb - SLF.second;
-				uint64_t const aepos = seedposa + SLR.first;
-				uint64_t const bepos = seedposb + SLR.second;
+				uint64_t const abpos = seedposa - SLF.first + Dfront.first;
+				uint64_t const bbpos = seedposb - SLF.second + Dfront.second;
+				uint64_t const aepos = seedposa + SLR.first - Dback.first;
+				uint64_t const bepos = seedposb + SLR.second - Dback.second;
 				return NNPAlignResult(abpos,aepos,bbpos,bepos,dif);
 			}
 		};

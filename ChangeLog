@@ -1,3 +1,14 @@
+libmaus2 (2.0.313-1) unstable; urgency=medium
+
+  * add NNPCor class (NNP plus clipping at furthest reaching points satisfying a correlation bound)
+  * return number of clipped bases on A and B sequence in NNPTraceContainer::suffixPositive
+  * add byteSize method in DatabaseFile::ReadDataRange
+  * add clipEndWindowError method in NNPTraceContainer class
+  * restore previous default for local error threshold in NNP
+  * fix off by one error when checking maximum local error count in NNP
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 10 Feb 2017 16:03:36 +0100
+
 libmaus2 (2.0.312-1) unstable; urgency=medium
 
   * add unique term val option for NNP class

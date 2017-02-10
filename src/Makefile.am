@@ -1949,6 +1949,7 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/NP.hpp \
 	libmaus2/lcs/NPL.hpp \
 	libmaus2/lcs/NNP.hpp \
+	libmaus2/lcs/NNPCor.hpp \
 	libmaus2/lcs/NNPTraceElement.hpp \
 	libmaus2/lcs/NNPTraceContainer.hpp \
 	libmaus2/lcs/NNPAlignResult.hpp \
