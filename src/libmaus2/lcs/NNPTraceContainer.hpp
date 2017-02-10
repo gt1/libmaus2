@@ -698,7 +698,7 @@ namespace libmaus2
 				return rclip;
 			}
 
-			void suffixPositive(
+			std::pair<uint64_t,uint64_t> suffixPositive(
 				int64_t const match_score    = PenaltyConstants::gain_match,
 			        int64_t const mismatch_score = PenaltyConstants::penalty_subst,
 			        int64_t const ins_score      = PenaltyConstants::penalty_ins,
@@ -707,20 +707,30 @@ namespace libmaus2
 			{
 				int64_t score = 0;
 				int64_t cur = traceid;
+				uint64_t asum = 0;
+				uint64_t bsum = 0;
+				uint64_t aclip = 0;
+				uint64_t bclip = 0;
 				while ( cur >= 0 )
 				{
 					score += match_score * Atrace[cur].slide;
+					asum += Atrace[cur].slide;
+					bsum += Atrace[cur].slide;
 
 					switch ( Atrace[cur].step )
 					{
 						case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
 							score -= mismatch_score;
+							asum++;
+							bsum++;
 							break;
 						case libmaus2::lcs::BaseConstants::STEP_DEL:
 							score -= del_score;
+							asum++;
 							break;
 						case libmaus2::lcs::BaseConstants::STEP_INS:
 							score -= ins_score;
+							bsum++;
 							break;
 						default:
 							break;
@@ -728,12 +738,16 @@ namespace libmaus2
 
 					if ( score < 0 )
 					{
+						aclip = asum;
+						bclip = bsum;
 						score = 0;
 						traceid = Atrace[cur].parent;
 					}
 
 					cur = Atrace[cur].parent;
 				}
+
+				return std::pair<uint64_t,uint64_t>(aclip,bclip);
 			}
 
 			int64_t concat(int64_t node1, int64_t node2)
