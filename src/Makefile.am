@@ -1558,7 +1558,8 @@ libmaus2fastx_include_HEADERS=\
 	libmaus2/fastx/KmerFreqInWindowStats.hpp \
 	libmaus2/fastx/ReadContainer.hpp \
 	libmaus2/fastx/KmerRepeatDetector.hpp \
-	libmaus2/fastx/FastaPeeker.hpp
+	libmaus2/fastx/FastaPeeker.hpp \
+	libmaus2/fastx/KmerCount.hpp
 
 libmaus2timing_includedir=$(includedir)/libmaus2/timing
 libmaus2timing_include_HEADERS=\
@@ -2157,7 +2158,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testavx \
 	testserialisedsorting \
 	testbamnumericalindex \
-	testnpl
+	testnpl \
+	testkcnt
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2735,3 +2737,8 @@ testnpl_SOURCES  = test/testnpl.cpp
 testnpl_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testnpl_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
 testnpl_LDFLAGS  = ${AM_LDFLAGS}
+
+testkcnt_SOURCES  = test/testkcnt.cpp
+testkcnt_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testkcnt_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
+testkcnt_LDFLAGS  = ${AM_LDFLAGS}

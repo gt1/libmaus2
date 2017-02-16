@@ -1,3 +1,12 @@
+libmaus2 (2.0.314-1) unstable; urgency=medium
+
+  * add KmerCount class plus test
+  * delete temporary file at end of SerialisingSortingBufferedOutputFile::reduce
+  * add constructor variant accepting file name in LineBufferFastAReader
+  * add stack protection/asan for debugging in configure.ac
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 16 Feb 2017 12:29:33 +0100
+
 libmaus2 (2.0.313-1) unstable; urgency=medium
 
   * add NNPCor class (NNP plus clipping at furthest reaching points satisfying a correlation bound)
