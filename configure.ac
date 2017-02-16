@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.313,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
-LIBRARY_VERSION=2:313:0
+AC_INIT(libmaus2,2.0.314,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
+LIBRARY_VERSION=2:314:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -1420,6 +1420,12 @@ AC_ARG_ENABLE(openmp,
         AS_HELP_STRING([--enable-openmp],[use OpenMP (default yes)]),
         [openmp=${enableval}],[openmp=yes])
 
+AC_ARG_WITH([asan],
+	[AS_HELP_STRING([--with-asan@<:@=PATH@:>@], [enable address sanitizer in debug mode @<:@default=yes@:>@])],
+	[with_asan=${withval}],
+	[with_asan=yes])
+
+
 if test "${openmp}" = "yes" ; then
 	AC_LANG_PUSH([C++])
 	AX_OPENMP(have_openmp=yes,have_openmp=no)
@@ -1433,6 +1439,37 @@ if test "${debug}" = "yes" ; then
         LDFLAGS="${LDFLAGS} -rdynamic"
 	openmp="no"
 	LIBMAUS2_DEBUG_COMPILED="#define LIBMAUS2_DEBUG_COMPILED"
+
+	if test "${with_asan}" = "yes" ; then
+		AC_LANG_PUSH([C++])
+		CXXFLAGS_SAVE="${CXXFLAGS}"
+		CXXFLAGS="-fsanitize=address"
+		AC_MSG_CHECKING([whether the C++ compiler supports the -fsanitize=address flag])
+		AC_TRY_COMPILE([],[],[sanitizeaddress=yes],[sanitizeaddress=no])
+		AC_MSG_RESULT([${sanitizeaddress}])
+		CXXFLAGS="${CXXFLAGS_SAVE}"
+		AC_LANG_POP
+
+		if test "${sanitizeaddress}" = "yes" ; then
+			CXXFLAGS="${CXXFLAGS} -fsanitize=address"
+			CFLAGS="${CFLAGS} -fsanitize=address"
+		fi
+	fi
+
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-fstack-protector"
+	AC_MSG_CHECKING([whether the C++ compiler supports the -fstack-protector flag])
+	AC_TRY_COMPILE([],[],[stackprotect=yes],[stackprotect=no])
+	AC_MSG_RESULT([${stackprotect}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+
+	if test "${stackprotect}" = "yes" ; then
+		STACKPROTECT="-fstack-protector"
+		CXXFLAGS="${CXXFLAGS} ${STACKPROTECT}"
+		CFLAGS="${CFLAGS} ${STACKPROTECT}"
+	fi
 elif test "${optimization}" = "yes" ; then
 	case ${CXX} in
 		g++)
@@ -3339,7 +3376,7 @@ TESTPROGS="${TESTPROGS} testunsignedinteger testmd5 testsha testsinglefileserver
 TESTPROGS="${TESTPROGS} testparallelbamvalidation testparallelbamrewrite testbammateerase testparallelbamblocksort"
 TESTPROGS="${TESTPROGS} testmapperm testexternalmemoryindex testfastqtobam testsamrecoding testdazzlerdb testnd testfastashred testalignerspeed testfastasingleline testdazzleralignmentrewrite"
 TESTPROGS="${TESTPROGS} testxz testdazzlerindex testargparser testfragmentenvelope testdnarank testlowbits testfastaexplode testfaextract testmurmur3 testpairalign testsplaytree testbwtconstruction testbwtconstructionfasta"
-TESTPROGS="${TESTPROGS} testarrayinput testhugepages testsymcnt testgammapd testpo testdnasuffixtrav testserialisedsorting testbamnumericalindex testnpl"
+TESTPROGS="${TESTPROGS} testarrayinput testhugepages testsymcnt testgammapd testpo testdnasuffixtrav testserialisedsorting testbamnumericalindex testnpl testkcnt"
 
 if test "${mavx2}" = "yes" ; then
 	TESTPROGS="${TESTPROGS} testavx"

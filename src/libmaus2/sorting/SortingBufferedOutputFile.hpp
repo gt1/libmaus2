@@ -149,6 +149,8 @@ namespace libmaus2
 				OSI.flush();
 				Pmerger.reset();
 				U.reset();
+
+				libmaus2::aio::FileRemoval::removeFile(tmp);
 			}
 		};
 	}

@@ -18,6 +18,7 @@
 #if ! defined(LIBMAUS2_FASTX_LINEBUFFERFASTAREADER_HPP)
 #define LIBMAUS2_FASTX_LINEBUFFERFASTAREADER_HPP
 
+#include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/fastx/acgtnMap.hpp>
 #include <libmaus2/util/LineBuffer.hpp>
 
@@ -31,8 +32,16 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
+			libmaus2::aio::InputStreamInstance::unique_ptr_type PISI;
 			libmaus2::util::LineBuffer LB;
 			libmaus2::autoarray::AutoArray<char> M;
+
+			LineBufferFastAReader(std::string const & fn)
+			: PISI(new libmaus2::aio::InputStreamInstance(fn)), LB(*PISI,1024*1024), M(static_cast<uint64_t>(std::numeric_limits<unsigned char>::max())+1ull)
+			{
+				for ( uint64_t i = 0; i < M.size(); ++i )
+					M[i] = libmaus2::fastx::mapChar(i);
+			}
 
 			LineBufferFastAReader(std::istream & in)
 			: LB(in,1024*1024), M(static_cast<uint64_t>(std::numeric_limits<unsigned char>::max())+1ull)
