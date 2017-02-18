@@ -1,3 +1,9 @@
+libmaus2 (2.0.315-1) unstable; urgency=medium
+
+  * add IntervalTree class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Sat, 18 Feb 2017 13:21:36 +0100
+
 libmaus2 (2.0.314-1) unstable; urgency=medium
 
   * add KmerCount class plus test
