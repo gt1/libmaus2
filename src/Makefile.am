@@ -1016,7 +1016,8 @@ libmaus2rank_include_HEADERS=\
 
 libmaus2geometry_includedir=$(includedir)/libmaus2/geometry
 libmaus2geometry_include_HEADERS=\
-	libmaus2/geometry/RangeSet.hpp
+	libmaus2/geometry/RangeSet.hpp \
+	libmaus2/geometry/IntervalTree.hpp
 	
 libmaus2select_includedir=$(includedir)/libmaus2/select
 libmaus2select_include_HEADERS=\
@@ -2159,7 +2160,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testserialisedsorting \
 	testbamnumericalindex \
 	testnpl \
-	testkcnt
+	testkcnt \
+	testintervaltree
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2742,3 +2744,8 @@ testkcnt_SOURCES  = test/testkcnt.cpp
 testkcnt_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testkcnt_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
 testkcnt_LDFLAGS  = ${AM_LDFLAGS}
+
+testintervaltree_SOURCES  = test/testintervaltree.cpp
+testintervaltree_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testintervaltree_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
+testintervaltree_LDFLAGS  = ${AM_LDFLAGS}
