@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.315,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
-LIBRARY_VERSION=2:315:0
+AC_INIT(libmaus2,2.0.316,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
+LIBRARY_VERSION=2:316:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -2328,22 +2328,22 @@ if [[ "${ac_cv_func_sem_timedwait}" = "yes" ]] ; then
 fi
 
 HAVEPTHREADSETNAME_NP=
-if [[ "${ac_cv_pthread_setname_np_func}" = "yes" ]] ; then
+if [[ "${ac_cv_func_pthread_setname_np}" = "yes" ]] ; then
 	HAVEPTHREADSETNAME_NP="#define LIBMAUS2_HAVE_HAVEPTHREADSETNAME_NP"
 fi
 
 HAVEPTHREADSET_NAME_NP=
-if [[ "${ac_cv_pthread_set_name_np_func}" = "yes" ]] ; then
+if [[ "${ac_cv_func_pthread_set_name_np}" = "yes" ]] ; then
 	HAVEPTHREADSET_NAME_NP="#define LIBMAUS2_HAVE_HAVEPTHREADSET_NAME_NP"
 fi
 
 HAVEPTHREADGETNAME_NP=
-if [[ "${ac_cv_pthread_getname_np_func}" = "yes" ]] ; then
+if [[ "${ac_cv_func_pthread_getname_np}" = "yes" ]] ; then
 	HAVEPTHREADGETNAME_NP="#define LIBMAUS2_HAVE_HAVEPTHREADGETNAME_NP"
 fi
 
 HAVEPTHREADGET_NAME_NP=
-if [[ "${ac_cv_pthread_get_name_np_func}" = "yes" ]] ; then
+if [[ "${ac_cv_func_pthread_get_name_np}" = "yes" ]] ; then
 	HAVEPTHREADGET_NAME_NP="#define LIBMAUS2_HAVE_HAVEPTHREADGET_NAME_NP"
 fi
 
