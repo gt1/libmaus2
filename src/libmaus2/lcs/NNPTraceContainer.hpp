@@ -307,8 +307,6 @@ namespace libmaus2
 				for ( int64_t curtraceid = traceid ; curtraceid >= 0; curtraceid = Atrace[curtraceid].parent )
 					S.push(curtraceid);
 
-				std::map<int64_t,uint64_t> M;
-
 				int64_t dmin = apos-bpos;
 				int64_t dmax = dmin;
 
@@ -335,11 +333,140 @@ namespace libmaus2
 						dmin = d;
 					if ( dmax < d )
 						dmax = d;
-
-					M [ d ] += E.slide;
 				}
 
 				return std::pair<int64_t,int64_t>(dmin,dmax);
+			}
+
+			std::pair<int64_t,int64_t> getDiagonalBandEnd(int64_t apos, int64_t bpos) const
+			{
+				int64_t curtraceid = traceid;
+				int64_t dmin = std::numeric_limits<int64_t>::max();
+				int64_t dmax = std::numeric_limits<int64_t>::min();
+
+				// skip ops until we find a positive slide
+				while ( curtraceid >= 0 && (!Atrace[curtraceid].slide) )
+				{
+					NNPTraceElement const & E = Atrace[curtraceid];
+
+					switch ( E.step )
+					{
+						case libmaus2::lcs::BaseConstants::STEP_DEL:
+							apos -= 1;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_INS:
+							bpos -= 1;
+							break;
+						default:
+							break;
+					}
+
+					curtraceid = Atrace[curtraceid].parent;
+				}
+
+				assert ( (curtraceid < 0) || Atrace[curtraceid].slide );
+
+				while ( curtraceid >= 0 )
+				{
+					NNPTraceElement const & E = Atrace[curtraceid];
+
+					int64_t const d = apos-bpos;
+
+					if ( d < dmin )
+						dmin = d;
+					if ( dmax < d )
+						dmax = d;
+
+					switch ( E.step )
+					{
+						case libmaus2::lcs::BaseConstants::STEP_DEL:
+							apos -= 1;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_INS:
+							bpos -= 1;
+							break;
+						default:
+							break;
+					}
+
+					curtraceid = Atrace[curtraceid].parent;
+				}
+
+				return std::pair<int64_t,int64_t>(dmin,dmax);
+			}
+
+			template<typename register_type>
+			std::pair<int64_t,int64_t> registerMatches(int64_t apos, int64_t bpos, register_type & RT) const
+			{
+				int64_t curtraceid = traceid;
+				int64_t dmin = std::numeric_limits<int64_t>::max();
+				int64_t dmax = std::numeric_limits<int64_t>::min();
+
+				// skip ops until we find a positive slide
+				while ( curtraceid >= 0 && (!Atrace[curtraceid].slide) )
+				{
+					NNPTraceElement const & E = Atrace[curtraceid];
+
+					switch ( E.step )
+					{
+						case libmaus2::lcs::BaseConstants::STEP_DEL:
+							apos -= 1;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_INS:
+							bpos -= 1;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
+							apos -= 1;
+							bpos -= 1;
+							break;
+						default:
+							break;
+					}
+
+					curtraceid = Atrace[curtraceid].parent;
+				}
+
+				assert ( (curtraceid < 0) || Atrace[curtraceid].slide );
+
+				while ( curtraceid >= 0 )
+				{
+					NNPTraceElement const & E = Atrace[curtraceid];
+
+					int64_t const antibefore = apos+bpos;
+					apos -= E.slide;
+					bpos -= E.slide;
+					int64_t const antiafter = apos+bpos;
+
+					int64_t const d = apos-bpos;
+
+					if ( antiafter < antibefore )
+						RT(d,antiafter,antibefore);
+
+					if ( d < dmin )
+						dmin = d;
+					if ( dmax < d )
+						dmax = d;
+
+					switch ( E.step )
+					{
+						case libmaus2::lcs::BaseConstants::STEP_DEL:
+							apos -= 1;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_INS:
+							bpos -= 1;
+							break;
+						case libmaus2::lcs::BaseConstants::STEP_MISMATCH:
+							apos -= 1;
+							bpos -= 1;
+							break;
+						default:
+							break;
+					}
+
+					curtraceid = Atrace[curtraceid].parent;
+				}
+
+				return std::pair<int64_t,int64_t>(apos,bpos);
 			}
 
 			std::pair<int64_t,int64_t> getAntiDiagonalBand(int64_t apos, int64_t bpos) const
