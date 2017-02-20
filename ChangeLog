@@ -1,3 +1,9 @@
+libmaus2 (2.0.317-1) unstable; urgency=medium
+
+  * add clean method in IntervalTree class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 20 Feb 2017 16:21:51 +0100
+
 libmaus2 (2.0.316-1) unstable; urgency=medium
 
   * add registerMatches method in NNPTraceContainer
