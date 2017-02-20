@@ -26,41 +26,42 @@ namespace libmaus2
 {
 	namespace geometry
 	{
-		struct IntervalTree
+		struct IntervalNode
 		{
-			typedef IntervalTree this_type;
+			typedef IntervalNode this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			struct IntervalNode
+			typedef uint32_t ptr_type;
+			ptr_type left;
+			ptr_type right;
+			bool full;
+
+			static ptr_type getNullPtr()
 			{
-				typedef uint32_t ptr_type;
-				ptr_type left;
-				ptr_type right;
-				bool full;
+				return ::std::numeric_limits<ptr_type>::max();
+			}
 
-				static ptr_type getNullPtr()
-				{
-					return ::std::numeric_limits<ptr_type>::max();
-				}
+			void reset()
+			{
+				left = right = getNullPtr();
+				full = false;
+			}
 
-				void reset()
-				{
-					left = right = getNullPtr();
-					full = false;
-				}
+			IntervalNode()
+			{
+				reset();
+			}
+		};
 
-				IntervalNode()
-				{
-					reset();
-				}
-			};
+		struct IntervalTreeNodeContainer
+		{
+			typedef IntervalTreeNodeContainer this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-
-			uint64_t const thres;
 			libmaus2::autoarray::AutoArray<IntervalNode> nodes;
 			IntervalNode::ptr_type nextid;
-			IntervalNode::ptr_type root;
 
 			IntervalNode::ptr_type getNode()
 			{
@@ -69,15 +70,77 @@ namespace libmaus2
 				return nextid++;
 			}
 
+			IntervalNode::ptr_type getNodeUnchecked()
+			{
+				nodes[nextid].reset();
+				return nextid++;
+			}
+
+			void ensureSize(uint64_t const s)
+			{
+				if ( nodes.size() < s )
+					nodes.ensureSize(s);
+			}
+
 			void reset()
 			{
 				nextid = 0;
-				root = getNode();
+			}
+
+			IntervalTreeNodeContainer()
+			: nodes(), nextid(0)
+			{
+
+			}
+		};
+
+		struct IntervalTree
+		{
+			typedef IntervalTree this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
+			uint64_t thres;
+
+			IntervalTreeNodeContainer::unique_ptr_type Pcont;
+			IntervalTreeNodeContainer & cont;
+			libmaus2::autoarray::AutoArray<IntervalNode> & nodes;
+
+			IntervalNode::ptr_type root;
+
+			void reset()
+			{
+				root = cont.getNode();
+			}
+
+			void reset(uint64_t rthres)
+			{
+				thres = libmaus2::math::nextTwoPow(rthres);
+				reset();
+			}
+
+			void resetNTP(uint64_t rthres)
+			{
+				thres = rthres;
+				reset();
+			}
+
+			void resetNTPUnchecked(uint64_t rthres)
+			{
+				thres = rthres;
+				root = cont.getNodeUnchecked();
 			}
 
 			IntervalTree(uint64_t const rthres)
-			: thres(libmaus2::math::nextTwoPow(rthres)), nextid(0), root(getNode())
+			: thres(libmaus2::math::nextTwoPow(rthres)), Pcont(new IntervalTreeNodeContainer()), cont(*Pcont), nodes(cont.nodes)
 			{
+				reset();
+			}
+
+			IntervalTree(uint64_t const rthres, IntervalTreeNodeContainer & rcont)
+			: thres(libmaus2::math::nextTwoPow(rthres)), Pcont(), cont(rcont), nodes(cont.nodes)
+			{
+				reset();
 			}
 
 			struct InsertQueueEntry
@@ -195,7 +258,7 @@ namespace libmaus2
 				assert ( nodeid < nodes.size() );
 				if ( nodes[nodeid].left == IntervalNode::getNullPtr() )
 				{
-					uint64_t const newid = getNode();
+					uint64_t const newid = cont.getNode();
 					nodes[nodeid].left = newid;
 				}
 				assert ( nodes[nodeid].left != IntervalNode::getNullPtr() );
@@ -205,7 +268,7 @@ namespace libmaus2
 			{
 				if ( nodes[nodeid].right == IntervalNode::getNullPtr() )
 				{
-					uint64_t const newid = getNode();
+					uint64_t const newid = cont.getNode();
 					nodes[nodeid].right = newid;
 				}
 				assert ( nodes[nodeid].right != IntervalNode::getNullPtr() );
