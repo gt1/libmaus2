@@ -179,12 +179,13 @@ namespace libmaus2
 			return static_cast<int64_t>(A.i) - static_cast<int64_t>(B.i);
 		}
 
-		template<typename _owner_type, typename _data_type>
+		template<typename _owner_type, typename _data_type, typename _index_type = int64_t>
 		struct ConstIterator : public ::std::iterator< ::std::random_access_iterator_tag, _data_type>
 		{
 			typedef _owner_type owner_type;
 			typedef _data_type data_type;
-			typedef ConstIterator<owner_type,data_type> this_type;
+			typedef _index_type index_type;
+			typedef ConstIterator<owner_type,data_type,index_type> this_type;
 			typedef AssignmentProxyIterator<owner_type,data_type> iterator;
 
 			typedef ::std::random_access_iterator_tag iterator_category;
@@ -194,10 +195,10 @@ namespace libmaus2
 			typedef typename ::std::iterator< ::std::random_access_iterator_tag, data_type>::pointer pointer;
 
 			owner_type const * owner;
-			int64_t i;
+			index_type i;
 
 			ConstIterator() : owner(0), i(0) {}
-			ConstIterator(owner_type const * rowner, int64_t const ri = 0) : owner(rowner), i(ri) {}
+			ConstIterator(owner_type const * rowner, index_type const ri = 0) : owner(rowner), i(ri) {}
 			ConstIterator(ConstIterator const & o) : owner(o.owner), i(o.i) {}
 			ConstIterator(iterator const & o) : owner(o.owner), i(o.i) {}
 
@@ -206,7 +207,7 @@ namespace libmaus2
 				return owner->get(i);
 			}
 
-			data_type operator[](int64_t j) const
+			data_type operator[](index_type j) const
 			{
 				return owner->get(i+j);
 			}
@@ -234,14 +235,17 @@ namespace libmaus2
 				return temp;
 			}
 
-			this_type & operator+=(int64_t j)
+			template<typename _add_type>
+			this_type & operator+=(_add_type j)
 			{
-				i += j;
+				i += static_cast<index_type>(j);
 				return *this;
 			}
-			this_type & operator-=(int64_t j)
+
+			template<typename _sub_type>
+			this_type & operator-=(_sub_type j)
 			{
-				i -= j;
+				i -= static_cast<index_type>(j);
 				return *this;
 			}
 
@@ -259,38 +263,38 @@ namespace libmaus2
 			}
 		};
 
-		template<typename _owner_type, typename _data_type>
-		inline ConstIterator<_owner_type,_data_type> operator+ ( ConstIterator<_owner_type,_data_type> const & I, int64_t j )
+		template<typename _owner_type, typename _data_type, typename _index_type, typename _add_type>
+		inline ConstIterator<_owner_type,_data_type,_index_type> operator+ ( ConstIterator<_owner_type,_data_type,_index_type> const & I, _add_type const j )
 		{
-			ConstIterator<_owner_type,_data_type> J = I;
-			J += j;
+			ConstIterator<_owner_type,_data_type,_index_type> J = I;
+			J += static_cast<_index_type>(j);
 			return J;
 		}
 
-		template<typename _owner_type, typename _data_type>
-		inline ConstIterator<_owner_type,_data_type> operator- ( ConstIterator<_owner_type,_data_type> const & I, int64_t j )
+		template<typename _owner_type, typename _data_type, typename _index_type, typename _sub_type>
+		inline ConstIterator<_owner_type,_data_type,_index_type> operator- ( ConstIterator<_owner_type,_data_type,_index_type> const & I, _sub_type const j )
 		{
-			ConstIterator<_owner_type,_data_type> J = I;
-			J -= j;
+			ConstIterator<_owner_type,_data_type,_index_type> J = I;
+			J -= static_cast<_index_type>(j);
 			return J;
 		}
 
-		template<typename _owner_type, typename _data_type>
-		inline int64_t operator- ( ConstIterator<_owner_type,_data_type> const & I, ConstIterator<_owner_type,_data_type> const & J )
+		template<typename _owner_type, typename _data_type, typename _index_type>
+		inline _index_type operator- ( ConstIterator<_owner_type,_data_type,_index_type> const & I, ConstIterator<_owner_type,_data_type,_index_type> const & J )
 		{
-			return static_cast<int64_t>(I.i) - static_cast<int64_t>(J.i);
+			return static_cast<_index_type>(I.i) - static_cast<_index_type>(J.i);
 		}
 
-		template<typename _owner_type, typename _data_type>
-		inline int64_t operator-(AssignmentProxyIterator<_owner_type,_data_type> const & A, ConstIterator<_owner_type,_data_type> const & B)
+		template<typename _owner_type, typename _data_type, typename _index_type>
+		inline _index_type operator-(AssignmentProxyIterator<_owner_type,_data_type> const & A, ConstIterator<_owner_type,_data_type,_index_type> const & B)
 		{
-			return static_cast<int64_t>(A.i) - static_cast<int64_t>(B.i);
+			return static_cast<_index_type>(A.i) - static_cast<_index_type>(B.i);
 		}
 
-		template<typename _owner_type, typename _data_type>
-		inline int64_t operator-(ConstIterator<_owner_type,_data_type> const & A, AssignmentProxyIterator<_owner_type,_data_type> const & B)
+		template<typename _owner_type, typename _data_type, typename _index_type>
+		inline _index_type operator-(ConstIterator<_owner_type,_data_type,_index_type> const & A, AssignmentProxyIterator<_owner_type,_data_type> const & B)
 		{
-			return static_cast<int64_t>(A.i) - static_cast<int64_t>(B.i);
+			return static_cast<_index_type>(A.i) - static_cast<_index_type>(B.i);
 		}
 
 		template<typename _owner_type, typename _data_type>
