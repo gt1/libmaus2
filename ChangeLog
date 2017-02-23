@@ -1,3 +1,11 @@
+libmaus2 (2.0.318-1) unstable; urgency=medium
+
+  * change BamAlignment::getRefPosForReadPos so it only returns a result one it is on an actual read position (not because it reached the respective query position)
+  * add debugging/verbosity code in NP class
+  * add index_type parameter in ConstIterator class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 23 Feb 2017 15:49:40 +0100
+
 libmaus2 (2.0.317-1) unstable; urgency=medium
 
   * add clean method in IntervalTree class
