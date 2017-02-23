@@ -2199,18 +2199,19 @@ namespace libmaus2
 
 					for ( int64_t j = 0; j < cigop[i].second; ++j )
 					{
-						if ( readpos == readq )
-							return refpos;
-
 						switch ( cigop[i].first )
 						{
 							case BamFlagBase::LIBMAUS2_BAMBAM_CMATCH:
 							case BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL:
 							case BamFlagBase::LIBMAUS2_BAMBAM_CDIFF:
+								if ( readpos == readq )
+									return refpos;
 								readpos += 1;
 								refpos += refadv;
 								break;
 							case BamFlagBase::LIBMAUS2_BAMBAM_CINS:
+								if ( readpos == readq )
+									return refpos;
 								readpos += 1;
 								break;
 							case BamFlagBase::LIBMAUS2_BAMBAM_CDEL:
@@ -2229,10 +2230,7 @@ namespace libmaus2
 					}
 				}
 
-				if ( refpos == readq )
-					return refpos;
-				else
-					return std::numeric_limits<uint64_t>::max();
+				return std::numeric_limits<uint64_t>::max();
 			}
 
 			/**
