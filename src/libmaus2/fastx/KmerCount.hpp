@@ -194,8 +194,8 @@ namespace libmaus2
 			struct MapDecoder
 			{
 				typedef MapDecoder this_type;
-				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				libmaus2::aio::InputStreamInstance::unique_ptr_type PISI;
 				std::istream & in;
 				uint64_t n;
