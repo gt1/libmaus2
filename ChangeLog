@@ -1,3 +1,16 @@
+libmaus2 (2.0.320-1) unstable; urgency=medium
+
+  * add binomSingleGmp function in Binom class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 07 Mar 2017 16:05:26 +0100
+
+libmaus2 (2.0.319-1) unstable; urgency=medium
+
+  * Added AdapterInfo copy constructor to ensure pointer to C string is correctly maintained (patch by Andrew Whitwham)
+  * remove unnecessary typename keyword in KmerCount
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 07 Mar 2017 16:00:58 +0100
+
 libmaus2 (2.0.318-1) unstable; urgency=medium
 
   * change BamAlignment::getRefPosForReadPos so it only returns a result one it is on an actual read position (not because it reached the respective query position)
