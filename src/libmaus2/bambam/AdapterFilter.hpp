@@ -100,6 +100,14 @@ namespace libmaus2
 					cname = name.c_str();
 					return *this;
 				}
+				
+				AdapterInfo(const AdapterInfo &O)
+				{
+					forward = O.forward;
+					reco = O.reco;
+					name = O.name;
+					cname = name.c_str();
+				}
 			};
 
 			// data not changed during operation
