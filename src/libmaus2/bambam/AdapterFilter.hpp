@@ -100,7 +100,7 @@ namespace libmaus2
 					cname = name.c_str();
 					return *this;
 				}
-				
+
 				AdapterInfo(const AdapterInfo &O)
 				{
 					forward = O.forward;
