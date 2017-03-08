@@ -124,9 +124,12 @@ namespace libmaus2
 				}
 
 				setBWT(bwtfilenames);
-				setHWTReq(gtmpgen.getFileName()+".hwtreq");
-				setHWT(gtmpgen.getFileName()+".hwt");
-				setHist(gtmpgen.getFileName()+".hist");
+				std::string const thwtreq = gtmpgen.getFileName()+".hwtreq";
+				setHWTReq(thwtreq);
+				std::string const thwt = gtmpgen.getFileName()+".hwt";
+				setHWT(thwt);
+				std::string const thist = gtmpgen.getFileName()+".hist";
+				setHist(thist);
 
 				std::vector<std::string> isafilenames(numisa);
 				for ( uint64_t i = 0; i < numisa; ++i )
@@ -239,6 +242,23 @@ namespace libmaus2
 				sampledisa(::libmaus2::util::StringSerialisation::deserialiseStringVector(in))
 			{
 
+			}
+
+			BwtMergeTempFileNameSet(BwtMergeTempFileNameSet const & O)
+			: gt(O.gt), bwt(O.bwt), hwtreq(O.hwtreq), hwt(O.hwt), hist(O.hist), sampledisa(O.sampledisa) {}
+
+			BwtMergeTempFileNameSet & operator=(BwtMergeTempFileNameSet const & O)
+			{
+				if ( this != &O )
+				{
+					gt = O.gt;
+					bwt = O.bwt;
+					hwtreq = O.hwtreq;
+					hwt = O.hwt;
+					hist = O.hist;
+					sampledisa = O.sampledisa;
+				}
+				return *this;
 			}
 
 			static BwtMergeTempFileNameSet load(std::string const & serialised)
