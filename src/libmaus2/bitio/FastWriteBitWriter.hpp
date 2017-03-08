@@ -34,6 +34,27 @@ namespace libmaus2
 {
 	namespace bitio
 	{
+		template<typename N, unsigned int b, bool full>
+		struct DownShiftTemplate
+		{
+		};
+		template<typename N, unsigned int b>
+		struct DownShiftTemplate<N,b,true>
+		{
+			static N downShift(N const /* v */)
+			{
+				return N();
+			}
+		};
+		template<typename N, unsigned int b>
+		struct DownShiftTemplate<N,b,false>
+		{
+			static N downShift(N const v)
+			{
+				return v >> b;
+			}
+		};
+
 		/**
 		 * bit stream writer class
 		 **/
@@ -165,7 +186,8 @@ namespace libmaus2
 					assert ( b >= 32 );
 					unsigned int const bottombits = 32;
 					unsigned int const topbits    = b-bottombits;
-					writeInternal(n >> bottombits , topbits   );
+
+					writeInternal(DownShiftTemplate<N,bottombits,bottombits>=CHAR_BIT*sizeof(N)>::downShift(n), topbits   );
 					writeInternal(n & 0xFFFFFFFFUL, bottombits);
 				}
 				else
