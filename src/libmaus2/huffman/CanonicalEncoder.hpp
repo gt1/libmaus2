@@ -547,7 +547,8 @@ namespace libmaus2
 			void init(::libmaus2::huffman::HuffmanTreeNode const * root, uint64_t const decodebits)
 			{
 				// pairs of symbols and depth (code length)
-				syms = root->symbolDepthArray();
+				if ( root )
+					syms = root->symbolDepthArray();
 				init(decodebits);
 			}
 
@@ -667,12 +668,12 @@ namespace libmaus2
 			static bool needEscape(iterator a, iterator e)
 			{
 				::libmaus2::util::shared_ptr < ::libmaus2::huffman::HuffmanTreeNode >::type aroot = ::libmaus2::huffman::HuffmanBase::createTree(a,e);
-				return aroot->depth() > 64;
+				return aroot ? (aroot->depth() > 64) : false;
 			}
 			static bool needEscape(std::map<int64_t,uint64_t> const & F)
 			{
 				::libmaus2::util::shared_ptr < ::libmaus2::huffman::HuffmanTreeNode >::type aroot = ::libmaus2::huffman::HuffmanBase::createTree(F);
-				return aroot->depth() > 64;
+				return aroot ? (aroot->depth() > 64) : false;
 			}
 			static bool needEscape(std::vector < std::pair < uint64_t,uint64_t > > const & freqsyms)
 			{
