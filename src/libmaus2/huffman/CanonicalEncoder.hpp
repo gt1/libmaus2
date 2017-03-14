@@ -613,6 +613,32 @@ namespace libmaus2
 				return freqmap;
 			}
 
+			struct FreqSymComp
+			{
+				bool operator()(std::pair < uint64_t,uint64_t > const & A, std::pair < uint64_t,uint64_t > const & B) const
+				{
+					if ( A.first != B.first )
+						return A.first > B.first;
+					else
+						return A.second < B.second;
+				}
+			};
+
+			static std::vector < std::pair < uint64_t,uint64_t > > computeFreqSyms(std::map<int64_t,uint64_t> const & M)
+			{
+				std::vector < std::pair < uint64_t,uint64_t > > freqsyms;
+				for ( std::map<int64_t,uint64_t>::const_iterator it = M.begin(); it != M.end(); ++it )
+					freqsyms.push_back(std::pair < uint64_t,uint64_t >(it->second,it->first));
+				std::sort(freqsyms.begin(),freqsyms.end(),FreqSymComp());
+				return freqsyms;
+			}
+
+			EscapeCanonicalEncoder(std::map<int64_t,uint64_t> const & M)
+			: CanonicalEncoder(computeFreqMap(computeFreqSyms(M)))
+			{
+
+			}
+
 			EscapeCanonicalEncoder(std::vector < std::pair < uint64_t,uint64_t > > const & freqsyms)
 			: CanonicalEncoder(computeFreqMap(freqsyms))
 			{
