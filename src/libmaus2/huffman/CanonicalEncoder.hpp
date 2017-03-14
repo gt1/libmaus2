@@ -547,7 +547,8 @@ namespace libmaus2
 			void init(::libmaus2::huffman::HuffmanTreeNode const * root, uint64_t const decodebits)
 			{
 				// pairs of symbols and depth (code length)
-				syms = root->symbolDepthArray();
+				if ( root )
+					syms = root->symbolDepthArray();
 				init(decodebits);
 			}
 
@@ -612,6 +613,32 @@ namespace libmaus2
 				return freqmap;
 			}
 
+			struct FreqSymComp
+			{
+				bool operator()(std::pair < uint64_t,uint64_t > const & A, std::pair < uint64_t,uint64_t > const & B) const
+				{
+					if ( A.first != B.first )
+						return A.first > B.first;
+					else
+						return A.second < B.second;
+				}
+			};
+
+			static std::vector < std::pair < uint64_t,uint64_t > > computeFreqSyms(std::map<int64_t,uint64_t> const & M)
+			{
+				std::vector < std::pair < uint64_t,uint64_t > > freqsyms;
+				for ( std::map<int64_t,uint64_t>::const_iterator it = M.begin(); it != M.end(); ++it )
+					freqsyms.push_back(std::pair < uint64_t,uint64_t >(it->second,it->first));
+				std::sort(freqsyms.begin(),freqsyms.end(),FreqSymComp());
+				return freqsyms;
+			}
+
+			EscapeCanonicalEncoder(std::map<int64_t,uint64_t> const & M)
+			: CanonicalEncoder(computeFreqMap(computeFreqSyms(M)))
+			{
+
+			}
+
 			EscapeCanonicalEncoder(std::vector < std::pair < uint64_t,uint64_t > > const & freqsyms)
 			: CanonicalEncoder(computeFreqMap(freqsyms))
 			{
@@ -667,12 +694,12 @@ namespace libmaus2
 			static bool needEscape(iterator a, iterator e)
 			{
 				::libmaus2::util::shared_ptr < ::libmaus2::huffman::HuffmanTreeNode >::type aroot = ::libmaus2::huffman::HuffmanBase::createTree(a,e);
-				return aroot->depth() > 64;
+				return aroot ? (aroot->depth() > 64) : false;
 			}
 			static bool needEscape(std::map<int64_t,uint64_t> const & F)
 			{
 				::libmaus2::util::shared_ptr < ::libmaus2::huffman::HuffmanTreeNode >::type aroot = ::libmaus2::huffman::HuffmanBase::createTree(F);
-				return aroot->depth() > 64;
+				return aroot ? (aroot->depth() > 64) : false;
 			}
 			static bool needEscape(std::vector < std::pair < uint64_t,uint64_t > > const & freqsyms)
 			{
