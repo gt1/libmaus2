@@ -20,6 +20,7 @@
 #define LIBMAUS2_BAMBAM_CRAMRANGE_HPP
 
 #include <string>
+#include <cassert>
 #include <libmaus2/exception/LibMausException.hpp>
 #include <libmaus2/types/types.hpp>
 

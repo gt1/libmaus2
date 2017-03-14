@@ -1,3 +1,13 @@
+libmaus2 (2.0.322-1) unstable; urgency=medium
+
+  * add graph encoder/decoder
+  * add EscapeCanonicalEncoder constructor variant for symbol,freq maps
+  * add copyToArray function supporting tracks in DatabaseFile class
+  * fix null pointer dereferencing bug in CanonicalEncoder when alphabet is empty
+  * add binomVectorDouble function in Binom class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 14 Mar 2017 14:05:06 +0100
+
 libmaus2 (2.0.321-1) unstable; urgency=medium
 
   * avoid using temporaries in BwtMergeTempFileNameSet, implement explicit assignment operator and copy constructor

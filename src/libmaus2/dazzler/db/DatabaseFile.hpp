@@ -1029,13 +1029,24 @@ namespace libmaus2
 					libmaus2::autoarray::AutoArray<char> Aidx;
 					libmaus2::autoarray::AutoArray<char> Abps;
 
+					typedef
+					std::map <
+						std::string,
+						std::pair <
+							libmaus2::autoarray::AutoArray<char>::shared_ptr_type,
+							libmaus2::autoarray::AutoArray<char>::shared_ptr_type
+						>
+					> Mtrack_type;
+					Mtrack_type Mtrack;
+
 					libmaus2::aio::ArrayFileSet<char const *>::unique_ptr_type PAFS;
 
 					DBArrayFileSet(
 						libmaus2::autoarray::AutoArray<char> & rAdb,
 						libmaus2::autoarray::AutoArray<char> & rAidx,
-						libmaus2::autoarray::AutoArray<char> & rAbps
-					) : Adb(rAdb), Aidx(rAidx), Abps(rAbps)
+						libmaus2::autoarray::AutoArray<char> & rAbps,
+						Mtrack_type rMtrack
+					) : Adb(rAdb), Aidx(rAidx), Abps(rAbps), Mtrack(rMtrack)
 					{
 						std::vector< std::pair<char const *,char const *> > Vdata;
 						Vdata.push_back(std::pair<char const *,char const *>(Adb.begin(),Adb.end()));
@@ -1045,6 +1056,24 @@ namespace libmaus2
 						Vfn.push_back("readsdir/reads.db");
 						Vfn.push_back("readsdir/.reads.idx");
 						Vfn.push_back("readsdir/.reads.bps");
+
+						for ( Mtrack_type::const_iterator ita = Mtrack.begin(); ita != Mtrack.end(); ++ita )
+						{
+							Vdata.push_back(
+								std::pair<char const *,char const *>(
+									ita->second.first->begin(),
+									ita->second.first->end()
+								)
+							);
+							Vfn.push_back(std::string("readsdir/.reads.") + ita->first + ".anno");
+							Vdata.push_back(
+								std::pair<char const *,char const *>(
+									ita->second.second->begin(),
+									ita->second.second->end()
+								)
+							);
+							Vfn.push_back(std::string("readsdir/.reads.") + ita->first + ".data");
+						}
 
 						libmaus2::aio::ArrayFileSet<char const *>::unique_ptr_type tptr(
 							new libmaus2::aio::ArrayFileSet<char const *>(Vdata,Vfn)
@@ -1064,11 +1093,8 @@ namespace libmaus2
 				};
 
 				static DBArrayFileSet::unique_ptr_type copyToArrays(
-					std::string const & s
-					#if 0
-						,
+					std::string const & s,
 					std::vector<std::string> const * tracklist = 0
-					#endif
 				)
 				{
 					if ( ! libmaus2::util::GetFileSize::fileExists(s) )
@@ -1115,7 +1141,36 @@ namespace libmaus2
 					libmaus2::autoarray::AutoArray<char> Aidx = libmaus2::autoarray::AutoArray<char>::readFile(idxpath);
 					libmaus2::autoarray::AutoArray<char> Abps = libmaus2::autoarray::AutoArray<char>::readFile(bpspath);
 
-					DBArrayFileSet::unique_ptr_type PAFS(new DBArrayFileSet(Adb,Aidx,Abps));
+					std::map <
+						std::string,
+						std::pair <
+							libmaus2::autoarray::AutoArray<char>::shared_ptr_type,
+							libmaus2::autoarray::AutoArray<char>::shared_ptr_type
+						>
+					> Mtrack;
+
+					if ( tracklist )
+					{
+						for ( uint64_t i = 0; i < tracklist->size(); ++i )
+						{
+							std::string const & trackname = tracklist->at(i);
+
+							std::string const annosrc = path + "/." + root + "." + trackname + ".anno";
+							std::string const datasrc = path + "/." + root + "." + trackname + ".data";
+
+							libmaus2::autoarray::AutoArray<char>::shared_ptr_type Aanno(new libmaus2::autoarray::AutoArray<char>);
+							*Aanno = libmaus2::autoarray::AutoArray<char>::readFile(annosrc);
+							libmaus2::autoarray::AutoArray<char>::shared_ptr_type Adata(new libmaus2::autoarray::AutoArray<char>);
+							*Adata = libmaus2::autoarray::AutoArray<char>::readFile(datasrc);
+
+							Mtrack [ trackname ] = std::pair <
+								libmaus2::autoarray::AutoArray<char>::shared_ptr_type,
+								libmaus2::autoarray::AutoArray<char>::shared_ptr_type
+							>(Aanno,Adata);
+						}
+					}
+
+					DBArrayFileSet::unique_ptr_type PAFS(new DBArrayFileSet(Adb,Aidx,Abps,Mtrack));
 
 					#if 0
 					if ( tracklist )
