@@ -40,7 +40,7 @@ namespace libmaus2
 
 			std::map< uint64_t,std::vector<element_type> > bins;
 
-			int const k;
+			int k;
 
 			static int length(uint64_t rlen)
 			{
@@ -57,6 +57,12 @@ namespace libmaus2
 			void clear()
 			{
 				bins.clear();
+			}
+
+			void clear(uint64_t const rlen)
+			{
+				clear();
+				k = length(rlen);
 			}
 
 			RangeSet(uint64_t const rlen)

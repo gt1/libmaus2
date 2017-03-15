@@ -1828,6 +1828,40 @@ namespace libmaus2
 					return maxlen;
 				}
 
+				template<typename it>
+				uint64_t getReadLengthArrayParallel(it A, uint64_t const numthreads) const
+				{
+					uint64_t const low = 0;
+					uint64_t const high = size();
+					uint64_t const size = high-low;
+					uint64_t const packsize = (size + numthreads - 1)/numthreads;
+					uint64_t maxlen = 0;
+					libmaus2::parallel::PosixSpinLock lock;
+
+					#if defined(_OPENMP)
+					#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
+					#endif
+					for ( uint64_t t = 0; t < numthreads; ++t )
+					{
+						uint64_t const l = std::min(low + t * packsize,high);
+						uint64_t const h = std::min(l + packsize,high);
+						uint64_t const lmaxlen = getReadLengthArray(l,h,A + (l-low));
+
+						lock.lock();
+						maxlen = std::max(maxlen,lmaxlen);
+						lock.unlock();
+					}
+
+					return maxlen;
+				}
+
+				libmaus2::autoarray::AutoArray<uint64_t> getReadLengthArrayParallel(uint64_t const numthreads) const
+				{
+					libmaus2::autoarray::AutoArray<uint64_t> A(size(),false);
+					getReadLengthArrayParallel(A.begin(),numthreads);
+					return A;
+				}
+
 				struct ReadDataRange
 				{
 					typedef ReadDataRange this_type;

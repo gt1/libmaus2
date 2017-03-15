@@ -176,12 +176,29 @@ namespace libmaus2
 					init(in);
 				}
 
+				GraphDecoder(std::string const & fn)
+				{
+					libmaus2::aio::InputStreamInstance ISI(fn);
+					init(ISI);
+				}
+
 				template<typename decoder_type>
 				static int64_t decodeSignedValue(decoder_type & decoder)
 				{
 					bool const sign = decoder.decodeWord(1);
 					int64_t val = decoder.decode();
 					return sign ? -val : val;
+				}
+
+				void decode(std::istream & in, uint64_t const i, uint64_t const j, libmaus2::dazzler::align::GraphDecoderContext & GDC) const
+				{
+					decode(in,i,GDC);
+
+					uint64_t o = 0;
+					for ( uint64_t i = 0; i < GDC.size(); ++i )
+						if ( GDC[i].bread == static_cast<int64_t>(j) )
+							GDC.A[o++] = GDC[i];
+					GDC.n = o;
 				}
 
 				void decode(std::istream & in, uint64_t const i, libmaus2::dazzler::align::GraphDecoderContext & GDC) const
