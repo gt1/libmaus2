@@ -343,7 +343,7 @@ namespace libmaus2
 					}
 
 					libmaus2::util::TempFileRemovalContainer::addTempFile(tmpptr);
-					libmaus2::aio::OutputStreamInstance::unique_ptr_type Tptr(new libmaus2::aio::OutputStreamInstance(tmpptr));
+					//libmaus2::aio::OutputStreamInstance::unique_ptr_type Tptr(new libmaus2::aio::OutputStreamInstance(tmpptr));
 
 					libmaus2::sorting::SerialisingSortingBufferedOutputFile<PointerEntry,std::less<PointerEntry> >::unique_ptr_type SSBOF(
 						new libmaus2::sorting::SerialisingSortingBufferedOutputFile<PointerEntry,std::less<PointerEntry>>(tmpptr));
@@ -503,6 +503,8 @@ namespace libmaus2
 					}
 					libmaus2::util::NumberSerialisation::serialiseNumber(out,ipos);
 					out.flush();
+
+					libmaus2::aio::FileRemoval::removeFile(tmpptr);
 				}
 			};
 		}
