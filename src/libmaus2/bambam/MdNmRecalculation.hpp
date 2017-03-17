@@ -347,7 +347,10 @@ namespace libmaus2
 				if ( ! libmaus2::bambam::BamAlignmentDecoderBase::isUnmap(libmaus2::bambam::BamAlignmentDecoderBase::getFlags(D)) )
 				{
 					int64_t const refid = libmaus2::bambam::BamAlignmentDecoderBase::getRefID(D);
-					int64_t const pos = libmaus2::bambam::BamAlignmentDecoderBase::getPos(D);
+					int64_t const pos =
+						libmaus2::bambam::BamAlignmentDecoderBase::getPos(D) -
+						libmaus2::bambam::BamAlignmentDecoderBase::getFrontDel(D)
+						;
 					int64_t const refend = pos + libmaus2::bambam::BamAlignmentDecoderBase::getReferenceLength(D);
 					std::string const & ref = loadReference(refid);
 
