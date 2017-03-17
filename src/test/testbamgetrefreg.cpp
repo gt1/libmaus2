@@ -38,15 +38,43 @@ int main(int argc, char * argv[])
 			Vref.push_back(pattern.spattern);
 
 		libmaus2::bambam::BamAlignment & algn = dec.getAlignment();
+		bool gok = true;
 		while ( dec.readAlignment() )
 		{
-			// check the alignment
-			bool const algnok = algn.checkCigar(Vref[algn.getRefID()].begin());
-			assert ( algnok );
-			std::string const cref = Vref[algn.getRefID()].substr(algn.getPos()-algn.getFrontDel(),algn.getReferenceLength());
-			std::string const sref = algn.getReferenceRegionViaMd();
+			try
+			{
+				// check the alignment
+				bool const algnok = algn.checkCigar(Vref.at(algn.getRefID()).begin());
+				assert ( algnok );
+				std::string const cref = Vref[algn.getRefID()].substr(algn.getPos()-algn.getFrontDel(),algn.getReferenceLength());
+				std::string const sref = algn.getReferenceRegionViaMd();
 
-			assert ( sref == cref );
+				if ( sref == cref )
+				{
+					std::cerr << "[V] " << algn.getName() << " OK" << std::endl;
+				}
+				else
+				{
+					std::cerr << "[V] " << algn.getName() << " failed" << std::endl;
+					gok = false;
+				}
+			}
+			catch(std::exception const & ex)
+			{
+				std::cerr << "[V] " << algn.getName() << " failed processing: " << ex.what() << std::endl;
+				gok = false;
+			}
+		}
+
+		if ( gok )
+		{
+			std::cerr << "[V] all OK" << std::endl;
+			return EXIT_SUCCESS;
+		}
+		else
+		{
+			std::cerr << "[V] at least one failure" << std::endl;
+			return EXIT_FAILURE;
 		}
 	}
 	catch(std::exception const & ex)
