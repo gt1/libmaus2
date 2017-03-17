@@ -401,6 +401,79 @@ namespace libmaus2
 			}
 
 			/**
+			 * check the =/X operations in the cigar string for validity.
+			 *
+			 * @param it pointer to the first base of the reference sequence denoted by getRefID()
+			 * @return true if the reference/read/CIGAR are consistent concerning the =/X operations in CIGAR
+			 **/
+			template<typename itref>
+			bool checkCigar(itref it) const
+			{
+				if ( isMapped() )
+				{
+					it += getPos() - getFrontDel();
+					std::string const R = getRead();
+					std::string::const_iterator itr = R.begin();
+
+					CigarDecoder cigdec = getCigarDecoder();
+
+					BamFlagBase::bam_cigar_ops op;
+
+					while ( cigdec.getNext(op) )
+					{
+						switch ( op )
+						{
+							case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CMATCH:
+							{
+								it++;
+								itr++;
+								break;
+							}
+							case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL:
+							{
+								if ( *it != *itr )
+									return false;
+								it++;
+								itr++;
+								break;
+							}
+							case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF:
+							{
+								if ( *it == *itr )
+									return false;
+								it++;
+								itr++;
+								break;
+							}
+							case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CINS:
+							{
+								itr++;
+								break;
+							}
+							case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CREF_SKIP:
+							{
+								it++;
+								break;
+							}
+							case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP:
+							{
+								itr++;
+								break;
+							}
+							case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP:
+								break;
+							case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CPAD:
+								break;
+							default:
+								break;
+						}
+					}
+				}
+
+				return true;
+			}
+
+			/**
 			 *
 			 **/
 			static uint64_t getRefCommon(
@@ -791,6 +864,13 @@ namespace libmaus2
 			{
 				return ::libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsString(D.get(),blocksize,tag);
 			}
+
+			/*
+			 * retrieve the reference region for the read based on the
+			 * read data and the MD field. This requires the field to be
+			 * mapped and equipped with an MD field.
+			 */
+			std::string getReferenceRegionViaMd() const;
 
 			/**
 			 * get auxiliary field for tag (case insensative) as string, returns empty
