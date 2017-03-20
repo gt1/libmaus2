@@ -1841,7 +1841,7 @@ namespace libmaus2
 						if ( static_cast<int64_t>(basestr.tellg()) != RE.boff )
 							basestr.seekg(RE.boff,std::ios::beg);
 
-						assert ( RE.rlen == R.L[j+1] - R.L[j] );
+						assert ( RE.rlen == static_cast<int64_t>(R.L[j+1] - R.L[j]) );
 
 						*(p++) = termval;
 						if ( rc )
