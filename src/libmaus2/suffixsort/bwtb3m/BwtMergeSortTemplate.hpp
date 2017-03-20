@@ -1224,13 +1224,15 @@ namespace libmaus2
 						G[i] = 0;
 					#endif
 
+					std::string const histfn = blockresults.getFiles().getHist();
+
 					if ( verbose >= 5 && logstr )
 					{
-						(*logstr) << "[V] loading histogram" << std::endl;
+						(*logstr) << "[V] loading histogram " << histfn << std::endl;
 					}
 
 					// set up lf mapping
-					::libmaus2::lf::DArray D(static_cast<std::string const &>(blockresults.getFiles().getHist()));
+					::libmaus2::lf::DArray D(histfn);
 
 					if ( verbose >= 5 && logstr )
 					{

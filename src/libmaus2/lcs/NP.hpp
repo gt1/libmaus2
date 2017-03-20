@@ -49,6 +49,25 @@ namespace libmaus2
 				trace_op op;
 			};
 
+			static std::string toString(trace_op const & op)
+			{
+				switch ( op )
+				{
+					case trace_op_none: return "none";
+					case trace_op_diag: return "diag";
+					case trace_op_ins: return "ins";
+					case trace_op_del: return "del";
+					default: return "?";
+				}
+			}
+
+			static std::string toString(TraceElement const & TE)
+			{
+				std::ostringstream ostr;
+				ostr << "TraceElement(prev=" << TE.prev << ",slide=" << TE.slide << ",op=" << toString(TE.op) << ")";
+				return ostr.str();
+			}
+
 			libmaus2::autoarray::AutoArray<NPElement> DE;
 			libmaus2::autoarray::AutoArray<NPElement> DO;
 			libmaus2::autoarray::AutoArray<TraceElement,libmaus2::autoarray::alloc_type_c> trace;
@@ -123,6 +142,8 @@ namespace libmaus2
 				ATC.push(*this);
 			}
 
+			// #define NP_VERBOSE
+
 			template<typename iter_a, typename iter_b, bool self_check>
 			int npTemplate(iter_a const a, iter_a const ae, iter_b const b, iter_b const be)
 			{
@@ -193,6 +214,10 @@ namespace libmaus2
 						trace[nodeid].slide = 0;
 						trace[nodeid].op = trace_op_none;
 					}
+
+					#if defined(NP_VERBOSE)
+					std::cerr << "first d=0 " << toString(trace[DP[0].id]) << std::endl;
+					#endif
 				}
 
 				int d = 1;
@@ -201,6 +226,7 @@ namespace libmaus2
 					if ( static_cast<int64_t>(trace.size()) < id+3 )
 						trace.resize(id+3);
 
+					// slide for diagonal -1
 					{
 						if ( (!self_check) || (a!=b+1) )
 						{
@@ -227,7 +253,13 @@ namespace libmaus2
 							if ( fdiag == -1 && DP[0].offset == fdiagoff )
 								DN[fdiag].offset = fdiagoff;
 						}
+
+						#if defined(NP_VERBOSE)
+						std::cerr << "second d=-1 " << toString(trace[DN[-1].id]) << std::endl;
+						#endif
 					}
+
+					// slide for diagonal 0 after mismatch
 					{
 						if ( (!self_check) || (a!=b) )
 						{
@@ -254,7 +286,13 @@ namespace libmaus2
 							if ( fdiag == 0 && DP[0].offset+1 == fdiagoff )
 								DN[fdiag].offset = fdiagoff;
 						}
+
+						#if defined(NP_VERBOSE)
+						std::cerr << "second d=0 " << toString(trace[DN[0].id]) << std::endl;
+						#endif
 					}
+
+					// slide for diagonal 1
 					{
 						if ( (!self_check) || (a+1!=b) )
 						{
@@ -281,6 +319,10 @@ namespace libmaus2
 							if ( fdiag == 1 && DP[0].offset == fdiagoff )
 								DN[fdiag].offset = fdiagoff;
 						}
+
+						#if defined(NP_VERBOSE)
+						std::cerr << "second d=1 " << toString(trace[DN[1].id]) << std::endl;
+						#endif
 					}
 					d += 1;
 					std::swap(DP,DN);
@@ -300,6 +342,7 @@ namespace libmaus2
 					iter_a aa = a;
 					iter_b bb = b + d;
 
+					// extend to -d from -d+1
 					{
 						if ( (!self_check) || (aa!=bb) )
 						{
@@ -330,9 +373,14 @@ namespace libmaus2
 								DN[fdiag].offset = fdiagoff;
 						}
 
+						#if defined(NP_VERBOSE)
+						std::cerr << "third extend " << -d << " " << toString(trace[DN[-d].id]) << std::endl;
+						#endif
+
 						bb -= 1;
 					}
 
+					// extend for -d+1 (try -d+1 and -d+2)
 					{
 						int const top  = DP[-d+2].offset;
 						int const diag = DP[-d+1].offset;
@@ -385,6 +433,10 @@ namespace libmaus2
 									DN[fdiag].offset = fdiagoff;
 							}
 						}
+
+						#if defined(NP_VERBOSE)
+						std::cerr << "third uneven low " << (-d+1) << " " << toString(trace[DN[-d+1].id]) << std::endl;
+						#endif
 
 						bb -= 1;
 					}
@@ -495,6 +547,11 @@ namespace libmaus2
 
 						}
 
+						#if defined(NP_VERBOSE)
+						std::cerr << "third even low " << di << " " << toString(trace[DN[di].id]) << std::endl;
+						#endif
+
+
 						bb -= 1;
 					}
 
@@ -601,6 +658,10 @@ namespace libmaus2
 								}
 							}
 						}
+
+						#if defined(NP_VERBOSE)
+						std::cerr << "third even middle " << 0 << " " << toString(trace[DN[0].id]) << std::endl;
+						#endif
 
 						aa += 1;
 					}
@@ -710,6 +771,10 @@ namespace libmaus2
 							}
 						}
 
+						#if defined(NP_VERBOSE)
+						std::cerr << "third even high " << di << " " << toString(trace[DN[di].id]) << std::endl;
+						#endif
+
 						aa += 1;
 					}
 
@@ -767,6 +832,10 @@ namespace libmaus2
 
 						}
 
+						#if defined(NP_VERBOSE)
+						std::cerr << "third uneven high " << d+1 << " " << toString(trace[DN[d+1].id]) << std::endl;
+						#endif
+
 						aa += 1;
 					}
 
@@ -798,6 +867,10 @@ namespace libmaus2
 							if ( fdiag == d && DP[ d-1].offset == fdiagoff )
 								DN[fdiag].offset = fdiagoff;
 						}
+
+						#if defined(NP_VERBOSE)
+						std::cerr << "third extend high " << d << " " << toString(trace[DN[d].id]) << std::endl;
+						#endif
 					}
 
 					std::swap(DP,DN);

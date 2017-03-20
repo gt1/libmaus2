@@ -86,7 +86,7 @@ namespace libmaus2
 			{
 				nextid = 0;
 			}
-			
+
 			void clean()
 			{
 				nodes = libmaus2::autoarray::AutoArray<IntervalNode>(0);

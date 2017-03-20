@@ -60,6 +60,221 @@ namespace libmaus2
 					A.checkAlignment();
 				}
 
+				static bool trueOverlap(
+					libmaus2::bambam::BamAlignment const & abam,
+					libmaus2::bambam::BamAlignment const & bbam,
+					// trace a -> b
+					libmaus2::lcs::AlignmentTraceContainer const & OATC,
+					int64_t const yabpos,
+					int64_t const ybbpos,
+					bool const yisinv,
+					uint64_t const blen
+				)
+				{
+					if (
+						abam.getRefID() == bbam.getRefID()
+					)
+					{
+						libmaus2::math::IntegerInterval<int64_t> const Aref = abam.getReferenceInterval();
+						libmaus2::math::IntegerInterval<int64_t> const Bref = bbam.getReferenceInterval();
+						libmaus2::math::IntegerInterval<int64_t> const Cref = Aref.intersection(Bref);
+
+						if ( ! Cref.isEmpty() )
+						{
+							// A -> ref
+							libmaus2::autoarray::AutoArray<libmaus2::bambam::cigar_operation> Acig;
+							uint32_t const ancigar = abam.getCigarOperations(Acig);
+							libmaus2::lcs::AlignmentTraceContainer abamATC;
+							libmaus2::bambam::CigarStringParser::cigarToTrace(Acig.begin(),Acig.begin()+ancigar,abamATC);
+							int64_t abampos = abam.getPos();
+							int64_t areadpos = abam.getFrontSoftClipping();
+							for ( int64_t i = 0; i < abamATC.te-abamATC.ta; ++i )
+								if ( abamATC.ta[i] == libmaus2::lcs::AlignmentTraceContainer::STEP_DEL )
+									--abampos;
+								else
+									break;
+
+							std::vector < std::pair<int64_t,int64_t> > VMA;
+
+							std::pair<int64_t,int64_t> SLA = abamATC.getStringLengthUsed();
+							SLA.first += abampos;
+							SLA.second += areadpos;
+
+							for  ( libmaus2::lcs::AlignmentTraceContainer::step_type const * tc = abamATC.ta; tc != abamATC.te; ++tc )
+							{
+								libmaus2::lcs::AlignmentTraceContainer::step_type step = *tc;
+
+								switch ( step )
+								{
+									case libmaus2::lcs::AlignmentTraceContainer::STEP_MATCH:
+										VMA.push_back(std::pair<int64_t,int64_t>(abampos,areadpos));
+										abampos++;
+										areadpos++;
+										break;
+									case libmaus2::lcs::AlignmentTraceContainer::STEP_MISMATCH:
+										abampos++;
+										areadpos++;
+										break;
+									case libmaus2::lcs::AlignmentTraceContainer::STEP_DEL:
+										abampos++;
+										break;
+									case libmaus2::lcs::AlignmentTraceContainer::STEP_INS:
+										areadpos++;
+										break;
+									default:
+										break;
+								}
+							}
+							assert ( abampos == SLA.first );
+							assert ( areadpos == SLA.second );
+
+							if ( abam.isReverse() )
+								for ( uint64_t i = 0; i < VMA.size(); ++i )
+									VMA[i].second = abam.getLseq() - VMA[i].second - 1;
+
+							// B -> ref
+							libmaus2::autoarray::AutoArray<libmaus2::bambam::cigar_operation> Bcig;
+							uint32_t const bncigar = bbam.getCigarOperations(Bcig);
+							libmaus2::lcs::AlignmentTraceContainer bbamATC;
+							libmaus2::bambam::CigarStringParser::cigarToTrace(Bcig.begin(),Bcig.begin()+bncigar,bbamATC);
+							int64_t bbampos = bbam.getPos();
+							int64_t breadpos = bbam.getFrontSoftClipping();
+							for ( int64_t i = 0; i < bbamATC.te-bbamATC.ta; ++i )
+								if ( bbamATC.ta[i] == libmaus2::lcs::AlignmentTraceContainer::STEP_DEL )
+									--bbampos;
+								else
+									break;
+
+							std::vector < std::pair<int64_t,int64_t> > VMB;
+
+							std::pair<int64_t,int64_t> SLB = bbamATC.getStringLengthUsed();
+							SLB.first += bbampos;
+							SLB.second += breadpos;
+
+							while  ( bbamATC.ta != bbamATC.te )
+							{
+								libmaus2::lcs::AlignmentTraceContainer::step_type step = *(bbamATC.ta++);
+
+								switch ( step )
+								{
+									case libmaus2::lcs::AlignmentTraceContainer::STEP_MATCH:
+										VMB.push_back(std::pair<int64_t,int64_t>(bbampos,breadpos));
+										bbampos++;
+										breadpos++;
+										break;
+									case libmaus2::lcs::AlignmentTraceContainer::STEP_MISMATCH:
+										bbampos++;
+										breadpos++;
+										break;
+									case libmaus2::lcs::AlignmentTraceContainer::STEP_DEL:
+										bbampos++;
+										break;
+									case libmaus2::lcs::AlignmentTraceContainer::STEP_INS:
+										breadpos++;
+										break;
+									default:
+										break;
+								}
+							}
+							assert ( bbampos == SLB.first );
+							assert ( breadpos == SLB.second );
+
+							if ( bbam.isReverse() )
+								for ( uint64_t i = 0; i < VMB.size(); ++i )
+									VMB[i].second = bbam.getLseq() - VMB[i].second - 1;
+
+							uint64_t vmai = 0, vmbi = 0;
+
+							std::vector < std::pair<int64_t,int64_t> > VMC;
+
+							while ( vmai < VMA.size() && vmbi < VMB.size() )
+							{
+								if ( VMA[vmai].first < VMB[vmbi].first )
+									++vmai;
+								else if ( VMB[vmbi].first < VMA[vmai].first )
+									++vmbi;
+								else
+								{
+									VMC.push_back(std::pair<int64_t,int64_t>(VMA[vmai].second,VMB[vmbi].second));
+									++vmai;
+									++vmbi;
+								}
+							}
+
+							std::sort(VMC.begin(),VMC.end());
+
+							//libmaus2::lcs::AlignmentTraceContainer const & OATC = *(Mtraces.find(y)->second);
+							int64_t oapos = yabpos; // ita[y].path.abpos;
+							int64_t obpos = ybbpos; // ita[y].path.bbpos;
+
+							libmaus2::lcs::AlignmentTraceContainer::step_type const * ota = OATC.ta;
+							libmaus2::lcs::AlignmentTraceContainer::step_type const * ote = OATC.te;
+
+							std::vector < std::pair<int64_t,int64_t> > VMO;
+
+							while ( ota != ote )
+							{
+								libmaus2::lcs::AlignmentTraceContainer::step_type const step = *(ota++);
+
+								switch ( step )
+								{
+									case libmaus2::lcs::AlignmentTraceContainer::STEP_MATCH:
+										VMO.push_back(std::pair<int64_t,int64_t>(oapos,obpos));
+										oapos++;
+										obpos++;
+										break;
+									case libmaus2::lcs::AlignmentTraceContainer::STEP_MISMATCH:
+										oapos++;
+										obpos++;
+										break;
+									case libmaus2::lcs::AlignmentTraceContainer::STEP_DEL:
+										oapos++;
+										break;
+									case libmaus2::lcs::AlignmentTraceContainer::STEP_INS:
+										obpos++;
+										break;
+									default:
+										break;
+								}
+							}
+
+							// if ( ita[y].isInverse() )
+							if ( yisinv )
+							{
+								uint64_t const l = blen; // RC2.getReadLength(ita[y].bread);
+								for ( uint64_t i = 0; i < VMO.size(); ++i )
+									VMO[i].second = l - VMO[i].second - 1;
+							}
+
+							uint64_t ma = 0, mb = 0;
+							bool found = false;
+
+							while ( (!found) && ma < VMC.size() && mb < VMO.size() )
+							{
+								if ( VMC[ma] < VMO[mb] )
+									++ma;
+								else if ( VMO[mb] < VMC[ma] )
+									++mb;
+								else
+								{
+									assert ( VMC[ma] == VMO[mb] );
+									found = true;
+								}
+							}
+
+							if ( found )
+							{
+								return true;
+							}
+							else
+							{
+								//err << "not found" << std::endl;
+							}
+						}
+					}
+
+					return false;
+				}
 
 				bool trueOverlap(libmaus2::dazzler::align::Overlap const & OVL, libmaus2::bambam::BamAlignment const & A, libmaus2::bambam::BamAlignment const & B)
 				{

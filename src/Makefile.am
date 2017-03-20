@@ -266,7 +266,9 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/lcs/ChainRemoveQueueElement.cpp \
 	libmaus2/lcs/ChainSplayTreeNode.cpp \
 	libmaus2/timing/RealTimeClock.cpp \
-	libmaus2/aio/PosixFdOutputStreamFactory.cpp
+	libmaus2/aio/PosixFdOutputStreamFactory.cpp \
+	libmaus2/dazzler/align/OverlapHeader.cpp \
+	libmaus2/bambam/BamAlignment.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -327,7 +329,13 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/AlignmentWriterArray.hpp \
 	libmaus2/dazzler/align/OverlapProperCheck.hpp \
 	libmaus2/dazzler/align/DalignerIndexDecoder.hpp \
-	libmaus2/dazzler/align/AlignmentFileDecoder.hpp
+	libmaus2/dazzler/align/AlignmentFileDecoder.hpp \
+	libmaus2/dazzler/align/OverlapHeader.hpp \
+	libmaus2/dazzler/align/GraphDecoderContextAllocator.hpp \
+	libmaus2/dazzler/align/GraphDecoderContext.hpp \
+	libmaus2/dazzler/align/GraphDecoderContextTypeInfo.hpp \
+	libmaus2/dazzler/align/GraphDecoder.hpp \
+	libmaus2/dazzler/align/GraphEncoder.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
 libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp libmaus2/autoarray/AutoArrayMultiMap.hpp \
@@ -1117,7 +1125,9 @@ libmaus2huffman_include_HEADERS=\
 	libmaus2/huffman/LFRankPosDecoder.hpp \
 	libmaus2/huffman/LFSymRankPos.hpp \
 	libmaus2/huffman/LFSymRankPosDecoder.hpp \
-	libmaus2/huffman/LFSymRankPosEncoder.hpp 
+	libmaus2/huffman/LFSymRankPosEncoder.hpp \
+	libmaus2/huffman/InputAdapter.hpp \
+	libmaus2/huffman/OutputAdapter.hpp
 
 libmaus2math_includedir=$(includedir)/libmaus2/math
 libmaus2math_include_HEADERS=\
@@ -2161,7 +2171,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testbamnumericalindex \
 	testnpl \
 	testkcnt \
-	testintervaltree
+	testintervaltree \
+	testbamgetrefreg
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2749,3 +2760,8 @@ testintervaltree_SOURCES  = test/testintervaltree.cpp
 testintervaltree_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testintervaltree_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
 testintervaltree_LDFLAGS  = ${AM_LDFLAGS}
+
+testbamgetrefreg_SOURCES  = test/testbamgetrefreg.cpp
+testbamgetrefreg_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testbamgetrefreg_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
+testbamgetrefreg_LDFLAGS  = ${AM_LDFLAGS}

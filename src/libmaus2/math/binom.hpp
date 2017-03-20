@@ -307,6 +307,50 @@ namespace libmaus2
 				return V;
 			}
 
+			static std::vector < double > binomVectorDouble(double const p, uint64_t const n)
+			{
+				//libmaus2::math::GmpFloat r(0,prec);
+				double const q = 1.0-p; // q = 1-p
+				double const tp = 1.0; // tp = 1
+				double const tq = slowPow(q,n); // tq = q^n
+				double f = tp * tq; // product of tp and tq
+
+				std::vector < double > V(n+1);
+
+				// sum up starting from k
+				for ( uint64_t k = 0; k <= n; ++k )
+				{
+					V[k] = f;
+					// r += f; // add f to result
+					f *= p; // multiply factor by p
+					f /= q; // divide factor by q
+					f /= (static_cast<double>(k)+static_cast<double>(1)); // divide by k+1
+					f *= (static_cast<double>(n)-static_cast<double>(k)); // multiply by n-k
+				}
+
+				return V;
+			}
+
+			static libmaus2::math::GmpFloat binomSingleGmp(libmaus2::math::GmpFloat const p, uint64_t const k, uint64_t const n, unsigned int const prec)
+			{
+				//libmaus2::math::GmpFloat r(0,prec);
+				libmaus2::math::GmpFloat const q = libmaus2::math::GmpFloat(1.0,prec)-p; // q = 1-p
+				libmaus2::math::GmpFloat const tp(1.0,prec); // tp = 1
+				libmaus2::math::GmpFloat const tq = slowPow(q,n,prec); // tq = q^n
+				libmaus2::math::GmpFloat f = tp * tq; // product of tp and tq
+
+				// sum up to k
+				for ( uint64_t i = 0; i < k; ++i )
+				{
+					f *= p; // multiply factor by p
+					f /= q; // divide factor by q
+					f /= (libmaus2::math::GmpFloat(i,prec)+libmaus2::math::GmpFloat(1,prec)); // divide by i+1
+					f *= (libmaus2::math::GmpFloat(n,prec)-libmaus2::math::GmpFloat(i,prec)); // multiply by n-i
+				}
+
+				return f;
+			}
+
 			/**
 			 * search for maximum k s.t. binomRowUpperGmpFloat(p,n,k,prec) >= lim using binary search
 			 **/
