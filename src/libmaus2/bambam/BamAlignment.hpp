@@ -340,6 +340,66 @@ namespace libmaus2
 			}
 
 			/**
+			 * return true if base q of the read as stored in the BAM record is marked by a = cigar operation
+			 *
+			 * @param q base index
+			 * @return true if base is assigned a = operation in the cigar string, false otherwise
+			 **/
+			bool baseMatch(uint64_t const q) const
+			{
+				if ( isUnmap() )
+					return false;
+
+				libmaus2::autoarray::AutoArray<cigar_operation> Acigop, Bcigop;
+				uint64_t const numciga = getCigarOperations(Acigop);
+				libmaus2::bambam::CigarStringReader<cigar_operation const *> RA(Acigop.begin(),Acigop.begin()+numciga);
+				::libmaus2::bambam::BamFlagBase::bam_cigar_ops opA;
+
+				uint64_t readposa = 0;
+				while ( RA.getNext(opA) )
+				{
+					switch ( opA )
+					{
+						case BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL:
+							if ( readposa == q )
+								return true;
+						case BamFlagBase::LIBMAUS2_BAMBAM_CMATCH:
+						case BamFlagBase::LIBMAUS2_BAMBAM_CDIFF:
+							readposa += 1;
+							break;
+						case BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP:
+						case BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP:
+						case BamFlagBase::LIBMAUS2_BAMBAM_CINS:
+							readposa += 1;
+							break;
+						case BamFlagBase::LIBMAUS2_BAMBAM_CDEL:
+						case BamFlagBase::LIBMAUS2_BAMBAM_CREF_SKIP:
+						case BamFlagBase::LIBMAUS2_BAMBAM_CPAD:
+						default:
+							break;
+					}
+				}
+
+				return false;
+			}
+
+			/**
+			 * return true if base q of the original read is marked by a = cigar operation. The difference
+			 * from baseMatch() is that baseMatchPrime works on the reverse complement of the read stored
+			 * in the BAM record if the reverse flag is set.
+			 *
+			 * @param q base index
+			 * @return true if base is assigned a = operation in the cigar string, false otherwise
+			 **/
+			bool baseMatchPrime(uint64_t const q) const
+			{
+				if ( isReverse() )
+					return baseMatch(getLseq() - q - 1);
+				else
+					return baseMatch(q);
+			}
+
+			/**
 			 *
 			 **/
 			static bool cross(
@@ -1826,6 +1886,17 @@ namespace libmaus2
 			}
 
 			/**
+			 * @return read or reverse complement as marked by reverse flag
+			 **/
+			std::string getReadPrime() const
+			{
+				if ( isReverse() )
+					return getReadRC();
+				else
+					return getRead();
+			}
+
+			/**
 			 * @return quality string as string
 			 **/
 			std::string getQual() const
@@ -2253,6 +2324,9 @@ namespace libmaus2
 				return false;
 			}
 
+			/**
+			 * @return true if o is a cigar match operation (M/=/X)
+			 **/
 			static bool isMatchOp(BamFlagBase::bam_cigar_ops const o)
 			{
 				return
@@ -2263,6 +2337,15 @@ namespace libmaus2
 					o == BamFlagBase::LIBMAUS2_BAMBAM_CDIFF;
 			}
 
+			/**
+			 * return reference position which position readq on the read as stored in the BAM record matches
+			 * (matching means the corresponding cigar operation is =). Returns std::numeric_limits<uint64_t>::max()
+			 * if no such position exists (position readq does not exist, is not used in the alignment stored
+			 * or is not a match)
+			 *
+			 * @param readq read position
+			 * @return reference position for readq if there is a match for readq
+			 **/
 			uint64_t getRefPosForReadPos(uint64_t const readq) const
 			{
 				libmaus2::autoarray::AutoArray<cigar_operation> cigop;
@@ -2311,6 +2394,143 @@ namespace libmaus2
 				}
 
 				return std::numeric_limits<uint64_t>::max();
+			}
+
+			/**
+			 * @return getPos() - getFrontDel()
+			 **/
+			int64_t getRefStart() const
+			{
+				return getPos() - getFrontDel();
+			}
+
+			/**
+			 * @return same as getReferenceRegionViaMd()
+			 **/
+			std::string getReferenceUsed() const
+			{
+				return getReferenceRegionViaMd();
+			}
+
+			/**
+			 * return the part of the reference used for aligning interval [qa,pb) in the read as stored in the BAM record
+			 *
+			 * @param qa first read base considered (inclusive)
+			 * @param qb last read base considered (exclusive)
+			 * @return part of reference used for aligning to [qa,qb)
+			 **/
+			std::string getReferenceUsed(uint64_t const qa, uint64_t const qb) const
+			{
+				std::pair<uint64_t,uint64_t> const pa = getRefPosForReadPosChecked(qa);
+				std::pair<uint64_t,uint64_t> const pb = getRefPosForReadPosChecked(qb-1);
+
+				std::string s = getReferenceUsed();
+
+				s = s.substr(
+					pa.first - getRefStart(),
+					pb.first - pa.first
+				);
+
+				return s;
+			}
+
+			/**
+			 * return the part of the reference used for aligning interval [qa,pb) in the original read
+			 * (which is the reverse complement of the read stored in the BAM record if isReverse() yields true)
+			 *
+			 * @param qa first read base considered (inclusive)
+			 * @param qb last read base considered (exclusive)
+			 * @return part of reference used for aligning to [qa,qb)
+			 **/
+			std::string getReferenceUsedPrime(uint64_t qa, uint64_t qb) const
+			{
+				if ( isReverse() )
+				{
+					std::swap(qa,qb);
+					qa = getLseq() - qa;
+					qb = getLseq() - qb;
+				}
+
+				std::pair<uint64_t,uint64_t> const pa = getRefPosForReadPosChecked(qa);
+				std::pair<uint64_t,uint64_t> const pb = getRefPosForReadPosChecked(qb-1);
+
+				std::string s = getReferenceUsed();
+
+				s = s.substr(
+					pa.first - getRefStart(),
+					pb.first - pa.first
+				);
+
+				if ( isReverse() )
+					s = libmaus2::fastx::reverseComplementUnmapped(s);
+
+				return s;
+			}
+
+			/**
+			 * similar to getRefPosForReadPos, but returns the position of the closest next matching
+			 * position if no match for readq exists or the last matching position if readq lies
+			 * beyond the aligned read region
+			 *
+			 * @param readq position on read
+			 * @return pair (refpos,readpos) of match or pair of twice std::numeric_limits<uint64_t>::max() if none exists
+			 **/
+			std::pair<uint64_t,uint64_t> getRefPosForReadPosChecked(uint64_t const readq) const
+			{
+				libmaus2::autoarray::AutoArray<cigar_operation> cigop;
+				uint32_t const ncig = getCigarOperations(cigop);
+				uint64_t refadv = 0;
+
+				uint64_t refpos = getPos();
+				uint64_t readpos = 0;
+
+				int64_t lastrefpos = -1;
+				int64_t lastreadpos = -1;
+
+				for ( uint64_t i = 0; i < ncig; ++i )
+				{
+					if ( isMatchOp(static_cast<BamFlagBase::bam_cigar_ops>(cigop[i].first)) )
+						refadv = 1;
+
+					for ( int64_t j = 0; j < cigop[i].second; ++j )
+					{
+						switch ( cigop[i].first )
+						{
+							case BamFlagBase::LIBMAUS2_BAMBAM_CMATCH:
+							case BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL:
+							case BamFlagBase::LIBMAUS2_BAMBAM_CDIFF:
+								if ( readpos >= readq )
+									return std::pair<uint64_t,uint64_t>(refpos,readpos);
+								lastrefpos = refpos;
+								lastreadpos = readpos;
+								readpos += 1;
+								refpos += refadv;
+								break;
+							case BamFlagBase::LIBMAUS2_BAMBAM_CINS:
+								if ( readpos >= readq )
+									return std::pair<uint64_t,uint64_t>(refpos,readpos);
+								readpos += 1;
+								break;
+							case BamFlagBase::LIBMAUS2_BAMBAM_CDEL:
+								refpos += refadv;
+								break;
+							case BamFlagBase::LIBMAUS2_BAMBAM_CREF_SKIP:
+								refpos += refadv;
+								break;
+							case BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP:
+								readpos += 1;
+								break;
+							case BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP:
+							case BamFlagBase::LIBMAUS2_BAMBAM_CPAD:
+								break;
+						}
+					}
+				}
+
+				if ( lastrefpos >= 0 )
+					return std::pair<uint64_t,uint64_t>(lastrefpos,lastreadpos);
+				else
+					return std::pair<uint64_t,uint64_t>(std::numeric_limits<uint64_t>::max(),std::numeric_limits<uint64_t>::max());
 			}
 
 			/**
