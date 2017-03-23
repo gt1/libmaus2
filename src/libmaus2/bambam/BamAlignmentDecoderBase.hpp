@@ -2821,6 +2821,19 @@ namespace libmaus2
 				return std::string(A.begin(),A.begin()+seqlen);
 			}
 			/**
+			 * decode query sequence in alignment block D
+			 *
+			 * @param D alignment block
+			 * @param A output array
+			 * @return string object containing the decode query sequence
+			 **/
+			static std::string decodeReadS(uint8_t const * e)
+			{
+				::libmaus2::autoarray::AutoArray<char> A;
+				uint64_t const seqlen = decodeRead(e,A);
+				return std::string(A.begin(),A.begin()+seqlen);
+			}
+			/**
 			 * decode reverse complement of query sequence in alignment block D to array A; A is extended if it is too small;
 			 * the decoded sequence is returned as a string object
 			 *

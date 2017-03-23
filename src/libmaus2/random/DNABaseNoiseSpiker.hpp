@@ -352,6 +352,7 @@ namespace libmaus2
 				{
 				    uint64_t const pos = ita->first;
 				    std::vector< ErrorDescriptor > const & errV = ita->second;
+				    char const origc = sub[pos];
 
 				    // insertions
 				    for ( uint64_t i = 0; i < errV.size(); ++i )
@@ -389,15 +390,13 @@ namespace libmaus2
 				    {
 					if ( contains(errV,err_subst) )
 					{
-					    int const v = libmaus2::random::Random::rand8() & 3;
 					    int insbase = -1;
-					    switch ( v )
+					    while ( ((insbase = libmaus2::fastx::remapChar(libmaus2::random::Random::rand8() & 3)) == origc) )
 					    {
-						case 0: insbase = 'A'; break;
-						case 1: insbase = 'C'; break;
-						case 2: insbase = 'G'; break;
-						case 3: insbase = 'T'; break;
 					    }
+
+					    assert ( insbase != origc );
+
 					    baseostr.put(insbase);
 					    errostr << 's' << static_cast<char>(insbase);
 					    cigopstr.put('X');

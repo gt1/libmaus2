@@ -1227,6 +1227,46 @@ namespace libmaus2
 				return std::pair<uint64_t,uint64_t>(bpos,tc-ta);
 			}
 
+
+			// compute how many operations we consume when going adv steps forward on b
+			static std::pair<uint64_t,uint64_t> advanceMaxB(step_type const * ta, step_type const * te, uint64_t const adv)
+			{
+				uint64_t apos = 0, bpos = 0;
+				step_type const * tc = ta;
+
+				for ( ; bpos < adv && tc != te; ++tc )
+				{
+					switch ( *tc )
+					{
+						case STEP_MATCH:
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_MISMATCH:
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_INS:
+							bpos += 1;
+							break;
+						case STEP_DEL:
+							apos += 1;
+							break;
+						case STEP_RESET:
+							break;
+					}
+				}
+
+				// can me move further in the trace without incrementing bpos?
+				while ( bpos == adv && tc != te && *tc == STEP_DEL )
+				{
+					apos++;
+					tc++;
+				}
+
+				return std::pair<uint64_t,uint64_t>(bpos,tc-ta);
+			}
+
 			std::pair<uint64_t,uint64_t> advanceB(uint64_t const adv) const
 			{
 				return advanceB(ta,te,adv);
