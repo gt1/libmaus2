@@ -1,3 +1,14 @@
+libmaus2 (2.0.325-1) unstable; urgency=medium
+
+  * add advanceMaxB function in AlignmentTraceContainer
+  * add methods baseMatch, baseMatchPrime, getReadPrime, getRefPosForReadPos, getRefStart, getReferenceUsed, getReferenceUsedPrime and getRefPosForReadPosChecked in BamAlignment class
+  * fix MD/NM calculation in case of delete operations ahead of the first match/mismatch
+  * add getReferenceRegionViaMd and checkCigar in BamAlignment
+  * make sure substituted base is not same as original base in DNABaseNoiseSpiker
+  * add decodeReadS function in BamAlignmentDecoderBase
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 23 Mar 2017 17:46:23 +0100
+
 libmaus2 (2.0.324-1) unstable; urgency=medium
 
   * improve cleanup in GraphEncoder
