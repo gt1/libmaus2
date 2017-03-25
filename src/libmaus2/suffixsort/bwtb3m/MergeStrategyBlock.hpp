@@ -33,6 +33,14 @@ namespace libmaus2
 				typedef MergeStrategyBlock this_type;
 				typedef libmaus2::util::shared_ptr<MergeStrategyBlock>::type shared_ptr_type;
 
+				enum merge_block_type
+				{
+					merge_block_type_internal = 0,
+					merge_block_type_internal_small = 1,
+					merge_block_type_external = 2,
+					merge_block_type_base = 3
+				};
+
 				//! low symbol offset in file
 				uint64_t low;
 				//! high symbol offset in file
@@ -54,13 +62,76 @@ namespace libmaus2
 				//! parent node
 				MergeStrategyBlock * parent;
 
+				bool operator==(MergeStrategyBlock const & O) const
+				{
+					if ( low != O.low )
+						return false;
+					if ( high != O.high )
+						return false;
+					if ( sourcelengthbits != O.sourcelengthbits )
+						return false;
+					if ( sourcelengthbytes != O.sourcelengthbytes )
+						return false;
+					if ( codedlength != O.codedlength )
+						return false;
+					if ( sourcetextindexbits != O.sourcetextindexbits )
+						return false;
+					if ( nodeid != O.nodeid )
+						return false;
+					if ( nodedepth != O.nodedepth )
+						return false;
+					if ( !(sortresult == O.sortresult) )
+						return false;
+					if ( (parent==0) != (O.parent==0) )
+						return false;
+					if ( parent )
+					{
+						assert ( O.parent );
+
+						if ( parent->nodeid != O.parent->nodeid )
+							return false;
+					}
+					return true;
+				}
+
+				bool operator!=(MergeStrategyBlock const & O) const
+				{
+					return !operator==(O);
+				}
+
 				MergeStrategyBlock()
 				: low(0), high(0), sourcelengthbits(0), sourcelengthbytes(0), codedlength(0), sourcetextindexbits(0), nodeid(0), nodedepth(0), parent(0) {}
 				MergeStrategyBlock(uint64_t const rlow, uint64_t const rhigh, uint64_t const rsourcelengthbits, uint64_t const rsourcelengthbytes, uint64_t const rsourcetextindexbits)
 				: low(rlow), high(rhigh), sourcelengthbits(rsourcelengthbits), sourcelengthbytes(rsourcelengthbytes), codedlength(0), sourcetextindexbits(rsourcetextindexbits), nodeid(0), nodedepth(0), parent(0) {}
+				MergeStrategyBlock(std::istream & in) : parent(0)
+				{
+					low = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					high = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					sourcelengthbits = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					sourcelengthbytes = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					codedlength = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					sourcetextindexbits = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					nodeid = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					nodedepth = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					sortresult.deserialise(in);
+				}
 
 				virtual ~MergeStrategyBlock() {}
 				virtual std::ostream & print(std::ostream & out, uint64_t const indent) const = 0;
+				virtual void vserialise(std::ostream & out) const = 0;
+
+				void serialise(std::ostream & out) const
+				{
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,low);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,high);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,sourcelengthbits);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,sourcelengthbytes);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,codedlength);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,sourcetextindexbits);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,nodeid);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,nodedepth);
+					sortresult.serialise(out);
+				}
 
 				/**
 				 * get estimate for space used by Huffman shaped wavelet tree in bits
@@ -150,7 +221,13 @@ namespace libmaus2
 				virtual bool isLeaf() const = 0;
 				virtual void setParent(MergeStrategyBlock * rparent) = 0;
 				virtual bool childFinished() = 0;
+				virtual bool equal(MergeStrategyBlock const & O) const = 0;
 			};
+
+			inline std::ostream & operator<<(std::ostream & out, MergeStrategyBlock const & MSB)
+			{
+				return MSB.print(out,0);
+			}
 		}
 	}
 }

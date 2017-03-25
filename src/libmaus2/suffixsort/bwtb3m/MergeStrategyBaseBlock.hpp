@@ -33,7 +33,49 @@ namespace libmaus2
 				libmaus2::suffixsort::BwtMergeBlockSortRequest sortreq;
 				std::vector<uint64_t> querypos;
 
+				bool equal(MergeStrategyBlock const & O) const
+				{
+					if ( dynamic_cast<MergeStrategyBaseBlock const *>(&O) == 0 )
+						return false;
+
+					MergeStrategyBaseBlock const & M = *(dynamic_cast<MergeStrategyBaseBlock const *>(&O));
+
+					if (
+						static_cast<MergeStrategyBlock const &>(*this)
+						!=
+						static_cast<MergeStrategyBlock const &>(M)
+					)
+						return false;
+
+					if ( sortreq != M.sortreq )
+						return false;
+
+					if ( querypos != M.querypos )
+						return false;
+
+					return true;
+				}
+
+				void vserialise(std::ostream & out) const
+				{
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,MergeStrategyBlock::merge_block_type_base);
+
+					MergeStrategyBlock::serialise(out);
+
+					sortreq.serialise(out);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,querypos.size());
+					for ( uint64_t i = 0; i < querypos.size(); ++i )
+						libmaus2::util::NumberSerialisation::serialiseNumber(out,querypos[i]);
+				}
+
 				MergeStrategyBaseBlock() : MergeStrategyBlock() {}
+				MergeStrategyBaseBlock(std::istream & in)
+				: MergeStrategyBlock(in), sortreq(in)
+				{
+					querypos.resize(libmaus2::util::NumberSerialisation::deserialiseNumber(in));
+					for ( uint64_t i = 0; i < querypos.size(); ++i )
+						querypos[i] = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				}
 
 				MergeStrategyBaseBlock(
 					uint64_t const rlow, uint64_t const rhigh,
@@ -147,6 +189,7 @@ namespace libmaus2
 					se.finish();
 					throw se;
 				}
+
 
 				/**
 				 * @return space required in bytes for sorting block in internal memory using divsufsort

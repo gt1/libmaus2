@@ -268,7 +268,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/timing/RealTimeClock.cpp \
 	libmaus2/aio/PosixFdOutputStreamFactory.cpp \
 	libmaus2/dazzler/align/OverlapHeader.cpp \
-	libmaus2/bambam/BamAlignment.cpp
+	libmaus2/bambam/BamAlignment.cpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeInput.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 

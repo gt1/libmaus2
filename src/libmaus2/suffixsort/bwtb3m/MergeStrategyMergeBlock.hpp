@@ -21,6 +21,7 @@
 
 #include <libmaus2/suffixsort/bwtb3m/MergeStrategyBlock.hpp>
 #include <libmaus2/suffixsort/bwtb3m/MergeStrategyMergeGapRequest.hpp>
+#include <libmaus2/suffixsort/bwtb3m/MergeStrategyMergeInput.hpp>
 
 namespace libmaus2
 {
@@ -34,9 +35,64 @@ namespace libmaus2
 				std::vector<MergeStrategyMergeGapRequest::shared_ptr_type> gaprequests;
 				uint64_t unfinishedChildren;
 
+				bool operator==(MergeStrategyMergeBlock const & O) const
+				{
+					if ( children.size() != O.children.size() )
+						return false;
+					for ( uint64_t i = 0; i < children.size(); ++i )
+						if ( ! children[i]->equal(*(O.children[i])) )
+							return false;
+					if ( gaprequests.size() != O.gaprequests.size() )
+						return false;
+					for ( uint64_t i = 0; i < gaprequests.size(); ++i )
+						if ( (*gaprequests[i]) != *(O.gaprequests[i]) )
+							return false;
+					if ( unfinishedChildren != O.unfinishedChildren )
+						return false;
+					return true;
+				}
+
+				bool operator!=(MergeStrategyMergeBlock const & O) const
+				{
+					return !operator==(O);
+				}
+
+
 				MergeStrategyMergeBlock()
 				: MergeStrategyBlock()
 				{
+				}
+
+				MergeStrategyMergeBlock(std::istream & in)
+				: MergeStrategyBlock(in)
+				{
+					children.resize(libmaus2::util::NumberSerialisation::deserialiseNumber(in));
+					for ( uint64_t i = 0; i < children.size(); ++i )
+					{
+						MergeStrategyBlock::shared_ptr_type tptr(libmaus2::suffixsort::bwtb3m::MergeStrategyMergeInput::loadBlock(in));
+						children[i] = tptr;
+					}
+					gaprequests.resize(libmaus2::util::NumberSerialisation::deserialiseNumber(in));
+					for ( uint64_t i = 0; i < gaprequests.size(); ++i )
+					{
+						MergeStrategyMergeGapRequest::shared_ptr_type tptr(new MergeStrategyMergeGapRequest(in));
+						tptr->pchildren = &children;
+						gaprequests[i] = tptr;
+					}
+					unfinishedChildren = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				}
+
+				void serialise(std::ostream & out) const
+				{
+					MergeStrategyBlock::serialise(out);
+
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,children.size());
+					for ( uint64_t i = 0; i < children.size(); ++i )
+						children[i]->vserialise(out);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,gaprequests.size());
+					for ( uint64_t i = 0; i < gaprequests.size(); ++i )
+						gaprequests[i]->serialise(out);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,unfinishedChildren);
 				}
 
 				void releaseChildren()
