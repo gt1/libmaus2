@@ -35,7 +35,7 @@ namespace libmaus2
 				OverlapNode to;
 				uint64_t length;
 				std::vector < OverlapNode > overlaps;
-				
+
 				Edge() {}
 				Edge(std::istream & in)
 				: from(in), to(in),
@@ -45,7 +45,7 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < numoverlaps; ++i )
 						overlaps.push_back(OverlapNode(in));
 				}
-				
+
 				bool operator<(Edge const & E) const
 				{
 					if ( from != E.from )
@@ -55,7 +55,7 @@ namespace libmaus2
 					else
 						return false;
 				}
-				
+
 				bool operator==(Edge const & E) const
 				{
 					return from == E.from && to == E.to;

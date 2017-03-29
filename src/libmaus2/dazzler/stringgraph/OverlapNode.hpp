@@ -28,7 +28,7 @@ namespace libmaus2
 		{
 			struct OverlapNode;
 			std::ostream & operator<<(std::ostream & out, OverlapNode const & O);
-		
+
 			struct OverlapNode
 			{
 				uint64_t id;
@@ -36,14 +36,14 @@ namespace libmaus2
 
 				OverlapNode() {}
 				OverlapNode(uint64_t const rid, bool const rend) : id(rid), end(rend) {}
-				OverlapNode(std::istream & in) 
-				: 
+				OverlapNode(std::istream & in)
+				:
 					id(libmaus2::util::NumberSerialisation::deserialiseNumber(in,4)),
-					end(libmaus2::util::NumberSerialisation::deserialiseNumber(in,1)) 
+					end(libmaus2::util::NumberSerialisation::deserialiseNumber(in,1))
 				{
 					//std::cerr << "got OverlapNode " << *this << std::endl;
 				}
-				
+
 				bool operator<(OverlapNode const & O) const
 				{
 					if ( id != O.id )
@@ -53,18 +53,18 @@ namespace libmaus2
 					else
 						return false;
 				}
-				
+
 				bool operator==(OverlapNode const & O) const
 				{
 					return id==O.id && end == O.end;
 				}
-				
+
 				bool operator!=(OverlapNode const & O) const
 				{
 					return !operator==(O);
 				}
 			};
-			
+
 			std::ostream & operator<<(std::ostream & out, OverlapNode const & O);
 		}
 	}

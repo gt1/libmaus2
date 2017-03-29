@@ -32,13 +32,13 @@ namespace libmaus2
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 				std::vector < Edge > edges;
-				
+
 				StringGraph() {}
 				StringGraph(std::istream & in)
 				{
 					while ( in.peek() != std::istream::traits_type::eof() )
 						edges.push_back(Edge(in));
-				}				
+				}
 			};
 			std::ostream & operator<<(std::ostream & out, StringGraph const & S);
 		}
