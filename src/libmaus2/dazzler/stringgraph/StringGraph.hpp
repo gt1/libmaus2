@@ -19,6 +19,7 @@
 #define LIBMAUS2_DAZZLER_STRINGGRAPH_STRINGGRAPH_HPP
 
 #include <libmaus2/dazzler/stringgraph/Edge.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 
 namespace libmaus2
 {
@@ -38,6 +39,13 @@ namespace libmaus2
 				{
 					while ( in.peek() != std::istream::traits_type::eof() )
 						edges.push_back(Edge(in));
+				}
+
+				static unique_ptr_type load(std::string const & fn)
+				{
+					libmaus2::aio::InputStreamInstance in(fn);
+					unique_ptr_type tptr(new this_type(in));
+					return UNIQUE_PTR_MOVE(tptr);
 				}
 			};
 			std::ostream & operator<<(std::ostream & out, StringGraph const & S);
