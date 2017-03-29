@@ -338,6 +338,11 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/GraphDecoder.hpp \
 	libmaus2/dazzler/align/GraphEncoder.hpp
 
+libmaus2dazzlerstringgraph_includedir=$(includedir)/libmaus2/dazzler/stringgraph
+libmaus2dazzlerstringgraph_include_HEADERS = libmaus2/dazzler/stringgraph/Edge.hpp \
+	libmaus2/dazzler/stringgraph/OverlapNode.hpp \
+	libmaus2/dazzler/stringgraph/StringGraph.hpp
+
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
 libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp libmaus2/autoarray/AutoArrayMultiMap.hpp \
 	libmaus2/autoarray/GenericAlignedAllocation.hpp
@@ -1798,7 +1803,8 @@ libmaus2suffixsortbwtb3m_include_HEADERS=\
 	libmaus2/suffixsort/bwtb3m/BwtMergeSort.hpp \
 	libmaus2/suffixsort/bwtb3m/BwtMergeSortResult.hpp \
 	libmaus2/suffixsort/bwtb3m/BwtComputeSSA.hpp \
-	libmaus2/suffixsort/bwtb3m/BwtSelectSSA.hpp
+	libmaus2/suffixsort/bwtb3m/BwtSelectSSA.hpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeInput.hpp
 
 libmaus2suffixtree_includedir=$(includedir)/libmaus2/suffixtree
 libmaus2suffixtree_include_HEADERS=\
