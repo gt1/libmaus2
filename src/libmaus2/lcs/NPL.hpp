@@ -96,21 +96,13 @@ namespace libmaus2
 
 				if ( ! an )
 				{
-					if ( AlignmentTraceContainer::capacity() <= bn )
-						AlignmentTraceContainer::resize(bn);
 					AlignmentTraceContainer::reset();
-					AlignmentTraceContainer::ta -= bn;
-					std::fill(AlignmentTraceContainer::ta,AlignmentTraceContainer::te,STEP_INS);
-					return bn;
+					return 0;
 				}
 				else if ( ! bn )
 				{
-					if ( AlignmentTraceContainer::capacity() <= an )
-						AlignmentTraceContainer::resize(an);
 					AlignmentTraceContainer::reset();
-					AlignmentTraceContainer::ta -= an;
-					std::fill(AlignmentTraceContainer::ta,AlignmentTraceContainer::te,STEP_DEL);
-					return an;
+					return 0;
 				}
 
 				size_t const sn = std::max(an,bn);
