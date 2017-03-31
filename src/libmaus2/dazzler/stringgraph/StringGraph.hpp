@@ -19,6 +19,7 @@
 #define LIBMAUS2_DAZZLER_STRINGGRAPH_STRINGGRAPH_HPP
 
 #include <libmaus2/dazzler/stringgraph/Edge.hpp>
+#include <libmaus2/dazzler/db/DatabaseFile.hpp>
 #include <libmaus2/aio/InputStreamInstance.hpp>
 
 namespace libmaus2
@@ -46,6 +47,123 @@ namespace libmaus2
 					libmaus2::aio::InputStreamInstance in(fn);
 					unique_ptr_type tptr(new this_type(in));
 					return UNIQUE_PTR_MOVE(tptr);
+				}
+
+				uint64_t size() const
+				{
+					return edges.size();
+				}
+
+				#if defined(STRING_GRAPH_DEBUG)
+				static void search(std::string s, std::vector<std::string> const & Vtext, char const d)
+				{
+					if ( s.size() >= 32 )
+						for ( uint64_t i = 0; i < Vtext.size(); ++i )
+						{
+							std::string::size_type p = 0;
+							while ( (p=Vtext[i].find(s,p)) != std::string::npos )
+							{
+								std::cerr << d << ":" << i << ":" << p << std::endl;
+								p += 1;
+							}
+						}
+				}
+
+				static void searchFR(std::string s, std::vector<std::string> const & Vtext)
+				{
+					search(s,Vtext,'f');
+					search(libmaus2::fastx::reverseComplementUnmapped(s),Vtext,'r');
+				}
+				#endif
+
+				std::string traverse(
+					std::vector<uint64_t> const edgeids,
+					libmaus2::dazzler::db::DatabaseFile const & DB
+					#if defined(STRING_GRAPH_DEBUG)
+						, std::vector<std::string> const & Vtext
+					#endif
+				) const
+				{
+					for ( uint64_t i = 1; i < edgeids.size(); ++i )
+						assert (
+							edges[i-1].to.id == edges[i].from.id
+							&&
+							edges[i-1].to.end != edges[i].from.end
+						);
+
+					std::ostringstream ostr;
+					for ( uint64_t i = 0; i < edgeids.size(); ++i )
+					{
+						uint64_t const edgeid = edgeids[i];
+						Edge const & E = edges[edgeid];
+
+						if ( i == 0 )
+						{
+							OverlapNodeBase const first = E.from;
+
+							bool const firstinv = (first.end==0);
+
+							#if defined(STRING_GRAPH_DEBUG)
+							std::cerr << first << std::endl;
+							#endif
+
+							std::string s;
+							if ( firstinv )
+								s = libmaus2::fastx::reverseComplementUnmapped(DB[first.id]);
+							else
+								s = DB[first.id];
+
+							ostr << s;
+
+							#if defined(STRING_GRAPH_DEBUG)
+							searchFR(s,Vtext);
+							#endif
+						}
+
+						for ( uint64_t j = 0; j < E.overlaps.size(); ++j )
+						{
+							OverlapNode const & next = E.overlaps[j];
+
+							bool const nextinv = (next.end==0);
+
+							std::string s =
+								nextinv
+								?
+								libmaus2::fastx::reverseComplementUnmapped(DB[next.id])
+								:
+								DB[next.id]
+								;
+
+							s = s.substr(s.size() - next.length);
+
+							#if defined(STRING_GRAPH_DEBUG)
+							std::cerr << "next=" << next << " nextinv=" << nextinv << " s.size()=" << s.size() << std::endl;
+							#endif
+
+							#if defined(STRING_GRAPH_DEBUG)
+							searchFR(s,Vtext);
+							#endif
+
+							ostr << s;
+						}
+					}
+
+					return ostr.str();
+				}
+
+				std::string traverse(
+					uint64_t const i,
+					libmaus2::dazzler::db::DatabaseFile const & DB
+					#if defined(STRING_GRAPH_DEBUG)
+						, std::vector<std::string> const & text
+					#endif
+				) const
+				{
+					return traverse(std::vector<uint64_t>(1,i),DB
+						#if defined(STRING_GRAPH_DEBUG)
+						,text
+						#endif
+					);
 				}
 			};
 			std::ostream & operator<<(std::ostream & out, StringGraph const & S);
