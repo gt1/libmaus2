@@ -26,25 +26,27 @@ namespace libmaus2
 	{
 		namespace stringgraph
 		{
+			struct OverlapNodeBase;
+			std::ostream & operator<<(std::ostream & out, OverlapNodeBase const & O);
 			struct OverlapNode;
 			std::ostream & operator<<(std::ostream & out, OverlapNode const & O);
 
-			struct OverlapNode
+			struct OverlapNodeBase
 			{
 				uint64_t id;
 				bool end;
+				uint64_t length;
 
-				OverlapNode() {}
-				OverlapNode(uint64_t const rid, bool const rend) : id(rid), end(rend) {}
-				OverlapNode(std::istream & in)
+				OverlapNodeBase() {}
+				OverlapNodeBase(uint64_t const rid, bool const rend) : id(rid), end(rend) {}
+				OverlapNodeBase(std::istream & in)
 				:
 					id(libmaus2::util::NumberSerialisation::deserialiseNumber(in,4)),
 					end(libmaus2::util::NumberSerialisation::deserialiseNumber(in,1))
 				{
-					//std::cerr << "got OverlapNode " << *this << std::endl;
 				}
 
-				bool operator<(OverlapNode const & O) const
+				bool operator<(OverlapNodeBase const & O) const
 				{
 					if ( id != O.id )
 						return id < O.id;
@@ -54,9 +56,43 @@ namespace libmaus2
 						return false;
 				}
 
-				bool operator==(OverlapNode const & O) const
+				bool operator==(OverlapNodeBase const & O) const
 				{
 					return id==O.id && end == O.end;
+				}
+
+				bool operator!=(OverlapNodeBase const & O) const
+				{
+					return !operator==(O);
+				}
+			};
+
+			struct OverlapNode : public OverlapNodeBase
+			{
+				uint64_t length;
+
+				OverlapNode() {}
+				OverlapNode(uint64_t const rid, bool const rend, uint64_t const rlength) : OverlapNodeBase(rid,rend), length(rlength) {}
+				OverlapNode(std::istream & in)
+				:
+					OverlapNodeBase(in),
+					length(libmaus2::util::NumberSerialisation::deserialiseNumber(in,4))
+				{
+				}
+
+				bool operator<(OverlapNode const & O) const
+				{
+					if ( OverlapNodeBase::operator!=(O) )
+						return OverlapNodeBase::operator<(O);
+					else if ( length != O.length )
+						return length < O.length;
+					else
+						return false;
+				}
+
+				bool operator==(OverlapNode const & O) const
+				{
+					return OverlapNodeBase::operator==(O) && length == O.length;
 				}
 
 				bool operator!=(OverlapNode const & O) const
@@ -70,8 +106,13 @@ namespace libmaus2
 	}
 }
 
-inline std::ostream & libmaus2::dazzler::stringgraph::operator<<(std::ostream & out, libmaus2::dazzler::stringgraph::OverlapNode const & O)
+inline std::ostream & libmaus2::dazzler::stringgraph::operator<<(std::ostream & out, libmaus2::dazzler::stringgraph::OverlapNodeBase const & O)
 {
 	return out << "(" << O.id << "," << (O.end?'e':'b') << ")";
+}
+
+inline std::ostream & libmaus2::dazzler::stringgraph::operator<<(std::ostream & out, libmaus2::dazzler::stringgraph::OverlapNode const & O)
+{
+	return out << "(" << O.id << "," << (O.end?'e':'b') << "," << O.length << ")";
 }
 #endif
