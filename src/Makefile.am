@@ -2179,7 +2179,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testnpl \
 	testkcnt \
 	testintervaltree \
-	testbamgetrefreg
+	testbamgetrefreg \
+	teststringgraph
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2772,3 +2773,8 @@ testbamgetrefreg_SOURCES  = test/testbamgetrefreg.cpp
 testbamgetrefreg_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testbamgetrefreg_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
 testbamgetrefreg_LDFLAGS  = ${AM_LDFLAGS}
+
+teststringgraph_SOURCES  = test/teststringgraph.cpp
+teststringgraph_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+teststringgraph_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
+teststringgraph_LDFLAGS  = ${AM_LDFLAGS}
