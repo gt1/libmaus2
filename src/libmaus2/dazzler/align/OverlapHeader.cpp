@@ -19,7 +19,7 @@
 
 std::ostream & libmaus2::dazzler::align::operator<<(std::ostream & out, libmaus2::dazzler::align::OverlapHeader const & O)
 {
-	out << "OverlapHeader(aread=" << O.aread << ",bread=" << O.bread << ",abpos=" << O.abpos << ",aepos=" << O.aepos
-		<< ",inv=" << O.inv << ",bbpos=" << O.bbpos << ",bepos=" << O.bepos << ")";
+	out << "(a=" << O.aread << ",b=" << O.bread << ",ab=" << O.abpos << ",ae=" << O.aepos
+		<< ",i=" << O.inv << ",bb=" << O.bbpos << ",be=" << O.bepos << ")";
 	return out;
 }
