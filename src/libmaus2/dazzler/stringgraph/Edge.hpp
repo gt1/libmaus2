@@ -31,8 +31,8 @@ namespace libmaus2
 				typedef Edge this_type;
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
-				OverlapNode from;
-				OverlapNode to;
+				OverlapNodeBase from;
+				OverlapNodeBase to;
 				uint64_t length;
 				std::vector < OverlapNode > overlaps;
 
