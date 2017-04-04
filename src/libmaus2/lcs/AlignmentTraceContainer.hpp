@@ -1575,6 +1575,84 @@ namespace libmaus2
 				}
 			}
 
+			static uint64_t getAOffsets(
+				step_type const * ta,
+				step_type const * te,
+				libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > & R,
+				uint64_t const off_a = 0, uint64_t const off_b = 0,
+				uint64_t o = 0
+			)
+			{
+				uint64_t apos = off_a, bpos = off_b;
+
+				for ( step_type const * tc = ta; tc != te; ++tc )
+				{
+					switch ( *tc )
+					{
+						case STEP_MATCH:
+							R.push(o,std::pair<uint64_t,uint64_t>(apos,bpos));
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_MISMATCH:
+							R.push(o,std::pair<uint64_t,uint64_t>(apos,bpos));
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_INS:
+							bpos += 1;
+							break;
+						case STEP_DEL:
+							R.push(o,std::pair<uint64_t,uint64_t>(apos,bpos));
+							apos += 1;
+							break;
+						case STEP_RESET:
+							break;
+					}
+				}
+
+				return o;
+			}
+
+			static uint64_t getBOffsets(
+				step_type const * ta,
+				step_type const * te,
+				libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > & R,
+				uint64_t const off_a = 0, uint64_t const off_b = 0,
+				uint64_t o = 0
+			)
+			{
+				uint64_t apos = off_a, bpos = off_b;
+
+				for ( step_type const * tc = ta; tc != te; ++tc )
+				{
+					switch ( *tc )
+					{
+						case STEP_MATCH:
+							R.push(o,std::pair<uint64_t,uint64_t>(apos,bpos));
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_MISMATCH:
+							R.push(o,std::pair<uint64_t,uint64_t>(apos,bpos));
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_INS:
+							R.push(o,std::pair<uint64_t,uint64_t>(apos,bpos));
+							bpos += 1;
+							break;
+						case STEP_DEL:
+							apos += 1;
+							break;
+						case STEP_RESET:
+							break;
+					}
+				}
+
+				return o;
+			}
+
 			struct Match
 			{
 				uint64_t apos;
