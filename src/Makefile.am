@@ -341,7 +341,8 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 libmaus2dazzlerstringgraph_includedir=$(includedir)/libmaus2/dazzler/stringgraph
 libmaus2dazzlerstringgraph_include_HEADERS = libmaus2/dazzler/stringgraph/Edge.hpp \
 	libmaus2/dazzler/stringgraph/OverlapNode.hpp \
-	libmaus2/dazzler/stringgraph/StringGraph.hpp
+	libmaus2/dazzler/stringgraph/StringGraph.hpp \
+	libmaus2/dazzler/stringgraph/ContainmentInfo.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
 libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp libmaus2/autoarray/AutoArrayMultiMap.hpp \
