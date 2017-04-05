@@ -1,3 +1,10 @@
+libmaus2 (2.0.327-1) unstable; urgency=medium
+
+  * add serialisation for NNPAlignResult
+  * add serialisation for DNAIndexMetaDataBigBandBiDir::Coordinates
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 05 Apr 2017 17:56:06 +0200
+
 libmaus2 (2.0.326-1) unstable; urgency=medium
 
   * fix error occuring with empty files in GammaIntervalDecoder
