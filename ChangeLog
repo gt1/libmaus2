@@ -1,3 +1,21 @@
+libmaus2 (2.0.326-1) unstable; urgency=medium
+
+  * fix error occuring with empty files in GammaIntervalDecoder
+  * add getAlignments method in ChainNodeInfoSet and SMEMProcessor
+  * add TraversalElement class
+  * add getAOffsets and getBOffsets functions in AlignmentTraceContainer
+  * update template parameter for slide in NP class
+  * add ContainmentInfo class
+  * add push variant in AutoArray
+  * fix data type in NPL
+  * remove unneeded length field from terminal nodes of string graph edges
+  * fix warning about misguiding indentation in huffman.hpp
+  * fix NPL class for case of empty A or empty B string
+  * add string graph data structures
+  * add serialisation for block sorting merge tree
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 05 Apr 2017 17:20:02 +0200
+
 libmaus2 (2.0.325-1) unstable; urgency=medium
 
   * add advanceMaxB function in AlignmentTraceContainer
