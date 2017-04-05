@@ -106,6 +106,51 @@ namespace libmaus2
 				)
 				: valid(rvalid), seq(rseq), rc(rrc), left(rleft), length(rlength) {}
 
+				Coordinates(std::istream & in)
+				:
+					valid(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+					seq(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+					rc(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+					left(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+					length(libmaus2::util::NumberSerialisation::deserialiseNumber(in))
+				{
+
+				}
+
+				void deserialise(std::istream & in)
+				{
+					valid = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					seq = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					rc = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					left = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					length = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				}
+
+				void serialise(std::ostream & out) const
+				{
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,valid);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,seq);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,rc);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,left);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,length);
+				}
+
+				bool operator<(Coordinates const & C) const
+				{
+					if ( valid != C.valid )
+						return valid < C.valid;
+					else if ( seq != C.seq )
+						return seq < C.seq;
+					else if ( rc != C.rc )
+						return rc < C.rc;
+					else if ( left != C.left )
+						return left < C.left;
+					else if ( length != C.left )
+						return length < C.length;
+					else
+						return false;
+				}
+
 				std::ostream & print(std::ostream & out) const
 				{
 					out << "Coordinates(valid=" << valid << ",seq=" << seq << ",rc=" << rc << ",left=" << left << ",length=" << length << ")";

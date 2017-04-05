@@ -36,9 +36,31 @@ namespace libmaus2
 				{
 				}
 
+				MergeStrategyMergeExternalBlock(std::istream & in) : MergeStrategyMergeBlock(in) {}
+
 				std::ostream & print(std::ostream & out, uint64_t const indent) const
 				{
 					return MergeStrategyMergeBlock::print(out,indent,"MergeStrategyMergeExternalBlock");
+				}
+
+				bool equal(MergeStrategyBlock const & O) const
+				{
+					if ( dynamic_cast<MergeStrategyMergeExternalBlock const *>(&O) == 0 )
+						return false;
+
+					MergeStrategyMergeBlock const & A = *(dynamic_cast<MergeStrategyMergeBlock const *>(this));
+					MergeStrategyMergeBlock const & B = *(dynamic_cast<MergeStrategyMergeBlock const *>(&O));
+
+					if ( A != B )
+						return false;
+
+					return true;
+				}
+
+				void vserialise(std::ostream & out) const
+				{
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,MergeStrategyBlock::merge_block_type_external);
+					MergeStrategyMergeBlock::serialise(out);
 				}
 
 				static MergeStrategyBlock::shared_ptr_type construct(
@@ -51,11 +73,6 @@ namespace libmaus2
 					return sobj;
 				}
 			};
-
-			std::ostream & operator<<(std::ostream & out, MergeStrategyBlock const & MSB)
-			{
-				return MSB.print(out,0);
-			}
 		}
 	}
 }

@@ -123,8 +123,8 @@ namespace libmaus2
 
 							for ( int64_t i = ifrom; i < ito; ++i )
 							{
-								assert ( i >= left );
-								assert ( i < right );
+								assert ( i >= static_cast<int64_t>(left) );
+								assert ( i < static_cast<int64_t>(right) );
 								CV [ i - left ] = 1;
 							}
 						}

@@ -73,7 +73,7 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray<TraceElement,libmaus2::autoarray::alloc_type_c> trace;
 
 			template<typename iter_a, typename iter_b, bool neg>
-			static inline int slide(iter_a a, iter_a const ae, iter_b b, iter_a const be, int const offset)
+			static inline int slide(iter_a a, iter_a const ae, iter_b b, iter_b const be, int const offset)
 			{
 				a += offset;
 				b += offset;

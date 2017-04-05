@@ -175,7 +175,20 @@ namespace libmaus2
 				}
 				else
 				{
-					assert ( fileptr >= Vfn.size() );
+					if ( fileptr < index.data.size() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream()
+							<< "[E] GammaIntervalDecoder(Vfn=";
+						for ( uint64_t i = 0; i < Vfn.size(); ++i )
+							lme.getStream() << "[" << Vfn[i] << "]";
+						lme.getStream() << ",voffset=" << voffset << ",numthreads=" << numthreads;
+						lme.getStream() << "): fileptr=" << fileptr << " != " << Vfn.size() << std::endl;
+						lme.getStream() << "blockptr=" << blockptr << " restoffset=" << restoffset << std::endl;
+						lme.getStream() << "index.data.size()=" << index.data.size() << std::endl;
+						lme.finish();
+						throw lme;
+					}
 				}
 			}
 		};

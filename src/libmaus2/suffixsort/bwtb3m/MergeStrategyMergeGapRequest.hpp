@@ -38,12 +38,58 @@ namespace libmaus2
 				uint64_t into;
 				std::vector < ::libmaus2::suffixsort::BwtMergeZBlock > zblocks;
 
+				bool operator==(MergeStrategyMergeGapRequest const & O) const
+				{
+					if ( into != O.into )
+					{
+						std::cerr << "[E] into failure" << std::endl;
+						return false;
+					}
+					if ( zblocks != O.zblocks )
+					{
+						std::cerr << "[E] zblocks failure" << std::endl;
+						return false;
+					}
+					if ( (pchildren == 0) != (O.pchildren == 0) )
+					{
+						std::cerr << "[E] pchildren failure" << std::endl;
+						return false;
+					}
+
+					return true;
+				}
+
+				bool operator!=(MergeStrategyMergeGapRequest const & O) const
+				{
+					return !operator==(O);
+				}
+
 				MergeStrategyMergeGapRequest() : pchildren(0), into(0), zblocks() {}
 				MergeStrategyMergeGapRequest(
 					std::vector<MergeStrategyBlock::shared_ptr_type> const * rpchildren,
 					uint64_t const rinto)
 				: pchildren(rpchildren), into(rinto), zblocks()
 				{
+				}
+				MergeStrategyMergeGapRequest(std::istream & in)
+				{
+					deserialise(in);
+				}
+
+				void serialise(std::ostream & out) const
+				{
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,into);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,zblocks.size());
+					for ( uint64_t i = 0; i < zblocks.size(); ++i )
+						zblocks[i].serialise(out);
+				}
+
+				void deserialise(std::istream & in)
+				{
+					into = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					zblocks.resize(libmaus2::util::NumberSerialisation::deserialiseNumber(in));
+					for ( uint64_t i = 0; i < zblocks.size(); ++i )
+						zblocks[i].deserialise(in);
 				}
 
 				std::vector<uint64_t> getQueryPositions(uint64_t const t) const
