@@ -57,6 +57,16 @@ namespace libmaus2
 			{
 				return zabspos;
 			}
+
+			bool operator==(BwtMergeZBlockRequest const & O) const
+			{
+				return zabspos == O.zabspos;
+			}
+
+			bool operator!=(BwtMergeZBlockRequest const & O) const
+			{
+				return !operator==(O);
+			}
 		};
 	}
 }

@@ -15,11 +15,22 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus2/dazzler/align/OverlapHeader.hpp>
+#if ! defined(LIBMAUS2_SUFFIXSORT_BWTB3M_MERGESTRATEGYMERGEINPUT_HPP)
+#define LIBMAUS2_SUFFIXSORT_BWTB3M_MERGESTRATEGYMERGEINPUT_HPP
 
-std::ostream & libmaus2::dazzler::align::operator<<(std::ostream & out, libmaus2::dazzler::align::OverlapHeader const & O)
+#include <libmaus2/suffixsort/bwtb3m/MergeStrategyBlock.hpp>
+
+namespace libmaus2
 {
-	out << "(a=" << O.aread << ",b=" << O.bread << ",ab=" << O.abpos << ",ae=" << O.aepos
-		<< ",i=" << O.inv << ",bb=" << O.bbpos << ",be=" << O.bepos << ")";
-	return out;
+	namespace suffixsort
+	{
+		namespace bwtb3m
+		{
+			struct MergeStrategyMergeInput
+			{
+				static libmaus2::suffixsort::bwtb3m::MergeStrategyBlock::shared_ptr_type loadBlock(std::istream & in);
+			};
+		}
+	}
 }
+#endif

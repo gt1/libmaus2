@@ -4753,6 +4753,30 @@ namespace libmaus2
 					// construct merge tree and register z requests
 					libmaus2::suffixsort::bwtb3m::MergeStrategyBlock::shared_ptr_type mergetree = libmaus2::suffixsort::bwtb3m::MergeStrategyConstruction::constructMergeTree(stratleafs,options.mem,options.numthreads,options.wordsperthread,logstr);
 
+					// run tree serialisation/deserialisation loop
+					{
+						std::ostringstream ostr;
+						mergetree->vserialise(ostr);
+
+						std::istringstream istr(ostr.str());
+						libmaus2::suffixsort::bwtb3m::MergeStrategyBlock::shared_ptr_type tptr(
+							libmaus2::suffixsort::bwtb3m::MergeStrategyMergeInput::loadBlock(istr)
+						);
+						tptr->setParent(0);
+
+						assert ( mergetree->equal(*tptr) );
+
+						std::ostringstream astr;
+						astr << *mergetree;
+						std::ostringstream bstr;
+						bstr << *tptr;
+
+						assert ( astr.str() == bstr.str() );
+
+						if ( options.verbose >= 5 )
+							*logstr << "[V] checked serialisation" << std::endl;
+					}
+
 					#if defined(BWTB3M_MEMORY_DEBUG)
 					if ( logstr )
 						*logstr << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
@@ -4778,6 +4802,31 @@ namespace libmaus2
 					if ( logstr )
 						(*logstr) << "[V] sorted blocks" << std::endl;
 
+					// run tree serialisation/deserialisation loop
+					{
+						std::ostringstream ostr;
+						mergetree->vserialise(ostr);
+
+						std::istringstream istr(ostr.str());
+						libmaus2::suffixsort::bwtb3m::MergeStrategyBlock::shared_ptr_type tptr(
+							libmaus2::suffixsort::bwtb3m::MergeStrategyMergeInput::loadBlock(istr)
+						);
+						tptr->setParent(0);
+
+						assert ( mergetree->equal(*tptr) );
+
+						std::ostringstream astr;
+						astr << *mergetree;
+						std::ostringstream bstr;
+						bstr << *tptr;
+
+						assert ( astr.str() == bstr.str() );
+
+						// if ( options.verbose >= 5 )
+							*logstr << "[V] checked serialisation after block sorting" << std::endl;
+					}
+
+
 					#if defined(BWTB3M_MEMORY_DEBUG)
 					if ( logstr )
 						(*logstr) << "[M"<< (mcnt++) << "] " << libmaus2::util::MemUsage() << " " << libmaus2::autoarray::AutoArrayMemUsage() << std::endl;
@@ -4792,6 +4841,31 @@ namespace libmaus2
 					if ( logstr )
 						(*logstr) << "[V] filling gap request objects" << std::endl;
 					mergetree->fillGapRequestObjects(options.numthreads);
+
+					// run tree serialisation/deserialisation loop
+					{
+						std::ostringstream ostr;
+						mergetree->vserialise(ostr);
+
+						std::istringstream istr(ostr.str());
+						libmaus2::suffixsort::bwtb3m::MergeStrategyBlock::shared_ptr_type tptr(
+							libmaus2::suffixsort::bwtb3m::MergeStrategyMergeInput::loadBlock(istr)
+						);
+						tptr->setParent(0);
+
+						assert ( mergetree->equal(*tptr) );
+
+						std::ostringstream astr;
+						astr << *mergetree;
+						std::ostringstream bstr;
+						bstr << *tptr;
+
+						assert ( astr.str() == bstr.str() );
+
+						// if ( options.verbose >= 5 )
+							*logstr << "[V] checked serialisation after filling gap request objects" << std::endl;
+					}
+
 
 					#if defined(BWTB3M_MEMORY_DEBUG)
 					if ( logstr )

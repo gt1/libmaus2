@@ -26,6 +26,7 @@
 #include <libmaus2/util/StringSerialisation.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
 #include <libmaus2/util/TempFileNameGenerator.hpp>
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 
 namespace libmaus2
 {
@@ -83,7 +84,50 @@ namespace libmaus2
 			std::string hist;
 			std::vector<std::string> sampledisa;
 
+			static void renameFile(
+				std::string & input,
+				std::string const & prefix, std::string const & suffix, uint64_t id
+			)
+			{
+				std::ostringstream ostr;
+				ostr << prefix << "_" << std::setw(8) << std::setfill('0') << id << std::setw(0) << "." << suffix;
+				std::string const dst = ostr.str();
+				::libmaus2::aio::OutputStreamFactoryContainer::rename(input,dst);
+				input = dst;
+			}
+
 			public:
+			bool operator==(BwtMergeTempFileNameSet const & O) const
+			{
+				return
+					gt == O.gt
+					&&
+					bwt == O.bwt
+					&&
+					hwtreq == O.hwtreq
+					&&
+					hwt == O.hwt
+					&&
+					hist == O.hist
+					&&
+					sampledisa == O.sampledisa;
+			}
+
+			void renameToPrefix(std::string const prefix)
+			{
+				for ( uint64_t i = 0; i < gt.size(); ++i )
+					renameFile(gt[i] ,prefix,"gt" ,i);
+				for ( uint64_t i = 0; i < bwt.size(); ++i )
+					renameFile(bwt[i],prefix,"bwt",i);
+
+				renameFile(hwtreq,prefix,"hwtreq",0);
+				renameFile(hwt   ,prefix,"hwt",0);
+				renameFile(hist  ,prefix,"hist",0);
+
+				for ( uint64_t i = 0; i < sampledisa.size(); ++i )
+					renameFile(sampledisa[i],prefix,"sampledisa",i);
+			}
+
 			std::vector<std::string> const & getGT() const { return gt; }
 			std::vector<std::string> const & getBWT() const { return bwt; }
 			std::string const & getHWTReq() const { return hwtreq; }

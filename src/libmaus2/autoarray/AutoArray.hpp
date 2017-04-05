@@ -1691,6 +1691,16 @@ namespace libmaus2
 				(*this)[o++] = v;
 			}
 
+			template<typename iterator>
+			void push(uint64_t & o, iterator v, iterator ve)
+			{
+				uint64_t const n = ve-v;
+				ensureSize(o+n);
+
+				while ( v != ve )
+					(*this)[o++] = *(v++);
+			}
+
 			void pushfront(uint64_t & o, N const & v)
 			{
 				if ( !o )

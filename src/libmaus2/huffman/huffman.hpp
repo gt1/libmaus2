@@ -127,9 +127,13 @@ namespace libmaus2
 						nodes [ nodeid ] = new  ::libmaus2::huffman::HuffmanTreeInnerNode(0,0,nodes[left]->getFrequency() + nodes[right]->getFrequency() );
 
 						if ( left )
+						{
 							dynamic_cast < ::libmaus2::huffman::HuffmanTreeInnerNode * > (nodes [ nodeid ])->left = nodes[left]; nodes[left] = 0;
+						}
 						if ( right )
+						{
 							dynamic_cast < ::libmaus2::huffman::HuffmanTreeInnerNode * > (nodes [ nodeid ])->right = nodes[right]; nodes[right] = 0;
+						}
 					}
 					else if ( tokens[1] == "leaf" )
 					{

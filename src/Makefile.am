@@ -268,7 +268,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/timing/RealTimeClock.cpp \
 	libmaus2/aio/PosixFdOutputStreamFactory.cpp \
 	libmaus2/dazzler/align/OverlapHeader.cpp \
-	libmaus2/bambam/BamAlignment.cpp
+	libmaus2/bambam/BamAlignment.cpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeInput.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -336,6 +337,13 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/GraphDecoderContextTypeInfo.hpp \
 	libmaus2/dazzler/align/GraphDecoder.hpp \
 	libmaus2/dazzler/align/GraphEncoder.hpp
+
+libmaus2dazzlerstringgraph_includedir=$(includedir)/libmaus2/dazzler/stringgraph
+libmaus2dazzlerstringgraph_include_HEADERS = libmaus2/dazzler/stringgraph/Edge.hpp \
+	libmaus2/dazzler/stringgraph/OverlapNode.hpp \
+	libmaus2/dazzler/stringgraph/StringGraph.hpp \
+	libmaus2/dazzler/stringgraph/ContainmentInfo.hpp \
+	libmaus2/dazzler/stringgraph/TraversalElement.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
 libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp libmaus2/autoarray/AutoArrayMultiMap.hpp \
@@ -1797,7 +1805,8 @@ libmaus2suffixsortbwtb3m_include_HEADERS=\
 	libmaus2/suffixsort/bwtb3m/BwtMergeSort.hpp \
 	libmaus2/suffixsort/bwtb3m/BwtMergeSortResult.hpp \
 	libmaus2/suffixsort/bwtb3m/BwtComputeSSA.hpp \
-	libmaus2/suffixsort/bwtb3m/BwtSelectSSA.hpp
+	libmaus2/suffixsort/bwtb3m/BwtSelectSSA.hpp \
+	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeInput.hpp
 
 libmaus2suffixtree_includedir=$(includedir)/libmaus2/suffixtree
 libmaus2suffixtree_include_HEADERS=\
@@ -2172,7 +2181,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testnpl \
 	testkcnt \
 	testintervaltree \
-	testbamgetrefreg
+	testbamgetrefreg \
+	teststringgraph
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2765,3 +2775,8 @@ testbamgetrefreg_SOURCES  = test/testbamgetrefreg.cpp
 testbamgetrefreg_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testbamgetrefreg_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
 testbamgetrefreg_LDFLAGS  = ${AM_LDFLAGS}
+
+teststringgraph_SOURCES  = test/teststringgraph.cpp
+teststringgraph_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+teststringgraph_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
+teststringgraph_LDFLAGS  = ${AM_LDFLAGS}
