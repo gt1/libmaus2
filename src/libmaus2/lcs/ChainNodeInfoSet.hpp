@@ -853,9 +853,18 @@ namespace libmaus2
 						bool const self = ! IC.isEmpty();
 
 						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::coutlock);
-						std::cout << Aalgn[i].res << "\t" << (self?"self":"distinct") << std::endl;
+						std::cout << Aalgn[i].res << "\t" << Aalgn[i].refid << "\t" << (self?"self":"distinct") << std::endl;
 					}
 				}
+			}
+
+			std::pair<libmaus2::lcs::ChainAlignment const *, libmaus2::lcs::ChainAlignment const *> getAlignments() const
+			{
+				return
+					std::pair<libmaus2::lcs::ChainAlignment const *, libmaus2::lcs::ChainAlignment const *>(
+						Aalgn.begin(),
+						Aalgn.begin() + aalgno
+					);
 			}
 		};
 	}

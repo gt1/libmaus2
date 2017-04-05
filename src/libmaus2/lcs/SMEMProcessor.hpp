@@ -661,6 +661,11 @@ namespace libmaus2
 			{
 				CNIS.printAlignments(minlength);
 			}
+
+			std::pair<libmaus2::lcs::ChainAlignment const *, libmaus2::lcs::ChainAlignment const *> getAlignments() const
+			{
+				return CNIS.getAlignments();
+			}
 		};
 	}
 }
