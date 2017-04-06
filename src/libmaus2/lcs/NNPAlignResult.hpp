@@ -24,6 +24,7 @@
 #include <libmaus2/exception/LibMausException.hpp>
 #include <cassert>
 #include <libmaus2/math/IntegerInterval.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 
 namespace libmaus2
 {
@@ -46,6 +47,24 @@ namespace libmaus2
 			) : abpos(rabpos), aepos(raepos), bbpos(rbbpos), bepos(rbepos), dif(rdif)
 			{
 
+			}
+
+			void serialise(std::ostream & out) const
+			{
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,abpos);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,aepos);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,bbpos);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,bepos);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,dif);
+			}
+
+			void deserialise(std::istream & in)
+			{
+				abpos = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				aepos = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				bbpos = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				bepos = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				dif = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 			}
 
 			libmaus2::math::IntegerInterval<int64_t> getAInterval() const

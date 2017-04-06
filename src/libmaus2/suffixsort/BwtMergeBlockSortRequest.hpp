@@ -71,6 +71,106 @@ namespace libmaus2
 			uint64_t numdownstreamthreads;
 			uint64_t verbose;
 
+			bool operator==(BwtMergeBlockSortRequest const & O) const
+			{
+				if ( inputtype != O.inputtype )
+				{
+					std::cerr << "[E] input type mismatch" << std::endl;
+					return false;
+				}
+				if ( fn != O.fn )
+				{
+					std::cerr << "[E] fn mismatch" << std::endl;
+					return false;
+				}
+				if ( fs != O.fs )
+				{
+					std::cerr << "[E] fs mismatch" << std::endl;
+					return false;
+				}
+				if ( chistfilename != O.chistfilename )
+				{
+					std::cerr << "[E] chistfilename mismatch" << std::endl;
+					return false;
+				}
+				if ( huftreefilename != O.huftreefilename )
+				{
+					std::cerr << "[E] huftreefilename mismatch" << std::endl;
+					return false;
+				}
+				if ( bwtterm != O.bwtterm )
+				{
+					std::cerr << "[E] bwtterm mismatch" << std::endl;
+					return false;
+				}
+				if ( maxsym != O.maxsym )
+				{
+					std::cerr << "[E] maxsym mismatch" << std::endl;
+					return false;
+				}
+				if ( tmpfilenamesser != O.tmpfilenamesser )
+				{
+					std::cerr << "[E] tmpfilenamesser mismatch" << std::endl;
+					return false;
+				}
+				if ( tmpfilenamebase != O.tmpfilenamebase )
+				{
+					std::cerr << "[E] tmpfilenamebase mismatch" << std::endl;
+					return false;
+				}
+				if ( rlencoderblocksize != O.rlencoderblocksize )
+				{
+					std::cerr << "[E] rlencoderblocksize mismatch" << std::endl;
+					return false;
+				}
+				if ( isasamplingrate != O.isasamplingrate )
+				{
+					std::cerr << "[E] isasamplingrate mismatch" << std::endl;
+					return false;
+				}
+				if ( blockstart != O.blockstart )
+				{
+					std::cerr << "[E] blockstart mismatch" << std::endl;
+					return false;
+				}
+				if ( cblocksize != O.cblocksize )
+				{
+					std::cerr << "[E] cblocksize mismatch" << std::endl;
+					return false;
+				}
+				if ( zreqvec != O.zreqvec )
+				{
+					std::cerr << "[E] zreqvec mismatch" << std::endl;
+					return false;
+				}
+				if ( computeTermSymbolHwt != O.computeTermSymbolHwt )
+				{
+					std::cerr << "[E] computeTermSymbolHwt mismatch" << std::endl;
+					return false;
+				}
+				if ( lcpnext != O.lcpnext )
+				{
+					std::cerr << "[E] lcpnext mismatch" << std::endl;
+					return false;
+				}
+				if ( numdownstreamthreads != O.numdownstreamthreads )
+				{
+					std::cerr << "[E] numdownstreamthreads mismatch" << std::endl;
+					return false;
+				}
+				if ( verbose != O.verbose )
+				{
+					std::cerr << "[E] verbose mismatch" << std::endl;
+					return false;
+				}
+				return true;
+			}
+
+			bool operator!=(BwtMergeBlockSortRequest const & O) const
+			{
+				return !operator==(O);
+			}
+
 			static bwt_merge_sort_input_type decodeInputType(uint64_t const i)
 			{
 				switch ( i )

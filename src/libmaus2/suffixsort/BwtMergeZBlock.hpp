@@ -44,11 +44,27 @@ namespace libmaus2
 			: zabspos(rzabspos), zrank(rzrank) {}
 
 			BwtMergeZBlock(std::istream & stream)
-			:
-				zabspos(::libmaus2::util::NumberSerialisation::deserialiseNumber(stream)),
-				zrank(::libmaus2::util::NumberSerialisation::deserialiseNumber(stream))
 			{
+				deserialise(stream);
+			}
 
+			bool operator==(BwtMergeZBlock const & O) const
+			{
+				return
+					zabspos == O.zabspos
+					&&
+					zrank == O.zrank;
+			}
+
+			bool operator!=(BwtMergeZBlock const & O) const
+			{
+				return !operator==(O);
+			}
+
+			void deserialise(std::istream & stream)
+			{
+				zabspos = ::libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
+				zrank = ::libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
 			}
 
 			uint64_t getZAbsPos() const { return zabspos; }

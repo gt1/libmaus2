@@ -324,13 +324,38 @@ namespace libmaus2
 					return meta.S.size() - id - 1;
 			}
 
+			static uint64_t getDefaultMinLength()
+			{
+				return 0;
+			}
+
+			static double getDefaultMaxErr()
+			{
+				return std::numeric_limits<double>::max();
+			}
+
+			struct Verbosity
+			{
+				virtual ~Verbosity() {}
+				virtual void operator()(libmaus2::rank::DNARankMEM const &, uint64_t const) const = 0;
+			};
+
+			struct NullVerbosity : public Verbosity
+			{
+				void operator()(libmaus2::rank::DNARankMEM const &, uint64_t const) const
+				{
+
+				}
+			};
+
 			template<typename enumerator_type>
 			void process(
 				enumerator_type & senum,
 				char const * query,
 				uint64_t const querysize,
-				uint64_t const minlength = 0,
-				double const maxerr = std::numeric_limits<double>::max()
+				uint64_t const minlength = getDefaultMinLength(),
+				double const maxerr = getDefaultMaxErr(),
+				Verbosity const & verbosity = NullVerbosity()
 			)
 			{
 				assert ( idle() );
@@ -350,10 +375,11 @@ namespace libmaus2
 				libmaus2::rank::DNARankMEM smem;
 				for ( uint64_t z = 0; (senum.getNext(smem)); ++z )
 				{
-					#if 0
 					if ( z % (16*1024) == 0 )
-						std::cerr << "smem " << smem << " addQ=" << addQ.f << " remQ=" << remQ.f << std::endl;
-					#endif
+					{
+						// std::cerr << "smem " << smem << " addQ=" << addQ.f << " remQ=" << remQ.f << std::endl;
+						verbosity(smem,z);
+					}
 
 					// std::cerr << "proc smem " << smem << std::endl;
 
@@ -660,6 +686,11 @@ namespace libmaus2
 			void printAlignments(uint64_t const minlength = 0)
 			{
 				CNIS.printAlignments(minlength);
+			}
+
+			std::pair<libmaus2::lcs::ChainAlignment const *, libmaus2::lcs::ChainAlignment const *> getAlignments() const
+			{
+				return CNIS.getAlignments();
 			}
 		};
 	}

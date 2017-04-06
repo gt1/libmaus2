@@ -46,6 +46,21 @@ namespace libmaus2
 					(*this)[i] = ::libmaus2::suffixsort::BwtMergeZBlockRequest(in);
 			}
 
+			bool operator==(BwtMergeZBlockRequestVector const & O) const
+			{
+				if ( requests.size() != O.requests.size() )
+					return false;
+				for ( uint64_t i = 0; i < requests.size(); ++i )
+					if ( requests[i] != O.requests[i] )
+						return false;
+				return true;
+			}
+
+			bool operator!=(BwtMergeZBlockRequestVector const & O) const
+			{
+				return !operator==(O);
+			}
+
 			BwtMergeZBlockRequestVector & operator=(BwtMergeZBlockRequestVector const & o)
 			{
 				if ( this != &o )

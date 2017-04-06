@@ -21,6 +21,8 @@
 #define LIBMAUS2_SUFFIXSORT_BWTB3M_MERGESTRATEGYMERGEGAPREQUESTQUERYOBJECT_HPP
 
 #include <libmaus2/types/types.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <istream>
 
 namespace libmaus2
 {
@@ -55,9 +57,38 @@ namespace libmaus2
 
 				}
 
+				MergeStrategyMergeGapRequestQueryObject(std::istream & in)
+				{
+					deserialise(in);
+				}
+
 				bool operator<(MergeStrategyMergeGapRequestQueryObject const & o) const
 				{
 					return p < o.p;
+				}
+
+				bool operator==(MergeStrategyMergeGapRequestQueryObject const & O) const
+				{
+					if ( p != O.p )
+						return false;
+					if ( r != O.r )
+						return false;
+					if ( (o==0) != (O.o==0) )
+						return false;
+					return true;
+				}
+
+				void serialise(std::ostream & out) const
+				{
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,p);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,r);
+				}
+
+				void deserialise(std::istream & in)
+				{
+					p = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					r = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					o = 0;
 				}
 			};
 		}

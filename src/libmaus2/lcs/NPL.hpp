@@ -57,7 +57,7 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray<TraceElement,libmaus2::autoarray::alloc_type_c> trace;
 
 			template<typename iter_a, typename iter_b, bool neg>
-			static inline int slide(iter_a a, iter_a const ae, iter_b b, iter_a const be, int const offset)
+			static inline int slide(iter_a a, iter_a const ae, iter_b b, iter_b const be, int const offset)
 			{
 				a += offset;
 				b += offset;
@@ -65,7 +65,7 @@ namespace libmaus2
 				iter_a ac = a;
 				iter_b bc = b;
 
-				if ( ae-ac < be-bc )
+				if ( (ae-ac) < (be-bc) )
 					while ( ac < ae && *ac == *bc )
 						++ac, ++bc;
 				else
@@ -96,21 +96,13 @@ namespace libmaus2
 
 				if ( ! an )
 				{
-					if ( AlignmentTraceContainer::capacity() <= bn )
-						AlignmentTraceContainer::resize(bn);
 					AlignmentTraceContainer::reset();
-					AlignmentTraceContainer::ta -= bn;
-					std::fill(AlignmentTraceContainer::ta,AlignmentTraceContainer::te,STEP_INS);
-					return bn;
+					return 0;
 				}
 				else if ( ! bn )
 				{
-					if ( AlignmentTraceContainer::capacity() <= an )
-						AlignmentTraceContainer::resize(an);
 					AlignmentTraceContainer::reset();
-					AlignmentTraceContainer::ta -= an;
-					std::fill(AlignmentTraceContainer::ta,AlignmentTraceContainer::te,STEP_DEL);
-					return an;
+					return 0;
 				}
 
 				size_t const sn = std::max(an,bn);
