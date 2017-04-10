@@ -38,8 +38,16 @@ namespace libmaus2
 			void serialise(std::ostream & out) const
 			{
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,V.size());
+				std::vector<uint64_t> O;
 				for ( uint64_t i = 0; i < V.size(); ++i )
+				{
+					uint64_t o = out.tellp();
+					O.push_back(o);
 					V[i].serialise(out);
+				}
+
+				for ( uint64_t i = 0; i < O.size(); ++i )
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,O[i]);
 			}
 
 			void deserialise(std::istream & in)
@@ -49,9 +57,31 @@ namespace libmaus2
 					V[i].deserialise(in);
 			}
 
-			void dispatch(uint64_t const i) const
+			int dispatch(uint64_t const i) const
 			{
-				V.at(i).dispatch();
+				return V.at(i).dispatch();
+			}
+
+			static int dispatch(std::istream & istr, uint64_t const i)
+			{
+				istr.clear();
+				istr.seekg(0,std::ios::beg);
+				uint64_t const n = libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
+				assert ( i < n );
+
+				istr.clear();
+				istr.seekg(
+					- static_cast<int64_t>( n * sizeof(uint64_t) ) + static_cast<int64_t>( i * sizeof(uint64_t) ),
+					std::ios::end
+				);
+
+				uint64_t const p = libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
+
+				istr.clear();
+				istr.seekg(p);
+
+				Command const C(istr);
+				return C.dispatch();
 			}
 		};
 	}
