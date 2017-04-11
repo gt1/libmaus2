@@ -83,6 +83,12 @@ namespace libmaus2
 				Command const C(istr);
 				return C.dispatch();
 			}
+
+			static int dispatch(std::string const & fn, uint64_t const i)
+			{
+				libmaus2::aio::InputStreamInstance ISI(fn);
+				return dispatch(ISI,i);
+			}
 		};
 	}
 }
