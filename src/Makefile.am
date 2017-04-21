@@ -1163,7 +1163,8 @@ libmaus2math_include_HEADERS=\
 	libmaus2/math/RepetetiveKmerFreqEstimate.hpp \
 	libmaus2/math/GmpInteger.hpp \
 	libmaus2/math/GmpFloat.hpp \
-	libmaus2/math/Convolution.hpp
+	libmaus2/math/Convolution.hpp \
+	libmaus2/math/GeneralisedBernoulli.hpp
 
 libmaus2rl_includedir=$(includedir)/libmaus2/rl
 libmaus2rl_include_HEADERS=\
