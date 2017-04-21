@@ -535,7 +535,14 @@ namespace libmaus2
 					}
 				}
 
+				#if defined(LIBMAUS2_HAVE_STATFS_F_BSIZE)
 				return buf.f_bsize;
+				#elif defined(LIBMAUS2_HAVE_STATFS_F_IOSIZE)
+				return buf.f_iosize;
+				#else
+				return -1;
+				#endif
+
 				#else
 				return -1;
 				#endif
