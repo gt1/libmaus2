@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.331,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
-LIBRARY_VERSION=2:331:0
+AC_INIT(libmaus2,2.0.332,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
+LIBRARY_VERSION=2:332:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -264,9 +264,9 @@ SNAPPYCPPFLAGS=
 SNAPPYLDFLAGS=
 SNAPPYLIBS=
 AC_ARG_WITH([snappy],
-            [AS_HELP_STRING([--with-snappy@<:@=PATH@:>@], [support for snappy compression @<:@default=no@:>@])],
+            [AS_HELP_STRING([--with-snappy@<:@=PATH@:>@], [support for snappy compression @<:@default=@:>@])],
             [with_snappy=${withval}],
-            [with_snappy=no])
+            [with_snappy=])
 
 if [[ "${with_snappy}" != "no" ]] ; then
 	LIBSSAVE="${LIBS}"
@@ -288,6 +288,7 @@ if [[ "${with_snappy}" != "no" ]] ; then
 
 	AC_CHECK_HEADER(snappy.h, [snappy_h=yes], [snappy_h=no])
 
+	if test "$snappy_h" = "yes" ; then
 	AC_MSG_CHECKING([whether we can compile a program using snappy])
 	AC_TRY_LINK([#include <snappy.h>
 #include <cstring>],[char const * input = "hello snappy";
@@ -296,6 +297,7 @@ std::string output;
 snappy::Compress(input,input_length,&output);
 ;],[snappy=yes],[snappy=no])
 	AC_MSG_RESULT([${snappy}])
+	fi
 
 	AC_LANG_POP
 
@@ -307,6 +309,8 @@ snappy::Compress(input,input_length,&output);
 		LIBMAUSHAVESNAPPY="#define LIBMAUS2_HAVE_SNAPPY"
 		LIBMAUSPKGLIBS="${LIBMAUSPKGLIBS} ${SNAPPYLDFLAGS} ${SNAPPYLIBS}"
 		LIBMAUSPKGCPPFLAGS="${LIBMAUSPKGCPPFLAGS} ${SNAPPYCPPFLAGS}"
+	else
+		SNAPPYLIBS=
 	fi
 fi
 
@@ -1823,7 +1827,7 @@ AC_ARG_WITH([seqan],
 
 if [[ "${with_seqan}" != "no" ]] ; then
 
-	if [[ \( ! -z "${with_snappy}" \) -a \( "${with_snappy}" != "yes" \) ]] ; then
+	if [[ \( ! -z "${with_seqan}" \) -a \( "${with_seqan}" != "yes" \) ]] ; then
 		SEQANCPPFLAGS="-I${with_seqan}/include"
 		SEQANLDFLAGS="-L${with_seqan}/lib"
 	fi
@@ -2180,6 +2184,56 @@ AC_MSG_RESULT([$have_statfs])
 	fi
 else
 	LIBMAUS2_HAVE_STATFS=
+fi
+
+if test "${have_statfs}" = "yes" ; then
+	AC_MSG_CHECKING([whether struct statfs has field f_iosize])
+                AC_LINK_IFELSE([AC_LANG_SOURCE([#include <sys/vfs.h>
+
+            int main() {
+		struct statfs stfs;
+		int iosize;
+		statfs("file",&stfs);
+		iosize = stfs.f_iosize;
+		return 0;
+            }])],
+                have_statfs_f_iosize=yes,
+                have_statfs_f_iosize=no
+        )
+AC_MSG_RESULT([$have_statfs_f_iosize])
+
+	if test "${have_statfs_f_iosize}" = "yes" ; then
+		LIBMAUS2_HAVE_STATFS_F_IOSIZE="#define LIBMAUS2_HAVE_STATFS_F_IOSIZE"
+	else
+		LIBMAUS2_HAVE_STATFS_F_IOSIZE=""
+	fi
+else
+	LIBMAUS2_HAVE_STATFS_F_IOSIZE=
+fi
+
+if test "${have_statfs}" = "yes" ; then
+	AC_MSG_CHECKING([whether struct statfs has field f_bsize])
+                AC_LINK_IFELSE([AC_LANG_SOURCE([#include <sys/vfs.h>
+
+            int main() {
+		struct statfs stfs;
+		int bsize;
+		statfs("file",&stfs);
+		bsize = stfs.f_bsize;
+		return 0;
+            }])],
+                have_statfs_f_bsize=yes,
+                have_statfs_f_bsize=no
+        )
+AC_MSG_RESULT([$have_statfs_f_bsize])
+
+	if test "${have_statfs_f_bsize}" = "yes" ; then
+		LIBMAUS2_HAVE_STATFS_F_BSIZE="#define LIBMAUS2_HAVE_STATFS_F_BSIZE"
+	else
+		LIBMAUS2_HAVE_STATFS_F_BSIZE=""
+	fi
+else
+	LIBMAUS2_HAVE_STATFS_F_BSIZE=
 fi
 
 HAVESSE4=
@@ -3889,4 +3943,6 @@ AC_SUBST([TESTDIR])
 AC_SUBST([LIBMAUS2_HAVE_AVX])
 AC_SUBST([LIBMAUS2_HAVE_AVX2])
 AC_SUBST([LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2])
+AC_SUBST([LIBMAUS2_HAVE_STATFS_F_BSIZE])
+AC_SUBST([LIBMAUS2_HAVE_STATFS_F_IOSIZE])
 AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2lsf.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc libmaus2fftw.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp test/Makefile)
