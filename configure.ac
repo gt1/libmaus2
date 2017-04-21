@@ -264,7 +264,7 @@ SNAPPYCPPFLAGS=
 SNAPPYLDFLAGS=
 SNAPPYLIBS=
 AC_ARG_WITH([snappy],
-            [AS_HELP_STRING([--with-snappy@<:@=PATH@:>@], [support for snappy compression @<:@default=no@:>@])],
+            [AS_HELP_STRING([--with-snappy@<:@=PATH@:>@], [support for snappy compression @<:@default=@:>@])],
             [with_snappy=${withval}],
             [with_snappy=])
 
@@ -288,7 +288,7 @@ if [[ "${with_snappy}" != "no" ]] ; then
 
 	AC_CHECK_HEADER(snappy.h, [snappy_h=yes], [snappy_h=no])
 
-	if test snappy_h = "yes" ; then
+	if test "$snappy_h" = "yes" ; then
 	AC_MSG_CHECKING([whether we can compile a program using snappy])
 	AC_TRY_LINK([#include <snappy.h>
 #include <cstring>],[char const * input = "hello snappy";
