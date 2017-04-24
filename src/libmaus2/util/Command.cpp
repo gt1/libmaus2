@@ -28,6 +28,10 @@
 #include <crt_externs.h>
 #endif
 
+#if defined(__NetBSD__) || defined(__FreeBSD__)
+extern char **environ;
+#endif
+
 static char ** getEnviron()
 {
 	#if defined(__APPLE__)
