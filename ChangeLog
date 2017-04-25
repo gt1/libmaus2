@@ -1,3 +1,13 @@
+libmaus2 (2.0.333-1) unstable; urgency=medium
+
+  * fix compilation on FreeBSD/NetBSD
+  * add shared_ptr_type typedef in SerialisedSortingBufferedOutputFile
+  * add ClusteredBernoulli class
+  * add GeneralisedClusterBernoulli class
+  * add GeneralisedBernoulli class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 25 Apr 2017 13:28:26 +0200
+
 libmaus2 (2.0.332-1) unstable; urgency=medium
 
   * use LIBMAUS2_HAVE_STATFS_F_BSIZE and LIBMAUS2_HAVE_STATFS_F_IOSIZE in PosixFdInput
