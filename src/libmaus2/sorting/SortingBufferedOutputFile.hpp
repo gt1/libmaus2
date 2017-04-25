@@ -76,6 +76,7 @@ namespace libmaus2
 			typedef _order_type order_type;
 			typedef SerialisingSortingBufferedOutputFile<data_type,order_type> this_type;
 			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			typedef libmaus2::sorting::SerialisingMergingReadBack<data_type,order_type> merger_type;
 			typedef typename libmaus2::sorting::SerialisingMergingReadBack<data_type,order_type>::unique_ptr_type merger_ptr_type;
 
