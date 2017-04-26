@@ -1,3 +1,10 @@
+libmaus2 (2.0.334-1) unstable; urgency=medium
+
+  * update getReferenceInterval function in BamAlignment to take fron deletions into account
+  * only use statfs output if f_iosize field is present for determining optimal block transfer size
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 26 Apr 2017 11:30:40 +0200
+
 libmaus2 (2.0.333-1) unstable; urgency=medium
 
   * fix compilation on FreeBSD/NetBSD

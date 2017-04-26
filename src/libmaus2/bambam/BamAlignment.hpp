@@ -1862,7 +1862,11 @@ namespace libmaus2
 				if ( isUnmap() || (!getReferenceLength()) )
 					return libmaus2::math::IntegerInterval<int64_t>::empty();
 				else
-					return libmaus2::math::IntegerInterval<int64_t>(getPos(), getPos() + getReferenceLength() - 1);
+				{
+					int64_t const start = getPos() - getFrontDel();
+					int64_t const end = start + getReferenceLength();
+					return libmaus2::math::IntegerInterval<int64_t>(start,end-1);
+				}
 			}
 
 			/**
