@@ -478,7 +478,7 @@ namespace libmaus2
 			}
 
 			static int64_t getOptimalIOBlockSize(
-				#if defined(LIBMAUS2_HAVE_STATFS)
+				#if defined(LIBMAUS2_HAVE_STATFS) && defined(LIBMAUS2_HAVE_STATFS_F_IOSIZE)
 				int const fd,
 				#else
 				int const,
@@ -498,7 +498,7 @@ namespace libmaus2
 				if ( override > 0 )
 					return override;
 
-				#if defined(LIBMAUS2_HAVE_STATFS)
+				#if defined(LIBMAUS2_HAVE_STATFS) && defined(LIBMAUS2_HAVE_STATFS_F_IOSIZE)
 				struct statfs buf;
 				int r = -1;
 
@@ -535,7 +535,7 @@ namespace libmaus2
 					}
 				}
 
-				return buf.f_bsize;
+				return buf.f_iosize;
 				#else
 				return -1;
 				#endif

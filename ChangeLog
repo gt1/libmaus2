@@ -1,3 +1,47 @@
+libmaus2 (2.0.334-1) unstable; urgency=medium
+
+  * update getReferenceInterval function in BamAlignment to take fron deletions into account
+  * only use statfs output if f_iosize field is present for determining optimal block transfer size
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 26 Apr 2017 11:30:40 +0200
+
+libmaus2 (2.0.333-1) unstable; urgency=medium
+
+  * fix compilation on FreeBSD/NetBSD
+  * add shared_ptr_type typedef in SerialisedSortingBufferedOutputFile
+  * add ClusteredBernoulli class
+  * add GeneralisedClusterBernoulli class
+  * add GeneralisedBernoulli class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 25 Apr 2017 13:28:26 +0200
+
+libmaus2 (2.0.332-1) unstable; urgency=medium
+
+  * use LIBMAUS2_HAVE_STATFS_F_BSIZE and LIBMAUS2_HAVE_STATFS_F_IOSIZE in PosixFdInput
+  * detect f_bsize and f_iosize fields of statfs in configure.in
+  * change default arg for snappy in configure.in from no to empty
+  * add LIBMAUS2_HAVE_STATFS_F_BSIZE and LIBMAUS2_HAVE_STATFS_F_IOSIZE in LibMausConfig.hpp.in
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 21 Apr 2017 14:12:38 +0200
+
+libmaus2 (2.0.331-1) unstable; urgency=medium
+
+  * add dispatch method with filename parameter in CommandContainer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 11 Apr 2017 11:36:46 +0200
+
+libmaus2 (2.0.330-1) unstable; urgency=medium
+
+  * allow random access in CommandContainer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 10 Apr 2017 16:39:01 +0200
+
+libmaus2 (2.0.329-1) unstable; urgency=medium
+
+  * add Command/CommandContainer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 10 Apr 2017 16:22:52 +0200
+
 libmaus2 (2.0.328-1) unstable; urgency=medium
 
   * add verbosity in SMEMProcessor

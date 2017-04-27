@@ -269,7 +269,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/aio/PosixFdOutputStreamFactory.cpp \
 	libmaus2/dazzler/align/OverlapHeader.cpp \
 	libmaus2/bambam/BamAlignment.cpp \
-	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeInput.cpp
+	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeInput.cpp \
+	libmaus2/util/Command.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1162,7 +1163,10 @@ libmaus2math_include_HEADERS=\
 	libmaus2/math/RepetetiveKmerFreqEstimate.hpp \
 	libmaus2/math/GmpInteger.hpp \
 	libmaus2/math/GmpFloat.hpp \
-	libmaus2/math/Convolution.hpp
+	libmaus2/math/Convolution.hpp \
+	libmaus2/math/GeneralisedBernoulli.hpp \
+	libmaus2/math/GeneralisedClusterBernoulli.hpp \
+	libmaus2/math/ClusteredBernoulli.hpp
 
 libmaus2rl_includedir=$(includedir)/libmaus2/rl
 libmaus2rl_include_HEADERS=\
@@ -1297,7 +1301,9 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/StringAllocTypes.hpp \
 	libmaus2/util/Destructable.hpp \
 	libmaus2/util/SimpleQueue.hpp \
-	libmaus2/util/SimpleHashMapDisplaceMaskFunction.hpp
+	libmaus2/util/SimpleHashMapDisplaceMaskFunction.hpp \
+	libmaus2/util/Command.hpp \
+	libmaus2/util/CommandContainer.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
