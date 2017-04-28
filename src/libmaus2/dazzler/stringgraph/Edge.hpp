@@ -33,12 +33,17 @@ namespace libmaus2
 
 				OverlapNodeBase from;
 				OverlapNodeBase to;
+				uint64_t iseq;
+				uint64_t walk;
 				uint64_t length;
 				std::vector < OverlapNode > overlaps;
 
 				Edge() {}
 				Edge(std::istream & in)
-				: from(in), to(in),
+				: from(in),
+				  to(in),
+				  iseq(libmaus2::util::NumberSerialisation::deserialiseNumber(in,4)),
+				  walk(libmaus2::util::NumberSerialisation::deserialiseNumber(in,4)),
 				  length(libmaus2::util::NumberSerialisation::deserialiseNumber(in,4))
 				{
 					uint64_t const numoverlaps = libmaus2::util::NumberSerialisation::deserialiseNumber(in,4);
