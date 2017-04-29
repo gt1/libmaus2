@@ -47,11 +47,14 @@ int main(int argc, char * argv[])
 		libmaus2::dazzler::stringgraph::StringGraph::unique_ptr_type SG(libmaus2::dazzler::stringgraph::StringGraph::load(sgfn));
 
 		for ( uint64_t i = 0; i < SG->size(); ++i )
-			std::cout << ">edge_" << i << "\n" << SG->traverse(i,DB
+		{
+			std::string const contig = SG->traverse(i,DB
 				#if defined(STRING_GRAPH_DEBUG)
 				,Vtext
 				#endif
-			) << "\n";
+			);
+			std::cout << ">edge_" << i << "/" << SG->edges[i].iseq << "/" << SG->edges[i].walk << "S" << contig.size() << "\n" << contig << "\n";
+		}
 	}
 	catch(std::exception const & ex)
 	{

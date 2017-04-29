@@ -37,26 +37,26 @@ namespace libmaus2
 			std::vector<uint64_t> KCNT;
 			libmaus2::math::GeneralisedClusterBernoulli KE;
 			std::vector<double> const & E;
-			
+
 			std::vector<uint64_t> computeKCNT() const
 			{
 				std::vector<uint64_t> KCNT(KM.size());
 				for ( uint64_t i = 0; i < PV.size(); ++i )
 					KCNT [ libmaus2::clustering::KMeans::findClosest(KM,PV[i]) ] ++;
-				return KCNT;			
+				return KCNT;
 			}
-			
+
 			ClusteredBernoulli(std::vector<double> const & rPV, uint64_t const rn)
 			: PV(rPV), n(rn), KM(libmaus2::clustering::KMeans::kmeans(PV.begin(),PV.size(),n)), KCNT(computeKCNT()), KE(KM,KCNT), E(KE.E)
 			{
-			
+
 			}
-			
+
 			double eval(uint64_t const c) const
 			{
 				return KE.eval(c);
 			}
-			
+
 			uint64_t search(double const p) const
 			{
 				return KE.search(p);
