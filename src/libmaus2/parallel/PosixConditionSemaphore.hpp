@@ -100,15 +100,12 @@ namespace libmaus2
 					}
 				}
 
-				~ScopeMutexLock() throw(libmaus2::exception::LibMausException)
+				~ScopeMutexLock()
 				{
 					if ( pthread_mutex_unlock(mutex) != 0 )
 					{
 						int const error = errno;
-						libmaus2::exception::LibMausException lme;
-						lme.getStream() << "PosixConditionSemaphore::ScopeMutexLock failed pthread_mutex_unlock " << strerror(error) << std::endl;
-						lme.finish();
-						throw lme;
+						std::cerr << "PosixConditionSemaphore::ScopeMutexLock failed pthread_mutex_unlock " << strerror(error) << std::endl;
 					}
 				}
 			};
