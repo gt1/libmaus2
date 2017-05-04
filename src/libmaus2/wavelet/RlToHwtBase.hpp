@@ -759,21 +759,6 @@ namespace libmaus2
 			/**
 			 * specialised version for small alphabets
 			 **/
-			static libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type rlToHwtSmallAlphabet(
-				std::string const & bwt,
-				std::string const & huftreefilename
-			)
-			{
-				// load the huffman tree
-				::libmaus2::huffman::HuffmanTree::unique_ptr_type UH = loadCompactHuffmanTree(huftreefilename);
-				::libmaus2::huffman::HuffmanTree & H = *UH;
-				libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ptr(rlToHwtSmallAlphabet(bwt,H));
-				return UNIQUE_PTR_MOVE(ptr);
-			}
-
-			/**
-			 * specialised version for small alphabets
-			 **/
 			template<typename entity_type>
 			static libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type rlToHwtSmallAlphabet(
 				std::string const & bwt,
@@ -1288,6 +1273,24 @@ namespace libmaus2
 				return UNIQUE_PTR_MOVE(pICHWT);
 			}
 
+			#if 0
+			/**
+			 * specialised version for small alphabets
+			 **/
+			static libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type rlToHwtSmallAlphabet(
+				std::string const & bwt,
+				std::string const & huftreefilename,
+				uint64_t const numthreads
+			)
+			{
+				// load the huffman tree
+				::libmaus2::huffman::HuffmanTree::unique_ptr_type UH = loadCompactHuffmanTree(huftreefilename);
+				::libmaus2::huffman::HuffmanTree & H = *UH;
+				libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ptr(rlToHwtSmallAlphabet(bwt,H,numthreads));
+				return UNIQUE_PTR_MOVE(ptr);
+			}
+			#endif
+
 			static ::libmaus2::util::Histogram::unique_ptr_type computeRlSymHist(std::string const & bwt, uint64_t const numthreads)
 			{
 				uint64_t const n = rl_decoder::getLength(bwt,numthreads);
@@ -1594,18 +1597,21 @@ namespace libmaus2
 				}
 			}
 
+			#if 0
 			static void rlToHwtTerm(
 				std::vector<std::string> const & bwt,
 				std::string const & hwt,
 				std::string const tmpprefix,
 				::std::map<int64_t,uint64_t> const & chist,
 				uint64_t const bwtterm,
-				uint64_t const p0r
+				uint64_t const p0r,
+				uint64_t const numthreads
 				)
 			{
 				::libmaus2::huffman::HuffmanTree H(chist.begin(),chist.size(),false,true,true);
-				rlToHwtTerm(bwt,hwt,tmpprefix,H,bwtterm,p0r);
+				rlToHwtTerm(bwt,hwt,tmpprefix,H,bwtterm,p0r,numthreads);
 			}
+			#endif
 
 			static ::libmaus2::huffman::HuffmanTree::unique_ptr_type loadCompactHuffmanTree(std::string const & huftreefilename)
 			{
