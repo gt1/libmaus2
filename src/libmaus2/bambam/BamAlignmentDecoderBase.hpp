@@ -3273,6 +3273,8 @@ namespace libmaus2
 
 						for ( uint64_t i = 0; i < l; ++i, q += 1 )
 							V.push_back(static_cast<int8_t>(*q));
+
+						break;
 					}
 					case 'C':
 					{
@@ -3280,6 +3282,8 @@ namespace libmaus2
 
 						for ( uint64_t i = 0; i < l; ++i, q += 1 )
 							V.push_back(static_cast<uint8_t>(*q));
+
+						break;
 					}
 					case 's':
 					{
@@ -3292,6 +3296,8 @@ namespace libmaus2
 									(static_cast<uint16_t>(q[1]) << 8)
 								)
 							);
+
+						break;
 					}
 					case 'S':
 					{
@@ -3304,6 +3310,8 @@ namespace libmaus2
 									(static_cast<uint16_t>(q[1]) << 8)
 								)
 							);
+
+						break;
 					}
 					case 'i':
 					{
@@ -3318,6 +3326,8 @@ namespace libmaus2
 									(static_cast<uint32_t>(q[3]) << 24)
 								)
 							);
+
+						break;
 					}
 					case 'I':
 					{
@@ -3332,6 +3342,8 @@ namespace libmaus2
 									(static_cast<uint32_t>(q[3]) << 24)
 								)
 							);
+
+						break;
 					}
 					case 'f':
 					{
@@ -3351,6 +3363,8 @@ namespace libmaus2
 							np.uvalue = v;
 							V.push_back ( np.fvalue );
 						}
+
+						break;
 					}
 					default:
 					{
