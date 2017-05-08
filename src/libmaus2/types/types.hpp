@@ -28,6 +28,26 @@
 #define expect_false(x) x
 #endif
 
+#if defined(__GNUC__)
+
+#if __cplusplus <= 199711L // up to C++03
+#define libmaus2_fallthrough __attribute__ ((fallthrough))
+#else
+
+#if __cplusplus >= 201703L
+#define libmaus2_fallthrough [[fallthrough]]
+#else
+#define libmaus2_fallthrough [[gnu::fallthrough]]
+#endif
+
+#endif // __cplusplus <= 199711L
+
+#else
+
+#define libmaus2_fallthrough
+
+#endif // __GNUC__
+
 #include <libmaus2/LibMausConfig.hpp>
 #include <cstdlib>
 
