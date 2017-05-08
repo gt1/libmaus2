@@ -21,7 +21,7 @@ struct Obj
 {
 	uint64_t z;
 
-	Obj() {}
+	Obj() : z(0) {}
 	Obj(uint64_t const rz) : z(rz) {}
 	Obj(std::istream & in)
 	{
