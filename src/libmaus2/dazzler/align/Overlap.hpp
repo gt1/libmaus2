@@ -24,6 +24,7 @@
 #include <libmaus2/dazzler/align/TraceBlock.hpp>
 #include <libmaus2/dazzler/align/TracePoint.hpp>
 #include <libmaus2/fastx/acgtnMap.hpp>
+#include <libmaus2/dazzler/align/OverlapHeader.hpp>
 
 namespace libmaus2
 {
@@ -41,6 +42,22 @@ namespace libmaus2
 				uint32_t flags;
 				int32_t aread;
 				int32_t bread;
+
+				OverlapHeader getHeader() const
+				{
+					OverlapHeader OH;
+
+					OH.inv = isInverse();
+					OH.aread = aread;
+					OH.bread = bread;
+					OH.abpos = path.abpos;
+					OH.aepos = path.aepos;
+					OH.bbpos = path.bbpos;
+					OH.bepos = path.bepos;
+					OH.diffs = path.diffs;
+
+					return OH;
+				}
 
 				int32_t getBBlockOffset(uint64_t const i) const
 				{

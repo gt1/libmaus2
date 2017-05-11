@@ -3771,7 +3771,6 @@ namespace libmaus2
 					std::ostream * logstr
 				)
 				{
-					::libmaus2::parallel::OMPLock cerrlock;
 					// number of sampled suffix array elements
 					uint64_t const nsa = (fs + sasamplingrate - 1) / sasamplingrate;
 
@@ -3825,14 +3824,15 @@ namespace libmaus2
 							uint64_t const sc = ++SC;
 							int64_t const newperc = (sc*100) / sacheckpacks;
 
-							cerrlock.lock();
-							if ( newperc != lastperc )
 							{
-								if ( logstr )
-									(*logstr) << "(" << newperc << ")";
-								lastperc = newperc;
+								libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+								if ( newperc != lastperc )
+								{
+									if ( logstr )
+										(*logstr) << "(" << newperc << ")";
+									lastperc = newperc;
+								}
 							}
-							cerrlock.unlock();
 						}
 						if ( logstr )
 							(*logstr) << "done." << std::endl;
@@ -4250,7 +4250,10 @@ namespace libmaus2
 
 				static BwtMergeSortResult computeBwt(BwtMergeSortOptions const & options, std::ostream * logstr)
 				{
+					// input file name
 					std::string fn = options.fn;
+
+					// construct temp file name generator object
 					libmaus2::util::TempFileNameGenerator gtmpgen(options.tmpfilenamebase+"_tmpdir",5);
 
 					/* get file size */
@@ -4258,6 +4261,7 @@ namespace libmaus2
 					// target block size
 					uint64_t const tblocksize = std::max(static_cast<uint64_t>(1),std::min(options.maxblocksize,getDefaultBlockSize(options.mem,options.numthreads,fs)));
 
+					// clock
 					libmaus2::timing::RealTimeClock bwtclock;
 					bwtclock.start();
 
@@ -4265,10 +4269,10 @@ namespace libmaus2
 					uint64_t mcnt = 0;
 					#endif
 
+					// set up temp file removal container
 					::libmaus2::util::TempFileRemovalContainer::setup();
+					// RL encoder block size
 					uint64_t const rlencoderblocksize = 16*1024;
-					::libmaus2::parallel::OMPLock cerrlock;
-
 
 					// check whether file exists
 					if ( ! ::libmaus2::util::GetFileSize::fileExists(fn) )
@@ -4794,7 +4798,12 @@ namespace libmaus2
 					#endif
 
 					// sort single blocks
-					libmaus2::suffixsort::bwtb3m::BaseBlockSorting::unique_ptr_type BBS(new libmaus2::suffixsort::bwtb3m::BaseBlockSorting(stratleafs,options.mem,options.numthreads,itodo,logstr,options.verbose));
+					libmaus2::suffixsort::bwtb3m::BaseBlockSorting::unique_ptr_type BBS(
+						new libmaus2::suffixsort::bwtb3m::BaseBlockSorting(
+							stratleafs,options.mem,options.numthreads,
+							itodo,logstr,options.verbose
+						)
+					);
 					BBS->start();
 					BBS->join();
 					BBS.reset();
