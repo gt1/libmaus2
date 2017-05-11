@@ -343,7 +343,7 @@ namespace libmaus2
 					left = right;
 				}
 
-				if ( n * b )
+				if ( (n * b) != 0 )
 					writer.flush();
 
 				#if 0
@@ -2085,7 +2085,7 @@ namespace libmaus2
 					left = right;
 				}
 
-				if ( n * b )
+				if ( (n * b) != 0 )
 					writer.flush();
 
 				#if 0

@@ -557,7 +557,7 @@ namespace libmaus2
 						cnt[N[i].node.L.cnt >> shift]++;
 					}
 
-					assert ( cnt[0] * cnt[1] );
+					assert ( (cnt[0] * cnt[1]) != 0 );
 
 					uint64_t insinner = N.size()-nodeid-1;
 					// leaf

@@ -1776,6 +1776,16 @@ namespace libmaus2
 					return s;
 				}
 
+				uint64_t getReadLengthSum() const
+				{
+					return getReadLengthSumInterval(0,size());
+				}
+
+				double getAverageReadLength() const
+				{
+					return static_cast<double>(getReadLengthSum()) / size();
+				}
+
 				template<typename it>
 				uint64_t getReadLengthArray(uint64_t const low, uint64_t const high, it A) const
 				{

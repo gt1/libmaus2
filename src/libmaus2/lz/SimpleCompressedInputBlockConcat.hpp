@@ -48,7 +48,7 @@ namespace libmaus2
 			SimpleCompressedInputBlockConcat(
 				std::vector<libmaus2::lz::SimpleCompressedStreamNamedInterval> const & rintervals
 			)
-			: intervals(rintervals), intervalsIt(intervals.begin()), streampos(0)
+			: intervals(rintervals), intervalsIt(intervals.begin()), currentInterval(0), streampos(0)
 			{
 
 			}
