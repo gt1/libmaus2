@@ -28,7 +28,7 @@
 #define expect_false(x) x
 #endif
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) && (__GNUC__ >= 7) && ! defined(__clang__)
 
 #if __cplusplus <= 199711L // up to C++03
 #define libmaus2_fallthrough __attribute__ ((fallthrough))
