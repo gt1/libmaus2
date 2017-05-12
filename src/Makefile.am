@@ -2188,7 +2188,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testkcnt \
 	testintervaltree \
 	testbamgetrefreg \
-	teststringgraph
+	teststringgraph \
+	testlognormal
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2786,3 +2787,8 @@ teststringgraph_SOURCES  = test/teststringgraph.cpp
 teststringgraph_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 teststringgraph_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
 teststringgraph_LDFLAGS  = ${AM_LDFLAGS}
+
+testlognormal_SOURCES  = test/testlognormal.cpp
+testlognormal_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testlognormal_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
+testlognormal_LDFLAGS  = ${AM_LDFLAGS}
