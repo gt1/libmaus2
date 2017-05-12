@@ -3431,7 +3431,7 @@ TESTPROGS="${TESTPROGS} testparallelbamvalidation testparallelbamrewrite testbam
 TESTPROGS="${TESTPROGS} testmapperm testexternalmemoryindex testfastqtobam testsamrecoding testdazzlerdb testnd testfastashred testalignerspeed testfastasingleline testdazzleralignmentrewrite"
 TESTPROGS="${TESTPROGS} testxz testdazzlerindex testargparser testfragmentenvelope testdnarank testlowbits testfastaexplode testfaextract testmurmur3 testpairalign testsplaytree testbwtconstruction testbwtconstructionfasta"
 TESTPROGS="${TESTPROGS} testarrayinput testhugepages testsymcnt testgammapd testpo testdnasuffixtrav testserialisedsorting testbamnumericalindex testnpl testkcnt testintervaltree testbamgetrefreg"
-TESTPROGS="${TESTPROGS} teststringgraph"
+TESTPROGS="${TESTPROGS} teststringgraph testlognormal"
 
 if test "${mavx2}" = "yes" ; then
 	TESTPROGS="${TESTPROGS} testavx"
