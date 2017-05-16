@@ -278,7 +278,7 @@ namespace libmaus2
 
 			static uint64_t maxk(uint64_t const n, uint64_t const m)
 			{
-				if ( ! m*n )
+				if ( m*n == 0 )
 					return 0;
 				else
 					return std::min ( (m+1)/2-1,n-1 );

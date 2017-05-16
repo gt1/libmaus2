@@ -37,7 +37,8 @@ template<typename SUF_TYPE>
 {
 	// compute shifted inverse of suffix array extended by one
 	::libmaus2::autoarray::AutoArray< typename SUF_TYPE::value_type > ISU(n+1,false);
-	for ( size_t i = 0; i < n; ++i ) ISU[SUF[i]] = i+1; ISU[n] = 0;
+	for ( size_t i = 0; i < n; ++i ) { ISU[SUF[i]] = i+1; }
+	ISU[n] = 0;
 	return ISU;
 }
 

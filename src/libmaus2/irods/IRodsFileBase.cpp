@@ -37,11 +37,7 @@ libmaus2::irods::IRodsFileBase::~IRodsFileBase()
 		{
 			char * subname = 0;
 			char * name = rodsErrorName(status,&subname);
-
-			libmaus2::exception::LibMausException lme;
-			lme.getStream() << "IRodsFileBase::~IRodsFileBase: failed to close data object: " << status << " (" << name << ")" << std::endl;
-			lme.finish();
-			throw lme;
+			std::cerr << "IRodsFileBase::~IRodsFileBase: failed to close data object: " << status << " (" << name << ")" << std::endl;
 		}
 	}
 	#endif

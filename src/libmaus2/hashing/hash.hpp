@@ -137,17 +137,17 @@ namespace libmaus2
 				c += length;
 				switch(len)              /* all the case statements fall through */
 				{
-					case 11: c+=(static_cast<uint32_t>(k[10])<<24);
-					case 10: c+=(static_cast<uint32_t>(k[9])<<16);
-					case 9 : c+=(static_cast<uint32_t>(k[8])<<8);
+					case 11: c+=(static_cast<uint32_t>(k[10])<<24); libmaus2_fallthrough;
+					case 10: c+=(static_cast<uint32_t>(k[9])<<16); libmaus2_fallthrough;
+					case 9 : c+=(static_cast<uint32_t>(k[8])<<8); libmaus2_fallthrough;
 					/* the first byte of c is reserved for the length */
-					case 8 : b+=(static_cast<uint32_t>(k[7])<<24);
-					case 7 : b+=(static_cast<uint32_t>(k[6])<<16);
-					case 6 : b+=(static_cast<uint32_t>(k[5])<<8);
-					case 5 : b+=k[4];
-					case 4 : a+=(static_cast<uint32_t>(k[3])<<24);
-					case 3 : a+=(static_cast<uint32_t>(k[2])<<16);
-					case 2 : a+=(static_cast<uint32_t>(k[1])<<8);
+					case 8 : b+=(static_cast<uint32_t>(k[7])<<24); libmaus2_fallthrough;
+					case 7 : b+=(static_cast<uint32_t>(k[6])<<16); libmaus2_fallthrough;
+					case 6 : b+=(static_cast<uint32_t>(k[5])<<8); libmaus2_fallthrough;
+					case 5 : b+=k[4]; libmaus2_fallthrough;
+					case 4 : a+=(static_cast<uint32_t>(k[3])<<24); libmaus2_fallthrough;
+					case 3 : a+=(static_cast<uint32_t>(k[2])<<16); libmaus2_fallthrough;
+					case 2 : a+=(static_cast<uint32_t>(k[1])<<8); libmaus2_fallthrough;
 					case 1 : a+=k[0];
 					/* case 0: nothing left to add */
 				}
@@ -193,7 +193,7 @@ namespace libmaus2
 				switch(len)              /* all the case statements fall through */
 				{
 					/* c is reserved for the length */
-					case 2 : b+=k[1];
+					case 2 : b+=k[1]; libmaus2_fallthrough;
 					case 1 : a+=k[0];
 					/* case 0: nothing left to add */
 				}
@@ -299,29 +299,29 @@ namespace libmaus2
 				c += length;
 				switch(len)              /* all the case statements fall through */
 				{
-					case 23: c+=(static_cast<uint64_t>(k[22])<<56);
-					case 22: c+=(static_cast<uint64_t>(k[21])<<48);
-					case 21: c+=(static_cast<uint64_t>(k[20])<<40);
-					case 20: c+=(static_cast<uint64_t>(k[19])<<32);
-					case 19: c+=(static_cast<uint64_t>(k[18])<<24);
-					case 18: c+=(static_cast<uint64_t>(k[17])<<16);
-					case 17: c+=(static_cast<uint64_t>(k[16])<<8);
+					case 23: c+=(static_cast<uint64_t>(k[22])<<56); libmaus2_fallthrough;
+					case 22: c+=(static_cast<uint64_t>(k[21])<<48); libmaus2_fallthrough;
+					case 21: c+=(static_cast<uint64_t>(k[20])<<40); libmaus2_fallthrough;
+					case 20: c+=(static_cast<uint64_t>(k[19])<<32); libmaus2_fallthrough;
+					case 19: c+=(static_cast<uint64_t>(k[18])<<24); libmaus2_fallthrough;
+					case 18: c+=(static_cast<uint64_t>(k[17])<<16); libmaus2_fallthrough;
+					case 17: c+=(static_cast<uint64_t>(k[16])<<8); libmaus2_fallthrough;
 					/* the first byte of c is reserved for the length */
-					case 16: b+=(static_cast<uint64_t>(k[15])<<56);
-					case 15: b+=(static_cast<uint64_t>(k[14])<<48);
-					case 14: b+=(static_cast<uint64_t>(k[13])<<40);
-					case 13: b+=(static_cast<uint64_t>(k[12])<<32);
-					case 12: b+=(static_cast<uint64_t>(k[11])<<24);
-					case 11: b+=(static_cast<uint64_t>(k[10])<<16);
-					case 10: b+=(static_cast<uint64_t>(k[ 9])<<8);
-					case  9: b+=(static_cast<uint64_t>(k[ 8]));
-					case  8: a+=(static_cast<uint64_t>(k[ 7])<<56);
-					case  7: a+=(static_cast<uint64_t>(k[ 6])<<48);
-					case  6: a+=(static_cast<uint64_t>(k[ 5])<<40);
-					case  5: a+=(static_cast<uint64_t>(k[ 4])<<32);
-					case  4: a+=(static_cast<uint64_t>(k[ 3])<<24);
-					case  3: a+=(static_cast<uint64_t>(k[ 2])<<16);
-					case  2: a+=(static_cast<uint64_t>(k[ 1])<<8);
+					case 16: b+=(static_cast<uint64_t>(k[15])<<56); libmaus2_fallthrough;
+					case 15: b+=(static_cast<uint64_t>(k[14])<<48); libmaus2_fallthrough;
+					case 14: b+=(static_cast<uint64_t>(k[13])<<40); libmaus2_fallthrough;
+					case 13: b+=(static_cast<uint64_t>(k[12])<<32); libmaus2_fallthrough;
+					case 12: b+=(static_cast<uint64_t>(k[11])<<24); libmaus2_fallthrough;
+					case 11: b+=(static_cast<uint64_t>(k[10])<<16); libmaus2_fallthrough;
+					case 10: b+=(static_cast<uint64_t>(k[ 9])<<8); libmaus2_fallthrough;
+					case  9: b+=(static_cast<uint64_t>(k[ 8])); libmaus2_fallthrough;
+					case  8: a+=(static_cast<uint64_t>(k[ 7])<<56); libmaus2_fallthrough;
+					case  7: a+=(static_cast<uint64_t>(k[ 6])<<48); libmaus2_fallthrough;
+					case  6: a+=(static_cast<uint64_t>(k[ 5])<<40); libmaus2_fallthrough;
+					case  5: a+=(static_cast<uint64_t>(k[ 4])<<32); libmaus2_fallthrough;
+					case  4: a+=(static_cast<uint64_t>(k[ 3])<<24); libmaus2_fallthrough;
+					case  3: a+=(static_cast<uint64_t>(k[ 2])<<16); libmaus2_fallthrough;
+					case  2: a+=(static_cast<uint64_t>(k[ 1])<<8); libmaus2_fallthrough;
 					case  1: a+=(static_cast<uint64_t>(k[ 0]));
 					/* case 0: nothing left to add */
 				}
@@ -365,7 +365,7 @@ namespace libmaus2
                                 switch(len)              /* all the case statements fall through */
                                 {
                                 	/* c is reserved for the length */
-                                	case  2: b+=k[1];
+                                	case  2: b+=k[1]; libmaus2_fallthrough;
                                 	case  1: a+=k[0];
                                 	/* case 0: nothing left to add */
 				}

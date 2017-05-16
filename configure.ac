@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.335,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
-LIBRARY_VERSION=2:335:0
+AC_INIT(libmaus2,2.0.338,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
+LIBRARY_VERSION=2:338:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -3431,7 +3431,7 @@ TESTPROGS="${TESTPROGS} testparallelbamvalidation testparallelbamrewrite testbam
 TESTPROGS="${TESTPROGS} testmapperm testexternalmemoryindex testfastqtobam testsamrecoding testdazzlerdb testnd testfastashred testalignerspeed testfastasingleline testdazzleralignmentrewrite"
 TESTPROGS="${TESTPROGS} testxz testdazzlerindex testargparser testfragmentenvelope testdnarank testlowbits testfastaexplode testfaextract testmurmur3 testpairalign testsplaytree testbwtconstruction testbwtconstructionfasta"
 TESTPROGS="${TESTPROGS} testarrayinput testhugepages testsymcnt testgammapd testpo testdnasuffixtrav testserialisedsorting testbamnumericalindex testnpl testkcnt testintervaltree testbamgetrefreg"
-TESTPROGS="${TESTPROGS} teststringgraph"
+TESTPROGS="${TESTPROGS} teststringgraph testlognormal"
 
 if test "${mavx2}" = "yes" ; then
 	TESTPROGS="${TESTPROGS} testavx"

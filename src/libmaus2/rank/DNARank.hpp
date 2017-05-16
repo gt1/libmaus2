@@ -514,12 +514,15 @@ namespace libmaus2
 					case 0:
 						// R.reco += (R1[1]-R0[1]);
 						R.reco += singleSymbolLFRange(I.forw,I.forw+I.size,1);
+						libmaus2_fallthrough;
 					case 1:
 						// R.reco += (R1[2]-R0[2]);
 						R.reco += singleSymbolLFRange(I.forw,I.forw+I.size,2);
+						libmaus2_fallthrough;
 					case 2:
 						// R.reco += (R1[3]-R0[3]);
 						R.reco += singleSymbolLFRange(I.forw,I.forw+I.size,3);
+						libmaus2_fallthrough;
 					default:
 						break;
 				}
@@ -572,10 +575,13 @@ namespace libmaus2
 				{
 					case 3:
 						R.forw += singleSymbolLFRange(I.reco,I.reco+I.size,1);
+						libmaus2_fallthrough;
 					case 2:
 						R.forw += singleSymbolLFRange(I.reco,I.reco+I.size,2);
+						libmaus2_fallthrough;
 					case 1:
 						R.forw += singleSymbolLFRange(I.reco,I.reco+I.size,3);
+						libmaus2_fallthrough;
 					default:
 						break;
 				}

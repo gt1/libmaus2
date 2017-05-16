@@ -203,6 +203,7 @@ void maskBamDuplicateFlag(std::istream & in, std::ostream & out, bool const verb
 					*pa &= dupflagmask;
 					state = state_post_skip;
 					// intented fall through to post_skip case
+					libmaus2_fallthrough;
 				/* skip data after part we modify */
 				case state_post_skip:
 				{
