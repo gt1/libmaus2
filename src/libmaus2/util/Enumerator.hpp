@@ -26,6 +26,9 @@ namespace libmaus2
 {
 	namespace util
 	{
+		/**
+		 * class for enumerating options in (n choose c)
+		 **/
 		template<unsigned int c>
 		struct Enumerator
 		{
