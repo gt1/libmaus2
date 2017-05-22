@@ -319,6 +319,7 @@ namespace libmaus2
 					{
 						case BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL:
 							V.push_back(std::pair<int64_t,int64_t>(refposa,readposa));
+							libmaus2_fallthrough;
 						case BamFlagBase::LIBMAUS2_BAMBAM_CMATCH:
 						case BamFlagBase::LIBMAUS2_BAMBAM_CDIFF:
 							refposa += 1;
