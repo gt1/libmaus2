@@ -3463,7 +3463,7 @@ fi
 AC_ARG_WITH([gmp],
             [AS_HELP_STRING([--with-gmp@<:@=PATH@:>@], [path to installed gmp library @<:@default=no@:>@])],
             [with_gmp=${withval}],
-            [with_gmp=no])
+            [with_gmp=])
 
 LIBMAUS2_HAVE_GMP=
 gmp_CFLAGS=
