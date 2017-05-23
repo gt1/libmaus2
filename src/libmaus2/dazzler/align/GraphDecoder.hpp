@@ -95,9 +95,16 @@ namespace libmaus2
 
 				uint64_t getPointer(std::istream & in, uint64_t const i) const
 				{
-					in.clear();
-					in.seekg(ipos + i * sizeof(uint64_t));
-					return libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					if ( i < n )
+					{
+						in.clear();
+						in.seekg(ipos + i * sizeof(uint64_t));
+						return libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					}
+					else
+					{
+						return std::numeric_limits<uint64_t>::max();
+					}
 				}
 
 				void init(std::istream & in)
