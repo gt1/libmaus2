@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.339,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
-LIBRARY_VERSION=2:339:0
+AC_INIT(libmaus2,2.0.340,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
+LIBRARY_VERSION=2:340:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -3463,7 +3463,7 @@ fi
 AC_ARG_WITH([gmp],
             [AS_HELP_STRING([--with-gmp@<:@=PATH@:>@], [path to installed gmp library @<:@default=no@:>@])],
             [with_gmp=${withval}],
-            [with_gmp=no])
+            [with_gmp=])
 
 LIBMAUS2_HAVE_GMP=
 gmp_CFLAGS=

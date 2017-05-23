@@ -39,6 +39,26 @@ namespace libmaus2
 				int64_t diffs;
 
 				OverlapHeader() {}
+
+				bool operator==(OverlapHeader const & O) const
+				{
+					return
+						inv == O.inv
+						&&
+						aread == O.aread
+						&&
+						bread == O.bread
+						&&
+						abpos == O.abpos
+						&&
+						aepos == O.aepos
+						&&
+						bbpos == O.bbpos
+						&&
+						bepos == O.bepos
+						&&
+						diffs == O.diffs;
+				}
 			};
 
 			std::ostream & operator<<(std::ostream & out, OverlapHeader const & O);
