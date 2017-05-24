@@ -1706,7 +1706,9 @@ libmaus2random_include_HEADERS=\
 	libmaus2/random/Random.hpp \
 	libmaus2/random/UniformUnitRandom.hpp \
 	libmaus2/random/GaussianRandom.hpp \
-	libmaus2/random/DNABaseNoiseSpiker.hpp
+	libmaus2/random/DNABaseNoiseSpiker.hpp \
+	libmaus2/random/Poisson.hpp \
+	libmaus2/random/LogNormalRandom.hpp
 
 libmaus2graph_includedir=$(includedir)/libmaus2/graph
 libmaus2graph_include_HEADERS=\
