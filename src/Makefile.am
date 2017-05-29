@@ -1304,7 +1304,8 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/SimpleHashMapDisplaceMaskFunction.hpp \
 	libmaus2/util/Command.hpp \
 	libmaus2/util/CommandContainer.hpp \
-	libmaus2/util/Enumerator.hpp
+	libmaus2/util/Enumerator.hpp \
+	libmaus2/util/LocalTempContainer.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
