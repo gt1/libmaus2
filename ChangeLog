@@ -1,3 +1,9 @@
+libmaus2 (2.0.342-1) unstable; urgency=medium
+
+  * add LocalTempFileContainer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 29 May 2017 16:03:53 +0200
+
 libmaus2 (2.0.341-1) unstable; urgency=medium
 
   * add Poisson class
