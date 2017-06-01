@@ -156,6 +156,13 @@ namespace libmaus2
 					out << "Coordinates(valid=" << valid << ",seq=" << seq << ",rc=" << rc << ",left=" << left << ",length=" << length << ")";
 					return out;
 				}
+
+				std::string toString() const
+				{
+					std::ostringstream ostr;
+					print(ostr);
+					return ostr.str();
+				}
 			};
 
 			std::vector<Coordinates> mapCoordinatePairToList(uint64_t il, uint64_t ir) const
