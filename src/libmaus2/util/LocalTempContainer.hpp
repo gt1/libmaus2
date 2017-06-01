@@ -56,12 +56,12 @@ namespace libmaus2
 					libmaus2::aio::FileRemoval::removeFile(V[i]);
 			}
 
-			std::string get()
+			std::string get(std::string const & suffix)
 			{
 				std::ostringstream fnstr;
 				{
 					libmaus2::parallel::ScopePosixSpinLock slock(lock);
-					fnstr << prefix << "_" << std::setw(8) << std::setfill('0') << next++;
+					fnstr << prefix << "_" << std::setw(8) << std::setfill('0') << next++ << std::setw(0) << suffix;
 				}
 				std::string const fn = fnstr.str();
 				{
@@ -69,6 +69,11 @@ namespace libmaus2
 					V.push_back(fn);
 				}
 				return fn;
+			}
+
+			std::string get()
+			{
+				return get(std::string());
 			}
 		};
 	}

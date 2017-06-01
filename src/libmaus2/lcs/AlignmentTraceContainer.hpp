@@ -1855,6 +1855,112 @@ namespace libmaus2
 			{
 				return ! operator==(o);
 			}
+
+			struct MapElement
+			{
+				uint64_t apos;
+				int64_t adif;
+				uint64_t bpos;
+				int64_t bdif;
+				step_type step;
+
+				MapElement() {}
+				MapElement(
+					uint64_t const rapos,
+					int64_t const radif,
+					uint64_t const rbpos,
+					int64_t const rbdif,
+					step_type const rstep
+				) : apos(rapos), adif(radif), bpos(rbpos), bdif(rbdif), step(rstep)
+				{
+
+				}
+
+				std::ostream & print(std::ostream & out) const
+				{
+					return out << "MapElement("
+						<< "apos=" << apos << ","
+						<< "adif=" << adif << ","
+						<< "bpos=" << bpos << ","
+						<< "bdif=" << bdif << ","
+						<< "step=" << step << ")";
+				}
+
+				std::string toString() const
+				{
+					std::ostringstream ostr;
+					print(ostr);
+					return ostr.str();
+				}
+			};
+
+			static uint64_t fillMapping(
+				step_type const * uta, step_type const * ute,
+				uint64_t const apos,
+				uint64_t const bpos,
+				libmaus2::autoarray::AutoArray<MapElement> & A
+			)
+			{
+				std::pair<uint64_t,uint64_t> const SL = getStringLengthUsed(uta,ute);
+
+				uint64_t aipos = apos+SL.first;
+				uint64_t bipos = bpos+SL.second;
+				int64_t aidif = 0;
+				int64_t bidif = 0;
+				uint64_t f = 0;
+
+				while ( ute != uta )
+				{
+					libmaus2::lcs::AlignmentTraceContainer::step_type const step = *(--ute);
+
+					switch ( step )
+					{
+						case libmaus2::lcs::AlignmentTraceContainer::STEP_MATCH:
+						case libmaus2::lcs::AlignmentTraceContainer::STEP_MISMATCH:
+						{
+							--aipos;
+							--bipos;
+							aidif = 0;
+							bidif = 0;
+
+							A.push(f,MapElement(aipos,aidif,bipos,bidif,step));
+
+							break;
+						}
+						case libmaus2::lcs::AlignmentTraceContainer::STEP_INS:
+						{
+							--bipos;
+							bidif = 0;
+							--aidif;
+
+							A.push(f,MapElement(aipos,aidif,bipos,bidif,step));
+
+							break;
+						}
+						case libmaus2::lcs::AlignmentTraceContainer::STEP_DEL:
+						{
+							--aipos;
+							aidif = 0;
+							--bidif;
+
+							A.push(f,MapElement(aipos,aidif,bipos,bidif,step));
+
+							break;
+						}
+						default:
+						{
+							break;
+						}
+					}
+				}
+
+				assert ( aipos == apos );
+				assert ( bipos == bpos );
+
+				std::reverse(A.begin(),A.begin()+f);
+
+				return f;
+			}
 		};
 
 		struct AlignmentTraceContainerAllocator

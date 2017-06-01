@@ -1,3 +1,14 @@
+libmaus2 (2.0.343-1) unstable; urgency=medium
+
+  * add fillMapping method in AlignmentTraceContainer
+  * add inv method in OverlapNode
+  * reorder fields in OverlapHeader class and add constructor by values
+  * add searchFrom and searchTo methods in StringGraph class
+  * add suffix parameter in get method of LocalTempContainer class
+  * remove unneeded length field from OverlapNodeBase
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 01 Jun 2017 11:27:55 +0200
+
 libmaus2 (2.0.342-1) unstable; urgency=medium
 
   * add LocalTempFileContainer
