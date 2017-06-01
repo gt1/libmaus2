@@ -64,6 +64,11 @@ namespace libmaus2
 				{
 					return !operator==(O);
 				}
+
+				OverlapNodeBase inv() const
+				{
+					return OverlapNodeBase(id,!end);
+				}
 			};
 
 			struct OverlapNode : public OverlapNodeBase
