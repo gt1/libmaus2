@@ -34,12 +34,71 @@ namespace libmaus2
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 				std::vector < Edge > edges;
+				std::vector < std::pair < OverlapNodeBase, uint64_t> > fromlist;
+				std::vector < std::pair < OverlapNodeBase, uint64_t> > tolist;
 
 				StringGraph() {}
 				StringGraph(std::istream & in)
 				{
 					while ( in.peek() != std::istream::traits_type::eof() )
+					{
+						uint64_t const nextid = edges.size();
+
 						edges.push_back(Edge(in));
+						fromlist.push_back(std::pair < OverlapNodeBase, uint64_t>(edges.back().from,nextid));
+						tolist.push_back(std::pair < OverlapNodeBase, uint64_t>(edges.back().to,nextid));
+					}
+
+					std::sort(fromlist.begin(),fromlist.end());
+					std::sort(tolist.begin(),tolist.end());
+				}
+
+				struct OverlapNodeBasePairFirstComparator
+				{
+					bool operator()(std::pair < OverlapNodeBase, uint64_t> const & A, std::pair < OverlapNodeBase, uint64_t> const & B) const
+					{
+						return A.first < B.first;
+					}
+				};
+
+				std::vector<uint64_t> searchFrom(OverlapNodeBase const & O) const
+				{
+					typedef std::pair < OverlapNodeBase, uint64_t> p_type;
+					p_type const P(O,0);
+					typedef std::vector<p_type>::const_iterator i_type;
+
+					std::pair<i_type,i_type> const IP = std::equal_range(
+						fromlist.begin(),
+						fromlist.end(),
+						P,
+						OverlapNodeBasePairFirstComparator()
+					);
+
+					std::vector<uint64_t> V;
+					for ( i_type i = IP.first; i != IP.second; ++i )
+						V.push_back(i->second);
+
+					return V;
+				}
+
+				std::vector<uint64_t> searchTo(OverlapNodeBase const & O) const
+				{
+					typedef std::pair < OverlapNodeBase, uint64_t> p_type;
+					p_type const P(O,0);
+					typedef std::vector<p_type>::const_iterator i_type;
+
+					std::pair<i_type,i_type> const IP = std::equal_range(
+						tolist.begin(),
+						tolist.end(),
+						P,
+						OverlapNodeBasePairFirstComparator()
+					);
+
+					std::vector<uint64_t> V;
+					for ( i_type i = IP.first; i != IP.second; ++i )
+						V.push_back(i->second);
+
+					return V;
 				}
 
 				static unique_ptr_type load(std::string const & fn)

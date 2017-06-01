@@ -29,9 +29,9 @@ namespace libmaus2
 		{
 			struct OverlapHeader
 			{
-				bool inv;
 				int64_t aread;
 				int64_t bread;
+				bool inv;
 				int64_t abpos;
 				int64_t aepos;
 				int64_t bbpos;
@@ -39,6 +39,18 @@ namespace libmaus2
 				int64_t diffs;
 
 				OverlapHeader() {}
+				OverlapHeader(
+					int64_t const raread,
+					int64_t const rbread,
+					bool const rinv,
+					int64_t const rabpos,
+					int64_t const raepos,
+					int64_t const rbbpos,
+					int64_t const rbepos,
+					int64_t const rdiffs
+				)
+				: aread(raread), bread(rbread), inv(rinv), abpos(rabpos), aepos(raepos), bbpos(rbbpos), bepos(rbepos), diffs(rdiffs)
+				{}
 
 				bool operator==(OverlapHeader const & O) const
 				{
