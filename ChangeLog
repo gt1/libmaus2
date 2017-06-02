@@ -1,3 +1,9 @@
+libmaus2 (2.0.344-1) unstable; urgency=medium
+
+  * add toString method in DNAIndexMetaDataBigBandBiDir::Coordinates
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 02 Jun 2017 10:52:11 +0200
+
 libmaus2 (2.0.343-1) unstable; urgency=medium
 
   * add fillMapping method in AlignmentTraceContainer
