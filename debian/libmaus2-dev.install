@@ -3,11 +3,9 @@ usr/include/*	usr/include/
 usr/lib/*/libmaus2.so	usr/lib/${DEB_HOST_MULTIARCH}/
 usr/lib/*/libmaus2_simd_align_128.so	usr/lib/${DEB_HOST_MULTIARCH}/
 usr/lib/*/libmaus2_simd_align_256.so	usr/lib/${DEB_HOST_MULTIARCH}/
-usr/lib/*/libmaus2lsf.so	usr/lib/${DEB_HOST_MULTIARCH}/
 usr/lib/*/libmaus2.a	usr/lib/${DEB_HOST_MULTIARCH}/
 usr/lib/*/libmaus2_simd_align_128.a	usr/lib/${DEB_HOST_MULTIARCH}/
 usr/lib/*/libmaus2_simd_align_256.a	usr/lib/${DEB_HOST_MULTIARCH}/
-usr/lib/*/libmaus2lsf.a	usr/lib/${DEB_HOST_MULTIARCH}/
 usr/lib/*/libmaus2digests.a	usr/lib/${DEB_HOST_MULTIARCH}/
 usr/lib/*/libmaus2digests_sse4.a	usr/lib/${DEB_HOST_MULTIARCH}/
 usr/lib/*/libmaus2seqchksumsfactory.a	usr/lib/${DEB_HOST_MULTIARCH}/
