@@ -22,8 +22,6 @@
 #include <ctime>
 #include <cstdlib>
 
-#include <libmaus2/consensus/Consensus.hpp>
-
 template<unsigned int bases_per_word>
 void testMultiWordDNABitBuffer()
 {

@@ -15,7 +15,7 @@ EXTRA_DIST = \
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 
-lib_LTLIBRARIES = libmaus2.la libmaus2lsf.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
+lib_LTLIBRARIES = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 lib_LIBRARIES = libmaus2digests.a libmaus2digests_sse4.a libmaus2_irods.a libmaus2seqchksumsfactory.a libmaus2fftw.a
 
 libmaus2_simd_align_128_la_SOURCES = \
@@ -38,7 +38,7 @@ libmaus2_simd_align_256_la_SOURCES = \
 libmaus2_simd_align_256_la_CXXFLAGS = @MSSE2@ @MSSSE3@ @MSSE41@ @MAVX2@ @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS}
 libmaus2_simd_align_256_la_LDFLAGS = @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 
-libmaus2_modules_LTLIBRARIES = libmaus2_consensus_mod.la libmaus2_scram_mod.la
+libmaus2_modules_LTLIBRARIES = libmaus2_scram_mod.la
 libmaus2_modulesdir = $(libdir)/libmaus2/$(PACKAGE_VERSION)
 
 libmaus2digests_a_SOURCES = libmaus2/digest/SHA2_256_sse4.cpp libmaus2/digest/SHA2_512_sse4.cpp libmaus2/digest/DigestFactory_SHA2_ASM.cpp
@@ -88,7 +88,6 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/util/OutputFileNameTools.cpp \
 	libmaus2/select/ESelectBase.cpp \
 	libmaus2/bambam/CigarStringParser.cpp \
-	libmaus2/consensus/Consensus.cpp \
 	libmaus2/graph/EdgeList.cpp \
 	libmaus2/fastx/Phred.cpp \
 	libmaus2/network/sendReceiveFd.c \
@@ -96,7 +95,6 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/bambam/CollatingBamDecoder.cpp \
 	libmaus2/bambam/ReadEndsContainer.cpp \
 	libmaus2/bambam/ReadEnds.cpp \
-	libmaus2/network/LogReceiver.cpp \
 	libmaus2/huffman/IndexLoaderBase.cpp \
 	libmaus2/bambam/BamAlignmentDecoderBase.cpp \
 	libmaus2/bambam/StrCmpNum.cpp \
@@ -114,9 +112,6 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/util/ConsoleColor.cpp \
 	libmaus2/util/Demangle.cpp \
 	libmaus2/util/DynamicLoading.cpp \
-	libmaus2/util/ForkProcess.cpp \
-	libmaus2/util/LSFSim.cpp \
-	libmaus2/util/ForkProcessLSFSim.cpp \
 	libmaus2/util/GetFileSize.cpp \
 	libmaus2/util/Histogram.cpp \
 	libmaus2/util/HistogramSet.cpp \
@@ -275,21 +270,9 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 noinst_HEADERS = libmaus2/lz/lz4.h
 
 libmaus2_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@ @DALIGNERCPPFLAGS@ @GMPCPPFLAGS@ @LIBMAUS2_LZMA_CPPFLAGS@
-libmaus2_la_CXXFLAGS = @SEQANCXXFLAGS@ @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS}
+libmaus2_la_CXXFLAGS = @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS}
 libmaus2_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@ @NETTLELDFLAGS@ @DALIGNERLDFLAGS@ @GMPLDFLAGS@
 libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ @DALIGNERLIBS@ @GMPLIBS@ @LIBMAUS2_LZMA_LIBS@
-
-libmaus2lsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
-libmaus2lsf_la_SOURCES = libmaus2/lsf/LSFProcess.cpp
-libmaus2lsf_la_CPPFLAGS = @WARNCPPFLAGS@ ${LSFCPPFLAGS}
-libmaus2lsf_la_LIBADD = ${LSFLIBS}
-
-libmaus2_consensus_mod_la_CPPFLAGS = @SEQANCPPFLAGS@                 @LIBMAUSCPPFLAGS@ ${AM_CPPFLAGS} @WARNCPPFLAGS@
-libmaus2_consensus_mod_la_CXXFLAGS = @SEQANCXXFLAGS@                 @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS} -fPIC
-libmaus2_consensus_mod_la_LDFLAGS  = @SEQANLDFLAGS@  @SEQANLIBS@     @LIBMAUSLDFLAGS@  @LIBMAUSLIBS@     -module  -shared -export-dynamic ${AM_LDFLAGS} -avoid-version
-libmaus2_consensus_mod_la_LIBADD   = @SEQANLIBS@ @LIBMAUSLIBS@
-libmaus2_consensus_mod_la_SOURCES  = libmaus2/consensus/ConsensusBase.cpp libmaus2/consensus/ScoringMatrix.cpp \
-	libmaus2/fastx/Phred.cpp
 
 libmaus2_scram_mod_la_CPPFLAGS = @IOLIBCPPFLAGS@ @LIBMAUSCPPFLAGS@ ${AM_CPPFLAGS} @WARNCPPFLAGS@
 libmaus2_scram_mod_la_CXXFLAGS = @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS} -fPIC
@@ -1207,7 +1190,6 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/Terminal.hpp \
 	libmaus2/util/nstat.hpp \
 	libmaus2/util/WriteableString.hpp \
-	libmaus2/util/ForkProcess.hpp \
 	libmaus2/util/LogPipe.hpp \
 	libmaus2/util/MoveStack.hpp \
 	libmaus2/util/LongestIncreasingSubsequence.hpp \
@@ -1252,8 +1234,6 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/Utf8DecoderBuffer.hpp \
 	libmaus2/util/Utf8String.hpp \
 	libmaus2/util/UnsignedCharVariant.hpp \
-	libmaus2/util/LSFSim.hpp \
-	libmaus2/util/ForkProcessLSFSim.hpp \
 	libmaus2/util/CountGetObject.hpp \
 	libmaus2/util/HistogramSet.hpp \
 	libmaus2/util/GenericIntervalTree.hpp \
@@ -1833,7 +1813,6 @@ libmaus2network_includedir=$(includedir)/libmaus2/network
 libmaus2network_include_HEADERS=\
 	libmaus2/network/Socket.hpp \
 	libmaus2/network/GetHostName.hpp \
-	libmaus2/network/LogSocket.hpp \
 	libmaus2/network/SocketFastReaderBase.hpp \
 	libmaus2/network/Interface.hpp \
 	libmaus2/network/GetDottedAddress.hpp \
@@ -1844,9 +1823,6 @@ libmaus2network_include_HEADERS=\
 	libmaus2/network/sendReceiveFd.h \
 	libmaus2/network/SocketPair.hpp \
 	libmaus2/network/FileDescriptorPasser.hpp \
-	libmaus2/network/LogReceiverTestProcess.hpp \
-	libmaus2/network/LogReceiver.hpp \
-	libmaus2/network/LogReceiverDispatcherBase.hpp \
 	libmaus2/network/SocketInputStreamBuffer.hpp \
 	libmaus2/network/SocketInputStream.hpp \
 	libmaus2/network/HttpAbsoluteUrl.hpp \
@@ -2018,23 +1994,7 @@ libmaus2lcs_include_HEADERS=\
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp
 	
-libmaus2lsf_includedir=$(includedir)/libmaus2/lsf
-libmaus2lsf_include_HEADERS=\
-	libmaus2/lsf/LSFProcess.hpp \
-	libmaus2/lsf/ProcessSet.hpp \
-	libmaus2/lsf/Process.hpp \
-	libmaus2/lsf/LSFDispatcherBase.hpp \
-	libmaus2/lsf/LSFStateBase.hpp \
-	libmaus2/lsf/DispatchedLsfProcess.hpp  \
-	libmaus2/lsf/SimpleDispatchedLsfProcessSet.hpp \
-	libmaus2/lsf/LSFTaskQueue.hpp
-
-libmaus2consensus_includedir=$(includedir)/libmaus2/consensus/
-libmaus2consensus_include_HEADERS =\
-	libmaus2/consensus/Consensus.hpp \
-	libmaus2/consensus/ScoringMatrix.hpp
-
-EXTRA_PROGRAMS = testlsf testlsflist \
+EXTRA_PROGRAMS = \
 	testAIO \
 	testbitbtree \
 	testBitIO \
@@ -2044,7 +2004,6 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testDivSufSort \
 	testDNABitWords \
 	testFastRead \
-	testFork \
 	testHuffman \
 	testIsa \
 	testkmp \
@@ -2054,7 +2013,6 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testToWaveletTreeBits \
 	testWaveletExternal \
 	testTrie \
-	testConsensus \
 	testbandedlcs \
 	testbamwriter \
 	testhashlcs \
@@ -2072,11 +2030,6 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testcachealignedalloc \
 	testblocksynchronous \
 	testsyncfastreaderbase \
-	testlsf \
-	testlsfdispatcher \
-	testlsfclient \
-	testlsfclientfw \
-	testlsflist \
 	testdl \
 	testdifenc \
 	testbwtmergeinternal \
@@ -2262,9 +2215,6 @@ testlogging_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_2
 testTrie_SOURCES = test/testTrie.cpp
 testTrie_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
-testFork_SOURCES = test/testFork.cpp
-testFork_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
-
 testBitIO_SOURCES = test/testBitIO.cpp
 testBitIO_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
@@ -2320,9 +2270,6 @@ testbandedlcs_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align
 testbamwriter_SOURCES = test/testbamwriter.cpp
 testbamwriter_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
-testConsensus_SOURCES = test/testConsensus.cpp
-testConsensus_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
-
 testhashlcs_SOURCES = test/testhashlcs.cpp
 testhashlcs_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testhashlcs_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
@@ -2339,20 +2286,6 @@ testsnappyconcat_SOURCES = test/testsnappyconcat.cpp
 testsnappyconcat_CPPFLAGS = @SNAPPYCPPFLAGS@
 testsnappyconcat_LDFLAGS = @SNAPPYLDFLAGS@
 testsnappyconcat_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @SNAPPYLIBS@
-
-testlsf_SOURCES = test/testlsf.cpp
-testlsf_CPPFLAGS = ${AM_CPPFLAGS} ${LSFCPPFLAGS}
-testlsf_LDFLAGS = ${LSFLDFLAGS}
-testlsf_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la libmaus2lsf.la ${LSFLIBS}
-
-testlsfdispatcher_SOURCES = test/testlsfdispatcher.cpp
-testlsfdispatcher_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
-
-testlsfclient_SOURCES = test/testlsfclient.cpp
-testlsfclient_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
-
-testlsfclientfw_SOURCES = test/testlsfclientfw.cpp
-testlsfclientfw_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testdl_SOURCES = test/testdl.cpp
 testdl_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
@@ -2441,11 +2374,6 @@ testcompactfastrandom_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_si
 
 testbamindex_SOURCES = test/testbamindex.cpp
 testbamindex_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
-
-testlsflist_SOURCES = test/testlsflist.cpp
-testlsflist_CPPFLAGS = ${AM_CPPFLAGS} ${LSFCPPFLAGS}
-testlsflist_LDFLAGS = ${LSFLDFLAGS}
-testlsflist_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la libmaus2lsf.la ${LSFLIBS}
 
 testbamrewrite_SOURCES = test/testbamrewrite.cpp
 testbamrewrite_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la

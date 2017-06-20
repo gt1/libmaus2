@@ -59,9 +59,6 @@ libmaus2 can use functionality from several other code bases. This includes:
  - io_lib [http://sourceforge.net/p/staden/code/HEAD/tree/io_lib/] : This is
    part of the Staden package. libmaus2 can use this library for SAM and CRAM
    file input.
- - SeqAN [http://www.seqan.de/] : libmaus2 contains a wrapper class for
-   consensus computation. The actual consensus computation is done by SeqAN.
-   libmaus2 only offers a somewhat simplified interface.
 
 The compilation on Darwin (MacOS X) may require the installation of the 
 following packages:
