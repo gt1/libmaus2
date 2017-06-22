@@ -31,17 +31,19 @@ namespace libmaus2
 	{
 		struct Poisson
 		{
-			uint64_t const lambda;
+			typedef Poisson this_type;
+
 			double const d_lambda;
 			double const e_lambda;
+			double const l_lambda;
 
 			static double fac(uint64_t const v)
 			{
 				return ::std::exp(::lgamma(v+1));
 			}
 
-			Poisson(uint64_t const rlambda)
-			: lambda(rlambda), d_lambda(lambda), e_lambda(std::exp(-d_lambda))
+			Poisson(double const rlambda)
+			: d_lambda(rlambda), e_lambda(std::exp(-d_lambda)), l_lambda(::std::log(d_lambda))
 			{
 			}
 
@@ -72,6 +74,83 @@ namespace libmaus2
 				}
 
 				return V;
+			}
+
+			uint64_t thresLow(double const thres) const
+			{
+				double f = e_lambda;
+				double s = 0.0;
+				std::vector<double> V;
+
+				for ( uint64_t i = 1; true; ++i )
+				{
+					if ( s + f >= thres )
+						return i-1;
+					s += f;
+					f *= (d_lambda/i);
+				}
+			}
+
+			double thresLowInv(uint64_t const thres) const
+			{
+				double f = e_lambda;
+				double s = 0.0;
+
+				for ( uint64_t i = 1; i <= thres+1; ++i )
+				{
+					s += f;
+					f *= (d_lambda/i);
+				}
+
+				return s;
+			}
+
+			// compute value in log space to keep intermediate results under control
+			double poissonViaLog(uint64_t const k) const
+			{
+				return ::std::exp(k * l_lambda - d_lambda - ::std::lgamma(k+1));
+			}
+
+			double thresLowInvLog(uint64_t const thres) const
+			{
+				double s = 0.0;
+
+				for ( uint64_t i = 0; i <= thres; ++i )
+					s += poissonViaLog(i);
+
+				return s;
+			}
+
+			/**
+			 * get vector for arguments 0,1,2,... until sum over tail of series falls below thres
+			 **/
+			std::vector<double> getVectorViaLog(double const thres) const
+			{
+				double s = 1.0;
+				std::vector<double> V;
+
+				for ( uint64_t i = 0; s > thres; ++i )
+				{
+					double const f = poissonViaLog(i);
+					V.push_back(f);
+					s -= f;
+				}
+
+				return V;
+			}
+
+			double lowerSum(uint64_t const n) const
+			{
+				double s = 0.0;
+				for ( uint64_t i = 0; i < n; ++i )
+					s += poissonViaLog(i);
+				return s;
+			}
+
+			static double gamma_q(uint64_t const n, double const lambda)
+			{
+				this_type PO(lambda);
+				return PO.lowerSum(n);
 			}
 		};
 	}
