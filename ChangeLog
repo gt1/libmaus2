@@ -1,3 +1,9 @@
+libmaus2 (2.0.347-1) unstable; urgency=medium
+
+  * add methods thresLow, thresLowInv, poissonViaLog, thresLowInvLog, getVectorViaLog, lowerSum and function gamma_q in Poisson class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 22 Jun 2017 22:58:58 +0200
+
 libmaus2 (2.0.346-1) unstable; urgency=medium
 
   * remove libmaus2lsf from debian packaging files
