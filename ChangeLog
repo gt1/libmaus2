@@ -1,3 +1,44 @@
+libmaus2 (2.0.347-1) unstable; urgency=medium
+
+  * add methods thresLow, thresLowInv, poissonViaLog, thresLowInvLog, getVectorViaLog, lowerSum and function gamma_q in Poisson class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 22 Jun 2017 22:58:58 +0200
+
+libmaus2 (2.0.346-1) unstable; urgency=medium
+
+  * remove libmaus2lsf from debian packaging files
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 20 Jun 2017 16:57:22 +0200
+
+libmaus2 (2.0.345-1) unstable; urgency=medium
+
+  * remove unused code 
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 20 Jun 2017 11:57:38 +0200
+
+libmaus2 (2.0.344-1) unstable; urgency=medium
+
+  * add toString method in DNAIndexMetaDataBigBandBiDir::Coordinates
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 02 Jun 2017 10:52:11 +0200
+
+libmaus2 (2.0.343-1) unstable; urgency=medium
+
+  * add fillMapping method in AlignmentTraceContainer
+  * add inv method in OverlapNode
+  * reorder fields in OverlapHeader class and add constructor by values
+  * add searchFrom and searchTo methods in StringGraph class
+  * add suffix parameter in get method of LocalTempContainer class
+  * remove unneeded length field from OverlapNodeBase
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 01 Jun 2017 11:27:55 +0200
+
+libmaus2 (2.0.342-1) unstable; urgency=medium
+
+  * add LocalTempFileContainer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 29 May 2017 16:03:53 +0200
+
 libmaus2 (2.0.341-1) unstable; urgency=medium
 
   * add Poisson class

@@ -35,7 +35,6 @@ namespace libmaus2
 			{
 				uint64_t id;
 				bool end;
-				uint64_t length;
 
 				OverlapNodeBase() {}
 				OverlapNodeBase(uint64_t const rid, bool const rend) : id(rid), end(rend) {}
@@ -64,6 +63,11 @@ namespace libmaus2
 				bool operator!=(OverlapNodeBase const & O) const
 				{
 					return !operator==(O);
+				}
+
+				OverlapNodeBase inv() const
+				{
+					return OverlapNodeBase(id,!end);
 				}
 			};
 
