@@ -34,6 +34,8 @@ namespace libmaus2
 				uint64_t abpos;
 				uint64_t aepos;
 				uint64_t flags;
+				uint64_t bbpos;
+				uint64_t bepos;
 
 				ContainmentInfo() {}
 				ContainmentInfo(uint64_t const raread) : aread(raread) {}
@@ -43,7 +45,10 @@ namespace libmaus2
 					aread(libmaus2::util::NumberSerialisation::deserialiseNumber(in,4)),
 					abpos(libmaus2::util::NumberSerialisation::deserialiseNumber(in,4)),
 					aepos(libmaus2::util::NumberSerialisation::deserialiseNumber(in,4)),
-					flags(libmaus2::util::NumberSerialisation::deserialiseNumber(in,1)) {}
+					flags(libmaus2::util::NumberSerialisation::deserialiseNumber(in,1)),
+					bbpos(libmaus2::util::NumberSerialisation::deserialiseNumber(in,4)),
+					bepos(libmaus2::util::NumberSerialisation::deserialiseNumber(in,4))
+				{}
 
 				void serialise(std::ostream & out) const
 				{
@@ -52,6 +57,8 @@ namespace libmaus2
 					libmaus2::util::NumberSerialisation::serialiseNumber(out,abpos,4);
 					libmaus2::util::NumberSerialisation::serialiseNumber(out,aepos,4);
 					libmaus2::util::NumberSerialisation::serialiseNumber(out,flags,1);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,bbpos,4);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,bepos,4);
 				}
 
 				void deserialise(std::istream & in)
@@ -61,6 +68,8 @@ namespace libmaus2
 					abpos = libmaus2::util::NumberSerialisation::deserialiseNumber(in,4);
 					aepos = libmaus2::util::NumberSerialisation::deserialiseNumber(in,4);
 					flags = libmaus2::util::NumberSerialisation::deserialiseNumber(in,1);
+					bbpos = libmaus2::util::NumberSerialisation::deserialiseNumber(in,4);
+					bepos = libmaus2::util::NumberSerialisation::deserialiseNumber(in,4);
 				}
 
 				bool operator<(ContainmentInfo const & O) const
@@ -96,6 +105,8 @@ namespace libmaus2
 					<< ",abpos=" << C.abpos
 					<< ",aepos=" << C.aepos
 					<< ",flags=" << C.flags
+					<< ",bbpos=" << C.bbpos
+					<< ",bepos=" << C.bepos
 					<< ")";
 				return out;
 			}
