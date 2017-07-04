@@ -443,10 +443,19 @@ namespace libmaus2
 				return outputfilenames;
 			}
 
+			struct MergeDenseResult
+			{
+				std::vector<std::string> V;
+				uint64_t s;
+
+				MergeDenseResult() {}
+				MergeDenseResult(std::vector<std::string> const & rV, uint64_t const rs) : V(rV), s(rs) {}
+			};
+
 			/**
 			 * merge sparse gamma coded gap files to a set of dense files
 			 **/
-			std::vector<std::string> mergeToDense(libmaus2::util::TempFileNameGenerator & gtmpgen, uint64_t const n, uint64_t const numthreads)
+			MergeDenseResult mergeToDense(libmaus2::util::TempFileNameGenerator & gtmpgen, uint64_t const n, uint64_t const numthreads)
 			{
 				std::string const tmpfilename = tmpgen.getFileName();
 				std::vector<std::string> const fno = merge(tmpfilename,numthreads);
@@ -456,24 +465,66 @@ namespace libmaus2
 				uint64_t const aparts = (n+partsize-1)/partsize;
 				std::vector<std::string> outputfilenames(aparts);
 
+				int volatile parfailed = 0;
+				uint64_t volatile gs = 0;
+				libmaus2::parallel::PosixSpinLock gslock;
+
 				#if defined(_OPENMP)
 				#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 				#endif
 				for ( uint64_t p = 0; p < aparts; ++p )
 				{
-					std::ostringstream fnostr;
-					fnostr << gtmpgen.getFileName() << "_" << std::setw(6) << std::setfill('0') << p;
-					std::string const fn = fnostr.str();
-					outputfilenames[p] = fn;
+					try
+					{
+						std::ostringstream fnostr;
+						fnostr << gtmpgen.getFileName() << "_" << std::setw(6) << std::setfill('0') << p;
+						std::string const fn = fnostr.str();
+						outputfilenames[p] = fn;
 
-					uint64_t const low = std::min(p * partsize,n);
-					uint64_t const high = std::min(low+partsize,n);
+						uint64_t const low = std::min(p * partsize,n);
+						uint64_t const high = std::min(low+partsize,n);
 
-					libmaus2::gamma::SparseGammaGapConcatDecoderTemplate<data_type> SGGD(fno,low);
-					typename libmaus2::gamma::SparseGammaGapConcatDecoderTemplate<data_type>::iterator it = SGGD.begin();
+						libmaus2::gamma::SparseGammaGapConcatDecoderTemplate<data_type> SGGD(fno,low);
+						typename libmaus2::gamma::SparseGammaGapConcatDecoderTemplate<data_type>::iterator it = SGGD.begin();
 
-					libmaus2::gamma::GammaGapEncoder GGE(fn);
-					GGE.encode(it,high-low);
+						libmaus2::gamma::GammaGapEncoder::unique_ptr_type GGE(new libmaus2::gamma::GammaGapEncoder(fn));
+						GGE->encode(it,high-low);
+						GGE.reset();
+
+						{
+							libmaus2::gamma::GammaGapDecoder GGD(std::vector<std::string>(1,fn),0/* offset */,0/*psym*/,1/*numthreads*/);
+							assert ( GGD.getN() == high-low );
+							libmaus2::gamma::SparseGammaGapConcatDecoderTemplate<data_type> SGGD(fno,low);
+							typename libmaus2::gamma::SparseGammaGapConcatDecoderTemplate<data_type>::iterator it = SGGD.begin();
+
+							uint64_t ls = 0;
+							for ( uint64_t i = 0; i < high-low; ++i )
+							{
+								uint64_t const v = *(it++);
+								uint64_t const vd = GGD.get();
+								assert ( v == vd );
+								ls += v;
+							}
+
+							gslock.lock();
+							gs += ls;
+							gslock.unlock();
+						}
+					}
+					catch(std::exception const & ex)
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+						std::cerr << "[E] SparseGammaGapMultiFileLevelSet::mergeToDense failed: " << ex.what() << std::endl;
+						parfailed = 1;
+					}
+				}
+
+				if ( parfailed )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "[E] SparseGammaGapMultiFileLevelSet::mergeToDense failed" << std::endl;
+					lme.finish();
+					throw lme;
 				}
 
 				#if 0
@@ -492,7 +543,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < fno.size(); ++i )
 					libmaus2::aio::FileRemoval::removeFile(fno[i]);
 
-				return outputfilenames;
+				return MergeDenseResult(outputfilenames,gs);
 			}
 		};
 
