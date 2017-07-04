@@ -452,68 +452,88 @@ namespace libmaus2
 						// compute prefix sums over number of suffixes per block used for each gpart
 						::libmaus2::autoarray::AutoArray < uint64_t > bwtusedcntsacc( (actgparts+1)*(gapfilenames.size()+1), false );
 
+						int volatile parfailed = 0;
+
 						#if defined(_OPENMP)
 						#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 						#endif
 						for ( int64_t z = 0; z < static_cast<int64_t>(spref.size()); ++z )
 						{
-							#if 0
-							(*logstr) << "proc first: " << gmergepackets[z] << ",spref=" << spref[z] << std::endl;
-							#endif
-
-							// offset in first gap array
-							uint64_t lspref = spref[z];
-
-							// array of decoders
-							::libmaus2::autoarray::AutoArray < gapfile_decoder_type::unique_ptr_type > gapdecs(gapfilenames.size());
-
-							for ( uint64_t j = 0; j < gapfilenames.size(); ++j )
+							try
 							{
-								::libmaus2::huffman::KvInitResult kvinitresult;
-								gapfile_decoder_type::unique_ptr_type tgapdecsj(
-									new gapfile_decoder_type(
-										gapfilenames[j],
-										lspref,kvinitresult,
-										numthreads
-									)
-								);
-								gapdecs[j] = UNIQUE_PTR_MOVE(tgapdecsj);
-
-								// key offset for block z and file j
-								bwtusedcntsacc [ j * (actgparts+1) + z ] = kvinitresult.koffset;
-
 								#if 0
-								(*logstr) << "lspref=" << lspref << "," << kvinitresult << std::endl;
+								(*logstr) << "proc first: " << gmergepackets[z] << ",spref=" << spref[z] << std::endl;
 								#endif
 
-								// we should be on a key if j is the first file
-								if ( j == 0 )
+								// offset in first gap array
+								uint64_t lspref = spref[z];
+
+								// array of decoders
+								::libmaus2::autoarray::AutoArray < gapfile_decoder_type::unique_ptr_type > gapdecs(gapfilenames.size());
+
+								for ( uint64_t j = 0; j < gapfilenames.size(); ++j )
 								{
-									if ( kvinitresult.kvtarget != 0 )
+									::libmaus2::huffman::KvInitResult kvinitresult;
+									gapfile_decoder_type::unique_ptr_type tgapdecsj(
+										new gapfile_decoder_type(
+											gapfilenames[j],
+											lspref,kvinitresult,
+											numthreads
+										)
+									);
+									gapdecs[j] = UNIQUE_PTR_MOVE(tgapdecsj);
+
+									// key offset for block z and file j
+									bwtusedcntsacc [ j * (actgparts+1) + z ] = kvinitresult.koffset;
+
+									#if 0
+									(*logstr) << "lspref=" << lspref << "," << kvinitresult << std::endl;
+									#endif
+
+									// we should be on a key if j is the first file
+									if ( j == 0 )
 									{
-										if ( logstr )
-											(*logstr) << "j=0 " << " z=" << z << " lspref=" << lspref <<
-												" kvinitresult.koffset=" << kvinitresult.koffset <<
-												" kvinitresult.voffset=" << kvinitresult.voffset <<
-												" kvinitresult.kvoffset=" << kvinitresult.kvoffset <<
-												" kvinitresult.kvtarget=" << kvinitresult.kvtarget << std::endl;
+										if ( kvinitresult.kvtarget != 0 )
+										{
+											if ( logstr )
+												(*logstr) << "j=0 " << " z=" << z << " lspref=" << lspref <<
+													" kvinitresult.koffset=" << kvinitresult.koffset <<
+													" kvinitresult.voffset=" << kvinitresult.voffset <<
+													" kvinitresult.kvoffset=" << kvinitresult.kvoffset <<
+													" kvinitresult.kvtarget=" << kvinitresult.kvtarget << std::endl;
+										}
+										assert ( kvinitresult.kvtarget == 0 );
 									}
-									assert ( kvinitresult.kvtarget == 0 );
+
+									// offset for next gap file:
+									// sum of values up to key lspref in this file + number of values used for next key
+									lspref = kvinitresult.voffset + kvinitresult.kvtarget;
+
 								}
 
-								// offset for next gap file:
-								// sum of values up to key lspref in this file + number of values used for next key
-								lspref = kvinitresult.voffset + kvinitresult.kvtarget;
+								#if 0
+								if ( logstr )
+									(*logstr) << "lspref=" << lspref << std::endl;
+								#endif
 
+								// set end pointer
+								bwtusedcntsacc [ gapfilenames.size() * (actgparts+1) + z ] = lspref;
 							}
+							catch(std::exception const & ex)
+							{
+								libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+								if ( logstr )
+									(*logstr) << ex.what() << std::endl;
+								parfailed = 1;
+							}
+						}
 
-							#if 0
-							if ( logstr )
-								(*logstr) << "lspref=" << lspref << std::endl;
-							#endif
-
-							// set end pointer
-							bwtusedcntsacc [ gapfilenames.size() * (actgparts+1) + z ] = lspref;
+						if ( parfailed )
+						{
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "[E] parallelGapFragMerge: usedcntsacc loop failed" << std::endl;
+							lme.finish();
+							throw lme;
 						}
 
 						// how many suffixes of each block do we use in each gpart?
@@ -538,126 +558,144 @@ namespace libmaus2
 						#endif
 						for ( int64_t z = 0; z < static_cast<int64_t>(actgparts); ++z )
 						{
-							std::ostringstream ostr;
-							ostr << gtmpgen.getFileName() << "_" << std::setw(4) << std::setfill('0') << z << std::setw(0) << ".bwt";
-							std::string const gpartfrag = ostr.str();
-							::libmaus2::util::TempFileRemovalContainer::addTempFile(gpartfrag);
-							gpartfrags[z] = gpartfrag;
-
-							#if 0
-							if ( logstr )
-								(*logstr) << gmergepackets[z] << ",spref=" << spref[z] << std::endl;
-							#endif
-							uint64_t lspref = spref[z];
-							::libmaus2::autoarray::AutoArray < gapfile_decoder_type::unique_ptr_type > gapdecoders(gapfilenames.size());
-							::libmaus2::autoarray::AutoArray< uint64_t > gapcur(gapfilenames.size());
-
-							// set up gap file decoders at the proper offsets
-							for ( uint64_t j = 0; j < gapfilenames.size(); ++j )
+							try
 							{
-								// sum up number of suffixes in later blocks for this gpart
-								uint64_t suflat = 0;
-								for ( uint64_t k = j+1; k < bwtfilenames.size(); ++k )
-									suflat += bwtusedcnts [ k*actgparts + z ];
-
-								::libmaus2::huffman::KvInitResult kvinitresult;
-								gapfile_decoder_type::unique_ptr_type tgapdecodersj(
-									new gapfile_decoder_type(
-										gapfilenames[j],
-										lspref,kvinitresult,
-										numthreads
-									)
-								);
-								gapdecoders[j] = UNIQUE_PTR_MOVE(tgapdecodersj);
-								if ( suflat )
-									gapcur[j] = gapdecoders[j]->decode();
-								else
-									gapcur[j] = 0;
-
-								lspref = kvinitresult.voffset + kvinitresult.kvtarget;
-
-								if ( j == 0 )
-									assert ( kvinitresult.kvtarget == 0 );
-							}
-
-							::libmaus2::autoarray::AutoArray < uint64_t > bwttowrite(bwtfilenames.size(),false);
-							::libmaus2::autoarray::AutoArray < rl_decoder::unique_ptr_type > bwtdecoders(bwtfilenames.size());
-
-							for ( uint64_t j = 0; j < bwtfilenames.size(); ++j )
-							{
-								uint64_t const bwtoffset = bwtusedcntsacc [ j * (actgparts+1) + z ];
-								bwttowrite[j] = bwtusedcnts [ j * actgparts + z ];
-
-								rl_decoder::unique_ptr_type tbwtdecodersj(
-									new rl_decoder(bwtfilenames[j],bwtoffset,numthreads)
-								);
-								bwtdecoders[j] = UNIQUE_PTR_MOVE(tbwtdecodersj);
+								std::ostringstream ostr;
+								ostr << gtmpgen.getFileName() << "_" << std::setw(4) << std::setfill('0') << z << std::setw(0) << ".bwt";
+								std::string const gpartfrag = ostr.str();
+								::libmaus2::util::TempFileRemovalContainer::addTempFile(gpartfrag);
+								gpartfrags[z] = gpartfrag;
 
 								#if 0
 								if ( logstr )
-									(*logstr) << "block=" << j << " offset=" << bwtoffset << " bwttowrite=" << bwttowrite[j] << std::endl;
+									(*logstr) << gmergepackets[z] << ",spref=" << spref[z] << std::endl;
 								#endif
-							}
+								uint64_t lspref = spref[z];
+								::libmaus2::autoarray::AutoArray < gapfile_decoder_type::unique_ptr_type > gapdecoders(gapfilenames.size());
+								::libmaus2::autoarray::AutoArray< uint64_t > gapcur(gapfilenames.size());
 
-							uint64_t const totalbwt = std::accumulate(bwttowrite.begin(),bwttowrite.end(),0ull);
-
-							rl_encoder bwtenc(gpartfrag,albits /* alphabet */,totalbwt,rlencoderblocksize);
-
-							// start writing loop
-							uint64_t written = 0;
-							while ( written < totalbwt )
-							{
-								// determine file we next read/decode from
-								// this is the leftmost one with gap value 0 and still data to write
-								uint64_t writeindex = bwtdecoders.size()-1;
-								for (
-									uint64_t i = 0;
-									i < gapcur.size();
-									++i
-								)
-									if (
-										(! gapcur[i])
-										&&
-										(bwttowrite[i])
-									)
-									{
-										writeindex = i;
-										break;
-									}
-
-								// sanity check
-								if ( ! bwttowrite[writeindex] )
+								// set up gap file decoders at the proper offsets
+								for ( uint64_t j = 0; j < gapfilenames.size(); ++j )
 								{
-									assert ( bwttowrite[writeindex] );
+									// sum up number of suffixes in later blocks for this gpart
+									uint64_t suflat = 0;
+									for ( uint64_t k = j+1; k < bwtfilenames.size(); ++k )
+										suflat += bwtusedcnts [ k*actgparts + z ];
+
+									::libmaus2::huffman::KvInitResult kvinitresult;
+									gapfile_decoder_type::unique_ptr_type tgapdecodersj(
+										new gapfile_decoder_type(
+											gapfilenames[j],
+											lspref,kvinitresult,
+											numthreads
+										)
+									);
+									gapdecoders[j] = UNIQUE_PTR_MOVE(tgapdecodersj);
+									if ( suflat )
+										gapcur[j] = gapdecoders[j]->decode();
+									else
+										gapcur[j] = 0;
+
+									lspref = kvinitresult.voffset + kvinitresult.kvtarget;
+
+									if ( j == 0 )
+										assert ( kvinitresult.kvtarget == 0 );
 								}
 
-								// adjust counters
-								written++;
-								bwttowrite[writeindex]--;
-								// get next gap value if block is not the last one
-								if ( bwttowrite[writeindex] && writeindex < gapcur.size() )
-									gapcur[writeindex] = gapdecoders[writeindex]->decode();
+								::libmaus2::autoarray::AutoArray < uint64_t > bwttowrite(bwtfilenames.size(),false);
+								::libmaus2::autoarray::AutoArray < rl_decoder::unique_ptr_type > bwtdecoders(bwtfilenames.size());
 
-								// copy symbol
-								uint64_t const sym = bwtdecoders[writeindex]->decode();
-								bwtenc.encode(sym);
+								for ( uint64_t j = 0; j < bwtfilenames.size(); ++j )
+								{
+									uint64_t const bwtoffset = bwtusedcntsacc [ j * (actgparts+1) + z ];
+									bwttowrite[j] = bwtusedcnts [ j * actgparts + z ];
 
-								// adjust gap values of blocks to the left
-								for ( uint64_t i = 0; i < writeindex; ++i )
-									if ( bwttowrite[i] )
+									rl_decoder::unique_ptr_type tbwtdecodersj(
+										new rl_decoder(bwtfilenames[j],bwtoffset,numthreads)
+									);
+									bwtdecoders[j] = UNIQUE_PTR_MOVE(tbwtdecodersj);
+
+									#if 0
+									if ( logstr )
+										(*logstr) << "block=" << j << " offset=" << bwtoffset << " bwttowrite=" << bwttowrite[j] << std::endl;
+									#endif
+								}
+
+								uint64_t const totalbwt = std::accumulate(bwttowrite.begin(),bwttowrite.end(),0ull);
+
+								rl_encoder bwtenc(gpartfrag,albits /* alphabet */,totalbwt,rlencoderblocksize);
+
+								// start writing loop
+								uint64_t written = 0;
+								while ( written < totalbwt )
+								{
+									// determine file we next read/decode from
+									// this is the leftmost one with gap value 0 and still data to write
+									uint64_t writeindex = bwtdecoders.size()-1;
+									for (
+										uint64_t i = 0;
+										i < gapcur.size();
+										++i
+									)
+										if (
+											(! gapcur[i])
+											&&
+											(bwttowrite[i])
+										)
+										{
+											writeindex = i;
+											break;
+										}
+
+									// sanity check
+									if ( ! bwttowrite[writeindex] )
 									{
-										assert ( gapcur[i] > 0 );
-										gapcur[i]--;
+										assert ( bwttowrite[writeindex] );
 									}
+
+									// adjust counters
+									written++;
+									bwttowrite[writeindex]--;
+									// get next gap value if block is not the last one
+									if ( bwttowrite[writeindex] && writeindex < gapcur.size() )
+										gapcur[writeindex] = gapdecoders[writeindex]->decode();
+
+									// copy symbol
+									uint64_t const sym = bwtdecoders[writeindex]->decode();
+									bwtenc.encode(sym);
+
+									// adjust gap values of blocks to the left
+									for ( uint64_t i = 0; i < writeindex; ++i )
+										if ( bwttowrite[i] )
+										{
+											assert ( gapcur[i] > 0 );
+											gapcur[i]--;
+										}
+								}
+								//if ( logstr )
+									// (*logstr) << "(1)";
+
+								// all data should have been written now
+								for ( uint64_t i = 0; i < bwttowrite.size(); ++i )
+									assert ( !bwttowrite[i] );
+
+								bwtenc.flush();
 							}
-							//if ( logstr )
-								// (*logstr) << "(1)";
+							catch(std::exception const & ex)
+							{
+								libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+								if ( logstr )
+									(*logstr) << ex.what() << std::endl;
+								parfailed = 1;
+							}
+						}
 
-							// all data should have been written now
-							for ( uint64_t i = 0; i < bwttowrite.size(); ++i )
-								assert ( !bwttowrite[i] );
-
-							bwtenc.flush();
+						if ( parfailed )
+						{
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "[E] parallelGapFragMerge: usedcntsacc loop failed" << std::endl;
+							lme.finish();
+							throw lme;
 						}
 
 						goutputfilenames = gpartfrags;
@@ -1658,6 +1696,9 @@ namespace libmaus2
 					for ( uint64_t z = 0; z < zactive; ++z )
 						zabsblockpos[z] = zblocks[z].getZAbsPos();
 					zabsblockpos [ zactive ] = blockstart + cblocksize;
+					uint64_t gs = 0;
+					for ( uint64_t z = 0; z < zactive; ++z )
+						gs += zabsblockpos[z]-zabsblockpos[z+1];
 
 					std::vector < std::string > gtpartnames(zactive);
 
@@ -1837,12 +1878,16 @@ namespace libmaus2
 						}
 					}
 
-					std::vector<std::string> const outputgapfilenames = SGGFS.mergeToDense(gtmpgen,cblocksize+1,numthreads);
+					//std::vector<std::string> const outputgapfilenames =
+					libmaus2::gamma::SparseGammaGapMultiFileLevelSet::MergeDenseResult const MDR =
+						SGGFS.mergeToDense(gtmpgen,cblocksize+1,numthreads);
 
 					if ( logstr )
-						(*logstr) << "[V] computed gap array in time " << rtc.getElapsedSeconds() << std::endl;
+						(*logstr) << "[V] computed gap array in time " << rtc.getElapsedSeconds() << " gs=" << gs << " MDR.s=" << MDR.s << std::endl;
 
-					return SparseGapArrayComputationResult(outputgapfilenames,gtpartnames,zactive,zabsblockpos);
+					assert ( gs == MDR.s );
+
+					return SparseGapArrayComputationResult(MDR.V,gtpartnames,zactive,zabsblockpos);
 				}
 
 				static SparseGapArrayComputationResult computeSparseGapArray(
