@@ -1444,6 +1444,7 @@ void testsparsegammamultifilesetmergedense()
 	libmaus2::util::TempFileNameGenerator tmpgen("tmp",3);
 	libmaus2::gamma::SparseGammaGapMultiFileLevelSet SGGF(tmpgen,4);
 	std::map<uint64_t,uint64_t> refM;
+	uint64_t s = 0;
 
 	for ( uint64_t i = 0; i < 25;  ++i )
 	{
@@ -1455,8 +1456,11 @@ void testsparsegammamultifilesetmergedense()
 		libmaus2::gamma::SparseGammaGapBlockEncoder SGE(COS,*PindexCIOS);
 
 		SGE.encode(2*i,i+1);   refM[2*i]   += (i+1);
+		s += i+1;
 		SGE.encode(2*i+2,i+1); refM[2*i+2] += (i+1);
+		s += i+1;
 		SGE.encode(2*i+4,i+1); refM[2*i+4] += (i+1);
+		s += i+1;
 		SGE.term();
 
 		SGGF.addFile(fn);
@@ -1469,7 +1473,10 @@ void testsparsegammamultifilesetmergedense()
 
 	std::string const ffn = tmpgen.getFileName();
 	uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
-	std::vector<std::string> const fno = SGGF.mergeToDense(tmpgen,maxval+1,numthreads);
+	libmaus2::gamma::SparseGammaGapMultiFileLevelSet::MergeDenseResult MDR =
+		SGGF.mergeToDense(tmpgen,maxval+1,numthreads);
+	std::vector<std::string> const fno = MDR.V;
+	assert ( MDR.s == s );
 
 	// libmaus2::aio::InputStreamInstance CIS(ffn);
 	libmaus2::gamma::GammaGapDecoder SGGD(fno,0 /* offset */,0 /* psymoff */, 1 /* numthreads */);
@@ -1504,6 +1511,7 @@ void testsparsegammamultifilesetmergedense2()
 	libmaus2::util::TempFileNameGenerator tmpgen("tmp",3);
 	libmaus2::gamma::SparseGammaGapMultiFileLevelSet2 SGGF(tmpgen,4);
 	std::map<uint64_t,uint64_t> refM;
+	uint64_t s = 0;
 
 	for ( uint64_t i = 0; i < 25;  ++i )
 	{
@@ -1515,8 +1523,11 @@ void testsparsegammamultifilesetmergedense2()
 		libmaus2::gamma::SparseGammaGapBlockEncoder2 SGE(COS,*PindexCIOS);
 
 		SGE.encode(2*i,i+1);   refM[2*i]   += (i+1);
+		s += i+1;
 		SGE.encode(2*i+2,i+1); refM[2*i+2] += (i+1);
+		s += i+1;
 		SGE.encode(2*i+4,i+1); refM[2*i+4] += (i+1);
+		s += i+1;
 		SGE.term();
 
 		SGGF.addFile(fn);
@@ -1529,7 +1540,10 @@ void testsparsegammamultifilesetmergedense2()
 
 	std::string const ffn = tmpgen.getFileName();
 	uint64_t const numthreads = libmaus2::parallel::NumCpus::getNumLogicalProcessors();
-	std::vector<std::string> const fno = SGGF.mergeToDense(tmpgen,maxval+1,numthreads);
+	libmaus2::gamma::SparseGammaGapMultiFileLevelSet2::MergeDenseResult MDR =
+		SGGF.mergeToDense(tmpgen,maxval+1,numthreads);
+	std::vector<std::string> const fno = MDR.V;
+	assert ( MDR.s == s );
 
 	// libmaus2::aio::InputStreamInstance CIS(ffn);
 	libmaus2::gamma::GammaGapDecoder SGGD(fno,0/* offset */, 0 /* psymoff */, 1 /* numthreads */);
