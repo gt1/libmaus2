@@ -289,6 +289,297 @@ namespace libmaus2
 				}
 			};
 
+			static bool transitiveCross(
+				AlignmentTraceContainer const & AB,
+				size_t ABapos,
+				size_t ABbpos,
+				AlignmentTraceContainer const & BC,
+				size_t BCbpos,
+				size_t BCcpos,
+				AlignmentTraceContainer const & AC,
+				size_t ACapos,
+				size_t ACcpos
+			)
+			{
+				step_type const * ABtc = AB.ta;
+				step_type const * BCtc = BC.ta;
+				step_type const * ACtc = AC.ta;
+
+				#if 0
+				std::cerr << std::string(80,'-') << std::endl;
+				#endif
+
+				while ( ABtc != AB.te && BCtc != BC.te && ACtc != AC.te )
+				{
+					#if 0
+					std::cerr
+						<< "ABapos=" << ABapos << " ABbpos=" << ABbpos
+						<< "BCbpos=" << BCbpos << " BCcpos=" << BCcpos
+						<< "ACapos=" << ACapos << " ACcpos=" << ACcpos
+						<< std::endl;
+					#endif
+
+					if ( ABbpos < BCbpos )
+					{
+						switch ( *(ABtc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								ABapos += 1;
+								ABbpos += 1;
+								break;
+							case STEP_INS:
+								ABbpos += 1;
+								break;
+							case STEP_DEL:
+								ABapos += 1;
+								break;
+							case STEP_RESET:
+								break;
+						}
+					}
+					else if ( BCbpos < ABbpos )
+					{
+						switch ( *(BCtc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								BCbpos += 1;
+								BCcpos += 1;
+								break;
+							case STEP_INS:
+								BCcpos += 1;
+								break;
+							case STEP_DEL:
+								BCbpos += 1;
+								break;
+							case STEP_RESET:
+								break;
+						}
+					}
+					else if (
+						*ABtc != *BCtc
+						||
+						*ABtc != STEP_MATCH
+						||
+						ABapos < ACapos
+						||
+						BCcpos < ACcpos
+					)
+					{
+						switch ( *(ABtc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								ABapos += 1;
+								ABbpos += 1;
+								break;
+							case STEP_INS:
+								ABbpos += 1;
+								break;
+							case STEP_DEL:
+								ABapos += 1;
+								break;
+							case STEP_RESET:
+								break;
+						}
+						switch ( *(BCtc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								BCbpos += 1;
+								BCcpos += 1;
+								break;
+							case STEP_INS:
+								BCcpos += 1;
+								break;
+							case STEP_DEL:
+								BCbpos += 1;
+								break;
+							case STEP_RESET:
+								break;
+						}
+					}
+					else if (
+						ACapos < ABapos
+						||
+						ACcpos < BCcpos
+						||
+						*ACtc != STEP_MATCH
+					)
+					{
+						switch ( *(ACtc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								ACapos += 1;
+								ACcpos += 1;
+								break;
+							case STEP_INS:
+								ACcpos += 1;
+								break;
+							case STEP_DEL:
+								ACapos += 1;
+								break;
+							case STEP_RESET:
+								break;
+						}
+					}
+					else
+					{
+						assert ( ABbpos == BCbpos );
+						assert ( *ABtc == *BCtc );
+						assert ( *ABtc == STEP_MATCH );
+						assert ( ACapos == ABapos );
+						assert ( ACcpos == BCcpos );
+						assert ( *ACtc == STEP_MATCH );
+
+						return true;
+					}
+				}
+
+				return false;
+			}
+
+			// A, B
+			// C, A
+			// C, B
+			static bool tripleCross(
+				AlignmentTraceContainer const & AB,
+				size_t ABapos,
+				size_t ABbpos,
+				AlignmentTraceContainer const & CA,
+				size_t CAcpos,
+				size_t CAapos,
+				AlignmentTraceContainer const & CB,
+				size_t CBcpos,
+				size_t CBbpos
+			)
+			{
+				step_type const * ABtc = AB.ta;
+				step_type const * CAtc = CA.ta;
+				step_type const * CBtc = CB.ta;
+
+				while ( ABtc != AB.te && CAtc != CA.te && CBtc != CB.te )
+				{
+					if ( CAcpos < CBcpos )
+					{
+						switch ( *(CAtc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								CAcpos += 1;
+								CAapos += 1;
+								break;
+							case STEP_INS:
+								CAapos += 1;
+								break;
+							case STEP_DEL:
+								CAcpos += 1;
+								break;
+							case STEP_RESET:
+								break;
+
+						}
+					}
+					else if ( CBcpos < CAcpos )
+					{
+						switch ( *(CBtc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								CBcpos += 1;
+								CBbpos += 1;
+								break;
+							case STEP_INS:
+								CBbpos += 1;
+								break;
+							case STEP_DEL:
+								CBcpos += 1;
+								break;
+							case STEP_RESET:
+								break;
+						}
+					}
+					else if (
+						*CAtc != *CBtc
+						||
+						*CAtc != STEP_MATCH
+						||
+						CAapos < ABapos
+						||
+						CBbpos < ABbpos
+					)
+					{
+						switch ( *(CAtc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								CAcpos += 1;
+								CAapos += 1;
+								break;
+							case STEP_INS:
+								CAapos += 1;
+								break;
+							case STEP_DEL:
+								CAcpos += 1;
+								break;
+							case STEP_RESET:
+								break;
+
+						}
+						switch ( *(CBtc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								CBcpos += 1;
+								CBbpos += 1;
+								break;
+							case STEP_INS:
+								CBbpos += 1;
+								break;
+							case STEP_DEL:
+								CBcpos += 1;
+								break;
+							case STEP_RESET:
+								break;
+						}
+					}
+					else if ( ABapos < CAapos || ABbpos < CBbpos || *ABtc != STEP_MATCH )
+					{
+						switch ( *(ABtc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								ABapos += 1;
+								ABbpos += 1;
+								break;
+							case STEP_INS:
+								ABbpos += 1;
+								break;
+							case STEP_DEL:
+								ABapos += 1;
+								break;
+							case STEP_RESET:
+								break;
+						}
+					}
+					else
+					{
+						assert ( CAcpos == CBcpos );
+						assert ( CAapos == ABapos );
+						assert ( CBbpos == ABbpos );
+						assert ( *CAtc == STEP_MATCH );
+						assert ( *CBtc == STEP_MATCH );
+						assert ( *ABtc == STEP_MATCH );
+
+						return true;
+					}
+				}
+
+				return false;
+			}
+
 			static bool cross(
 				AlignmentTraceContainer const & A,
 				size_t Aapos,

@@ -1,3 +1,23 @@
+libmaus2 (2.0.349-1) unstable; urgency=medium
+
+  * update testgamma to reflect new merging interfaces
+  * improve error checking in BwtMergeSortTemplate
+  * add checking in mergeToDense method of SparseGammaGapMultiFileSet
+  * add checking in mergeToDense method of SparseGammaGapMultiFileLevelSet
+  * add getAlignmentAt function in OverlapIndexer class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 04 Jul 2017 12:32:41 +0200
+
+libmaus2 (2.0.348-1) unstable; urgency=medium
+
+  * add bbpos and bepos fields in ContainmentInfo
+  * add transitiveCross function in AlignmentTraceContainer
+  * add getu method in DatabaseFile
+  * add getAlignments functions in OverlapIndexer class
+  * add tripleCross function in AlignmentTraceContainer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 03 Jul 2017 15:38:25 +0200
+
 libmaus2 (2.0.347-1) unstable; urgency=medium
 
   * add methods thresLow, thresLowInv, poissonViaLog, thresLowInvLog, getVectorViaLog, lowerSum and function gamma_q in Poisson class

@@ -161,9 +161,10 @@ namespace libmaus2
 				return fno;
 			}
 
-			void mergeToDense(std::string const & outputfilename, uint64_t const n)
+			uint64_t mergeToDense(std::string const & outputfilename, uint64_t const n)
 			{
 				libmaus2::parallel::ScopeLock slock(lock);
+				uint64_t s = 0;
 
 				while ( canMerge() )
 					doMerge(tmpgen.getFileName());
@@ -173,12 +174,38 @@ namespace libmaus2
 					libmaus2::gamma::SparseGammaGapConcatDecoderTemplate<data_type> SGGD(Q.top().fn);
 					typename libmaus2::gamma::SparseGammaGapConcatDecoderTemplate<data_type>::iterator it = SGGD.begin();
 
-					libmaus2::gamma::GammaGapEncoder GGE(outputfilename);
-					GGE.encode(it,n);
+					libmaus2::gamma::GammaGapEncoder::unique_ptr_type GGE(new libmaus2::gamma::GammaGapEncoder(outputfilename));
+					GGE->encode(it,n);
+					GGE.reset();
+
+					{
+						libmaus2::gamma::GammaGapDecoder GGD(
+							std::vector<std::string>(1,outputfilename),
+							0 /* offset */,
+							0 /* psymoffset */,
+							1 /* numthreads */
+						);
+
+						assert ( GGD.getN() == n );
+
+						libmaus2::gamma::SparseGammaGapConcatDecoderTemplate<data_type> SGGD(Q.top().fn);
+						typename libmaus2::gamma::SparseGammaGapConcatDecoderTemplate<data_type>::iterator it = SGGD.begin();
+
+						for ( uint64_t i = 0; i < n; ++i )
+						{
+							uint64_t const v = *(it++);
+							uint64_t const vd = GGD.get();
+							assert ( v == vd );
+
+							s += v;
+						}
+					}
 
 					for ( uint64_t i = 0; i < Q.top().fn.size(); ++i )
 						libmaus2::aio::FileRemoval::removeFile(Q.top().fn[i]);
 				}
+
+				return s;
 			}
 		};
 
