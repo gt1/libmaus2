@@ -265,7 +265,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/dazzler/align/OverlapHeader.cpp \
 	libmaus2/bambam/BamAlignment.cpp \
 	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeInput.cpp \
-	libmaus2/util/Command.cpp
+	libmaus2/util/Command.cpp \
+	libmaus2/aio/InputOutputStreamInstance.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1423,7 +1424,9 @@ libmaus2aio_include_HEADERS=\
 	libmaus2/aio/DebugLineOutputStreamBuffer.hpp \
 	libmaus2/aio/DebugLineOutputStream.hpp \
 	libmaus2/aio/TempFileArray.hpp \
-	libmaus2/aio/SerialisedPeeker.hpp
+	libmaus2/aio/SerialisedPeeker.hpp \
+	libmaus2/aio/InputOutputStreamPointerWrapper.hpp \
+	libmaus2/aio/InputOutputStreamInstance.hpp
 	
 libmaus2parallel_includedir=$(includedir)/libmaus2/parallel
 libmaus2parallel_include_HEADERS=\

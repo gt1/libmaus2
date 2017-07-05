@@ -78,14 +78,14 @@ namespace libmaus2
 				if ( (cxxmode & std::ios::app) )
 				{
 					libmaus2::exception::LibMausException lme;
-					lme.getStream() << "libmaus2::aio::PosixFdInputOutputStreamBuffer::doOpen(): neither std::ios::app flag not supported" << std::endl;
+					lme.getStream() << "libmaus2::aio::PosixFdInputOutputStreamBuffer::doOpen(): std::ios::app flag not supported" << std::endl;
 					lme.finish();
 					throw lme;
 				}
 				if ( (cxxmode & std::ios::ate) )
 				{
 					libmaus2::exception::LibMausException lme;
-					lme.getStream() << "libmaus2::aio::PosixFdInputOutputStreamBuffer::doOpen(): neither std::ios::ate flag not supported" << std::endl;
+					lme.getStream() << "libmaus2::aio::PosixFdInputOutputStreamBuffer::doOpen(): std::ios::ate flag not supported" << std::endl;
 					lme.finish();
 					throw lme;
 				}

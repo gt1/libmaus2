@@ -1,3 +1,12 @@
+libmaus2 (2.0.350-1) unstable; urgency=medium
+
+  * add fillErrorHistogram with double errors in Overlap class
+  * fix error message about unsupported flags in PosixFdInputOutputStreamBuffer
+  * add sort/sortUnique in SortingBufferedOutputFile
+  * add InputOutputStreamInstance class and support classes
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 05 Jul 2017 23:01:57 +0200
+
 libmaus2 (2.0.349-1) unstable; urgency=medium
 
   * update testgamma to reflect new merging interfaces
