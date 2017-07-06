@@ -894,6 +894,43 @@ namespace libmaus2
 				}
 
 				/**
+				 * get error block histogram
+				 *
+				 * @param tspace trace point spacing
+				 **/
+				void fillErrorHistogram(
+					int64_t const tspace,
+					std::map< uint64_t, std::map<double,uint64_t> > & H,
+					int64_t const rlen
+				) const
+				{
+					// current point on A
+					int32_t a_i = ( path.abpos / tspace ) * tspace;
+
+					for ( size_t i = 0; i < path.path.size(); ++i )
+					{
+						// block start on A
+						int32_t const a_i_0 = std::max( a_i, path.abpos );
+						// block end point on A
+						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(path.aepos) );
+
+						bool const blockleftaligned = (a_i_0 % tspace == 0);
+						bool const blockrightaligned = (a_i_1 % tspace == 0 );
+						bool const blocknonempty = (a_i_1 > a_i_0);
+						bool const fullblock = blockleftaligned && blockrightaligned && blocknonempty;
+
+						if ( fullblock )
+							H [ a_i / tspace ][ static_cast<double>(path.path[i].first) / tspace ]++;
+						// last block on read
+						else if ( blockleftaligned && (a_i_1 == rlen) )
+							H [ a_i / tspace ][ static_cast<double>(path.path[i].first) / (rlen - a_i_0) ]++;
+
+						// update start points
+						a_i = a_i_1;
+					}
+				}
+
+				/**
 				 * get bases in full blocks and number of errors in these blocks
 				 *
 				 * @param tspace trace point spacing
