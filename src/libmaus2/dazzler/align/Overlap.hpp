@@ -1231,6 +1231,98 @@ namespace libmaus2
 					}
 				}
 
+				struct OffsetInfo
+				{
+					int64_t apos;
+					int64_t bpos;
+					uint64_t offset;
+
+					OffsetInfo() {}
+					OffsetInfo(
+						int64_t const rapos,
+						int64_t const rbpos,
+						uint64_t const roffset
+					) : apos(rapos), bpos(rbpos), offset(roffset) {}
+				};
+
+				template<typename path_type>
+				static OffsetInfo getBforAOffset(
+					int64_t const tspace,
+					int64_t const abpos,
+					int64_t const aepos,
+					int64_t const bbpos,
+					int64_t const bepos,
+					int64_t const a,
+					path_type const path,
+					uint64_t const pathsize
+				)
+				{
+					// current point on A
+					int32_t a_i = ( abpos / tspace ) * tspace;
+					// current point on B
+					int32_t b_i = ( bbpos );
+
+					for ( size_t i = 0; i < pathsize; ++i )
+					{
+						// block start point on A
+						int32_t const a_i_0 = std::max ( a_i, static_cast<int32_t>(abpos) );
+						// block end point on A
+						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(aepos) );
+						// block end point on B
+						int32_t const b_i_1 = b_i + path[i].second;
+
+						if ( a_i_0 == a )
+							return OffsetInfo(a_i_0,b_i,i);
+
+						// update start points
+						b_i = b_i_1;
+						a_i = a_i_1;
+					}
+
+					if ( a_i == a )
+						return OffsetInfo(a_i,b_i,pathsize);
+
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "[E] Overlap::getBforAOffset: no result for a=" << a << std::endl;
+					lme.finish();
+					throw lme;
+				}
+
+				template<typename path_type>
+				static Overlap subOverlap(
+					int64_t const tspace,
+					int64_t const aread,
+					int64_t const bread,
+					bool const inv,
+					OffsetInfo const & from,
+					OffsetInfo const & to,
+					path_type const path,
+					uint64_t const pathsize
+				)
+				{
+					Overlap OVL;
+					OVL.aread = aread;
+					OVL.bread = bread;
+					OVL.flags = inv ? getInverseFlag() : 0;
+					OVL.path.abpos = from.apos;
+					OVL.path.aepos = to.apos;
+					OVL.path.bbpos = from.bpos;
+					OVL.path.bepos = to.bpos;
+					OVL.path.path.resize(to.offset-from.offset);
+
+					OVL.path.diffs = 0;
+					for ( uint64_t i = from.offset; i < to.offset; ++i )
+					{
+						OVL.path.path[i-from.offset] = path[i];
+						OVL.path.diffs += path[i].first;
+					}
+
+					OVL.path.tlen = 2*OVL.path.path.size();
+
+					return OVL;
+				}
+
+
 				Path getSwappedPath(int64_t const tspace) const
 				{
 					return computePath(getSwappedTraceBlocks(tspace));
