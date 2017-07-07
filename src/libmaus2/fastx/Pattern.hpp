@@ -270,6 +270,20 @@ namespace libmaus2
 				}
 				return out;
                         }
+
+                        static std::ostream & printMultiLine(std::ostream & out, char const * it, uint64_t n, uint64_t const cols)
+                        {
+                        	while ( n )
+                        	{
+                        		uint64_t const toprint = std::min(n,cols);
+                        		out.write(it,toprint);
+                        		out.put('\n');
+                        		n -= toprint;
+                        		it += toprint;
+				}
+				return out;
+                        }
+
                         std::ostream & printMultiLine(std::ostream & out, unsigned int const cols, uint64_t & offset) const
                         {
                         	std::string const id = getStringId();
