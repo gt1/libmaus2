@@ -167,6 +167,39 @@ namespace libmaus2
 				libmaus2::aio::FileRemoval::removeFile(tmp);
 			}
 
+			static void reduce(
+				std::vector<std::string> const & Vfn,
+				std::string const & tmp,
+				std::ostream & OSI,
+				uint64_t const blocksize = 1024ull,
+				uint64_t const backblocksize = 1024ull,
+				uint64_t const maxfan = 16ull
+			)
+			{
+				libmaus2::util::TempFileRemovalContainer::addTempFile(tmp);
+				unique_ptr_type U(new this_type(tmp,blocksize));
+				data_type D;
+
+				for ( uint64_t i = 0; i < Vfn.size(); ++i )
+				{
+					libmaus2::aio::InputStreamInstance ISI(Vfn[i]);
+					while ( ISI && ISI.peek() != std::istream::traits_type::eof() )
+					{
+						D.deserialise(ISI);
+						U->put(D);
+					}
+				}
+
+				merger_ptr_type Pmerger(U->getMerger(backblocksize,maxfan));
+				while ( Pmerger->getNext(D) )
+					D.serialise(OSI);
+				OSI.flush();
+				Pmerger.reset();
+				U.reset();
+
+				libmaus2::aio::FileRemoval::removeFile(tmp);
+			}
+
 			static void sortUnique(
 				std::string const & fn,
 				uint64_t const blocksize = 1024ull,
