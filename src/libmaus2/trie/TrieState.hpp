@@ -303,6 +303,29 @@ namespace libmaus2
 			}
 
 			template<typename iterator>
+			int64_t searchNoFailure(iterator ita, iterator ite) const
+			{
+				int64_t cur = 0;
+				int64_t curids = 0;
+
+				iterator itc = ita;
+
+				while ( itc != ite && cur != -1 && hasTransition(cur,*itc) )
+				{
+					int64_t const sym = *(itc++);
+
+					cur = H->get(pairToHashValue(cur,sym));
+					if ( V[cur].ids.size() )
+						curids = cur;
+				}
+
+				if ( V[curids].ids.size() )
+					return V[curids].ids[0];
+				else
+					return -1;
+			}
+
+			template<typename iterator>
 			int64_t searchCompleteNoFailureZ(iterator ita) const
 			{
 				int64_t cur = 0;
