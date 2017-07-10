@@ -1222,7 +1222,7 @@ namespace libmaus2
 							(*logstr) << "[V] Generating HWT for gap file computation...";
 						assert ( libmaus2::util::GetFileSize::fileExists(blockresults.getFiles().getHWTReq() ) );
 						libmaus2::wavelet::RlToHwtTermRequest::unique_ptr_type ureq(libmaus2::wavelet::RlToHwtTermRequest::load(blockresults.getFiles().getHWTReq()));
-						libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type	ptr(ureq->dispatch<rl_decoder>());
+						libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type ptr(ureq->dispatch<rl_decoder>());
 						libmaus2::aio::FileRemoval::removeFile ( blockresults.getFiles().getHWTReq().c_str() );
 						if ( logstr )
 							(*logstr) << "done, time " << rtc.getElapsedSeconds() << std::endl;
