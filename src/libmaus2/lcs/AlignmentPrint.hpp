@@ -220,7 +220,9 @@ namespace libmaus2
 				size_t const bn,
 				uint64_t const rlinewidth,
 				alignment_iterator const rta,
-				alignment_iterator const rte
+				alignment_iterator const rte,
+				uint64_t const rposa = 0,
+				uint64_t const rposb = 0
 			)
 			{
 				std::ostringstream astr;
@@ -284,28 +286,38 @@ namespace libmaus2
 				std::string const ca = cstr.str();
 				uint64_t const linewidth = rlinewidth-2;
 				uint64_t const numlines = (std::max(aa.size(),ba.size()) + linewidth-1) / linewidth;
+				uint64_t posa = rposa;
+				uint64_t posb = rposb;
 
 				for ( uint64_t i = 0; i < numlines; ++i )
 				{
 					uint64_t pl = i*linewidth;
 
-					out << "A ";
+					out << "A " << std::setw(6) << posa << std::setw(0) << " ";
 					if ( pl < aa.size() )
 					{
 						uint64_t const alen = std::min(linewidth,aa.size()-pl);
-						out << aa.substr(pl,alen);
+						std::string const pr = aa.substr(pl,alen);
+						out << pr;
+						for ( uint64_t i = 0; i < pr.size(); ++i )
+							if ( pr[i] != ' ' )
+								posa++;
 					}
 					out << std::endl;
 
-					out << "B ";
+					out << "B " << std::setw(6) << posb << std::setw(0) << " ";
 					if ( pl < ba.size() )
 					{
 						uint64_t const blen = std::min(linewidth,ba.size()-pl);
-						out << ba.substr(pl,blen);
+						std::string const pr = ba.substr(pl,blen);
+						out << pr;
+						for ( uint64_t i = 0; i < pr.size(); ++i )
+							if ( pr[i] != ' ' )
+								posb++;
 					}
 					out << std::endl;
 
-					out << "  ";
+					out << std::string(9,' ');
 					if ( pl < ca.size() )
 					{
 						uint64_t const clen = std::min(linewidth,ca.size()-pl);
@@ -335,7 +347,9 @@ namespace libmaus2
 				uint64_t const rlinewidth,
 				alignment_iterator const rta,
 				alignment_iterator const rte,
-				map_function_t map_function
+				map_function_t map_function,
+				uint64_t const rposa = 0,
+				uint64_t const rposb = 0
 			)
 			{
 				std::ostringstream astr;
@@ -400,27 +414,38 @@ namespace libmaus2
 				uint64_t const linewidth = rlinewidth-2;
 				uint64_t const numlines = (std::max(aa.size(),ba.size()) + linewidth-1) / linewidth;
 
+				uint64_t posa = rposa;
+				uint64_t posb = rposb;
+
 				for ( uint64_t i = 0; i < numlines; ++i )
 				{
 					uint64_t pl = i*linewidth;
 
-					out << "A ";
+					out << "A " << std::setw(6) << posa << std::setw(0);
 					if ( pl < aa.size() )
 					{
 						uint64_t const alen = std::min(linewidth,aa.size()-pl);
-						out << aa.substr(pl,alen);
+						std::string const pr = aa.substr(pl,alen);
+						out << pr;
+						for ( uint64_t i = 0; i < pr.size(); ++i )
+							if ( pr[i] != ' ' )
+								posa++;
 					}
 					out << std::endl;
 
-					out << "B ";
+					out << "B " << std::setw(6) << posb << std::setw(0);
 					if ( pl < ba.size() )
 					{
 						uint64_t const blen = std::min(linewidth,ba.size()-pl);
-						out << ba.substr(pl,blen);
+						std::string const pr = ba.substr(pl,blen);
+						out << pr;
+						for ( uint64_t i = 0; i < pr.size(); ++i )
+							if ( pr[i] != ' ' )
+								posb++;
 					}
 					out << std::endl;
 
-					out << "  ";
+					out << std::string(9,' ');
 					if ( pl < ca.size() )
 					{
 						uint64_t const clen = std::min(linewidth,ca.size()-pl);
