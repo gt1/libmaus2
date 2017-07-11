@@ -15,10 +15,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_DAZZLER_ALIGN_OVERLAPHEADER_HPP)
-#define LIBMAUS2_DAZZLER_ALIGN_OVERLAPHEADER_HPP
+#if ! defined(LIBMAUS2_DAZZLER_ALIGN_OVERLAPINFO_HPP)
+#define LIBMAUS2_DAZZLER_ALIGN_OVERLAPINFO_HPP
 
-#include <libmaus2/dazzler/align/OverlapInfo.hpp>
 #include <libmaus2/types/types.hpp>
 #include <ostream>
 
@@ -28,65 +27,47 @@ namespace libmaus2
 	{
 		namespace align
 		{
-			struct OverlapHeader
+			struct OverlapInfo
 			{
 				int64_t aread;
 				int64_t bread;
-				bool inv;
 				int64_t abpos;
 				int64_t aepos;
 				int64_t bbpos;
 				int64_t bepos;
-				int64_t diffs;
 
-				OverlapHeader() {}
-				OverlapHeader(
+				OverlapInfo()
+				{
+				}
+				OverlapInfo(
 					int64_t const raread,
 					int64_t const rbread,
-					bool const rinv,
 					int64_t const rabpos,
 					int64_t const raepos,
 					int64_t const rbbpos,
-					int64_t const rbepos,
-					int64_t const rdiffs
-				)
-				: aread(raread), bread(rbread), inv(rinv), abpos(rabpos), aepos(raepos), bbpos(rbbpos), bepos(rbepos), diffs(rdiffs)
-				{}
+					int64_t const rbepos
+				) : aread(raread), bread(rbread), abpos(rabpos), aepos(raepos), bbpos(rbbpos), bepos(rbepos) {}
 
-				OverlapInfo getInfo() const
+				OverlapInfo inverse(uint64_t const alen, uint64_t const blen) const
 				{
 					return OverlapInfo(
-						(2*aread),
-						(2*bread) | (inv ? 1 : 0),
-						abpos,
-						aepos,
-						bbpos,
-						bepos
+						aread ^ 1,
+						bread ^ 1,
+						alen - aepos,
+						alen - abpos,
+						blen - bepos,
+						blen - bbpos
 					);
 				}
 
-				bool operator==(OverlapHeader const & O) const
+				template<typename iterator>
+				OverlapInfo inverse(iterator A) const
 				{
-					return
-						inv == O.inv
-						&&
-						aread == O.aread
-						&&
-						bread == O.bread
-						&&
-						abpos == O.abpos
-						&&
-						aepos == O.aepos
-						&&
-						bbpos == O.bbpos
-						&&
-						bepos == O.bepos
-						&&
-						diffs == O.diffs;
+					return inverse(A[aread/2],A[bread/2]);
 				}
 			};
 
-			std::ostream & operator<<(std::ostream & out, OverlapHeader const & O);
+			std::ostream & operator<<(std::ostream & out, OverlapInfo const & O);
 		}
 	}
 }
