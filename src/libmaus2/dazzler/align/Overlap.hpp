@@ -1016,6 +1016,7 @@ namespace libmaus2
 					int64_t const tspace,
 					uint8_t const * aptr,
 					int64_t const alen,
+					// pointer to B or RC of B (check isInverse)
 					uint8_t const * bptr,
 					int64_t const blen,
 					libmaus2::autoarray::AutoArray<uint8_t> & Binv,
@@ -1027,7 +1028,7 @@ namespace libmaus2
 					{
 						computeTrace(path,aptr,bptr,tspace,ATC,aligner);
 						ATC.swapRoles();
-						// std::reverse(ATC.ta,ATC.te);
+
 						Overlap OVL;
 						OVL.flags = flags;
 						OVL.aread = bread;
@@ -1042,16 +1043,10 @@ namespace libmaus2
 					}
 					else
 					{
-						if ( static_cast<int64_t>(Binv.size()) < blen )
-							Binv.resize(blen);
-						std::copy(bptr,bptr+blen,Binv.begin());
-						std::reverse(Binv.begin(),Binv.begin()+blen);
-						for ( int64_t i = 0; i < blen; ++i )
-							Binv[i] = libmaus2::fastx::invertUnmapped(Binv[i]);
-
-						computeTrace(path,aptr,Binv.begin(),tspace,ATC,aligner);
+						computeTrace(path,aptr,bptr,tspace,ATC,aligner);
 						ATC.swapRoles();
 						std::reverse(ATC.ta,ATC.te);
+
 						Overlap OVL;
 						OVL.flags = flags;
 						OVL.aread = bread;
