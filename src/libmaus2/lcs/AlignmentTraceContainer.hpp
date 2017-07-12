@@ -755,6 +755,105 @@ namespace libmaus2
 				return (Aapos == Bapos);
 			}
 
+			static bool a_sync_match(
+				AlignmentTraceContainer const & A,
+				size_t Aapos,
+				uint64_t & offseta,
+				AlignmentTraceContainer const & B,
+				size_t Bapos,
+				uint64_t & offsetb
+			)
+			{
+				step_type const * Atc = A.ta;
+				step_type const * Btc = B.ta;
+
+				while (
+					(Atc != A.te) && (Btc != B.te)
+				)
+				{
+					// std::cerr << Aapos << "," << Abpos << " " << Bapos << "," << Bbpos << std::endl;
+
+					if ( (Aapos < Bapos) )
+					{
+						switch ( *(Atc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								Aapos += 1;
+								break;
+							case STEP_INS:
+								break;
+							case STEP_DEL:
+								Aapos += 1;
+								break;
+							case STEP_RESET:
+								break;
+						}
+					}
+					else if ( (Bapos < Aapos) )
+					{
+						switch ( *(Btc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								Bapos += 1;
+								break;
+							case STEP_INS:
+								break;
+							case STEP_DEL:
+								Bapos += 1;
+								break;
+							case STEP_RESET:
+								break;
+						}
+					}
+					else if ( *Atc != STEP_MATCH || *Btc != STEP_MATCH )
+					{
+						switch ( *(Atc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								Aapos += 1;
+								break;
+							case STEP_INS:
+								break;
+							case STEP_DEL:
+								Aapos += 1;
+								break;
+							case STEP_RESET:
+								break;
+						}
+						switch ( *(Btc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								Bapos += 1;
+								break;
+							case STEP_INS:
+								break;
+							case STEP_DEL:
+								Bapos += 1;
+								break;
+							case STEP_RESET:
+								break;
+						}
+					}
+					else
+					{
+						assert ( Aapos == Bapos );
+						assert ( *Atc == STEP_MATCH );
+						assert ( *Btc == STEP_MATCH );
+
+						offseta = Atc - A.ta;
+						offsetb = Btc - B.ta;
+
+						return true;
+					}
+				}
+
+				return false;
+			}
+
 			static bool b_sync(
 				AlignmentTraceContainer const & A,
 				size_t Abpos,
