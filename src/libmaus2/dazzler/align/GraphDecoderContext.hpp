@@ -50,7 +50,13 @@ namespace libmaus2
 
 				libmaus2::dazzler::align::OverlapHeader const & operator[](uint64_t const i) const
 				{
-					assert ( i < n );
+					if ( ! ( i < n ) )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "GraphDecoderContext::operator[](" << i << "): index " << i << " is out of range [" << 0 << "," << n << ")";
+						lme.finish();
+						throw lme;
+					}
 					return A[i];
 				}
 
