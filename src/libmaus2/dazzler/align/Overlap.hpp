@@ -1019,7 +1019,6 @@ namespace libmaus2
 					// pointer to B or RC of B (check isInverse)
 					uint8_t const * bptr,
 					int64_t const blen,
-					libmaus2::autoarray::AutoArray<uint8_t> & Binv,
 					libmaus2::lcs::AlignmentTraceContainer & ATC,
 					libmaus2::lcs::Aligner & aligner
 				) const
