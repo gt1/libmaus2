@@ -240,6 +240,194 @@ namespace libmaus2
 				return maxerr;
 			}
 
+			struct WindowErrorLargeResult
+			{
+				double maxerr;
+				step_type const * t0;
+				step_type const * t1;
+
+				WindowErrorLargeResult() {}
+				WindowErrorLargeResult(double const rmaxerr, step_type const * rt0, step_type const * rt1)
+				: maxerr(rmaxerr), t0(rt0), t1(rt1) {}
+			};
+
+			static WindowErrorLargeResult windowErrorLargeDetail(step_type const * ta, step_type const * te, uint64_t const w)
+			{
+				uint64_t c = 0;
+				uint64_t e = 0;
+
+				step_type const * t0 = ta;
+				step_type const * t1 = ta;
+
+				// accumulate positions until we reach w
+				while ( t1 != te && c < w )
+				{
+					switch ( *t1++ )
+					{
+						case STEP_DEL:
+						case STEP_MISMATCH:
+							c++;
+							e++;
+							break;
+						case STEP_MATCH:
+							c++;
+							break;
+						case STEP_INS:
+							e++;
+							break;
+						default:
+							break;
+					}
+				}
+
+				// set first window error
+				double maxerr = e / static_cast<double>(c);
+				step_type const * maxt0 = t0;
+				step_type const * maxt1 = t1;
+
+				// add more trace points
+				while ( t1 != te )
+				{
+					switch ( *t1++ )
+					{
+						case STEP_DEL:
+						case STEP_MISMATCH:
+							c++;
+							e++;
+							break;
+						case STEP_MATCH:
+							c++;
+							break;
+						case STEP_INS:
+							e++;
+							break;
+						default:
+							break;
+					}
+
+					// remove from front of window until we reach w
+					while ( t0 != t1 && c > w )
+					{
+						switch ( *t0++ )
+						{
+							case STEP_DEL:
+							case STEP_MISMATCH:
+								--c;
+								--e;
+								break;
+							case STEP_MATCH:
+								--c;
+								break;
+							case STEP_INS:
+								--e;
+								break;
+							default:
+								break;
+						}
+					}
+					assert ( c == w );
+
+					// set new maximum
+					double const ed = e / static_cast<double>(c);
+					if ( ed > maxerr )
+					{
+						maxerr = ed;
+						maxt0 = t0;
+						maxt1 = t1;
+					}
+				}
+
+				return WindowErrorLargeResult(maxerr,maxt0,maxt1);
+			}
+
+			static double windowErrorLarge(step_type const * ta, step_type const * te, uint64_t const w)
+			{
+				uint64_t c = 0;
+				uint64_t e = 0;
+
+				step_type const * t0 = ta;
+				step_type const * t1 = ta;
+
+				// accumulate positions until we reach w
+				while ( t1 != te && c < w )
+				{
+					switch ( *t1++ )
+					{
+						case STEP_DEL:
+						case STEP_MISMATCH:
+							c++;
+							e++;
+							break;
+						case STEP_MATCH:
+							c++;
+							break;
+						case STEP_INS:
+							e++;
+							break;
+						default:
+							break;
+					}
+				}
+
+				// set first window error
+				double maxerr = e / static_cast<double>(c);
+
+				// add more trace points
+				while ( t1 != te )
+				{
+					switch ( *t1++ )
+					{
+						case STEP_DEL:
+						case STEP_MISMATCH:
+							c++;
+							e++;
+							break;
+						case STEP_MATCH:
+							c++;
+							break;
+						case STEP_INS:
+							e++;
+							break;
+						default:
+							break;
+					}
+
+					// remove from front of window until we reach w
+					while ( t0 != t1 && c > w )
+					{
+						switch ( *t0++ )
+						{
+							case STEP_DEL:
+							case STEP_MISMATCH:
+								--c;
+								--e;
+								break;
+							case STEP_MATCH:
+								--c;
+								break;
+							case STEP_INS:
+								--e;
+								break;
+							default:
+								break;
+						}
+					}
+					assert ( c == w );
+
+					// set new maximum
+					double const ed = e / static_cast<double>(c);
+					if ( ed > maxerr )
+						maxerr = ed;
+				}
+
+				return maxerr;
+			}
+
+			double windowErrorLarge(uint64_t const w) const
+			{
+				return windowErrorLarge(ta,te,w);
+			}
+
 			struct ClipPair
 			{
 				std::pair<uint64_t,uint64_t> A;

@@ -1,3 +1,11 @@
+libmaus2 (2.0.356-1) unstable; urgency=medium
+
+  * remove useless argument from getSwapped in Overlap class
+  * add windowErrorLargeDetail function in AlignmentTraceContainer class
+  * update getSwapped method in Overlap class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 13 Jul 2017 13:29:59 +0200
+
 libmaus2 (2.0.355-1) unstable; urgency=medium
 
   * add a_sync_match function in AlignmentTraceContainer
