@@ -25,6 +25,7 @@
 #endif
 
 #include <libmaus2/aio/MemoryFile.hpp>
+#include <libmaus2/aio/StreamLock.hpp>
 
 namespace libmaus2
 {
@@ -61,6 +62,7 @@ namespace libmaus2
 
 				if ( r < 0 )
 				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
 					std::cerr << "MemoryFileAdapter::read failed readp on file " << getName() << std::endl;
 					return r;
 				}
@@ -77,6 +79,7 @@ namespace libmaus2
 
 				if ( w < 0 )
 				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
 					std::cerr << "MemoryFileAdapter::write failed writep on file " << getName() << std::endl;
 					return w;
 				}
@@ -106,6 +109,7 @@ namespace libmaus2
 						break;
 					default:
 					{
+						libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
 						std::cerr << "MemoryFileAdapter::lseek failed lseek (unknown whence) on file " << getName() << std::endl;
 						return static_cast<off_t>(-1);
 					}
@@ -113,6 +117,7 @@ namespace libmaus2
 
 				if ( abs < 0 )
 				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
 					std::cerr << "MemoryFileAdapter::lseek failed lseek absolute position abs=" << abs << " < 0 on file" << getName()
 						<< " of size " << getFileSize()
 						<< " offset " << offset
@@ -122,6 +127,7 @@ namespace libmaus2
 				}
 				if ( static_cast<off_t>(abs) > static_cast<off_t>(memfile->size()) )
 				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
 					std::cerr << "MemoryFileAdapter::lseek failed lseek absolute position abs=" << abs << " > size = " << memfile->size() << " on file " << getName() << std::endl;
 					return static_cast<off_t>(-1);
 				}
