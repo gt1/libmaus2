@@ -1,3 +1,11 @@
+libmaus2 (2.0.357-1) unstable; urgency=medium
+
+  * fix error checking in parallel merging of SortingOverlapOutputBuffer
+  * fix for Darwin (lgamma not found in namespace std)
+  * add locking in error printing of MemoryFileAdapter
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 14 Jul 2017 16:05:21 +0200
+
 libmaus2 (2.0.356-1) unstable; urgency=medium
 
   * remove useless argument from getSwapped in Overlap class
