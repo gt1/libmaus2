@@ -256,6 +256,14 @@ namespace libmaus2
 
 			static libmaus2::math::GmpFloat binomRowUpperGmpFloat(libmaus2::math::GmpFloat const p, uint64_t const k, uint64_t const n, unsigned int const prec)
 			{
+				if ( p == libmaus2::math::GmpFloat(1,prec) )
+				{
+					if ( k <= n )
+						return libmaus2::math::GmpFloat(1,prec);
+					else
+						return libmaus2::math::GmpFloat(0,prec);
+				}
+
 				libmaus2::math::GmpFloat r(0,prec);
 				libmaus2::math::GmpFloat const q = libmaus2::math::GmpFloat(1.0,prec)-p; // q = 1-p
 				libmaus2::math::GmpFloat const tp(1.0,prec); // tp = 1
