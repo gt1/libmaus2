@@ -334,7 +334,7 @@ namespace libmaus2
 
 					// number of index entries per tmp output file
 					std::vector<uint64_t> Vicnt(numthreads);
-					
+
 					int volatile failed = 0;
 					libmaus2::parallel::PosixSpinLock failedlock;
 
@@ -478,7 +478,7 @@ namespace libmaus2
 							failed = 1;
 						}
 					}
-					
+
 					if ( failed )
 					{
 						libmaus2::exception::LibMausException lme;
