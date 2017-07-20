@@ -228,6 +228,14 @@ namespace libmaus2
 
 			static double binomRowUpper(double const p, uint64_t const k, uint64_t const n)
 			{
+				if ( p == 1.0 )
+				{
+					if ( k <= n )
+						return 1;
+					else
+						return 0;
+				}
+
 				double r = 0;
 				double const q = 1-p;
 				double const tp = 1.0;
@@ -409,6 +417,14 @@ namespace libmaus2
 
 			static libmaus2::math::Rational<libmaus2::math::GmpInteger> binomRowUpperAsRational(libmaus2::math::Rational<libmaus2::math::GmpInteger> const p, uint64_t const k, uint64_t const n)
 			{
+				if ( p == libmaus2::math::Rational<libmaus2::math::GmpInteger>(1) )
+				{
+					if ( k <= n )
+						return libmaus2::math::Rational<libmaus2::math::GmpInteger>(1);
+					else
+						return libmaus2::math::Rational<libmaus2::math::GmpInteger>(0);
+				}
+
 				libmaus2::math::Rational<libmaus2::math::GmpInteger> r = libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(0));
 				libmaus2::math::Rational<libmaus2::math::GmpInteger> const q = libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(1))-p;
 				libmaus2::math::Rational<libmaus2::math::GmpInteger> const tp = libmaus2::math::Rational<libmaus2::math::GmpInteger>(libmaus2::math::GmpInteger(1));;
