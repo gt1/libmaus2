@@ -114,7 +114,7 @@ namespace libmaus2
 			// compute value in log space to keep intermediate results under control
 			double poissonViaLog(uint64_t const k) const
 			{
-				return ::std::exp(k * l_lambda - d_lambda - 
+				return ::std::exp(k * l_lambda - d_lambda -
 #if defined(__APPLE__)
 					lgamma(k+1)
 #else
