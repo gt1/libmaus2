@@ -4511,7 +4511,7 @@ namespace libmaus2
 				}
 
 				assert ( readpos == getLseq(B) );
-				assert ( refpos == getPos(B) + getReferenceAdvance(B) );
+				assert ( refpos == static_cast<int64_t>(getPos(B)) + static_cast<int64_t>(getReferenceAdvance(B)) );
 
 				if ( Vout.size() > cigopin.size() )
 					cigopin.resize(Vout.size());

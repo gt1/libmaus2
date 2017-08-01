@@ -521,6 +521,7 @@ namespace libmaus2
 				{
 					libmaus2::aio::FileRemoval::removeFile(infilename);
 					libmaus2::aio::FileRemoval::removeFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(infilename));
+					libmaus2::aio::FileRemoval::removeFile(libmaus2::dazzler::align::DalignerIndexDecoder::getDalignerIndexName(infilename));
 				}
 
 				static void removeFileAndIndex(std::vector<std::string> const & infilenames)
