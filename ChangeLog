@@ -1,3 +1,9 @@
+libmaus2 (2.0.359-1) unstable; urgency=medium
+
+  * complete removeFileAndIndex in SortingOverlapOutputBuffer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 01 Aug 2017 17:38:23 +0200
+
 libmaus2 (2.0.358-1) unstable; urgency=medium
 
   * fix binomRowUpperGmpFloat for p=1
