@@ -1669,6 +1669,36 @@ namespace libmaus2
 			}
 
 			/**
+			 * get number of bases clipped of the front of query sequence by cigar operations H in alignment block D
+			 *
+			 * @param D alignment block
+			 * @return number of bases clipped of the front of query sequence by cigar operations S in alignment block D
+			 **/
+			static uint64_t getFrontHardClipping(uint8_t const * D)
+			{
+				uint32_t const ncigar = getNCigar(D);
+				uint8_t const * cigar = getCigar(D);
+				uint64_t frontclip = 0;
+
+				for ( uint32_t i = 0; i < ncigar; ++i, cigar+=4 )
+				{
+					uint32_t const v = getLEInteger(cigar,4);
+					uint8_t const op = v & ((1ull<<(4))-1);
+
+					if (
+						op == libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP
+					)
+					{
+						frontclip += static_cast<int64_t>((v >> 4) & ((1ull<<(32-4))-1));
+					}
+					else
+						break;
+				}
+
+				return frontclip;
+			}
+
+			/**
 			 * get number of bases clipped of the back of the query sequence by cigar operations H or S in alignment block D
 			 *
 			 * @param D alignment block
@@ -1749,6 +1779,34 @@ namespace libmaus2
 						if ( op == libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP )
 							backclip += static_cast<int64_t>((v >> 4) & ((1ull<<(32-4))-1));
 					}
+					else
+						break;
+				}
+
+				return backclip;
+			}
+
+			/**
+			 * get number of bases clipped of the back of the query sequence by cigar operations H in alignment block D
+			 *
+			 * @param D alignment block
+			 * @return number of bases clipped of the back of the query sequence by cigar operations S in alignment block D
+			 **/
+			static uint64_t getBackHardClipping(uint8_t const * D)
+			{
+				uint32_t const ncigar = getNCigar(D);
+				uint8_t const * cigar = getCigar(D) + 4*ncigar - 4;
+				uint64_t backclip = 0;
+
+				for ( uint32_t i = 0; i < ncigar; ++i, cigar-=4 )
+				{
+					uint32_t const v = getLEInteger(cigar,4);
+					uint8_t const op = v & ((1ull<<(4))-1);
+
+					if (
+						op == libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP
+					)
+						backclip += static_cast<int64_t>((v >> 4) & ((1ull<<(32-4))-1));
 					else
 						break;
 				}

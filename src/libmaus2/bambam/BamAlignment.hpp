@@ -2775,6 +2775,25 @@ namespace libmaus2
 			}
 
 			/**
+			 * get soft clipped bases at beginning of read
+			 *
+			 * @return soft clipped bases at beginning of read
+			 **/
+			uint64_t getFrontHardClipping() const
+			{
+				return libmaus2::bambam::BamAlignmentDecoderBase::getFrontHardClipping(D.begin());
+			}
+			/**
+			 * get soft clipped bases at end of read
+			 *
+			 * @return soft clipped bases at end of read
+			 **/
+			uint64_t getBackHardClipping() const
+			{
+				return libmaus2::bambam::BamAlignmentDecoderBase::getBackHardClipping(D.begin());
+			}
+
+			/**
 			 * @return clipped query sequence as string
 			 **/
 			std::string getClippedRead() const
