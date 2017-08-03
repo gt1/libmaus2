@@ -995,6 +995,7 @@ namespace libmaus2
 					libmaus2::bambam::OptNameReader::unique_ptr_type tMCR(new libmaus2::bambam::OptNameReader(matecigarfn));
 					MCR = UNIQUE_PTR_MOVE(tMCR);
 					BAFV.set("MC");
+					BAFV.set("mc");
 				}
 
 				// rewrite file and mark duplicates
@@ -1017,6 +1018,7 @@ namespace libmaus2
 					if ( putmatecigar && MCR->peekNext(ON) && ON.rank == r )
 					{
 						alignment.putAuxString("MC",ON.refreadname);
+						alignment.putAuxNumber<int32_t>("mc",'i',ON.matecoordinate);
 						MCR->getNext(ON);
 					}
 

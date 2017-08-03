@@ -36,14 +36,18 @@ namespace libmaus2
 
 			uint64_t rank;
 			std::string refreadname;
+			int64_t matecoordinate;
 
 			OptName()
 			{
 			}
 
-			OptName(uint64_t const rrank, std::string const & rrefreadname) : rank(rrank), refreadname(rrefreadname) {}
+			OptName(uint64_t const rrank, std::string const & rrefreadname, int64_t const rmatecoordinate = -1) : rank(rrank), refreadname(rrefreadname), matecoordinate(rmatecoordinate) {}
 			OptName(std::istream & in)
-			: rank(libmaus2::util::NumberSerialisation::deserialiseNumber(in)), refreadname(libmaus2::util::StringSerialisation::deserialiseString(in))
+			:
+				rank(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				refreadname(libmaus2::util::StringSerialisation::deserialiseString(in)),
+				matecoordinate(libmaus2::util::NumberSerialisation::deserialiseSignedNumber(in))
 			{
 
 			}
@@ -52,6 +56,7 @@ namespace libmaus2
 			{
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,rank);
 				libmaus2::util::StringSerialisation::serialiseString(out,refreadname);
+				libmaus2::util::NumberSerialisation::serialiseSignedNumber(out,matecoordinate);
 				return out;
 			}
 
