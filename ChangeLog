@@ -1,3 +1,10 @@
+libmaus2 (2.0.361-1) unstable; urgency=medium
+
+  * add mc field in opt duplicate marking
+  * add matecoordinate field in OptName class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 03 Aug 2017 11:40:07 +0200
+
 libmaus2 (2.0.360-1) unstable; urgency=medium
 
   * add getFrontHardClipping and getBackHardClipping in BamAlignment/BamAlignmentDecoderBase
