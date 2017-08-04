@@ -1,3 +1,80 @@
+libmaus2 (2.0.362-1) unstable; urgency=medium
+
+  * add fanin/number of thread arguments in AlignmentWriterArray::merge
+  * add sortAndMergeThread function in SortingOverlapOutputBuffer featuring separate arguments for number of sort and merge threads
+  * add serialisation in OverlapInfo class
+  * bug fix in difference function of IntegerInterval class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 04 Aug 2017 10:48:09 +0200
+
+libmaus2 (2.0.361-1) unstable; urgency=medium
+
+  * add mc field in opt duplicate marking
+  * add matecoordinate field in OptName class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 03 Aug 2017 11:40:07 +0200
+
+libmaus2 (2.0.360-1) unstable; urgency=medium
+
+  * add getFrontHardClipping and getBackHardClipping in BamAlignment/BamAlignmentDecoderBase
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 02 Aug 2017 08:51:35 +0200
+
+libmaus2 (2.0.359-1) unstable; urgency=medium
+
+  * complete removeFileAndIndex in SortingOverlapOutputBuffer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 01 Aug 2017 17:38:23 +0200
+
+libmaus2 (2.0.358-1) unstable; urgency=medium
+
+  * fix binomRowUpperGmpFloat for p=1
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 20 Jul 2017 13:38:54 +0200
+
+libmaus2 (2.0.357-1) unstable; urgency=medium
+
+  * fix error checking in parallel merging of SortingOverlapOutputBuffer
+  * fix for Darwin (lgamma not found in namespace std)
+  * add locking in error printing of MemoryFileAdapter
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 14 Jul 2017 16:05:21 +0200
+
+libmaus2 (2.0.356-1) unstable; urgency=medium
+
+  * remove useless argument from getSwapped in Overlap class
+  * add windowErrorLargeDetail function in AlignmentTraceContainer class
+  * update getSwapped method in Overlap class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 13 Jul 2017 13:29:59 +0200
+
+libmaus2 (2.0.355-1) unstable; urgency=medium
+
+  * add a_sync_match function in AlignmentTraceContainer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 12 Jul 2017 10:44:22 +0200
+
+libmaus2 (2.0.354-1) unstable; urgency=medium
+
+  * replace assertion by exception in GraphDecoderContext
+  * replace --with-asan by --enable-asan in configure script
+  * add OverlapInfo class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 12 Jul 2017 10:11:01 +0200
+
+libmaus2 (2.0.353-1) unstable; urgency=medium
+
+  * add fillSpanHistogram/fillErrorHistogram variants in Overlap class
+  * add coordinates in AlignmentPrint class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 10 Jul 2017 16:54:58 +0200
+
+libmaus2 (2.0.352-1) unstable; urgency=medium
+
+  * add searchNoFailure method in LinearHashTrie
+
+ -- German Tischler <tischler@mpi-cbg.de>  Sat, 08 Jul 2017 15:43:47 +0200
+
 libmaus2 (2.0.351-1) unstable; urgency=medium
 
   * add static printMultiLine function in Pattern class

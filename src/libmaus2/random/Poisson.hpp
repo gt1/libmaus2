@@ -39,7 +39,13 @@ namespace libmaus2
 
 			static double fac(uint64_t const v)
 			{
-				return ::std::exp(::lgamma(v+1));
+				return ::std::exp(
+#if defined(__APPLE__)
+					::lgamma(v+1)
+#else
+					::std::lgamma(v+1)
+#endif
+				);
 			}
 
 			Poisson(double const rlambda)
@@ -108,7 +114,13 @@ namespace libmaus2
 			// compute value in log space to keep intermediate results under control
 			double poissonViaLog(uint64_t const k) const
 			{
-				return ::std::exp(k * l_lambda - d_lambda - ::std::lgamma(k+1));
+				return ::std::exp(k * l_lambda - d_lambda -
+#if defined(__APPLE__)
+					lgamma(k+1)
+#else
+					::std::lgamma(k+1)
+#endif
+				);
 			}
 
 			double thresLowInvLog(uint64_t const thres) const

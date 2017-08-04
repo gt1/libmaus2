@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.351,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
-LIBRARY_VERSION=2:351:0
+AC_INIT(libmaus2,2.0.362,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
+LIBRARY_VERSION=2:362:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -1403,11 +1403,9 @@ AC_ARG_ENABLE(openmp,
         AS_HELP_STRING([--enable-openmp],[use OpenMP (default yes)]),
         [openmp=${enableval}],[openmp=yes])
 
-AC_ARG_WITH([asan],
-	[AS_HELP_STRING([--with-asan@<:@=PATH@:>@], [enable address sanitizer in debug mode @<:@default=yes@:>@])],
-	[with_asan=${withval}],
-	[with_asan=yes])
-
+AC_ARG_ENABLE(asan,
+        AS_HELP_STRING([--enable-asan],[enable address sanitizer in debug mode (default no)]),
+        [enableasan=${enableval}],[enableasan=no])
 
 if test "${openmp}" = "yes" ; then
 	AC_LANG_PUSH([C++])
@@ -1423,7 +1421,7 @@ if test "${debug}" = "yes" ; then
 	openmp="no"
 	LIBMAUS2_DEBUG_COMPILED="#define LIBMAUS2_DEBUG_COMPILED"
 
-	if test "${with_asan}" = "yes" ; then
+	if test "${enableasan}" = "yes" ; then
 		AC_LANG_PUSH([C++])
 		CXXFLAGS_SAVE="${CXXFLAGS}"
 		CXXFLAGS="-fsanitize=address"

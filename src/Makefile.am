@@ -266,7 +266,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/bambam/BamAlignment.cpp \
 	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeInput.cpp \
 	libmaus2/util/Command.cpp \
-	libmaus2/aio/InputOutputStreamInstance.cpp
+	libmaus2/aio/InputOutputStreamInstance.cpp \
+	libmaus2/dazzler/align/OverlapInfo.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -321,7 +322,8 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/GraphDecoderContext.hpp \
 	libmaus2/dazzler/align/GraphDecoderContextTypeInfo.hpp \
 	libmaus2/dazzler/align/GraphDecoder.hpp \
-	libmaus2/dazzler/align/GraphEncoder.hpp
+	libmaus2/dazzler/align/GraphEncoder.hpp \
+	libmaus2/dazzler/align/OverlapInfo.hpp
 
 libmaus2dazzlerstringgraph_includedir=$(includedir)/libmaus2/dazzler/stringgraph
 libmaus2dazzlerstringgraph_include_HEADERS = libmaus2/dazzler/stringgraph/Edge.hpp \

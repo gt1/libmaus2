@@ -335,134 +335,156 @@ namespace libmaus2
 					// number of index entries per tmp output file
 					std::vector<uint64_t> Vicnt(numthreads);
 
+					int volatile failed = 0;
+					libmaus2::parallel::PosixSpinLock failedlock;
+
 					#if defined(_OPENMP)
 					#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
 					#endif
 					for ( uint64_t i = 0; i < numthreads; ++i )
 					{
-						// block low and high
-						uint64_t const low = B[i];
-						uint64_t const high = B[i+1];
-
+						try
 						{
-							libmaus2::parallel::ScopePosixSpinLock slock(L);
-							#if defined(SORTINGOVERLAPOUTPUTBUFFER_VERBOSE)
-							std::cerr << "[D] writing [" << low << "," << high << ")" << std::endl;
-							#endif
-						}
+							// block low and high
+							uint64_t const low = B[i];
+							uint64_t const high = B[i+1];
 
-						// open output file
-						libmaus2::aio::InputOutputStream::unique_ptr_type Optr(
-							libmaus2::aio::InputOutputStreamFactoryContainer::constructUnique(outfilename,std::ios::in|std::ios::out|std::ios::binary)
-						);
-						// seek to start position for block
-						Optr->seekp(NB[i]);
-						// sanity check
-						assert ( Optr->tellp() >= 0 );
-						assert ( static_cast<int64_t>(Optr->tellp()) == static_cast<int64_t>(NB[i]) );
-						// output pointer
-						uint64_t pptr = NB[i];
+							{
+								libmaus2::parallel::ScopePosixSpinLock slock(L);
+								#if defined(SORTINGOVERLAPOUTPUTBUFFER_VERBOSE)
+								std::cerr << "[D] writing [" << low << "," << high << ")" << std::endl;
+								#endif
+							}
 
-						// get indexing tmp file
-						libmaus2::aio::OutputStreamInstance & indextmp = *(Aindextmp[i]);
+							// open output file
+							libmaus2::aio::InputOutputStream::unique_ptr_type Optr(
+								libmaus2::aio::InputOutputStreamFactoryContainer::constructUnique(outfilename,std::ios::in|std::ios::out|std::ios::binary)
+							);
+							// seek to start position for block
+							Optr->seekp(NB[i]);
+							// sanity check
+							assert ( Optr->tellp() >= 0 );
+							assert ( static_cast<int64_t>(Optr->tellp()) == static_cast<int64_t>(NB[i]) );
+							// output pointer
+							uint64_t pptr = NB[i];
 
-						// merge queue
-						std::priority_queue<
-							std::pair<uint64_t,libmaus2::dazzler::align::Overlap>,
-							std::vector< std::pair<uint64_t,libmaus2::dazzler::align::Overlap> >,
-							OverlapHeapComparator<comparator_type>
-						> Q(comparator);
+							// get indexing tmp file
+							libmaus2::aio::OutputStreamInstance & indextmp = *(Aindextmp[i]);
 
-						// current alignment id/index in output file
-						uint64_t algnid = NA[i];
+							// merge queue
+							std::priority_queue<
+								std::pair<uint64_t,libmaus2::dazzler::align::Overlap>,
+								std::vector< std::pair<uint64_t,libmaus2::dazzler::align::Overlap> >,
+								OverlapHeapComparator<comparator_type>
+							> Q(comparator);
 
-						// open input files
-						libmaus2::autoarray::AutoArray<AlignmentFileRegion::unique_ptr_type> I(infilenames.size());
-						Overlap OVL;
-						#if 0
-						uint64_t ocnt = 0;
-						#endif
-						for ( uint64_t j = 0; j < infilenames.size(); ++j )
-						{
+							// current alignment id/index in output file
+							uint64_t algnid = NA[i];
+
+							// open input files
+							libmaus2::autoarray::AutoArray<AlignmentFileRegion::unique_ptr_type> I(infilenames.size());
+							Overlap OVL;
 							#if 0
+							uint64_t ocnt = 0;
+							#endif
+							for ( uint64_t j = 0; j < infilenames.size(); ++j )
 							{
-							AlignmentFileRegion::unique_ptr_type Tptr(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFileRegion(infilenames[j],low,high));
-							while ( Tptr->getNextOverlap(OVL) )
-								++ocnt;
+								#if 0
+								{
+								AlignmentFileRegion::unique_ptr_type Tptr(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFileRegion(infilenames[j],low,high));
+								while ( Tptr->getNextOverlap(OVL) )
+									++ocnt;
+								}
+								#endif
+
+								AlignmentFileRegion::unique_ptr_type Tptr(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFileRegion(infilenames[j],low,high));
+								I[j] = UNIQUE_PTR_MOVE(Tptr);
+								if ( I[j]->getNextOverlap(OVL) )
+									Q.push(std::pair<uint64_t,libmaus2::dazzler::align::Overlap>(j,OVL));
+							}
+							#if 0
+							if ( ocnt != NA[i+1]-NA[i]  )
+							{
+								std::cerr << "[E] ocnt=" << ocnt << " NA[i+1]-NA[i]=" << NA[i+1]-NA[i] << std::endl;
+								assert ( ocnt == NA[i+1]-NA[i] );
 							}
 							#endif
 
-							AlignmentFileRegion::unique_ptr_type Tptr(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFileRegion(infilenames[j],low,high));
-							I[j] = UNIQUE_PTR_MOVE(Tptr);
-							if ( I[j]->getNextOverlap(OVL) )
-								Q.push(std::pair<uint64_t,libmaus2::dazzler::align::Overlap>(j,OVL));
-						}
-						#if 0
-						if ( ocnt != NA[i+1]-NA[i]  )
-						{
-							std::cerr << "[E] ocnt=" << ocnt << " NA[i+1]-NA[i]=" << NA[i+1]-NA[i] << std::endl;
-							assert ( ocnt == NA[i+1]-NA[i] );
-						}
-						#endif
+							bool haveprev = false;
+							libmaus2::dazzler::align::Overlap OVLprev;
+							// number of index entries written
+							uint64_t icnt = 0;
 
-						bool haveprev = false;
-						libmaus2::dazzler::align::Overlap OVLprev;
-						// number of index entries written
-						uint64_t icnt = 0;
-
-						uint64_t na = 0;
-						while ( Q.size() )
-						{
-							std::pair<uint64_t,libmaus2::dazzler::align::Overlap> const P = Q.top();
-							Q.pop();
-
-							if ( haveprev )
+							uint64_t na = 0;
+							while ( Q.size() )
 							{
-								bool const ok = !(comparator(P.second,OVLprev));
-								assert ( ok );
+								std::pair<uint64_t,libmaus2::dazzler::align::Overlap> const P = Q.top();
+								Q.pop();
+
+								if ( haveprev )
+								{
+									bool const ok = !(comparator(P.second,OVLprev));
+									assert ( ok );
+								}
+
+								if ( (((algnid) & base_level_mask) == 0) )
+								{
+									libmaus2::util::NumberSerialisation::serialiseNumber(indextmp,algnid);
+									libmaus2::util::NumberSerialisation::serialiseNumber(indextmp,pptr);
+									libmaus2::dazzler::align::OverlapMeta OVLmeta(P.second);
+									OVLmeta.serialise(indextmp);
+									icnt += 1;
+								}
+								algnid++;
+
+								pptr += P.second.serialiseWithPath(*Optr,small);
+								na += 1;
+
+								if ( I[P.first]->getNextOverlap(OVL) )
+									Q.push(std::pair<uint64_t,libmaus2::dazzler::align::Overlap>(P.first,OVL));
+
+								haveprev = true;
+								OVLprev = P.second;
 							}
 
-							if ( (((algnid) & base_level_mask) == 0) )
+							assert ( na == (NA[i+1]-NA[i]) );
+
+							// flush output file
+							Optr->flush();
+
+							// sanity checks, we should be at end of block now
+							assert ( Optr->tellp() >= 0 );
+							assert ( static_cast<int64_t>(Optr->tellp()) == static_cast<int64_t>(NB[i+1]));
+
+							// close output file
+							Optr.reset();
+
+							// flush and close index file
+							indextmp.flush();
+							Aindextmp[i].reset();
+
+							// store number of index entries written
 							{
-								libmaus2::util::NumberSerialisation::serialiseNumber(indextmp,algnid);
-								libmaus2::util::NumberSerialisation::serialiseNumber(indextmp,pptr);
-								libmaus2::dazzler::align::OverlapMeta OVLmeta(P.second);
-								OVLmeta.serialise(indextmp);
-								icnt += 1;
+								libmaus2::parallel::ScopePosixSpinLock slock(L);
+								Vicnt[i] = icnt;
 							}
-							algnid++;
-
-							pptr += P.second.serialiseWithPath(*Optr,small);
-							na += 1;
-
-							if ( I[P.first]->getNextOverlap(OVL) )
-								Q.push(std::pair<uint64_t,libmaus2::dazzler::align::Overlap>(P.first,OVL));
-
-							haveprev = true;
-							OVLprev = P.second;
 						}
-
-						assert ( na == (NA[i+1]-NA[i]) );
-
-						// flush output file
-						Optr->flush();
-
-						// sanity checks, we should be at end of block now
-						assert ( Optr->tellp() >= 0 );
-						assert ( static_cast<int64_t>(Optr->tellp()) == static_cast<int64_t>(NB[i+1]));
-
-						// close output file
-						Optr.reset();
-
-						// flush and close index file
-						indextmp.flush();
-						Aindextmp[i].reset();
-
-						// store number of index entries written
+						catch(std::exception const & ex)
 						{
-							libmaus2::parallel::ScopePosixSpinLock slock(L);
-							Vicnt[i] = icnt;
+							libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+							std::cerr << "[E] SortingOverlapOutputBuffer<>:mergeFilesParallel: " << ex.what() << std::endl;
+
+							libmaus2::parallel::ScopePosixSpinLock fslock(failedlock);
+							failed = 1;
 						}
+					}
+
+					if ( failed )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "[E] SortingOverlapOutputBuffer<>:mergeFilesParallel failed" << std::endl;
+						lme.finish();
+						throw lme;
 					}
 
 					// construct indexer
@@ -499,6 +521,7 @@ namespace libmaus2
 				{
 					libmaus2::aio::FileRemoval::removeFile(infilename);
 					libmaus2::aio::FileRemoval::removeFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(infilename));
+					libmaus2::aio::FileRemoval::removeFile(libmaus2::dazzler::align::DalignerIndexDecoder::getDalignerIndexName(infilename));
 				}
 
 				static void removeFileAndIndex(std::vector<std::string> const & infilenames)
@@ -653,6 +676,99 @@ namespace libmaus2
 							libmaus2::util::TempFileRemovalContainer::addTempFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(fn));
 							if ( numthreads > 1 )
 								libmaus2::dazzler::align::SortingOverlapOutputBuffer<comparator_type>::mergeFilesParallel(tomerge,fn,numthreads);
+							else
+								libmaus2::dazzler::align::SortingOverlapOutputBuffer<comparator_type>::mergeFiles(tomerge,fn,comparator);
+							ninfilenames.push_back(fn);
+							for ( uint64_t i = low; i < high; ++i )
+							{
+								libmaus2::aio::FileRemoval::removeFile(infilenames[i]);
+								libmaus2::aio::FileRemoval::removeFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(infilenames[i]));
+							}
+						}
+
+						infilenames = ninfilenames;
+					}
+
+					assert ( infilenames.size() == 1 );
+
+					libmaus2::aio::OutputStreamFactoryContainer::rename(infilenames[0],outputfilename);
+					libmaus2::aio::OutputStreamFactoryContainer::rename(
+						libmaus2::dazzler::align::OverlapIndexer::getIndexName(infilenames[0]),
+						libmaus2::dazzler::align::OverlapIndexer::getIndexName(outputfilename)
+					);
+				}
+
+				static void sortAndMergeThread(
+					std::vector<std::string> infilenames,
+					std::string const & outputfilename,
+					std::string const & tmpfilebase,
+					uint64_t const mergefanin = getDefaultMergeFanIn(),
+					uint64_t const numsortthreads = 1,
+					uint64_t const nummergethreads = 1,
+					comparator_type comparator = comparator_type())
+				{
+					uint64_t volatile tmpid = 0;
+					libmaus2::parallel::PosixSpinLock S;
+
+					int volatile failed = 0;
+
+					#if defined(_OPENMP)
+					#pragma omp parallel for schedule(dynamic,1) num_threads(numsortthreads)
+					#endif
+					for ( uint64_t i = 0; i < infilenames.size(); ++i )
+					{
+						try
+						{
+							std::ostringstream fnostr;
+							{
+							libmaus2::parallel::ScopePosixSpinLock slock(S);
+							fnostr << tmpfilebase << "_" << (tmpid++);
+							}
+							std::string const fn = fnostr.str();
+							libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
+							libmaus2::util::TempFileRemovalContainer::addTempFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(fn));
+							libmaus2::dazzler::align::SortingOverlapOutputBuffer<comparator_type>::sortFile(infilenames[i],fn);
+
+							libmaus2::parallel::ScopePosixSpinLock slock(S);
+							infilenames[i] = fn;
+						}
+						catch(std::exception const & ex)
+						{
+							{
+								libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+								std::cerr << ex.what() << std::endl;
+							}
+							libmaus2::parallel::ScopePosixSpinLock slock(S);
+							failed = 1;
+						}
+					}
+
+					if ( failed )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "SortingOverlapOutputBuffer::sortAndMerge: failed to sort single input files" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					while ( infilenames.size() > 1 )
+					{
+						std::vector<std::string> ninfilenames;
+
+						uint64_t const numpack = (infilenames.size() + mergefanin - 1)/mergefanin;
+
+						for ( uint64_t j = 0; j < numpack; ++j )
+						{
+							uint64_t const low = j * mergefanin;
+							uint64_t const high = std::min(low+mergefanin,static_cast<uint64_t>(infilenames.size()));
+							std::vector<std::string> tomerge(infilenames.begin()+low,infilenames.begin()+high);
+							std::ostringstream fnostr;
+							fnostr << tmpfilebase << "_" << (tmpid++);
+							std::string const fn = fnostr.str();
+							libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
+							libmaus2::util::TempFileRemovalContainer::addTempFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(fn));
+							if ( nummergethreads > 1 )
+								libmaus2::dazzler::align::SortingOverlapOutputBuffer<comparator_type>::mergeFilesParallel(tomerge,fn,nummergethreads);
 							else
 								libmaus2::dazzler::align::SortingOverlapOutputBuffer<comparator_type>::mergeFiles(tomerge,fn,comparator);
 							ninfilenames.push_back(fn);

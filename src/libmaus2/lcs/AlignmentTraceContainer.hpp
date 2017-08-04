@@ -240,6 +240,194 @@ namespace libmaus2
 				return maxerr;
 			}
 
+			struct WindowErrorLargeResult
+			{
+				double maxerr;
+				step_type const * t0;
+				step_type const * t1;
+
+				WindowErrorLargeResult() {}
+				WindowErrorLargeResult(double const rmaxerr, step_type const * rt0, step_type const * rt1)
+				: maxerr(rmaxerr), t0(rt0), t1(rt1) {}
+			};
+
+			static WindowErrorLargeResult windowErrorLargeDetail(step_type const * ta, step_type const * te, uint64_t const w)
+			{
+				uint64_t c = 0;
+				uint64_t e = 0;
+
+				step_type const * t0 = ta;
+				step_type const * t1 = ta;
+
+				// accumulate positions until we reach w
+				while ( t1 != te && c < w )
+				{
+					switch ( *t1++ )
+					{
+						case STEP_DEL:
+						case STEP_MISMATCH:
+							c++;
+							e++;
+							break;
+						case STEP_MATCH:
+							c++;
+							break;
+						case STEP_INS:
+							e++;
+							break;
+						default:
+							break;
+					}
+				}
+
+				// set first window error
+				double maxerr = e / static_cast<double>(c);
+				step_type const * maxt0 = t0;
+				step_type const * maxt1 = t1;
+
+				// add more trace points
+				while ( t1 != te )
+				{
+					switch ( *t1++ )
+					{
+						case STEP_DEL:
+						case STEP_MISMATCH:
+							c++;
+							e++;
+							break;
+						case STEP_MATCH:
+							c++;
+							break;
+						case STEP_INS:
+							e++;
+							break;
+						default:
+							break;
+					}
+
+					// remove from front of window until we reach w
+					while ( t0 != t1 && c > w )
+					{
+						switch ( *t0++ )
+						{
+							case STEP_DEL:
+							case STEP_MISMATCH:
+								--c;
+								--e;
+								break;
+							case STEP_MATCH:
+								--c;
+								break;
+							case STEP_INS:
+								--e;
+								break;
+							default:
+								break;
+						}
+					}
+					assert ( c == w );
+
+					// set new maximum
+					double const ed = e / static_cast<double>(c);
+					if ( ed > maxerr )
+					{
+						maxerr = ed;
+						maxt0 = t0;
+						maxt1 = t1;
+					}
+				}
+
+				return WindowErrorLargeResult(maxerr,maxt0,maxt1);
+			}
+
+			static double windowErrorLarge(step_type const * ta, step_type const * te, uint64_t const w)
+			{
+				uint64_t c = 0;
+				uint64_t e = 0;
+
+				step_type const * t0 = ta;
+				step_type const * t1 = ta;
+
+				// accumulate positions until we reach w
+				while ( t1 != te && c < w )
+				{
+					switch ( *t1++ )
+					{
+						case STEP_DEL:
+						case STEP_MISMATCH:
+							c++;
+							e++;
+							break;
+						case STEP_MATCH:
+							c++;
+							break;
+						case STEP_INS:
+							e++;
+							break;
+						default:
+							break;
+					}
+				}
+
+				// set first window error
+				double maxerr = e / static_cast<double>(c);
+
+				// add more trace points
+				while ( t1 != te )
+				{
+					switch ( *t1++ )
+					{
+						case STEP_DEL:
+						case STEP_MISMATCH:
+							c++;
+							e++;
+							break;
+						case STEP_MATCH:
+							c++;
+							break;
+						case STEP_INS:
+							e++;
+							break;
+						default:
+							break;
+					}
+
+					// remove from front of window until we reach w
+					while ( t0 != t1 && c > w )
+					{
+						switch ( *t0++ )
+						{
+							case STEP_DEL:
+							case STEP_MISMATCH:
+								--c;
+								--e;
+								break;
+							case STEP_MATCH:
+								--c;
+								break;
+							case STEP_INS:
+								--e;
+								break;
+							default:
+								break;
+						}
+					}
+					assert ( c == w );
+
+					// set new maximum
+					double const ed = e / static_cast<double>(c);
+					if ( ed > maxerr )
+						maxerr = ed;
+				}
+
+				return maxerr;
+			}
+
+			double windowErrorLarge(uint64_t const w) const
+			{
+				return windowErrorLarge(ta,te,w);
+			}
+
 			struct ClipPair
 			{
 				std::pair<uint64_t,uint64_t> A;
@@ -753,6 +941,105 @@ namespace libmaus2
 				offsetb = Btc - B.ta;
 
 				return (Aapos == Bapos);
+			}
+
+			static bool a_sync_match(
+				AlignmentTraceContainer const & A,
+				size_t Aapos,
+				uint64_t & offseta,
+				AlignmentTraceContainer const & B,
+				size_t Bapos,
+				uint64_t & offsetb
+			)
+			{
+				step_type const * Atc = A.ta;
+				step_type const * Btc = B.ta;
+
+				while (
+					(Atc != A.te) && (Btc != B.te)
+				)
+				{
+					// std::cerr << Aapos << "," << Abpos << " " << Bapos << "," << Bbpos << std::endl;
+
+					if ( (Aapos < Bapos) )
+					{
+						switch ( *(Atc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								Aapos += 1;
+								break;
+							case STEP_INS:
+								break;
+							case STEP_DEL:
+								Aapos += 1;
+								break;
+							case STEP_RESET:
+								break;
+						}
+					}
+					else if ( (Bapos < Aapos) )
+					{
+						switch ( *(Btc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								Bapos += 1;
+								break;
+							case STEP_INS:
+								break;
+							case STEP_DEL:
+								Bapos += 1;
+								break;
+							case STEP_RESET:
+								break;
+						}
+					}
+					else if ( *Atc != STEP_MATCH || *Btc != STEP_MATCH )
+					{
+						switch ( *(Atc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								Aapos += 1;
+								break;
+							case STEP_INS:
+								break;
+							case STEP_DEL:
+								Aapos += 1;
+								break;
+							case STEP_RESET:
+								break;
+						}
+						switch ( *(Btc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								Bapos += 1;
+								break;
+							case STEP_INS:
+								break;
+							case STEP_DEL:
+								Bapos += 1;
+								break;
+							case STEP_RESET:
+								break;
+						}
+					}
+					else
+					{
+						assert ( Aapos == Bapos );
+						assert ( *Atc == STEP_MATCH );
+						assert ( *Btc == STEP_MATCH );
+
+						offseta = Atc - A.ta;
+						offsetb = Btc - B.ta;
+
+						return true;
+					}
+				}
+
+				return false;
 			}
 
 			static bool b_sync(

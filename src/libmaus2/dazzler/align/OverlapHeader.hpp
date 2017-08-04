@@ -18,6 +18,7 @@
 #if ! defined(LIBMAUS2_DAZZLER_ALIGN_OVERLAPHEADER_HPP)
 #define LIBMAUS2_DAZZLER_ALIGN_OVERLAPHEADER_HPP
 
+#include <libmaus2/dazzler/align/OverlapInfo.hpp>
 #include <libmaus2/types/types.hpp>
 #include <ostream>
 
@@ -51,6 +52,18 @@ namespace libmaus2
 				)
 				: aread(raread), bread(rbread), inv(rinv), abpos(rabpos), aepos(raepos), bbpos(rbbpos), bepos(rbepos), diffs(rdiffs)
 				{}
+
+				OverlapInfo getInfo() const
+				{
+					return OverlapInfo(
+						(2*aread),
+						(2*bread) | (inv ? 1 : 0),
+						abpos,
+						aepos,
+						bbpos,
+						bepos
+					);
+				}
 
 				bool operator==(OverlapHeader const & O) const
 				{

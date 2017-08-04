@@ -931,6 +931,46 @@ namespace libmaus2
 				}
 
 				/**
+				 * get error block histogram
+				 *
+				 * @param tspace trace point spacing
+				 **/
+				uint64_t fillErrorHistogram(
+					int64_t const tspace,
+					libmaus2::autoarray::AutoArray < std::pair < uint64_t, double > > & A,
+					uint64_t o,
+					int64_t const rlen
+				) const
+				{
+					// current point on A
+					int32_t a_i = ( path.abpos / tspace ) * tspace;
+
+					for ( size_t i = 0; i < path.path.size(); ++i )
+					{
+						// block start on A
+						int32_t const a_i_0 = std::max( a_i, path.abpos );
+						// block end point on A
+						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(path.aepos) );
+
+						bool const blockleftaligned = (a_i_0 % tspace == 0);
+						bool const blockrightaligned = (a_i_1 % tspace == 0 );
+						bool const blocknonempty = (a_i_1 > a_i_0);
+						bool const fullblock = blockleftaligned && blockrightaligned && blocknonempty;
+
+						if ( fullblock )
+							A.push(o,std::pair < uint64_t, double >(a_i/tspace,static_cast<double>(path.path[i].first) / tspace));
+						// last block on read
+						else if ( blockleftaligned && (a_i_1 == rlen) )
+							A.push(o,std::pair < uint64_t, double >(a_i/tspace,static_cast<double>(path.path[i].first) / (rlen - a_i_0)));
+
+						// update start points
+						a_i = a_i_1;
+					}
+
+					return o;
+				}
+
+				/**
 				 * get bases in full blocks and number of errors in these blocks
 				 *
 				 * @param tspace trace point spacing
@@ -976,9 +1016,9 @@ namespace libmaus2
 					int64_t const tspace,
 					uint8_t const * aptr,
 					int64_t const alen,
+					// pointer to B or RC of B (check isInverse)
 					uint8_t const * bptr,
 					int64_t const blen,
-					libmaus2::autoarray::AutoArray<uint8_t> & Binv,
 					libmaus2::lcs::AlignmentTraceContainer & ATC,
 					libmaus2::lcs::Aligner & aligner
 				) const
@@ -987,7 +1027,7 @@ namespace libmaus2
 					{
 						computeTrace(path,aptr,bptr,tspace,ATC,aligner);
 						ATC.swapRoles();
-						// std::reverse(ATC.ta,ATC.te);
+
 						Overlap OVL;
 						OVL.flags = flags;
 						OVL.aread = bread;
@@ -1002,16 +1042,10 @@ namespace libmaus2
 					}
 					else
 					{
-						if ( static_cast<int64_t>(Binv.size()) < blen )
-							Binv.resize(blen);
-						std::copy(bptr,bptr+blen,Binv.begin());
-						std::reverse(Binv.begin(),Binv.begin()+blen);
-						for ( int64_t i = 0; i < blen; ++i )
-							Binv[i] = libmaus2::fastx::invertUnmapped(Binv[i]);
-
-						computeTrace(path,aptr,Binv.begin(),tspace,ATC,aligner);
+						computeTrace(path,aptr,bptr,tspace,ATC,aligner);
 						ATC.swapRoles();
 						std::reverse(ATC.ta,ATC.te);
+
 						Overlap OVL;
 						OVL.flags = flags;
 						OVL.aread = bread;
@@ -1578,6 +1612,143 @@ namespace libmaus2
 				static bool haveOverlappingTraceBlock(Overlap const & A, Overlap const & B, int64_t const tspace)
 				{
 					return haveOverlappingTraceBlock(A.getTraceBlocks(tspace),B.getTraceBlocks(tspace));
+				}
+
+				/**
+				 * fill number of spanning reads for each sparse trace point on read
+				 *
+				 * @param tspace trace point spacing
+				 **/
+				void fillSpanHistogram(
+					int64_t const tspace,
+					int64_t const rlen,
+					double const ethres,
+					uint64_t const bthres,
+					libmaus2::autoarray::AutoArray < bool > & A,
+					libmaus2::autoarray::AutoArray < uint64_t > & S
+				) const
+				{
+					// current point on A
+					int32_t a_i = (path.abpos / tspace) * tspace;
+					// current point on B
+					int32_t b_i = ( path.bbpos );
+
+					int64_t firstfullblock = -1;
+					uint64_t o = 0;
+
+					assert ( static_cast<int64_t>(S.size()) == (rlen + tspace - 1)/tspace );
+
+					for ( size_t i = 0; i < path.path.size(); ++i )
+					{
+						// start point on A
+						int32_t const a_i_0 = std::max ( a_i, path.abpos );
+						// block end point on A
+						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(path.aepos) );
+						// block end point on B
+						int32_t const b_i_1 = b_i + path.path[i].second;
+
+						bool const fullblock = ((a_i_1-a_i_0) == tspace) && ((a_i_0 % tspace) == 0);
+						bool const lastblock = (a_i_0 % tspace == 0) && (a_i_1 == rlen);
+						bool const recordblock = fullblock || lastblock;
+
+						double const erate = static_cast<double>(path.path[i].first) / (a_i_1-a_i_0);
+
+						if ( recordblock && (firstfullblock < 0) )
+							firstfullblock = a_i_0 / tspace;
+
+						// std::cerr << "[" << a_i_0 << "," << a_i_1 << ") fullblock=" << fullblock << " lastblock=" << lastblock << " recordblock=" << recordblock << std::endl;
+
+						if ( recordblock )
+						{
+							// std::cerr << "block " << ((firstfullblock+o)*tspace) << " erate=" << erate << " mark " << (erate <= ethres) << std::endl;
+							A.push(o,erate <= ethres);
+						}
+
+						// update start points
+						b_i = b_i_1;
+						a_i = a_i_1;
+					}
+
+					// do we have the complete end block?
+					bool const haveend = (path.aepos == rlen) && (path.abpos <= ((path.aepos/tspace)*tspace));
+
+					#if 0
+					std::cerr << getHeader() << " rlen=" << rlen << std::endl;
+					#endif
+
+					uint64_t olow = 0;
+					while ( olow < o )
+					{
+						uint64_t obad = olow;
+						while ( obad < o && !A[obad] )
+							++obad;
+
+						#if 0
+						if ( olow < obad )
+							std::cerr << "bad " << (olow+firstfullblock)*tspace << "," << std::min(static_cast<int64_t>((obad+firstfullblock)*tspace),rlen) << std::endl;
+						#endif
+						olow = obad;
+
+						uint64_t ohigh = olow;
+						while ( ohigh < o && A[ohigh] )
+							++ohigh;
+
+						if ( olow < ohigh )
+						{
+							#if 0
+							std::cerr << "good " << (olow+firstfullblock)*tspace << "," << std::min(static_cast<int64_t>((ohigh+firstfullblock)*tspace),rlen) << std::endl;
+							#endif
+
+							uint64_t const od = ohigh-olow;
+
+							// range is too small, mark all as bad
+							if ( od <= bthres )
+							{
+								#if 0
+								std::cerr << "too short, marking all as bad" << std::endl;
+								#endif
+								for ( uint64_t i = olow; i < ohigh; ++i )
+									A.at(i) = false;
+							}
+							else
+							{
+								bool const keepfirst = ( olow == 0 && firstfullblock == 0 );
+								bool const keeplast = ( ohigh == o && haveend );
+
+								#if 0
+								std::cerr << "keepfirst=" << keepfirst << " keeplast=" << keeplast << std::endl;
+								#endif
+
+								// mark first and last bthres as bad
+								for ( uint64_t i = 0; i < bthres; ++i )
+								{
+									if ( ! keepfirst )
+									{
+										A.at(olow+i) = false;
+										#if 0
+										std::cerr << "marking " << (olow+firstfullblock+i)*tspace << "," << std::min(static_cast<int64_t>((olow+firstfullblock+i+1)*tspace),rlen) << " as bad" << std::endl;
+										#endif
+									}
+									if ( ! keeplast )
+									{
+										A.at(ohigh-i-1) = false;
+										#if 0
+										std::cerr << "marking " << (olow+firstfullblock+ohigh-i-1)*tspace << "," << std::min(static_cast<int64_t>((olow+firstfullblock+ohigh-i-1+1)*tspace),rlen) << " as bad" << std::endl;
+										#endif
+									}
+								}
+							}
+						}
+
+						olow = ohigh;
+					}
+
+					for ( uint64_t i = 0; i < o; ++i )
+						if ( A[i] )
+						{
+							assert ( firstfullblock + i < S.size() );
+							S.at(firstfullblock+i)++;
+						}
 				}
 
 				/**
