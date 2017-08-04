@@ -38,6 +38,7 @@ namespace libmaus2
 		struct IntegerInterval
 		{
 			typedef _N N;
+			typedef IntegerInterval<N> this_type;
 
 			N from;
 			N to;
@@ -287,8 +288,14 @@ namespace libmaus2
 				// merge intervals
 				VB = mergeTouchingOrOverlapping(VB);
 				// intersect with A
+				uint64_t o = 0;
 				for ( uint64_t i = 0; i < VB.size(); ++i )
-					VB[i] = intersection(A,VB[i]);
+				{
+					this_type const I = intersection(A,VB[i]);
+					if ( ! I.isEmpty() )
+						VB[o++] = I;
+				}
+				VB.resize(o);
 
 				N l = A.from;
 				std::vector< IntegerInterval<N> > VR;

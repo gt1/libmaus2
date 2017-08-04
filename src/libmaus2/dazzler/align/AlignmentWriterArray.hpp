@@ -58,14 +58,19 @@ namespace libmaus2
 					return *A[i];
 				}
 
-				void merge(std::string const & fn, std::string const & tmp)
+				void merge(
+					std::string const & fn, std::string const & tmp,
+					uint64_t const fanin = libmaus2::dazzler::align::SortingOverlapOutputBuffer<>::getDefaultMergeFanIn(),
+					uint64_t const numsortthreads = 1,
+					uint64_t const nummergethreads = 1
+				)
 				{
 					for ( uint64_t i = 0; i < A.size(); ++i )
 						A[i].reset();
 
 					// std::cerr << "Calling sort and merge..." << std::endl;
 
-					libmaus2::dazzler::align::SortingOverlapOutputBuffer<>::sortAndMerge(Vfn,fn,tmp);
+					libmaus2::dazzler::align::SortingOverlapOutputBuffer<>::sortAndMergeThread(Vfn,fn,tmp,fanin,numsortthreads,nummergethreads);
 
 					for ( uint64_t i = 0; i < Vfn.size(); ++i )
 						libmaus2::dazzler::align::SortingOverlapOutputBuffer<>::removeFileAndIndex(Vfn[i]);
