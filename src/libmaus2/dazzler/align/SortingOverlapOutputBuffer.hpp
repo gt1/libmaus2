@@ -697,6 +697,99 @@ namespace libmaus2
 						libmaus2::dazzler::align::OverlapIndexer::getIndexName(outputfilename)
 					);
 				}
+
+				static void sortAndMergeThread(
+					std::vector<std::string> infilenames,
+					std::string const & outputfilename,
+					std::string const & tmpfilebase,
+					uint64_t const mergefanin = getDefaultMergeFanIn(),
+					uint64_t const numsortthreads = 1,
+					uint64_t const nummergethreads = 1,
+					comparator_type comparator = comparator_type())
+				{
+					uint64_t volatile tmpid = 0;
+					libmaus2::parallel::PosixSpinLock S;
+
+					int volatile failed = 0;
+
+					#if defined(_OPENMP)
+					#pragma omp parallel for schedule(dynamic,1) num_threads(numsortthreads)
+					#endif
+					for ( uint64_t i = 0; i < infilenames.size(); ++i )
+					{
+						try
+						{
+							std::ostringstream fnostr;
+							{
+							libmaus2::parallel::ScopePosixSpinLock slock(S);
+							fnostr << tmpfilebase << "_" << (tmpid++);
+							}
+							std::string const fn = fnostr.str();
+							libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
+							libmaus2::util::TempFileRemovalContainer::addTempFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(fn));
+							libmaus2::dazzler::align::SortingOverlapOutputBuffer<comparator_type>::sortFile(infilenames[i],fn);
+
+							libmaus2::parallel::ScopePosixSpinLock slock(S);
+							infilenames[i] = fn;
+						}
+						catch(std::exception const & ex)
+						{
+							{
+								libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+								std::cerr << ex.what() << std::endl;
+							}
+							libmaus2::parallel::ScopePosixSpinLock slock(S);
+							failed = 1;
+						}
+					}
+
+					if ( failed )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "SortingOverlapOutputBuffer::sortAndMerge: failed to sort single input files" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					while ( infilenames.size() > 1 )
+					{
+						std::vector<std::string> ninfilenames;
+
+						uint64_t const numpack = (infilenames.size() + mergefanin - 1)/mergefanin;
+
+						for ( uint64_t j = 0; j < numpack; ++j )
+						{
+							uint64_t const low = j * mergefanin;
+							uint64_t const high = std::min(low+mergefanin,static_cast<uint64_t>(infilenames.size()));
+							std::vector<std::string> tomerge(infilenames.begin()+low,infilenames.begin()+high);
+							std::ostringstream fnostr;
+							fnostr << tmpfilebase << "_" << (tmpid++);
+							std::string const fn = fnostr.str();
+							libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
+							libmaus2::util::TempFileRemovalContainer::addTempFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(fn));
+							if ( nummergethreads > 1 )
+								libmaus2::dazzler::align::SortingOverlapOutputBuffer<comparator_type>::mergeFilesParallel(tomerge,fn,nummergethreads);
+							else
+								libmaus2::dazzler::align::SortingOverlapOutputBuffer<comparator_type>::mergeFiles(tomerge,fn,comparator);
+							ninfilenames.push_back(fn);
+							for ( uint64_t i = low; i < high; ++i )
+							{
+								libmaus2::aio::FileRemoval::removeFile(infilenames[i]);
+								libmaus2::aio::FileRemoval::removeFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(infilenames[i]));
+							}
+						}
+
+						infilenames = ninfilenames;
+					}
+
+					assert ( infilenames.size() == 1 );
+
+					libmaus2::aio::OutputStreamFactoryContainer::rename(infilenames[0],outputfilename);
+					libmaus2::aio::OutputStreamFactoryContainer::rename(
+						libmaus2::dazzler::align::OverlapIndexer::getIndexName(infilenames[0]),
+						libmaus2::dazzler::align::OverlapIndexer::getIndexName(outputfilename)
+					);
+				}
 			};
 		}
 	}
