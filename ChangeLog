@@ -1,3 +1,12 @@
+libmaus2 (2.0.362-1) unstable; urgency=medium
+
+  * add fanin/number of thread arguments in AlignmentWriterArray::merge
+  * add sortAndMergeThread function in SortingOverlapOutputBuffer featuring separate arguments for number of sort and merge threads
+  * add serialisation in OverlapInfo class
+  * bug fix in difference function of IntegerInterval class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 04 Aug 2017 10:48:09 +0200
+
 libmaus2 (2.0.361-1) unstable; urgency=medium
 
   * add mc field in opt duplicate marking
