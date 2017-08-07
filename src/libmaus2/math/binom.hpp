@@ -111,6 +111,16 @@ namespace libmaus2
 				return v;
 			}
 
+			static libmaus2::math::GmpFloat binomialCoefficientGmp(uint64_t k, uint64_t n, unsigned int const prec)
+			{
+				std::vector < uint64_t > cnt;
+				fillBinomialVector(k,n,cnt);
+				libmaus2::math::GmpFloat v(1.0,prec);
+				for ( uint64_t i = 0; i < cnt.size(); ++i )
+					v *= libmaus2::math::GmpFloat(cnt[i],prec);
+				return v;
+			}
+
 			static double slowPow(double const x, unsigned int const e)
 			{
 				double tx = x;
