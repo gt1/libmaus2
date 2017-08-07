@@ -1,3 +1,11 @@
+libmaus2 (2.0.363-1) unstable; urgency=medium
+
+  * add binomialCoefficientGmp function in Binom class
+  * add pow_ui, mul_2exp, div_2exp, log and exp methods in GmpFloat class
+  * add abs operator in GmpFloat and refactor unary operator-
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 07 Aug 2017 23:16:37 +0200
+
 libmaus2 (2.0.362-1) unstable; urgency=medium
 
   * add fanin/number of thread arguments in AlignmentWriterArray::merge
