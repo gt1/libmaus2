@@ -66,6 +66,86 @@ namespace libmaus2
 			operator double() const;
 			operator uint64_t() const;
 			operator int64_t() const;
+			GmpFloat & pow_ui(unsigned int const p);
+			GmpFloat & mul_2exp(unsigned int const p);
+			GmpFloat & div_2exp(unsigned int const p);
+
+			libmaus2::math::GmpFloat exp(unsigned int const prec = 64) const
+			{
+				libmaus2::math::GmpFloat const & x = *this;
+
+				libmaus2::math::GmpFloat f(1.0,prec);
+				libmaus2::math::GmpFloat s(1.0,prec);
+				libmaus2::math::GmpFloat const o(1.0,prec);
+
+				libmaus2::math::GmpFloat limit(1.0/2.0,prec);
+				limit.div_2exp(prec);
+
+				libmaus2::math::GmpFloat i(1.0,prec);
+				while ( true )
+				{
+					f *= x;
+					f /= libmaus2::math::GmpFloat(i,prec);
+
+					if ( f.abs() < limit )
+						break;
+
+					s += f;
+					i += o;
+				}
+
+				return s;
+			}
+
+			libmaus2::math::GmpFloat log(unsigned int const prec = 64) const
+			{
+				libmaus2::math::GmpFloat const & x = *this;
+
+				if ( x > libmaus2::math::GmpFloat(2,prec) )
+				{
+					libmaus2::math::GmpFloat a(1,prec);
+					libmaus2::math::GmpFloat z(2,prec);
+					uint64_t power = 0;
+
+					while ( a < x )
+					{
+						a = a*z;
+						power++;
+					}
+
+					assert ( power );
+
+					return
+						(x / a).log(prec) +
+						libmaus2::math::GmpFloat(power,prec) * libmaus2::math::GmpFloat(2.0, prec).log(prec);
+				}
+
+				libmaus2::math::GmpFloat const d = (x-libmaus2::math::GmpFloat(1,prec)) / (x+libmaus2::math::GmpFloat(1,prec));
+				libmaus2::math::GmpFloat f = d;
+
+				libmaus2::math::GmpFloat limit(1.0/2.0,prec);
+				limit.div_2exp(prec);
+
+				uint64_t i = 1;
+
+				libmaus2::math::GmpFloat s(0,prec);
+
+				while ( true )
+				{
+					libmaus2::math::GmpFloat const a = f / libmaus2::math::GmpFloat(i,prec);
+
+					if ( a.abs() < limit )
+						break;
+
+					s += a;
+
+					f *= d;
+					f *= d;
+					i += 2;
+				}
+
+				return s * libmaus2::math::GmpFloat(2.0,prec);
+			}
 		};
 
 		GmpFloat operator+(GmpFloat const & A, GmpFloat const & B);
