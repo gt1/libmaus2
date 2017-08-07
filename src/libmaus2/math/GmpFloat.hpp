@@ -55,7 +55,8 @@ namespace libmaus2
 			GmpFloat & operator-=(GmpFloat const & o);
 			GmpFloat & operator*=(GmpFloat const & o);
 			GmpFloat & operator/=(GmpFloat const & o);
-			GmpFloat & operator-();
+			GmpFloat operator-() const;
+			GmpFloat abs() const;
 			bool operator<(GmpFloat const & o) const;
 			bool operator<=(GmpFloat const & o) const;
 			bool operator==(GmpFloat const & o) const;

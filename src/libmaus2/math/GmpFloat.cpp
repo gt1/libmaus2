@@ -196,10 +196,12 @@ libmaus2::math::GmpFloat & libmaus2::math::GmpFloat::operator/=(
 	return *this;
 }
 
-libmaus2::math::GmpFloat & libmaus2::math::GmpFloat::operator-()
+libmaus2::math::GmpFloat libmaus2::math::GmpFloat::operator-() const
 {
 	#if defined(LIBMAUS2_HAVE_GMP)
-	mpf_neg(decode(v),decode(v));
+	libmaus2::math::GmpFloat t(*this);
+	mpf_neg(decode(t.v),decode(t.v));
+	return t;
 	#endif
 	return *this;
 }
@@ -292,6 +294,17 @@ libmaus2::math::GmpFloat::operator double() const
 {
 	#if defined(LIBMAUS2_HAVE_GMP)
 	return mpf_get_d(decode(v));
+	#else
+	return 0;
+	#endif
+}
+
+libmaus2::math::GmpFloat libmaus2::math::GmpFloat::abs() const
+{
+	#if defined(LIBMAUS2_HAVE_GMP)
+	libmaus2::math::GmpFloat O(*this);
+	mpf_abs(decode(O.v),decode(O.v));
+	return O;
 	#else
 	return 0;
 	#endif
