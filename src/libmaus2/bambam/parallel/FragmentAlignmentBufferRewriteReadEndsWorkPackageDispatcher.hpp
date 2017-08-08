@@ -60,6 +60,8 @@ namespace libmaus2
 				libmaus2::bambam::BamAuxFilterVector MQMCMSMTfilter;
 				std::string const tagtag;
 				char const * ctagtag;
+				bool const rcsupport;
+				libmaus2::bambam::BamAuxFilterVector RCfilter;
 
 				FragmentAlignmentBufferRewriteReadEndsWorkPackageDispatcher(
 					FragmentAlignmentBufferRewriteReadEndsWorkPackageReturnInterface & rpackageReturnInterface,
@@ -67,7 +69,8 @@ namespace libmaus2
 					ReadEndsContainerFreeListInterface & rreadEndsContainerFreeListInterface,
 					AddDuplicationMetricsInterface & raddDuplicationMetricsInterface,
 					bool const rfixmates,
-					bool const rdupmarksupport
+					bool const rdupmarksupport,
+					bool const rrcsupport
 				)
 				:
 					packageReturnInterface(rpackageReturnInterface),
@@ -76,7 +79,8 @@ namespace libmaus2
 					addDuplicationMetricsInterface(raddDuplicationMetricsInterface),
 					fixmates(rfixmates),
 					dupmarksupport(rdupmarksupport),
-					tagtag("TA"), ctagtag(tagtag.c_str())
+					tagtag("TA"), ctagtag(tagtag.c_str()),
+					rcsupport(rrcsupport)
 				{
 					MQfilter.set("MQ");
 
@@ -91,6 +95,8 @@ namespace libmaus2
 
 					MQMCMSMTfilter.set("MC");
 					MCMSMTfilter.set("MC");
+
+					RCfilter.set("rc");
 				}
 
 				virtual void dispatch(
@@ -294,6 +300,11 @@ namespace libmaus2
 							std::pair<uint8_t *,uint64_t> P = BP->algn->at(i);
 							uint64_t const rank = BP->algn->low + i;
 
+							if ( rcsupport )
+							{
+								P.second = ::libmaus2::bambam::BamAlignmentDecoderBase::filterOutAux(P.first,P.second,RCfilter);
+								BP->algn->setLengthAt(i,P.second);
+							}
 							if ( fixmates && dupmarksupport )
 							{
 								P.second = ::libmaus2::bambam::BamAlignmentDecoderBase::filterOutAux(P.first,P.second,MQMCMSMTfilter);
@@ -431,6 +442,29 @@ namespace libmaus2
 
 									subbuf->push(reinterpret_cast<uint8_t const *>(AmateCigar2.begin()),mateCigar2l+1);
 									P.second += mateCigar2l+1;
+									subbuf->replaceLength(offset,P.second);
+								}
+							}
+							if ( rcsupport )
+							{
+								uint32_t const flags = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(P.first);
+
+								if (
+									(flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP) == 0
+								)
+								{
+									int32_t const coord = ::libmaus2::bambam::BamAlignmentDecoderBase::getCoordinate(P.first);
+									uint32_t const ucoord = static_cast<uint32_t>(coord);
+
+									uint8_t const T[7] = {
+										'r', 'c', 'I',
+										static_cast<uint8_t>((ucoord >>  0) & 0xFF),
+										static_cast<uint8_t>((ucoord >>  8) & 0xFF),
+										static_cast<uint8_t>((ucoord >> 16) & 0xFF),
+										static_cast<uint8_t>((ucoord >> 24) & 0xFF)
+									};
+									subbuf->push(&T[0],sizeof(T));
+									P.second += sizeof(T);
 									subbuf->replaceLength(offset,P.second);
 								}
 							}
