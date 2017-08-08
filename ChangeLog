@@ -1,3 +1,10 @@
+libmaus2 (2.0.364-1) unstable; urgency=medium
+
+  * add OverlapInfoIndexer
+  * add single file sort interface in SortingOverlapOutputBuffer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 08 Aug 2017 13:05:27 +0200
+
 libmaus2 (2.0.363-1) unstable; urgency=medium
 
   * add binomialCoefficientGmp function in Binom class
