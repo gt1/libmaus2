@@ -471,7 +471,8 @@ namespace libmaus2
 					bool const rfixmates = true,
 					bool const rdupmarksupport = true,
 					unsigned int const roptminpixeldif = 100,
-					uint64_t const rparsebuffersize = getParseBufferSize()
+					uint64_t const rparsebuffersize = getParseBufferSize(),
+					bool const rrcsupport = true
 				)
 				:
 					procrtc(true),
@@ -492,7 +493,7 @@ namespace libmaus2
 					BLMCWPDid(STP.getNextDispatcherId()),
 					WBWPD(*this,*this,*this),
 					WBWPDid(STP.getNextDispatcherId()),
-					FABRWPD(*this,*this,*this,*this,rfixmates /* fix mates */,rdupmarksupport /* dup mark support */),
+					FABRWPD(*this,*this,*this,*this,rfixmates /* fix mates */,rdupmarksupport /* dup mark support */,rrcsupport /* add rc tag */),
 					FABRWPDid(STP.getNextDispatcherId()),
 					FABROWPD(*this,*this),
 					FABROWPDid(STP.getNextDispatcherId()),
