@@ -53,6 +53,8 @@ namespace libmaus2
 				libmaus2::bambam::BamAuxFilterVector MQMCMSMTfilter;
 				std::string const tagtag;
 				char const * ctagtag;
+				libmaus2::bambam::BamAuxFilterVector RCfilter;
+				bool const rcsupport;
 
 				FragmentAlignmentBufferRewriteWorkPackageDispatcher(
 					FragmentAlignmentBufferRewriteWorkPackageReturnInterface & rpackageReturnInterface,
@@ -64,7 +66,8 @@ namespace libmaus2
 					fragmentCompleteInterface(rfragmentCompleteInterface),
 					updateIntervalInterface(rupdateIntervalInterface),
 					fixmates(true),
-					dupmarksupport(true), tagtag("TA"), ctagtag(tagtag.c_str())
+					dupmarksupport(true), tagtag("TA"), ctagtag(tagtag.c_str()),
+					rcsupport(true)
 				{
 					MQfilter.set("MQ");
 
@@ -76,6 +79,8 @@ namespace libmaus2
 					MQMCMSMTfilter.set("mc");
 					MQMCMSMTfilter.set("ms");
 					MQMCMSMTfilter.set("mt");
+
+					RCfilter.set("rc");
 				}
 
 				virtual void dispatch(
@@ -267,6 +272,12 @@ namespace libmaus2
 							std::pair<uint8_t *,uint64_t> P = BP->algn->at(i);
 							uint64_t const rank = BP->algn->low + i;
 
+							if ( rcsupport )
+							{
+								P.second = ::libmaus2::bambam::BamAlignmentDecoderBase::filterOutAux(P.first,P.second,RCfilter);
+								BP->algn->setLengthAt(i,P.second);
+							}
+
 							if ( fixmates && dupmarksupport )
 							{
 								P.second = ::libmaus2::bambam::BamAlignmentDecoderBase::filterOutAux(P.first,P.second,MQMCMSMTfilter);
@@ -286,6 +297,30 @@ namespace libmaus2
 							uint64_t const offset = subbuf->getOffset();
 							*(O++) = offset;
 							subbuf->pushAlignmentBlock(P.first,P.second);
+
+							if ( rcsupport )
+							{
+								uint8_t const * text = BP->algn->textAt(i);
+								uint32_t const flags = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(text);
+
+								// not unmapped
+								if ( (flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP) == 0 )
+								{
+									int32_t const coord = libmaus2::bambam::BamAlignmentDecoderBase::getCoordinate(text);
+									uint32_t const ucoord = static_cast<uint32_t>(coord);
+
+									uint8_t const T[7] = {
+										'r', 'c', 'i',
+										static_cast<uint8_t>((ucoord >>  0) & 0xFF),
+										static_cast<uint8_t>((ucoord >>  8) & 0xFF),
+										static_cast<uint8_t>((ucoord >> 16) & 0xFF),
+										static_cast<uint8_t>((ucoord >> 24) & 0xFF)
+									};
+									subbuf->push(&T[0],sizeof(T));
+									P.second += sizeof(T);
+									subbuf->replaceLength(offset,P.second);
+								}
+							}
 
 							if ( static_cast<ssize_t>(i) == firsti )
 							{

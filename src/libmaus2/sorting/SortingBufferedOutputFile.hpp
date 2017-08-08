@@ -129,7 +129,7 @@ namespace libmaus2
 			{
 				std::string const tmpfn = fn + ".tmp";
 				libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfn);
-				reduce(std::vector<std::string>(1,fn),tmpfn);
+				reduce(std::vector<std::string>(1,fn),tmpfn,blocksize,backblocksize,maxfan);
 				libmaus2::aio::OutputStreamFactoryContainer::rename(tmpfn,fn);
 			}
 
