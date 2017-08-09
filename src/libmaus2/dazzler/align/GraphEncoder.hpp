@@ -154,11 +154,13 @@ namespace libmaus2
 					std::string const & out,
 					std::vector<std::string> const & arg,
 					std::string const & tmpfilebase,
-					int const verbose
+					int const verbose,
+					std::ostream * errOSI = 0,
+					uint64_t const numthreads = 1
 				)
 				{
 					libmaus2::aio::OutputStreamInstance OSI(out);
-					encodegraph(OSI,arg,tmpfilebase,verbose);
+					encodegraph(OSI,arg,tmpfilebase,verbose,errOSI,numthreads);
 				}
 
 				struct EncodeContext
