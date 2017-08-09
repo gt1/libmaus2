@@ -1,3 +1,9 @@
+libmaus2 (2.0.367-1) unstable; urgency=medium
+
+  * pass through arguments in GraphEncoder
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 09 Aug 2017 14:49:02 +0200
+
 libmaus2 (2.0.366-1) unstable; urgency=medium
 
   * parallelise gathering of statistics in GraphEncoder
