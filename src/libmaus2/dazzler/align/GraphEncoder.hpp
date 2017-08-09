@@ -161,12 +161,7 @@ namespace libmaus2
 					encodegraph(OSI,arg,tmpfilebase,verbose);
 				}
 
-				static void encodegraph(
-					std::ostream & out,
-					std::vector<std::string> const & arg,
-					std::string const & tmpfilebase,
-					int const verbose
-				)
+				struct EncodeContext
 				{
 					libmaus2::util::Histogram linkcnthist;
 					std::map<uint64_t,uint64_t> bdif;
@@ -191,123 +186,237 @@ namespace libmaus2
 					std::map<uint64_t,uint64_t> bbdifrangecnt;
 					std::map<uint64_t,uint64_t> emap;
 
-					std::string const tmpptr = tmpfilebase + "_pointers";
+					bool operator==(EncodeContext const & O) const
+					{
+						return linkcnthist.get() == O.linkcnthist.get()
+							&& bdif == O.bdif
+							&& bdifcnt == O.bdifcnt
+							&& bfirst == O.bfirst
+							&& bfirstcnt == O.bfirstcnt
+							&& abfirst == O.abfirst
+							&& abfirstcnt == O.abfirstcnt
+							&& abdif == O.abdif
+							&& abdifcnt == O.abdifcnt
+							&& bbfirst == O.bbfirst
+							&& bbfirstcnt == O.bbfirstcnt
+							&& bbdif == O.bbdif
+							&& bbdifcnt == O.bbdifcnt
+							&& abfirstrange == O.abfirstrange
+							&& abfirstrangecnt == O.abfirstrangecnt
+							&& abdifrange == O.abdifrange
+							&& abdifrangecnt == O.abdifrangecnt
+							&& bbfirstrange == O.bbfirstrange
+							&& bbfirstrangecnt == O.bbfirstrangecnt
+							&& bbdifrange == O.bbdifrange
+							&& bbdifrangecnt == O.bbdifrangecnt
+							&& emap == O.emap
+							;
+					}
+
+					static void merge(std::map<uint64_t,uint64_t> & A, std::map<uint64_t,uint64_t> const & B)
+					{
+						for (
+							std::map<uint64_t,uint64_t>::const_iterator itc = B.begin();
+							itc != B.end();
+							++itc )
+							A [ itc->first ] += itc->second;
+					}
+
+					void merge(EncodeContext const & E)
+					{
+						merge(bdif,E.bdif);
+						merge(bdifcnt,E.bdifcnt);
+						merge(bfirst,E.bfirst);
+						merge(bfirstcnt,E.bfirstcnt);
+						merge(abfirst,E.abfirst);
+						merge(abfirstcnt,E.abfirstcnt);
+						merge(abdif,E.abdif);
+						merge(abdifcnt,E.abdifcnt);
+						merge(bbfirst,E.bbfirst);
+						merge(bbfirstcnt,E.bbfirstcnt);
+						merge(bbdif,E.bbdif);
+						merge(bbdifcnt,E.bbdifcnt);
+						merge(abfirstrange,E.abfirstrange);
+						merge(abfirstrangecnt,E.abfirstrangecnt);
+						merge(abdifrange,E.abdifrange);
+						merge(abdifrangecnt,E.abdifrangecnt);
+						merge(bbfirstrange,E.bbfirstrange);
+						merge(bbfirstrangecnt,E.bbfirstrangecnt);
+						merge(bbdifrange,E.bbdifrange);
+						merge(bbdifrangecnt,E.bbdifrangecnt);
+						merge(emap,E.emap);
+						linkcnthist.merge(E.linkcnthist);
+					}
+				};
+
+				static void encodegraph(
+					std::ostream & out,
+					std::vector<std::string> const & arg,
+					std::string const & tmpfilebase,
+					int const verbose,
+					std::ostream * errOSI = 0,
+					uint64_t const numthreads = 1
+				)
+				{
+					EncodeContext gcontext;
+					libmaus2::parallel::PosixMutex gcontextlock;
 
 					for ( uint64_t i = 0; i < arg.size(); ++i )
 					{
-						libmaus2::dazzler::align::AlignmentFileRegion::unique_ptr_type AF(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFileWithoutIndex(arg[i]));
-						libmaus2::dazzler::align::Overlap OVL;
-
-						while ( AF->peekNextOverlap(OVL) )
+						std::string const lasindexname = libmaus2::dazzler::align::OverlapIndexer::getIndexName(arg[i]);
+						if (
+							! libmaus2::util::GetFileSize::fileExists(lasindexname)
+							||
+							libmaus2::util::GetFileSize::isOlder(lasindexname,arg[i])
+						)
 						{
-							int64_t const aid = OVL.aread;
-							std::vector < libmaus2::dazzler::align::Overlap > V;
+							if ( verbose )
+								libmaus2::dazzler::align::OverlapIndexer::constructIndex(arg[i],errOSI);
+							else
+								libmaus2::dazzler::align::OverlapIndexer::constructIndex(arg[i]);
+						}
 
-							while ( AF->peekNextOverlap(OVL) && OVL.aread == aid )
+						int64_t const mina = libmaus2::dazzler::align::OverlapIndexer::getMinimumARead(arg[i]);
+
+						if ( mina >= 0 )
+						{
+							int64_t const maxa = libmaus2::dazzler::align::OverlapIndexer::getMaximumARead(arg[i]);
+							assert ( maxa >= mina );
+
+							uint64_t const range = (maxa - mina + 1);
+							uint64_t const readsperthread = ( range + numthreads - 1 ) / numthreads;
+							uint64_t const packs = ( range + readsperthread - 1 ) / readsperthread;
+							assert ( packs <= numthreads );
+
+							#if defined(_OPENMP)
+							#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
+							#endif
+							for ( uint64_t tt = 0; tt < packs; ++tt )
 							{
-								AF->getNextOverlap(OVL);
-								V.push_back(OVL);
+								uint64_t const tlow = mina + tt * readsperthread;
+								uint64_t const thigh = std::min(tlow + readsperthread, static_cast<uint64_t>(mina + range) );
+
+								libmaus2::dazzler::align::AlignmentFileRegion::unique_ptr_type AF(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFileRegion(arg[i],tlow,thigh));
+
+								EncodeContext context;
+
+								libmaus2::dazzler::align::Overlap OVL;
+
+								while ( AF->peekNextOverlap(OVL) )
+								{
+									int64_t const aid = OVL.aread;
+									std::vector < libmaus2::dazzler::align::Overlap > V;
+
+									while ( AF->peekNextOverlap(OVL) && OVL.aread == aid )
+									{
+										AF->getNextOverlap(OVL);
+										V.push_back(OVL);
+									}
+
+									assert ( V.size() );
+
+									for ( uint64_t i = 1; i < V.size(); ++i )
+									{
+										assert ( V[i-1].aread == V[i].aread );
+										assert ( V[i-1].bread <= V[i].bread );
+									}
+
+									for ( uint64_t i = 1; i < V.size(); ++i )
+										context.bdif[V.size()] += (V[i].bread - V[i-1].bread);
+									context.bdifcnt[V.size()] += V.size()-1;
+
+									context.bfirst[V.size()] += V[0].bread;
+									context.bfirstcnt[V.size()] += 1;
+
+									std::vector<ASort> VA;
+									for ( uint64_t i = 0; i < V.size(); ++i )
+										VA.push_back(ASort(V[i].path.abpos,V[i].path.aepos,i));
+									std::sort(VA.begin(),VA.end());
+
+									context.abfirst[V.size()] += VA[0].abpos;
+									context.abfirstcnt[V.size()] += 1;
+
+									for ( uint64_t i = 1; i < VA.size(); ++i )
+										context.abdif[V.size()] += (VA[i].abpos - VA[i-1].abpos);
+									context.abdifcnt[V.size()] += VA.size()-1;
+
+									std::vector<ASort> VB;
+									for ( uint64_t i = 0; i < V.size(); ++i )
+										VB.push_back(ASort(V[i].path.bbpos,V[i].path.bepos,i));
+									std::sort(VB.begin(),VB.end());
+
+									context.bbfirst[V.size()] += VB[0].abpos;
+									context.bbfirstcnt[V.size()] += 1;
+
+									for ( uint64_t i = 1; i < VB.size(); ++i )
+										context.bbdif[V.size()] += (VB[i].abpos - VB[i-1].abpos);
+									context.bbdifcnt[V.size()] += VB.size()-1;
+
+									std::sort(VA.begin(),VA.end(),ASortRange());
+									context.abfirstrange[V.size()] += VA[0].getRange();
+									for ( uint64_t i = 1; i < VA.size(); ++i )
+										context.abdifrange[V.size()] += VA[i].getRange() - VA[i-1].getRange();
+									context.abfirstrangecnt[V.size()] += 1;
+									context.abdifrangecnt[V.size()] += VA.size()-1;
+
+									std::sort(VB.begin(),VB.end(),ASortRange());
+									context.bbfirstrange[V.size()] += VB[0].getRange();
+									for ( uint64_t i = 1; i < VB.size(); ++i )
+										context.bbdifrange[V.size()] += VB[i].getRange() - VB[i-1].getRange();
+									context.bbfirstrangecnt[V.size()] += 1;
+									context.bbdifrangecnt[V.size()] += VA.size()-1;
+
+									for ( uint64_t i = 0; i < V.size(); ++i )
+										context.emap[V[i].path.diffs]++;
+
+									context.linkcnthist(V.size());
+
+									if ( verbose && errOSI && ( (aid % (16*1024) == 0) || (!(AF->peekNextOverlap(OVL))) ) )
+										*errOSI << "[V] " << aid << std::endl;
+								}
+
+								libmaus2::parallel::ScopePosixMutex sgcontextlock(gcontextlock);
+								gcontext.merge(context);
 							}
-
-							assert ( V.size() );
-
-							for ( uint64_t i = 1; i < V.size(); ++i )
-							{
-								assert ( V[i-1].aread == V[i].aread );
-								assert ( V[i-1].bread <= V[i].bread );
-							}
-
-							for ( uint64_t i = 1; i < V.size(); ++i )
-								bdif[V.size()] += (V[i].bread - V[i-1].bread);
-							bdifcnt[V.size()] += V.size()-1;
-
-							bfirst[V.size()] += V[0].bread;
-							bfirstcnt[V.size()] += 1;
-
-							std::vector<ASort> VA;
-							for ( uint64_t i = 0; i < V.size(); ++i )
-								VA.push_back(ASort(V[i].path.abpos,V[i].path.aepos,i));
-							std::sort(VA.begin(),VA.end());
-
-							abfirst[V.size()] += VA[0].abpos;
-							abfirstcnt[V.size()] += 1;
-
-							for ( uint64_t i = 1; i < VA.size(); ++i )
-								abdif[V.size()] += (VA[i].abpos - VA[i-1].abpos);
-							abdifcnt[V.size()] += VA.size()-1;
-
-							std::vector<ASort> VB;
-							for ( uint64_t i = 0; i < V.size(); ++i )
-								VB.push_back(ASort(V[i].path.bbpos,V[i].path.bepos,i));
-							std::sort(VB.begin(),VB.end());
-
-							bbfirst[V.size()] += VB[0].abpos;
-							bbfirstcnt[V.size()] += 1;
-
-							for ( uint64_t i = 1; i < VB.size(); ++i )
-								bbdif[V.size()] += (VB[i].abpos - VB[i-1].abpos);
-							bbdifcnt[V.size()] += VB.size()-1;
-
-							std::sort(VA.begin(),VA.end(),ASortRange());
-							abfirstrange[V.size()] += VA[0].getRange();
-							for ( uint64_t i = 1; i < VA.size(); ++i )
-								abdifrange[V.size()] += VA[i].getRange() - VA[i-1].getRange();
-							abfirstrangecnt[V.size()] += 1;
-							abdifrangecnt[V.size()] += VA.size()-1;
-
-							std::sort(VB.begin(),VB.end(),ASortRange());
-							bbfirstrange[V.size()] += VB[0].getRange();
-							for ( uint64_t i = 1; i < VB.size(); ++i )
-								bbdifrange[V.size()] += VB[i].getRange() - VB[i-1].getRange();
-							bbfirstrangecnt[V.size()] += 1;
-							bbdifrangecnt[V.size()] += VA.size()-1;
-
-							for ( uint64_t i = 0; i < V.size(); ++i )
-								emap[V[i].path.diffs]++;
-
-							linkcnthist(V.size());
-
-							if ( verbose && ( (aid % (16*1024) == 0) || (!(AF->peekNextOverlap(OVL))) ) )
-								std::cerr << "[V] " << aid << std::endl;
 						}
 					}
 
 					std::map<uint64_t,uint64_t> Mbfirst;
-					for ( std::map<uint64_t,uint64_t>::const_iterator ita = bfirst.begin(); ita != bfirst.end(); ++ita )
-						Mbfirst [ ita -> first ] = ( ita->second + bfirstcnt.find(ita->first)->second - 1 ) / bfirstcnt.find(ita->first)->second;
+					for ( std::map<uint64_t,uint64_t>::const_iterator ita = gcontext.bfirst.begin(); ita != gcontext.bfirst.end(); ++ita )
+						Mbfirst [ ita -> first ] = ( ita->second + gcontext.bfirstcnt.find(ita->first)->second - 1 ) / gcontext.bfirstcnt.find(ita->first)->second;
 					std::map<uint64_t,uint64_t> Mbdif;
-					for ( std::map<uint64_t,uint64_t>::const_iterator ita = bdif.begin(); ita != bdif.end(); ++ita )
-						Mbdif [ ita -> first ] = ( ita->second + bdifcnt.find(ita->first)->second - 1 ) / bdifcnt.find(ita->first)->second;
+					for ( std::map<uint64_t,uint64_t>::const_iterator ita = gcontext.bdif.begin(); ita != gcontext.bdif.end(); ++ita )
+						Mbdif [ ita -> first ] = ( ita->second + gcontext.bdifcnt.find(ita->first)->second - 1 ) / gcontext.bdifcnt.find(ita->first)->second;
 
 					std::map<uint64_t,uint64_t> Mabfirst;
-					for ( std::map<uint64_t,uint64_t>::const_iterator ita = abfirst.begin(); ita != abfirst.end(); ++ita )
-						Mabfirst [ ita -> first ] = ( ita->second + abfirstcnt.find(ita->first)->second - 1 ) / abfirstcnt.find(ita->first)->second;
+					for ( std::map<uint64_t,uint64_t>::const_iterator ita = gcontext.abfirst.begin(); ita != gcontext.abfirst.end(); ++ita )
+						Mabfirst [ ita -> first ] = ( ita->second + gcontext.abfirstcnt.find(ita->first)->second - 1 ) / gcontext.abfirstcnt.find(ita->first)->second;
 					std::map<uint64_t,uint64_t> Mabdif;
-					for ( std::map<uint64_t,uint64_t>::const_iterator ita = abdif.begin(); ita != abdif.end(); ++ita )
-						Mabdif [ ita -> first ] = ( ita->second + abdifcnt.find(ita->first)->second - 1 ) / abdifcnt.find(ita->first)->second;
+					for ( std::map<uint64_t,uint64_t>::const_iterator ita = gcontext.abdif.begin(); ita != gcontext.abdif.end(); ++ita )
+						Mabdif [ ita -> first ] = ( ita->second + gcontext.abdifcnt.find(ita->first)->second - 1 ) / gcontext.abdifcnt.find(ita->first)->second;
 
 					std::map<uint64_t,uint64_t> Mbbfirst;
-					for ( std::map<uint64_t,uint64_t>::const_iterator ita = bbfirst.begin(); ita != bbfirst.end(); ++ita )
-						Mbbfirst [ ita -> first ] = ( ita->second + bbfirstcnt.find(ita->first)->second - 1 ) / bbfirstcnt.find(ita->first)->second;
+					for ( std::map<uint64_t,uint64_t>::const_iterator ita = gcontext.bbfirst.begin(); ita != gcontext.bbfirst.end(); ++ita )
+						Mbbfirst [ ita -> first ] = ( ita->second + gcontext.bbfirstcnt.find(ita->first)->second - 1 ) / gcontext.bbfirstcnt.find(ita->first)->second;
 					std::map<uint64_t,uint64_t> Mbbdif;
-					for ( std::map<uint64_t,uint64_t>::const_iterator ita = bbdif.begin(); ita != bbdif.end(); ++ita )
-						Mbbdif [ ita -> first ] = ( ita->second + bbdifcnt.find(ita->first)->second - 1 ) / bbdifcnt.find(ita->first)->second;
+					for ( std::map<uint64_t,uint64_t>::const_iterator ita = gcontext.bbdif.begin(); ita != gcontext.bbdif.end(); ++ita )
+						Mbbdif [ ita -> first ] = ( ita->second + gcontext.bbdifcnt.find(ita->first)->second - 1 ) / gcontext.bbdifcnt.find(ita->first)->second;
 
 					std::map<uint64_t,uint64_t> Mabfirstrange;
-					for ( std::map<uint64_t,uint64_t>::const_iterator ita = abfirstrange.begin(); ita != abfirstrange.end(); ++ita )
-						Mabfirstrange [ ita -> first ] = ( ita->second + abfirstrangecnt.find(ita->first)->second - 1 ) / abfirstrangecnt.find(ita->first)->second;
+					for ( std::map<uint64_t,uint64_t>::const_iterator ita = gcontext.abfirstrange.begin(); ita != gcontext.abfirstrange.end(); ++ita )
+						Mabfirstrange [ ita -> first ] = ( ita->second + gcontext.abfirstrangecnt.find(ita->first)->second - 1 ) / gcontext.abfirstrangecnt.find(ita->first)->second;
 					std::map<uint64_t,uint64_t> Mabdifrange;
-					for ( std::map<uint64_t,uint64_t>::const_iterator ita = abdifrange.begin(); ita != abdifrange.end(); ++ita )
-						Mabdifrange [ ita -> first ] = ( ita->second + abdifrangecnt.find(ita->first)->second - 1 ) / abdifrangecnt.find(ita->first)->second;
+					for ( std::map<uint64_t,uint64_t>::const_iterator ita = gcontext.abdifrange.begin(); ita != gcontext.abdifrange.end(); ++ita )
+						Mabdifrange [ ita -> first ] = ( ita->second + gcontext.abdifrangecnt.find(ita->first)->second - 1 ) / gcontext.abdifrangecnt.find(ita->first)->second;
 
 					std::map<uint64_t,uint64_t> Mbbfirstrange;
-					for ( std::map<uint64_t,uint64_t>::const_iterator ita = bbfirstrange.begin(); ita != bbfirstrange.end(); ++ita )
-						Mbbfirstrange [ ita -> first ] = ( ita->second + bbfirstrangecnt.find(ita->first)->second - 1 ) / bbfirstrangecnt.find(ita->first)->second;
+					for ( std::map<uint64_t,uint64_t>::const_iterator ita = gcontext.bbfirstrange.begin(); ita != gcontext.bbfirstrange.end(); ++ita )
+						Mbbfirstrange [ ita -> first ] = ( ita->second + gcontext.bbfirstrangecnt.find(ita->first)->second - 1 ) / gcontext.bbfirstrangecnt.find(ita->first)->second;
 					std::map<uint64_t,uint64_t> Mbbdifrange;
-					for ( std::map<uint64_t,uint64_t>::const_iterator ita = bbdifrange.begin(); ita != bbdifrange.end(); ++ita )
-						Mbbdifrange [ ita -> first ] = ( ita->second + bbdifrangecnt.find(ita->first)->second - 1 ) / bbdifrangecnt.find(ita->first)->second;
+					for ( std::map<uint64_t,uint64_t>::const_iterator ita = gcontext.bbdifrange.begin(); ita != gcontext.bbdifrange.end(); ++ita )
+						Mbbdifrange [ ita -> first ] = ( ita->second + gcontext.bbdifrangecnt.find(ita->first)->second - 1 ) / gcontext.bbdifrangecnt.find(ita->first)->second;
 
-					std::vector < std::pair<uint64_t,uint64_t > > const linkcntfreqs = linkcnthist.getFreqSymVector();
+					std::vector < std::pair<uint64_t,uint64_t > > const linkcntfreqs = gcontext.linkcnthist.getFreqSymVector();
 
 					::libmaus2::huffman::EscapeCanonicalEncoder::unique_ptr_type esclinkcntenc;
 					::libmaus2::huffman::CanonicalEncoder::unique_ptr_type linkcntenc;
@@ -320,12 +429,12 @@ namespace libmaus2
 					}
 					else
 					{
-						::libmaus2::huffman::CanonicalEncoder::unique_ptr_type tlinkcntenc(new ::libmaus2::huffman::CanonicalEncoder(linkcnthist.getByType<int64_t>()));
+						::libmaus2::huffman::CanonicalEncoder::unique_ptr_type tlinkcntenc(new ::libmaus2::huffman::CanonicalEncoder(gcontext.linkcnthist.getByType<int64_t>()));
 						linkcntenc = UNIQUE_PTR_MOVE(tlinkcntenc);
 					}
 
 					std::map<int64_t,uint64_t> iemap;
-					for ( std::map<uint64_t,uint64_t>::const_iterator it = emap.begin(); it != emap.end(); ++it )
+					for ( std::map<uint64_t,uint64_t>::const_iterator it = gcontext.emap.begin(); it != gcontext.emap.end(); ++it )
 						iemap[it->first] = it->second;
 
 					bool const emapesc = ::libmaus2::huffman::EscapeCanonicalEncoder::needEscape(iemap);
@@ -342,6 +451,7 @@ namespace libmaus2
 						emapenc = UNIQUE_PTR_MOVE(tenc);
 					}
 
+					std::string const tmpptr = tmpfilebase + "_pointers";
 					libmaus2::util::TempFileRemovalContainer::addTempFile(tmpptr);
 					//libmaus2::aio::OutputStreamInstance::unique_ptr_type Tptr(new libmaus2::aio::OutputStreamInstance(tmpptr));
 
@@ -351,7 +461,7 @@ namespace libmaus2
 					libmaus2::huffman::HuffmanEncoderFileStd HEFS(out);
 
 					writePairVector(HEFS,linkcntfreqs);
-					writeMap(HEFS,emap);
+					writeMap(HEFS,gcontext.emap);
 					writeMap(HEFS,Mbfirst);
 					writeMap(HEFS,Mbdif);
 					writeMap(HEFS,Mabfirst);
@@ -477,8 +587,8 @@ namespace libmaus2
 							GE.flush();
 							HEFS.flushBitStream();
 
-							if ( verbose && ( (aid % (16*1024) == 0) || (!(AF->peekNextOverlap(OVL))) ) )
-								std::cerr << "[V] " << aid << std::endl;
+							if ( verbose && errOSI && ( (aid % (16*1024) == 0) || (!(AF->peekNextOverlap(OVL))) ) )
+								*errOSI << "[V] " << aid << std::endl;
 						}
 					}
 
