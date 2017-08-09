@@ -1,3 +1,9 @@
+libmaus2 (2.0.366-1) unstable; urgency=medium
+
+  * parallelise gathering of statistics in GraphEncoder
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 09 Aug 2017 11:25:07 +0200
+
 libmaus2 (2.0.365-1) unstable; urgency=medium
 
   * add rcsupport in FragmentAlignmentBufferRewriteWorkPackageDispatcher and FragmentAlignmentBufferRewriteReadEndsWorkPackageDispatcher
