@@ -26,6 +26,23 @@ namespace libmaus2
 	{
 		struct Faulhaber
 		{
+			static std::vector < Rational<> > polmul(
+				std::vector < Rational<> > const & A,
+				std::vector < Rational<> > const & B
+			)
+			{
+				std::vector < Rational<> > P(A.size()+B.size());
+
+				for ( uint64_t i = 0; i < A.size(); ++i )
+					for ( uint64_t j = 0; j < B.size(); ++j )
+						P[i+j] += A[i] * B[j];
+
+				while ( P.size() && P.back().c == 0 )
+					P.pop_back();
+
+				return P;
+			}
+
 			/**
 			 * compute Faulhaber polynomial coefficients for power p
 			 **/
