@@ -60,7 +60,7 @@ namespace libmaus2
 			GmpInteger & operator*=(GmpInteger const & o);
 			GmpInteger & operator/=(GmpInteger const & o);
 			GmpInteger & operator%=(GmpInteger const & o);
-			GmpInteger & operator-();
+			GmpInteger operator-() const;
 			bool operator<(GmpInteger const & o) const;
 			bool operator<=(GmpInteger const & o) const;
 			bool operator==(GmpInteger const & o) const;
