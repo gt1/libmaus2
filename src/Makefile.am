@@ -2154,7 +2154,8 @@ EXTRA_PROGRAMS = \
 	testintervaltree \
 	testbamgetrefreg \
 	teststringgraph \
-	testlognormal
+	testlognormal \
+	testConstantSumCombinatorics
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2732,3 +2733,8 @@ testlognormal_SOURCES  = test/testlognormal.cpp
 testlognormal_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testlognormal_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
 testlognormal_LDFLAGS  = ${AM_LDFLAGS}
+
+testConstantSumCombinatorics_SOURCES  = test/testConstantSumCombinatorics.cpp
+testConstantSumCombinatorics_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testConstantSumCombinatorics_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
+testConstantSumCombinatorics_LDFLAGS  = ${AM_LDFLAGS}
