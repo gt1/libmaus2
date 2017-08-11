@@ -20,6 +20,7 @@
 #define LIBMAUS2_MATH_CONSTANTSUMCOMBINATORICS_HPP
 
 #include <libmaus2/math/RationalPolynomialSupport.hpp>
+#include <libmaus2/math/Faulhaber.hpp>
 
 namespace libmaus2
 {
