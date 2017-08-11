@@ -245,12 +245,12 @@ int main(int argc, char * argv[])
 
 		for ( uint64_t i = 0; i <= 24; ++i )
 		{
-			std::cerr << "B(" << i << ")=" << libmaus2::math::BernoulliNumber::B(i) << std::endl;
+			std::cerr << "B(" << i << ")=" << libmaus2::math::BernoulliNumber<>::B(i) << std::endl;
 		}
 
 		for ( uint64_t i = 0; i < 20; ++i )
 		{
-			std::vector < libmaus2::math::Rational<> > const P = libmaus2::math::Faulhaber::polynomial(i);
+			std::vector < libmaus2::math::Rational<> > const P = libmaus2::math::Faulhaber<>::polynomial(i);
 			for (uint64_t j = 0; j<P.size(); ++j )
 				std::cerr << P[j] << ";";
 			std::cerr << std::endl;

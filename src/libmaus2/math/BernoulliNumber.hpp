@@ -20,32 +20,137 @@
 
 #include <libmaus2/math/binom.hpp>
 #include <libmaus2/math/Rational.hpp>
+#include <libmaus2/math/GmpInteger.hpp>
+#include <libmaus2/parallel/PosixSpinLock.hpp>
 #include <vector>
 
 namespace libmaus2
 {
 	namespace math
 	{
+		template<typename _number_type = int64_t>
 		struct BernoulliNumber
 		{
+			typedef _number_type number_type;
+
 			/**
 			 * compute n'th Bernoulli number B_n
 			 **/
-			static Rational<> B(unsigned int const n)
+			static Rational<number_type> B(unsigned int const n)
 			{
-				std::vector< Rational<> > R;
-				R.push_back(Rational<>(1));
-				R.push_back(Rational<>(-1,2));
+				std::vector< Rational<number_type> > R;
+				R.push_back(Rational<number_type>(1));
+				R.push_back(Rational<number_type>(-1,2));
 
 				for ( uint64_t i = 2; i <= n; ++i )
 				{
-					Rational<> V;
+					Rational<number_type> V;
 					for ( uint64_t k = 0; k < i; ++k )
-						V += Rational<>(libmaus2::math::Binom::binomialCoefficientInteger(k,i+1)) * R[k];
-					V /= Rational<>(i+1);
+						V += Rational<number_type>(libmaus2::math::Binom::binomialCoefficientInteger(k,i+1)) * R[k];
+					V /= Rational<number_type>(i+1);
 					V = -V;
 					R.push_back(V);
 				}
+
+				return R[n];
+			}
+		};
+
+		template<>
+		struct BernoulliNumber<GmpInteger>
+		{
+			typedef GmpInteger number_type;
+
+			/**
+			 * compute n'th Bernoulli number B_n
+			 **/
+			static Rational<number_type> B(unsigned int const n)
+			{
+				std::vector< Rational<number_type> > R;
+				R.push_back(Rational<number_type>(1));
+				R.push_back(Rational<number_type>(-1,2));
+
+				for ( uint64_t i = 2; i <= n; ++i )
+				{
+					Rational<number_type> V;
+					for ( uint64_t k = 0; k < i; ++k )
+						V += Rational<number_type>(libmaus2::math::Binom::binomialCoefficientAsRational(k,i+1)) * R[k];
+					V /= Rational<number_type>(i+1);
+					V = -V;
+					R.push_back(V);
+				}
+
+				return R[n];
+			}
+		};
+
+		template<typename _number_type = int64_t>
+		struct BernoulliNumberCache
+		{
+			typedef _number_type number_type;
+
+			std::vector< Rational<number_type> > R;
+			libmaus2::parallel::PosixSpinLock Rlock;
+
+			BernoulliNumberCache()
+			{
+				R.push_back(Rational<number_type>(1));
+				R.push_back(Rational<number_type>(-1,2));
+			}
+
+			Rational<number_type> operator()(uint64_t const n)
+			{
+				libmaus2::parallel::ScopePosixSpinLock slock(Rlock);
+
+				while ( !(n < R.size()) )
+				{
+					uint64_t i = R.size();
+
+					Rational<number_type> V;
+					for ( uint64_t k = 0; k < i; ++k )
+						V += Rational<number_type>(libmaus2::math::Binom::binomialCoefficientInteger(k,i+1)) * R[k];
+					V /= Rational<number_type>(i+1);
+					V = -V;
+					R.push_back(V);
+				}
+
+				assert ( n < R.size() );
+
+				return R[n];
+			}
+		};
+
+		template<>
+		struct BernoulliNumberCache<GmpInteger>
+		{
+			typedef GmpInteger number_type;
+
+			std::vector< Rational<number_type> > R;
+			libmaus2::parallel::PosixSpinLock Rlock;
+
+			BernoulliNumberCache()
+			{
+				R.push_back(Rational<number_type>(1));
+				R.push_back(Rational<number_type>(-1,2));
+			}
+
+			Rational<number_type> operator()(uint64_t const n)
+			{
+				libmaus2::parallel::ScopePosixSpinLock slock(Rlock);
+
+				while ( !(n < R.size()) )
+				{
+					uint64_t i = R.size();
+
+					Rational<number_type> V;
+					for ( uint64_t k = 0; k < i; ++k )
+						V += Rational<number_type>(libmaus2::math::Binom::binomialCoefficientAsRational(k,i+1)) * R[k];
+					V /= Rational<number_type>(i+1);
+					V = -V;
+					R.push_back(V);
+				}
+
+				assert ( n < R.size() );
 
 				return R[n];
 			}
