@@ -1153,7 +1153,9 @@ libmaus2math_include_HEADERS=\
 	libmaus2/math/Convolution.hpp \
 	libmaus2/math/GeneralisedBernoulli.hpp \
 	libmaus2/math/GeneralisedClusterBernoulli.hpp \
-	libmaus2/math/ClusteredBernoulli.hpp
+	libmaus2/math/ClusteredBernoulli.hpp \
+	libmaus2/math/RationalPolynomialSupport.hpp \
+	libmaus2/math/ConstantSumCombinatorics.hpp
 
 libmaus2rl_includedir=$(includedir)/libmaus2/rl
 libmaus2rl_include_HEADERS=\
@@ -2152,7 +2154,8 @@ EXTRA_PROGRAMS = \
 	testintervaltree \
 	testbamgetrefreg \
 	teststringgraph \
-	testlognormal
+	testlognormal \
+	testConstantSumCombinatorics
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2730,3 +2733,8 @@ testlognormal_SOURCES  = test/testlognormal.cpp
 testlognormal_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testlognormal_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
 testlognormal_LDFLAGS  = ${AM_LDFLAGS}
+
+testConstantSumCombinatorics_SOURCES  = test/testConstantSumCombinatorics.cpp
+testConstantSumCombinatorics_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testConstantSumCombinatorics_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
+testConstantSumCombinatorics_LDFLAGS  = ${AM_LDFLAGS}
