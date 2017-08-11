@@ -1,3 +1,16 @@
+libmaus2 (2.0.368-1) unstable; urgency=medium
+
+  * add test program produce constant sum vectors in lexicographically increasing order
+  * add ConstantSumCombinatorics class
+  * add GmpInteger specialisation for Faulhaber class
+  * use BernoulliCache in Faulhaber class
+  * add RationalPolynomialSupport class
+  * reimplement operator- in GmpInteger
+  * make fillBinomialVector slightly less slow
+  * implement BernouilliNumber specialisation for GmpInteger and add BernoulliNumberCache class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 11 Aug 2017 16:06:13 +0200
+
 libmaus2 (2.0.367-1) unstable; urgency=medium
 
   * pass through arguments in GraphEncoder
