@@ -1154,7 +1154,8 @@ libmaus2math_include_HEADERS=\
 	libmaus2/math/GeneralisedBernoulli.hpp \
 	libmaus2/math/GeneralisedClusterBernoulli.hpp \
 	libmaus2/math/ClusteredBernoulli.hpp \
-	libmaus2/math/RationalPolynomialSupport.hpp
+	libmaus2/math/RationalPolynomialSupport.hpp \
+	libmaus2/math/ConstantSumCombinatorics.hpp
 
 libmaus2rl_includedir=$(includedir)/libmaus2/rl
 libmaus2rl_include_HEADERS=\
