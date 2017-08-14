@@ -1,3 +1,10 @@
+libmaus2 (2.0.369-1) unstable; urgency=medium
+
+  * add input operator for AlignmentStatistics
+  * use last colon in CramRange to delimit sequence name from interval
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 14 Aug 2017 19:48:20 +0200
+
 libmaus2 (2.0.368-1) unstable; urgency=medium
 
   * add test program produce constant sum vectors in lexicographically increasing order
