@@ -468,6 +468,14 @@ if [[ "${setrlimit}" = "yes" ]] ; then
 	HAVESETRLIMIT="#define LIBMAUS2_HAVE_SETRLIMIT"
 fi
 
+AC_LANG_PUSH([C++])
+AC_CHECK_FUNC(fcntl,fcntl_func=yes,fcntl_func=no)
+AC_LANG_POP
+
+if [[ "${fcntl_func}" = "yes" ]] ; then
+	LIBMAUS2_HAVE_FCNTL="#define LIBMAUS2_HAVE_FCNTL"
+fi
+
 LIBMAUSLIBS="${LIBMAUSLIBS} ${ZLIBLIBS}"
 
 AC_LANG_PUSH([C++])
@@ -3546,4 +3554,5 @@ AC_SUBST([LIBMAUS2_HAVE_AVX2])
 AC_SUBST([LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2])
 AC_SUBST([LIBMAUS2_HAVE_STATFS_F_BSIZE])
 AC_SUBST([LIBMAUS2_HAVE_STATFS_F_IOSIZE])
+AC_SUBST([LIBMAUS2_HAVE_FCNTL])
 AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc libmaus2fftw.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp test/Makefile)
