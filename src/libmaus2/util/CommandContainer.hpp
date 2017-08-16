@@ -38,7 +38,7 @@ namespace libmaus2
 			{
 				deserialise(in);
 			}
-			
+
 			CommandContainer check(int const verbose = 0, std::ostream * errstream = 0) const
 			{
 				CommandContainer CC;
@@ -46,11 +46,11 @@ namespace libmaus2
 				CC.id = id;
 				CC.depid = depid;
 				CC.rdepid = rdepid;
-				
+
 				for ( uint64_t i = 0; i < V.size(); ++i )
 				{
 					Command const & C = V[i];
-					
+
 					if ( C.check() )
 					{
 						if ( verbose && errstream )
@@ -61,7 +61,7 @@ namespace libmaus2
 						CC.V.push_back(C);
 					}
 				}
-				
+
 				return CC;
 			}
 
@@ -73,7 +73,7 @@ namespace libmaus2
 
 				libmaus2::util::NumberSerialisation::serialiseNumberVector(out,depid);
 				libmaus2::util::NumberSerialisation::serialiseNumberVector(out,rdepid);
-			
+
 				std::vector<uint64_t> O;
 				for ( uint64_t i = 0; i < V.size(); ++i )
 				{

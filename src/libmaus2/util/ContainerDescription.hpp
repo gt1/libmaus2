@@ -29,14 +29,14 @@ namespace libmaus2
 			std::string fn;
 			bool started;
 			uint64_t missingdep;
-			
+
 			ContainerDescription() {}
 			ContainerDescription(std::string const & rfn, bool const rstarted, uint64_t const rmissingdep) : fn(rfn), started(rstarted), missingdep(rmissingdep) {}
 			ContainerDescription(std::istream & in)
 			{
 				deserialise(in);
 			}
-			
+
 			std::istream & deserialise(std::istream & in)
 			{
 				fn = libmaus2::util::StringSerialisation::deserialiseString(in);
@@ -44,7 +44,7 @@ namespace libmaus2
 				missingdep = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				return in;
 			}
-			
+
 			std::ostream & serialise(std::ostream & out) const
 			{
 				libmaus2::util::StringSerialisation::serialiseString(out,fn);

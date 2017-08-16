@@ -84,19 +84,19 @@ namespace libmaus2
 							num += c-'0';
 							++numcnt;
 						}
-						
+
 						if ( ! numcnt )
 							return false;
 
-						if ( 
+						if (
 							! ISI
 							||
-							ISI.peek() == std::istream::traits_type::eof() 
+							ISI.peek() == std::istream::traits_type::eof()
 							||
 							ISI.peek() != '\n'
 						)
 							return false;
-						
+
 						ISI.get();
 
 						return

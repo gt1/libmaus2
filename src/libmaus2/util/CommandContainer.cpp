@@ -24,7 +24,7 @@ std::ostream & libmaus2::util::operator<<(std::ostream & out, libmaus2::util::Co
 		out << CC.depid[i] << ((i+1 < CC.depid.size())?",":"");
         out << "},rdepid={";
 	for ( uint64_t i = 0; i < CC.rdepid.size(); ++i )
-		out << CC.rdepid[i] << ((i+1 < CC.rdepid.size())?",":"");        
+		out << CC.rdepid[i] << ((i+1 < CC.rdepid.size())?",":"");
         out << "},";
 	out << "\n";
 	for ( uint64_t i = 0; i < CC.V.size(); ++i )
