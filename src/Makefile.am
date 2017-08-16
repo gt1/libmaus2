@@ -266,6 +266,7 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/bambam/BamAlignment.cpp \
 	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeInput.cpp \
 	libmaus2/util/Command.cpp \
+	libmaus2/util/CommandContainer.cpp \
 	libmaus2/aio/InputOutputStreamInstance.cpp \
 	libmaus2/dazzler/align/OverlapInfo.cpp
 

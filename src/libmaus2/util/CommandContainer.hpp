@@ -30,6 +30,7 @@ namespace libmaus2
 			uint64_t attempt;
 			uint64_t id;
 			std::vector<uint64_t> depid;
+			std::vector<uint64_t> rdepid;
 
 			CommandContainer() : attempt(0), id(0)
 			{}
@@ -44,6 +45,7 @@ namespace libmaus2
 				CC.attempt = attempt+1;
 				CC.id = id;
 				CC.depid = depid;
+				CC.rdepid = rdepid;
 				
 				for ( uint64_t i = 0; i < V.size(); ++i )
 				{
@@ -70,6 +72,7 @@ namespace libmaus2
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,id);
 
 				libmaus2::util::NumberSerialisation::serialiseNumberVector(out,depid);
+				libmaus2::util::NumberSerialisation::serialiseNumberVector(out,rdepid);
 			
 				std::vector<uint64_t> O;
 				for ( uint64_t i = 0; i < V.size(); ++i )
@@ -89,6 +92,7 @@ namespace libmaus2
 				attempt = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				id = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				depid = libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
+				rdepid = libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
 				for ( uint64_t i = 0; i < V.size(); ++i )
 					V[i].deserialise(in);
 			}
@@ -129,6 +133,8 @@ namespace libmaus2
 				return dispatch(ISI,i);
 			}
 		};
+
+		std::ostream & operator<<(std::ostream & out, CommandContainer const & CC);
 	}
 }
 
