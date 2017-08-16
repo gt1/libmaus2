@@ -18,8 +18,8 @@
 */
 #include <libmaus2/util/TempFileNameGenerator.hpp>
 
-libmaus2::util::TempFileNameGenerator::TempFileNameGenerator(std::string const rprefix, unsigned int const rdepth)
-: state(rdepth,rprefix), startstate(state)
+libmaus2::util::TempFileNameGenerator::TempFileNameGenerator(std::string const rprefix, unsigned int const rdepth, unsigned int const dirmod, unsigned int const filemod)
+: state(rdepth,rprefix,dirmod,filemod), startstate(state)
 {
 	::libmaus2::util::TempFileRemovalContainer::setup();
 }

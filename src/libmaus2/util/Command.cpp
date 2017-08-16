@@ -138,3 +138,13 @@ int libmaus2::util::Command::dispatch() const
 
 	return EXIT_SUCCESS;
 }
+
+std::ostream & libmaus2::util::operator<<(std::ostream & out, Command const & C)
+{
+	out << "Command(in=" << C.in << ",out=" << C.out << ",err=" << C.err << ",returncode=" << C.returncode << ",args=[";
+	for ( uint64_t i = 0; i < C.args.size(); ++i )
+		out << C.args[i] << ((i+1 < C.args.size()) ? ";" : "");
+	out << "])";
+
+	return out;
+}
