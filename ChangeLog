@@ -1,3 +1,14 @@
+libmaus2 (2.0.371-1) unstable; urgency=medium
+
+  * add maxattempt field in CommandContainer
+  * make dirmod and filemod settable parameters in TempFileNameGenerator
+  * add rdepid field in CommandContainer
+  * add check method for CommandContainer and id/attempt fields in CommandContainer
+  * add returncode field and output operator for Command class
+  * add ContainerDescription/ContainerDescriptionList
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 16 Aug 2017 14:38:20 +0200
+
 libmaus2 (2.0.370-1) unstable; urgency=medium
 
   * add fcntl based advisory locking in PosixFdInputOutputStreamBuffer
