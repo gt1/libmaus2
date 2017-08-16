@@ -27,30 +27,30 @@ namespace libmaus2
 		struct ContainerDescriptionList
 		{
 			std::vector < ContainerDescription > V;
-			
+
 			ContainerDescriptionList()
 			{
-			
+
 			}
-			
+
 			ContainerDescriptionList(std::istream & in)
 			{
 				deserialise(in);
 			}
-			
+
 			std::istream & deserialise(std::istream & in)
 			{
 				uint64_t const n = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
-				
+
 				for ( uint64_t i = 0; i < n; ++i )
 					V.push_back(ContainerDescription(in));
-				
+
 				return in;
 			}
-			
+
 			std::ostream & serialise(std::ostream & out) const
 			{
-				libmaus2::util::NumberSerialisation::serialiseNumber(out,V.size());	
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,V.size());
 				for ( uint64_t i = 0; i < V.size(); ++i )
 					V[i].serialise(out);
 				return out;
