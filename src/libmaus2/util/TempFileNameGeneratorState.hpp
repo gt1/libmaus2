@@ -31,7 +31,7 @@ namespace libmaus2
 		{
 			static int const default_dirmod = 64;
 			static int const default_filemod = 64;
-			
+
 			int const dirmod;
 			int const filemod;
 			int const maxmod;

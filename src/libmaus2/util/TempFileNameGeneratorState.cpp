@@ -53,15 +53,15 @@ static unsigned int computeDigits(unsigned int maxmod)
 {
 	if ( maxmod == 0 )
 		return 1;
-		
+
 	unsigned int mod = 0;
-	
+
 	while ( maxmod )
 	{
 		mod += 1;
 		maxmod /= 10;
 	}
-	
+
 	return mod;
 }
 
