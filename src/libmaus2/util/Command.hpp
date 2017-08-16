@@ -74,24 +74,30 @@ namespace libmaus2
 						libmaus2::aio::InputStreamInstance ISI(returncode);
 
 						uint64_t num = 0;
+						unsigned int numcnt = 0;
 
-						while ( ISI && ISI.peek() != std::istream::traits_type::eof() )
+						while ( ISI && ISI.peek() != std::istream::traits_type::eof() && isdigit(ISI.peek()) )
 						{
 							int c = ISI.get();
 
-							if ( ! isdigit(c) )
-								return false;
-							else
-							{
-								num *= 10;
-								num += c-'0';
-							}
+							num *= 10;
+							num += c-'0';
+							++numcnt;
 						}
+						
+						if ( ! numcnt )
+							return false;
 
-						if ( ! ISI )
+						if ( 
+							! ISI
+							||
+							ISI.peek() == std::istream::traits_type::eof() 
+							||
+							ISI.peek() != '\n'
+						)
 							return false;
-						if ( ISI.peek() != std::istream::traits_type::eof() )
-							return false;
+						
+						ISI.get();
 
 						return
 							ISI.peek() == std::istream::traits_type::eof()
