@@ -29,9 +29,10 @@ namespace libmaus2
 			std::string fn;
 			bool started;
 			uint64_t missingdep;
+			bool finished;
 
 			ContainerDescription() {}
-			ContainerDescription(std::string const & rfn, bool const rstarted, uint64_t const rmissingdep) : fn(rfn), started(rstarted), missingdep(rmissingdep) {}
+			ContainerDescription(std::string const & rfn, bool const rstarted, uint64_t const rmissingdep) : fn(rfn), started(rstarted), missingdep(rmissingdep), finished(false) {}
 			ContainerDescription(std::istream & in)
 			{
 				deserialise(in);
@@ -42,6 +43,7 @@ namespace libmaus2
 				fn = libmaus2::util::StringSerialisation::deserialiseString(in);
 				started = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				missingdep = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				finished = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				return in;
 			}
 
@@ -50,6 +52,7 @@ namespace libmaus2
 				libmaus2::util::StringSerialisation::serialiseString(out,fn);
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,started);
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,missingdep);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,finished);
 				return out;
 			}
 		};
