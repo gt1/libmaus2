@@ -49,8 +49,24 @@ bool libmaus2::util::TempFileNameGeneratorState::operator!=(libmaus2::util::Temp
 	return !((*this) == o);
 }
 
-libmaus2::util::TempFileNameGeneratorState::TempFileNameGeneratorState(unsigned int const rdepth, std::string const & rprefix)
-: depth(rdepth), nextfile(-1), prefix(rprefix)
+static unsigned int computeDigits(unsigned int maxmod)
+{
+	if ( maxmod == 0 )
+		return 1;
+
+	unsigned int mod = 0;
+
+	while ( maxmod )
+	{
+		mod += 1;
+		maxmod /= 10;
+	}
+
+	return mod;
+}
+
+libmaus2::util::TempFileNameGeneratorState::TempFileNameGeneratorState(unsigned int const rdepth, std::string const & rprefix, unsigned int const rdirmod, unsigned int const rfilemod)
+: dirmod(rdirmod), filemod(rfilemod), maxmod(std::max(dirmod,filemod)), digits(computeDigits(maxmod)), depth(rdepth), nextfile(-1), prefix(rprefix)
 {
 	assert ( depth );
 	setup();

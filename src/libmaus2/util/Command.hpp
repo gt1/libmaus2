@@ -19,6 +19,7 @@
 #define LIBMAUS2_UTIL_COMMAND_HPP
 
 #include <libmaus2/util/StringSerialisation.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
 
 namespace libmaus2
 {
@@ -29,14 +30,15 @@ namespace libmaus2
 			std::string in;
 			std::string out;
 			std::string err;
+			std::string returncode;
 			std::vector<std::string> args;
 
 			Command()
 			{
 
 			}
-			Command(std::string const & rin, std::string const & rout, std::string const & rerr, std::vector<std::string> const & rargs)
-			: in(rin), out(rout), err(rerr), args(rargs)
+			Command(std::string const & rin, std::string const & rout, std::string const & rerr, std::string const & rreturncode, std::vector<std::string> const & rargs)
+			: in(rin), out(rout), err(rerr), returncode(rreturncode), args(rargs)
 			{
 			}
 			Command(std::istream & istr)
@@ -49,6 +51,7 @@ namespace libmaus2
 				libmaus2::util::StringSerialisation::serialiseString(ostr,in);
 				libmaus2::util::StringSerialisation::serialiseString(ostr,out);
 				libmaus2::util::StringSerialisation::serialiseString(ostr,err);
+				libmaus2::util::StringSerialisation::serialiseString(ostr,returncode);
 				libmaus2::util::StringSerialisation::serialiseStringVector(ostr,args);
 			}
 
@@ -57,11 +60,65 @@ namespace libmaus2
 				in = libmaus2::util::StringSerialisation::deserialiseString(istr);
 				out = libmaus2::util::StringSerialisation::deserialiseString(istr);
 				err = libmaus2::util::StringSerialisation::deserialiseString(istr);
+				returncode = libmaus2::util::StringSerialisation::deserialiseString(istr);
 				args = libmaus2::util::StringSerialisation::deserialiseStringVector(istr);
+			}
+
+			// check return code
+			bool check() const
+			{
+				try
+				{
+					if ( libmaus2::util::GetFileSize::fileExists(returncode) )
+					{
+						libmaus2::aio::InputStreamInstance ISI(returncode);
+
+						uint64_t num = 0;
+						unsigned int numcnt = 0;
+
+						while ( ISI && ISI.peek() != std::istream::traits_type::eof() && isdigit(ISI.peek()) )
+						{
+							int c = ISI.get();
+
+							num *= 10;
+							num += c-'0';
+							++numcnt;
+						}
+
+						if ( ! numcnt )
+							return false;
+
+						if (
+							! ISI
+							||
+							ISI.peek() == std::istream::traits_type::eof()
+							||
+							ISI.peek() != '\n'
+						)
+							return false;
+
+						ISI.get();
+
+						return
+							ISI.peek() == std::istream::traits_type::eof()
+							&&
+							num == 0;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				catch(...)
+				{
+					return false;
+				}
 			}
 
 			int dispatch() const;
 		};
+
+		std::ostream & operator<<(std::ostream & out, Command const & C);
 	}
 }
 

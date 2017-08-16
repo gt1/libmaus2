@@ -55,7 +55,7 @@ namespace libmaus2
 			TempFileNameGeneratorState state;
 			TempFileNameGeneratorState const startstate;
 
-			TempFileNameGenerator(std::string const rprefix, unsigned int const rdepth);
+			TempFileNameGenerator(std::string const rprefix, unsigned int const rdepth, unsigned int const dirmod = TempFileNameGeneratorState::default_dirmod, unsigned int const filemod = TempFileNameGeneratorState::default_filemod);
 			~TempFileNameGenerator();
 
 			std::string getFileName(bool const regAsTempFile);
