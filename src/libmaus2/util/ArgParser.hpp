@@ -44,29 +44,29 @@ namespace libmaus2
 			std::multimap<std::string,std::string> kvargs;
 			std::vector<std::string> restargs;
 
-			static std::string reconstructCommandLine(int argc, char * argv[])
+			static std::string reconstructCommandLine(std::vector<std::string> const & args)
 			{
 				std::ostringstream clostr;
 
 				// "reconstruct" command line
-				for ( int i = 0; i < argc; ++i )
+				for ( uint64_t i = 0; i < args.size(); ++i )
 				{
-					clostr << argv[i];
-					if ( i+1 < argc )
+					clostr << args[i];
+					if ( i+1 < args.size() )
 						clostr << ' ';
 				}
 
 				return clostr.str();
 			}
 
-			static std::string reconstructCommandLineCoded(int argc, char * argv[])
+			static std::string reconstructCommandLineCoded(std::vector<std::string> const & args)
 			{
 				std::ostringstream clostr;
 
 				// "reconstruct" command line
-				for ( int i = 0; i < argc; ++i )
+				for ( uint64_t i = 0; i < args.size(); ++i )
 				{
-					std::string const s = argv[i];
+					std::string const s = args[i];
 
 					for ( uint64_t i = 0; i < s.size(); ++i )
 					{
@@ -87,7 +87,7 @@ namespace libmaus2
 						}
 					}
 
-					if ( i+1 < argc )
+					if ( i+1 < args.size() )
 						clostr << ' ';
 				}
 
@@ -99,19 +99,16 @@ namespace libmaus2
 
 			}
 
-			ArgParser(int const argc, char * argv[])
+			void initFromArgs()
 			{
-				for ( int i = 0; i < argc; ++i )
-					args.push_back(argv[i]);
-
-				if ( argc )
-					progname = argv[0];
+				if ( args.size() )
+					progname = args.at(0);
 
 				bool parseargs = true;
 
-				for ( int i = 1; i < argc; ++i )
+				for ( uint64_t i = 1; i < args.size(); ++i )
 				{
-					std::string arg = argv[i];
+					std::string arg = args.at(i);
 
 					// if argument starts with a '-'
 					if ( parseargs && arg.size() > 1 && arg[0] == '-' )
@@ -141,8 +138,22 @@ namespace libmaus2
 					}
 				}
 
-				commandline = reconstructCommandLine(argc,argv);
-				commandlinecoded = reconstructCommandLineCoded(argc,argv);
+				commandline = reconstructCommandLine(args);
+				commandlinecoded = reconstructCommandLineCoded(args);
+			}
+
+			ArgParser(int const argc, char * argv[])
+			{
+				for ( int i = 0; i < argc; ++i )
+					args.push_back(argv[i]);
+
+				initFromArgs();
+			}
+
+			ArgParser(std::vector<std::string> const & rargs)
+			: args(rargs)
+			{
+				initFromArgs();
 			}
 
 			size_t size() const
