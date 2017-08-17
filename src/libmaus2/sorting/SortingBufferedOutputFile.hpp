@@ -88,6 +88,12 @@ namespace libmaus2
 			libmaus2::aio::OutputStreamInstance::unique_ptr_type PCOS;
 			typename libmaus2::aio::SerialisingSortingBufferedOutput<data_type,order_type>::unique_ptr_type SBO;
 
+			struct IndexCallback
+			{
+				virtual ~IndexCallback() {}
+				virtual void operator()(data_type const & D, uint64_t const pos) = 0;
+			};
+
 			SerialisingSortingBufferedOutputFile(std::string const & rfilename, uint64_t const bufsize = 1024ull)
 			: Porder(new order_type), order(*Porder), filename(rfilename), PCOS(new libmaus2::aio::OutputStreamInstance(filename)), SBO(new libmaus2::aio::SerialisingSortingBufferedOutput<data_type,order_type>(*PCOS,bufsize,order))
 			{
@@ -133,6 +139,20 @@ namespace libmaus2
 				libmaus2::aio::OutputStreamFactoryContainer::rename(tmpfn,fn);
 			}
 
+			static void sort(
+				std::string const & fn,
+				IndexCallback & indexer,
+				uint64_t const blocksize = 1024ull,
+				uint64_t const backblocksize = 1024ull,
+				uint64_t const maxfan = 16ull
+			)
+			{
+				std::string const tmpfn = fn + ".tmp";
+				libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfn);
+				reduce(std::vector<std::string>(1,fn),indexer,tmpfn,blocksize,backblocksize,maxfan);
+				libmaus2::aio::OutputStreamFactoryContainer::rename(tmpfn,fn);
+			}
+
 			static void reduce(
 				std::vector<std::string> const & Vfn,
 				std::string const & out,
@@ -167,6 +187,44 @@ namespace libmaus2
 				libmaus2::aio::FileRemoval::removeFile(tmp);
 			}
 
+			static void reduce(
+				std::vector<std::string> const & Vfn,
+				IndexCallback & indexer,
+				std::string const & out,
+				uint64_t const blocksize = 1024ull,
+				uint64_t const backblocksize = 1024ull,
+				uint64_t const maxfan = 16ull
+			)
+			{
+				std::string const tmp = out + ".tmp";
+				libmaus2::util::TempFileRemovalContainer::addTempFile(tmp);
+				unique_ptr_type U(new this_type(tmp,blocksize));
+				data_type D;
+
+				for ( uint64_t i = 0; i < Vfn.size(); ++i )
+				{
+					libmaus2::aio::InputStreamInstance ISI(Vfn[i]);
+					while ( ISI && ISI.peek() != std::istream::traits_type::eof() )
+					{
+						D.deserialise(ISI);
+						U->put(D);
+					}
+				}
+
+				merger_ptr_type Pmerger(U->getMerger(backblocksize,maxfan));
+				libmaus2::aio::OutputStreamInstance OSI(out);
+				while ( Pmerger->getNext(D) )
+				{
+					indexer(D,OSI.tellp());
+					D.serialise(OSI);
+				}
+				OSI.flush();
+				Pmerger.reset();
+				U.reset();
+
+				libmaus2::aio::FileRemoval::removeFile(tmp);
+			}
+
 			static void sortUnique(
 				std::string const & fn,
 				uint64_t const blocksize = 1024ull,
@@ -176,7 +234,21 @@ namespace libmaus2
 			{
 				std::string const tmpfn = fn + ".tmp";
 				libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfn);
-				reduceUnique(std::vector<std::string>(1,fn),tmpfn);
+				reduceUnique(std::vector<std::string>(1,fn),tmpfn,blocksize,backblocksize,maxfan);
+				libmaus2::aio::OutputStreamFactoryContainer::rename(tmpfn,fn);
+			}
+
+			static void sortUnique(
+				std::string const & fn,
+				IndexCallback & indexer,
+				uint64_t const blocksize = 1024ull,
+				uint64_t const backblocksize = 1024ull,
+				uint64_t const maxfan = 16ull
+			)
+			{
+				std::string const tmpfn = fn + ".tmp";
+				libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfn);
+				reduceUnique(std::vector<std::string>(1,fn),indexer,tmpfn,blocksize,backblocksize,maxfan);
 				libmaus2::aio::OutputStreamFactoryContainer::rename(tmpfn,fn);
 			}
 
@@ -219,6 +291,57 @@ namespace libmaus2
 						}
 					}
 
+					Dprev.serialise(OSI);
+				}
+				OSI.flush();
+				Pmerger.reset();
+				U.reset();
+
+				libmaus2::aio::FileRemoval::removeFile(tmp);
+			}
+
+			static void reduceUnique(
+				std::vector<std::string> const & Vfn,
+				IndexCallback & indexer,
+				std::string const & out,
+				uint64_t const blocksize = 1024ull,
+				uint64_t const backblocksize = 1024ull,
+				uint64_t const maxfan = 16ull
+			)
+			{
+				std::string const tmp = out + ".tmp";
+				libmaus2::util::TempFileRemovalContainer::addTempFile(tmp);
+				unique_ptr_type U(new this_type(tmp,blocksize));
+				data_type D;
+
+				for ( uint64_t i = 0; i < Vfn.size(); ++i )
+				{
+					libmaus2::aio::InputStreamInstance ISI(Vfn[i]);
+					while ( ISI && ISI.peek() != std::istream::traits_type::eof() )
+					{
+						D.deserialise(ISI);
+						U->put(D);
+					}
+				}
+
+				merger_ptr_type Pmerger(U->getMerger(backblocksize,maxfan));
+				libmaus2::aio::OutputStreamInstance OSI(out);
+
+				data_type Dprev;
+				order_type order;
+				if ( Pmerger->getNext(Dprev) )
+				{
+					while ( Pmerger->getNext(D) )
+					{
+						if ( order(Dprev,D) )
+						{
+							indexer(Dprev,OSI.tellp());
+							Dprev.serialise(OSI);
+							Dprev = D;
+						}
+					}
+
+					indexer(Dprev,OSI.tellp());
 					Dprev.serialise(OSI);
 				}
 				OSI.flush();
