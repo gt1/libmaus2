@@ -30,6 +30,8 @@ namespace libmaus2
 			uint64_t attempt;
 			uint64_t maxattempt;
 			uint64_t id;
+			uint64_t mem;
+			uint64_t threads;
 			std::vector<uint64_t> depid;
 			std::vector<uint64_t> rdepid;
 
@@ -43,11 +45,9 @@ namespace libmaus2
 			CommandContainer check(int const verbose = 0, std::ostream * errstream = 0) const
 			{
 				CommandContainer CC;
-				CC.attempt = attempt+1;
-				CC.maxattempt = maxattempt;
-				CC.id = id;
-				CC.depid = depid;
-				CC.rdepid = rdepid;
+				CC = *this;
+				CC.attempt += 1;
+				CC.V.resize(0);
 
 				for ( uint64_t i = 0; i < V.size(); ++i )
 				{
@@ -73,6 +73,8 @@ namespace libmaus2
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,attempt);
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,maxattempt);
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,id);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,mem);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,threads);
 
 				libmaus2::util::NumberSerialisation::serialiseNumberVector(out,depid);
 				libmaus2::util::NumberSerialisation::serialiseNumberVector(out,rdepid);
@@ -95,6 +97,8 @@ namespace libmaus2
 				attempt = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				maxattempt = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				id = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				mem = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				threads = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				depid = libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
 				rdepid = libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
 				for ( uint64_t i = 0; i < V.size(); ++i )

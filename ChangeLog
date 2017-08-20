@@ -1,3 +1,9 @@
+libmaus2 (2.0.373-1) unstable; urgency=medium
+
+  * add mem and threads fields in CommandContainer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Sun, 20 Aug 2017 22:39:13 +0200
+
 libmaus2 (2.0.372-1) unstable; urgency=medium
 
   * change ArgParser interface to faciliate init by string vector
