@@ -51,7 +51,7 @@ namespace libmaus2
 			void next();
 			static std::string numToString(uint64_t const num, unsigned int dig);
 			std::string getFileName();
-			void removeDirs();
+			std::vector < std::string > removeDirs(std::vector<std::string> const & prevdirs);
 		};
 	}
 }
