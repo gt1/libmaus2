@@ -60,6 +60,9 @@ namespace libmaus2
 					}
 					else
 					{
+						if ( verbose && errstream )
+							*errstream << "[V] command " << C << " FAILED" << std::endl;
+
 						CC.V.push_back(C);
 					}
 				}
