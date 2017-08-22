@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.362,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
-LIBRARY_VERSION=2:362:0
+AC_INIT(libmaus2,2.0.377,[tischler@mpi-cbg.de],[libmaus2],[https://github.com/gt1/libmaus2])
+LIBRARY_VERSION=2:377:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -466,6 +466,14 @@ AC_LANG_POP
 
 if [[ "${setrlimit}" = "yes" ]] ; then 
 	HAVESETRLIMIT="#define LIBMAUS2_HAVE_SETRLIMIT"
+fi
+
+AC_LANG_PUSH([C++])
+AC_CHECK_FUNC(fcntl,fcntl_func=yes,fcntl_func=no)
+AC_LANG_POP
+
+if [[ "${fcntl_func}" = "yes" ]] ; then
+	LIBMAUS2_HAVE_FCNTL="#define LIBMAUS2_HAVE_FCNTL"
 fi
 
 LIBMAUSLIBS="${LIBMAUSLIBS} ${ZLIBLIBS}"
@@ -3047,7 +3055,7 @@ TESTPROGS="${TESTPROGS} testparallelbamvalidation testparallelbamrewrite testbam
 TESTPROGS="${TESTPROGS} testmapperm testexternalmemoryindex testfastqtobam testsamrecoding testdazzlerdb testnd testfastashred testalignerspeed testfastasingleline testdazzleralignmentrewrite"
 TESTPROGS="${TESTPROGS} testxz testdazzlerindex testargparser testfragmentenvelope testdnarank testlowbits testfastaexplode testfaextract testmurmur3 testpairalign testsplaytree testbwtconstruction testbwtconstructionfasta"
 TESTPROGS="${TESTPROGS} testarrayinput testhugepages testsymcnt testgammapd testpo testdnasuffixtrav testserialisedsorting testbamnumericalindex testnpl testkcnt testintervaltree testbamgetrefreg"
-TESTPROGS="${TESTPROGS} teststringgraph testlognormal"
+TESTPROGS="${TESTPROGS} teststringgraph testlognormal testConstantSumCombinatorics"
 
 if test "${mavx2}" = "yes" ; then
 	TESTPROGS="${TESTPROGS} testavx"
@@ -3546,4 +3554,5 @@ AC_SUBST([LIBMAUS2_HAVE_AVX2])
 AC_SUBST([LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2])
 AC_SUBST([LIBMAUS2_HAVE_STATFS_F_BSIZE])
 AC_SUBST([LIBMAUS2_HAVE_STATFS_F_IOSIZE])
+AC_SUBST([LIBMAUS2_HAVE_FCNTL])
 AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc libmaus2fftw.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp test/Makefile)

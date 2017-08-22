@@ -29,10 +29,13 @@ namespace libmaus2
 	{
 		struct TempFileNameGeneratorState
 		{
-			static int const dirmod = 64;
-			static int const filemod = 64;
-			static int const maxmod = (dirmod>filemod)?dirmod:filemod;
-			static int const digits = ::libmaus2::math::LogCeil<maxmod,10>::log;
+			static int const default_dirmod = 64;
+			static int const default_filemod = 64;
+
+			int const dirmod;
+			int const filemod;
+			int const maxmod;
+			unsigned int const digits;
 
 			unsigned int depth;
 			std::vector < int > nextdir;
@@ -42,13 +45,13 @@ namespace libmaus2
 			bool operator==(TempFileNameGeneratorState const & o) const;
 			bool operator!=(TempFileNameGeneratorState const & o) const;
 
-			TempFileNameGeneratorState(unsigned int const rdepth, std::string const & rprefix);
+			TempFileNameGeneratorState(unsigned int const rdepth, std::string const & rprefix, unsigned int const rdirmod = default_dirmod, unsigned int const rfilemod = default_filemod);
 
 			void setup();
 			void next();
 			static std::string numToString(uint64_t const num, unsigned int dig);
 			std::string getFileName();
-			void removeDirs();
+			std::vector < std::string > removeDirs(std::vector<std::string> const & prevdirs);
 		};
 	}
 }

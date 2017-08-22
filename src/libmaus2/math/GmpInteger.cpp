@@ -229,10 +229,12 @@ libmaus2::math::GmpInteger & libmaus2::math::GmpInteger::operator%=(
 	return *this;
 }
 
-libmaus2::math::GmpInteger & libmaus2::math::GmpInteger::operator-()
+libmaus2::math::GmpInteger libmaus2::math::GmpInteger::operator-() const
 {
 	#if defined(LIBMAUS2_HAVE_GMP)
-	mpz_neg(decode(v),decode(v));
+	libmaus2::math::GmpInteger O(*this);
+	mpz_neg(decode(O.v),decode(O.v));
+	return O;
 	#endif
 	return *this;
 }

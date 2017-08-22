@@ -18,6 +18,8 @@
 #include <libmaus2/util/Command.hpp>
 #include <libmaus2/util/WriteableString.hpp>
 #include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
+#include <libmaus2/aio/InputOutputStreamInstance.hpp>
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -55,6 +57,9 @@ int libmaus2::util::Command::dispatch() const
 	AA[args.size()] = 0;
 
 	std::string const com = args[0];
+
+	libmaus2::timing::RealTimeClock rtc;
+	rtc.start();
 
 	pid_t const pid = fork();
 
@@ -119,6 +124,17 @@ int libmaus2::util::Command::dispatch() const
 		throw lme;
 	}
 
+	double const etime = rtc.getElapsedSeconds();
+
+	{
+		libmaus2::aio::InputOutputStreamInstance IOSI(err,std::ios::in|std::ios::out);
+		uint64_t const fs = libmaus2::util::GetFileSize::getFileSize(IOSI);
+		IOSI.clear();
+		IOSI.seekp(fs);
+
+		IOSI << etime << "\t" << libmaus2::timing::RealTimeClock::formatTime(etime) << std::endl;
+	}
+
 	if ( ! ( WIFEXITED(status) && (WEXITSTATUS(status) == 0) ) )
 	{
 		libmaus2::exception::LibMausException lme;
@@ -137,4 +153,14 @@ int libmaus2::util::Command::dispatch() const
 	}
 
 	return EXIT_SUCCESS;
+}
+
+std::ostream & libmaus2::util::operator<<(std::ostream & out, Command const & C)
+{
+	out << "Command(in=" << C.in << ",out=" << C.out << ",err=" << C.err << ",returncode=" << C.returncode << ",args=[";
+	for ( uint64_t i = 0; i < C.args.size(); ++i )
+		out << C.args[i] << ((i+1 < C.args.size()) ? ";" : "");
+	out << "])";
+
+	return out;
 }

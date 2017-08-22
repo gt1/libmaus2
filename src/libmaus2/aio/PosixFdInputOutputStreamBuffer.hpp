@@ -38,6 +38,15 @@ namespace libmaus2
 	{
 		struct PosixFdInputOutputStreamBuffer : public ::std::streambuf
 		{
+			struct LockObject
+			{
+				uint64_t from;
+				uint64_t to;
+
+				LockObject() {}
+				LockObject(uint64_t const rfrom, uint64_t const rto) : from(rfrom), to(rto) {}
+			};
+
 			private:
 			// get default block size
 			static uint64_t getDefaultBlockSize()
@@ -72,6 +81,127 @@ namespace libmaus2
 			// write position
 			uint64_t writepos;
 
+			LockObject doLock()
+			{
+				#if defined(LIBMAUS2_HAVE_FCNTL)
+				sync();
+
+				off_t const prepos = doSeek(0, SEEK_CUR);
+				off_t const len = doSeek(0, SEEK_END);
+				doSeek(prepos,SEEK_SET);
+
+				bool acquired = false;
+
+				while ( !acquired )
+				{
+					struct ::flock lockdata;
+
+					memset(&lockdata,0,sizeof(::flock));
+
+					// exclusive lock
+					lockdata.l_type = F_WRLCK;
+					lockdata.l_whence = SEEK_SET;
+					lockdata.l_start = 0;
+					lockdata.l_len = len;
+
+					int const r = fcntl(fd,F_SETLKW,&lockdata);
+
+					if ( r == 0 )
+						acquired = true;
+					else
+					{
+						int const error = errno;
+
+						switch ( error )
+						{
+							case EACCES:
+							case EAGAIN:
+								::sleep(1);
+								break;
+							default:
+							{
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "libmaus2::aio::PosixFdInputOutputStreamBuffer::doLock(): fcntl failed with " << strerror(error) << std::endl;
+								lme.finish();
+								throw lme;
+								break;
+							}
+						}
+					}
+				}
+
+				off_t const postpos = doSeek(prepos,SEEK_SET);
+
+				if ( postpos != prepos )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "libmaus2::aio::PosixFdInputOutputStreamBuffer::doLock(): failed to restore file position" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+
+				return LockObject(0,len);
+				#else
+				libmaus2::exception::LibMausException lme;
+				lme.getStream() << "libmaus2::aio::PosixFdInputOutputStreamBuffer::doLock(): locking by fcntl not supported" << std::endl;
+				lme.finish();
+				throw lme;
+				#endif
+			}
+
+			void doUnlock(LockObject const & O)
+			{
+				#if defined(LIBMAUS2_HAVE_FCNTL)
+				sync();
+
+				bool acquired = false;
+
+				while ( !acquired )
+				{
+					struct ::flock lockdata;
+
+					memset(&lockdata,0,sizeof(::flock));
+
+					// exclusive lock
+					lockdata.l_type = F_UNLCK;
+					lockdata.l_whence = SEEK_SET;
+					lockdata.l_start = O.from;
+					lockdata.l_len = O.to;
+
+					int const r = fcntl(fd,F_SETLK,&lockdata);
+
+					if ( r == 0 )
+						acquired = true;
+					else
+					{
+						int const error = errno;
+
+						switch ( error )
+						{
+							case EACCES:
+							case EAGAIN:
+							case EINTR:
+								::sleep(1);
+								break;
+							default:
+							{
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "libmaus2::aio::PosixFdInputOutputStreamBuffer::doUnlock(): fcntl failed with " << strerror(error) << std::endl;
+								lme.finish();
+								throw lme;
+								break;
+							}
+						}
+					}
+				}
+				#else
+				libmaus2::exception::LibMausException lme;
+				lme.getStream() << "libmaus2::aio::PosixFdInputOutputStreamBuffer::doLock(): locking by fcntl not supported" << std::endl;
+				lme.finish();
+				throw lme;
+				#endif
+			}
+
 			// open the file
 			int doOpen(std::string const & filename, std::ios_base::openmode const cxxmode)
 			{
@@ -91,7 +221,6 @@ namespace libmaus2
 				}
 				if ( ! ((cxxmode & std::ios::in) && (cxxmode & std::ios::out)) )
 				{
-
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "libmaus2::aio::PosixFdInputOutputStreamBuffer::doOpen(): std::ios::in or std::ios::out not set " << std::endl;
 					lme.finish();
@@ -447,6 +576,16 @@ namespace libmaus2
 				{
 					return -1;
 				}
+			}
+
+			LockObject lock()
+			{
+				return doLock();
+			}
+
+			void unlock(LockObject const & L)
+			{
+				return doUnlock(L);
 			}
 		};
 	}

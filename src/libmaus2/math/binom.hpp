@@ -51,6 +51,43 @@ namespace libmaus2
 					den.push_back(i);
 				}
 
+				uint64_t l = 0;
+				uint64_t o = 0;
+				while ( l < cnt.size() )
+				{
+					uint64_t f = cnt[l++];
+
+					while ( l < cnt.size() )
+					{
+						if ( (f | cnt[l]) & 0x100000000ull )
+							break;
+						else
+							f *= cnt[l++];
+					}
+
+					cnt[o++] = f;
+				}
+				cnt.resize(o);
+
+				l = 0;
+				o = 0;
+
+				while ( l < den.size() )
+				{
+					uint64_t f = den[l++];
+
+					while ( l < den.size() )
+					{
+						if ( (f | den[l]) & 0x100000000ull )
+							break;
+						else
+							f *= den[l++];
+					}
+
+					den[o++] = f;
+				}
+				den.resize(o);
+
 				for ( uint64_t i = 0; i < den.size(); ++i )
 					for ( uint64_t j = 0; j < cnt.size(); ++j )
 					{
@@ -108,6 +145,16 @@ namespace libmaus2
 				uint64_t v = 1;
 				for ( uint64_t i = 0; i < cnt.size(); ++i )
 					v *= cnt[i];
+				return v;
+			}
+
+			static libmaus2::math::GmpFloat binomialCoefficientGmp(uint64_t k, uint64_t n, unsigned int const prec)
+			{
+				std::vector < uint64_t > cnt;
+				fillBinomialVector(k,n,cnt);
+				libmaus2::math::GmpFloat v(1.0,prec);
+				for ( uint64_t i = 0; i < cnt.size(); ++i )
+					v *= libmaus2::math::GmpFloat(cnt[i],prec);
 				return v;
 			}
 

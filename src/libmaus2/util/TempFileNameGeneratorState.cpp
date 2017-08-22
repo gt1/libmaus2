@@ -49,8 +49,24 @@ bool libmaus2::util::TempFileNameGeneratorState::operator!=(libmaus2::util::Temp
 	return !((*this) == o);
 }
 
-libmaus2::util::TempFileNameGeneratorState::TempFileNameGeneratorState(unsigned int const rdepth, std::string const & rprefix)
-: depth(rdepth), nextfile(-1), prefix(rprefix)
+static unsigned int computeDigits(unsigned int maxmod)
+{
+	if ( maxmod == 0 )
+		return 1;
+
+	unsigned int mod = 0;
+
+	while ( maxmod )
+	{
+		mod += 1;
+		maxmod /= 10;
+	}
+
+	return mod;
+}
+
+libmaus2::util::TempFileNameGeneratorState::TempFileNameGeneratorState(unsigned int const rdepth, std::string const & rprefix, unsigned int const rdirmod, unsigned int const rfilemod)
+: dirmod(rdirmod), filemod(rfilemod), maxmod(std::max(dirmod,filemod)), digits(computeDigits(maxmod)), depth(rdepth), nextfile(-1), prefix(rprefix)
 {
 	assert ( depth );
 	setup();
@@ -121,7 +137,7 @@ std::string libmaus2::util::TempFileNameGeneratorState::getFileName()
 	return fn;
 }
 
-void libmaus2::util::TempFileNameGeneratorState::removeDirs()
+std::vector < std::string > libmaus2::util::TempFileNameGeneratorState::removeDirs(std::vector < std::string > const & prevdirs)
 {
 	next();
 
@@ -142,14 +158,20 @@ void libmaus2::util::TempFileNameGeneratorState::removeDirs()
 		dirs.push_back(dirname);
 	}
 
-	std::reverse(dirs.begin(),dirs.end());
-	for (
-		::std::vector<std::string>::const_iterator ita = dirs.begin();
-		ita != dirs.end();
-		++ita )
+	if ( dirs != prevdirs )
 	{
-		// std::cerr << "Removing dir " << *ita << std::endl;
-		rmdir ( ita->c_str() );
+		std::reverse(dirs.begin(),dirs.end());
+		for (
+			::std::vector<std::string>::const_iterator ita = dirs.begin();
+			ita != dirs.end();
+			++ita )
+		{
+			// std::cerr << "Removing dir " << *ita << std::endl;
+			rmdir ( ita->c_str() );
+		}
+		std::reverse(dirs.begin(),dirs.end());
 	}
-	std::reverse(dirs.begin(),dirs.end());
+
+	return dirs;
+
 }

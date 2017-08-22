@@ -119,6 +119,7 @@ namespace libmaus2
 		};
 
 		std::ostream & operator<<(std::ostream & out, AlignmentStatistics const & A);
+		std::istream & operator>>(std::istream & out, AlignmentStatistics & A);
 	}
 }
 #endif

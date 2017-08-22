@@ -1,3 +1,114 @@
+libmaus2 (2.0.377-1) unstable; urgency=medium
+
+  * avoid outputting empty string in RealTimeClock::formatTime
+  * store elapsed time as double in Command::dispatch
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 22 Aug 2017 21:20:00 +0200
+
+libmaus2 (2.0.376-1) unstable; urgency=medium
+
+  * append run-time in error file of Command object
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 22 Aug 2017 17:43:31 +0200
+
+libmaus2 (2.0.375-1) unstable; urgency=medium
+
+  * make directory removal in TempFileNameGenerator more efficient
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 22 Aug 2017 17:21:55 +0200
+
+libmaus2 (2.0.374-1) unstable; urgency=medium
+
+  * print failed commands in CommandContainer check
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 22 Aug 2017 16:43:59 +0200
+
+libmaus2 (2.0.373-1) unstable; urgency=medium
+
+  * add mem and threads fields in CommandContainer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Sun, 20 Aug 2017 22:39:13 +0200
+
+libmaus2 (2.0.372-1) unstable; urgency=medium
+
+  * change ArgParser interface to faciliate init by string vector
+  * implement indexing interface for serialised object sorting
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 17 Aug 2017 15:14:02 +0200
+
+libmaus2 (2.0.371-1) unstable; urgency=medium
+
+  * add maxattempt field in CommandContainer
+  * make dirmod and filemod settable parameters in TempFileNameGenerator
+  * add rdepid field in CommandContainer
+  * add check method for CommandContainer and id/attempt fields in CommandContainer
+  * add returncode field and output operator for Command class
+  * add ContainerDescription/ContainerDescriptionList
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 16 Aug 2017 14:38:20 +0200
+
+libmaus2 (2.0.370-1) unstable; urgency=medium
+
+  * add fcntl based advisory locking in PosixFdInputOutputStreamBuffer
+  * add detection for fcntl function
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 15 Aug 2017 12:12:50 +0200
+
+libmaus2 (2.0.369-1) unstable; urgency=medium
+
+  * add input operator for AlignmentStatistics
+  * use last colon in CramRange to delimit sequence name from interval
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 14 Aug 2017 19:48:20 +0200
+
+libmaus2 (2.0.368-1) unstable; urgency=medium
+
+  * add test program produce constant sum vectors in lexicographically increasing order
+  * add ConstantSumCombinatorics class
+  * add GmpInteger specialisation for Faulhaber class
+  * use BernoulliCache in Faulhaber class
+  * add RationalPolynomialSupport class
+  * reimplement operator- in GmpInteger
+  * make fillBinomialVector slightly less slow
+  * implement BernouilliNumber specialisation for GmpInteger and add BernoulliNumberCache class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 11 Aug 2017 16:06:13 +0200
+
+libmaus2 (2.0.367-1) unstable; urgency=medium
+
+  * pass through arguments in GraphEncoder
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 09 Aug 2017 14:49:02 +0200
+
+libmaus2 (2.0.366-1) unstable; urgency=medium
+
+  * parallelise gathering of statistics in GraphEncoder
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 09 Aug 2017 11:25:07 +0200
+
+libmaus2 (2.0.365-1) unstable; urgency=medium
+
+  * add rcsupport in FragmentAlignmentBufferRewriteWorkPackageDispatcher and FragmentAlignmentBufferRewriteReadEndsWorkPackageDispatcher
+  * pass through rcsupport flag in BlockControl class
+  * fix missing parameter pass-through in serialised sorting
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 08 Aug 2017 16:02:18 +0200
+
+libmaus2 (2.0.364-1) unstable; urgency=medium
+
+  * add OverlapInfoIndexer
+  * add single file sort interface in SortingOverlapOutputBuffer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 08 Aug 2017 13:05:27 +0200
+
+libmaus2 (2.0.363-1) unstable; urgency=medium
+
+  * add binomialCoefficientGmp function in Binom class
+  * add pow_ui, mul_2exp, div_2exp, log and exp methods in GmpFloat class
+  * add abs operator in GmpFloat and refactor unary operator-
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 07 Aug 2017 23:16:37 +0200
+
 libmaus2 (2.0.362-1) unstable; urgency=medium
 
   * add fanin/number of thread arguments in AlignmentWriterArray::merge

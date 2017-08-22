@@ -27,17 +27,61 @@ namespace libmaus2
 		struct CommandContainer
 		{
 			std::vector<Command> V;
+			uint64_t attempt;
+			uint64_t maxattempt;
+			uint64_t id;
+			uint64_t mem;
+			uint64_t threads;
+			std::vector<uint64_t> depid;
+			std::vector<uint64_t> rdepid;
 
-			CommandContainer()
+			CommandContainer() : attempt(0), maxattempt(0), id(0)
 			{}
 			CommandContainer(std::istream & in)
 			{
 				deserialise(in);
 			}
 
+			CommandContainer check(int const verbose = 0, std::ostream * errstream = 0) const
+			{
+				CommandContainer CC;
+				CC = *this;
+				CC.attempt += 1;
+				CC.V.resize(0);
+
+				for ( uint64_t i = 0; i < V.size(); ++i )
+				{
+					Command const & C = V[i];
+
+					if ( C.check() )
+					{
+						if ( verbose && errstream )
+							*errstream << "[V] command " << C << " finished succesfully" << std::endl;
+					}
+					else
+					{
+						if ( verbose && errstream )
+							*errstream << "[V] command " << C << " FAILED" << std::endl;
+
+						CC.V.push_back(C);
+					}
+				}
+
+				return CC;
+			}
+
 			void serialise(std::ostream & out) const
 			{
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,V.size());
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,attempt);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,maxattempt);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,id);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,mem);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,threads);
+
+				libmaus2::util::NumberSerialisation::serialiseNumberVector(out,depid);
+				libmaus2::util::NumberSerialisation::serialiseNumberVector(out,rdepid);
+
 				std::vector<uint64_t> O;
 				for ( uint64_t i = 0; i < V.size(); ++i )
 				{
@@ -53,6 +97,13 @@ namespace libmaus2
 			void deserialise(std::istream & in)
 			{
 				V.resize(libmaus2::util::NumberSerialisation::deserialiseNumber(in));
+				attempt = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				maxattempt = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				id = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				mem = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				threads = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				depid = libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
+				rdepid = libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
 				for ( uint64_t i = 0; i < V.size(); ++i )
 					V[i].deserialise(in);
 			}
@@ -66,9 +117,11 @@ namespace libmaus2
 			{
 				istr.clear();
 				istr.seekg(0,std::ios::beg);
+				// number of commands
 				uint64_t const n = libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
 				assert ( i < n );
 
+				// obtain pointer to command
 				istr.clear();
 				istr.seekg(
 					- static_cast<int64_t>( n * sizeof(uint64_t) ) + static_cast<int64_t>( i * sizeof(uint64_t) ),
@@ -77,6 +130,7 @@ namespace libmaus2
 
 				uint64_t const p = libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
 
+				// seek to pointer
 				istr.clear();
 				istr.seekg(p);
 
@@ -90,6 +144,8 @@ namespace libmaus2
 				return dispatch(ISI,i);
 			}
 		};
+
+		std::ostream & operator<<(std::ostream & out, CommandContainer const & CC);
 	}
 }
 

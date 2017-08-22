@@ -266,6 +266,7 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/bambam/BamAlignment.cpp \
 	libmaus2/suffixsort/bwtb3m/MergeStrategyMergeInput.cpp \
 	libmaus2/util/Command.cpp \
+	libmaus2/util/CommandContainer.cpp \
 	libmaus2/aio/InputOutputStreamInstance.cpp \
 	libmaus2/dazzler/align/OverlapInfo.cpp
 
@@ -323,7 +324,8 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/GraphDecoderContextTypeInfo.hpp \
 	libmaus2/dazzler/align/GraphDecoder.hpp \
 	libmaus2/dazzler/align/GraphEncoder.hpp \
-	libmaus2/dazzler/align/OverlapInfo.hpp
+	libmaus2/dazzler/align/OverlapInfo.hpp \
+	libmaus2/dazzler/align/OverlapInfoIndexer.hpp
 
 libmaus2dazzlerstringgraph_includedir=$(includedir)/libmaus2/dazzler/stringgraph
 libmaus2dazzlerstringgraph_include_HEADERS = libmaus2/dazzler/stringgraph/Edge.hpp \
@@ -1152,7 +1154,9 @@ libmaus2math_include_HEADERS=\
 	libmaus2/math/Convolution.hpp \
 	libmaus2/math/GeneralisedBernoulli.hpp \
 	libmaus2/math/GeneralisedClusterBernoulli.hpp \
-	libmaus2/math/ClusteredBernoulli.hpp
+	libmaus2/math/ClusteredBernoulli.hpp \
+	libmaus2/math/RationalPolynomialSupport.hpp \
+	libmaus2/math/ConstantSumCombinatorics.hpp
 
 libmaus2rl_includedir=$(includedir)/libmaus2/rl
 libmaus2rl_include_HEADERS=\
@@ -1288,7 +1292,9 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/Command.hpp \
 	libmaus2/util/CommandContainer.hpp \
 	libmaus2/util/Enumerator.hpp \
-	libmaus2/util/LocalTempContainer.hpp
+	libmaus2/util/LocalTempContainer.hpp \
+	libmaus2/util/ContainerDescription.hpp \
+	libmaus2/util/ContainerDescriptionList.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
@@ -2151,7 +2157,8 @@ EXTRA_PROGRAMS = \
 	testintervaltree \
 	testbamgetrefreg \
 	teststringgraph \
-	testlognormal
+	testlognormal \
+	testConstantSumCombinatorics
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2729,3 +2736,8 @@ testlognormal_SOURCES  = test/testlognormal.cpp
 testlognormal_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testlognormal_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
 testlognormal_LDFLAGS  = ${AM_LDFLAGS}
+
+testConstantSumCombinatorics_SOURCES  = test/testConstantSumCombinatorics.cpp
+testConstantSumCombinatorics_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testConstantSumCombinatorics_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
+testConstantSumCombinatorics_LDFLAGS  = ${AM_LDFLAGS}

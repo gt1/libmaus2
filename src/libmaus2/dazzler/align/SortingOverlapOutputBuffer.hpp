@@ -29,6 +29,7 @@
 #include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 #include <libmaus2/dazzler/align/AlignmentWriter.hpp>
 #include <libmaus2/dazzler/align/OverlapMetaIteratorGet.hpp>
+#include <libmaus2/dazzler/align/SortingOverlapOutputBuffer.hpp>
 #include <queue>
 
 namespace libmaus2
@@ -789,6 +790,49 @@ namespace libmaus2
 						libmaus2::dazzler::align::OverlapIndexer::getIndexName(infilenames[0]),
 						libmaus2::dazzler::align::OverlapIndexer::getIndexName(outputfilename)
 					);
+				}
+
+				static void sort(
+					std::string const & in,
+					std::string tmpfilebase = std::string(),
+					uint64_t const mergefanin = getDefaultMergeFanIn(),
+					uint64_t const numsortthreads = 1,
+					uint64_t const nummergethreads = 1,
+					comparator_type comparator = comparator_type())
+				{
+					if ( !tmpfilebase.size() )
+						tmpfilebase = in + "_sort_tmp";
+
+					std::string const tmpout = tmpfilebase + "_sort_final";
+
+					sortAndMergeThread(
+						std::vector<std::string>(1,in),
+						tmpout,
+						tmpfilebase,
+						mergefanin,
+						numsortthreads,
+						nummergethreads,
+						comparator
+					);
+
+					libmaus2::aio::OutputStreamFactoryContainer::rename ( tmpout, in );
+
+					if (
+						libmaus2::util::GetFileSize::fileExists(libmaus2::dazzler::align::OverlapIndexer::getIndexName(tmpout))
+					)
+						libmaus2::aio::OutputStreamFactoryContainer::rename (
+							libmaus2::dazzler::align::OverlapIndexer::getIndexName(tmpout),
+							libmaus2::dazzler::align::OverlapIndexer::getIndexName(in)
+						);
+					if (
+						libmaus2::util::GetFileSize::fileExists(libmaus2::dazzler::align::DalignerIndexDecoder::getDalignerIndexName(tmpout))
+					)
+					{
+						libmaus2::aio::OutputStreamFactoryContainer::rename (
+							libmaus2::dazzler::align::DalignerIndexDecoder::getDalignerIndexName(tmpout),
+							libmaus2::dazzler::align::DalignerIndexDecoder::getDalignerIndexName(in)
+						);
+					}
 				}
 			};
 		}
