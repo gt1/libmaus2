@@ -1,3 +1,10 @@
+libmaus2 (2.0.377-1) unstable; urgency=medium
+
+  * avoid outputting empty string in RealTimeClock::formatTime
+  * store elapsed time as double in Command::dispatch
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 22 Aug 2017 21:20:00 +0200
+
 libmaus2 (2.0.376-1) unstable; urgency=medium
 
   * append run-time in error file of Command object
