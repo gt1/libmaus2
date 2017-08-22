@@ -50,9 +50,10 @@ std::string libmaus2::util::TempFileNameGenerator::getFileName(bool const regAsT
 void libmaus2::util::TempFileNameGenerator::cleanupDirs()
 {
 	TempFileNameGeneratorState rmdirstate = startstate;
+	std::vector < std::string > prevdirs;
 
 	while ( rmdirstate != state )
 	{
-		rmdirstate.removeDirs();
+		prevdirs = rmdirstate.removeDirs(prevdirs);
 	}
 }
