@@ -124,7 +124,7 @@ int libmaus2::util::Command::dispatch() const
 		throw lme;
 	}
 
-	uint64_t const etime = rtc.getElapsedSeconds();
+	double const etime = rtc.getElapsedSeconds();
 
 	{
 		libmaus2::aio::InputOutputStreamInstance IOSI(err,std::ios::in|std::ios::out);

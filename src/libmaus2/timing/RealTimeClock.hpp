@@ -104,6 +104,8 @@ namespace libmaus2
 					timestr << dig;
 					dsecs -= dig;
 				}
+				if ( !ddigs )
+					timestr << 0;
 
 				return timestr.str();
 			}
