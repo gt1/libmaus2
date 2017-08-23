@@ -1,3 +1,9 @@
+libmaus2 (2.0.378-1) unstable; urgency=medium
+
+  * add failids argument in CommandContainer::check
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 23 Aug 2017 09:47:28 +0200
+
 libmaus2 (2.0.377-1) unstable; urgency=medium
 
   * avoid outputting empty string in RealTimeClock::formatTime
