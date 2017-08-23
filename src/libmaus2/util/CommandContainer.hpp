@@ -42,7 +42,7 @@ namespace libmaus2
 				deserialise(in);
 			}
 
-			CommandContainer check(int const verbose = 0, std::ostream * errstream = 0) const
+			CommandContainer check(int const verbose = 0, std::ostream * errstream = 0, std::vector<uint64_t> * failids = 0) const
 			{
 				CommandContainer CC;
 				CC = *this;
@@ -64,6 +64,9 @@ namespace libmaus2
 							*errstream << "[V] command " << C << " FAILED" << std::endl;
 
 						CC.V.push_back(C);
+
+						if ( failids )
+							failids->push_back(i);
 					}
 				}
 
