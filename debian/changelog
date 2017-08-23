@@ -1,3 +1,9 @@
+libmaus2 (2.0.378-1) unstable; urgency=medium
+
+  * New upstream version 2.0.378
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 23 Aug 2017 09:47:38 +0200
+
 libmaus2 (2.0.377-1) unstable; urgency=medium
 
   * New upstream version 2.0.377
