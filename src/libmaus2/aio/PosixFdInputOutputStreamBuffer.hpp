@@ -96,7 +96,7 @@ namespace libmaus2
 				{
 					struct ::flock lockdata;
 
-					memset(&lockdata,0,sizeof(::flock));
+					memset(&lockdata,0,sizeof(lockdata));
 
 					// exclusive lock
 					lockdata.l_type = F_WRLCK;
@@ -160,7 +160,7 @@ namespace libmaus2
 				{
 					struct ::flock lockdata;
 
-					memset(&lockdata,0,sizeof(::flock));
+					memset(&lockdata,0,sizeof(lockdata));
 
 					// exclusive lock
 					lockdata.l_type = F_UNLCK;

@@ -1,3 +1,9 @@
+libmaus2 (2.0.379-1) unstable; urgency=medium
+
+  * fix compilation on Darwin
+
+ -- German Tischler <tischler@mpi-cbg.de>  Sun, 03 Sep 2017 20:33:35 +0200
+
 libmaus2 (2.0.378-1) unstable; urgency=medium
 
   * add failids argument in CommandContainer::check
