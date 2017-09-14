@@ -1,3 +1,13 @@
+libmaus2 (2.0.380-1) unstable; urgency=medium
+
+  * allow reinitialisation in QuickDynamicRMQ
+  * avoid memory reallocation in SimdX86GlobalAlignmentTemplate if possible
+  * round size to next power of two in AlignmentTraceContainer::push
+  * move Vlen array to class scope in AlignmentOneAgainstManyAVX2 to avoid reallocation
+  * pre allocate memory in computeTrace variants of Overlap class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 14 Sep 2017 08:54:14 +0200
+
 libmaus2 (2.0.379-1) unstable; urgency=medium
 
   * fix compilation on Darwin
