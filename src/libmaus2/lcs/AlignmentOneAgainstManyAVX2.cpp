@@ -387,7 +387,7 @@ void libmaus2::lcs::AlignmentOneAgainstManyAVX2::process(
 		std::pair<uint8_t const *,uint64_t> const * ithigh = MA + batchhigh;
 		// string length,string id pairs
 		// std::vector < std::pair<uint64_t,uint64_t> > Vlen;
-		libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > Vlen;
+		// libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > Vlen;
 		uint64_t vleni = 0;
 
 		// compute maximum string length and (length,id) pairs
