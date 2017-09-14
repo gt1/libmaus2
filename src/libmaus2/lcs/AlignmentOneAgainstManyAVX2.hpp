@@ -33,7 +33,10 @@ namespace libmaus2
 		{
 			libmaus2::util::Destructable::unique_ptr_type context;
 
-			#if ! defined(LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2)
+
+			#if defined(LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2)
+			libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > Vlen;
+			#else
 			libmaus2::lcs::NP np;
 			#endif
 
