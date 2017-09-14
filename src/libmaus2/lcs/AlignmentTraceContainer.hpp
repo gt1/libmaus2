@@ -25,6 +25,7 @@
 #include <libmaus2/lcs/AlignmentStatistics.hpp>
 #include <libmaus2/math/lowbits.hpp>
 #include <libmaus2/rank/popcnt.hpp>
+#include <libmaus2/math/numbits.hpp>
 
 #include <set>
 #include <map>
@@ -1645,7 +1646,7 @@ namespace libmaus2
 
 				if ( pre + oth > trace.size() )
 				{
-					trace.resize(pre + oth);
+					trace.resize(libmaus2::math::nextTwoPow(pre + oth));
 
 					ta = trace.begin();
 					te = trace.begin()+pre;
