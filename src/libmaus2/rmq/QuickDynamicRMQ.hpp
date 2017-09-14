@@ -39,7 +39,7 @@ namespace libmaus2
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			typedef typename std::iterator_traits<array_iterator>::value_type key_type;
-			array_iterator const A;
+			array_iterator A;
 
 			// base 2 logarithm rounded to zero (-1 means -inf)
 			static inline int logbindown(uint32_t k)
@@ -56,8 +56,8 @@ namespace libmaus2
 				return c;
 			}
 
-			uint32_t const n;
-			uint32_t const d;
+			uint32_t n;
+			uint32_t d;
 			::libmaus2::autoarray::AutoArray<uint32_t> M;
 
 			uint64_t byteSize() const
@@ -67,13 +67,16 @@ namespace libmaus2
 
 			uint32_t m(uint32_t h, uint32_t i) const { return h?M[(h-1)*n+i]:i; }
 
-			QuickDynamicRMQ(array_iterator rA, uint32_t const rn)
-			: A(rA), n(rn), d(static_cast<uint32_t>(logbindown(n)))
+			void init(array_iterator rA, uint32_t const rn)
 			{
+				A = rA;
+				n = rn;
+				d = static_cast<uint32_t>(logbindown(n));
+
 				if ( n )
 				{
 					// allocate table
-					M = ::libmaus2::autoarray::AutoArray<uint32_t>(n*d);
+					M.ensureSize(n*d);
 
 					// first row of matrix is identity
 					// fill rest of rows using dynamic programming
@@ -96,6 +99,16 @@ namespace libmaus2
 						offset1 += n;
 					}
 				}
+			}
+
+			QuickDynamicRMQ()
+			{
+				init(array_iterator(),0);
+			}
+
+			QuickDynamicRMQ(array_iterator rA, uint32_t const rn)
+			{
+				init(rA,rn);
 			}
 
 			bool regressionTest()
