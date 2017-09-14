@@ -460,7 +460,7 @@ namespace libmaus2
 					int32_t const abpos,
 					int32_t const aepos,
 					int32_t const bbpos,
-					int32_t const /* bepos */,
+					int32_t const bepos,
 					uint8_t const * aptr,
 					uint8_t const * bptr,
 					int64_t const tspace,
@@ -473,6 +473,8 @@ namespace libmaus2
 					// current point on B
 					int32_t b_i = ( bbpos );
 
+					if ( static_cast<int64_t>(ATC.capacity()) < (aepos-abpos)+(bepos-bbpos) )
+						ATC.resize((aepos-abpos)+(bepos-bbpos));
 					// reset trace container
 					ATC.reset();
 
@@ -675,11 +677,7 @@ namespace libmaus2
 					int32_t const abpos,
 					int32_t const aepos,
 					int32_t const bbpos,
-					int32_t const
-					#if ! defined(NDEBUG)
-						bepos
-					#endif
-						,
+					int32_t const bepos,
 					uint8_t const * aptr,
 					uint8_t const * bptr,
 					int64_t const tspace,
@@ -693,6 +691,8 @@ namespace libmaus2
 					int32_t b_i = ( bbpos );
 
 					// reset trace container
+					if ( static_cast<int64_t>(ATC.capacity()) < (aepos-abpos)+(bepos-bbpos) )
+						ATC.resize((aepos-abpos)+(bepos-bbpos));
 					ATC.reset();
 
 					int64_t bsum = 0;
@@ -756,6 +756,8 @@ namespace libmaus2
 					int32_t b_i = ( path.bbpos );
 
 					// reset trace container
+					if ( static_cast<int64_t>(ATC.capacity()) < (path.aepos-path.abpos)+path.diffs )
+						ATC.resize((path.aepos-path.abpos)+path.diffs);
 					ATC.reset();
 
 					for ( size_t i = 0; i < path.path.size(); ++i )

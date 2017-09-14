@@ -90,17 +90,17 @@ void libmaus2::lcs::LIBMAUS2_SIMD_CLASS_NAME::allocateMemory(
 	size_t & memsize
 )
 {
-	if ( mem )
-	{
-		alignedFree(mem);
-		mem = 0;
-		memsize = 0;
-	}
-
 	size_t const nsize = ((rsize + sizealign-1)/sizealign)*sizealign;
 
 	if ( nsize > memsize )
 	{
+		if ( mem )
+		{
+			alignedFree(mem);
+			mem = 0;
+			memsize = 0;
+		}
+
 		#if defined(LIBMAUS2_HAVE_POSIX_MEMALIGN)
 		if ( posix_memalign(reinterpret_cast<void **>(&mem),getpagesize(),nsize) != 0 )
 		{
