@@ -26,6 +26,7 @@
 #include <libmaus2/util/BitsPerNum.hpp>
 #include <libmaus2/bitio/getBit.hpp>
 #include <libmaus2/bitio/BitWriter.hpp>
+#include <libmaus2/util/SimpleQueue.hpp>
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
 #include "malloc.h"
@@ -152,17 +153,17 @@ namespace libmaus2
 			/**
 			 * number of symbols in stream
 			 **/
-			uint64_t const n;
+			uint64_t n;
 			/**
 			 * bits per symbol
 			 **/
-			uint64_t const b;
+			uint64_t b;
 
 			/**
 			 * wavelet tree bit layers (n log S) bits
 			 **/
 			::libmaus2::autoarray::AutoArray< data_type > AW;
-			data_type const * const W;
+			data_type const * W;
 			/**
 			 * rank dictionary on W
 			 **/
@@ -258,6 +259,28 @@ namespace libmaus2
 				#endif
 			}
 
+			struct ProduceBitsContext
+			{
+				::libmaus2::autoarray::AutoArray<symbol_type> AA0;
+				::libmaus2::autoarray::AutoArray<symbol_type> AA1;
+				::libmaus2::util::SimpleQueue<uint64_t> T;
+				::libmaus2::util::SimpleQueue<uint64_t> Tn;
+
+				void check(uint64_t const n, uint64_t const b)
+				{
+					if ( AA0.size() < n )
+					{
+						AA0 = ::libmaus2::autoarray::AutoArray<symbol_type>();
+						AA0 = ::libmaus2::autoarray::AutoArray<symbol_type>(n,false);
+					}
+					if ( AA1.size() < n )
+					{
+						AA1 = ::libmaus2::autoarray::AutoArray<symbol_type>();
+						AA1 = ::libmaus2::autoarray::AutoArray<symbol_type>(n,false);
+					}
+				}
+			};
+
 			/**
 			 * produce wavelet tree bits with b layers from sequence a of length n.
 			 * uses ~ 2n * sizeof(symbol_type) + (1<<b) * sizeof(uint64_t) bytes
@@ -269,13 +292,23 @@ namespace libmaus2
 			 * @return bits
 			 **/
 			template<typename it>
-			static ::libmaus2::autoarray::AutoArray< data_type > produceBits(it a, uint64_t const n, uint64_t const b)
+			static void produceBits(
+				it a, uint64_t const n, uint64_t const b, ProduceBitsContext & context,
+				::libmaus2::autoarray::AutoArray< data_type > & W
+			)
 			{
-				::libmaus2::autoarray::AutoArray< data_type > W( divup( align64(n*b), 8*sizeof(data_type) ), false );
+				uint64_t const Wsize = divup( align64(n*b), 8*sizeof(data_type) );
+				if ( W.size() < Wsize )
+				{
+					W = ::libmaus2::autoarray::AutoArray< data_type >();
+					W = ::libmaus2::autoarray::AutoArray< data_type >( Wsize, false );
+				}
 
-				// ::std::cerr << "n=" << n << " b=" << b << " t=" << t << " w=" << w << ::std::endl;
+				context.check(n,b);
+				::libmaus2::autoarray::AutoArray<symbol_type> & AA0 = context.AA0;
+				::libmaus2::autoarray::AutoArray<symbol_type> & AA1 = context.AA1;
+				::libmaus2::util::SimpleQueue< uint64_t > & T = context.T;
 
-				::libmaus2::autoarray::AutoArray<symbol_type> AA0(n,false), AA1(n,false);
 				symbol_type * A0 = AA0.get(), * A1 = AA1.get();
 
 				for ( uint64_t i = 0; i < n; ++i )
@@ -283,14 +316,13 @@ namespace libmaus2
 
 				writer_type writer(W.get());
 
-				::std::deque< uint64_t > T;
 				T.push_back( n );
 
 				uint64_t m = (1ull<<(b-1));
 
 				for ( uint64_t ib = 0; (ib+1) < b; ++ib, m>>=1 )
 				{
-					::std::deque< uint64_t > Tn;
+					::libmaus2::util::SimpleQueue< uint64_t > & Tn = context.Tn;
 
 					uint64_t left = 0;
 
@@ -357,7 +389,14 @@ namespace libmaus2
 					::std::cerr << ::std::endl;
 				}
 				#endif
+			}
 
+			template<typename it>
+			static ::libmaus2::autoarray::AutoArray< data_type > produceBits(it a, uint64_t const n, uint64_t const b)
+			{
+				::libmaus2::autoarray::AutoArray< data_type > W;
+				ProduceBitsContext context;
+				produceBits(a,n,b,context,W);
 				return W;
 			}
 
@@ -651,6 +690,19 @@ namespace libmaus2
 			 **/
 			template<typename it>
 			WaveletTree(it a, uint64_t const rn) : n(rn), b(getNumBits(a,n)), AW( produceBits(a, n, b) ), W(AW.get()), R(W,align64(n*b)) {}
+
+			template<typename it>
+			void init(it a, uint64_t const rn, ProduceBitsContext & context)
+			{
+				n = rn;
+				b = getNumBits(a,n);
+				produceBits(a, n, b, context, AW);
+				W = AW.get();
+				R.init(W,align64(n*b));
+			}
+
+			template<typename it>
+			WaveletTree(it a, uint64_t const rn, ProduceBitsContext & context) : n(rn), b(getNumBits(a,n)), AW( produceBits(a, n, b, context) ), W(AW.get()), R(W,align64(n*b)) {}
 
 			WaveletTree(::libmaus2::autoarray::AutoArray<uint64_t> & rW,
 				    uint64_t const rn,
