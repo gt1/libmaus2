@@ -1,3 +1,10 @@
+libmaus2 (2.0.381-1) unstable; urgency=medium
+
+  * add init method in WaveletTree and several memory allocation optimisations
+  * add init method in ERank222B to allow reinitialisation without reallocation
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 14 Sep 2017 11:24:56 +0200
+
 libmaus2 (2.0.380-1) unstable; urgency=medium
 
   * allow reinitialisation in QuickDynamicRMQ

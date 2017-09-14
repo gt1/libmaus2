@@ -74,10 +74,10 @@ namespace libmaus2
 			// superblock/miniblock shift
 			static unsigned int const sbmbshift = sbbitwidth-mbbitwidth;
 
-			uint64_t const * const UUUUUUUU;
-			uint64_t const n;
-			uint64_t const numsuper;
-			uint64_t const nummini;
+			uint64_t const * UUUUUUUU;
+			uint64_t n;
+			uint64_t numsuper;
+			uint64_t nummini;
 
 			::libmaus2::autoarray::AutoArray<uint64_t> S; // n / 2^16 * 64 bits = n / 2^10 = n/1024 bits
 			::libmaus2::autoarray::AutoArray<unsigned short> M; // n / 2^16 * 2^16 / 64 * 16 = n/4 bits
@@ -194,15 +194,25 @@ namespace libmaus2
 
 
 			public:
-			/**
-			 * @param rUUUUUUUU bit vector
-			 * @param rn number of bits in vector (has to be a multiple of 64)
-			 **/
-			ERank222B(uint64_t const * const rUUUUUUUU, uint64_t const rn)
-			: UUUUUUUU(rUUUUUUUU), n(rn),
-			  numsuper((n + (sbsize-1)) >> sbbitwidth), nummini((n + (mbsize-1)) >> mbbitwidth),
-			  S( divUp(n,sbsize) , false ), M( divUp(n,mbsize), false)
+			void init(uint64_t const * const rUUUUUUUU, uint64_t const rn)
 			{
+				UUUUUUUU = rUUUUUUUU;
+				n = rn;
+
+				numsuper = (n + (sbsize-1)) >> sbbitwidth;
+				nummini = (n + (mbsize-1)) >> mbbitwidth;
+
+				if ( S.size() < divUp(n,sbsize) )
+				{
+					S = ::libmaus2::autoarray::AutoArray<uint64_t>();
+					S = ::libmaus2::autoarray::AutoArray<uint64_t>(divUp(n,sbsize),false);
+				}
+				if ( M.size() < divUp(n,mbsize) )
+				{
+					M = ::libmaus2::autoarray::AutoArray<unsigned short>();
+					M = ::libmaus2::autoarray::AutoArray<unsigned short>(divUp(n,mbsize),false);
+				}
+
 				if ( n & mbmask )
 					throw ::std::runtime_error("Rank::ERank222B: n is not multiple of miniblock size 64.");
 
@@ -232,6 +242,16 @@ namespace libmaus2
 				}
 
 				// ::std::cerr << "Construction done." << ::std::endl;
+
+			}
+
+			/**
+			 * @param rUUUUUUUU bit vector
+			 * @param rn number of bits in vector (has to be a multiple of 64)
+			 **/
+			ERank222B(uint64_t const * const rUUUUUUUU, uint64_t const rn)
+			{
+				init(rUUUUUUUU,rn);
 			}
 
 			/**
