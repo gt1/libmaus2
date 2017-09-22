@@ -1,3 +1,10 @@
+libmaus2 (2.0.382-1) unstable; urgency=medium
+
+  * fix parameter estimation in LogNormalRandom
+  * fix comparator in OverlapInfo
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 22 Sep 2017 10:08:29 +0200
+
 libmaus2 (2.0.381-1) unstable; urgency=medium
 
   * add init method in WaveletTree and several memory allocation optimisations

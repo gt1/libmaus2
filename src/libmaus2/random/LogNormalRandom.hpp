@@ -24,6 +24,7 @@
 #include <limits>
 #include <vector>
 #include <utility>
+#include <algorithm>
 
 namespace libmaus2
 {
@@ -139,6 +140,27 @@ namespace libmaus2
 					sigma += ::std::pow(::std::log(V[i])-mu,2);
 				if ( V.size() )
 					sigma /= V.size();
+
+				sigma = ::std::sqrt(sigma);
+
+				return std::pair<double,double>(mu,sigma);
+			}
+
+			static std::pair<double,double> estimateParameters(std::vector<uint64_t> const & V)
+			{
+				double mu = 0.0;
+				for ( uint64_t i = 1; i < V.size(); ++i )
+					mu += V[i] * ::std::log(static_cast<double>(i));
+				if ( V.size() )
+					mu /= std::accumulate(V.begin(),V.end(),0ull);
+
+				double sigma = 0.0;
+				for ( uint64_t i = 1; i < V.size(); ++i )
+					sigma += V[i] * ::std::pow(::std::log(static_cast<double>(i))-mu,2);
+				if ( V.size() )
+					sigma /= std::accumulate(V.begin(),V.end(),0ull);
+
+				sigma = ::std::sqrt(sigma);
 
 				return std::pair<double,double>(mu,sigma);
 			}
