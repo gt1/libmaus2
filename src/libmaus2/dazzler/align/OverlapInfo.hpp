@@ -110,8 +110,8 @@ namespace libmaus2
 						return aepos < O.aepos;
 					if ( bbpos != O.bbpos )
 						return bbpos < O.bbpos;
-					if ( aepos != O.aepos )
-						return aepos < O.aepos;
+					if ( bepos != O.bepos )
+						return bepos < O.bepos;
 					return false;
 				}
 			};
