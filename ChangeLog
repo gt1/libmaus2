@@ -1,3 +1,10 @@
+libmaus2 (2.0.383-1) unstable; urgency=medium
+
+  * add computeParameters function in LogNormalRandom class
+  * add Matrix class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 25 Sep 2017 13:15:15 +0200
+
 libmaus2 (2.0.382-1) unstable; urgency=medium
 
   * fix parameter estimation in LogNormalRandom

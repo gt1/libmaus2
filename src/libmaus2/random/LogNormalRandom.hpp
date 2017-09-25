@@ -165,6 +165,40 @@ namespace libmaus2
 				return std::pair<double,double>(mu,sigma);
 			}
 
+			static std::pair<double,double> computeParameters(double const mu, double const sigma)
+			{
+				double const var = sigma*sigma;
+				double const vmu = ::std::log(mu*mu / std::sqrt(var + mu*mu));
+				double const vvar = ::std::log(1.0 + var / (mu*mu));
+				double const vsigma = ::std::sqrt(vvar);
+				return std::pair<double,double>(vmu,vsigma);
+			}
+
+			static std::pair<double,double> computeAverageAndSigma(std::vector<uint64_t> const & V)
+			{
+				uint64_t sum = 0;
+				uint64_t cnt = 0;
+				for ( uint64_t i = 0; i < V.size(); ++i )
+				{
+					sum += i*V[i];
+					cnt += V[i];
+				}
+				double const E = cnt ? (static_cast<double>(sum)/cnt) : 0.0;
+
+				double vsum = 0;
+				for ( uint64_t i = 0; i < V.size(); ++i )
+					vsum += (i-E)*(i-E)*V[i];
+				double const VAR = cnt ? (vsum / cnt) : 0.0;
+
+				return std::pair<double,double>(E,::std::sqrt(VAR));
+			}
+
+			static std::pair<double,double> computeParameters(std::vector<uint64_t> const & V)
+			{
+				std::pair<double,double> const P = computeAverageAndSigma(V);
+				return computeParameters(P.first,P.second);
+			}
+
 			/* produce random number from log normal distribution */
 			static double random(double const sigma, double const mu)
 			{
