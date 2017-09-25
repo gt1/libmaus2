@@ -25,6 +25,7 @@
 #include <vector>
 #include <utility>
 #include <algorithm>
+#include <numeric>
 
 namespace libmaus2
 {

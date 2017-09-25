@@ -107,7 +107,7 @@ namespace libmaus2
 							mj = j;
 						}
 
-					if ( abs(m) < t )
+					if ( abs(m) <= t )
 					{
 						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "Matrix::inverse: Matrix is not invertible" << std::endl;
@@ -152,7 +152,7 @@ namespace libmaus2
 
 				for ( uint64_t i = 0; i < r; ++i )
 					for ( uint64_t j = 0; j < c; ++j )
-						if ( abs(I(i,j)) < t )
+						if ( abs(I(i,j)) <= t )
 							I(i,j) = N();
 
 				return I;

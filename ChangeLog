@@ -1,3 +1,15 @@
+libmaus2 (2.0.385-1) unstable; urgency=medium
+
+  * improve threshold comparison in Matrix::inverse
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 25 Sep 2017 15:06:01 +0200
+
+libmaus2 (2.0.384-1) unstable; urgency=medium
+
+  * add missing include directive in LogNormalRandom.hpp
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 25 Sep 2017 13:59:09 +0200
+
 libmaus2 (2.0.383-1) unstable; urgency=medium
 
   * add computeParameters function in LogNormalRandom class
