@@ -12,11 +12,11 @@ git pull
 
 # merge
 git checkout master
-git merge experimental
+git merge -m "Merge experimental branch into master branch" experimental
 git push
 
 git checkout debian
-git merge experimental-debian
+git merge -m "Merge experimental-debian branch into debian branch" experimental-debian
 git push
 
 # add release tag/branch
@@ -41,7 +41,7 @@ git checkout experimental
 git checkout debian
 tar czvf debian.tar.gz debian
 git checkout debian-launchpad
-git merge master
+git merge -m "Merge master branch into debian branch" master
 tar xzvf debian.tar.gz
 rm debian.tar.gz
 sed -i -e  "s|libstaden-read-dev (>= 1\.13\.0)|staden-io-lib-trunk-dev (>= 1.13.0)|" debian/control

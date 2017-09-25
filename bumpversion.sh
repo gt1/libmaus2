@@ -50,7 +50,7 @@ git push
 # switch to experimental debian branch
 git checkout experimental-debian
 git pull
-git merge experimental
+git merge -m "Merge experimental branch" experimental
 
 # create change log message
 pushd debian
