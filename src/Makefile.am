@@ -2158,7 +2158,8 @@ EXTRA_PROGRAMS = \
 	testbamgetrefreg \
 	teststringgraph \
 	testlognormal \
-	testConstantSumCombinatorics
+	testConstantSumCombinatorics \
+	testmatrix
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2741,3 +2742,8 @@ testConstantSumCombinatorics_SOURCES  = test/testConstantSumCombinatorics.cpp
 testConstantSumCombinatorics_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testConstantSumCombinatorics_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
 testConstantSumCombinatorics_LDFLAGS  = ${AM_LDFLAGS}
+
+testmatrix_SOURCES  = test/testmatrix.cpp
+testmatrix_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testmatrix_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
+testmatrix_LDFLAGS  = ${AM_LDFLAGS}
