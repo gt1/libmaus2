@@ -1631,11 +1631,18 @@ namespace libmaus2
 			 **/
 			uint32_t getBin() const
 			{
-				#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
-				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->Bin;
-				#else
-				return ::libmaus2::bambam::BamAlignmentDecoderBase::getBin(D.get());
-				#endif
+				if ( (getFlags() & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FCIGAR32) )
+				{
+					return computeBin();
+				}
+				else
+				{
+					#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
+					return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->Bin;
+					#else
+					return ::libmaus2::bambam::BamAlignmentDecoderBase::getBin(D.get());
+					#endif
+				}
 			}
 
 			/**
