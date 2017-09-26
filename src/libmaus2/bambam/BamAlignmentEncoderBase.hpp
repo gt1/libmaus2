@@ -505,15 +505,6 @@ namespace libmaus2
 					throw lme;
 				}
 				assert ( flagsok );
-				bool const cigarlenok = cigarlen < (1ul << 16);
-				if ( ! cigarlenok )
-				{
-					libmaus2::exception::LibMausException lme;
-					lme.getStream() << "BamAlignmentEncoderBase::encodeAlignment: cigarlen " << cigarlen << " out of range" << std::endl;
-					lme.finish();
-					throw lme;
-				}
-				assert ( cigarlenok );
 
 				putLE<buffer_type, int32_t>(buffer,refid); // offset 0
 				putLE<buffer_type, int32_t>(buffer,pos);   // offset 4
@@ -619,7 +610,6 @@ namespace libmaus2
 				assert ( mapq < (1ul << 8) );
 				assert ( bin < (1ul << 16) );
 				assert ( flags < (1ul << 16) );
-				assert ( cigarlen < (1ul << 16) );
 
 				putLE<buffer_type, int32_t>(buffer,refid); // offset 0
 				putLE<buffer_type, int32_t>(buffer,pos);   // offset 4

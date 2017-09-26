@@ -1,3 +1,11 @@
+libmaus2 (2.0.386-1) unstable; urgency=medium
+
+  * do not fail on >16 bit cigar field length in BamAlignmentEncoderBase
+  * filter out 32 bit cigar flag when formatting BamAlignment for SAM output
+  * call computeBin in BamAlignment::getBin when 32 bit cigar field flag is set
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 26 Sep 2017 11:43:25 +0200
+
 libmaus2 (2.0.385-1) unstable; urgency=medium
 
   * improve threshold comparison in Matrix::inverse
