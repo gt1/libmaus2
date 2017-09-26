@@ -540,6 +540,7 @@ libmaus2bambam_include_HEADERS = libmaus2/bambam/DecoderBase.hpp libmaus2/bambam
 	libmaus2/bambam/BamAlignmentHeapComparator.hpp \
 	libmaus2/bambam/BamAlignmentNameComparator.hpp \
 	libmaus2/bambam/BamAlignmentPosComparator.hpp \
+	libmaus2/bambam/BamAlignmentTagComparator.hpp \
 	libmaus2/bambam/BamEntryContainer.hpp \
 	libmaus2/bambam/Scram.h \
 	libmaus2/bambam/AlignmentValidity.hpp \

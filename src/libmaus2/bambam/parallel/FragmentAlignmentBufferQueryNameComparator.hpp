@@ -37,7 +37,12 @@ namespace libmaus2
 
 				bool operator()(uint8_t * A, uint8_t * B) const
 				{
-					return libmaus2::bambam::BamAlignmentNameComparator::compare(A + sizeof(uint32_t),B + sizeof(uint32_t));
+					return libmaus2::bambam::BamAlignmentNameComparator::compare(
+						A + sizeof(uint32_t),
+						libmaus2::bambam::DecoderBase::getLEInteger(A,sizeof(uint32_t)),
+						B + sizeof(uint32_t),
+						libmaus2::bambam::DecoderBase::getLEInteger(B,sizeof(uint32_t))
+					);
 				}
 			};
 		}
