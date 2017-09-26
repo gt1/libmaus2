@@ -4002,7 +4002,9 @@ namespace libmaus2
 				ostr.write(rn,lrn);
 				ostr.put('\t');
 
-				printNumber16(ostr,flags);
+				printNumber16(ostr,
+					(flags & (~libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FCIGAR32))
+				);
 				ostr.put('\t');
 
 				char const * refidname = header.getRefIDName(getRefID(E));
