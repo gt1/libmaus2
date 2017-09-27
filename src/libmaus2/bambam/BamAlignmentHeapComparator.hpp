@@ -58,7 +58,7 @@ namespace libmaus2
 			 **/
 			bool operator()(uint64_t const a, uint64_t const b)
 			{
-				return comparator_type::compareInt(A[a].D.begin(),A[b].D.begin()) > 0;
+				return comp.compareInt(A[a].D.begin(),A[a].blocksize,A[b].D.begin(),A[b].blocksize) > 0;
 			}
 		};
 	}

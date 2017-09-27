@@ -29,7 +29,7 @@ namespace libmaus2
 		/**
 		 * class for comparing BAM alignment blocks by coordinates
 		 **/
-		struct BamAlignmentPosComparator
+		struct BamAlignmentPosComparator : public DecoderBase
 		{
 			//! data block pointer
 			uint8_t const * data;
@@ -48,7 +48,7 @@ namespace libmaus2
 			 * @param db pointer to second alignment block
 			 * @return true iff da < db concerning mapping coordinates
 			 **/
-			static bool compare(uint8_t const * da, uint8_t const * db)
+			static bool compare(uint8_t const * da, uint64_t const /* la */, uint8_t const * db, uint64_t const /* lb */)
 			{
 				int32_t const refa = ::libmaus2::bambam::BamAlignmentDecoderBase::getRefID(da);
 				int32_t const refb = ::libmaus2::bambam::BamAlignmentDecoderBase::getRefID(db);
@@ -69,7 +69,7 @@ namespace libmaus2
 			 * @param db pointer to second alignment block
 			 * @return -1 if da<db, 0 if da=db, 1 if da>db concerning mapping coordinates
 			 **/
-			static int compareInt(uint8_t const * da, uint8_t const * db)
+			static int compareInt(uint8_t const * da, uint64_t const /* la */, uint8_t const * db, uint64_t const /* lb */)
 			{
 				int32_t const refa = ::libmaus2::bambam::BamAlignmentDecoderBase::getRefID(da);
 				int32_t const refb = ::libmaus2::bambam::BamAlignmentDecoderBase::getRefID(db);
@@ -94,29 +94,35 @@ namespace libmaus2
 			}
 
 			/**
-			 * compare alignments at offsets a and b relative to the data block pointer passed to this object
-			 * at construction time
+			 * compare alignments at offsets a and b in the data block
 			 *
-			 * @param a offset of first alignment
-			 * @param b offset of second alignment
-			 * @return true iff a < b concerning mapping coordinates
+			 * @param a first offset into data block
+			 * @param b second offset into data block
+			 * @return true iff alignment at a < alignment at b (alignments at offset a and b, not offsets and b)
 			 **/
 			bool operator()(uint64_t const a, uint64_t const b) const
 			{
-				return compare(data + a + sizeof(uint32_t),data + b + sizeof(uint32_t));
+				uint8_t const * da = data + a;
+				uint64_t const la = static_cast<int32_t>(getLEInteger(da,4));
+				uint8_t const * db = data + b;
+				uint64_t const lb = static_cast<int32_t>(getLEInteger(db,4));
+				return compare(da+sizeof(uint32_t),la,db+sizeof(uint32_t),lb);
 			}
 
 			/**
-			 * compare alignments at offsets a and b relative to the data block pointer passed to this object
-			 * at construction time
+			 * compare alignments at offsets a and b in the data block
 			 *
-			 * @param a offset of first alignment
-			 * @param b offset of second alignment
-			 * @return -1 if a<b, 0 if a=b, 1 if a>b concerning mapping coordinates
+			 * @param a first offset into data block
+			 * @param b second offset into data block
+			 * @return -1 for a < b, 0 for a == b, 1 for a > b (alignments at offset a and b, not offsets and b)
 			 **/
 			int compareInt(uint64_t const a, uint64_t const b) const
 			{
-				return compareInt(data + a + sizeof(uint32_t),data + b + sizeof(uint32_t));
+				uint8_t const * da = data + a;
+				uint64_t const la = static_cast<int32_t>(getLEInteger(da,4));
+				uint8_t const * db = data + b;
+				uint64_t const lb = static_cast<int32_t>(getLEInteger(db,4));
+				return compareInt(da+sizeof(uint32_t),la,db+sizeof(uint32_t),lb);
 			}
 		};
 	}

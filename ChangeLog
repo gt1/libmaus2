@@ -1,3 +1,10 @@
+libmaus2 (2.0.387-1) unstable; urgency=medium
+
+  * fix comparison in BamEntryContainer
+  * add BamAlignmentTagComparator and update API accordingly
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 27 Sep 2017 10:10:27 +0200
+
 libmaus2 (2.0.386-1) unstable; urgency=medium
 
   * do not fail on >16 bit cigar field length in BamAlignmentEncoderBase
