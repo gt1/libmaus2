@@ -50,7 +50,7 @@ namespace libmaus2
 			 **/
 			BamAlignmentTagComparator(uint8_t const * rdata)
 			:
-				data(rdata)
+				data(rdata), tagname(0)
 			{
 
 			}
