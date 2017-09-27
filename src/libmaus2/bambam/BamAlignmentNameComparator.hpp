@@ -31,7 +31,7 @@ namespace libmaus2
 		 * name = c_0 n_0 c_1 n_1 ... . The string parts are compared lexicographically. The number parts
 		 * are decoded as numbers and compared numerically. For equivalent names read 1 is smaller than read 2.
 		 **/
-		struct BamAlignmentNameComparator : public StrCmpNum
+		struct BamAlignmentNameComparator : public StrCmpNum, public DecoderBase
 		{
 			//! data pointer
 			uint8_t const * data;
@@ -62,7 +62,7 @@ namespace libmaus2
 			 * @param db second string
 			 * @return true iff da < db (alignments referenced by da and db, not pointers)
 			 **/
-			static bool compare(uint8_t const * da, uint8_t const * db)
+			static bool compare(uint8_t const * da, uint64_t const /* la */, uint8_t const * db, uint64_t const /* lb */)
 			{
 				char const * namea = ::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(da);
 				char const * nameb = ::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(db);
@@ -117,7 +117,7 @@ namespace libmaus2
 			 **/
 			static bool compare(libmaus2::bambam::BamAlignment const & A, libmaus2::bambam::BamAlignment const & B)
 			{
-				return compare(A.D.begin(),B.D.begin());
+				return compare(A.D.begin(),A.blocksize,B.D.begin(),B.blocksize);
 			}
 
 			/**
@@ -127,7 +127,7 @@ namespace libmaus2
 			 * @param db second string
 			 * @return -1 if da<db, 0 if da == db, 1 if da > db  (alignments referenced by da and db, not pointers)
 			 **/
-			static int compareInt(uint8_t const * da, uint8_t const * db)
+			static int compareInt(uint8_t const * da, uint64_t const /* la */, uint8_t const * db, uint64_t const /* lb */)
 			{
 				char const * namea = ::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(da);
 				char const * nameb = ::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(db);
@@ -181,7 +181,7 @@ namespace libmaus2
 			 **/
 			static bool compareInt(libmaus2::bambam::BamAlignment const & A, libmaus2::bambam::BamAlignment const & B)
 			{
-				return compareInt(A.D.begin(),B.D.begin());
+				return compareInt(A.D.begin(),A.blocksize,B.D.begin(),B.blocksize);
 			}
 
 			/**
@@ -191,7 +191,7 @@ namespace libmaus2
 			 * @param db alignment block b
 			 * @return -1 if da < db, 0 if da == db, 1 if da > db by name (alignments referenced by da and db, not pointers)
 			 **/
-			static int compareIntNameOnly(uint8_t const * da, uint8_t const * db)
+			static int compareIntNameOnly(uint8_t const * da, uint64_t const /* la */, uint8_t const * db, uint64_t const /* lb */)
 			{
 				char const * namea = ::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(da);
 				char const * nameb = ::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(db);
@@ -208,10 +208,11 @@ namespace libmaus2
 			 **/
 			bool operator()(uint64_t const a, uint64_t const b) const
 			{
-				uint8_t const * da = data + a + sizeof(uint32_t);
-				uint8_t const * db = data + b + sizeof(uint32_t);
-
-				return compare(da,db);
+				uint8_t const * da = data + a;
+				uint64_t const la = static_cast<int32_t>(getLEInteger(da,4));
+				uint8_t const * db = data + b;
+				uint64_t const lb = static_cast<int32_t>(getLEInteger(db,4));
+				return compare(da+sizeof(uint32_t),la,db+sizeof(uint32_t),lb);
 			}
 
 			/**
@@ -223,9 +224,11 @@ namespace libmaus2
 			 **/
 			int compareInt(uint64_t const a, uint64_t const b) const
 			{
-				uint8_t const * da = data + a + sizeof(uint32_t);
-				uint8_t const * db = data + b + sizeof(uint32_t);
-				return compareInt(da,db);
+				uint8_t const * da = data + a;
+				uint64_t const la = static_cast<int32_t>(getLEInteger(da,4));
+				uint8_t const * db = data + b;
+				uint64_t const lb = static_cast<int32_t>(getLEInteger(db,4));
+				return compareInt(da+sizeof(uint32_t),la,db+sizeof(uint32_t),lb);
 			}
 
 			/**
@@ -237,9 +240,11 @@ namespace libmaus2
 			 **/
 			int compareIntNameOnly(uint64_t const a, uint64_t const b) const
 			{
-				uint8_t const * da = data + a + sizeof(uint32_t);
-				uint8_t const * db = data + b + sizeof(uint32_t);
-				return compareIntNameOnly(da,db);
+				uint8_t const * da = data + a;
+				uint64_t const la = static_cast<int32_t>(getLEInteger(da,4));
+				uint8_t const * db = data + b;
+				uint64_t const lb = static_cast<int32_t>(getLEInteger(db,4));
+				return compareIntNameOnly(da+sizeof(uint32_t),la,db+sizeof(uint32_t),lb);
 			}
 		};
 
@@ -253,6 +258,11 @@ namespace libmaus2
 			uint8_t const * operator[](uint64_t const i) const
 			{
 				return D + P[i] + sizeof(uint32_t);
+			}
+
+			uint64_t length(uint64_t const i) const
+			{
+				return DecoderBase::getLEInteger(D + P[i],4);
 			}
 		};
 
@@ -274,7 +284,7 @@ namespace libmaus2
 
 			static bool comp(BamAlignmentNameObject & A, unsigned int i, unsigned int j)
 			{
-				return BamAlignmentNameComparator::compare(A[i],A[j]);
+				return BamAlignmentNameComparator::compare(A[i],A.length(i),A[j],A.length(j));
 			}
 		};
 	}

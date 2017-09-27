@@ -89,7 +89,7 @@ namespace libmaus2
 			std::vector<uint64_t> tmpoutcnts;
 
 			//! comparator for alignments
-			comparator_type const BAPC;
+			comparator_type BAPC;
 
 			//! parallel processing (number of threads used for block sorting)
 			uint64_t const parallel;
@@ -195,6 +195,25 @@ namespace libmaus2
 			}
 
 			/**
+			 * constructor
+			 *
+			 * @param bufsize size of buffer in bytes
+			 * @param rtmpfileoutnamebase temp file name
+			 **/
+			template<typename init_type>
+			BamEntryContainer(init_type init, uint64_t const bufsize, std::string const & rtmpfileoutnamebase, uint64_t const rparallel = 1)
+			: B( bufsize/sizeof(data_type), false ), pp(B.end()),
+			  pa(reinterpret_cast<uint8_t *>(B.begin())),
+			  pc(pa),
+			  tmpfileoutnamebase(rtmpfileoutnamebase),
+			  BAPC(pa),
+			  parallel(rparallel)
+			{
+				assert ( B.size() ) ;
+				BAPC.setup(init);
+			}
+
+			/**
 			 * flush buffer
 			 **/
 			void flush()
@@ -208,7 +227,7 @@ namespace libmaus2
 					uint64_t const numel = B.end()-pp;
 
 					// construct comparator
-					comparator_type BAPC(pa);
+					// comparator_type BAPC(pa);
 					// reverse pointer array (top to bottom)
 					std::reverse(pp,B.end());
 
@@ -528,7 +547,7 @@ namespace libmaus2
 					libmaus2::bambam::BamAlignment recompalgn;
 
 					// sort entries
-					comparator_type BAPC(pa);
+					// comparator_type BAPC(pa);
 					std::reverse(pp,B.end());
 
 					if ( parallel > 1 )

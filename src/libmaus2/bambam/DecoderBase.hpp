@@ -112,6 +112,18 @@ namespace libmaus2
 				return v;
 				#endif
 			}
+
+			/**
+			 * get l byte little endian integer from D
+			 *
+			 * @param D input array
+			 * @param l length of number
+			 * @return decoded number
+			 **/
+			static uint64_t getLEInteger(uint8_t * D, unsigned int const l)
+			{
+				return getLEInteger(D,l);
+			}
 		};
 	}
 }
