@@ -227,7 +227,7 @@ namespace libmaus2
 					uint64_t const numel = B.end()-pp;
 
 					// construct comparator
-					comparator_type BAPC(pa);
+					// comparator_type BAPC(pa);
 					// reverse pointer array (top to bottom)
 					std::reverse(pp,B.end());
 
@@ -547,7 +547,7 @@ namespace libmaus2
 					libmaus2::bambam::BamAlignment recompalgn;
 
 					// sort entries
-					comparator_type BAPC(pa);
+					// comparator_type BAPC(pa);
 					std::reverse(pp,B.end());
 
 					if ( parallel > 1 )
