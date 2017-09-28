@@ -22,6 +22,7 @@
 #include <libmaus2/sorting/MergingReadBack.hpp>
 #include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/util/FiniteSizeHeap.hpp>
 
 namespace libmaus2
 {
@@ -349,6 +350,142 @@ namespace libmaus2
 				U.reset();
 
 				libmaus2::aio::FileRemoval::removeFile(tmp);
+			}
+		};
+
+		template<typename _data_type, typename _order_type = std::less<_data_type> >
+		struct SerialisingSortingBufferedOutputFileArray
+		{
+			typedef _data_type data_type;
+			typedef _order_type order_type;
+			typedef SerialisingSortingBufferedOutputFileArray<data_type,order_type> this_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
+			std::vector < std::string > Vfn;
+
+			typedef typename libmaus2::util::unique_ptr<order_type>::type order_ptr_type;
+			order_ptr_type Porder;
+			order_type & order;
+
+			std::string const filename;
+
+			libmaus2::autoarray::AutoArray < libmaus2::aio::OutputStreamInstance::unique_ptr_type > AOS;
+
+			typedef SerialisingSortingBufferedOutputFile<data_type,order_type> sorter_type;
+			typedef typename sorter_type::unique_ptr_type sorter_ptr_type;
+			libmaus2::autoarray::AutoArray < sorter_ptr_type > ASO;
+
+			static std::vector < std::string > computeVfn(std::string const & s, uint64_t const n)
+			{
+				std::vector < std::string > Vfn(n);
+				for ( uint64_t i = 0; i < n; ++i )
+				{
+					std::ostringstream ostr;
+					ostr << s << "_" << std::setw(6) << std::setfill('0') << i;
+					Vfn[i] = ostr.str();
+				}
+				return Vfn;
+			}
+
+			void setupFileArray(uint64_t const bufsize)
+			{
+				for ( uint64_t i = 0; i < Vfn.size(); ++i )
+				{
+					libmaus2::aio::OutputStreamInstance::unique_ptr_type tptr(
+						new libmaus2::aio::OutputStreamInstance(Vfn[i])
+					);
+					AOS[i] = UNIQUE_PTR_MOVE(tptr);
+				}
+				for ( uint64_t i = 0; i < Vfn.size(); ++i )
+				{
+					sorter_ptr_type tptr(
+						new sorter_type(*AOS[i],order,bufsize)
+					);
+					AOS[i] = UNIQUE_PTR_MOVE(tptr);
+				}
+			}
+
+			SerialisingSortingBufferedOutputFileArray(std::string const & rfilename, uint64_t const n, uint64_t const bufsize = 1024ull)
+			: Vfn(computeVfn(rfilename,n)), Porder(new order_type), order(*Porder), filename(rfilename), AOS(n), ASO(n)
+			{
+				setupFileArray(bufsize);
+			}
+
+			SerialisingSortingBufferedOutputFileArray(std::string const & rfilename, uint64_t const n, order_type & rorder, uint64_t const bufsize = 1024ull)
+			: Vfn(computeVfn(rfilename,n)), Porder(), order(rorder), filename(rfilename), AOS(n), ASO(n)
+			{
+				setupFileArray(bufsize);
+			}
+
+			std::ostream & operator[](uint64_t const i)
+			{
+				return AOS[i];
+			}
+
+			std::string reduce(uint64_t const backblocksize = 1024ull, uint64_t const maxfan = 16ull)
+			{
+				libmaus2::autoarray::AutoArray < typename sorter_type::merger_ptr_type > AME(Vfn.size());
+
+				struct MergeObject
+				{
+					data_type D;
+					uint64_t i;
+
+					MergeObject()
+					{}
+
+					MergeObject(
+						data_type const & rD,
+						uint64_t const ri
+					) : D(rD), i(ri) {}
+				};
+
+				struct MergeObjectComparator
+				{
+					order_type & order;
+
+					MergeObjectComparator(order_type & rorder)
+					: order(rorder) {}
+
+					bool operator()(MergeObject const & A, MergeObject const & B) const
+					{
+						if ( order(A.D,B.D) )
+							return true;
+						else if ( order(B.D,A.D) )
+							return false;
+						else
+							return A.i < B.i;
+					}
+				};
+
+				MergeObjectComparator comp(order);
+				libmaus2::util::FiniteSizeHeap < MergeObject, MergeObjectComparator > FSE(Vfn.size(),comp);
+
+				for ( uint64_t i = 0; i < Vfn.size(); ++i )
+				{
+					typename sorter_type::merger_ptr_type tptr(ASO[i]->getMerger(backblocksize,maxfan));
+					AME[i] = UNIQUE_PTR_MOVE(tptr);
+
+					data_type D;
+					if ( AME[i]->getNext(D) )
+						FSE.push(MergeObject(D,i));
+				}
+
+				libmaus2::aio::OutputStreamInstance OSI(filename);
+				while ( FSE.empty() )
+				{
+					MergeObject M = FSE.pop();
+
+					M.D.serialise(M.D);
+
+					if ( AME[M.i]->getNext(M.D) )
+						FSE.push(M);
+				}
+				OSI.flush();
+
+				return filename;
+
 			}
 		};
 	}
