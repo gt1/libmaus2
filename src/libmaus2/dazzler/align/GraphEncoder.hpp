@@ -23,7 +23,9 @@
 #include <libmaus2/huffman/CanonicalEncoder.hpp>
 #include <libmaus2/huffman/OutputAdapter.hpp>
 #include <libmaus2/sorting/SortingBufferedOutputFile.hpp>
+#include <libmaus2/aio/SerialisedPeeker.hpp>
 #include <libmaus2/util/Histogram.hpp>
+#include <libmaus2/util/PrefixSums.hpp>
 
 namespace libmaus2
 {
@@ -107,6 +109,7 @@ namespace libmaus2
 				{
 					uint64_t index;
 					uint64_t pointer;
+					uint64_t fileid;
 
 					PointerEntry()
 					{
@@ -115,14 +118,17 @@ namespace libmaus2
 
 					PointerEntry(std::istream & in)
 					: index(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
-					  pointer(libmaus2::util::NumberSerialisation::deserialiseNumber(in)) {}
+					  pointer(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+					  fileid(libmaus2::util::NumberSerialisation::deserialiseNumber(in))
+					  {}
 
-					PointerEntry(double const rindex, uint64_t const rpointer) : index(rindex), pointer(rpointer) {}
+					PointerEntry(uint64_t const rindex, uint64_t const rpointer, uint64_t const rfileid) : index(rindex), pointer(rpointer), fileid(rfileid) {}
 
 					std::ostream & serialise(std::ostream & out) const
 					{
 						libmaus2::util::NumberSerialisation::serialiseNumber(out,index);
 						libmaus2::util::NumberSerialisation::serialiseNumber(out,pointer);
+						libmaus2::util::NumberSerialisation::serialiseNumber(out,fileid);
 						return out;
 					}
 
@@ -454,14 +460,209 @@ namespace libmaus2
 					}
 
 					std::string const tmpptr = tmpfilebase + "_pointers";
-					libmaus2::util::TempFileRemovalContainer::addTempFile(tmpptr);
-					//libmaus2::aio::OutputStreamInstance::unique_ptr_type Tptr(new libmaus2::aio::OutputStreamInstance(tmpptr));
+					std::string const tmpdata = tmpfilebase + "_data";
 
-					libmaus2::sorting::SerialisingSortingBufferedOutputFile<PointerEntry,std::less<PointerEntry> >::unique_ptr_type SSBOF(
-						new libmaus2::sorting::SerialisingSortingBufferedOutputFile<PointerEntry,std::less<PointerEntry>>(tmpptr));
+					std::vector < std::string > Vtmpptr(numthreads);
+					libmaus2::autoarray::AutoArray < libmaus2::aio::OutputStreamInstance::unique_ptr_type > Atmpptr(numthreads);
+					std::vector < std::string > Vtmpdata(numthreads);
+					libmaus2::autoarray::AutoArray < libmaus2::aio::OutputStreamInstance::unique_ptr_type > Atmpdata(numthreads);
+					libmaus2::autoarray::AutoArray < libmaus2::huffman::HuffmanEncoderFileStd::unique_ptr_type > AHEFS(numthreads);
+
+					for ( uint64_t i = 0; i < numthreads; ++i )
+					{
+						std::ostringstream ostr;
+						ostr << tmpptr << "_" << std::setw(6) << std::setfill('0') << i;
+						Vtmpptr[i] = ostr.str();
+						libmaus2::util::TempFileRemovalContainer::addTempFile(Vtmpptr[i]);
+
+						libmaus2::aio::OutputStreamInstance::unique_ptr_type tptr(
+							new libmaus2::aio::OutputStreamInstance(Vtmpptr[i])
+						);
+						Atmpptr[i] = UNIQUE_PTR_MOVE(tptr);
+					}
+					for ( uint64_t i = 0; i < numthreads; ++i )
+					{
+						std::ostringstream ostr;
+						ostr << tmpdata << "_" << std::setw(6) << std::setfill('0') << i;
+						Vtmpdata[i] = ostr.str();
+						libmaus2::util::TempFileRemovalContainer::addTempFile(Vtmpdata[i]);
+
+						libmaus2::aio::OutputStreamInstance::unique_ptr_type tdata(
+							new libmaus2::aio::OutputStreamInstance(Vtmpdata[i])
+						);
+						Atmpdata[i] = UNIQUE_PTR_MOVE(tdata);
+
+						libmaus2::huffman::HuffmanEncoderFileStd::unique_ptr_type thefs(
+							new libmaus2::huffman::HuffmanEncoderFileStd(*(Atmpdata[i]))
+						);
+						AHEFS[i] = UNIQUE_PTR_MOVE(thefs);
+					}
+					libmaus2::util::TempFileRemovalContainer::addTempFile(tmpptr);
+					libmaus2::util::TempFileRemovalContainer::addTempFile(tmpdata);
+
+					for ( uint64_t i = 0; i < arg.size(); ++i )
+					{
+						int64_t const mina = libmaus2::dazzler::align::OverlapIndexer::getMinimumARead(arg[i]);
+
+						if ( mina >= 0 )
+						{
+							int64_t const maxa = libmaus2::dazzler::align::OverlapIndexer::getMaximumARead(arg[i]);
+							assert ( maxa >= mina );
+
+							uint64_t const range = (maxa - mina + 1);
+							uint64_t const readsperthread = ( range + numthreads - 1 ) / numthreads;
+							uint64_t const packs = ( range + readsperthread - 1 ) / readsperthread;
+							assert ( packs <= numthreads );
+
+							#if defined(_OPENMP)
+							#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
+							#endif
+							for ( uint64_t tt = 0; tt < packs; ++tt )
+							{
+								#if defined(_OPENMP)
+								uint64_t const tid = omp_get_thread_num();
+								#else
+								uint64_t const tid = 0;
+								#endif
+
+								uint64_t const tlow = mina + tt * readsperthread;
+								uint64_t const thigh = std::min(tlow + readsperthread, static_cast<uint64_t>(mina + range) );
+
+								libmaus2::dazzler::align::AlignmentFileRegion::unique_ptr_type AF(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFileRegion(arg[i],tlow,thigh));
+								libmaus2::dazzler::align::Overlap OVL;
+
+								while ( AF->peekNextOverlap(OVL) )
+								{
+									int64_t const aid = OVL.aread;
+									std::vector < libmaus2::dazzler::align::Overlap > V;
+
+									while ( AF->peekNextOverlap(OVL) && OVL.aread == aid )
+									{
+										AF->getNextOverlap(OVL);
+										V.push_back(OVL);
+									}
+
+									assert ( V.size() );
+
+									libmaus2::huffman::HuffmanEncoderFileStd & LHEFS = *(AHEFS[tid]);
+
+									uint64_t const p = LHEFS.tellp();
+
+									uint64_t const nb = libmaus2::math::numbits(V.size()-1);
+
+									std::vector<ASort> VA;
+									for ( uint64_t i = 0; i < V.size(); ++i )
+										VA.push_back(ASort(V[i].path.abpos,V[i].path.aepos,i));
+									std::sort(VA.begin(),VA.end());
+
+									std::vector<ASort> VB;
+									for ( uint64_t i = 0; i < V.size(); ++i )
+										VB.push_back(ASort(V[i].path.bbpos,V[i].path.bepos,i));
+									std::sort(VB.begin(),VB.end());
+
+									// length of vector
+									if ( linkcntesc )
+										esclinkcntenc->encode(LHEFS,V.size());
+									else
+										linkcntenc->encode(LHEFS,V.size());
+
+									for ( uint64_t i = 0; i < V.size(); ++i )
+									{
+										int64_t const d = V[i].path.diffs;
+										if ( emapesc )
+											escemapenc->encode(LHEFS,d);
+										else
+											emapenc->encode(LHEFS,d);
+									}
+
+									// inverse bit
+									for ( uint64_t i = 0; i < V.size(); ++i )
+										LHEFS.write(V[i].isInverse(),1);
+
+									// sorting for ab and bb
+									for ( uint64_t i = 0; i < VA.size(); ++i )
+										LHEFS.write(VA[i].index,nb);
+									for ( uint64_t i = 0; i < VB.size(); ++i )
+										LHEFS.write(VB[i].index,nb);
+
+									// sorting for arange and brange
+									std::sort(VA.begin(),VA.end(),ASortRange());
+									std::sort(VB.begin(),VB.end(),ASortRange());
+									for ( uint64_t i = 0; i < VA.size(); ++i )
+										LHEFS.write(VA[i].index,nb);
+									for ( uint64_t i = 0; i < VB.size(); ++i )
+										LHEFS.write(VB[i].index,nb);
+
+									// restore sorting
+									std::sort(VA.begin(),VA.end());
+									std::sort(VB.begin(),VB.end());
+
+									libmaus2::huffman::OutputAdapter OA(LHEFS);
+									libmaus2::gamma::GammaEncoder<libmaus2::huffman::OutputAdapter> GE(OA);
+
+									// b
+									int64_t const bfirstavg = Mbfirst.find(V.size())->second;
+									int64_t const bdifavg = Mbdif.find(V.size())->second;
+									encodeSignedValue(GE,V[0].bread - bfirstavg);
+									for ( uint64_t i = 1; i < V.size(); ++i )
+										encodeSignedValue(GE,(V[i].bread-V[i-1].bread) - bdifavg);
+
+									// abpos
+									int64_t const abfirstavg = Mabfirst.find(V.size())->second;
+									int64_t const abdifavg = Mabdif.find(V.size())->second;
+									encodeSignedValue(GE,VA[0].abpos - abfirstavg);
+									for ( uint64_t i = 1; i < VA.size(); ++i )
+										encodeSignedValue(GE,(VA[i].abpos - VA[i-1].abpos)-abdifavg);
+
+									// bbpos
+									int64_t const bbfirstavg = Mbbfirst.find(V.size())->second;
+									int64_t const bbdifavg = Mbbdif.find(V.size())->second;
+									encodeSignedValue(GE,VB[0].abpos - bbfirstavg);
+									for ( uint64_t i = 1; i < VB.size(); ++i )
+										encodeSignedValue(GE,(VB[i].abpos - VB[i-1].abpos)-bbdifavg);
+
+									// arange
+									std::sort(VA.begin(),VA.end(),ASortRange());
+									int64_t const abfirstrangeavg = Mabfirstrange.find(V.size())->second;
+									int64_t const abdifrangeavg = Mabdifrange.find(V.size())->second;
+									encodeSignedValue(GE,VA[0].getRange() - abfirstrangeavg);
+									for ( uint64_t i = 1; i < VA.size(); ++i )
+										encodeSignedValue(GE,(VA[i].getRange() - VA[i-1].getRange()) - abdifrangeavg);
+
+									// brange
+									std::sort(VB.begin(),VB.end(),ASortRange());
+									int64_t const bbfirstrangeavg = Mbbfirstrange.find(V.size())->second;
+									int64_t const bbdifrangeavg = Mbbdifrange.find(V.size())->second;
+									encodeSignedValue(GE,VB[0].getRange() - bbfirstrangeavg);
+									for ( uint64_t i = 1; i < VB.size(); ++i )
+										encodeSignedValue(GE,(VB[i].getRange() - VB[i-1].getRange()) - bbdifrangeavg);
+
+									GE.flush();
+									LHEFS.flushBitStream();
+
+									PointerEntry(aid,p,tid).serialise(*(Atmpptr[tid]));
+
+									if ( verbose && errOSI && ( (aid % (16*1024) == 0) || (!(AF->peekNextOverlap(OVL))) ) )
+										*errOSI << "[V] " << aid << std::endl;
+								}
+
+							}
+						}
+					}
+					for ( uint64_t i = 0; i < numthreads; ++i )
+					{
+						AHEFS[i]->flush();
+						AHEFS[i].reset();
+						Atmpdata[i]->flush();
+						Atmpdata[i].reset();
+						Atmpptr[i]->flush();
+						Atmpptr[i].reset();
+					}
+					libmaus2::sorting::SerialisingSortingBufferedOutputFile< PointerEntry,std::less<PointerEntry> >::reduce(Vtmpptr,tmpptr,16*1024*1024);
+					for ( uint64_t i = 0; i < numthreads; ++i )
+						libmaus2::aio::FileRemoval::removeFile(Vtmpptr[i]);
 
 					libmaus2::huffman::HuffmanEncoderFileStd HEFS(out);
-
 					writePairVector(HEFS,linkcntfreqs);
 					writeMap(HEFS,gcontext.emap);
 					writeMap(HEFS,Mbfirst);
@@ -474,133 +675,37 @@ namespace libmaus2
 					writeMap(HEFS,Mabdifrange);
 					writeMap(HEFS,Mbbfirstrange);
 					writeMap(HEFS,Mbbdifrange);
-
-					for ( uint64_t i = 0; i < arg.size(); ++i )
-					{
-						libmaus2::dazzler::align::AlignmentFileRegion::unique_ptr_type AF(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFileWithoutIndex(arg[i]));
-						libmaus2::dazzler::align::Overlap OVL;
-
-						while ( AF->peekNextOverlap(OVL) )
-						{
-							int64_t const aid = OVL.aread;
-							std::vector < libmaus2::dazzler::align::Overlap > V;
-
-							while ( AF->peekNextOverlap(OVL) && OVL.aread == aid )
-							{
-								AF->getNextOverlap(OVL);
-								V.push_back(OVL);
-							}
-
-							assert ( V.size() );
-
-							uint64_t const p = HEFS.tellp();
-
-							SSBOF->put(PointerEntry(aid,p));
-
-							uint64_t const nb = libmaus2::math::numbits(V.size()-1);
-
-							std::vector<ASort> VA;
-							for ( uint64_t i = 0; i < V.size(); ++i )
-								VA.push_back(ASort(V[i].path.abpos,V[i].path.aepos,i));
-							std::sort(VA.begin(),VA.end());
-
-							std::vector<ASort> VB;
-							for ( uint64_t i = 0; i < V.size(); ++i )
-								VB.push_back(ASort(V[i].path.bbpos,V[i].path.bepos,i));
-							std::sort(VB.begin(),VB.end());
-
-							// length of vector
-							if ( linkcntesc )
-								esclinkcntenc->encode(HEFS,V.size());
-							else
-								linkcntenc->encode(HEFS,V.size());
-
-							for ( uint64_t i = 0; i < V.size(); ++i )
-							{
-								int64_t const d = V[i].path.diffs;
-								if ( emapesc )
-									escemapenc->encode(HEFS,d);
-								else
-									emapenc->encode(HEFS,d);
-							}
-
-							// inverse bit
-							for ( uint64_t i = 0; i < V.size(); ++i )
-								HEFS.write(V[i].isInverse(),1);
-
-							// sorting for ab and bb
-							for ( uint64_t i = 0; i < VA.size(); ++i )
-								HEFS.write(VA[i].index,nb);
-							for ( uint64_t i = 0; i < VB.size(); ++i )
-								HEFS.write(VB[i].index,nb);
-
-							// sorting for arange and brange
-							std::sort(VA.begin(),VA.end(),ASortRange());
-							std::sort(VB.begin(),VB.end(),ASortRange());
-							for ( uint64_t i = 0; i < VA.size(); ++i )
-								HEFS.write(VA[i].index,nb);
-							for ( uint64_t i = 0; i < VB.size(); ++i )
-								HEFS.write(VB[i].index,nb);
-
-							// restore sorting
-							std::sort(VA.begin(),VA.end());
-							std::sort(VB.begin(),VB.end());
-
-							libmaus2::huffman::OutputAdapter OA(HEFS);
-							libmaus2::gamma::GammaEncoder<libmaus2::huffman::OutputAdapter> GE(OA);
-
-							// b
-							int64_t const bfirstavg = Mbfirst.find(V.size())->second;
-							int64_t const bdifavg = Mbdif.find(V.size())->second;
-							encodeSignedValue(GE,V[0].bread - bfirstavg);
-							for ( uint64_t i = 1; i < V.size(); ++i )
-								encodeSignedValue(GE,(V[i].bread-V[i-1].bread) - bdifavg);
-
-							// abpos
-							int64_t const abfirstavg = Mabfirst.find(V.size())->second;
-							int64_t const abdifavg = Mabdif.find(V.size())->second;
-							encodeSignedValue(GE,VA[0].abpos - abfirstavg);
-							for ( uint64_t i = 1; i < VA.size(); ++i )
-								encodeSignedValue(GE,(VA[i].abpos - VA[i-1].abpos)-abdifavg);
-
-							// bbpos
-							int64_t const bbfirstavg = Mbbfirst.find(V.size())->second;
-							int64_t const bbdifavg = Mbbdif.find(V.size())->second;
-							encodeSignedValue(GE,VB[0].abpos - bbfirstavg);
-							for ( uint64_t i = 1; i < VB.size(); ++i )
-								encodeSignedValue(GE,(VB[i].abpos - VB[i-1].abpos)-bbdifavg);
-
-							// arange
-							std::sort(VA.begin(),VA.end(),ASortRange());
-							int64_t const abfirstrangeavg = Mabfirstrange.find(V.size())->second;
-							int64_t const abdifrangeavg = Mabdifrange.find(V.size())->second;
-							encodeSignedValue(GE,VA[0].getRange() - abfirstrangeavg);
-							for ( uint64_t i = 1; i < VA.size(); ++i )
-								encodeSignedValue(GE,(VA[i].getRange() - VA[i-1].getRange()) - abdifrangeavg);
-
-							// brange
-							std::sort(VB.begin(),VB.end(),ASortRange());
-							int64_t const bbfirstrangeavg = Mbbfirstrange.find(V.size())->second;
-							int64_t const bbdifrangeavg = Mbbdifrange.find(V.size())->second;
-							encodeSignedValue(GE,VB[0].getRange() - bbfirstrangeavg);
-							for ( uint64_t i = 1; i < VB.size(); ++i )
-								encodeSignedValue(GE,(VB[i].getRange() - VB[i-1].getRange()) - bbdifrangeavg);
-
-							GE.flush();
-							HEFS.flushBitStream();
-
-							if ( verbose && errOSI && ( (aid % (16*1024) == 0) || (!(AF->peekNextOverlap(OVL))) ) )
-								*errOSI << "[V] " << aid << std::endl;
-						}
-					}
-
 					HEFS.flush();
 
+					std::vector<uint64_t> Vn(numthreads);
+					for ( uint64_t i = 0; i < numthreads; ++i )
+					{
+						libmaus2::aio::InputStreamInstance::unique_ptr_type ISI(new libmaus2::aio::InputStreamInstance(Vtmpdata[i]));
+						libmaus2::autoarray::AutoArray<char> C(64*1024,false);
+
+						Vn[i] = HEFS.tellp();
+
+						// assert ( static_cast<int64_t>(Vn[i]) == static_cast<int64_t>(out.tellp()) );
+
+						while ( *ISI )
+						{
+							ISI->read(C.begin(),C.size());
+							uint64_t n = ISI->gcount();
+							HEFS.put(C.begin(),n);
+						}
+
+						HEFS.flush();
+					}
+
 					uint64_t const ipos = HEFS.tellp();
-					libmaus2::sorting::SerialisingSortingBufferedOutputFile< PointerEntry,std::less<PointerEntry> >::merger_ptr_type Pmerger(SSBOF->getMerger());
+
+					assert ( static_cast<int64_t>(ipos) == static_cast<int64_t>(out.tellp()) );
+
+					libmaus2::aio::SerialisedPeeker<PointerEntry>::unique_ptr_type SP(new libmaus2::aio::SerialisedPeeker<PointerEntry>(tmpptr));
+
 					PointerEntry PE;
 					uint64_t next = 0;
-					while ( Pmerger->getNext(PE) )
+					while ( SP->getNext(PE) )
 					{
 						assert ( next <= PE.index );
 
@@ -610,7 +715,7 @@ namespace libmaus2
 							++next;
 						}
 						assert ( next == PE.index );
-						libmaus2::util::NumberSerialisation::serialiseNumber(out,PE.pointer);
+						libmaus2::util::NumberSerialisation::serialiseNumber(out,Vn[PE.fileid] + PE.pointer);
 						++next;
 					}
 					libmaus2::util::NumberSerialisation::serialiseNumber(out,ipos);
