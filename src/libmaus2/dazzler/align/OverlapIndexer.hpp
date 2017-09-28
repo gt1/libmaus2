@@ -443,6 +443,27 @@ namespace libmaus2
 					return V;
 				}
 
+				static std::vector<libmaus2::dazzler::align::Overlap> getAlignments(std::string const & aligns, uint64_t const & aread, DalignerIndexDecoder & index)
+				{
+					AlignmentFileDecoder::unique_ptr_type tptr(
+						openAlignmentFileAt(
+							aligns,
+							aread,
+							aread+1,
+							index
+						)
+					);
+
+					libmaus2::dazzler::align::Overlap OVL;
+					std::vector<libmaus2::dazzler::align::Overlap> V;
+					while ( tptr->getNextOverlap(OVL) )
+					{
+						assert ( OVL.aread == static_cast<int64_t>(aread) );
+						V.push_back(OVL);
+					}
+					return V;
+				}
+
 				static std::vector<libmaus2::dazzler::align::Overlap> getAlignments(std::string const & aligns, uint64_t const & aread, uint64_t const & bread)
 				{
 					AlignmentFileRegion::unique_ptr_type tptr(openAlignmentFileRegion(aligns,aread,aread+1));
@@ -457,9 +478,52 @@ namespace libmaus2
 					return V;
 				}
 
+				static std::vector<libmaus2::dazzler::align::Overlap> getAlignments(std::string const & aligns, uint64_t const & aread, uint64_t const & bread, DalignerIndexDecoder & index)
+				{
+					AlignmentFileDecoder::unique_ptr_type tptr(
+						openAlignmentFileAt(
+							aligns,
+							aread,
+							aread+1,
+							index
+						)
+					);
+					libmaus2::dazzler::align::Overlap OVL;
+					std::vector<libmaus2::dazzler::align::Overlap> V;
+					while ( tptr->getNextOverlap(OVL) )
+					{
+						assert ( OVL.aread == static_cast<int64_t>(aread) );
+						if ( OVL.bread == static_cast<int64_t>(bread) )
+							V.push_back(OVL);
+					}
+					return V;
+				}
+
 				static libmaus2::dazzler::align::Overlap getAlignmentAt(std::string const & aligns, uint64_t const aread, uint64_t const offset)
 				{
 					AlignmentFileRegion::unique_ptr_type tptr(openAlignmentFileRegion(aligns,aread,aread+1));
+					libmaus2::dazzler::align::Overlap OVL;
+					std::vector<libmaus2::dazzler::align::Overlap> V;
+					for ( uint64_t i = 0; tptr->getNextOverlap(OVL); ++i )
+						if ( i == offset )
+							return OVL;
+
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "[E] getAlignmentAt(" << aligns << "," << aread << "," << offset << "): offset does not exist";
+					lme.finish();
+					throw lme;
+				}
+
+				static libmaus2::dazzler::align::Overlap getAlignmentAt(std::string const & aligns, uint64_t const aread, uint64_t const offset, DalignerIndexDecoder & index)
+				{
+					AlignmentFileDecoder::unique_ptr_type tptr(
+						openAlignmentFileAt(
+							aligns,
+							aread,
+							aread+1,
+							index
+						)
+					);
 					libmaus2::dazzler::align::Overlap OVL;
 					std::vector<libmaus2::dazzler::align::Overlap> V;
 					for ( uint64_t i = 0; tptr->getNextOverlap(OVL); ++i )

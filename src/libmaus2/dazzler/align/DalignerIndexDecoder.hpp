@@ -99,7 +99,7 @@ namespace libmaus2
 				  PISI(new libmaus2::aio::InputStreamInstance(indexfn)), ISI(*PISI),
 				  fs(libmaus2::util::GetFileSize::getFileSize(ISI)),
 				  pren(fs/sizeof(uint64_t)),
-				  n(fs - 5),
+				  n(pren - 5),
 				  minaread(getMinARead()),
 				  lassize(libmaus2::util::GetFileSize::getFileSize(lasfn)),
 				  tspace(libmaus2::dazzler::align::AlignmentFile::getTSpace(lasfn))

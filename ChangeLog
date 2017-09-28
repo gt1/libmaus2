@@ -1,3 +1,12 @@
+libmaus2 (2.0.388-1) unstable; urgency=medium
+
+  * add SerialisingSortingBufferedOutputFileArray class
+  * parallelise GraphEncoder class
+  * implement method variants using preloaded index in OverlapIndexer
+  * fix computation of number of index entries in DalignerIndexDecoder
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 28 Sep 2017 10:12:22 +0200
+
 libmaus2 (2.0.387-1) unstable; urgency=medium
 
   * fix comparison in BamEntryContainer
