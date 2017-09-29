@@ -1,3 +1,9 @@
+libmaus2 (2.0.389-1) unstable; urgency=medium
+
+  * add AlignmentFileSymmetryCheck class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 29 Sep 2017 09:08:58 +0200
+
 libmaus2 (2.0.388-1) unstable; urgency=medium
 
   * add SerialisingSortingBufferedOutputFileArray class
