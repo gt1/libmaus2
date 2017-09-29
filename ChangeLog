@@ -1,3 +1,9 @@
+libmaus2 (2.0.391-1) unstable; urgency=medium
+
+  * make verbosity optional in AlignmentFileSymmetryCheck
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 29 Sep 2017 15:17:40 +0200
+
 libmaus2 (2.0.390-1) unstable; urgency=medium
 
   * fix SerialisingSortingBufferedOutputFileArray
