@@ -70,6 +70,20 @@ namespace libmaus2
 					);
 				}
 
+				OverlapInfo swappedStraight(uint64_t const alen, uint64_t const blen) const
+				{
+					if ( (bread & 1) )
+						return inverse(alen,blen).swapped();
+					else
+						return swapped();
+				}
+
+				template<typename iterator>
+				OverlapInfo swappedStraight(iterator A) const
+				{
+					return swappedStraight(A[aread/2],A[bread/2]);
+				}
+
 				template<typename iterator>
 				OverlapInfo inverse(iterator A) const
 				{
