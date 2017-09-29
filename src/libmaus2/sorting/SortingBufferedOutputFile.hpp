@@ -556,7 +556,7 @@ namespace libmaus2
 					uint64_t const p = OSI.tellp();
 					indexer(M.D,p);
 
-					if ( AME[i]->getNext(M.D) )
+					if ( AME[M.i]->getNext(M.D) )
 					{
 						assert ( ! FSE.full() );
 						FSE.push(M);
