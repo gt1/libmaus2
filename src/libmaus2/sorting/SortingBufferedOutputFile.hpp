@@ -370,8 +370,6 @@ namespace libmaus2
 
 			std::string const filename;
 
-			libmaus2::autoarray::AutoArray < libmaus2::aio::OutputStreamInstance::unique_ptr_type > AOS;
-
 			typedef SerialisingSortingBufferedOutputFile<data_type,order_type> sorter_type;
 			typedef typename sorter_type::unique_ptr_type sorter_ptr_type;
 			libmaus2::autoarray::AutoArray < sorter_ptr_type > ASO;
@@ -392,36 +390,37 @@ namespace libmaus2
 			{
 				for ( uint64_t i = 0; i < Vfn.size(); ++i )
 				{
-					libmaus2::aio::OutputStreamInstance::unique_ptr_type tptr(
-						new libmaus2::aio::OutputStreamInstance(Vfn[i])
-					);
-					AOS[i] = UNIQUE_PTR_MOVE(tptr);
-				}
-				for ( uint64_t i = 0; i < Vfn.size(); ++i )
-				{
 					sorter_ptr_type tptr(
-						new sorter_type(*AOS[i],order,bufsize)
+						new sorter_type(Vfn[i],order,bufsize)
 					);
-					AOS[i] = UNIQUE_PTR_MOVE(tptr);
+					ASO[i] = UNIQUE_PTR_MOVE(tptr);
 				}
 			}
 
 			SerialisingSortingBufferedOutputFileArray(std::string const & rfilename, uint64_t const n, uint64_t const bufsize = 1024ull)
-			: Vfn(computeVfn(rfilename,n)), Porder(new order_type), order(*Porder), filename(rfilename), AOS(n), ASO(n)
+			: Vfn(computeVfn(rfilename,n)), Porder(new order_type), order(*Porder), filename(rfilename), ASO(n)
 			{
 				setupFileArray(bufsize);
 			}
 
 			SerialisingSortingBufferedOutputFileArray(std::string const & rfilename, uint64_t const n, order_type & rorder, uint64_t const bufsize = 1024ull)
-			: Vfn(computeVfn(rfilename,n)), Porder(), order(rorder), filename(rfilename), AOS(n), ASO(n)
+			: Vfn(computeVfn(rfilename,n)), Porder(), order(rorder), filename(rfilename), ASO(n)
 			{
 				setupFileArray(bufsize);
 			}
 
-			std::ostream & operator[](uint64_t const i)
+			sorter_type & operator[](uint64_t const i)
 			{
-				return AOS[i];
+				assert ( i < ASO.size() );
+				assert ( ASO[i] );
+				return *(ASO[i]);
 			}
+
+			struct IndexCallback
+			{
+				virtual ~IndexCallback() {}
+				virtual void operator()(data_type const & D, uint64_t const pos) = 0;
+			};
 
 			std::string reduce(uint64_t const backblocksize = 1024ull, uint64_t const maxfan = 16ull)
 			{
@@ -473,14 +472,95 @@ namespace libmaus2
 				}
 
 				libmaus2::aio::OutputStreamInstance OSI(filename);
-				while ( FSE.empty() )
+				while ( !FSE.empty() )
 				{
 					MergeObject M = FSE.pop();
 
-					M.D.serialise(M.D);
+					M.D.serialise(OSI);
 
 					if ( AME[M.i]->getNext(M.D) )
 						FSE.push(M);
+				}
+				OSI.flush();
+
+				return filename;
+
+			}
+
+			std::string reduce(IndexCallback & indexer, uint64_t const backblocksize = 1024ull, uint64_t const maxfan = 16ull)
+			{
+				libmaus2::autoarray::AutoArray < typename sorter_type::merger_ptr_type > AME(Vfn.size());
+
+				struct MergeObject
+				{
+					data_type D;
+					uint64_t i;
+
+					MergeObject() {}
+
+					MergeObject(data_type const rD, uint64_t const ri)
+					: D(rD), i(ri) {}
+
+					MergeObject(MergeObject const & O)
+					: D(O.D), i(O.i) {}
+
+					MergeObject & operator=(MergeObject const & O)
+					{
+						D = O.D;
+						i = O.i;
+						return *this;
+					}
+				};
+
+				struct MergeObjectComparator
+				{
+					order_type & order;
+
+					MergeObjectComparator(order_type & rorder)
+					: order(rorder) {}
+
+					bool operator()(MergeObject const & A, MergeObject const & B) const
+					{
+						if ( order(A.D,B.D) )
+							return true;
+						else if ( order(B.D,A.D) )
+							return false;
+						else
+							return A.i < B.i;
+					}
+				};
+
+				MergeObjectComparator comp(order);
+				libmaus2::util::FiniteSizeHeap < MergeObject, MergeObjectComparator > FSE(Vfn.size(),comp);
+
+				for ( uint64_t i = 0; i < Vfn.size(); ++i )
+				{
+					typename sorter_type::merger_ptr_type tptr(ASO[i]->getMerger(backblocksize,maxfan));
+					AME[i] = UNIQUE_PTR_MOVE(tptr);
+
+					data_type D;
+					if ( AME[i]->getNext(D) )
+					{
+						assert ( ! FSE.full() );
+						FSE.push(MergeObject(D,i));
+					}
+				}
+
+				libmaus2::aio::OutputStreamInstance OSI(filename);
+				while ( !FSE.empty() )
+				{
+					MergeObject M = FSE.pop();
+
+					M.D.serialise(OSI);
+
+					uint64_t const p = OSI.tellp();
+					indexer(M.D,p);
+
+					if ( AME[i]->getNext(M.D) )
+					{
+						assert ( ! FSE.full() );
+						FSE.push(M);
+					}
 				}
 				OSI.flush();
 
