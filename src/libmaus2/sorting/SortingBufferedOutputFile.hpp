@@ -551,10 +551,10 @@ namespace libmaus2
 				{
 					MergeObject M = FSE.pop();
 
-					M.D.serialise(OSI);
-
 					uint64_t const p = OSI.tellp();
 					indexer(M.D,p);
+
+					M.D.serialise(OSI);
 
 					if ( AME[M.i]->getNext(M.D) )
 					{
