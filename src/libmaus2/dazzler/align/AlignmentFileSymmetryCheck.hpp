@@ -31,7 +31,7 @@ namespace libmaus2
 		{
 			struct AlignmentFileSymmetryCheck
 			{
-				static int checkSymmetry(std::string const & dbfn, std::vector<std::string> const & Vin, std::string const & tmpfilebase)
+				static int checkSymmetry(std::string const & dbfn, std::vector<std::string> const & Vin, std::string const & tmpfilebase, std::ostream * vstream = 0)
 				{
 					std::string const symforfn = tmpfilebase + "ovl.for.sym";
 					std::string const syminvfn = tmpfilebase + "ovl.inv.sym";
@@ -61,16 +61,14 @@ namespace libmaus2
 						uint64_t c = 0;
 						while ( afile->getNextOverlap(OVL) )
 						{
-							libmaus2::dazzler::align::OverlapInfo info = OVL.getHeader().getInfo().swapped();
-
-							if ( info.aread & 1 )
-								info = info.inverse(RL.begin());
-
-							info.serialise(*Psyminv);
+							OVL.getHeader().getInfo().swappedStraight(RL.begin()).serialise(*Psyminv);
 							OVL.getHeader().getInfo().serialise(*Psymfor);
 
 							if ( (++c % (1024*1024)) == 0 )
-								std::cerr << "[V] " << c << std::endl;
+							{
+								if ( vstream )
+									*vstream << "[V] " << c << std::endl;
+							}
 						}
 					}
 
@@ -92,13 +90,15 @@ namespace libmaus2
 					{
 						if ( infoinv < infofor )
 						{
-							std::cerr << "[E] missing " << infoinv.swapped() << std::endl;
+							if ( vstream )
+								*vstream << "[E1] missing " << infoinv.swapped() << std::endl;
 							peekerinv.getNext(infoinv);
 							ok = false;
 						}
 						else if ( infofor < infoinv )
 						{
-							std::cerr << "[E] missing " << infofor.swapped() << std::endl;
+							if ( vstream )
+								*vstream << "[E2] missing " << infofor.swapped() << std::endl;
 							peekerfor.getNext(infofor);
 							ok = false;
 						}
@@ -106,7 +106,6 @@ namespace libmaus2
 						{
 							peekerinv.getNext(infoinv);
 							peekerfor.getNext(infofor);
-							// std::cerr << "ok " << infofor << std::endl;
 						}
 					}
 
