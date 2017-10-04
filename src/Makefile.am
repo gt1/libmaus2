@@ -272,10 +272,10 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
-libmaus2_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@ @DALIGNERCPPFLAGS@ @GMPCPPFLAGS@ @LIBMAUS2_LZMA_CPPFLAGS@
+libmaus2_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@ @DALIGNERCPPFLAGS@ @GMPCPPFLAGS@ @LIBMAUS2_LZMA_CPPFLAGS@ @LIBMAUS2_LIBARCHIVE_CPPFLAGS@
 libmaus2_la_CXXFLAGS = @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS}
 libmaus2_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@ @NETTLELDFLAGS@ @DALIGNERLDFLAGS@ @GMPLDFLAGS@
-libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ @DALIGNERLIBS@ @GMPLIBS@ @LIBMAUS2_LZMA_LIBS@
+libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ @DALIGNERLIBS@ @GMPLIBS@ @LIBMAUS2_LZMA_LIBS@ @LIBMAUS2_LIBARCHIVE_LIBS@
 
 libmaus2_scram_mod_la_CPPFLAGS = @IOLIBCPPFLAGS@ @LIBMAUSCPPFLAGS@ ${AM_CPPFLAGS} @WARNCPPFLAGS@
 libmaus2_scram_mod_la_CXXFLAGS = @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS} -fPIC
@@ -1296,7 +1296,8 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/Enumerator.hpp \
 	libmaus2/util/LocalTempContainer.hpp \
 	libmaus2/util/ContainerDescription.hpp \
-	libmaus2/util/ContainerDescriptionList.hpp
+	libmaus2/util/ContainerDescriptionList.hpp \
+	libmaus2/util/TarWriter.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
@@ -2161,7 +2162,8 @@ EXTRA_PROGRAMS = \
 	teststringgraph \
 	testlognormal \
 	testConstantSumCombinatorics \
-	testmatrix
+	testmatrix \
+	testlibarchive
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2749,3 +2751,8 @@ testmatrix_SOURCES  = test/testmatrix.cpp
 testmatrix_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testmatrix_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
 testmatrix_LDFLAGS  = ${AM_LDFLAGS}
+
+testlibarchive_SOURCES  = test/testlibarchive.cpp
+testlibarchive_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testlibarchive_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
+testlibarchive_LDFLAGS  = ${AM_LDFLAGS}
