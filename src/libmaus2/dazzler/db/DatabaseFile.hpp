@@ -2581,6 +2581,10 @@ namespace libmaus2
 					int32_t tracklen = InputBase::getLittleEndianInteger4(anno,offset);
 					int32_t size = InputBase::getLittleEndianInteger4(anno,offset);
 
+					// mask track
+					if ( size == 0 )
+						size = 8;
+
 					libmaus2::aio::InputStream::unique_ptr_type Pdata;
 					if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(dataname) )
 					{
