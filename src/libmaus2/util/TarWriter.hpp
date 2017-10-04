@@ -119,8 +119,6 @@ namespace libmaus2
 
 				try
 				{
-					std::cerr << "[V] write_callback " << length << std::endl;
-
 					T->OSI->write(reinterpret_cast<char const *>(buffer),length);
 
 					return length;
@@ -130,9 +128,6 @@ namespace libmaus2
 					try
 					{
 						T->error = ex.what();
-
-						std::cerr << ex.what() << std::endl;
-
 						archive_set_error(arch,EIO,"%s",T->error.c_str());
 					}
 					catch(...)
@@ -324,8 +319,6 @@ namespace libmaus2
 				{
 					::std::size_t r = pe - pc;
 					::std::size_t towrite = std::min(r,writeblocksize);
-
-					std::cerr << "towrite=" << towrite << std::endl;
 
 					if ( archive_write_data(arch, pc, towrite) != static_cast< ::ssize_t>(towrite) )
 					{
