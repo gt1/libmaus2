@@ -43,10 +43,11 @@ namespace libmaus2
 			typedef TarWriter this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-		
-			#if defined(LIBMAUS2_HAVE_LIBARCHIVE)
+
 			uid_t const uid;
 			gid_t const gid;
+
+			#if defined(LIBMAUS2_HAVE_LIBARCHIVE)
 			struct archive * arch;
 			std::string tarfilename;
 			std::string error;
@@ -352,7 +353,7 @@ namespace libmaus2
 				archive_write_free(arch);
 			}
 			#else
-			TarWriter(std::string const & rfilename)
+			TarWriter(std::string const &)
 			: uid(getuid()), gid(getgid())
 			{
 				libmaus2::exception::LibMausException lme;
@@ -360,6 +361,8 @@ namespace libmaus2
 				lme.finish();
 				throw lme;
 			}
+			void close() {}
+			void addFile(std::string const &, std::string const &, ::std::size_t const = 64*1024) {}
 			#endif
 		};
 	}

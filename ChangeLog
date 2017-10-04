@@ -1,3 +1,9 @@
+libmaus2 (2.0.394-1) unstable; urgency=medium
+
+  * fix compilation without libarchive
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 04 Oct 2017 14:41:33 +0200
+
 libmaus2 (2.0.393-1) unstable; urgency=medium
 
   * remove debug messages in TarWriter

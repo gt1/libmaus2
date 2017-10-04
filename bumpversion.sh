@@ -22,7 +22,7 @@ trap cleanup EXIT SIGINT SIGTERM
 
 # make sure we have the latest version
 git checkout experimental
-git pull
+git pull -v
 
 # create commit log message
 joe "${COMMITFILE}"
@@ -45,11 +45,11 @@ CHANGELOG=ChangeLog dch --distribution unstable -v ${FIRST}.${SECOND}.${NEXTTHIR
 git add configure.ac ChangeLog
 
 git commit -F "${COMMITFILE}"
-git push
+git push -v
 
 # switch to experimental debian branch
 git checkout experimental-debian
-git pull
+git pull -v
 git merge -m "Merge experimental branch" experimental
 
 # create change log message
@@ -66,13 +66,13 @@ git add debian/libmaus2.shlibs
 
 git commit -F "${COMMITFILE}"
 
-git push
+git push -v
 
 # back to experimental branch
 git checkout experimental
 
 TAG=libmaus2_experimental_${FIRST}_${SECOND}_${NEXTTHIRD}
 git tag -a ${TAG} -m "libmaus2 experimental version ${FIRST}_${SECOND}_${NEXTTHIRD}"
-git push origin ${TAG}
+git push -v origin ${TAG}
 
 exit 0

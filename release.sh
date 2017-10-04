@@ -2,22 +2,22 @@
 
 # update branches
 git checkout experimental
-git pull
+git pull -v
 git checkout experimental-debian
-git pull
+git pull -v
 git checkout debian
-git pull
+git pull -v
 git checkout master
-git pull
+git pull -v
 
 # merge
 git checkout master
 git merge -m "Merge experimental branch into master branch" experimental
-git push
+git push -v
 
 git checkout debian
 git merge -m "Merge experimental-debian branch into debian branch" experimental-debian
-git push
+git push -v
 
 # add release tag/branch
 git checkout master
@@ -32,7 +32,7 @@ git add ${ADDFILES}
 git commit -m "Release ${RELEASE}"
 mv .gitignore_ .gitignore
 git tag ${RELEASE}
-git push origin ${RELEASE}
+git push -v origin ${RELEASE}
 git checkout master
 git branch -D ${RELEASE}-branch
 git checkout experimental
@@ -46,7 +46,7 @@ tar xzvf debian.tar.gz
 rm debian.tar.gz
 sed -i -e  "s|libstaden-read-dev (>= 1\.13\.0)|staden-io-lib-trunk-dev (>= 1.13.0)|" debian/control
 git commit -a -m "update dependency for launchpad"
-git push
+git push -v
 git checkout experimental
 
 rm -fR debian
