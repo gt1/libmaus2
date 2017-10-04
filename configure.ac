@@ -2645,6 +2645,73 @@ if test "${with_lzma}" != "no" ; then
 	fi
 fi
 
+AC_ARG_WITH([libarchive],
+	[AS_HELP_STRING([--with-libarchive@<:@=PATH@:>@], [path to installed libarchive library @<:@default=@:>@])],
+	[with_libarchive=${withval}],
+	[with_libarchive=])
+
+LIBMAUS2_HAVE_LIBARCHIVE=
+LIBMAUS2_LIBARCHIVE_LIBS=
+LIBMAUS2_LIBARCHIVE_CPPFLAGS=
+LIBMAUS2_LIBARCHIVE_REQ=
+
+if test "${with_libarchive}" != "no" ; then
+	if test ! -z "${with_libarchive}" ; then
+		PKGCONFIGPATHSAVE="${PKG_CONFIG_PATH}"
+		if test -z "${PKG_CONFIG_PATH}" ; then
+			export PKG_CONFIG_PATH="${with_libarchive}/lib/pkgconfig"
+		else
+			export PKG_CONFIG_PATH="${with_libarchive}/lib/pkgconfig:${PKG_CONFIG_PATH}"
+		fi
+	fi
+
+	PKG_CHECK_MODULES([libarchive],[libarchive >= 3.1.2],[libarchivepkg=yes],[libarchivepkg=no])
+
+	if test ! -z "${with_libarchive}" ; then
+		if test ! -z "${PKGCONFIGPATHSAVE}" ; then
+			export PKG_CONFIG_PATH="${PKGCONFIGPATHSAVE}"
+		fi
+	fi
+
+	if test "${libarchivepkg}" = "yes" ; then
+		AC_LANG_PUSH([C++])
+
+		LIBSSAVE="${LIBS}"
+		LIBS="${LIBS} ${libarchive_LIBS}"
+		CPPFLAGSSAVE="${CPPFLAGS}"
+		CPPFLAGS="${CPPFLAGS} ${libarchive_CFLAGS}"
+
+		AC_LANG_PUSH([C++])
+		AC_CHECK_HEADER(archive.h, [have_libarchive_h=yes], [have_libarchive_h=no])
+		AC_LANG_POP
+
+		AC_MSG_CHECKING([whether we can compile a program using the libarchive library])
+		AC_LANG_PUSH([C++])
+		AC_TRY_LINK([#include <archive.h>
+],[
+		struct archive * a;
+		a = archive_read_new();
+		archive_read_free(a);
+		],[have_libarchive=yes],[have_libarchive=no])
+		AC_MSG_RESULT([${have_libarchive}])
+
+		LIBS="${LIBSSAVE}"
+		CPPFLAGS="${CPPFLAGSSAVE}"
+
+		AC_LANG_POP
+
+		if test "${have_libarchive}" = "yes" ; then
+			LIBMAUS2_HAVE_LIBARCHIVE="#define LIBMAUS2_HAVE_LIBARCHIVE"
+			LIBMAUS2_LIBARCHIVE_LIBS="${libarchive_LIBS}"
+			LIBMAUS2_LIBARCHIVE_CPPFLAGS="${libarchive_CFLAGS}"
+			LIBMAUS2_LIBARCHIVE_REQ="libarchive"
+
+			LIBMAUSCPPFLAGS="${LIBMAUSCPPFLAGS} ${LIBMAUS2_LIBARCHIVE_CPPFLAGS}"
+			LIBMAUSLIBS="${LIBMAUSLIBS} ${LIBMAUS2_LIBARCHIVE_LIBS}"
+		fi
+	fi
+fi
+
 AC_ARG_WITH([gnutls],
 	[AS_HELP_STRING([--with-gnutls@<:@=PATH@:>@], [path to installed gnutls library @<:@default=no@:>@])],
 	[with_gnutls=${withval}],
@@ -3538,6 +3605,10 @@ AC_SUBST([LIBMAUS2_HAVE_LZMA])
 AC_SUBST([LIBMAUS2_LZMA_LIBS])
 AC_SUBST([LIBMAUS2_LZMA_CPPFLAGS])
 AC_SUBST([LIBMAUS2_LZMA_REQ])
+AC_SUBST([LIBMAUS2_HAVE_LIBARCHIVE])
+AC_SUBST([LIBMAUS2_LIBARCHIVE_LIBS])
+AC_SUBST([LIBMAUS2_LIBARCHIVE_CPPFLAGS])
+AC_SUBST([LIBMAUS2_LIBARCHIVE_REQ])
 AC_SUBST([LIBMAUS2_IRODS_NEED_PREFIX])
 AC_SUBST([LIBMAUS2_NETTLE_HAVE_SHA3])
 AC_SUBST([LIBMAUS2_HAVE_MMAP])
