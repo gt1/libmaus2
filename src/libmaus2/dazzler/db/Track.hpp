@@ -35,9 +35,10 @@ namespace libmaus2
 				std::string name;
 				TrackAnnoInterface::unique_ptr_type PDanno;
 				libmaus2::autoarray::AutoArray<unsigned char>::unique_ptr_type Adata;
+				uint64_t trackannosize;
 
-				Track(std::string const & rname, TrackAnnoInterface::unique_ptr_type & rPDanno, libmaus2::autoarray::AutoArray<unsigned char>::unique_ptr_type & rAdata)
-				: name(rname), PDanno(UNIQUE_PTR_MOVE(rPDanno)), Adata(UNIQUE_PTR_MOVE(rAdata))
+				Track(std::string const & rname, TrackAnnoInterface::unique_ptr_type & rPDanno, libmaus2::autoarray::AutoArray<unsigned char>::unique_ptr_type & rAdata, uint64_t const rtrackannosize)
+				: name(rname), PDanno(UNIQUE_PTR_MOVE(rPDanno)), Adata(UNIQUE_PTR_MOVE(rAdata)), trackannosize(rtrackannosize)
 				{
 				}
 
