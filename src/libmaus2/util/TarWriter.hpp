@@ -40,6 +40,10 @@ namespace libmaus2
 	{
 		struct TarWriter
 		{
+			typedef TarWriter this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			#if defined(LIBMAUS2_HAVE_LIBARCHIVE)
 			uid_t const uid;
 			gid_t const gid;
