@@ -695,6 +695,8 @@ namespace libmaus2
 						}
 
 						HEFS.flush();
+						ISI.reset();
+						libmaus2::aio::FileRemoval::removeFile(Vtmpdata[i]);
 					}
 
 					uint64_t const ipos = HEFS.tellp();
