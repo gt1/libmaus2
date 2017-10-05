@@ -1,3 +1,9 @@
+libmaus2 (2.0.397-1) unstable; urgency=medium
+
+  * disable padding in tar writing
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 05 Oct 2017 17:43:42 +0200
+
 libmaus2 (2.0.396-1) unstable; urgency=medium
 
   * fix comparison and improve cleanup in AlignmentFileSymmetryCheck
