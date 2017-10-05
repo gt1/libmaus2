@@ -156,6 +156,7 @@ namespace libmaus2
 				archive_write_set_format_pax_restricted(arch);
 
 				archive_write_open(arch,reinterpret_cast<void *>(this),open_callback,write_callback,close_callback);
+				archive_write_set_bytes_in_last_block(arch,1);
 			}
 
 			void close()
