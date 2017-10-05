@@ -468,7 +468,14 @@ namespace libmaus2
 
 					data_type D;
 					if ( AME[i]->getNext(D) )
+					{
 						FSE.push(MergeObject(D,i));
+					}
+					else
+					{
+						AME[i].reset();
+						libmaus2::aio::FileRemoval::removeFile(Vfn[i]);
+					}
 				}
 
 				libmaus2::aio::OutputStreamInstance OSI(filename);
@@ -479,7 +486,14 @@ namespace libmaus2
 					M.D.serialise(OSI);
 
 					if ( AME[M.i]->getNext(M.D) )
+					{
 						FSE.push(M);
+					}
+					else
+					{
+						AME[M.i].reset();
+						libmaus2::aio::FileRemoval::removeFile(Vfn[M.i]);
+					}
 				}
 				OSI.flush();
 
@@ -544,6 +558,11 @@ namespace libmaus2
 						assert ( ! FSE.full() );
 						FSE.push(MergeObject(D,i));
 					}
+					else
+					{
+						AME[i].reset();
+						libmaus2::aio::FileRemoval::removeFile(Vfn[i]);
+					}
 				}
 
 				libmaus2::aio::OutputStreamInstance OSI(filename);
@@ -560,6 +579,11 @@ namespace libmaus2
 					{
 						assert ( ! FSE.full() );
 						FSE.push(M);
+					}
+					else
+					{
+						AME[M.i].reset();
+						libmaus2::aio::FileRemoval::removeFile(Vfn[M.i]);
 					}
 				}
 				OSI.flush();
