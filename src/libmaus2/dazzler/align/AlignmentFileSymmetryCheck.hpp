@@ -80,34 +80,55 @@ namespace libmaus2
 					libmaus2::sorting::SerialisingSortingBufferedOutputFile<libmaus2::dazzler::align::OverlapInfo>::sort(symforfn,16*1024*1024);
 					libmaus2::sorting::SerialisingSortingBufferedOutputFile<libmaus2::dazzler::align::OverlapInfo>::sort(syminvfn,16*1024*1024);
 
-					libmaus2::aio::SerialisedPeeker<libmaus2::dazzler::align::OverlapInfo> peekerfor(symforfn);
-					libmaus2::aio::SerialisedPeeker<libmaus2::dazzler::align::OverlapInfo> peekerinv(syminvfn);
+					libmaus2::aio::SerialisedPeeker<libmaus2::dazzler::align::OverlapInfo>::unique_ptr_type peekerfor(
+						new libmaus2::aio::SerialisedPeeker<libmaus2::dazzler::align::OverlapInfo>(symforfn)
+					);
+					libmaus2::aio::SerialisedPeeker<libmaus2::dazzler::align::OverlapInfo>::unique_ptr_type peekerinv(
+						new libmaus2::aio::SerialisedPeeker<libmaus2::dazzler::align::OverlapInfo>(syminvfn)
+					);
 					bool ok = true;
 
 					libmaus2::dazzler::align::OverlapInfo infofor;
 					libmaus2::dazzler::align::OverlapInfo infoinv;
-					while ( peekerinv.peekNext(infoinv) && peekerfor.peekNext(infofor) )
+					while ( peekerinv->peekNext(infoinv) && peekerfor->peekNext(infofor) )
 					{
 						if ( infoinv < infofor )
 						{
 							if ( vstream )
 								*vstream << "[E1] missing " << infoinv.swapped() << std::endl;
-							peekerinv.getNext(infoinv);
+							peekerinv->getNext(infoinv);
 							ok = false;
 						}
 						else if ( infofor < infoinv )
 						{
 							if ( vstream )
 								*vstream << "[E2] missing " << infofor.swapped() << std::endl;
-							peekerfor.getNext(infofor);
+							peekerfor->getNext(infofor);
 							ok = false;
 						}
 						else
 						{
-							peekerinv.getNext(infoinv);
-							peekerfor.getNext(infofor);
+							peekerinv->getNext(infoinv);
+							peekerfor->getNext(infofor);
 						}
 					}
+					while ( peekerinv->peekNext(infoinv) )
+					{
+						if ( vstream )
+							*vstream << "[E1] missing " << infoinv.swapped() << std::endl;
+						peekerinv->getNext(infoinv);
+						ok = false;
+					}
+					while ( peekerfor->peekNext(infofor) )
+					{
+						if ( vstream )
+							*vstream << "[E2] missing " << infofor.swapped() << std::endl;
+						peekerfor->getNext(infofor);
+						ok = false;
+					}
+
+					libmaus2::aio::FileRemoval::removeFile(symforfn);
+					libmaus2::aio::FileRemoval::removeFile(syminvfn);
 
 					if ( ok )
 						return EXIT_SUCCESS;
