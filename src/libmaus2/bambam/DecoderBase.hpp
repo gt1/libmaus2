@@ -122,7 +122,7 @@ namespace libmaus2
 			 **/
 			static uint64_t getLEInteger(uint8_t * D, unsigned int const l)
 			{
-				return getLEInteger(D,l);
+				return getLEInteger(static_cast<uint8_t const *>(D),l);
 			}
 		};
 	}
