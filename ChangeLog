@@ -1,3 +1,9 @@
+libmaus2 (2.0.398-1) unstable; urgency=medium
+
+  * avoid endless recursion loop in DecoderBase
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 06 Oct 2017 11:01:54 +0200
+
 libmaus2 (2.0.397-1) unstable; urgency=medium
 
   * disable padding in tar writing
