@@ -289,6 +289,16 @@ namespace libmaus2
 						if ( mina >= 0 )
 						{
 							int64_t const maxa = libmaus2::dazzler::align::OverlapIndexer::getMaximumARead(arg[i]);
+							if ( maxa < mina )
+							{
+								libmaus2::exception::LibMausException lme;
+								lme.getStream()
+									<< "[E] GraphEncoder::encodegraph mina=" << mina << " > maxa=" << maxa << " for " << arg[i]
+									<< " of size " << libmaus2::util::GetFileSize::getFileSize(arg[i])
+									<< std::endl;
+								lme.finish();
+								throw lme;
+							}
 							assert ( maxa >= mina );
 
 							uint64_t const range = (maxa - mina + 1);
