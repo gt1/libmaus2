@@ -421,7 +421,7 @@ namespace libmaus2
 				{
 					uint64_t pl = i*linewidth;
 
-					out << "A " << std::setw(6) << posa << std::setw(0);
+					out << "A " << std::setw(6) << posa << std::setw(0) << " ";
 					if ( pl < aa.size() )
 					{
 						uint64_t const alen = std::min(linewidth,aa.size()-pl);
@@ -433,7 +433,7 @@ namespace libmaus2
 					}
 					out << std::endl;
 
-					out << "B " << std::setw(6) << posb << std::setw(0);
+					out << "B " << std::setw(6) << posb << std::setw(0) << " ";
 					if ( pl < ba.size() )
 					{
 						uint64_t const blen = std::min(linewidth,ba.size()-pl);
