@@ -254,6 +254,33 @@ namespace libmaus2
 
 					return tlen2;
 				}
+
+				static void computeTrace(
+					uint8_t const * p,
+					libmaus2::autoarray::AutoArray<std::pair<uint16_t,uint16_t> > & A,
+					int64_t const tspace,
+					uint8_t const * aptr,
+					uint8_t const * bptr,
+					libmaus2::lcs::AlignmentTraceContainer & ATC,
+					libmaus2::lcs::Aligner & aligner
+				)
+				{
+					bool const small = libmaus2::dazzler::align::AlignmentFile::tspaceToSmall(tspace);
+					uint64_t const Alen = decodeTraceVector(p,A,small);
+					libmaus2::dazzler::align::Overlap::computeTrace(
+						A.begin(),
+						Alen,
+						getABPos(p),
+						getAEPos(p),
+						getBBPos(p),
+						getBEPos(p),
+						aptr,
+						bptr,
+						tspace,
+						ATC,
+						aligner
+					);
+				}
 			};
 		}
 	}

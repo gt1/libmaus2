@@ -108,6 +108,8 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray < NNPLocalAlignerKmerMatches * > Alastnext;
 			// last position for scoring
 			libmaus2::autoarray::AutoArray < int64_t > Alastp;
+			// active band markers
+			libmaus2::autoarray::AutoArray < uint8_t > Aactive;
 
 			// maximum number of matches to be stored/computed
 			uint64_t const maxmatches;
@@ -868,6 +870,7 @@ namespace libmaus2
 					Alastp.ensureSize(allocbuckets);
 					Alastscore.ensureSize(allocbuckets);
 					Alastnext.ensureSize(allocbuckets);
+					Aactive.ensureSize(allocbuckets);
 
 					uint64_t const newsize = Alasta.size();
 
@@ -875,6 +878,7 @@ namespace libmaus2
 					std::fill(Alastp.begin() + oldsize,     Alastp.begin() + newsize    , -static_cast<int64_t>(2*anak));
 					std::fill(Alastscore.begin() + oldsize, Alastscore.begin() + newsize, 0);
 					std::fill(Alastnext.begin() + oldsize,  Alastnext.begin()+newsize   , lastnextnull);
+					std::fill(Aactive.begin() + oldsize,     Aactive.begin() + newsize    , 0                            );
 				}
 
 				#if 0
@@ -895,6 +899,7 @@ namespace libmaus2
 				int64_t * const lastp = Alastp.begin() - (minbucket-1);
 				uint64_t * const lastscore = Alastscore.begin() - (minbucket-1);
 				NNPLocalAlignerKmerMatches ** const lastnext = Alastnext.begin() - (minbucket-1);
+				uint8_t * const active = Aactive.begin() - (minbucket-1);
 
 				#if 0
 				// check seeds
@@ -938,10 +943,22 @@ namespace libmaus2
 					m_c->score = lastscore[bucket-1] + lastscore[bucket] + lastscore[bucket+1];
 					m_c->next = lastnext[bucket];
 
-					if ( (! lastnext[bucket]) && m_c->score >= minbandscore )
-						++activebands;
+					if ( m_c->score >= minbandscore )
+						active[bucket] = 1;
 
 					lastnext[bucket] = &cur;
+				}
+
+				for ( NNPLocalAlignerKmerMatches * m_c = m_e; m_c != m_a; )
+				{
+					NNPLocalAlignerKmerMatches & cur = *(--m_c);
+					int64_t const bucket = cur.getDiag() >> bucketlog;
+
+					if ( active[bucket] )
+					{
+						activebands++;
+						active[bucket] = 0;
+					}
 				}
 
 				Q.ensureSize(activebands);
