@@ -405,6 +405,42 @@ namespace libmaus2
 				}
 			}
 
+			template<typename data_type>
+			static uint64_t putNumberDecimal(libmaus2::autoarray::AutoArray<data_type> & A, uint64_t o, uint64_t rank)
+			{
+				if ( ! rank )
+				{
+					A.push(o,'0');
+				}
+				else
+				{
+					// 20 decimal digits is enough for a 64 bit number
+					#if defined(_MSC_VER) || defined(__MINGW32__)
+					uint8_t * S = reinterpret_cast<uint8_t *>(_alloca(20));
+					#else
+					uint8_t * S = reinterpret_cast<uint8_t *>(alloca(20));
+					#endif
+
+					uint8_t * SA = S;
+
+					// generate digits
+					while ( rank )
+					{
+						*(S++) = rank % 10;
+						rank /= 10;
+					}
+
+					assert ( ! rank );
+
+					// write them out
+					while ( S != SA )
+						A.push(o,(*(--S)) + '0');
+				}
+
+				return o;
+
+			}
+
 			/**
 			 * format number rank to iterator it as decimal
 			 *

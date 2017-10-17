@@ -422,9 +422,11 @@ namespace libmaus2
 				virtual void operator()(data_type const & D, uint64_t const pos) = 0;
 			};
 
-			std::string reduce(uint64_t const backblocksize = 1024ull, uint64_t const maxfan = 16ull)
+			struct Merger
 			{
-				libmaus2::autoarray::AutoArray < typename sorter_type::merger_ptr_type > AME(Vfn.size());
+				typedef Merger this_type;
+				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 				struct MergeObject
 				{
@@ -458,6 +460,153 @@ namespace libmaus2
 					}
 				};
 
+				std::vector<std::string> const Vfn;
+				libmaus2::autoarray::AutoArray < typename sorter_type::merger_ptr_type > AME;
+				MergeObjectComparator comp;
+				libmaus2::util::FiniteSizeHeap < MergeObject, MergeObjectComparator > FSE;
+
+				Merger(
+					libmaus2::autoarray::AutoArray < sorter_ptr_type > & ASO,
+					std::vector<std::string> const & rVfn,
+					order_type & order,
+					uint64_t const backblocksize = 1024ull, uint64_t const maxfan = 16ull
+				)
+				: Vfn(rVfn), AME(Vfn.size()), comp(order), FSE(Vfn.size(),comp)
+				{
+					for ( uint64_t i = 0; i < Vfn.size(); ++i )
+					{
+						typename sorter_type::merger_ptr_type tptr(ASO[i]->getMerger(backblocksize,maxfan));
+						AME[i] = UNIQUE_PTR_MOVE(tptr);
+
+						data_type D;
+						if ( AME[i]->getNext(D) )
+						{
+							FSE.push(MergeObject(D,i));
+						}
+						else
+						{
+							AME[i].reset();
+							libmaus2::aio::FileRemoval::removeFile(Vfn[i]);
+						}
+					}
+				}
+
+				Merger(
+					uint64_t const numthreads,
+					libmaus2::autoarray::AutoArray < sorter_ptr_type > & ASO,
+					std::vector<std::string> const & rVfn,
+					order_type & order,
+					uint64_t const backblocksize = 1024ull, uint64_t const maxfan = 16ull
+				)
+				: Vfn(rVfn), AME(Vfn.size()), comp(order), FSE(Vfn.size(),comp)
+				{
+					libmaus2::parallel::PosixSpinLock lock;
+
+					#if defined(_OPENMP)
+					#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
+					#endif
+					for ( uint64_t i = 0; i < Vfn.size(); ++i )
+					{
+						typename sorter_type::merger_ptr_type tptr(ASO[i]->getMerger(backblocksize,maxfan));
+						AME[i] = UNIQUE_PTR_MOVE(tptr);
+
+						data_type D;
+						if ( AME[i]->getNext(D) )
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(lock);
+							FSE.push(MergeObject(D,i));
+						}
+						else
+						{
+							AME[i].reset();
+							libmaus2::aio::FileRemoval::removeFile(Vfn[i]);
+						}
+					}
+				}
+
+				bool getNext(data_type & D)
+				{
+					if ( !FSE.empty() )
+					{
+						MergeObject M = FSE.pop();
+
+						D = M.D;
+
+						if ( AME[M.i]->getNext(M.D) )
+						{
+							FSE.push(M);
+						}
+						else
+						{
+							AME[M.i].reset();
+							libmaus2::aio::FileRemoval::removeFile(Vfn[M.i]);
+						}
+
+						return true;
+					}
+					else
+					{
+						return false;
+					}
+				}
+			};
+
+			typedef Merger merger_type;
+			typedef typename merger_type::unique_ptr_type merger_ptr_type;
+
+			merger_ptr_type getMerger(uint64_t const backblocksize = 1024ull, uint64_t const maxfan = 16ull)
+			{
+				merger_ptr_type mpt(
+					new merger_type(ASO,Vfn,order,backblocksize,maxfan)
+				);
+
+				return UNIQUE_PTR_MOVE(mpt);
+			}
+
+			merger_ptr_type getMergerParallel(uint64_t const numthreads, uint64_t const backblocksize = 1024ull, uint64_t const maxfan = 16ull)
+			{
+				merger_ptr_type mpt(
+					new merger_type(numthreads,ASO,Vfn,order,backblocksize,maxfan)
+				);
+
+				return UNIQUE_PTR_MOVE(mpt);
+			}
+
+			std::string reduce(uint64_t const backblocksize = 1024ull, uint64_t const maxfan = 16ull)
+			{
+				struct MergeObject
+				{
+					data_type D;
+					uint64_t i;
+
+					MergeObject()
+					{}
+
+					MergeObject(
+						data_type const & rD,
+						uint64_t const ri
+					) : D(rD), i(ri) {}
+				};
+
+				struct MergeObjectComparator
+				{
+					order_type & order;
+
+					MergeObjectComparator(order_type & rorder)
+					: order(rorder) {}
+
+					bool operator()(MergeObject const & A, MergeObject const & B) const
+					{
+						if ( order(A.D,B.D) )
+							return true;
+						else if ( order(B.D,A.D) )
+							return false;
+						else
+							return A.i < B.i;
+					}
+				};
+
+				libmaus2::autoarray::AutoArray < typename sorter_type::merger_ptr_type > AME(Vfn.size());
 				MergeObjectComparator comp(order);
 				libmaus2::util::FiniteSizeHeap < MergeObject, MergeObjectComparator > FSE(Vfn.size(),comp);
 
