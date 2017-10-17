@@ -154,6 +154,24 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray< uint64_t > Ashare;
 			libmaus2::autoarray::AutoArray< uint8_t > Amodified;
 
+			struct HeapResultComparator
+			{
+				bool operator()(
+					std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> const & A,
+					std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> const & B) const
+				{
+					int64_t const la = A.first.aepos-A.first.abpos;
+					int64_t const lb = B.first.aepos-B.first.abpos;
+					return la < lb;
+				}
+			};
+
+			uint64_t const maxalign;
+			libmaus2::util::FiniteSizeHeap<
+				std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type>,
+				HeapResultComparator
+			> AQ;
+
 			/**
 			 * local aligner constructor
 			 *
@@ -167,7 +185,8 @@ namespace libmaus2
 				unsigned int const ranak,
 				uint64_t const rmaxmatches,
 				int64_t const rminbandscore,
-				int64_t const rminlength
+				int64_t const rminlength,
+				uint64_t const rmaxalign = std::numeric_limits<uint64_t>::max()
 			)
 			:
 				bucketlog(rbucketlog),
@@ -180,7 +199,9 @@ namespace libmaus2
 				minbandscore(rminbandscore),
 				minlength(rminlength),
 				Q(1024),
-				alloccount(0)
+				alloccount(0),
+				maxalign(rmaxalign),
+				AQ(0)
 			{
 				assert ( anak );
 			}
@@ -1061,7 +1082,6 @@ namespace libmaus2
 							ldbmin = std::min(ldbmin,DB.first);
 							ldbmax = std::max(ldbmax,DB.second);
 
-
 							#if 0
 							tracecontainer.printTraceLines(
 								std::cerr,
@@ -1074,17 +1094,46 @@ namespace libmaus2
 							);
 							#endif
 
-							libmaus2::lcs::NNPTraceContainer::shared_ptr_type tracecopy = getAlignment();
-							tracecopy->copyFrom(tracecontainer);
-
-							VR.push_back(
-								std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type>(
-									algnres,
-									tracecopy
+							if (
+								AQ.f < maxalign
+								||
+								(
+									AQ.f == maxalign
+									&&
+									(
+										static_cast<int64_t>(algnres.aepos - algnres.abpos)
+										>
+										static_cast<int64_t>(AQ.top().first.aepos - AQ.top().first.abpos)
+									)
 								)
-							);
+							)
+							{
+								if ( AQ.f == maxalign )
+								{
+									std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> P = AQ.pop();
+									returnAlignment(P);
+								}
+
+								assert ( AQ.f < maxalign );
+
+								libmaus2::lcs::NNPTraceContainer::shared_ptr_type tracecopy = getAlignment();
+								tracecopy->copyFrom(tracecontainer);
+
+								AQ.pushBump(
+									std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type>(
+										algnres,
+										tracecopy
+									)
+								);
+							}
 						}
 					}
+				}
+
+				while ( !AQ.empty() )
+				{
+					std::pair<libmaus2::lcs::NNPAlignResult,libmaus2::lcs::NNPTraceContainer::shared_ptr_type> P = AQ.pop();
+					VR.push_back(P);
 				}
 
 				// reset lastp, lastscore, lastnext, lasta
