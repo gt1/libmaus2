@@ -45,12 +45,14 @@ namespace libmaus2
 				cnt.resize(0);
 				std::vector < uint64_t > den;
 
+				// push factors
 				for ( uint64_t i = 1; i <= k; ++i )
 				{
 					cnt.push_back(n-(k-i));
 					den.push_back(i);
 				}
 
+				// merge cnt factors
 				uint64_t l = 0;
 				uint64_t o = 0;
 				while ( l < cnt.size() )
@@ -59,7 +61,7 @@ namespace libmaus2
 
 					while ( l < cnt.size() )
 					{
-						if ( (f | cnt[l]) & 0x100000000ull )
+						if ( (f | cnt[l]) >= 0x100000000ull )
 							break;
 						else
 							f *= cnt[l++];
@@ -69,16 +71,16 @@ namespace libmaus2
 				}
 				cnt.resize(o);
 
+				// merge den factors
 				l = 0;
 				o = 0;
-
 				while ( l < den.size() )
 				{
 					uint64_t f = den[l++];
 
 					while ( l < den.size() )
 					{
-						if ( (f | den[l]) & 0x100000000ull )
+						if ( (f | den[l]) >= 0x100000000ull )
 							break;
 						else
 							f *= den[l++];
