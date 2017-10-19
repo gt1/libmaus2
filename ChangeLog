@@ -1,3 +1,9 @@
+libmaus2 (2.0.403-1) unstable; urgency=medium
+
+ * fix overflow check in binom class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 19 Oct 2017 15:29:49 +0200
+
 libmaus2 (2.0.402-1) unstable; urgency=medium
 
   * add option maxalign in NNPLocalAligner
