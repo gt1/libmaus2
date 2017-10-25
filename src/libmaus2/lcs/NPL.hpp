@@ -91,7 +91,7 @@ namespace libmaus2
 			}
 
 			template<typename iter_a, typename iter_b>
-			index_type np(iter_a const a, iter_a const ae, iter_b const b, iter_b const be)
+			index_type np(iter_a const a, iter_a const ae, iter_b const b, iter_b const be, index_type const maxd = std::numeric_limits<index_type>::max())
 			{
 				assert ( ae-a >= 0 );
 				assert ( be-b >= 0 );
@@ -111,6 +111,7 @@ namespace libmaus2
 				}
 
 				size_t const sn = std::max(an,bn);
+				// number of diagonals
 				index_type const numdiag = (sn<<1)+1;
 				int64_t id = 0;
 
@@ -190,7 +191,7 @@ namespace libmaus2
 					d += 1;
 					std::swap(DP,DN);
 				}
-				for ( ; true; ++d )
+				for ( ; d < maxd ; ++d )
 				{
 					bool done = false;
 
@@ -489,6 +490,14 @@ namespace libmaus2
 					std::swap(DP,DN);
 				}
 
+				if ( d == maxd )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "[E] NPL: exceeded maximum amount of diagonals." << std::endl;
+					lme.finish();
+					throw lme;
+				}
+
 				index_type const ed = d-1;
 
 				if ( AlignmentTraceContainer::capacity() <= std::min(an,bn)+ed )
@@ -529,6 +538,14 @@ namespace libmaus2
 
 				// std::cerr << "d=" << d << std::endl;
 				return ed;
+			}
+
+			void cutTrace(int64_t const ed, int64_t const faccnt = 2, int64_t facden = 1)
+			{
+				assert ( ed >= 0 );
+				int64_t const s = (ed+1)*(ed+1);
+				if ( static_cast<int64_t>(trace.size()) > (faccnt*s)/facden )
+					trace.resize(s);
 			}
 		};
 	}

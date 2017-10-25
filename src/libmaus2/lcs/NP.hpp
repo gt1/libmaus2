@@ -876,7 +876,7 @@ namespace libmaus2
 					std::swap(DP,DN);
 				}
 
-				int const ed = d-1;
+				int64_t const ed = static_cast<int64_t>(d)-1;
 
 				if ( AlignmentTraceContainer::capacity() <= std::min(an,bn)+ed )
 					AlignmentTraceContainer::resize(std::min(an,bn)+ed);
@@ -916,6 +916,14 @@ namespace libmaus2
 
 				// std::cerr << "d=" << d << std::endl;
 				return ed;
+			}
+
+			void cutTrace(int64_t const ed, int64_t const faccnt = 2, int64_t facden = 1)
+			{
+				assert ( ed >= 0 );
+				int64_t const s = (ed+1)*(ed+1);
+				if ( static_cast<int64_t>(trace.size()) > (faccnt*s)/facden )
+					trace.resize(s);
 			}
 		};
 	}
