@@ -40,6 +40,13 @@ namespace libmaus2
 				double t = v;
 
 				// check for nan
+				if ( !(t == t) )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "[E] DoubleCode::encodeDouble: unable to encode NaN:" << v << std::endl;
+					lme.finish();
+					throw lme;
+				}
 				assert ( t == t );
 
 				if ( (!(t<0)) && (!(t>0)) )
