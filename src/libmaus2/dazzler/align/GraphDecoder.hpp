@@ -213,8 +213,12 @@ namespace libmaus2
 
 					uint64_t o = 0;
 					for ( uint64_t i = 0; i < GDC.size(); ++i )
-						if ( GDC[i].bread == static_cast<int64_t>(j) )
-							GDC.A[o++] = GDC[i];
+						if ( GDC.A[i].bread == static_cast<int64_t>(j) )
+						{
+							GDC.A[o] = GDC.A[i];
+							GDC.F[o] = GDC.F[i];
+							o++;
+						}
 					GDC.n = o;
 				}
 
