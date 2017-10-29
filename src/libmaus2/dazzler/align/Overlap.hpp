@@ -1282,6 +1282,21 @@ namespace libmaus2
 				};
 
 				template<typename path_type>
+				static int64_t getMaxDif(
+					OffsetInfo const & A,
+					OffsetInfo const & B,
+					path_type const path
+				)
+				{
+					int64_t maxdif = 0;
+
+					for ( uint64_t i = A.offset; i < B.offset; ++i )
+						maxdif = std::max(maxdif,static_cast<int64_t>(path[i].first));
+
+					return maxdif;
+				}
+
+				template<typename path_type>
 				static OffsetInfo getBforAOffset(
 					int64_t const tspace,
 					int64_t const abpos,
