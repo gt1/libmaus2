@@ -1025,15 +1025,16 @@ namespace libmaus2
 					libmaus2::lcs::Aligner & aligner
 				) const
 				{
+					computeTrace(path,aptr,bptr,tspace,ATC,aligner);
+					ATC.swapRoles();
+
+					Overlap OVL;
+					OVL.flags = flags;
+					OVL.aread = bread;
+					OVL.bread = aread;
+
 					if ( ! isInverse() )
 					{
-						computeTrace(path,aptr,bptr,tspace,ATC,aligner);
-						ATC.swapRoles();
-
-						Overlap OVL;
-						OVL.flags = flags;
-						OVL.aread = bread;
-						OVL.bread = aread;
 						OVL.path = computePath(
 							path.bbpos,
 							path.bepos,
@@ -1044,14 +1045,8 @@ namespace libmaus2
 					}
 					else
 					{
-						computeTrace(path,aptr,bptr,tspace,ATC,aligner);
-						ATC.swapRoles();
 						std::reverse(ATC.ta,ATC.te);
 
-						Overlap OVL;
-						OVL.flags = flags;
-						OVL.aread = bread;
-						OVL.bread = aread;
 						OVL.path = computePath(
 							blen - path.bepos,
 							blen - path.bbpos,
