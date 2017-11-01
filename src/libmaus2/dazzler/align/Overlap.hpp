@@ -1696,6 +1696,7 @@ namespace libmaus2
 					uint64_t olow = 0;
 					while ( olow < o )
 					{
+						// find end of bad region
 						uint64_t obad = olow;
 						while ( obad < o && !A[obad] )
 							++obad;
@@ -1706,6 +1707,7 @@ namespace libmaus2
 						#endif
 						olow = obad;
 
+						// find end of good region
 						uint64_t ohigh = olow;
 						while ( ohigh < o && A[ohigh] )
 							++ohigh;
