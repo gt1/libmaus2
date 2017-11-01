@@ -43,6 +43,88 @@ namespace libmaus2
 				int32_t aepos;
 				int32_t bepos;
 
+				static uint64_t getNumBins(int64_t rl)
+				{
+					assert ( rl );
+
+					uint64_t n = 0;
+					while ( rl > 1 )
+					{
+						n += rl;
+						rl = (rl+1)>>1;
+					}
+
+					assert ( rl == 1 );
+					n += rl;
+
+					return n;
+				}
+
+				static uint64_t getBinList(libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > & A, int64_t rl, int64_t abpos, int64_t aepos)
+				{
+					uint64_t o = 0;
+
+					assert ( abpos <= aepos );
+					assert ( aepos <= rl );
+
+					if ( rl )
+					{
+						uint64_t offset = 0;
+
+						while ( rl > 1 )
+						{
+							A.push(o,std::pair<uint64_t,uint64_t>(offset + abpos,offset + aepos));
+							// round down
+							abpos = (abpos+0)>>1;
+							// round up
+							aepos = (aepos+1)>>1;
+							// update offset
+							offset += rl;
+							// round up
+							rl = (rl+1)>>1;
+						}
+
+						assert ( rl == 1 );
+
+						A.push(o,std::pair<uint64_t,uint64_t>(offset+abpos,offset+aepos));
+					}
+
+					return o;
+				}
+
+				static uint64_t getBin(int64_t rl, int64_t abpos, int64_t aepos)
+				{
+					assert ( rl );
+					assert ( abpos < aepos );
+					assert ( aepos <= rl );
+
+					int64_t offset = 0;
+
+					while ( aepos-abpos > 1 )
+					{
+						offset += rl;
+
+						// round down
+						abpos = (abpos+0)>>1;
+						// round up
+						aepos = (aepos+1)>>1;
+						// round up
+						rl = (rl+1)>>1;
+					}
+
+					return abpos + offset;
+				}
+
+				uint64_t getBinList(libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > & A, int64_t const rl) const
+				{
+					return getBinList(A,rl,abpos,aepos);
+				}
+
+				uint64_t getBin(int64_t rl) const
+				{
+					return getBin(rl,abpos,aepos);
+				}
+
 				int32_t getBBlockOffset(uint64_t const i) const
 				{
 					uint64_t o = 0;
