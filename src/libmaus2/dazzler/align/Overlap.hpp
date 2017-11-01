@@ -1282,6 +1282,21 @@ namespace libmaus2
 				};
 
 				template<typename path_type>
+				static int64_t getMaxDif(
+					OffsetInfo const & A,
+					OffsetInfo const & B,
+					path_type const path
+				)
+				{
+					int64_t maxdif = 0;
+
+					for ( uint64_t i = A.offset; i < B.offset; ++i )
+						maxdif = std::max(maxdif,static_cast<int64_t>(path[i].first));
+
+					return maxdif;
+				}
+
+				template<typename path_type>
 				static OffsetInfo getBforAOffset(
 					int64_t const tspace,
 					int64_t const abpos,
@@ -1681,6 +1696,7 @@ namespace libmaus2
 					uint64_t olow = 0;
 					while ( olow < o )
 					{
+						// find end of bad region
 						uint64_t obad = olow;
 						while ( obad < o && !A[obad] )
 							++obad;
@@ -1691,6 +1707,7 @@ namespace libmaus2
 						#endif
 						olow = obad;
 
+						// find end of good region
 						uint64_t ohigh = olow;
 						while ( ohigh < o && A[ohigh] )
 							++ohigh;
