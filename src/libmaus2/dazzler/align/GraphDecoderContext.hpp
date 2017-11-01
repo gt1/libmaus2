@@ -39,6 +39,7 @@ namespace libmaus2
 				libmaus2::autoarray::AutoArray<uint64_t> brangesort;
 				libmaus2::autoarray::AutoArray<uint64_t> O;
 				libmaus2::autoarray::AutoArray<libmaus2::dazzler::align::OverlapHeader> A;
+				libmaus2::autoarray::AutoArray<int64_t> F;
 				uint64_t n;
 
 				GraphDecoderContext() : n(0) {}
@@ -69,6 +70,7 @@ namespace libmaus2
 					brangesort.ensureSize(n);
 					O.ensureSize(n);
 					A.ensureSize(n);
+					F.ensureSize(n);
 				}
 			};
 		}

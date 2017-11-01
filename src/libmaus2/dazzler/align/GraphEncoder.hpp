@@ -193,6 +193,7 @@ namespace libmaus2
 					std::map<uint64_t,uint64_t> bbdifrange;
 					std::map<uint64_t,uint64_t> bbdifrangecnt;
 					std::map<uint64_t,uint64_t> emap;
+					std::map<uint64_t,uint64_t> fmap;
 
 					bool operator==(EncodeContext const & O) const
 					{
@@ -218,6 +219,7 @@ namespace libmaus2
 							&& bbdifrange == O.bbdifrange
 							&& bbdifrangecnt == O.bbdifrangecnt
 							&& emap == O.emap
+							&& fmap == O.fmap
 							;
 					}
 
@@ -253,6 +255,7 @@ namespace libmaus2
 						merge(bbdifrange,E.bbdifrange);
 						merge(bbdifrangecnt,E.bbdifrangecnt);
 						merge(emap,E.emap);
+						merge(fmap,E.fmap);
 						linkcnthist.merge(E.linkcnthist);
 					}
 				};
@@ -388,6 +391,8 @@ namespace libmaus2
 										context.emap[V[i].path.diffs]++;
 
 									context.linkcnthist(V.size());
+									for ( uint64_t i = 0; i < V.size(); ++i )
+										context.fmap[V[i].flags]++;
 
 									if ( verbose && errOSI && ( (aid % (16*1024) == 0) || (!(AF->peekNextOverlap(OVL))) ) )
 										*errOSI << "[V] " << aid << std::endl;
@@ -468,6 +473,11 @@ namespace libmaus2
 						::libmaus2::huffman::CanonicalEncoder::unique_ptr_type tenc(new ::libmaus2::huffman::CanonicalEncoder(iemap));
 						emapenc = UNIQUE_PTR_MOVE(tenc);
 					}
+
+					std::map<int64_t,uint64_t> ifmap;
+					for ( std::map<uint64_t,uint64_t>::const_iterator it = gcontext.fmap.begin(); it != gcontext.fmap.end(); ++it )
+						ifmap[it->first] = it->second;
+					::libmaus2::huffman::CanonicalEncoder::unique_ptr_type fmapenc(new ::libmaus2::huffman::CanonicalEncoder(ifmap));
 
 					std::string const tmpptr = tmpfilebase + "_pointers";
 					std::string const tmpdata = tmpfilebase + "_data";
@@ -585,6 +595,12 @@ namespace libmaus2
 											emapenc->encode(LHEFS,d);
 									}
 
+									for ( uint64_t i = 0; i < V.size(); ++i )
+									{
+										int64_t const d = V[i].flags;
+										fmapenc->encode(LHEFS,d);
+									}
+
 									// inverse bit
 									for ( uint64_t i = 0; i < V.size(); ++i )
 										LHEFS.write(V[i].isInverse(),1);
@@ -675,6 +691,7 @@ namespace libmaus2
 					libmaus2::huffman::HuffmanEncoderFileStd HEFS(out);
 					writePairVector(HEFS,linkcntfreqs);
 					writeMap(HEFS,gcontext.emap);
+					writeMap(HEFS,gcontext.fmap);
 					writeMap(HEFS,Mbfirst);
 					writeMap(HEFS,Mbdif);
 					writeMap(HEFS,Mabfirst);

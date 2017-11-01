@@ -40,6 +40,7 @@ namespace libmaus2
 
 				std::vector < std::pair<uint64_t,uint64_t > > linkcntfreqs;
 				std::map<uint64_t,uint64_t> emap;
+				std::map<uint64_t,uint64_t> fmap;
 				std::map<uint64_t,uint64_t> Mbfirst;
 				std::map<uint64_t,uint64_t> Mbdif;
 				std::map<uint64_t,uint64_t> Mabfirst;
@@ -56,6 +57,8 @@ namespace libmaus2
 
 				::libmaus2::huffman::EscapeCanonicalEncoder::unique_ptr_type escemapenc;
 				::libmaus2::huffman::CanonicalEncoder::unique_ptr_type emapenc;
+
+				::libmaus2::huffman::CanonicalEncoder::unique_ptr_type fmapenc;
 
 				bool linkcntesc;
 				bool emapesc;
@@ -120,6 +123,7 @@ namespace libmaus2
 					}
 
 					loadMap(IA,emap);
+					loadMap(IA,fmap);
 					loadMap(IA,Mbfirst);
 					loadMap(IA,Mbdif);
 					loadMap(IA,Mabfirst);
@@ -162,6 +166,12 @@ namespace libmaus2
 						emapenc = UNIQUE_PTR_MOVE(tenc);
 					}
 
+					std::map<int64_t,uint64_t> ifmap;
+					for ( std::map<uint64_t,uint64_t>::const_iterator it = fmap.begin(); it != fmap.end(); ++it )
+						ifmap[it->first] = it->second;
+
+					::libmaus2::huffman::CanonicalEncoder::unique_ptr_type tenc(new ::libmaus2::huffman::CanonicalEncoder(ifmap));
+					fmapenc = UNIQUE_PTR_MOVE(tenc);
 
 					in.clear();
 					in.seekg(
@@ -203,8 +213,12 @@ namespace libmaus2
 
 					uint64_t o = 0;
 					for ( uint64_t i = 0; i < GDC.size(); ++i )
-						if ( GDC[i].bread == static_cast<int64_t>(j) )
-							GDC.A[o++] = GDC[i];
+						if ( GDC.A[i].bread == static_cast<int64_t>(j) )
+						{
+							GDC.A[o] = GDC.A[i];
+							GDC.F[o] = GDC.F[i];
+							o++;
+						}
 					GDC.n = o;
 				}
 
@@ -230,6 +244,7 @@ namespace libmaus2
 						libmaus2::autoarray::AutoArray<uint64_t> & brangesort = GDC.brangesort;
 						libmaus2::autoarray::AutoArray<uint64_t> & O = GDC.O;
 						libmaus2::autoarray::AutoArray<libmaus2::dazzler::align::OverlapHeader> & A = GDC.A;
+						libmaus2::autoarray::AutoArray<int64_t> & F = GDC.F;
 
 						uint64_t const nb = libmaus2::math::numbits(c-1);
 
@@ -243,6 +258,12 @@ namespace libmaus2
 							{
 								A[i].diffs = emapenc->fastDecode(*(IA.PBIB));
 							}
+						}
+
+						for ( uint64_t i = 0; i < c; ++i )
+						{
+							// flags
+							F[i] = fmapenc->fastDecode(*(IA.PBIB));
 						}
 
 						for ( uint64_t j = 0; j < c; ++j )
