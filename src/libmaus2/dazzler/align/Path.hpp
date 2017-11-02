@@ -43,9 +43,29 @@ namespace libmaus2
 				int32_t aepos;
 				int32_t bepos;
 
+				static unsigned int binshift()
+				{
+					return 8;
+				}
+
+				static void binreduce(int64_t & rl, int64_t & abpos, int64_t & aepos)
+				{
+					for ( unsigned int i = 0; i < binshift(); ++i )
+					{
+						rl    = (rl   +1)>>1;
+						abpos = (abpos+0)>>1;
+						aepos = (aepos+1)>>1;
+					}
+				}
+
 				static uint64_t getNumBins(int64_t rl)
 				{
 					assert ( rl );
+
+					int64_t abpos = 0;
+					int64_t aepos = 0;
+
+					binreduce(rl,abpos,aepos);
 
 					uint64_t n = 0;
 					while ( rl > 1 )
@@ -66,6 +86,8 @@ namespace libmaus2
 
 					assert ( abpos <= aepos );
 					assert ( aepos <= rl );
+
+					binreduce(rl,abpos,aepos);
 
 					if ( rl )
 					{
@@ -94,6 +116,12 @@ namespace libmaus2
 
 				static uint64_t getBin(int64_t rl, int64_t abpos, int64_t aepos)
 				{
+					assert ( rl );
+					assert ( abpos < aepos );
+					assert ( aepos <= rl );
+
+					binreduce(rl,abpos,aepos);
+
 					assert ( rl );
 					assert ( abpos < aepos );
 					assert ( aepos <= rl );
