@@ -34,7 +34,8 @@ namespace libmaus2
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 				std::string const fn;
-				libmaus2::dazzler::align::BinIndexDecoder const BID;
+				libmaus2::dazzler::align::BinIndexDecoder::unique_ptr_type const pBID;
+				libmaus2::dazzler::align::BinIndexDecoder const & BID;
 
 				uint64_t abpos;
 				uint64_t aepos;
@@ -45,10 +46,13 @@ namespace libmaus2
 				bool peekslotused;
 
 				LasRangeDecoder(std::string const & rfn)
-				: fn(rfn), BID(fn), abpos(0), aepos(0), PISI(), PAF(), peekslot(), peekslotused(false) {}
+				: fn(rfn), pBID(new libmaus2::dazzler::align::BinIndexDecoder(fn)), BID(*pBID), abpos(0), aepos(0), PISI(), PAF(), peekslot(), peekslotused(false) {}
 
 				LasRangeDecoder(std::string const & rfn, uint64_t const rl, uint64_t const rabpos, uint64_t const raepos)
-				: fn(rfn), BID(fn), abpos(0), aepos(0), PISI(), PAF(), peekslot(), peekslotused(false) { setup(rl,rabpos,raepos); }
+				: fn(rfn), pBID(new libmaus2::dazzler::align::BinIndexDecoder(fn)), BID(*pBID), abpos(0), aepos(0), PISI(), PAF(), peekslot(), peekslotused(false) { setup(rl,rabpos,raepos); }
+
+				LasRangeDecoder(std::string const & rfn, libmaus2::dazzler::align::BinIndexDecoder const & rBID)
+				: fn(rfn), pBID(), BID(rBID), abpos(0), aepos(0), PISI(), PAF(), peekslot(), peekslotused(false) {}
 
 				void setup(uint64_t const rl , uint64_t const rabpos, uint64_t const raepos)
 				{
@@ -123,7 +127,13 @@ namespace libmaus2
 					}
 					else
 					{
-						while ( PAF->getNextOverlap(*PISI,OVL) && OVL.path.abpos < static_cast<int64_t>(aepos) )
+						while (
+							PISI->peek() != std::istream::traits_type::eof()
+							&&
+							PAF->getNextOverlap(*PISI,OVL)
+							&&
+							OVL.path.abpos < static_cast<int64_t>(aepos)
+						)
 							if ( OVL.path.aepos >= static_cast<int64_t>(abpos) )
 								return true;
 
