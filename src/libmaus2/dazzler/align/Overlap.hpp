@@ -43,6 +43,26 @@ namespace libmaus2
 				int32_t aread;
 				int32_t bread;
 
+				static uint64_t getBinList(libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > & A, int64_t const rl, int64_t const abpos, int64_t const aepos)
+				{
+					return Path::getBinList(A,rl,abpos,aepos);
+				}
+
+				static uint64_t getBin(int64_t const rl, int64_t const abpos, int64_t const aepos)
+				{
+					return Path::getBin(rl,abpos,aepos);
+				}
+
+				uint64_t getBinList(libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > & A, int64_t const rl) const
+				{
+					return path.getBinList(A,rl);
+				}
+
+				uint64_t getBin(int64_t const rl) const
+				{
+					return path.getBin(rl);
+				}
+
 				OverlapHeader getHeader() const
 				{
 					OverlapHeader OH;
@@ -1948,6 +1968,22 @@ namespace libmaus2
 						return lhs.bread < rhs.bread;
 					else if ( lhs.aread != rhs.aread )
 						return lhs.aread < rhs.aread;
+					else
+						return false;
+				}
+
+			};
+
+			struct OverlapComparatorAIdAPos
+			{
+				bool operator()(Overlap const & lhs, Overlap const & rhs) const
+				{
+					if ( lhs.aread != rhs.aread )
+						return lhs.aread < rhs.aread;
+					else if ( lhs.path.abpos != rhs.path.abpos )
+						return lhs.path.abpos < rhs.path.abpos;
+					else if ( lhs.path.aepos != rhs.path.aepos )
+						return lhs.path.aepos > rhs.path.aepos;
 					else
 						return false;
 				}

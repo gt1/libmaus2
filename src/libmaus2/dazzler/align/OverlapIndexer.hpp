@@ -80,6 +80,20 @@ namespace libmaus2
 					}
 				}
 
+				static std::string getBinIndexName(std::string const & aligns)
+				{
+					std::string::size_type const p = aligns.find_last_of('/');
+
+					if ( p == std::string::npos )
+						return std::string(".") + aligns + std::string(".binidx");
+					else
+					{
+						std::string const prefix = aligns.substr(0,p);
+						std::string const suffix = aligns.substr(p+1);
+						return prefix + "/." + suffix + ".binidx";
+					}
+				}
+
 
 
 				static bool haveIndex(std::string const & aligns)
@@ -694,6 +708,163 @@ namespace libmaus2
 
 					libmaus2::aio::OutputStreamFactoryContainer::rename(indexfntmp,indexfn);
 					libmaus2::aio::OutputStreamFactoryContainer::rename(dalignerindexfntmp,dalignerindexfn);
+
+					return indexfn;
+				}
+
+				static std::string constructBinIndex(std::string const & aligns, std::vector<uint64_t> const & RL, std::ostream * verbstr = 0)
+				{
+					libmaus2::dazzler::align::OverlapComparatorAIdAPos comp;
+
+					std::string const indexfn = getBinIndexName(aligns);
+					std::string const indexfntmp = indexfn + libmaus2::util::ArgInfo::getDefaultTmpFileName(std::string()) + ".tmp";
+					libmaus2::util::TempFileRemovalContainer::addTempFile(indexfntmp);
+
+					libmaus2::aio::OutputStreamInstance::unique_ptr_type PindexOSI(new libmaus2::aio::OutputStreamInstance(indexfntmp));
+
+					// open alignment file
+					libmaus2::aio::InputStreamInstance algnfile(aligns);
+					libmaus2::dazzler::align::AlignmentFile algn(algnfile);
+					libmaus2::dazzler::align::Overlap OVL;
+
+					// current a-read id
+					libmaus2::dazzler::align::Overlap OVLprev;
+					bool haveprev = false;
+					// initialise to point to first record of alignment file
+					// (which is the end of the file if file is empty)
+					std::pair<bool,uint64_t> P(false,libmaus2::dazzler::align::AlignmentFile::getSerialisedHeaderSize());
+					uint64_t lp = 0;
+
+					libmaus2::autoarray::AutoArray<int64_t> B;
+					uint64_t nb = 0;
+
+					std::vector< std::pair<uint64_t,uint64_t> > O;
+
+					// get next overlap
+					while ( (P=OverlapIndexer::getOverlapAndOffset(algn,algnfile,OVL)).first )
+					{
+						if ( haveprev )
+						{
+							bool const ok = comp(OVLprev,OVL);
+
+							if ( !ok )
+							{
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "file " << aligns << " is not sorted" << std::endl
+									<< OVLprev << std::endl
+									<< OVL << std::endl
+									;
+								lme.finish();
+								throw lme;
+							}
+						}
+
+						if ( haveprev && (OVLprev.aread != OVL.aread) )
+						{
+							uint64_t nzbins = 0;
+
+							for ( uint64_t i = 0; i < nb; ++i )
+								if ( B[i] >= 0 )
+									nzbins += 1;
+
+							// start of ref seq
+							O.push_back(std::pair<uint64_t,uint64_t>(OVLprev.aread,PindexOSI->tellp()));
+
+							#if 0
+							if ( verbstr )
+								(*verbstr) << "O[" << O.size()-1 << "]={" << OVLprev.aread << "," << PindexOSI->tellp() << "}";
+							#endif
+
+							libmaus2::util::NumberSerialisation::serialiseNumber(*PindexOSI,OVLprev.aread);
+							libmaus2::util::NumberSerialisation::serialiseNumber(*PindexOSI,nzbins);
+
+							#if 0
+							if ( verbstr )
+								(*verbstr) << "refseq=" << OVLprev.aread << " nzbins=" << nzbins << std::endl;
+							#endif
+
+							for ( uint64_t i = 0; i < nb; ++i )
+								if ( B[i] >= 0 )
+								{
+									libmaus2::util::NumberSerialisation::serialiseNumber(*PindexOSI,i);
+									libmaus2::util::NumberSerialisation::serialiseNumber(*PindexOSI,B[i]);
+								}
+						}
+
+						if ( (!haveprev) || (OVLprev.aread != OVL.aread) )
+						{
+							nb = libmaus2::dazzler::align::Path::getNumBins(RL[OVL.aread]);
+							if ( B.size() < nb )
+							{
+								B = libmaus2::autoarray::AutoArray<int64_t>();
+								B = libmaus2::autoarray::AutoArray<int64_t>(nb,false);
+							}
+							std::fill(
+								B.begin(),
+								B.begin()+nb,
+								-1
+							);
+						}
+
+						if ( OVL.path.aepos > OVL.path.abpos )
+						{
+							uint64_t const bin = OVL.getBin(RL[OVL.aread]);
+							assert ( bin < nb );
+							B [ bin ] = P.second;
+						}
+
+						haveprev = true;
+						OVLprev = OVL;
+						lp += 1;
+
+						if ( verbstr && ((lp & (1024*1024-1)) == 0) )
+							(*verbstr) << "[V] " << static_cast<double>(lp)/algn.novl << std::endl;
+					}
+
+					if ( haveprev )
+					{
+						uint64_t nzbins = 0;
+
+						for ( uint64_t i = 0; i < nb; ++i )
+							if ( B[i] >= 0 )
+								nzbins += 1;
+
+						// start of ref seq
+						O.push_back(std::pair<uint64_t,uint64_t>(OVLprev.aread,PindexOSI->tellp()));
+
+						#if 0
+						if ( verbstr )
+							(*verbstr) << "O[" << O.size()-1 << "]={" << OVLprev.aread << "," << PindexOSI->tellp() << "}";
+						#endif
+
+						libmaus2::util::NumberSerialisation::serialiseNumber(*PindexOSI,OVLprev.aread);
+						libmaus2::util::NumberSerialisation::serialiseNumber(*PindexOSI,nzbins);
+
+						#if 0
+						if ( verbstr )
+							(*verbstr) << "refseq=" << OVLprev.aread << " nzbins=" << nzbins << std::endl;
+						#endif
+
+						for ( uint64_t i = 0; i < nb; ++i )
+							if ( B[i] >= 0 )
+							{
+								libmaus2::util::NumberSerialisation::serialiseNumber(*PindexOSI,i);
+								libmaus2::util::NumberSerialisation::serialiseNumber(*PindexOSI,B[i]);
+							}
+					}
+
+
+					for ( uint64_t i = 0; i < O.size(); ++i )
+					{
+						libmaus2::util::NumberSerialisation::serialiseNumber(*PindexOSI,O[i].first);
+						libmaus2::util::NumberSerialisation::serialiseNumber(*PindexOSI,O[i].second);
+					}
+
+					libmaus2::util::NumberSerialisation::serialiseNumber(*PindexOSI,O.size());
+					PindexOSI->flush();
+					PindexOSI.reset();
+
+					libmaus2::aio::OutputStreamFactoryContainer::rename(indexfntmp,indexfn);
 
 					return indexfn;
 				}
