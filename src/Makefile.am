@@ -330,7 +330,8 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/AlignmentFileCat.hpp \
 	libmaus2/dazzler/align/LasIntervals.hpp \
 	libmaus2/dazzler/align/BinIndexDecoder.hpp \
-	libmaus2/dazzler/align/LasRangeDecoder.hpp
+	libmaus2/dazzler/align/LasRangeDecoder.hpp \
+	libmaus2/dazzler/align/OverlapDataInterface.hpp
 
 libmaus2dazzlerstringgraph_includedir=$(includedir)/libmaus2/dazzler/stringgraph
 libmaus2dazzlerstringgraph_include_HEADERS = libmaus2/dazzler/stringgraph/Edge.hpp \
