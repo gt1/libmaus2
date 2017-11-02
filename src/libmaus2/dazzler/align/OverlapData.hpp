@@ -21,6 +21,7 @@
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/util/LELoad.hpp>
 #include <libmaus2/dazzler/align/Overlap.hpp>
+#include <libmaus2/dazzler/align/AlignmentFile.hpp>
 
 namespace libmaus2
 {
