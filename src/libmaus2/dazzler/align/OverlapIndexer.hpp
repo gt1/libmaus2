@@ -770,17 +770,18 @@ namespace libmaus2
 							// start of ref seq
 							O.push_back(std::pair<uint64_t,uint64_t>(OVLprev.aread,PindexOSI->tellp()));
 
+							#if 0
 							if ( verbstr )
 								(*verbstr) << "O[" << O.size()-1 << "]={" << OVLprev.aread << "," << PindexOSI->tellp() << "}";
+							#endif
 
 							libmaus2::util::NumberSerialisation::serialiseNumber(*PindexOSI,OVLprev.aread);
 							libmaus2::util::NumberSerialisation::serialiseNumber(*PindexOSI,nzbins);
 
+							#if 0
 							if ( verbstr )
-							{
 								(*verbstr) << "refseq=" << OVLprev.aread << " nzbins=" << nzbins << std::endl;
-							}
-
+							#endif
 
 							for ( uint64_t i = 0; i < nb; ++i )
 								if ( B[i] >= 0 )
@@ -817,9 +818,7 @@ namespace libmaus2
 						lp += 1;
 
 						if ( verbstr && ((lp & (1024*1024-1)) == 0) )
-						{
 							(*verbstr) << "[V] " << static_cast<double>(lp)/algn.novl << std::endl;
-						}
 					}
 
 					if ( haveprev )
@@ -833,17 +832,18 @@ namespace libmaus2
 						// start of ref seq
 						O.push_back(std::pair<uint64_t,uint64_t>(OVLprev.aread,PindexOSI->tellp()));
 
+						#if 0
 						if ( verbstr )
 							(*verbstr) << "O[" << O.size()-1 << "]={" << OVLprev.aread << "," << PindexOSI->tellp() << "}";
+						#endif
 
 						libmaus2::util::NumberSerialisation::serialiseNumber(*PindexOSI,OVLprev.aread);
 						libmaus2::util::NumberSerialisation::serialiseNumber(*PindexOSI,nzbins);
 
+						#if 0
 						if ( verbstr )
-						{
 							(*verbstr) << "refseq=" << OVLprev.aread << " nzbins=" << nzbins << std::endl;
-						}
-
+						#endif
 
 						for ( uint64_t i = 0; i < nb; ++i )
 							if ( B[i] >= 0 )
