@@ -49,10 +49,7 @@ namespace libmaus2
 					std::pair<it,it> const P = std::equal_range(T.begin(),T.end(),std::pair<uint64_t,uint64_t>(id,0),PairFirstComparator());
 
 					if ( P.second == P.first )
-					{
-						std::cerr << "[V] refseq " << id << " not contained in index" << std::endl;
 						return 0;
-					}
 
 					assert ( P.second-P.first == 1 );
 
@@ -111,8 +108,6 @@ namespace libmaus2
 						uint64_t const a = libmaus2::util::NumberSerialisation::deserialiseNumber(ISI);
 						uint64_t const b = libmaus2::util::NumberSerialisation::deserialiseNumber(ISI);
 						V.push_back(std::pair<uint64_t,uint64_t>(a,b));
-
-						std::cerr << "[V bindec] refseq=" << a << " offset=" << b << std::endl;
 					}
 
 					return V;
