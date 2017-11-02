@@ -1322,7 +1322,7 @@ namespace libmaus2
 					int64_t const abpos,
 					int64_t const aepos,
 					int64_t const bbpos,
-					int64_t const bepos,
+					int64_t const /* bepos */,
 					int64_t const a,
 					path_type const path,
 					uint64_t const pathsize

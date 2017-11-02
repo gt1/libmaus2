@@ -268,7 +268,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/util/Command.cpp \
 	libmaus2/util/CommandContainer.cpp \
 	libmaus2/aio/InputOutputStreamInstance.cpp \
-	libmaus2/dazzler/align/OverlapInfo.cpp
+	libmaus2/dazzler/align/OverlapInfo.cpp \
+	libmaus2/dazzler/align/OverlapDataInterface.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -330,7 +331,8 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/AlignmentFileCat.hpp \
 	libmaus2/dazzler/align/LasIntervals.hpp \
 	libmaus2/dazzler/align/BinIndexDecoder.hpp \
-	libmaus2/dazzler/align/LasRangeDecoder.hpp
+	libmaus2/dazzler/align/LasRangeDecoder.hpp \
+	libmaus2/dazzler/align/OverlapDataInterface.hpp
 
 libmaus2dazzlerstringgraph_includedir=$(includedir)/libmaus2/dazzler/stringgraph
 libmaus2dazzlerstringgraph_include_HEADERS = libmaus2/dazzler/stringgraph/Edge.hpp \
