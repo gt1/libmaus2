@@ -45,7 +45,12 @@ namespace libmaus2
 				int64_t isInverse() const  { return OverlapData::getInverseFlag(p); }
 				uint64_t decodeTraceVector(libmaus2::autoarray::AutoArray<std::pair<uint16_t,uint16_t> > & A, int64_t const tspace)
 				{ return OverlapData::decodeTraceVector(p,A,libmaus2::dazzler::align::AlignmentFile::tspaceToSmall(tspace)); }
+                                double getErrorRate() const
+                                { return (aepos() > abpos()) ? (static_cast<double>(diffs()) / static_cast<double>(aepos()-abpos())) : 0.0; }
+
 			};
+
+			std::ostream & operator<<(std::ostream & out, OverlapDataInterface const & O);
 		}
 	}
 }

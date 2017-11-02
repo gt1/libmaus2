@@ -268,7 +268,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/util/Command.cpp \
 	libmaus2/util/CommandContainer.cpp \
 	libmaus2/aio/InputOutputStreamInstance.cpp \
-	libmaus2/dazzler/align/OverlapInfo.cpp
+	libmaus2/dazzler/align/OverlapInfo.cpp \
+	libmaus2/dazzler/align/OverlapDataInterface.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
