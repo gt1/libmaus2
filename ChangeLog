@@ -1,3 +1,9 @@
+libmaus2 (2.0.408-1) unstable; urgency=medium
+
+  * fix EOF issue with LasRangeDecoder and allow pass through of index decoder
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 02 Nov 2017 22:19:07 +0100
+
 libmaus2 (2.0.407-1) unstable; urgency=medium
 
   * add missing include directive in OverlapData
