@@ -211,6 +211,12 @@ namespace libmaus2
 					return P;
 				}
 
+				bool checkBSpan() const
+				{
+					return
+						(bepos-bbpos) == static_cast<int64_t>(getBSpan());
+				}
+
 				bool isEmpty() const
 				{
 					return abpos == aepos;
@@ -389,6 +395,17 @@ namespace libmaus2
 					{
 						for ( uint64_t i = 0; i < path.size(); ++i )
 						{
+							if (
+								path[i].first > std::numeric_limits<int8_t>::max()
+								||
+								path[i].second > std::numeric_limits<int8_t>::max()
+							)
+							{
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "Path::serialisePath: path element too large for tspace setting" << std::endl;
+								lme.finish();
+								throw lme;
+							}
 							out.put(path[i].first);
 							if ( ! out )
 							{
