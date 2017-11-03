@@ -1,3 +1,10 @@
+libmaus2 (2.0.410-1) unstable; urgency=medium
+
+  * improve error message in bounds checking of Path
+  * fix order check in bin indexing of OverlapIndexer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 03 Nov 2017 15:29:58 +0100
+
 libmaus2 (2.0.409-1) unstable; urgency=medium
 
   * add checkBSpan method in Overlap

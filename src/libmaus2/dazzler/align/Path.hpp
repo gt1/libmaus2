@@ -396,13 +396,13 @@ namespace libmaus2
 						for ( uint64_t i = 0; i < path.size(); ++i )
 						{
 							if (
-								path[i].first > std::numeric_limits<int8_t>::max()
+								static_cast<int64_t>(path[i].first)  > static_cast<int64_t>(std::numeric_limits<int8_t>::max())
 								||
-								path[i].second > std::numeric_limits<int8_t>::max()
+								static_cast<int64_t>(path[i].second) > static_cast<int64_t>(std::numeric_limits<int8_t>::max())
 							)
 							{
 								libmaus2::exception::LibMausException lme;
-								lme.getStream() << "Path::serialisePath: path element too large for tspace setting" << std::endl;
+								lme.getStream() << "Path::serialisePath: path element (" << path[i].first << "," << path[i].second << ") is too large for small=" << small << std::endl;
 								lme.finish();
 								throw lme;
 							}
