@@ -43,6 +43,11 @@ namespace libmaus2
 				int32_t aread;
 				int32_t bread;
 
+				bool checkBSpan() const
+				{
+					return path.checkBSpan();
+				}
+
 				static uint64_t getBinList(libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > & A, int64_t const rl, int64_t const abpos, int64_t const aepos)
 				{
 					return Path::getBinList(A,rl,abpos,aepos);
