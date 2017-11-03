@@ -745,7 +745,7 @@ namespace libmaus2
 					{
 						if ( haveprev )
 						{
-							bool const ok = comp(OVLprev,OVL);
+							bool const ok = !comp(OVL,OVLprev);
 
 							if ( !ok )
 							{
