@@ -48,13 +48,13 @@ namespace libmaus2
 				LasRangeDecoder(std::string const & rfn)
 				: fn(rfn), pBID(new libmaus2::dazzler::align::BinIndexDecoder(fn)), BID(*pBID), abpos(0), aepos(0), PISI(), PAF(), peekslot(), peekslotused(false) {}
 
-				LasRangeDecoder(std::string const & rfn, uint64_t const rl, uint64_t const rabpos, uint64_t const raepos)
-				: fn(rfn), pBID(new libmaus2::dazzler::align::BinIndexDecoder(fn)), BID(*pBID), abpos(0), aepos(0), PISI(), PAF(), peekslot(), peekslotused(false) { setup(rl,rabpos,raepos); }
+				LasRangeDecoder(std::string const & rfn, uint64_t const aid, uint64_t const rl, uint64_t const rabpos, uint64_t const raepos)
+				: fn(rfn), pBID(new libmaus2::dazzler::align::BinIndexDecoder(fn)), BID(*pBID), abpos(0), aepos(0), PISI(), PAF(), peekslot(), peekslotused(false) { setup(aid,rl,rabpos,raepos); }
 
 				LasRangeDecoder(std::string const & rfn, libmaus2::dazzler::align::BinIndexDecoder const & rBID)
 				: fn(rfn), pBID(), BID(rBID), abpos(0), aepos(0), PISI(), PAF(), peekslot(), peekslotused(false) {}
 
-				void setup(uint64_t const rl , uint64_t const rabpos, uint64_t const raepos)
+				void setup(uint64_t const aid, uint64_t const rl , uint64_t const rabpos, uint64_t const raepos)
 				{
 					peekslotused = false;
 					abpos = rabpos;
@@ -76,7 +76,7 @@ namespace libmaus2
 					PAF = UNIQUE_PTR_MOVE(TAF);
 
 					uint64_t const o = libmaus2::dazzler::align::Path::getBinList(A,rl,abpos,aepos);
-					uint64_t const n = BID.decodeBinList(0,B);
+					uint64_t const n = BID.decodeBinList(aid,B);
 
 					ISI.clear();
 					uint64_t minp = libmaus2::util::GetFileSize::getFileSize(ISI);
