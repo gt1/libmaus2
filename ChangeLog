@@ -1,3 +1,10 @@
+libmaus2 (2.0.412-1) unstable; urgency=medium
+
+  * add NNPCorL class
+  * add alignForward/reset methods in NNPCor class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 07 Nov 2017 16:35:39 +0100
+
 libmaus2 (2.0.411-1) unstable; urgency=medium
 
   * add missing aid/aread parameter in LasRangeDecoder
