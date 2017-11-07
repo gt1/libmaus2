@@ -142,6 +142,14 @@ namespace libmaus2
 			{
 			}
 
+			void reset()
+			{
+				Acontrol = libmaus2::autoarray::AutoArray<DiagElement,libmaus2::autoarray::alloc_type_c>(1);
+				control = Acontrol.begin();
+				Ancontrol = libmaus2::autoarray::AutoArray<DiagElement,libmaus2::autoarray::alloc_type_c>(1);
+				ncontrol = Ancontrol.begin();
+			}
+
 			template<typename iterator, bool uniquetermval>
 			static uint64_t slide(iterator a, iterator ae, iterator b, iterator be)
 			{
@@ -276,6 +284,95 @@ namespace libmaus2
 				return std::numeric_limits<int64_t>::max();
 			}
 
+
+			template<typename iterator>
+			std::pair<uint64_t,uint64_t> alignForward(
+				iterator ab,
+				iterator ae,
+				iterator bb,
+				iterator be,
+				NNPTraceContainer & tracecontainer,
+				bool const self = false,
+				bool const uniquetermval = false,
+				int64_t const minband = getDefaultMinDiag(),
+				int64_t const maxband = getDefaultMaxDiag()
+			)
+			{
+				tracecontainer.reset();
+
+				if ( self )
+				{
+					static bool const t_self = true;
+
+					if ( uniquetermval )
+					{
+						static bool const t_uniquetermval = true;
+
+						alignTemplate<iterator,true /* forward */,t_self,t_uniquetermval>(
+							ab,ae,bb,be,tracecontainer,
+							minband,maxband
+						);
+					}
+					else
+					{
+						static bool const t_uniquetermval = false;
+
+						alignTemplate<iterator,true /* forward */,t_self,t_uniquetermval>(
+							ab,ae,bb,be,tracecontainer,
+							minband,maxband
+						);
+					}
+				}
+				else
+				{
+					static bool const t_self = false;
+
+					if ( uniquetermval )
+					{
+						static bool const t_uniquetermval = true;
+
+						alignTemplate<iterator,true /* forward */,t_self,t_uniquetermval>(
+							ab,ae,bb,be,tracecontainer,
+							minband,maxband
+						);
+					}
+					else
+					{
+						static bool const t_uniquetermval = false;
+
+						alignTemplate<iterator,true /* forward */,t_self,t_uniquetermval>(
+							ab,ae,bb,be,tracecontainer,
+							minband,maxband
+						);
+					}
+				}
+
+				if ( runsuffixpositive )
+					tracecontainer.suffixPositive();
+
+				std::pair<uint64_t,uint64_t> const SL = tracecontainer.getStringLengthUsed();
+
+				return SL;
+			}
+
+			template<typename iterator>
+			std::pair<uint64_t,uint64_t> alignForward(
+				iterator ab,
+				iterator ae,
+				iterator bb,
+				iterator be,
+				NNPTraceContainer & tracecontainer,
+				libmaus2::lcs::AlignmentTraceContainer & ATC,
+				bool const self = false,
+				bool const uniquetermval = false,
+				int64_t const minband = getDefaultMinDiag(),
+				int64_t const maxband = getDefaultMaxDiag()
+			)
+			{
+				std::pair<uint64_t,uint64_t> const SL = alignForward(ab,ae,bb,be,tracecontainer,self,uniquetermval,minband,maxband);
+				tracecontainer.computeTrace(ATC);
+				return SL;
+			}
 
 			template<typename iterator, bool forward, bool self, bool uniquetermval>
 			void alignTemplate(
