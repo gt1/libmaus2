@@ -1,3 +1,9 @@
+libmaus2 (2.0.413-1) unstable; urgency=medium
+
+  * add modifyEquidist function DNABaseNoiseSpiker
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 08 Nov 2017 11:12:04 +0100
+
 libmaus2 (2.0.412-1) unstable; urgency=medium
 
   * add NNPCorL class
