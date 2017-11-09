@@ -1,3 +1,10 @@
+libmaus2 (2.0.415-1) unstable; urgency=medium
+
+  * add checks in Overlap class and avoid code duplication
+  * add getErrorSum in Path class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 09 Nov 2017 17:40:49 +0100
+
 libmaus2 (2.0.414-1) unstable; urgency=medium
 
   * add canonical method in IndexBase class
