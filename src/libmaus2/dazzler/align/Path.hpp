@@ -230,6 +230,14 @@ namespace libmaus2
 					return b;
 				}
 
+				uint64_t getErrorSum() const
+				{
+					uint64_t b = 0;
+					for ( uint64_t i = 0; i < path.size(); ++i )
+						b += path[i].first;
+					return b;
+				}
+
 				template<typename iterator>
 				uint64_t filterIntervals(
 					iterator a,

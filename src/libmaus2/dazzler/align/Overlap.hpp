@@ -357,9 +357,13 @@ namespace libmaus2
 
 					while ( a_i < aepos )
 					{
+						assert ( a_i % tspace == 0 );
+
 						int64_t a_c = std::max(abpos,a_i);
 						// block end point on A
 						int64_t const a_i_1 = std::min ( static_cast<int64_t>(a_i + tspace), static_cast<int64_t>(path.aepos) );
+
+						assert ( (a_i_1 == aepos) || (a_i_1%tspace == 0) );
 
 						int64_t bforw = 0;
 						int64_t err = 0;
@@ -389,6 +393,8 @@ namespace libmaus2
 									break;
 							}
 						}
+
+						assert ( a_c == a_i_1 );
 
 						// consume rest of operations if we reached end of alignment on A read
 						while ( a_c == static_cast<int64_t>(path.aepos) && tc != ATC.te )
@@ -423,6 +429,10 @@ namespace libmaus2
 
 						a_i = a_i_1;
 					}
+
+					assert ( tc == ATC.te );
+					assert ( a_i == aepos );
+					assert ( bsum == bepos-bbpos );
 
 					path.tlen = path.path.size() << 1;
 
@@ -505,20 +515,37 @@ namespace libmaus2
 
 					for ( size_t i = 0; i < pathlen; ++i )
 					{
-						// block end point on A
-						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(aepos) );
+						// block start on A
+						int32_t const a_i_0 = std::max(a_i,abpos);
+						// block end on A
+						int32_t const a_i_1 = std::min(static_cast<int64_t>(a_i+tspace),static_cast<int64_t>(aepos));
+
 						// block end point on B
 						int32_t const b_i_1 = b_i + path[i].second;
 
 						// block on A
-						uint8_t const * asubsub_b = aptr + std::max(a_i,abpos);
-						uint8_t const * asubsub_e = asubsub_b + a_i_1-std::max(a_i,abpos);
+						uint8_t const * asubsub_b = aptr + a_i_0;
+						uint8_t const * asubsub_e = aptr + a_i_1;
 
 						// block on B
 						uint8_t const * bsubsub_b = bptr + b_i;
-						uint8_t const * bsubsub_e = bsubsub_b + (b_i_1-b_i);
+						uint8_t const * bsubsub_e = bptr + b_i_1;
 
 						aligner.align(asubsub_b,(asubsub_e-asubsub_b),bsubsub_b,bsubsub_e-bsubsub_b);
+
+						#if 0
+						std::cerr
+							<< " [" << a_i_0 << "," << a_i_1 << ") "
+							<< "[" << b_i << "," << b_i_1 << ") "
+							<< "e=" << static_cast<int64_t>(aligner.getTraceContainer().getNumErrors()) << " expected " << static_cast<int64_t>(path[i].first) << std::endl;
+						#endif
+
+						assert (
+							static_cast<int64_t>(aligner.getTraceContainer().getNumErrors())
+							<=
+							static_cast<int64_t>(path[i].first)
+						);
+
 
 						// add trace to full alignment
 						ATC.push(aligner.getTraceContainer());
@@ -527,6 +554,8 @@ namespace libmaus2
 						b_i = b_i_1;
 						a_i = a_i_1;
 					}
+
+					assert ( a_i == aepos );
 				}
 
 				template<typename path_iterator>
@@ -775,40 +804,16 @@ namespace libmaus2
 					libmaus2::lcs::Aligner & aligner
 				)
 				{
-					// current point on A
-					int32_t a_i = ( path.abpos / tspace ) * tspace;
-					// current point on B
-					int32_t b_i = ( path.bbpos );
-
-					// reset trace container
-					if ( static_cast<int64_t>(ATC.capacity()) < (path.aepos-path.abpos)+path.diffs )
-						ATC.resize((path.aepos-path.abpos)+path.diffs);
-					ATC.reset();
-
-					for ( size_t i = 0; i < path.path.size(); ++i )
-					{
-						// block end point on A
-						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(path.aepos) );
-						// block end point on B
-						int32_t const b_i_1 = b_i + path.path[i].second;
-
-						// block on A
-						uint8_t const * asubsub_b = aptr + std::max(a_i,path.abpos);
-						uint8_t const * asubsub_e = asubsub_b + a_i_1-std::max(a_i,path.abpos);
-
-						// block on B
-						uint8_t const * bsubsub_b = bptr + b_i;
-						uint8_t const * bsubsub_e = bsubsub_b + (b_i_1-b_i);
-
-						aligner.align(asubsub_b,(asubsub_e-asubsub_b),bsubsub_b,bsubsub_e-bsubsub_b);
-
-						// add trace to full alignment
-						ATC.push(aligner.getTraceContainer());
-
-						// update start points
-						b_i = b_i_1;
-						a_i = a_i_1;
-					}
+					computeTrace(path.path.begin(),path.path.size(),
+						path.abpos,
+						path.aepos,
+						path.bbpos,
+						path.bepos,
+						aptr,bptr,
+						tspace,
+						ATC,
+						aligner
+					);
 				}
 
 				static void computeTrace(
@@ -1889,6 +1894,11 @@ namespace libmaus2
 								H [ numblocks - i - 1 ] += 1;
 						}
 					}
+				}
+
+				uint64_t getErrorSum() const
+				{
+					return path.getErrorSum();
 				}
 			};
 
