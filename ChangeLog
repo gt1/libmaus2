@@ -1,3 +1,10 @@
+libmaus2 (2.0.414-1) unstable; urgency=medium
+
+  * add canonical method in IndexBase class
+  * add canonical method in Read class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 09 Nov 2017 14:35:27 +0100
+
 libmaus2 (2.0.413-1) unstable; urgency=medium
 
   * add modifyEquidist function DNABaseNoiseSpiker
