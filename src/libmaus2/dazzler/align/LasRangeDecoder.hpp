@@ -39,6 +39,7 @@ namespace libmaus2
 
 				uint64_t abpos;
 				uint64_t aepos;
+				int64_t aid;
 				libmaus2::aio::InputStreamInstance::unique_ptr_type PISI;
 				libmaus2::dazzler::align::AlignmentFile::unique_ptr_type PAF;
 
@@ -46,19 +47,20 @@ namespace libmaus2
 				bool peekslotused;
 
 				LasRangeDecoder(std::string const & rfn)
-				: fn(rfn), pBID(new libmaus2::dazzler::align::BinIndexDecoder(fn)), BID(*pBID), abpos(0), aepos(0), PISI(), PAF(), peekslot(), peekslotused(false) {}
+				: fn(rfn), pBID(new libmaus2::dazzler::align::BinIndexDecoder(fn)), BID(*pBID), abpos(0), aepos(0), aid(-1), PISI(), PAF(), peekslot(), peekslotused(false) {}
 
-				LasRangeDecoder(std::string const & rfn, uint64_t const aid, uint64_t const rl, uint64_t const rabpos, uint64_t const raepos)
-				: fn(rfn), pBID(new libmaus2::dazzler::align::BinIndexDecoder(fn)), BID(*pBID), abpos(0), aepos(0), PISI(), PAF(), peekslot(), peekslotused(false) { setup(aid,rl,rabpos,raepos); }
+				LasRangeDecoder(std::string const & rfn, uint64_t const raid, uint64_t const rl, uint64_t const rabpos, uint64_t const raepos)
+				: fn(rfn), pBID(new libmaus2::dazzler::align::BinIndexDecoder(fn)), BID(*pBID), abpos(0), aepos(0), aid(raid), PISI(), PAF(), peekslot(), peekslotused(false) { setup(aid,rl,rabpos,raepos); }
 
 				LasRangeDecoder(std::string const & rfn, libmaus2::dazzler::align::BinIndexDecoder const & rBID)
-				: fn(rfn), pBID(), BID(rBID), abpos(0), aepos(0), PISI(), PAF(), peekslot(), peekslotused(false) {}
+				: fn(rfn), pBID(), BID(rBID), abpos(0), aepos(0), aid(-1), PISI(), PAF(), peekslot(), peekslotused(false) {}
 
-				void setup(uint64_t const aid, uint64_t const rl , uint64_t const rabpos, uint64_t const raepos)
+				void setup(uint64_t const raid, uint64_t const rl , uint64_t const rabpos, uint64_t const raepos)
 				{
 					peekslotused = false;
 					abpos = rabpos;
 					aepos = raepos;
+					aid = raid;
 
 					libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > A;
 					libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > B;
@@ -131,6 +133,8 @@ namespace libmaus2
 							PISI->peek() != std::istream::traits_type::eof()
 							&&
 							PAF->getNextOverlap(*PISI,OVL)
+							&&
+							OVL.aread == aid
 							&&
 							OVL.path.abpos < static_cast<int64_t>(aepos)
 						)

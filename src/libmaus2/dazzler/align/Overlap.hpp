@@ -534,17 +534,24 @@ namespace libmaus2
 						aligner.align(asubsub_b,(asubsub_e-asubsub_b),bsubsub_b,bsubsub_e-bsubsub_b);
 
 						#if 0
-						std::cerr
-							<< " [" << a_i_0 << "," << a_i_1 << ") "
-							<< "[" << b_i << "," << b_i_1 << ") "
-							<< "e=" << static_cast<int64_t>(aligner.getTraceContainer().getNumErrors()) << " expected " << static_cast<int64_t>(path[i].first) << std::endl;
 						#endif
 
-						assert (
+						bool const ok = (
 							static_cast<int64_t>(aligner.getTraceContainer().getNumErrors())
 							<=
 							static_cast<int64_t>(path[i].first)
 						);
+
+						if ( ! ok )
+						{
+							libmaus2::exception::LibMausException lme;
+							lme.getStream()
+									<< " [" << a_i_0 << "," << a_i_1 << ") "
+									<< "[" << b_i << "," << b_i_1 << ") "
+									<< "e=" << static_cast<int64_t>(aligner.getTraceContainer().getNumErrors()) << " expected " << static_cast<int64_t>(path[i].first) << std::endl;
+							lme.finish();
+							throw lme;
+						}
 
 
 						// add trace to full alignment
@@ -866,7 +873,19 @@ namespace libmaus2
 					libmaus2::lcs::Aligner & aligner
 				) const
 				{
-					computeTrace(path,aptr,bptr,tspace,ATC,aligner);
+					try
+					{
+						computeTrace(path,aptr,bptr,tspace,ATC,aligner);
+					}
+					catch(std::exception const & ex)
+					{
+						std::string const what = ex.what();
+
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "[E] aread=" << aread << " bread=" << bread << ": " << what;
+						lme.finish();
+						throw lme;
+					}
 				}
 
 				/**
