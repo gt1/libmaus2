@@ -70,6 +70,32 @@ namespace libmaus2
 					deserialise(in);
 				}
 
+				static IndexBase canonical(
+					int32_t const nreads,
+					int32_t const maxlen,
+					int32_t const totlen
+				)
+				{
+					IndexBase IB;
+
+					IB.ureads = nreads;
+					IB.treads = nreads;
+					IB.cutoff = 0;
+					IB.all = 0;
+					IB.freq[0] = IB.freq[1] = IB.freq[2] = IB.freq[3] = 0.25;
+					IB.maxlen = maxlen;
+					IB.totlen = totlen;
+					IB.trimmed = 1;
+
+					IB.part = 0;
+					IB.ufirst = 0;
+					IB.tfirst = 0;
+					IB.path = std::string();
+					IB.loaded = false;
+
+					return IB;
+				}
+
 				uint64_t serialise(std::ostream & out) const
 				{
 					uint64_t offset = 0;

@@ -45,6 +45,18 @@ namespace libmaus2
 				int64_t coff;
 				int32_t flags;
 
+				static Read canonical(int32_t const id, int32_t const len, int64_t const boff)
+				{
+					Read R;
+					R.origin = id;
+					R.rlen = len;
+					R.fpulse = 0;
+					R.boff = boff;
+					R.coff = -1;
+					R.flags = DB_BEST;
+					return R;
+				}
+
 				static size_t computeSerialisedSize()
 				{
 					GetByteCounter GBC;
