@@ -1,3 +1,10 @@
+libmaus2 (2.0.416-1) unstable; urgency=medium
+
+  * turn failed assertion into exception in Overlap::computeTrace
+  * add check for correct aid in LasRangeDecoder
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 09 Nov 2017 20:05:40 +0100
+
 libmaus2 (2.0.415-1) unstable; urgency=medium
 
   * add checks in Overlap class and avoid code duplication
