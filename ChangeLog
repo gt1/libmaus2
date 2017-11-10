@@ -1,3 +1,9 @@
+libmaus2 (2.0.417-1) unstable; urgency=medium
+
+  * add DB_ADAPTER_BEFORE and DB_ADAPTER_AFTER flags in Read class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 10 Nov 2017 13:36:56 +0100
+
 libmaus2 (2.0.416-1) unstable; urgency=medium
 
   * turn failed assertion into exception in Overlap::computeTrace
