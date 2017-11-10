@@ -36,6 +36,8 @@ namespace libmaus2
 				static int32_t const DB_QV = 0x3ff;
 				static int32_t const DB_CSS = 0x400;
 				static int32_t const DB_BEST = 0x800;
+				static int32_t const DB_ADAPTER_BEFORE = 0x1000;
+				static int32_t const DB_ADAPTER_AFTER = 0x2000;
 				static size_t const serialisedSize;
 
 				int32_t origin;
