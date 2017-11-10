@@ -43,6 +43,31 @@ namespace libmaus2
 				int32_t aread;
 				int32_t bread;
 
+				bool checkBSpan() const
+				{
+					return path.checkBSpan();
+				}
+
+				static uint64_t getBinList(libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > & A, int64_t const rl, int64_t const abpos, int64_t const aepos)
+				{
+					return Path::getBinList(A,rl,abpos,aepos);
+				}
+
+				static uint64_t getBin(int64_t const rl, int64_t const abpos, int64_t const aepos)
+				{
+					return Path::getBin(rl,abpos,aepos);
+				}
+
+				uint64_t getBinList(libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > & A, int64_t const rl) const
+				{
+					return path.getBinList(A,rl);
+				}
+
+				uint64_t getBin(int64_t const rl) const
+				{
+					return path.getBin(rl);
+				}
+
 				OverlapHeader getHeader() const
 				{
 					OverlapHeader OH;
@@ -332,9 +357,13 @@ namespace libmaus2
 
 					while ( a_i < aepos )
 					{
+						assert ( a_i % tspace == 0 );
+
 						int64_t a_c = std::max(abpos,a_i);
 						// block end point on A
 						int64_t const a_i_1 = std::min ( static_cast<int64_t>(a_i + tspace), static_cast<int64_t>(path.aepos) );
+
+						assert ( (a_i_1 == aepos) || (a_i_1%tspace == 0) );
 
 						int64_t bforw = 0;
 						int64_t err = 0;
@@ -364,6 +393,8 @@ namespace libmaus2
 									break;
 							}
 						}
+
+						assert ( a_c == a_i_1 );
 
 						// consume rest of operations if we reached end of alignment on A read
 						while ( a_c == static_cast<int64_t>(path.aepos) && tc != ATC.te )
@@ -398,6 +429,10 @@ namespace libmaus2
 
 						a_i = a_i_1;
 					}
+
+					assert ( tc == ATC.te );
+					assert ( a_i == aepos );
+					assert ( bsum == bepos-bbpos );
 
 					path.tlen = path.path.size() << 1;
 
@@ -480,20 +515,44 @@ namespace libmaus2
 
 					for ( size_t i = 0; i < pathlen; ++i )
 					{
-						// block end point on A
-						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(aepos) );
+						// block start on A
+						int32_t const a_i_0 = std::max(a_i,abpos);
+						// block end on A
+						int32_t const a_i_1 = std::min(static_cast<int64_t>(a_i+tspace),static_cast<int64_t>(aepos));
+
 						// block end point on B
 						int32_t const b_i_1 = b_i + path[i].second;
 
 						// block on A
-						uint8_t const * asubsub_b = aptr + std::max(a_i,abpos);
-						uint8_t const * asubsub_e = asubsub_b + a_i_1-std::max(a_i,abpos);
+						uint8_t const * asubsub_b = aptr + a_i_0;
+						uint8_t const * asubsub_e = aptr + a_i_1;
 
 						// block on B
 						uint8_t const * bsubsub_b = bptr + b_i;
-						uint8_t const * bsubsub_e = bsubsub_b + (b_i_1-b_i);
+						uint8_t const * bsubsub_e = bptr + b_i_1;
 
 						aligner.align(asubsub_b,(asubsub_e-asubsub_b),bsubsub_b,bsubsub_e-bsubsub_b);
+
+						#if 0
+						#endif
+
+						bool const ok = (
+							static_cast<int64_t>(aligner.getTraceContainer().getNumErrors())
+							<=
+							static_cast<int64_t>(path[i].first)
+						);
+
+						if ( ! ok )
+						{
+							libmaus2::exception::LibMausException lme;
+							lme.getStream()
+									<< " [" << a_i_0 << "," << a_i_1 << ") "
+									<< "[" << b_i << "," << b_i_1 << ") "
+									<< "e=" << static_cast<int64_t>(aligner.getTraceContainer().getNumErrors()) << " expected " << static_cast<int64_t>(path[i].first) << std::endl;
+							lme.finish();
+							throw lme;
+						}
+
 
 						// add trace to full alignment
 						ATC.push(aligner.getTraceContainer());
@@ -502,6 +561,8 @@ namespace libmaus2
 						b_i = b_i_1;
 						a_i = a_i_1;
 					}
+
+					assert ( a_i == aepos );
 				}
 
 				template<typename path_iterator>
@@ -750,40 +811,16 @@ namespace libmaus2
 					libmaus2::lcs::Aligner & aligner
 				)
 				{
-					// current point on A
-					int32_t a_i = ( path.abpos / tspace ) * tspace;
-					// current point on B
-					int32_t b_i = ( path.bbpos );
-
-					// reset trace container
-					if ( static_cast<int64_t>(ATC.capacity()) < (path.aepos-path.abpos)+path.diffs )
-						ATC.resize((path.aepos-path.abpos)+path.diffs);
-					ATC.reset();
-
-					for ( size_t i = 0; i < path.path.size(); ++i )
-					{
-						// block end point on A
-						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(path.aepos) );
-						// block end point on B
-						int32_t const b_i_1 = b_i + path.path[i].second;
-
-						// block on A
-						uint8_t const * asubsub_b = aptr + std::max(a_i,path.abpos);
-						uint8_t const * asubsub_e = asubsub_b + a_i_1-std::max(a_i,path.abpos);
-
-						// block on B
-						uint8_t const * bsubsub_b = bptr + b_i;
-						uint8_t const * bsubsub_e = bsubsub_b + (b_i_1-b_i);
-
-						aligner.align(asubsub_b,(asubsub_e-asubsub_b),bsubsub_b,bsubsub_e-bsubsub_b);
-
-						// add trace to full alignment
-						ATC.push(aligner.getTraceContainer());
-
-						// update start points
-						b_i = b_i_1;
-						a_i = a_i_1;
-					}
+					computeTrace(path.path.begin(),path.path.size(),
+						path.abpos,
+						path.aepos,
+						path.bbpos,
+						path.bepos,
+						aptr,bptr,
+						tspace,
+						ATC,
+						aligner
+					);
 				}
 
 				static void computeTrace(
@@ -836,7 +873,19 @@ namespace libmaus2
 					libmaus2::lcs::Aligner & aligner
 				) const
 				{
-					computeTrace(path,aptr,bptr,tspace,ATC,aligner);
+					try
+					{
+						computeTrace(path,aptr,bptr,tspace,ATC,aligner);
+					}
+					catch(std::exception const & ex)
+					{
+						std::string const what = ex.what();
+
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "[E] aread=" << aread << " bread=" << bread << ": " << what;
+						lme.finish();
+						throw lme;
+					}
 				}
 
 				/**
@@ -1297,7 +1346,7 @@ namespace libmaus2
 					int64_t const abpos,
 					int64_t const aepos,
 					int64_t const bbpos,
-					int64_t const bepos,
+					int64_t const /* bepos */,
 					int64_t const a,
 					path_type const path,
 					uint64_t const pathsize
@@ -1691,6 +1740,7 @@ namespace libmaus2
 					uint64_t olow = 0;
 					while ( olow < o )
 					{
+						// find end of bad region
 						uint64_t obad = olow;
 						while ( obad < o && !A[obad] )
 							++obad;
@@ -1701,6 +1751,7 @@ namespace libmaus2
 						#endif
 						olow = obad;
 
+						// find end of good region
 						uint64_t ohigh = olow;
 						while ( ohigh < o && A[ohigh] )
 							++ohigh;
@@ -1858,6 +1909,11 @@ namespace libmaus2
 						}
 					}
 				}
+
+				uint64_t getErrorSum() const
+				{
+					return path.getErrorSum();
+				}
 			};
 
 			struct OverlapComparator
@@ -1941,6 +1997,22 @@ namespace libmaus2
 						return lhs.bread < rhs.bread;
 					else if ( lhs.aread != rhs.aread )
 						return lhs.aread < rhs.aread;
+					else
+						return false;
+				}
+
+			};
+
+			struct OverlapComparatorAIdAPos
+			{
+				bool operator()(Overlap const & lhs, Overlap const & rhs) const
+				{
+					if ( lhs.aread != rhs.aread )
+						return lhs.aread < rhs.aread;
+					else if ( lhs.path.abpos != rhs.path.abpos )
+						return lhs.path.abpos < rhs.path.abpos;
+					else if ( lhs.path.aepos != rhs.path.aepos )
+						return lhs.path.aepos > rhs.path.aepos;
 					else
 						return false;
 				}

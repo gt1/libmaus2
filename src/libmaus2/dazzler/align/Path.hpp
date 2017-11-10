@@ -43,6 +43,116 @@ namespace libmaus2
 				int32_t aepos;
 				int32_t bepos;
 
+				static unsigned int binshift()
+				{
+					return 8;
+				}
+
+				static void binreduce(int64_t & rl, int64_t & abpos, int64_t & aepos)
+				{
+					for ( unsigned int i = 0; i < binshift(); ++i )
+					{
+						rl    = (rl   +1)>>1;
+						abpos = (abpos+0)>>1;
+						aepos = (aepos+1)>>1;
+					}
+				}
+
+				static uint64_t getNumBins(int64_t rl)
+				{
+					assert ( rl );
+
+					int64_t abpos = 0;
+					int64_t aepos = 0;
+
+					binreduce(rl,abpos,aepos);
+
+					uint64_t n = 0;
+					while ( rl > 1 )
+					{
+						n += rl;
+						rl = (rl+1)>>1;
+					}
+
+					assert ( rl == 1 );
+					n += rl;
+
+					return n;
+				}
+
+				static uint64_t getBinList(libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > & A, int64_t rl, int64_t abpos, int64_t aepos)
+				{
+					uint64_t o = 0;
+
+					assert ( abpos <= aepos );
+					assert ( aepos <= rl );
+
+					binreduce(rl,abpos,aepos);
+
+					if ( rl )
+					{
+						uint64_t offset = 0;
+
+						while ( rl > 1 )
+						{
+							A.push(o,std::pair<uint64_t,uint64_t>(offset + abpos,offset + aepos));
+							// round down
+							abpos = (abpos+0)>>1;
+							// round up
+							aepos = (aepos+1)>>1;
+							// update offset
+							offset += rl;
+							// round up
+							rl = (rl+1)>>1;
+						}
+
+						assert ( rl == 1 );
+
+						A.push(o,std::pair<uint64_t,uint64_t>(offset+abpos,offset+aepos));
+					}
+
+					return o;
+				}
+
+				static uint64_t getBin(int64_t rl, int64_t abpos, int64_t aepos)
+				{
+					assert ( rl );
+					assert ( abpos < aepos );
+					assert ( aepos <= rl );
+
+					binreduce(rl,abpos,aepos);
+
+					assert ( rl );
+					assert ( abpos < aepos );
+					assert ( aepos <= rl );
+
+					int64_t offset = 0;
+
+					while ( aepos-abpos > 1 )
+					{
+						offset += rl;
+
+						// round down
+						abpos = (abpos+0)>>1;
+						// round up
+						aepos = (aepos+1)>>1;
+						// round up
+						rl = (rl+1)>>1;
+					}
+
+					return abpos + offset;
+				}
+
+				uint64_t getBinList(libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > & A, int64_t const rl) const
+				{
+					return getBinList(A,rl,abpos,aepos);
+				}
+
+				uint64_t getBin(int64_t rl) const
+				{
+					return getBin(rl,abpos,aepos);
+				}
+
 				int32_t getBBlockOffset(uint64_t const i) const
 				{
 					uint64_t o = 0;
@@ -101,6 +211,12 @@ namespace libmaus2
 					return P;
 				}
 
+				bool checkBSpan() const
+				{
+					return
+						(bepos-bbpos) == static_cast<int64_t>(getBSpan());
+				}
+
 				bool isEmpty() const
 				{
 					return abpos == aepos;
@@ -111,6 +227,14 @@ namespace libmaus2
 					uint64_t b = 0;
 					for ( uint64_t i = 0; i < path.size(); ++i )
 						b += path[i].second;
+					return b;
+				}
+
+				uint64_t getErrorSum() const
+				{
+					uint64_t b = 0;
+					for ( uint64_t i = 0; i < path.size(); ++i )
+						b += path[i].first;
 					return b;
 				}
 
@@ -279,6 +403,17 @@ namespace libmaus2
 					{
 						for ( uint64_t i = 0; i < path.size(); ++i )
 						{
+							if (
+								static_cast<int64_t>(path[i].first)  > static_cast<int64_t>(std::numeric_limits<int8_t>::max())
+								||
+								static_cast<int64_t>(path[i].second) > static_cast<int64_t>(std::numeric_limits<int8_t>::max())
+							)
+							{
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "Path::serialisePath: path element (" << path[i].first << "," << path[i].second << ") is too large for small=" << small << std::endl;
+								lme.finish();
+								throw lme;
+							}
 							out.put(path[i].first);
 							if ( ! out )
 							{

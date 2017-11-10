@@ -26,6 +26,7 @@
 #include <libmaus2/lcs/EditDistance.hpp>
 #include <libmaus2/util/ArgInfo.hpp>
 #include <libmaus2/lcs/ND.hpp>
+#include <libmaus2/lcs/NP.hpp>
 #include <libmaus2/lcs/NDextend.hpp>
 #include <libmaus2/dazzler/db/OutputBase.hpp>
 #include <libmaus2/lcs/LocalAlignmentPrint.hpp>
@@ -65,6 +66,7 @@ uint8_t remapFunction(uint8_t const & a)
 }
 
 #include <libmaus2/random/Random.hpp>
+#include <libmaus2/dazzler/align/OverlapDataInterface.hpp>
 
 int main(int argc, char * argv[])
 {
@@ -73,9 +75,72 @@ int main(int argc, char * argv[])
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
 
 		{
-			std::string const lasfn = arginfo.getUnparsedRestArg(0);
-			libmaus2::dazzler::db::DatabaseFile DB(lasfn);
+			std::string const dbfn = arginfo.getUnparsedRestArg(0);
+			libmaus2::dazzler::db::DatabaseFile DB(dbfn);
 			DB.computeTrimVector();
+
+
+			std::string const lasfn = arginfo.getUnparsedRestArg(1);
+			libmaus2::dazzler::align::SimpleOverlapParser OVLP(lasfn,32*1024,libmaus2::dazzler::align::OverlapParser::overlapparser_do_not_split_ab);
+			int64_t const tspace = libmaus2::dazzler::align::AlignmentFile::getTSpace(lasfn);
+
+			while ( OVLP.parseNextBlock() )
+			{
+				libmaus2::dazzler::align::OverlapData & data = OVLP.getData();
+
+				for ( uint64_t i = 0; i < data.size(); ++i )
+				{
+					std::pair<uint8_t const *, uint8_t const *> const P = data.getData(i);
+					libmaus2::dazzler::align::OverlapDataInterface const I(P.first);
+
+					int64_t const aread = I.aread();
+					int64_t const bread = I.bread();
+					bool const inv = I.isInverse();
+
+					std::basic_string<uint8_t> const a = DB.getu(aread,false);
+					std::basic_string<uint8_t> const b = DB.getu(bread,inv);
+
+					libmaus2::lcs::AlignmentTraceContainer ATC;
+					libmaus2::autoarray::AutoArray<std::pair<uint16_t,uint16_t> > A;
+					libmaus2::lcs::NP aligner;
+
+					for ( uint64_t i = 0; i < 100; ++i )
+					{
+						libmaus2::dazzler::align::OverlapData::TracePartInfo const info = libmaus2::dazzler::align::OverlapData::computeTracePart(
+							i*37,
+							(i+4)*37,
+							P.first,
+							A,
+							tspace,
+							a.c_str(),
+							b.c_str(),
+							ATC,
+							aligner
+						);
+
+						std::pair<int64_t,int64_t> const SL = ATC.getStringLengthUsed();
+						assert ( info.aepos-info.abpos == SL.first );
+						assert ( info.bepos-info.bbpos == SL.second );
+
+						if ( info.aepos > info.abpos )
+						{
+							std::cerr << i*37 << " " << (i+4)*37 << " " << info.abpos << "," << info.aepos << " " << info.bbpos << "," << info.bepos << "," << ATC.getAlignmentStatistics() << std::endl;
+
+							assert ( ATC.checkAlignment(
+								ATC.ta,
+								ATC.te,
+								a.begin() + info.abpos,
+								b.begin() + info.bbpos
+							) );
+						}
+					}
+				}
+			}
+
+			#if 0
+			libmaus2::dazzler::align::Overlap OVL;
+			assert ( ! PAF->getNextOverlap(OVL) );
+
 
 			for ( uint64_t low = 0; low <= DB.size(); ++low )
 			{
@@ -97,6 +162,7 @@ int main(int argc, char * argv[])
 					}
 				}
 			}
+			#endif
 
 			return 0;
 		}

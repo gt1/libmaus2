@@ -1,3 +1,94 @@
+libmaus2 (2.0.417-1) unstable; urgency=medium
+
+  * add DB_ADAPTER_BEFORE and DB_ADAPTER_AFTER flags in Read class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 10 Nov 2017 13:36:56 +0100
+
+libmaus2 (2.0.416-1) unstable; urgency=medium
+
+  * turn failed assertion into exception in Overlap::computeTrace
+  * add check for correct aid in LasRangeDecoder
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 09 Nov 2017 20:05:40 +0100
+
+libmaus2 (2.0.415-1) unstable; urgency=medium
+
+  * add checks in Overlap class and avoid code duplication
+  * add getErrorSum in Path class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 09 Nov 2017 17:40:49 +0100
+
+libmaus2 (2.0.414-1) unstable; urgency=medium
+
+  * add canonical method in IndexBase class
+  * add canonical method in Read class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 09 Nov 2017 14:35:27 +0100
+
+libmaus2 (2.0.413-1) unstable; urgency=medium
+
+  * add modifyEquidist function DNABaseNoiseSpiker
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 08 Nov 2017 11:12:04 +0100
+
+libmaus2 (2.0.412-1) unstable; urgency=medium
+
+  * add NNPCorL class
+  * add alignForward/reset methods in NNPCor class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 07 Nov 2017 16:35:39 +0100
+
+libmaus2 (2.0.411-1) unstable; urgency=medium
+
+  * add missing aid/aread parameter in LasRangeDecoder
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 06 Nov 2017 11:23:24 +0100
+
+libmaus2 (2.0.410-1) unstable; urgency=medium
+
+  * improve error message in bounds checking of Path
+  * fix order check in bin indexing of OverlapIndexer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 03 Nov 2017 15:29:58 +0100
+
+libmaus2 (2.0.409-1) unstable; urgency=medium
+
+  * add checkBSpan method in Overlap
+  * check size of values in Path output
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 03 Nov 2017 11:23:16 +0100
+
+libmaus2 (2.0.408-1) unstable; urgency=medium
+
+  * fix EOF issue with LasRangeDecoder and allow pass through of index decoder
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 02 Nov 2017 22:19:07 +0100
+
+libmaus2 (2.0.407-1) unstable; urgency=medium
+
+  * add missing include directive in OverlapData
+  * add computeTracePart function in OverlapData
+  * add OverlapDataInterface class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 02 Nov 2017 15:14:51 +0100
+
+libmaus2 (2.0.406-1) unstable; urgency=medium
+
+  * add LasRangeDecoder class
+  * add BinIndexDecoder class
+  * add bin indexing function in OverlapIndexer
+  * add bin related functions in Path/Overlap
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 02 Nov 2017 09:02:11 +0100
+
+libmaus2 (2.0.405-1) unstable; urgency=medium
+
+  * add getMaxDif function in Overlap class
+  * add flags in filtering of GraphDecoder
+  * add flag encoding in GraphEncoder/GraphDecoder
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 01 Nov 2017 13:52:41 +0100
+
 libmaus2 (2.0.404-1) unstable; urgency=medium
 
   * use exception instead of assertion when checking vor NaN in DoubleCode
