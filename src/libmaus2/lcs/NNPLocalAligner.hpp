@@ -186,7 +186,9 @@ namespace libmaus2
 				uint64_t const rmaxmatches,
 				int64_t const rminbandscore,
 				int64_t const rminlength,
-				uint64_t const rmaxalign = std::numeric_limits<uint64_t>::max()
+				uint64_t const rmaxalign = std::numeric_limits<uint64_t>::max(),
+				unsigned int const rmaxwerr = NNP::getDefaultMaxWindowError(),
+				int64_t const rmaxback = NNP::getDefaultMaxBack()
 			)
 			:
 				bucketlog(rbucketlog),
@@ -198,6 +200,7 @@ namespace libmaus2
 				Ahistlow(histlow+1),
 				minbandscore(rminbandscore),
 				minlength(rminlength),
+				nnp(rmaxwerr,rmaxback),
 				Q(1024),
 				alloccount(0),
 				maxalign(rmaxalign),
