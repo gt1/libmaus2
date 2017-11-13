@@ -404,9 +404,9 @@ namespace libmaus2
 						for ( uint64_t i = 0; i < path.size(); ++i )
 						{
 							if (
-								static_cast<int64_t>(path[i].first)  > static_cast<int64_t>(std::numeric_limits<int8_t>::max())
+								static_cast<int64_t>(path[i].first)  > static_cast<int64_t>(std::numeric_limits<uint8_t>::max())
 								||
-								static_cast<int64_t>(path[i].second) > static_cast<int64_t>(std::numeric_limits<int8_t>::max())
+								static_cast<int64_t>(path[i].second) > static_cast<int64_t>(std::numeric_limits<uint8_t>::max())
 							)
 							{
 								libmaus2::exception::LibMausException lme;
