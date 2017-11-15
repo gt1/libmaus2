@@ -15,10 +15,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_LCS_NNPLOCALALIGNER_HPP)
-#define LIBMAUS2_LCS_NNPLOCALALIGNER_HPP
+#if ! defined(LIBMAUS2_LCS_NNPCORLOCALALIGNER_HPP)
+#define LIBMAUS2_LCS_NNPCORLOCALALIGNER_HPP
 
-#include <libmaus2/lcs/NNP.hpp>
+#include <libmaus2/lcs/NNPCor.hpp>
 #include <libmaus2/util/FiniteSizeHeap.hpp>
 #include <libmaus2/util/GrowingFreeList.hpp>
 #include <libmaus2/geometry/RangeSet.hpp>
@@ -30,24 +30,24 @@ namespace libmaus2
 		/**
 		 * local aligner based on NNP class.
 		 **/
-		struct NNPLocalAligner
+		struct NNPCorLocalAligner
 		{
-			typedef NNPLocalAligner this_type;
+			typedef NNPCorLocalAligner this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			struct NNPLocalAlignerKmer
+			struct NNPCorLocalAlignerKmer
 			{
 				uint64_t kmer;
 				uint64_t pos;
 
-				NNPLocalAlignerKmer() {}
-				NNPLocalAlignerKmer(
+				NNPCorLocalAlignerKmer() {}
+				NNPCorLocalAlignerKmer(
 					uint64_t const rkmer,
 					uint64_t const rpos
 				) : kmer(rkmer), pos(rpos) {}
 
-				bool operator<(NNPLocalAlignerKmer const & O) const
+				bool operator<(NNPCorLocalAlignerKmer const & O) const
 				{
 					if ( kmer != O.kmer )
 						return kmer < O.kmer;
@@ -56,15 +56,15 @@ namespace libmaus2
 				}
 			};
 
-			struct NNPLocalAlignerKmerMatches
+			struct NNPCorLocalAlignerKmerMatches
 			{
 				uint64_t apos;
 				uint64_t bpos;
 				int64_t score;
-				NNPLocalAlignerKmerMatches * next;
+				NNPCorLocalAlignerKmerMatches * next;
 
-				NNPLocalAlignerKmerMatches() {}
-				NNPLocalAlignerKmerMatches(
+				NNPCorLocalAlignerKmerMatches() {}
+				NNPCorLocalAlignerKmerMatches(
 					uint64_t const rapos, uint64_t rbpos
 				) : apos(rapos), bpos(rbpos), score(0), next(0) {}
 
@@ -78,15 +78,15 @@ namespace libmaus2
 					return static_cast<int64_t>(apos) - static_cast<int64_t>(bpos);
 				}
 
-				bool operator<(NNPLocalAlignerKmerMatches const & O) const
+				bool operator<(NNPCorLocalAlignerKmerMatches const & O) const
 				{
 					return getAntiDiag() < O.getAntiDiag();
 				}
 			};
 
-			struct NNPLocalAlignerKmerMatchesHeapComparator
+			struct NNPCorLocalAlignerKmerMatchesHeapComparator
 			{
-				bool operator()(NNPLocalAlignerKmerMatches const * A, NNPLocalAlignerKmerMatches const * B) const
+				bool operator()(NNPCorLocalAlignerKmerMatches const * A, NNPCorLocalAlignerKmerMatches const * B) const
 				{
 					return A->score > B->score;
 				}
@@ -105,7 +105,7 @@ namespace libmaus2
 			// score per band
 			libmaus2::autoarray::AutoArray < uint64_t > Alastscore;
 			// next hit pointer for band
-			libmaus2::autoarray::AutoArray < NNPLocalAlignerKmerMatches * > Alastnext;
+			libmaus2::autoarray::AutoArray < NNPCorLocalAlignerKmerMatches * > Alastnext;
 			// last position for scoring
 			libmaus2::autoarray::AutoArray < int64_t > Alastp;
 			// active band markers
@@ -114,10 +114,10 @@ namespace libmaus2
 			// maximum number of matches to be stored/computed
 			uint64_t const maxmatches;
 			// kmer matches between A and B sequence
-			libmaus2::autoarray::AutoArray < NNPLocalAlignerKmerMatches > Amatches;
+			libmaus2::autoarray::AutoArray < NNPCorLocalAlignerKmerMatches > Amatches;
 
 			// list of extracted kmers
-			libmaus2::autoarray::AutoArray < NNPLocalAlignerKmer > Akmers;
+			libmaus2::autoarray::AutoArray < NNPCorLocalAlignerKmer > Akmers;
 
 			// kmer frequency histogram
 			uint64_t const histlow;
@@ -130,14 +130,14 @@ namespace libmaus2
 			int64_t minlength;
 
 			// aligner object
-			libmaus2::lcs::NNP nnp;
+			libmaus2::lcs::NNPCor nnp;
 			// trace container
 			libmaus2::lcs::NNPTraceContainer tracecontainer;
 			// alignment result
 			libmaus2::lcs::NNPAlignResult algnres;
 
 			// priority queue
-			libmaus2::util::FiniteSizeHeap<NNPLocalAlignerKmerMatches *,NNPLocalAlignerKmerMatchesHeapComparator> Q;
+			libmaus2::util::FiniteSizeHeap<NNPCorLocalAlignerKmerMatches *,NNPCorLocalAlignerKmerMatchesHeapComparator> Q;
 
 			private:
 			// free list for trace objects
@@ -180,15 +180,19 @@ namespace libmaus2
 			 * rmaxmatches maximum number of matches computed
 			 * rminbandscore minimum score required for a band to be considered
 			 **/
-			NNPLocalAligner(
+			NNPCorLocalAligner(
 				unsigned int const rbucketlog,
 				unsigned int const ranak,
 				uint64_t const rmaxmatches,
 				int64_t const rminbandscore,
 				int64_t const rminlength,
 				uint64_t const rmaxalign = std::numeric_limits<uint64_t>::max(),
-				unsigned int const rmaxwerr = NNP::getDefaultMaxWindowError(),
-				int64_t const rmaxback = NNP::getDefaultMaxBack()
+				double const mincor = NNPCor::getDefaultMinCorrelation(),
+				double const minlocalcor = NNPCor::getDefaultMinLocalCorrelation(),
+				int64_t const rmaxback = NNPCor::getDefaultMaxBack(),
+				bool const rfuniquetermval = NNPCor::getDefaultUniqueTermVal(),
+				bool const rrunsuffixpositive = NNPCor::getDefaultRunSuffixPositive()
+
 			)
 			:
 				bucketlog(rbucketlog),
@@ -200,7 +204,7 @@ namespace libmaus2
 				Ahistlow(histlow+1),
 				minbandscore(rminbandscore),
 				minlength(rminlength),
-				nnp(rmaxwerr,rmaxback),
+				nnp(mincor,minlocalcor,rmaxback,rfuniquetermval,rrunsuffixpositive),
 				Q(1024),
 				alloccount(0),
 				maxalign(rmaxalign),
@@ -210,9 +214,9 @@ namespace libmaus2
 			}
 
 			template<typename iterator>
-			static NNPLocalAlignerKmer * extractKmers(
+			static NNPCorLocalAlignerKmer * extractKmers(
 				iterator aa, iterator ae,
-				NNPLocalAlignerKmer * op,
+				NNPCorLocalAlignerKmer * op,
 				unsigned int const anak,
 				uint64_t const anakmask,
 				int64_t const plow,
@@ -257,7 +261,7 @@ namespace libmaus2
 						{
 							int64_t const p = (aa-anak)-as;
 							if ( p >= plow && p+anak <= phigh )
-								*(op++) = NNPLocalAlignerKmer(v,p);
+								*(op++) = NNPCorLocalAlignerKmer(v,p);
 						}
 
 						// update error count at front of current window
@@ -277,11 +281,11 @@ namespace libmaus2
 				int64_t const blow, int64_t const bhigh,
 				unsigned int const anak,
 				uint64_t const anakmask,
-				libmaus2::autoarray::AutoArray < NNPLocalAlignerKmer > & Akmers,
+				libmaus2::autoarray::AutoArray < NNPCorLocalAlignerKmer > & Akmers,
 				uint64_t const histlow,
 				libmaus2::autoarray::AutoArray<uint64_t> & Ahistlow,
 				uint64_t const maxmatches,
-				NNPLocalAlignerKmerMatches * & m_e
+				NNPCorLocalAlignerKmerMatches * & m_e
 			)
 			{
 				uint64_t const n = ae-aa;
@@ -296,18 +300,18 @@ namespace libmaus2
 
 				Akmers.ensureSize(ks);
 
-				NNPLocalAlignerKmer * op_a = Akmers.begin();
-				NNPLocalAlignerKmer * op_b = extractKmers(aa,ae,op_a,anak,anakmask,alow,ahigh);
+				NNPCorLocalAlignerKmer * op_a = Akmers.begin();
+				NNPCorLocalAlignerKmer * op_b = extractKmers(aa,ae,op_a,anak,anakmask,alow,ahigh);
 				std::sort(op_a,op_b);
 
-				NNPLocalAlignerKmer * op_e = extractKmers(ba,be,op_b,anak,anakmask,blow,bhigh);
+				NNPCorLocalAlignerKmer * op_e = extractKmers(ba,be,op_b,anak,anakmask,blow,bhigh);
 				std::sort(op_b,op_e);
 
 				bool const self = (aa == ba) && (ae == be);
 
 				// fill match freq histogram
-				NNPLocalAlignerKmer * c_a = op_a;
-				NNPLocalAlignerKmer * c_b = op_b;
+				NNPCorLocalAlignerKmer * c_a = op_a;
+				NNPCorLocalAlignerKmer * c_b = op_b;
 				while ( c_a != op_b && c_b != op_e )
 				{
 					if ( c_a->kmer < c_b->kmer )
@@ -319,17 +323,17 @@ namespace libmaus2
 						#if 0
 						assert ( c_a->kmer == c_b->kmer );
 						#endif
-						NNPLocalAlignerKmer * e_a = c_a+1;
-						NNPLocalAlignerKmer * e_b = c_b+1;
+						NNPCorLocalAlignerKmer * e_a = c_a+1;
+						NNPCorLocalAlignerKmer * e_b = c_b+1;
 						while ( e_a != op_b && e_a->kmer == c_a->kmer )
 							++e_a;
 						while ( e_b != op_e && e_b->kmer == c_b->kmer )
 							++e_b;
 
 						#if 0
-						for ( NNPLocalAlignerKmer * i_a = c_a; i_a != e_a; ++i_a )
+						for ( NNPCorLocalAlignerKmer * i_a = c_a; i_a != e_a; ++i_a )
 							assert ( i_a->kmer == c_a->kmer );
-						for ( NNPLocalAlignerKmer * i_b = c_b; i_b != e_b; ++i_b )
+						for ( NNPCorLocalAlignerKmer * i_b = c_b; i_b != e_b; ++i_b )
 							assert ( i_b->kmer == c_b->kmer );
 
 						assert ( e_a == op_b || e_a->kmer != c_a->kmer );
@@ -397,17 +401,17 @@ namespace libmaus2
 						assert ( c_a->kmer == c_b->kmer );
 						#endif
 
-						NNPLocalAlignerKmer * e_a = c_a+1;
-						NNPLocalAlignerKmer * e_b = c_b+1;
+						NNPCorLocalAlignerKmer * e_a = c_a+1;
+						NNPCorLocalAlignerKmer * e_b = c_b+1;
 						while ( e_a != op_b && e_a->kmer == c_a->kmer )
 							++e_a;
 						while ( e_b != op_e && e_b->kmer == c_b->kmer )
 							++e_b;
 
 						#if 0
-						for ( NNPLocalAlignerKmer * i_a = c_a; i_a != e_a; ++i_a )
+						for ( NNPCorLocalAlignerKmer * i_a = c_a; i_a != e_a; ++i_a )
 							assert ( i_a->kmer == c_a->kmer );
-						for ( NNPLocalAlignerKmer * i_b = c_b; i_b != e_b; ++i_b )
+						for ( NNPCorLocalAlignerKmer * i_b = c_b; i_b != e_b; ++i_b )
 							assert ( i_b->kmer == c_b->kmer );
 						assert ( e_a == op_b || e_a->kmer != c_a->kmer );
 						assert ( e_b == op_e || e_b->kmer != c_b->kmer );
@@ -423,9 +427,9 @@ namespace libmaus2
 							uint64_t const freq = (afreq*(afreq-1))/2;
 
 							if ( freq < maxf )
-								for ( NNPLocalAlignerKmer * i_a = c_a; i_a != e_a; ++i_a )
-									for ( NNPLocalAlignerKmer * i_b = i_a+1; i_b != e_a; ++i_b )
-										*(m_e++) = NNPLocalAlignerKmerMatches(i_a->pos,i_b->pos);
+								for ( NNPCorLocalAlignerKmer * i_a = c_a; i_a != e_a; ++i_a )
+									for ( NNPCorLocalAlignerKmer * i_b = i_a+1; i_b != e_a; ++i_b )
+										*(m_e++) = NNPCorLocalAlignerKmerMatches(i_a->pos,i_b->pos);
 						}
 						else
 						{
@@ -434,9 +438,9 @@ namespace libmaus2
 							uint64_t const freq = a_freq*b_freq;
 
 							if ( freq < maxf )
-								for ( NNPLocalAlignerKmer * i_a = c_a; i_a != e_a; ++i_a )
-									for ( NNPLocalAlignerKmer * i_b = c_b; i_b != e_b; ++i_b )
-										*(m_e++) = NNPLocalAlignerKmerMatches(i_a->pos,i_b->pos);
+								for ( NNPCorLocalAlignerKmer * i_a = c_a; i_a != e_a; ++i_a )
+									for ( NNPCorLocalAlignerKmer * i_b = c_b; i_b != e_b; ++i_b )
+										*(m_e++) = NNPCorLocalAlignerKmerMatches(i_a->pos,i_b->pos);
 						}
 
 						c_a = e_a;
@@ -452,9 +456,9 @@ namespace libmaus2
 			static void clearHistogram(
 				iterator aa, iterator ae,
 				iterator ba, iterator be,
-				NNPLocalAlignerKmer * op_a,
-				NNPLocalAlignerKmer * op_b,
-				NNPLocalAlignerKmer * op_e,
+				NNPCorLocalAlignerKmer * op_a,
+				NNPCorLocalAlignerKmer * op_b,
+				NNPCorLocalAlignerKmer * op_e,
 				uint64_t const histlow,
 				libmaus2::autoarray::AutoArray<uint64_t> & Ahistlow
 			)
@@ -462,8 +466,8 @@ namespace libmaus2
 				bool const self = (aa == ba) && (ae == be);
 
 				// reset kmer freq histogram
-				NNPLocalAlignerKmer * c_a = op_a;
-				NNPLocalAlignerKmer * c_b = op_b;
+				NNPCorLocalAlignerKmer * c_a = op_a;
+				NNPCorLocalAlignerKmer * c_b = op_b;
 				while ( c_a != op_b && c_b != op_e )
 				{
 					if ( c_a->kmer < c_b->kmer )
@@ -475,17 +479,17 @@ namespace libmaus2
 						#if 0
 						assert ( c_a->kmer == c_b->kmer );
 						#endif
-						NNPLocalAlignerKmer * e_a = c_a+1;
-						NNPLocalAlignerKmer * e_b = c_b+1;
+						NNPCorLocalAlignerKmer * e_a = c_a+1;
+						NNPCorLocalAlignerKmer * e_b = c_b+1;
 						while ( e_a != op_b && e_a->kmer == c_a->kmer )
 							++e_a;
 						while ( e_b != op_e && e_b->kmer == c_b->kmer )
 							++e_b;
 
 						#if 0
-						for ( NNPLocalAlignerKmer * i_a = c_a; i_a != e_a; ++i_a )
+						for ( NNPCorLocalAlignerKmer * i_a = c_a; i_a != e_a; ++i_a )
 							assert ( i_a->kmer == c_a->kmer );
-						for ( NNPLocalAlignerKmer * i_b = c_b; i_b != e_b; ++i_b )
+						for ( NNPCorLocalAlignerKmer * i_b = c_b; i_b != e_b; ++i_b )
 							assert ( i_b->kmer == c_b->kmer );
 						assert ( e_a == op_b || e_a->kmer != c_a->kmer );
 						assert ( e_b == op_e || e_b->kmer != c_b->kmer );
@@ -854,8 +858,8 @@ namespace libmaus2
 				uint64_t const n = ae-aa;
 				uint64_t const m = be-ba;
 
-				NNPLocalAlignerKmerMatches * m_a = Amatches.begin();
-				NNPLocalAlignerKmerMatches * m_e = m_a;
+				NNPCorLocalAlignerKmerMatches * m_a = Amatches.begin();
+				NNPCorLocalAlignerKmerMatches * m_e = m_a;
 
 				// extract matches
 				extractKmers(aa,ae,aseedlow,aseedhigh,ba,be,bseedlow,bseedhigh,anak,anakmask,Akmers,histlow,Ahistlow,maxmatches,m_e);
@@ -866,8 +870,8 @@ namespace libmaus2
 				// filter seeds if a and b are on the same sequence
 				if ( overlap )
 				{
-					NNPLocalAlignerKmerMatches * n_m_e = m_a;
-					for ( NNPLocalAlignerKmerMatches * m_c = m_a; m_c != m_e; ++m_c )
+					NNPCorLocalAlignerKmerMatches * n_m_e = m_a;
+					for ( NNPCorLocalAlignerKmerMatches * m_c = m_a; m_c != m_e; ++m_c )
 						if ( aa+m_c->apos != ba+m_c->bpos )
 							*(n_m_e++) = *m_c;
 					m_e = n_m_e;
@@ -884,7 +888,7 @@ namespace libmaus2
 				int64_t const maxbucket = maxdiag >> bucketlog;
 				int64_t const allocbuckets = (maxbucket - minbucket + 1) + 2;
 
-				NNPLocalAlignerKmerMatches * const lastnextnull = 0;
+				NNPCorLocalAlignerKmerMatches * const lastnextnull = 0;
 
 				if ( allocbuckets > Alasta.size() )
 				{
@@ -922,19 +926,19 @@ namespace libmaus2
 				// previous position in diagonal band
 				int64_t * const lastp = Alastp.begin() - (minbucket-1);
 				uint64_t * const lastscore = Alastscore.begin() - (minbucket-1);
-				NNPLocalAlignerKmerMatches ** const lastnext = Alastnext.begin() - (minbucket-1);
+				NNPCorLocalAlignerKmerMatches ** const lastnext = Alastnext.begin() - (minbucket-1);
 				uint8_t * const active = Aactive.begin() - (minbucket-1);
 
 				#if 0
 				// check seeds
-				for ( NNPLocalAlignerKmerMatches * m_c = m_a; m_c != m_e; ++m_c )
+				for ( NNPCorLocalAlignerKmerMatches * m_c = m_a; m_c != m_e; ++m_c )
 					assert ( std::equal( aa + m_c->apos, aa + m_c->apos + anak, ba + m_c->bpos ) );
 				#endif
 
 				// compute single seed scores
-				for ( NNPLocalAlignerKmerMatches * m_c = m_a; m_c != m_e; ++m_c )
+				for ( NNPCorLocalAlignerKmerMatches * m_c = m_a; m_c != m_e; ++m_c )
 				{
-					NNPLocalAlignerKmerMatches const & cur = *m_c;
+					NNPCorLocalAlignerKmerMatches const & cur = *m_c;
 					int64_t const bucket = cur.getDiag() >> bucketlog;
 					int64_t const anti = cur.getAntiDiag();
 
@@ -958,9 +962,9 @@ namespace libmaus2
 
 				// traverse in decreasing anti diag order
 				uint64_t activebands = 0;
-				for ( NNPLocalAlignerKmerMatches * m_c = m_e; m_c != m_a; )
+				for ( NNPCorLocalAlignerKmerMatches * m_c = m_e; m_c != m_a; )
 				{
-					NNPLocalAlignerKmerMatches & cur = *(--m_c);
+					NNPCorLocalAlignerKmerMatches & cur = *(--m_c);
 					int64_t const bucket = cur.getDiag() >> bucketlog;
 
 					lastscore[bucket] += m_c->score;
@@ -973,9 +977,9 @@ namespace libmaus2
 					lastnext[bucket] = &cur;
 				}
 
-				for ( NNPLocalAlignerKmerMatches * m_c = m_e; m_c != m_a; )
+				for ( NNPCorLocalAlignerKmerMatches * m_c = m_e; m_c != m_a; )
 				{
-					NNPLocalAlignerKmerMatches & cur = *(--m_c);
+					NNPCorLocalAlignerKmerMatches & cur = *(--m_c);
 					int64_t const bucket = cur.getDiag() >> bucketlog;
 
 					if ( active[bucket] )
@@ -988,9 +992,9 @@ namespace libmaus2
 				Q.ensureSize(activebands);
 
 				// fill queue
-				for ( NNPLocalAlignerKmerMatches * m_c = m_a; m_c != m_e; ++m_c )
+				for ( NNPCorLocalAlignerKmerMatches * m_c = m_a; m_c != m_e; ++m_c )
 				{
-					NNPLocalAlignerKmerMatches const & cur = *m_c;
+					NNPCorLocalAlignerKmerMatches const & cur = *m_c;
 					int64_t const bucket = cur.getDiag() >> bucketlog;
 
 					if ( lastnext[bucket] )
@@ -1006,7 +1010,7 @@ namespace libmaus2
 
 				#if 0
 				// check next sorting
-				for ( NNPLocalAlignerKmerMatches * m_c = m_a; m_c != m_e; ++m_c )
+				for ( NNPCorLocalAlignerKmerMatches * m_c = m_a; m_c != m_e; ++m_c )
 					if ( m_c->next )
 						 assert ( m_c->next->getAntiDiag() >= m_c->getAntiDiag() );
 				#endif
@@ -1020,7 +1024,7 @@ namespace libmaus2
 				// process suspected hit bands
 				while ( ! Q.empty() )
 				{
-					NNPLocalAlignerKmerMatches * p = Q.pop();
+					NNPCorLocalAlignerKmerMatches * p = Q.pop();
 
 					// diagonal bucket
 					int64_t const bucket = p->getDiag() >> bucketlog;
@@ -1140,9 +1144,9 @@ namespace libmaus2
 				}
 
 				// reset lastp, lastscore, lastnext, lasta
-				for ( NNPLocalAlignerKmerMatches * m_c = m_a; m_c != m_e; ++m_c )
+				for ( NNPCorLocalAlignerKmerMatches * m_c = m_a; m_c != m_e; ++m_c )
 				{
-					NNPLocalAlignerKmerMatches const & cur = *m_c;
+					NNPCorLocalAlignerKmerMatches const & cur = *m_c;
 					int64_t const bucket = cur.getDiag() >> bucketlog;
 
 					lastp[bucket] = -static_cast<int64_t>(2*anak);
