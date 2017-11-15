@@ -1,3 +1,14 @@
+libmaus2 (2.0.418-1) unstable; urgency=medium
+
+  * add reduceParallel method in SortingBufferedOutputFile
+  * use unit weights in suffixPositive calls of NNPCor
+  * add const modifiers in IntervalTree
+  * add NNPCorLocalAligner
+  * pass NNP arguments on construction of NNPLocalAligner
+  * loosen check on Path output
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 15 Nov 2017 11:48:54 +0100
+
 libmaus2 (2.0.417-1) unstable; urgency=medium
 
   * add DB_ADAPTER_BEFORE and DB_ADAPTER_AFTER flags in Read class
