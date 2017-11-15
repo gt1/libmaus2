@@ -190,7 +190,7 @@ namespace libmaus2
 				: left(rleft), nodesize(rnodesize), node(rnode) {}
 			};
 
-			bool query(uint64_t const left, uint64_t const right)
+			bool query(uint64_t const left, uint64_t const right) const
 			{
 				std::stack<QueryQueueEntry> Q;
 				Q.push(QueryQueueEntry(0,thres,root));
@@ -218,7 +218,7 @@ namespace libmaus2
 				return false;
 			}
 
-			void enumerate(std::ostream & out)
+			void enumerate(std::ostream & out) const
 			{
 				std::stack<EnumerateQueueEntry> Q;
 				Q.push(EnumerateQueueEntry(0,thres,root,0));

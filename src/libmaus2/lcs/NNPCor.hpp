@@ -348,7 +348,7 @@ namespace libmaus2
 				}
 
 				if ( runsuffixpositive )
-					tracecontainer.suffixPositive();
+					tracecontainer.suffixPositive(1,1,1,1);
 
 				std::pair<uint64_t,uint64_t> const SL = tracecontainer.getStringLengthUsed();
 
@@ -795,7 +795,7 @@ namespace libmaus2
 
 				#if 0
 				if ( runsuffixpositive )
-					tracecontainer.suffixPositive();
+					tracecontainer.suffixPositive(1,1,1,1);
 				#endif
 
 				if ( ! forward )
@@ -893,7 +893,7 @@ namespace libmaus2
 
 				if ( runsuffixpositive )
 				{
-					std::pair<uint64_t,uint64_t> Sback = tracecontainer.suffixPositive();
+					std::pair<uint64_t,uint64_t> Sback = tracecontainer.suffixPositive(1,1,1,1);
 					Dback.first += Sback.first;
 					Dback.second += Sback.second;
 				}
@@ -902,7 +902,7 @@ namespace libmaus2
 				std::pair<uint64_t,uint64_t> Dfront = tracecontainer.clipEndWindowError(maxcerr);
 				if ( runsuffixpositive )
 				{
-					std::pair<uint64_t,uint64_t> Sfront = tracecontainer.suffixPositive();
+					std::pair<uint64_t,uint64_t> Sfront = tracecontainer.suffixPositive(1,1,1,1);
 					Dfront.first += Sfront.first;
 					Dfront.second += Sfront.second;
 				}

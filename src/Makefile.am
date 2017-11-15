@@ -1993,6 +1993,7 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/SimdX86BandedGlobalAlignmentScoreY256_16_undef.hpp \
 	libmaus2/lcs/SimdX86GlobalAlignmentScoreConstants256.hpp \
 	libmaus2/lcs/NNPLocalAligner.hpp \
+	libmaus2/lcs/NNPCorLocalAligner.hpp \
 	libmaus2/lcs/ChainAddQueueElementHeapComparator.hpp \
 	libmaus2/lcs/ChainNode.hpp \
 	libmaus2/lcs/ChainRemoveQueueElement.hpp \
