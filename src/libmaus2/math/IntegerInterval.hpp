@@ -440,6 +440,11 @@ namespace libmaus2
 				else
 					return N();
 			}
+
+			bool subset(IntegerInterval<int64_t> const & A) const
+			{
+				return intersection(A) == *this;
+			}
 		};
 
 		template<typename N>

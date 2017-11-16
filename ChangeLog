@@ -1,3 +1,14 @@
+libmaus2 (2.0.419-1) unstable; urgency=medium
+
+  * add computeTracePart variant in OverlapData
+  * add parallel sorting options in SortingBufferedOutputFile
+  * add enumerate method in IntervalTree
+  * add subset check function in IntegerInterval
+  * add aint and bint in Path/Overlap
+  * add parallel buffer sorting option in BufferedOutput
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 16 Nov 2017 10:06:46 +0100
+
 libmaus2 (2.0.418-1) unstable; urgency=medium
 
   * add reduceParallel method in SortingBufferedOutputFile

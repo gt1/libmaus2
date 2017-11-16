@@ -259,6 +259,50 @@ namespace libmaus2
 					out << "(" << P.first << "," << P.second << ")";
 			}
 
+			uint64_t enumerate(libmaus2::autoarray::AutoArray<std::pair<uint64_t,uint64_t> > & AP) const
+			{
+				std::stack<EnumerateQueueEntry> Q;
+				Q.push(EnumerateQueueEntry(0,thres,root,0));
+				std::pair<uint64_t,uint64_t> P(0,0);
+				uint64_t o = 0;
+
+				while ( Q.size() )
+				{
+					EnumerateQueueEntry E = Q.top(); Q.pop();
+
+					if ( nodes[E.node].full )
+					{
+						if ( E.left == P.second )
+							P.second = E.left + E.nodesize;
+						else
+						{
+							if ( P.second-P.first )
+								AP.push(o,P);
+
+							P.first = E.left;
+							P.second = E.left + E.nodesize;
+						}
+
+					}
+					else if ( E.stage == 0 )
+					{
+						Q.push(EnumerateQueueEntry(E.left,E.nodesize,E.node,1));
+						if ( nodes[E.node].left != IntervalNode::getNullPtr() )
+							Q.push(EnumerateQueueEntry(E.left,E.nodesize/2,nodes[E.node].left,0));
+					}
+					else if ( E.stage == 1 )
+					{
+						if ( nodes[E.node].right != IntervalNode::getNullPtr() )
+							Q.push(EnumerateQueueEntry(E.left+E.nodesize/2,E.nodesize/2,nodes[E.node].right,0));
+					}
+				}
+
+				if ( P.second-P.first )
+					AP.push(o,P);
+
+				return o;
+			}
+
 			void ensureLeftExists(IntervalNode::ptr_type const nodeid)
 			{
 				assert ( nodeid < nodes.size() );

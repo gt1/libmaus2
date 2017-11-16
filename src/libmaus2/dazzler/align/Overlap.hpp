@@ -43,6 +43,18 @@ namespace libmaus2
 				int32_t aread;
 				int32_t bread;
 
+
+				libmaus2::math::IntegerInterval<int64_t> aint() const
+				{
+					return path.aint();
+				}
+
+				libmaus2::math::IntegerInterval<int64_t> bint() const
+				{
+					return path.bint();
+				}
+
+
 				bool checkBSpan() const
 				{
 					return path.checkBSpan();

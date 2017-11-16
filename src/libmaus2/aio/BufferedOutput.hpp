@@ -21,6 +21,7 @@
 #define BUFFEREDOUTPUT_HPP
 
 #include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/sorting/InPlaceParallelSort.hpp>
 
 namespace libmaus2
 {
@@ -420,6 +421,7 @@ namespace libmaus2
 			order_ptr_type Porder;
 			order_type & order;
 			std::vector<BlockDescriptor> blocksizes;
+			uint64_t const numthreads;
 
 			public:
 			/**
@@ -428,8 +430,8 @@ namespace libmaus2
 			 * @param rout output stream
 			 * @param bufsize size of buffer in elements
 			 **/
-			SerialisingSortingBufferedOutput(std::ostream & rout, uint64_t const bufsize)
-			: BufferedOutputBase<_data_type>(bufsize), out(rout), Porder(new order_type), order(*Porder), blocksizes()
+			SerialisingSortingBufferedOutput(std::ostream & rout, uint64_t const bufsize, uint64_t const rnumthreads = 1)
+			: BufferedOutputBase<_data_type>(bufsize), out(rout), Porder(new order_type), order(*Porder), blocksizes(), numthreads(rnumthreads)
 			{
 
 			}
@@ -441,8 +443,8 @@ namespace libmaus2
 			 * @param bufsize size of buffer in elements
 			 * @param rorder sort order
 			 **/
-			SerialisingSortingBufferedOutput(std::ostream & rout, uint64_t const bufsize, order_type & rorder)
-			: BufferedOutputBase<_data_type>(bufsize), out(rout), Porder(), order(rorder), blocksizes()
+			SerialisingSortingBufferedOutput(std::ostream & rout, uint64_t const bufsize, order_type & rorder, uint64_t const rnumthreads = 1)
+			: BufferedOutputBase<_data_type>(bufsize), out(rout), Porder(), order(rorder), blocksizes(), numthreads(rnumthreads)
 			{
 
 			}
@@ -471,7 +473,16 @@ namespace libmaus2
 			{
 				if ( base_type::fill() )
 				{
-					std::sort(base_type::pa,base_type::pc,order);
+					if ( numthreads <= 1 )
+						std::sort(base_type::pa,base_type::pc,order);
+					else
+					{
+						libmaus2::sorting::InPlaceParallelSort::inplacesort2<data_type *,order_type>(
+							base_type::pa,base_type::pc,
+							numthreads,
+							order
+						);
+					}
 
 					uint64_t const fileptr = out.tellp();
 
