@@ -1420,6 +1420,31 @@ namespace libmaus2
 					return SR;
 				}
 
+				static SplitResult splitDbRL(uint64_t const maxmem, std::vector<uint64_t> const & RL)
+				{
+					SplitResult SR;
+
+					if ( RL.size() )
+					{
+						uint64_t low = 0;
+
+						while ( low < RL.size() )
+						{
+							uint64_t s = RL[low];
+							uint64_t high = low+1;
+
+							while ( high < RL.size() && s+RL[high] <= maxmem )
+								s += RL[high++];
+
+							SR.push_back(SplitResultElement(low,high,s));
+
+							low = high;
+						}
+					}
+
+					return SR;
+				}
+
 				uint64_t trimmedToUntrimmed(size_t const i) const
 				{
 					if ( i >= size() )
