@@ -43,6 +43,16 @@ namespace libmaus2
 				int32_t aepos;
 				int32_t bepos;
 
+				libmaus2::math::IntegerInterval<int64_t> aint() const
+				{
+					return libmaus2::math::IntegerInterval<int64_t>(abpos,aepos-1);
+				}
+
+				libmaus2::math::IntegerInterval<int64_t> bint() const
+				{
+					return libmaus2::math::IntegerInterval<int64_t>(bbpos,bepos-1);
+				}
+
 				static unsigned int binshift()
 				{
 					return 8;
