@@ -299,11 +299,16 @@ namespace libmaus2
 					) : abpos(rabpos), aepos(raepos), bbpos(rbbpos), bepos(rbepos) {}
 				};
 
-				static TracePartInfo computeTracePart(
+				template<typename path_iterator>
+				static TracePartInfo computeTracePartByPath(
+					int64_t const abpos,
+					int64_t const aepos,
+					int64_t const bbpos,
+					int64_t const bepos,
 					int64_t const rastart,
 					int64_t const raend,
-					uint8_t const * p,
-					libmaus2::autoarray::AutoArray<std::pair<uint16_t,uint16_t> > & A,
+					path_iterator A,
+					uint64_t const Alen,
 					int64_t const tspace,
 					uint8_t const * aptr,
 					uint8_t const * bptr,
@@ -312,9 +317,6 @@ namespace libmaus2
 				)
 				{
 					assert ( raend >= rastart );
-
-					bool const small = libmaus2::dazzler::align::AlignmentFile::tspaceToSmall(tspace);
-					uint64_t const Alen = decodeTraceVector(p,A,small);
 
 					int64_t astart = rastart;
 					int64_t aend = raend;
@@ -328,18 +330,18 @@ namespace libmaus2
 						aend = ((aend + tspace - 1)/tspace)*tspace;
 
 					// clip to [abpos,aepos)
-					astart = std::max(astart,static_cast<int64_t>(getABPos(p)));
+					astart = std::max(astart,abpos);
 					aend = std::max(astart,aend);
-					aend = std::min(aend,static_cast<int64_t>(getAEPos(p)));
+					aend = std::min(aend,aepos);
 					astart = std::min(astart,aend);
 
-					// std::cerr << "[" << astart << "," << aend << ")" << " [" << getABPos(p) << "," << getAEPos(p) << ")" << std::endl;
+					// std::cerr << "[" << astart << "," << aend << ")" << " [" << abpos << "," << aepos << ")" << std::endl;
 
-					Overlap::OffsetInfo startoff = libmaus2::dazzler::align::Overlap::getBforAOffset(tspace,getABPos(p),getAEPos(p),getBBPos(p),getBEPos(p),astart,A.begin(),Alen);
-					Overlap::OffsetInfo endoff = libmaus2::dazzler::align::Overlap::getBforAOffset(tspace,getABPos(p),getAEPos(p),getBBPos(p),getBEPos(p),aend,A.begin(),Alen);
+					Overlap::OffsetInfo startoff = libmaus2::dazzler::align::Overlap::getBforAOffset(tspace,abpos,aepos,bbpos,bepos,astart,A,Alen);
+					Overlap::OffsetInfo endoff = libmaus2::dazzler::align::Overlap::getBforAOffset(tspace,abpos,aepos,bbpos,bepos,aend,A,Alen);
 
 					libmaus2::dazzler::align::Overlap::computeTrace(
-						A.begin() + startoff.offset,
+						A + startoff.offset,
 						endoff.offset - startoff.offset,
 						startoff.apos,
 						endoff.apos,
@@ -376,6 +378,28 @@ namespace libmaus2
 					}
 
 					return TracePartInfo(startoff.apos,endoff.apos,startoff.bpos,endoff.bpos);
+				}
+
+				static TracePartInfo computeTracePart(
+					int64_t const rastart,
+					int64_t const raend,
+					uint8_t const * p,
+					libmaus2::autoarray::AutoArray<std::pair<uint16_t,uint16_t> > & A,
+					int64_t const tspace,
+					uint8_t const * aptr,
+					uint8_t const * bptr,
+					libmaus2::lcs::AlignmentTraceContainer & ATC,
+					libmaus2::lcs::Aligner & aligner
+				)
+				{
+					bool const small = libmaus2::dazzler::align::AlignmentFile::tspaceToSmall(tspace);
+					uint64_t const Alen = decodeTraceVector(p,A,small);
+					return computeTracePartByPath(
+						static_cast<int64_t>(getABPos(p)),
+						static_cast<int64_t>(getAEPos(p)),
+						static_cast<int64_t>(getBBPos(p)),
+						static_cast<int64_t>(getBEPos(p)),
+						rastart,raend,A.begin(),Alen,tspace,aptr,bptr,ATC,aligner);
 				}
 			};
 		}
