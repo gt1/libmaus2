@@ -95,13 +95,19 @@ namespace libmaus2
 				virtual void operator()(data_type const & D, uint64_t const pos) = 0;
 			};
 
-			SerialisingSortingBufferedOutputFile(std::string const & rfilename, uint64_t const bufsize = 1024ull)
-			: Porder(new order_type), order(*Porder), filename(rfilename), PCOS(new libmaus2::aio::OutputStreamInstance(filename)), SBO(new libmaus2::aio::SerialisingSortingBufferedOutput<data_type,order_type>(*PCOS,bufsize,order))
+			SerialisingSortingBufferedOutputFile(
+				std::string const & rfilename, uint64_t const bufsize = 1024ull, uint64_t const sortthreads = 1
+			)
+			: Porder(new order_type), order(*Porder), filename(rfilename), PCOS(new libmaus2::aio::OutputStreamInstance(filename)),
+			  SBO(new libmaus2::aio::SerialisingSortingBufferedOutput<data_type,order_type>(*PCOS,bufsize,order,sortthreads))
 			{
 			}
 
-			SerialisingSortingBufferedOutputFile(std::string const & rfilename, order_type & rorder, uint64_t const bufsize = 1024ull)
-			: Porder(), order(rorder), filename(rfilename), PCOS(new libmaus2::aio::OutputStreamInstance(filename)), SBO(new libmaus2::aio::SerialisingSortingBufferedOutput<data_type,order_type>(*PCOS,bufsize,order))
+			SerialisingSortingBufferedOutputFile(
+				std::string const & rfilename, order_type & rorder, uint64_t const bufsize = 1024ull, uint64_t const sortthreads = 1
+			)
+			: Porder(), order(rorder), filename(rfilename), PCOS(new libmaus2::aio::OutputStreamInstance(filename)),
+			  SBO(new libmaus2::aio::SerialisingSortingBufferedOutput<data_type,order_type>(*PCOS,bufsize,order,sortthreads))
 			{
 			}
 
