@@ -1351,19 +1351,44 @@ namespace libmaus2
 					uint64_t low;
 					uint64_t high;
 					uint64_t size;
+					uint64_t ulow;
+					uint64_t uhigh;
 
 					SplitResultElement() {}
 					SplitResultElement(
 						uint64_t const rlow,
 						uint64_t const rhigh,
-						uint64_t const rsize
-					) : low(rlow), high(rhigh), size(rsize) {}
+						uint64_t const rsize,
+						uint64_t const rulow,
+						uint64_t const ruhigh
+					) : low(rlow), high(rhigh), size(rsize), ulow(rulow), uhigh(ruhigh) {}
 				};
 
 				struct SplitResult : public std::vector<SplitResultElement>
 				{
 
 				};
+
+				void setUntrimmedSplit(SplitResult & SR) const
+				{
+					for ( uint64_t i = 0; i < SR.size(); ++i )
+					{
+						if ( SR[i].low < size() )
+							SR[i].ulow = trimmedToUntrimmed(SR[i].low);
+						else
+							SR[i].ulow = indexbase.ureads;
+
+						if ( SR[i].high < size() )
+							SR[i].uhigh = trimmedToUntrimmed(SR[i].high);
+						else
+							SR[i].uhigh = indexbase.ureads;
+					}
+					if ( SR.size() )
+					{
+						SR.front().ulow = 0;
+						SR.back().uhigh = indexbase.ureads;
+					}
+				}
 
 				SplitResult splitDb(uint64_t const maxmem) const
 				{
@@ -1402,7 +1427,7 @@ namespace libmaus2
 								{
 									uint64_t const h = Ptrim->rank1(i)-1;
 
-									SR.push_back(SplitResultElement(l,h,s));
+									SR.push_back(SplitResultElement(l,h,s,0,0));
 
 									s = rlen;
 									l = h;
@@ -1414,13 +1439,15 @@ namespace libmaus2
 					if ( init )
 					{
 						uint64_t const h = Ptrim->rank1(n-1);
-						SR.push_back(SplitResultElement(l,h,s));
+						SR.push_back(SplitResultElement(l,h,s,0,0));
 					}
+
+					setUntrimmedSplit(SR);
 
 					return SR;
 				}
 
-				static SplitResult splitDbRL(uint64_t const maxmem, std::vector<uint64_t> const & RL)
+				SplitResult splitDbRL(uint64_t const maxmem, std::vector<uint64_t> const & RL) const
 				{
 					SplitResult SR;
 
@@ -1436,11 +1463,13 @@ namespace libmaus2
 							while ( high < RL.size() && s+RL[high] <= maxmem )
 								s += RL[high++];
 
-							SR.push_back(SplitResultElement(low,high,s));
+							SR.push_back(SplitResultElement(low,high,s,0,0));
 
 							low = high;
 						}
 					}
+
+					setUntrimmedSplit(SR);
 
 					return SR;
 				}
