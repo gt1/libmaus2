@@ -59,6 +59,13 @@ namespace libmaus2
 
 			}
 
+			void swap(AlignmentTraceContainer & O)
+			{
+				trace.swap(O.trace);
+				std::swap(ta,O.ta);
+				std::swap(te,O.te);
+			}
+
 			static std::vector<uint64_t> periods(step_type const * ta, step_type const * te, uint64_t first)
 			{
 				std::vector<uint64_t> V;
