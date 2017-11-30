@@ -1,3 +1,9 @@
+libmaus2 (2.0.422-1) unstable; urgency=medium
+
+  * add swap method in AlignmentTraceContainer
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 30 Nov 2017 15:02:16 +0100
+
 libmaus2 (2.0.421-1) unstable; urgency=medium
 
   * add untrimmed block bounds in splitDb of DatabaseFile
