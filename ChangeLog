@@ -1,3 +1,9 @@
+libmaus2 (2.0.425-1) unstable; urgency=medium
+
+  * add functions for decoding reads for given arrat of ids in DatabaseFile
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 05 Dec 2017 00:11:23 +0100
+
 libmaus2 (2.0.424-1) unstable; urgency=medium
 
   * replace assertion by exception when checking order in SortingOverlapOutputBuffer

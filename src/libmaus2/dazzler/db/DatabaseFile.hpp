@@ -2008,6 +2008,248 @@ namespace libmaus2
 					assert ( p == R.D.begin() + R.L[high] + 2*high );
 				}
 
+				template<typename iterator>
+				void decodeReadLengthByArray(
+					ReadDataRange & R,
+					iterator ita,
+					uint64_t const low,
+					uint64_t const high
+				) const
+				{
+					libmaus2::aio::InputStreamInstance idxfile(idxpath);
+
+					for ( uint64_t j = low; j < high; ++j )
+					{
+						uint64_t const unmappedindex = ita[j];
+						uint64_t const mappedindex = Ptrim->select1(unmappedindex);
+
+						if (
+							static_cast<int64_t>(idxfile.tellg())
+							!=
+							static_cast<int64_t>(indexoffset + mappedindex * Read::serialisedSize)
+						)
+							idxfile.seekg(indexoffset + mappedindex * Read::serialisedSize);
+
+						Read const RE(idxfile);
+
+						R.L[j] = RE.rlen;
+					}
+				}
+
+				template<bool rc, typename iterator>
+				void decodeReadDataByArray(
+					ReadDataRange & R,
+					iterator ita,
+					uint64_t const low,
+					uint64_t const high,
+					uint8_t const termval
+				) const
+				{
+					libmaus2::aio::InputStreamInstance idxfile(idxpath);
+					libmaus2::aio::InputStreamInstance basestr(bpspath);
+
+					uint8_t * p = R.D.begin() + R.L[low] + 2*low;
+
+					for ( uint64_t j = low; j < high; ++j )
+					{
+						uint64_t const unmappedindex = ita[j];
+						uint64_t const mappedindex = Ptrim->select1(unmappedindex);
+
+						if (
+							static_cast<int64_t>(idxfile.tellg())
+							!=
+							static_cast<int64_t>(indexoffset + mappedindex * Read::serialisedSize)
+						)
+							idxfile.seekg(indexoffset + mappedindex * Read::serialisedSize);
+
+						Read const RE(idxfile);
+
+						if ( static_cast<int64_t>(basestr.tellg()) != RE.boff )
+							basestr.seekg(RE.boff,std::ios::beg);
+
+						assert ( static_cast<int64_t>(RE.rlen) == static_cast<int64_t>(R.L[j+1] - R.L[j]) );
+
+						*(p++) = termval;
+						if ( rc )
+							decodeReadRCNoDecode(basestr,reinterpret_cast<char * >(p),RE.rlen);
+						else
+							decodeReadNoDecode(basestr,reinterpret_cast<char * >(p),RE.rlen);
+						p += RE.rlen;
+						*(p++) = termval;
+					}
+
+					assert ( p == R.D.begin() + R.L[high] + 2*high );
+				}
+
+				template<bool rc, typename iterator>
+				void decodeReadDataByArrayDecode(
+					ReadDataRange & R,
+					iterator ita,
+					uint64_t const low,
+					uint64_t const high,
+					uint8_t const termval
+				) const
+				{
+					libmaus2::aio::InputStreamInstance idxfile(idxpath);
+					libmaus2::aio::InputStreamInstance basestr(bpspath);
+
+					uint8_t * p = R.D.begin() + R.L[low] + 2*low;
+
+					for ( uint64_t j = low; j < high; ++j )
+					{
+						uint64_t const unmappedindex = ita[j];
+						uint64_t const mappedindex = Ptrim->select1(unmappedindex);
+
+						if (
+							static_cast<int64_t>(idxfile.tellg())
+							!=
+							static_cast<int64_t>(indexoffset + mappedindex * Read::serialisedSize)
+						)
+							idxfile.seekg(indexoffset + mappedindex * Read::serialisedSize);
+
+						Read const RE(idxfile);
+
+						if ( static_cast<int64_t>(basestr.tellg()) != RE.boff )
+							basestr.seekg(RE.boff,std::ios::beg);
+
+						assert ( static_cast<int64_t>(RE.rlen) == static_cast<int64_t>(R.L[j+1] - R.L[j]) );
+
+						*(p++) = termval;
+						if ( rc )
+							decodeReadRC(basestr,reinterpret_cast<char * >(p),RE.rlen);
+						else
+							decodeRead(basestr,reinterpret_cast<char * >(p),RE.rlen);
+						p += RE.rlen;
+						*(p++) = termval;
+					}
+
+					assert ( p == R.D.begin() + R.L[high] + 2*high );
+				}
+
+				template<typename iterator>
+				ReadDataRange::unique_ptr_type decodeReadDataByArrayParallel(
+					iterator ita,
+					uint64_t const n,
+					uint64_t const numthreads,
+					bool const rc,
+					uint8_t const termval
+				) const
+				{
+					ReadDataRange::unique_ptr_type tptr(new ReadDataRange);
+					tptr->n = n;
+					tptr->L.resize(tptr->n + 1);
+
+					uint64_t const readsperthread = (n + numthreads - 1)/numthreads;
+
+					uint64_t volatile gmaxlen = 0;
+					libmaus2::parallel::PosixSpinLock gmaxlenlock;
+					#if defined(_OPENMP)
+					#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
+					#endif
+					for ( uint64_t t = 0; t < numthreads; ++t )
+					{
+						uint64_t const low  = std::min(t * readsperthread  , n);
+						uint64_t const high = std::min(low + readsperthread, n);
+
+						decodeReadLengthByArray(
+							*tptr,
+							ita,
+							low,
+							high
+						);
+
+						uint64_t lmaxlen = 0;
+						for ( uint64_t i = low; i < high; ++i )
+							lmaxlen = std::max(lmaxlen,tptr->L[i]);
+
+						gmaxlenlock.lock();
+						gmaxlen = std::max(static_cast<uint64_t>(gmaxlen),static_cast<uint64_t>(lmaxlen));
+						gmaxlenlock.unlock();
+					}
+
+					tptr->maxlen = gmaxlen;
+					libmaus2::util::PrefixSums::parallelPrefixSums(tptr->L.begin(),tptr->L.end(),numthreads);
+					tptr->D.resize(tptr->L[tptr->n]+2*tptr->n);
+
+					#if defined(_OPENMP)
+					#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
+					#endif
+					for ( uint64_t t = 0; t < numthreads; ++t )
+					{
+						uint64_t const low  = std::min(t * readsperthread  , n);
+						uint64_t const high = std::min(low + readsperthread, n);
+
+						if ( rc )
+							decodeReadDataByArray<true>(*tptr,ita,low,high,termval);
+						else
+							decodeReadDataByArray<false>(*tptr,ita,low,high,termval);
+					}
+
+					return UNIQUE_PTR_MOVE(tptr);
+				}
+
+				template<typename iterator>
+				ReadDataRange::unique_ptr_type decodeReadDataByArrayParallelDecode(
+					iterator ita,
+					uint64_t const n,
+					uint64_t const numthreads,
+					bool const rc,
+					uint8_t const termval
+				) const
+				{
+					ReadDataRange::unique_ptr_type tptr(new ReadDataRange);
+					tptr->n = n;
+					tptr->L.resize(tptr->n + 1);
+
+					uint64_t const readsperthread = (n + numthreads - 1)/numthreads;
+
+					uint64_t volatile gmaxlen = 0;
+					libmaus2::parallel::PosixSpinLock gmaxlenlock;
+					#if defined(_OPENMP)
+					#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
+					#endif
+					for ( uint64_t t = 0; t < numthreads; ++t )
+					{
+						uint64_t const low  = std::min(t * readsperthread  , n);
+						uint64_t const high = std::min(low + readsperthread, n);
+
+						decodeReadLengthByArray(
+							*tptr,
+							ita,
+							low,
+							high
+						);
+
+						uint64_t lmaxlen = 0;
+						for ( uint64_t i = low; i < high; ++i )
+							lmaxlen = std::max(lmaxlen,tptr->L[i]);
+
+						gmaxlenlock.lock();
+						gmaxlen = std::max(static_cast<uint64_t>(gmaxlen),static_cast<uint64_t>(lmaxlen));
+						gmaxlenlock.unlock();
+					}
+
+					tptr->maxlen = gmaxlen;
+					libmaus2::util::PrefixSums::parallelPrefixSums(tptr->L.begin(),tptr->L.end(),numthreads);
+					tptr->D.resize(tptr->L[tptr->n]+2*tptr->n);
+
+					#if defined(_OPENMP)
+					#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
+					#endif
+					for ( uint64_t t = 0; t < numthreads; ++t )
+					{
+						uint64_t const low  = std::min(t * readsperthread  , n);
+						uint64_t const high = std::min(low + readsperthread, n);
+
+						if ( rc )
+							decodeReadDataByArrayDecode<true>(*tptr,ita,low,high,termval);
+						else
+							decodeReadDataByArrayDecode<false>(*tptr,ita,low,high,termval);
+					}
+
+					return UNIQUE_PTR_MOVE(tptr);
+				}
+
 				ReadDataRange::unique_ptr_type decodeReadIntervalParallel(
 					uint64_t const low,
 					uint64_t const high,
