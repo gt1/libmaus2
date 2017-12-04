@@ -595,6 +595,16 @@ namespace libmaus2
 						if ( haveprev )
 						{
 							bool const ok = !(comparator(P.second,OVLprev));
+
+							if ( ! ok )
+							{
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "SortingOverlapOutputBuffer::mergeFiles: broken sort order:" << std::endl
+									<< OVLprev << std::endl
+									<< P.second << std::endl;
+								lme.finish();
+								throw lme;
+							}
 							assert ( ok );
 						}
 
