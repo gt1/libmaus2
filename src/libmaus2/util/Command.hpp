@@ -33,12 +33,16 @@ namespace libmaus2
 			std::string returncode;
 			std::vector<std::string> args;
 
+			uint64_t numattempts;
+			uint64_t maxattempts;
+			bool completed;
+
 			Command()
 			{
 
 			}
 			Command(std::string const & rin, std::string const & rout, std::string const & rerr, std::string const & rreturncode, std::vector<std::string> const & rargs)
-			: in(rin), out(rout), err(rerr), returncode(rreturncode), args(rargs)
+			: in(rin), out(rout), err(rerr), returncode(rreturncode), args(rargs), numattempts(0), maxattempts(0), completed(false)
 			{
 			}
 			Command(std::istream & istr)
@@ -53,6 +57,9 @@ namespace libmaus2
 				libmaus2::util::StringSerialisation::serialiseString(ostr,err);
 				libmaus2::util::StringSerialisation::serialiseString(ostr,returncode);
 				libmaus2::util::StringSerialisation::serialiseStringVector(ostr,args);
+				libmaus2::util::NumberSerialisation::serialiseNumber(ostr,numattempts);
+				libmaus2::util::NumberSerialisation::serialiseNumber(ostr,maxattempts);
+				libmaus2::util::NumberSerialisation::serialiseNumber(ostr,completed);
 			}
 
 			void deserialise(std::istream & istr)
@@ -62,6 +69,9 @@ namespace libmaus2
 				err = libmaus2::util::StringSerialisation::deserialiseString(istr);
 				returncode = libmaus2::util::StringSerialisation::deserialiseString(istr);
 				args = libmaus2::util::StringSerialisation::deserialiseStringVector(istr);
+				numattempts = libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
+				maxattempts = libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
+				completed = libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
 			}
 
 			// check return code
