@@ -1,3 +1,9 @@
+libmaus2 (2.0.426-1) unstable; urgency=medium
+
+  * add ignorefail flag in Command
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 06 Dec 2017 11:07:52 +0100
+
 libmaus2 (2.0.425-1) unstable; urgency=medium
 
   * add functions for decoding reads for given arrat of ids in DatabaseFile
