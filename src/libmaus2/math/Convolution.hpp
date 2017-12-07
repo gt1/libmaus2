@@ -149,6 +149,74 @@ namespace libmaus2
 				return VC;
 			}
 
+			static std::vector < std::vector < double > > computePowers(std::vector < double > const & P_I, uint64_t const n)
+			{
+				std::vector < double > C_I(1,1.0);
+
+				std::vector < std::vector < double > > R;
+
+				for ( uint64_t i = 0; i <= n; ++i )
+				{
+					R.push_back(C_I);
+
+					if ( i == 0 )
+					{
+						C_I = P_I; // C_I = P_I ^ 1 for i = 1
+					}
+					else
+					{
+						C_I = convolutionFFTRef(C_I,C_I);
+					}
+				}
+
+				return R;
+			}
+
+			struct PowerCache
+			{
+				std::vector < double > P_I;
+				std::vector < std::vector < double > > R;
+
+				PowerCache() {}
+				PowerCache(std::vector < double > const & rP_I) : P_I(rP_I)
+				{
+					R.push_back(P_I);
+				}
+
+				std::vector < double > operator[](uint64_t const i)
+				{
+					if ( ! i )
+					{
+						return std::vector < double >(1,1.0);
+					}
+					else
+					{
+						uint64_t ti = i;
+						std::vector < double > A;
+
+						for ( uint64_t j = 0; ti; ++j )
+						{
+							bool const b = ti & 1;
+
+							if ( ! (j < R.size()) )
+							{
+								std::vector < double > const T = convolutionFFTRef(R.back(),R.back());
+								R.push_back(T);
+							}
+
+							assert ( j < R.size() );
+
+							if ( b )
+								A = convolutionFFTRef(A,R[j]);
+
+							ti /= 2;
+						}
+
+						return A;
+					}
+				}
+			};
+
 			template<typename type>
 			static std::vector<type> convolution(
 				std::vector<type> const & A,
