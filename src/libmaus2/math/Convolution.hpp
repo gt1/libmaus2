@@ -174,46 +174,53 @@ namespace libmaus2
 
 			struct PowerCache
 			{
-				std::vector < double > P_I;
-				std::vector < std::vector < double > > R;
+				typedef PowerCache this_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
+				std::vector < libmaus2::util::shared_ptr < std::vector < double > >::type > R;
+				libmaus2::parallel::PosixSpinLock Rlock;
 
 				PowerCache() {}
-				PowerCache(std::vector < double > const & rP_I) : P_I(rP_I)
+				PowerCache(std::vector < double > const & P_I)
 				{
-					R.push_back(P_I);
+					libmaus2::util::shared_ptr < std::vector < double > >::type sptr(
+						new std::vector < double >(P_I)
+					);
+					R.push_back(sptr);
+				}
+
+				std::vector < double > const & getR(uint64_t const j)
+				{
+					std::vector < double > const *  P = 0;
+
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(Rlock);
+
+						while ( ! (j < R.size()) )
+						{
+							std::vector < double > const T = convolutionFFTRef(*(R.back()),*(R.back()));
+							libmaus2::util::shared_ptr < std::vector < double > >::type sptr(new std::vector < double >(T));
+							R.push_back(sptr);
+						}
+
+						assert ( j < R.size() );
+
+						P = R [ j ].get();
+					}
+
+					return *P;
 				}
 
 				std::vector < double > operator[](uint64_t const i)
 				{
-					if ( ! i )
-					{
-						return std::vector < double >(1,1.0);
-					}
-					else
-					{
-						uint64_t ti = i;
-						std::vector < double > A;
+					std::vector < double > A(1,1.0);
 
-						for ( uint64_t j = 0; ti; ++j )
-						{
-							bool const b = ti & 1;
+					for ( uint64_t j = 0, ti = i; ti; ++j, ti /= 2 )
+						if ( ti & 1 )
+							A = convolutionFFTRef(A,getR(j));
 
-							if ( ! (j < R.size()) )
-							{
-								std::vector < double > const T = convolutionFFTRef(R.back(),R.back());
-								R.push_back(T);
-							}
-
-							assert ( j < R.size() );
-
-							if ( b )
-								A = convolutionFFTRef(A,R[j]);
-
-							ti /= 2;
-						}
-
-						return A;
-					}
+					return A;
 				}
 			};
 
