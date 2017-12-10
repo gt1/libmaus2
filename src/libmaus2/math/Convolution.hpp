@@ -172,6 +172,7 @@ namespace libmaus2
 				return R;
 			}
 
+			// cache for convolution powers storing self convolutions A^k for integer k >= 0
 			struct PowerCache
 			{
 				typedef PowerCache this_type;
@@ -206,6 +207,7 @@ namespace libmaus2
 
 						assert ( j < R.size() );
 
+
 						P = R [ j ].get();
 					}
 
@@ -221,6 +223,120 @@ namespace libmaus2
 							A = convolutionFFTRef(A,getR(j));
 
 					return A;
+				}
+			};
+
+			struct PowerCacheRussian
+			{
+				typedef PowerCacheRussian this_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
+				uint64_t const n;
+				libmaus2::autoarray::AutoArray < std::vector<double> > A;
+
+				PowerCacheRussian(
+					std::vector < double > const & P_I,
+					unsigned int const l, unsigned int const s,
+					uint64_t const numthreads
+				)
+				: n(1ull << l), A(n)
+				{
+					PowerCache PC(P_I);
+
+					assert ( 0 < n );
+					A[0] = PC[0];
+
+					if ( l )
+					{
+						assert ( 1 < n );
+						A[1] = PC[1ull << s];
+
+						for ( uint64_t q = 1; q < l; ++q )
+						{
+							uint64_t const base = 1ull << q;
+							std::vector<double> const Q = PC[base << s];
+
+							#if defined(_OPENMP)
+							#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
+							#endif
+							for ( uint64_t i = 0; i < base; ++i )
+							{
+								// std::cerr << "[V] setting " << base+i << " from " << i << std::endl;
+								A[base + i] = convolutionFFTRef(A[i],Q);
+							}
+						}
+					}
+				}
+
+				std::vector<double> const & operator[](uint64_t const i) const
+				{
+					assert ( i < n );
+					return A[i];
+				}
+			};
+
+			struct PowerBlockCache
+			{
+				typedef PowerBlockCache this_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
+				std::vector<double> const P_I;
+				unsigned int const blocksize;
+				std::vector < PowerCacheRussian::shared_ptr_type > V;
+				libmaus2::parallel::PosixSpinLock Vlock;
+				uint64_t const numthreads;
+
+				PowerBlockCache(std::vector<double> const & rP_I, unsigned int const rblocksize, uint64_t const rnumthreads)
+				: P_I(rP_I), blocksize(rblocksize), numthreads(rnumthreads) {}
+
+				PowerCacheRussian const & getBlock(unsigned int const i)
+				{
+					PowerCacheRussian const * P = 0;
+					{
+						libmaus2::parallel::ScopePosixSpinLock slock(Vlock);
+
+						while ( ! (i < V.size()) )
+						{
+							uint64_t const j = V.size();
+							PowerCacheRussian::shared_ptr_type PCR(
+								new PowerCacheRussian(
+									P_I,
+									blocksize,
+									j * blocksize,
+									numthreads
+								)
+							);
+
+							// std::cerr << "[V] generated " << i << std::endl;
+
+							V.push_back(PCR);
+						}
+
+						assert ( i < V.size() );
+
+						P = V[i].get();
+					}
+
+					return *P;
+				}
+
+				std::vector<double> operator[](uint64_t const i)
+				{
+					uint64_t const mask = (1ull << blocksize)-1;
+
+					std::vector < double> V = getBlock(0)[i&mask];
+
+					for ( uint64_t q = 1;
+						(i >> (blocksize *q)) != 0;
+						++q
+					)
+					{
+						V = convolutionFFTRef(V,getBlock(q)[(i >> (blocksize *q)) & mask]);
+					}
+
+					return V;
 				}
 			};
 
