@@ -91,12 +91,12 @@ bool testPowerCacheRussian(std::vector<double> const & V, unsigned int const l, 
 		uint64_t const n = 1ull << l;
 		uint64_t const subshift = shift * l;
 
-		std::cerr << "[V] testPowerCacheRussian shift=" << shift << " l=" << l << " n=" << n << std::endl;
+		//std::cerr << "[V] testPowerCacheRussian shift=" << shift << " l=" << l << " n=" << n << std::endl;
 
 		for ( uint64_t i = 0; ok && i < n; ++i )
 		{
 			ok = ok && compareVectors(PC[i << subshift],PCR[i],eps);
-			std::cerr << "[V] testPowerCacheRussian shift=" << shift << " " << i << "/" << n << " ok=" << ok << std::endl;
+			//std::cerr << "[V] testPowerCacheRussian shift=" << shift << " " << i << "/" << n << " ok=" << ok << std::endl;
 		}
 	}
 
@@ -111,7 +111,7 @@ bool testPowerBlockCache(std::vector<double> const & V, unsigned int const l, do
 	libmaus2::math::Convolution::PowerBlockCache PBC(V,3/*blocksize*/,1/*numthreads*/);
 
 	bool ok = true;
-	uint64_t const n = 1ull << (4*l);
+	uint64_t const n = 1ull << (3*l);
 	for ( uint64_t i = 0; ok && i < n; ++i )
 		ok = ok && compareVectors(PC[i],PBC[i],eps);
 
@@ -136,12 +136,18 @@ int main(int argc, char * argv[])
 
 		std::cerr << "[V] testPowerBlockCache " << (pcokblock?"ok":"failed") << std::endl;
 
-		bool const allok = pcok && pcokrussian;
+		bool const allok = pcok && pcokrussian && pcokblock;
 
 		if ( allok )
+		{
+			std::cerr << "[V] all ok" << std::endl;
 			return EXIT_SUCCESS;
+		}
 		else
+		{
+			std::cerr << "[V] test failed" << std::endl;
 			return EXIT_FAILURE;
+		}
 	}
 	catch(std::exception const & ex)
 	{
