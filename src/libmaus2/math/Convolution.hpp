@@ -181,9 +181,11 @@ namespace libmaus2
 
 				std::vector < libmaus2::util::shared_ptr < std::vector < double > >::type > R;
 				libmaus2::parallel::PosixSpinLock Rlock;
+				double e;
 
 				PowerCache() {}
-				PowerCache(std::vector < double > const & P_I)
+				PowerCache(std::vector < double > const & P_I, double const re = std::numeric_limits<double>::min())
+				: e(re)
 				{
 					libmaus2::util::shared_ptr < std::vector < double > >::type sptr(
 						new std::vector < double >(P_I)
@@ -202,6 +204,10 @@ namespace libmaus2
 						{
 							std::vector < double > const T = convolutionFFTRef(*(R.back()),*(R.back()));
 							libmaus2::util::shared_ptr < std::vector < double > >::type sptr(new std::vector < double >(T));
+
+							while ( sptr->size() && sptr->back() < e )
+								sptr->pop_back();
+
 							R.push_back(sptr);
 						}
 
@@ -220,7 +226,12 @@ namespace libmaus2
 
 					for ( uint64_t j = 0, ti = i; ti; ++j, ti /= 2 )
 						if ( ti & 1 )
+						{
 							A = convolutionFFTRef(A,getR(j));
+
+							while ( A.size() && A.back() < e )
+								A.pop_back();
+						}
 
 					return A;
 				}
@@ -234,15 +245,17 @@ namespace libmaus2
 
 				uint64_t const n;
 				libmaus2::autoarray::AutoArray < std::vector<double> > A;
+				double const e;
 
 				PowerCacheRussian(
 					std::vector < double > const & P_I,
 					unsigned int const l, unsigned int const s,
-					uint64_t const numthreads
+					uint64_t const numthreads,
+					double const re = std::numeric_limits<double>::min()
 				)
-				: n(1ull << l), A(n)
+				: n(1ull << l), A(n), e(re)
 				{
-					PowerCache PC(P_I);
+					PowerCache PC(P_I,e);
 
 					assert ( 0 < n );
 					A[0] = PC[0];
@@ -264,6 +277,9 @@ namespace libmaus2
 							{
 								// std::cerr << "[V] setting " << base+i << " from " << i << std::endl;
 								A[base + i] = convolutionFFTRef(A[i],Q);
+
+								while ( A[base + i].size() && A[base + i].back() < e )
+									A[base + i].pop_back();
 							}
 						}
 					}
@@ -287,9 +303,15 @@ namespace libmaus2
 				std::vector < PowerCacheRussian::shared_ptr_type > V;
 				libmaus2::parallel::PosixSpinLock Vlock;
 				uint64_t const numthreads;
+				double const e;
 
-				PowerBlockCache(std::vector<double> const & rP_I, unsigned int const rblocksize, uint64_t const rnumthreads)
-				: P_I(rP_I), blocksize(rblocksize), numthreads(rnumthreads) {}
+				PowerBlockCache(
+					std::vector<double> const & rP_I,
+					unsigned int const rblocksize,
+					uint64_t const rnumthreads,
+					double const re = std::numeric_limits<double>::min()
+				)
+				: P_I(rP_I), blocksize(rblocksize), numthreads(rnumthreads), e(re) {}
 
 				PowerCacheRussian const & getBlock(unsigned int const i)
 				{
@@ -305,7 +327,8 @@ namespace libmaus2
 									P_I,
 									blocksize,
 									j * blocksize,
-									numthreads
+									numthreads,
+									e
 								)
 							);
 
@@ -334,6 +357,9 @@ namespace libmaus2
 					)
 					{
 						V = convolutionFFTRef(V,getBlock(q)[(i >> (blocksize *q)) & mask]);
+
+						while ( V.size() && V.back() < e )
+							V.pop_back();
 					}
 
 					return V;
