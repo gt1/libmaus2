@@ -17,6 +17,7 @@
 */
 
 #include <libmaus2/math/Convolution.hpp>
+#include <libmaus2/util/ArgParser.hpp>
 
 static std::vector < double > getInitialPI(double const p_i)
 {
@@ -33,6 +34,7 @@ static std::vector < double > getInitialPI(double const p_i)
 	return P_I;
 }
 
+#if 0
 static std::vector < double > getInitialPD(double const p_d)
 {
 	std::vector < double > P_D;
@@ -40,6 +42,7 @@ static std::vector < double > getInitialPD(double const p_d)
 	P_D.push_back(p_d);
 	return P_D;
 }
+#endif
 
 bool compareVectors(
 	std::vector<double> const & A,
@@ -66,7 +69,7 @@ bool testPowerCache(std::vector<double> const & V, unsigned int const l, double 
 {
 	std::vector<double> C(1,1.0);
 
-	libmaus2::math::Convolution::PowerCache PC(V);
+	libmaus2::math::Convolution::PowerCache PC(V,1e-8);
 
 	bool ok = true;
 	uint64_t const n = 1ull < l;
@@ -85,8 +88,8 @@ bool testPowerCacheRussian(std::vector<double> const & V, unsigned int const l, 
 	bool ok = true;
 	for ( unsigned int shift = 0; shift < maxshift; ++shift )
 	{
-		libmaus2::math::Convolution::PowerCacheRussian PCR(V,l,shift*l,1 /* numthreads */);
-		libmaus2::math::Convolution::PowerCache PC(V);
+		libmaus2::math::Convolution::PowerCacheRussian PCR(V,l,shift*l,1 /* numthreads */,1e-8);
+		libmaus2::math::Convolution::PowerCache PC(V,1e-8);
 
 		uint64_t const n = 1ull << l;
 		uint64_t const subshift = shift * l;
@@ -107,13 +110,16 @@ bool testPowerBlockCache(std::vector<double> const & V, unsigned int const l, do
 {
 	std::vector<double> C(1,1.0);
 
-	libmaus2::math::Convolution::PowerCache PC(V);
-	libmaus2::math::Convolution::PowerBlockCache PBC(V,3/*blocksize*/,1/*numthreads*/);
+	libmaus2::math::Convolution::PowerCache PC(V,1e-8);
+	libmaus2::math::Convolution::PowerBlockCache PBC(V,4/*blocksize*/,1/*numthreads*/,1e-8);
 
 	bool ok = true;
 	uint64_t const n = 1ull << (3*l);
 	for ( uint64_t i = 0; ok && i < n; ++i )
+	{
 		ok = ok && compareVectors(PC[i],PBC[i],eps);
+		// std::cerr << i << std::endl;
+	}
 
 	return ok;
 }
@@ -122,17 +128,19 @@ int main(int argc, char * argv[])
 {
 	try
 	{
+		libmaus2::util::ArgParser const arg(argc,argv);
+
 		std::vector<double> const V = getInitialPI(0.1);
 
 		bool const pcok = testPowerCache(V,8,1e-6);
 
 		std::cerr << "[V] testPowerCache " << (pcok?"ok":"failed") << std::endl;
 
-		bool const pcokrussian = testPowerCacheRussian(V,3,4,1e-6);
+		bool const pcokrussian = testPowerCacheRussian(V,4,4,1e-6);
 
 		std::cerr << "[V] testPowerCacheRussian " << (pcokrussian?"ok":"failed") << std::endl;
 
-		bool const pcokblock = testPowerBlockCache(V,3,1e-6);
+		bool const pcokblock = testPowerBlockCache(V,4,1e-6);
 
 		std::cerr << "[V] testPowerBlockCache " << (pcokblock?"ok":"failed") << std::endl;
 
