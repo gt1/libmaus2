@@ -165,7 +165,7 @@ namespace libmaus2
 					}
 					else
 					{
-						C_I = convolutionFFTRef(C_I,C_I);
+						C_I = convolutionFFT(C_I,C_I);
 					}
 				}
 
@@ -202,7 +202,7 @@ namespace libmaus2
 
 						while ( ! (j < R.size()) )
 						{
-							std::vector < double > const T = convolutionFFTRef(*(R.back()),*(R.back()));
+							std::vector < double > const T = convolutionFFT(*(R.back()),*(R.back()));
 							libmaus2::util::shared_ptr < std::vector < double > >::type sptr(new std::vector < double >(T));
 
 							while ( sptr->size() && sptr->back() < e )
@@ -227,7 +227,7 @@ namespace libmaus2
 					for ( uint64_t j = 0, ti = i; ti; ++j, ti /= 2 )
 						if ( ti & 1 )
 						{
-							A = convolutionFFTRef(A,getR(j));
+							A = convolutionFFT(A,getR(j));
 
 							while ( A.size() && A.back() < e )
 								A.pop_back();
@@ -276,7 +276,7 @@ namespace libmaus2
 							for ( uint64_t i = 0; i < base; ++i )
 							{
 								// std::cerr << "[V] setting " << base+i << " from " << i << std::endl;
-								A[base + i] = convolutionFFTRef(A[i],Q);
+								A[base + i] = convolutionFFT(A[i],Q);
 
 								while ( A[base + i].size() && A[base + i].back() < e )
 									A[base + i].pop_back();
@@ -356,7 +356,7 @@ namespace libmaus2
 						++q
 					)
 					{
-						V = convolutionFFTRef(V,getBlock(q)[(i >> (blocksize *q)) & mask]);
+						V = convolutionFFT(V,getBlock(q)[(i >> (blocksize *q)) & mask]);
 
 						while ( V.size() && V.back() < e )
 							V.pop_back();
