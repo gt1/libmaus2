@@ -1,3 +1,9 @@
+libmaus2 (2.0.429-1) unstable; urgency=medium
+
+  * replace FFTRef calls with FFT in Convolution power classes
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 12 Dec 2017 08:40:50 +0100
+
 libmaus2 (2.0.428-1) unstable; urgency=medium
 
   * add PowerCacheRussian and PowerBlockCache in Convolution class
