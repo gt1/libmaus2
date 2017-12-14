@@ -58,7 +58,7 @@ namespace libmaus2
                         {
 				#if defined(__APPLE__)
 				std::ostringstream semnamestr;
-				semnamestr << "real_" << getpid() << "_" << reinterpret_cast<u_int64_t>(this);
+				semnamestr << "real_" << getpid() << "_" << reinterpret_cast<uint64_t>(this);
 				semname = semnamestr.str();
 				#endif
 
@@ -176,7 +176,7 @@ namespace libmaus2
 
                                 // set wait time to 1 second
                                 waittime.tv_sec = tv.tv_sec + 1;
-                                waittime.tv_nsec = static_cast<u_int64_t>(tv.tv_usec)*1000;
+                                waittime.tv_nsec = static_cast<uint64_t>(tv.tv_usec)*1000;
 
                                 int const v = sem_timedwait(psemaphore,&waittime);
 

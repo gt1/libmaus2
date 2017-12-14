@@ -23,9 +23,14 @@
 #include <cerrno>
 #include <libmaus2/exception/LibMausException.hpp>
 #include <libmaus2/parallel/SimpleSemaphoreInterface.hpp>
+#include <libmaus2/parallel/PosixMutex.hpp>
 
 #if defined(LIBMAUS2_HAVE_PTHREADS)
-#include <pthread.h>
+/*
+ * the following is included by PosixMutex.hpp:
+ *
+ * #include <pthread.h>
+ */
 
 namespace libmaus2
 {
