@@ -22,6 +22,8 @@
 #include <libmaus2/LibMausConfig.hpp>
 #include <libmaus2/types/types.hpp>
 #include <cassert>
+#include <string>
+#include <cctype>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -33,7 +35,11 @@
 
 #if defined(__linux__)
 #include <unistd.h>
+#if defined(LIBMAUS2_HAVE_LINUX_SYSCTL_H)
 #include <linux/sysctl.h>
+#else
+#include <fstream>
+#endif
 #endif
 
 namespace libmaus2
@@ -47,7 +53,38 @@ namespace libmaus2
 				#if defined(_OPENMP)
 				return omp_get_max_threads();
 				#elif defined(__linux__)
-				return sysconf(_SC_NPROCESSORS_ONLN);
+					#if defined(LIBMAUS2_HAVE_LINUX_SYSCTL_H)
+					return sysconf(_SC_NPROCESSORS_ONLN);
+					#else
+					::std::ifstream istr("/proc/cpuinfo");
+					if ( ! istr.is_open() )
+						return 1;
+
+					std::string line;
+					uint64_t num = 0;
+					while ( istr )
+					{
+						std::getline(istr,line);
+						if ( line.find(':') != std::string::npos )
+						{
+							line = line.substr(0,line.find(':'));
+
+							uint64_t i = 0;
+							while ( i < line.size() && !isspace(line[i]) )
+								++i;
+
+							line = line.substr(0,i);
+
+							if ( line == "processor" )
+								num += 1;
+						}
+					}
+
+					if ( num )
+						return num;
+					else
+						return 1;
+					#endif
 				#elif defined(__APPLE__)
 				uint32_t numlog = 0;
 				size_t numloglen = sizeof(numlog);
