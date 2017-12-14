@@ -252,7 +252,17 @@ namespace libmaus2
 					std::cerr << ::libmaus2::util::StackTrace::getStackTrace() << std::endl;
 					#endif
 
-					if ( pthread_create(thread.get(),&attr,dispatch,this) )
+					if ( pthread_create(
+						thread.get(),
+						#if defined(LIBMAUS2_HAVE_PTHREAD_ATTR_SETAFFINITY_NP)
+						&attr,
+						#else
+						0,
+						#endif
+						dispatch,
+						this
+						)
+					)
 					{
 						pthread_attr_destroy(&attr);
 						::libmaus2::exception::LibMausException se;
