@@ -317,6 +317,10 @@ AC_LANG_PUSH([C++])
 AC_CHECK_HEADER(unistd.h, [unistd_h=yes], [unistd_h=no])
 AC_LANG_POP
 
+AC_LANG_PUSH([C++])
+AC_CHECK_HEADER(linux/sysctl.h, [linux_sysctl_h=yes], [linux_sysctl_h=no])
+AC_LANG_POP
+
 
 AC_LANG_PUSH([C++])
 AC_CHECK_HEADER(features.h, [features_h=yes], [features_h=no])
@@ -413,6 +417,10 @@ if [[ "${dlfcn_h}" = "yes" ]] ; then
 	# fi
 fi
 
+HAVELINUXSYSCTLH=
+if test "${linux_sysctl_h}" = "yes" ; then
+	HAVELINUXSYSCTLH="#define LIBMAUS2_HAVE_LINUX_SYSCTL_H"
+fi
 
 HAVEUNISTDH=
 if [[ "${unistd_h}" = "yes" ]] ; then 
@@ -3632,4 +3640,5 @@ AC_SUBST([LIBMAUS2_HAVE_STATFS_F_BSIZE])
 AC_SUBST([LIBMAUS2_HAVE_STATFS_F_IOSIZE])
 AC_SUBST([LIBMAUS2_HAVE_FCNTL])
 AC_SUBST([HAVEPTHREADATTRSETAFFINITYNP])
+AC_SUBST([HAVELINUXSYSCTLH])
 AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc libmaus2fftw.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp test/Makefile)
