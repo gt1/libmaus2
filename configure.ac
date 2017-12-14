@@ -2025,6 +2025,7 @@ if test "${pthread}" = "yes" ; then
 	AC_CHECK_FUNC(pthread_getname_np,pthread_getname_np_func=yes,pthread_getname_np_func=no)
 	AC_CHECK_FUNC(pthread_get_name_np,pthread_get_name_np_func=yes,pthread_get_name_np_func=no)
 	AC_CHECK_FUNC(pthread_setaffinity_np,pthread_setaffinity_np_func=yes,pthread_setaffinity_np_func=no)
+	AC_CHECK_FUNC(pthread_attr_setaffinity_np,pthread_attr_setaffinity_np_func=yes,pthread_attr_setaffinity_np_func=no)
 	AC_CHECK_FUNC(prctl,prctl_func=yes,prctl_func=no)
 	AC_LANG_POP
 	
@@ -2115,6 +2116,10 @@ if [[ "${ac_cv_func_pthread_setaffinity_np}" = "yes" ]] ; then
 	HAVEPTHREADSETAFFINITYNP="#define LIBMAUS2_HAVE_PTHREAD_SETAFFINITY_NP"
 fi
 
+HAVEPTHREADATTRSETAFFINITYNP=
+if test "${ac_cv_func_pthread_attr_setaffinity_np}" ; then
+	HAVEPTHREADATTRSETAFFINITYNP="#define LIBMAUS2_HAVE_PTHREAD_ATTR_SETAFFINITY_NP"
+fi
 
 HAVEPTHREADS=
 if test "${pthread}" = "yes" ; then
@@ -3626,4 +3631,5 @@ AC_SUBST([LIBMAUS2_HAVE_ALIGNMENT_ONE_TO_MANY_AVX2])
 AC_SUBST([LIBMAUS2_HAVE_STATFS_F_BSIZE])
 AC_SUBST([LIBMAUS2_HAVE_STATFS_F_IOSIZE])
 AC_SUBST([LIBMAUS2_HAVE_FCNTL])
+AC_SUBST([HAVEPTHREADATTRSETAFFINITYNP])
 AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc libmaus2fftw.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp test/Makefile)
