@@ -26,6 +26,11 @@
 #include <cerrno>
 
 #if defined(LIBMAUS2_HAVE_PTHREADS)
+
+#if defined(LIBMAUS2_HAVE_PTHREAD_SETAFFINITY_NP) && defined(__linux__) && !defined(_GNU_SOURCE)
+#define _GNU_SOURCE
+#endif
+
 #include <pthread.h>
 
 namespace libmaus2

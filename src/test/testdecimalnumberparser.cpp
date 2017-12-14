@@ -111,7 +111,7 @@ int main(
 
 				std::cerr << s << std::endl;
 
-				std::cerr << static_cast<uint>(NP.parseUnsignedNumber<uint16_t>(a,a+s.size())) << std::endl;
+				std::cerr << static_cast<uint64_t>(NP.parseUnsignedNumber<uint16_t>(a,a+s.size())) << std::endl;
 
 				assert ( NP.parseUnsignedNumber<uint16_t>(a,a+s.size()) == i );
 			}

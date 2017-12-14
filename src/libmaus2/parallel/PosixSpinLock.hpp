@@ -31,7 +31,11 @@
 #endif
 
 #if defined(LIBMAUS2_HAVE_PTHREADS)
-#include <pthread.h>
+/*
+ * the following is included by PosixMutex.hpp
+ *
+ * #include <pthread.h>
+ */
 
 namespace libmaus2
 {

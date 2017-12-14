@@ -16,9 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#if ! defined(POSIXMUTEXARRAY_HPP)
-#define POSIXMUTEXARRAY_HPP
+#if ! defined(POSIXTHREAD_HPP)
+#define POSIXTHREAD_HPP
 
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/parallel/PosixMutex.hpp>
@@ -222,6 +221,7 @@ namespace libmaus2
 					thread_ptr_type tthread(new pthread_t);
 					thread = UNIQUE_PTR_MOVE(tthread);
 
+					#if defined(LIBMAUS2_HAVE_PTHREAD_ATTR_SETAFFINITY_NP)
 					pthread_attr_t attr;
 					if ( pthread_attr_init(&attr) )
 					{
@@ -245,21 +245,35 @@ namespace libmaus2
 						se.finish();
 						throw se;
 					}
+					#endif
 
 					#if 0
 					std::cerr << "Creating thread with affinity." << std::endl;
 					std::cerr << ::libmaus2::util::StackTrace::getStackTrace() << std::endl;
 					#endif
 
-					if ( pthread_create(thread.get(),&attr,dispatch,this) )
+					if ( pthread_create(
+						thread.get(),
+						#if defined(LIBMAUS2_HAVE_PTHREAD_ATTR_SETAFFINITY_NP)
+						&attr,
+						#else
+						0,
+						#endif
+						dispatch,
+						this
+						)
+					)
 					{
+						#if defined(LIBMAUS2_HAVE_PTHREAD_ATTR_SETAFFINITY_NP)
 						pthread_attr_destroy(&attr);
+						#endif
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "pthread_create() failed in PosixThread::start()";
 						se.finish();
 						throw se;
 					}
 
+					#if defined(LIBMAUS2_HAVE_PTHREAD_ATTR_SETAFFINITY_NP)
 					if ( pthread_attr_destroy(&attr) )
 					{
 						::libmaus2::exception::LibMausException se;
@@ -268,6 +282,9 @@ namespace libmaus2
 						throw se;
 
 					}
+					#else
+					setaffinity(procs);
+					#endif
 				}
 				else
 				{

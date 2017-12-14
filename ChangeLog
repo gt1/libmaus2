@@ -1,3 +1,15 @@
+libmaus2 (2.0.430-1) unstable; urgency=medium
+
+  * replace uint by uint64_t in testdecimalnumberparser
+  * replace u_int64_t with uint64_t
+  * add detection of number of cpus via /proc/cpuinfo for linux in case sysconf is unavailable
+  * add detection for linux/sysctl.h
+  * use setAffinity if pthread_attr_setaffinity_np is not available in PosixThread
+  * add detection of pthread_attr_setaffinity_np in configure
+  * create a single point where we include pthread.h
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 14 Dec 2017 11:24:27 +0100
+
 libmaus2 (2.0.429-1) unstable; urgency=medium
 
   * replace FFTRef calls with FFT in Convolution power classes
