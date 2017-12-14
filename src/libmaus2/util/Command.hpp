@@ -37,13 +37,14 @@ namespace libmaus2
 			uint64_t maxattempts;
 			bool completed;
 			bool ignorefail;
+			bool deepsleep;
 
 			Command()
 			{
 
 			}
 			Command(std::string const & rin, std::string const & rout, std::string const & rerr, std::string const & rreturncode, std::vector<std::string> const & rargs)
-			: in(rin), out(rout), err(rerr), returncode(rreturncode), args(rargs), numattempts(0), maxattempts(0), completed(false), ignorefail(false)
+			: in(rin), out(rout), err(rerr), returncode(rreturncode), args(rargs), numattempts(0), maxattempts(0), completed(false), ignorefail(false), deepsleep(false)
 			{
 			}
 			Command(std::istream & istr)
@@ -62,6 +63,7 @@ namespace libmaus2
 				libmaus2::util::NumberSerialisation::serialiseNumber(ostr,maxattempts);
 				libmaus2::util::NumberSerialisation::serialiseNumber(ostr,completed);
 				libmaus2::util::NumberSerialisation::serialiseNumber(ostr,ignorefail);
+				libmaus2::util::NumberSerialisation::serialiseNumber(ostr,deepsleep);
 			}
 
 			void deserialise(std::istream & istr)
@@ -75,6 +77,7 @@ namespace libmaus2
 				maxattempts = libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
 				completed = libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
 				ignorefail = libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
+				deepsleep = libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
 			}
 
 			// check return code
