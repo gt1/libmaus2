@@ -1,3 +1,9 @@
+libmaus2 (2.0.432-1) unstable; urgency=medium
+
+  * print more information for Command class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 14 Dec 2017 14:36:26 +0100
+
 libmaus2 (2.0.431-1) unstable; urgency=medium
 
   * add deepsleep flag in Command
