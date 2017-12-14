@@ -264,7 +264,9 @@ namespace libmaus2
 						)
 					)
 					{
+						#if defined(LIBMAUS2_HAVE_PTHREAD_ATTR_SETAFFINITY_NP)
 						pthread_attr_destroy(&attr);
+						#endif
 						::libmaus2::exception::LibMausException se;
 						se.getStream() << "pthread_create() failed in PosixThread::start()";
 						se.finish();
