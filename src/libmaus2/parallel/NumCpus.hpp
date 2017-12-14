@@ -24,6 +24,7 @@
 #include <cassert>
 #include <string>
 #include <cctype>
+#include <fstream>
 
 #if defined(_OPENMP)
 #include <omp.h>
