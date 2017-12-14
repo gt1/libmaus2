@@ -221,6 +221,7 @@ namespace libmaus2
 					thread_ptr_type tthread(new pthread_t);
 					thread = UNIQUE_PTR_MOVE(tthread);
 
+					#if defined(LIBMAUS2_HAVE_PTHREAD_ATTR_SETAFFINITY_NP)
 					pthread_attr_t attr;
 					if ( pthread_attr_init(&attr) )
 					{
@@ -244,6 +245,7 @@ namespace libmaus2
 						se.finish();
 						throw se;
 					}
+					#endif
 
 					#if 0
 					std::cerr << "Creating thread with affinity." << std::endl;
@@ -259,6 +261,7 @@ namespace libmaus2
 						throw se;
 					}
 
+					#if defined(LIBMAUS2_HAVE_PTHREAD_ATTR_SETAFFINITY_NP)
 					if ( pthread_attr_destroy(&attr) )
 					{
 						::libmaus2::exception::LibMausException se;
@@ -267,6 +270,9 @@ namespace libmaus2
 						throw se;
 
 					}
+					#else
+					setAffinity(procs);
+					#endif
 				}
 				else
 				{
