@@ -271,7 +271,7 @@ namespace libmaus2
 
 					}
 					#else
-					setAffinity(procs);
+					setaffinity(procs);
 					#endif
 				}
 				else
