@@ -2117,7 +2117,7 @@ if [[ "${ac_cv_func_pthread_setaffinity_np}" = "yes" ]] ; then
 fi
 
 HAVEPTHREADATTRSETAFFINITYNP=
-if test "${ac_cv_func_pthread_attr_setaffinity_np}" ; then
+if test "${ac_cv_func_pthread_attr_setaffinity_np}" = "yes" ; then
 	HAVEPTHREADATTRSETAFFINITYNP="#define LIBMAUS2_HAVE_PTHREAD_ATTR_SETAFFINITY_NP"
 fi
 
