@@ -1,3 +1,9 @@
+libmaus2 (2.0.434-1) unstable; urgency=medium
+
+  * add reduceUnique and reduceUniqueParallel in SerialisingSortingBufferedOutputFileArray
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 21 Dec 2017 14:57:01 +0100
+
 libmaus2 (2.0.433-1) unstable; urgency=medium
 
   * move some functions in PosixFdOutputStreamBuffer from private to public area
