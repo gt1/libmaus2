@@ -1,3 +1,10 @@
+libmaus2 (2.0.435-1) unstable; urgency=medium
+
+  * add lastGoodWindow function in AlignmentTraceContainer
+  * add pointer types in LasIntervals
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 22 Dec 2017 13:10:28 +0100
+
 libmaus2 (2.0.434-1) unstable; urgency=medium
 
   * add reduceUnique and reduceUniqueParallel in SerialisingSortingBufferedOutputFileArray
