@@ -44,67 +44,7 @@ namespace libmaus2
 	{
 		struct PosixFdOutputStreamBuffer : public ::std::streambuf
 		{
-			private:
-			static double const warnThreshold;
-			static int const check;
-			static uint64_t volatile totalout;
-			static libmaus2::parallel::PosixSpinLock totaloutlock;
-
-			static double getTime()
-			{
-				#if defined(__linux__)
-				if ( warnThreshold > 0.0 )
-				{
-					struct timeval tv;
-					struct timezone tz;
-					int const r = gettimeofday(&tv,&tz);
-					if ( r < 0 )
-						return 0.0;
-					else
-						return static_cast<double>(tv.tv_sec) + (static_cast<double>(tv.tv_usec)/1e6);
-				}
-				else
-				#endif
-					return 0.0;
-			}
-
-			static void printWarning(char const * const functionname, double const time, std::string const & filename, int const fd)
-			{
-				if ( warnThreshold > 0.0 && time >= warnThreshold )
-				{
-					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
-					std::cerr << "[W] warning PosixFdOutputStreamBuffer: " << functionname << "(" << fd << ")" << " took " << time << "s ";
-					if ( filename.size() )
-						std::cerr << " on " << filename;
-					std::cerr << std::endl;
-				}
-			}
-
-			static uint64_t getDefaultBlockSize()
-			{
-				return 64*1024;
-			}
-
-			static int64_t getOptimalIOBlockSize(int const fd, std::string const & fn)
-			{
-				int64_t const fsopt = libmaus2::aio::PosixFdInput::getOptimalIOBlockSize(fd,fn);
-
-				if ( fsopt <= 0 )
-					return getDefaultBlockSize();
-				else
-					return fsopt;
-			}
-
-			std::string filename;
-			std::string checkfilename;
-			int fd;
-			int checkfd;
-			bool closefd;
-			int64_t const optblocksize;
-			uint64_t const buffersize;
-			::libmaus2::autoarray::AutoArray<char> buffer;
-			uint64_t writepos;
-
+			public:
 			static off_t doSeekAbsolute(int const fd, std::string const & filename, uint64_t const p, int const whence /* = SEEK_SET */)
 			{
 				off_t off = static_cast<off_t>(-1);
@@ -137,25 +77,6 @@ namespace libmaus2
 				}
 
 				return off;
-			}
-
-			static off_t doGetFileSize(int const fd, std::string const & filename)
-			{
-				// current position in stream
-				off_t const cur = doSeekAbsolute(fd,filename,0,SEEK_CUR);
-				// end position of stream
-				off_t const end = doSeekAbsolute(fd,filename,0,SEEK_END);
-				// go back to previous current
-				off_t const final = doSeekAbsolute(fd,filename,cur,SEEK_SET);
-
-				if ( final != cur )
-				{
-					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
-					std::cerr << "libmaus2::aio::PosixFdOutputStreamBuffer::doGetFileSize(" << fd << "," << filename << "), failed to seek back to original position: " << final << " != " << cur << std::endl;
-				}
-
-				// return end position
-				return end;
 			}
 
 			static void doClose(int const fd, std::string const & filename)
@@ -365,6 +286,88 @@ namespace libmaus2
 
 				return writepos;
 			}
+
+			private:
+			static double const warnThreshold;
+			static int const check;
+			static uint64_t volatile totalout;
+			static libmaus2::parallel::PosixSpinLock totaloutlock;
+
+			static double getTime()
+			{
+				#if defined(__linux__)
+				if ( warnThreshold > 0.0 )
+				{
+					struct timeval tv;
+					struct timezone tz;
+					int const r = gettimeofday(&tv,&tz);
+					if ( r < 0 )
+						return 0.0;
+					else
+						return static_cast<double>(tv.tv_sec) + (static_cast<double>(tv.tv_usec)/1e6);
+				}
+				else
+				#endif
+					return 0.0;
+			}
+
+			static void printWarning(char const * const functionname, double const time, std::string const & filename, int const fd)
+			{
+				if ( warnThreshold > 0.0 && time >= warnThreshold )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					std::cerr << "[W] warning PosixFdOutputStreamBuffer: " << functionname << "(" << fd << ")" << " took " << time << "s ";
+					if ( filename.size() )
+						std::cerr << " on " << filename;
+					std::cerr << std::endl;
+				}
+			}
+
+			static uint64_t getDefaultBlockSize()
+			{
+				return 64*1024;
+			}
+
+			static int64_t getOptimalIOBlockSize(int const fd, std::string const & fn)
+			{
+				int64_t const fsopt = libmaus2::aio::PosixFdInput::getOptimalIOBlockSize(fd,fn);
+
+				if ( fsopt <= 0 )
+					return getDefaultBlockSize();
+				else
+					return fsopt;
+			}
+
+			std::string filename;
+			std::string checkfilename;
+			int fd;
+			int checkfd;
+			bool closefd;
+			int64_t const optblocksize;
+			uint64_t const buffersize;
+			::libmaus2::autoarray::AutoArray<char> buffer;
+			uint64_t writepos;
+
+
+			static off_t doGetFileSize(int const fd, std::string const & filename)
+			{
+				// current position in stream
+				off_t const cur = doSeekAbsolute(fd,filename,0,SEEK_CUR);
+				// end position of stream
+				off_t const end = doSeekAbsolute(fd,filename,0,SEEK_END);
+				// go back to previous current
+				off_t const final = doSeekAbsolute(fd,filename,cur,SEEK_SET);
+
+				if ( final != cur )
+				{
+					libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+					std::cerr << "libmaus2::aio::PosixFdOutputStreamBuffer::doGetFileSize(" << fd << "," << filename << "), failed to seek back to original position: " << final << " != " << cur << std::endl;
+				}
+
+				// return end position
+				return end;
+			}
+
 
 			void doSync()
 			{

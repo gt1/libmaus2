@@ -656,6 +656,91 @@ namespace libmaus2
 
 			}
 
+			std::string reduceUnique(uint64_t const backblocksize = 1024ull, uint64_t const maxfan = 16ull)
+			{
+				struct MergeObject
+				{
+					data_type D;
+					uint64_t i;
+
+					MergeObject()
+					{}
+
+					MergeObject(
+						data_type const & rD,
+						uint64_t const ri
+					) : D(rD), i(ri) {}
+				};
+
+				struct MergeObjectComparator
+				{
+					order_type & order;
+
+					MergeObjectComparator(order_type & rorder)
+					: order(rorder) {}
+
+					bool operator()(MergeObject const & A, MergeObject const & B) const
+					{
+						if ( order(A.D,B.D) )
+							return true;
+						else if ( order(B.D,A.D) )
+							return false;
+						else
+							return A.i < B.i;
+					}
+				};
+
+				libmaus2::autoarray::AutoArray < typename sorter_type::merger_ptr_type > AME(Vfn.size());
+				MergeObjectComparator comp(order);
+				libmaus2::util::FiniteSizeHeap < MergeObject, MergeObjectComparator > FSE(Vfn.size(),comp);
+
+				for ( uint64_t i = 0; i < Vfn.size(); ++i )
+				{
+					typename sorter_type::merger_ptr_type tptr(ASO[i]->getMerger(backblocksize,maxfan));
+					AME[i] = UNIQUE_PTR_MOVE(tptr);
+
+					data_type D;
+					if ( AME[i]->getNext(D) )
+					{
+						FSE.push(MergeObject(D,i));
+					}
+					else
+					{
+						AME[i].reset();
+						libmaus2::aio::FileRemoval::removeFile(Vfn[i]);
+					}
+				}
+
+				libmaus2::aio::OutputStreamInstance OSI(filename);
+				bool prevvalid = false;
+				data_type prevD;
+
+				while ( !FSE.empty() )
+				{
+					MergeObject M = FSE.pop();
+
+					if ( (! prevvalid) || order(prevD,M.D) )
+						M.D.serialise(OSI);
+
+					prevD = M.D;
+					prevvalid = true;
+
+					if ( AME[M.i]->getNext(M.D) )
+					{
+						FSE.push(M);
+					}
+					else
+					{
+						AME[M.i].reset();
+						libmaus2::aio::FileRemoval::removeFile(Vfn[M.i]);
+					}
+				}
+				OSI.flush();
+
+				return filename;
+
+			}
+
 			std::string reduceParallel(uint64_t const numthreads, uint64_t const backblocksize = 1024ull, uint64_t const maxfan = 16ull)
 			{
 				struct MergeObject
@@ -723,6 +808,97 @@ namespace libmaus2
 					MergeObject M = FSE.pop();
 
 					M.D.serialise(OSI);
+
+					if ( AME[M.i]->getNext(M.D) )
+					{
+						FSE.push(M);
+					}
+					else
+					{
+						AME[M.i].reset();
+						libmaus2::aio::FileRemoval::removeFile(Vfn[M.i]);
+					}
+				}
+				OSI.flush();
+
+				return filename;
+
+			}
+
+			std::string reduceUniqueParallel(uint64_t const numthreads, uint64_t const backblocksize = 1024ull, uint64_t const maxfan = 16ull)
+			{
+				struct MergeObject
+				{
+					data_type D;
+					uint64_t i;
+
+					MergeObject()
+					{}
+
+					MergeObject(
+						data_type const & rD,
+						uint64_t const ri
+					) : D(rD), i(ri) {}
+				};
+
+				struct MergeObjectComparator
+				{
+					order_type & order;
+
+					MergeObjectComparator(order_type & rorder)
+					: order(rorder) {}
+
+					bool operator()(MergeObject const & A, MergeObject const & B) const
+					{
+						if ( order(A.D,B.D) )
+							return true;
+						else if ( order(B.D,A.D) )
+							return false;
+						else
+							return A.i < B.i;
+					}
+				};
+
+				libmaus2::autoarray::AutoArray < typename sorter_type::merger_ptr_type > AME(Vfn.size());
+				MergeObjectComparator comp(order);
+				libmaus2::util::FiniteSizeHeap < MergeObject, MergeObjectComparator > FSE(Vfn.size(),comp);
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
+				#endif
+				for ( uint64_t i = 0; i < Vfn.size(); ++i )
+				{
+					typename sorter_type::merger_ptr_type tptr(ASO[i]->getMerger(backblocksize,maxfan));
+					AME[i] = UNIQUE_PTR_MOVE(tptr);
+				}
+
+				for ( uint64_t i = 0; i < Vfn.size(); ++i )
+				{
+					data_type D;
+					if ( AME[i]->getNext(D) )
+					{
+						FSE.push(MergeObject(D,i));
+					}
+					else
+					{
+						AME[i].reset();
+						libmaus2::aio::FileRemoval::removeFile(Vfn[i]);
+					}
+				}
+
+				bool prevvalid = false;
+				data_type prevD;
+
+				libmaus2::aio::OutputStreamInstance OSI(filename);
+				while ( !FSE.empty() )
+				{
+					MergeObject M = FSE.pop();
+
+					if ( (! prevvalid) || order(prevD,M.D) )
+						M.D.serialise(OSI);
+
+					prevD = M.D;
+					prevvalid = true;
 
 					if ( AME[M.i]->getNext(M.D) )
 					{

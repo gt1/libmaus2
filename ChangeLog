@@ -1,3 +1,22 @@
+libmaus2 (2.0.435-1) unstable; urgency=medium
+
+  * add lastGoodWindow function in AlignmentTraceContainer
+  * add pointer types in LasIntervals
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 22 Dec 2017 13:10:28 +0100
+
+libmaus2 (2.0.434-1) unstable; urgency=medium
+
+  * add reduceUnique and reduceUniqueParallel in SerialisingSortingBufferedOutputFileArray
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 21 Dec 2017 14:57:01 +0100
+
+libmaus2 (2.0.433-1) unstable; urgency=medium
+
+  * move some functions in PosixFdOutputStreamBuffer from private to public area
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 18 Dec 2017 12:53:09 +0100
+
 libmaus2 (2.0.432-1) unstable; urgency=medium
 
   * print more information for Command class
