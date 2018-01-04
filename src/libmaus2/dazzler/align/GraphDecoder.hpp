@@ -329,6 +329,35 @@ namespace libmaus2
 						GDC.setup(0);
 					}
 				}
+
+				uint64_t getOverlaps(
+					std::istream & graphISI, uint64_t const a, uint64_t const b,
+					std::vector<uint64_t> const & RL,
+					libmaus2::autoarray::AutoArray< std::pair<libmaus2::dazzler::align::OverlapHeader,uint64_t> > & AP
+				)
+				{
+					libmaus2::dazzler::align::GraphDecoderContext::shared_ptr_type scontext_a = getContext();
+					libmaus2::dazzler::align::GraphDecoderContext & context_a = *scontext_a;
+
+					decode(graphISI,a,b,context_a);
+
+					uint64_t oAP = 0;
+					for ( uint64_t i = 0; i < context_a.size(); ++i )
+					{
+						AP.push(
+							oAP,
+							std::pair<libmaus2::dazzler::align::OverlapHeader,uint64_t>(
+								context_a.A[i],
+								context_a.F[i]
+							)
+						);
+					}
+
+					returnContext(scontext_a);
+
+					return oAP;
+				}
+
 			};
 		}
 	}
