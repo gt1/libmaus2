@@ -1,3 +1,11 @@
+libmaus2 (2.0.436-1) unstable; urgency=medium
+
+  * add isComplete and isFinished in Command and CommandContainer
+  * fix compilation with fftw
+  * avoid memset in ReadEndsBase::reset
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 04 Jan 2018 10:10:38 +0100
+
 libmaus2 (2.0.435-1) unstable; urgency=medium
 
   * add lastGoodWindow function in AlignmentTraceContainer
