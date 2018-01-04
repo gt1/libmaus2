@@ -268,7 +268,20 @@ namespace libmaus2
 			 **/
 			void reset()
 			{
-				memset(this,0,sizeof(*this));
+				libraryId = 0;
+				tagId = 0;
+				read1Sequence = 0;
+				read1Coordinate = 0;
+				orientation = F;
+				read2Sequence = 0;
+				read2Coordinate = 0;
+				read1IndexInFile = 0;
+				read2IndexInFile = 0;
+				score = 0;
+				readGroup = 0;
+				tile = 0;
+				x = 0;
+				y = 0;
 			}
 
 			static unsigned int const hash_value_words = 7;
