@@ -52,6 +52,16 @@ namespace libmaus2
 				deserialise(istr);
 			}
 
+			bool isComplete() const
+			{
+				return completed;
+			}
+
+			bool isFinished() const
+			{
+				return isComplete() || ((numattempts == maxattempts) && ignorefail);
+			}
+
 			void serialise(std::ostream & ostr) const
 			{
 				libmaus2::util::StringSerialisation::serialiseString(ostr,in);
