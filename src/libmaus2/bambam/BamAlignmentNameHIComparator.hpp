@@ -62,7 +62,7 @@ namespace libmaus2
 			 * @param db second string
 			 * @return true iff da < db (alignments referenced by da and db, not pointers)
 			 **/
-			static bool compare(uint8_t const * da, uint64_t const /* la */, uint8_t const * db, uint64_t const /* lb */)
+			static bool compare(uint8_t const * da, uint64_t const la, uint8_t const * db, uint64_t const lb)
 			{
 				char const * namea = ::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(da);
 				char const * nameb = ::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(db);
