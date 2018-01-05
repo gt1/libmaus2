@@ -36,7 +36,7 @@ namespace libmaus2
 
 					// initialize graph decoder
 					libmaus2::dazzler::align::GraphDecoder GD(graphISI);
-					
+
 					bool ok = true;
 
 					errOSI << "[V] Checking encoded graph..." << std::flush;
@@ -63,7 +63,7 @@ namespace libmaus2
 						GD.returnContext(scontext_a);
 					}
 					errOSI << "done, result " << (ok?"ok":"FAILED") << std::endl;
-					
+
 					return ok;
 				}
 			};
