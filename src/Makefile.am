@@ -332,7 +332,9 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/LasIntervals.hpp \
 	libmaus2/dazzler/align/BinIndexDecoder.hpp \
 	libmaus2/dazzler/align/LasRangeDecoder.hpp \
-	libmaus2/dazzler/align/OverlapDataInterface.hpp
+	libmaus2/dazzler/align/OverlapDataInterface.hpp \
+	libmaus2/dazzler/align/SortOrderCheck.hpp \
+	libmaus2/dazzler/align/GraphCheck.hpp
 
 libmaus2dazzlerstringgraph_includedir=$(includedir)/libmaus2/dazzler/stringgraph
 libmaus2dazzlerstringgraph_include_HEADERS = libmaus2/dazzler/stringgraph/Edge.hpp \
@@ -546,6 +548,7 @@ libmaus2bambam_include_HEADERS = libmaus2/bambam/DecoderBase.hpp libmaus2/bambam
 	libmaus2/bambam/OpticalComparator.hpp \
 	libmaus2/bambam/BamAlignmentHeapComparator.hpp \
 	libmaus2/bambam/BamAlignmentNameComparator.hpp \
+	libmaus2/bambam/BamAlignmentNameHIComparator.hpp \
 	libmaus2/bambam/BamAlignmentPosComparator.hpp \
 	libmaus2/bambam/BamAlignmentTagComparator.hpp \
 	libmaus2/bambam/BamEntryContainer.hpp \

@@ -3107,6 +3107,11 @@ namespace libmaus2
 				return 0;
 			}
 
+			static bool hasAux(uint8_t const * E, uint64_t const blocksize, char const * const tag)
+			{
+				return getAux(E,blocksize,tag) != 0;
+			}
+
 			struct AuxInfo
 			{
 				uint8_t tag[2];
