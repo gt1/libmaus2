@@ -645,6 +645,7 @@ namespace libmaus2
 								}
 								state = state_post_skip;
 								// intended fall through to post_skip case
+								libmaus2_fallthrough;
 							/* skip data after part we modify */
 							case state_post_skip:
 							{
@@ -837,6 +838,7 @@ namespace libmaus2
 									*pa |= 4;
 								state = state_post_skip;
 								// intended fall through to post_skip case
+								libmaus2_fallthrough;
 							/* skip data after part we modify */
 							case state_post_skip:
 							{
