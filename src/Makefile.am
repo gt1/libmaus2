@@ -2767,6 +2767,6 @@ testlibarchive_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
 testlibarchive_LDFLAGS  = ${AM_LDFLAGS}
 
 testconvpowercache_SOURCES  = test/testconvpowercache.cpp
-testconvpowercache_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la libmaus2fftw.a ${DLLIB} ${FFTWLIBS}
-testconvpowercache_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
-testconvpowercache_LDFLAGS  = ${AM_LDFLAGS}
+testconvpowercache_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la libmaus2fftw.a ${DLLIB} @FFTWLIBS@
+testconvpowercache_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS} @FFTWCPPFLAGS@
+testconvpowercache_LDFLAGS  = ${AM_LDFLAGS} @FFTWLDFLAGS@
