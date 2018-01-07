@@ -1,3 +1,23 @@
+libmaus2 (2.0.437-1) unstable; urgency=medium
+
+  * add intended fall through markers in DupMarkBase
+  * add BamAlignmentNameHIComparator
+  * add hasAux in BamAlignmentDecoderBase
+  * add SortOrderCheck and GraphCheck
+  * add static modifier for checkEncodedGraph
+  * add getOverlaps variant in GraphDecoder
+  * add SortOrderCheck
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 05 Jan 2018 11:42:30 +0100
+
+libmaus2 (2.0.436-1) unstable; urgency=medium
+
+  * add isComplete and isFinished in Command and CommandContainer
+  * fix compilation with fftw
+  * avoid memset in ReadEndsBase::reset
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 04 Jan 2018 10:10:38 +0100
+
 libmaus2 (2.0.435-1) unstable; urgency=medium
 
   * add lastGoodWindow function in AlignmentTraceContainer

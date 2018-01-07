@@ -73,6 +73,26 @@ namespace libmaus2
 				return CC;
 			}
 
+			bool isComplete() const
+			{
+				bool iscomplete = true;
+
+				for ( uint64_t i = 0; i < V.size(); ++i )
+					iscomplete = iscomplete && V[i].isComplete();
+
+				return iscomplete;
+			}
+
+			bool isFinished() const
+			{
+				bool isfinished = true;
+
+				for ( uint64_t i = 0; i < V.size(); ++i )
+					isfinished = isfinished && V[i].isFinished();
+
+				return isfinished;
+			}
+
 			void serialise(std::ostream & out) const
 			{
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,V.size());
