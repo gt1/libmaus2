@@ -43,6 +43,20 @@ namespace libmaus2
 				int32_t aread;
 				int32_t bread;
 
+				uint32_t getFlags() const
+				{
+					return flags;
+				}
+
+				int32_t getARead() const
+				{
+					return aread;
+				}
+
+				int32_t getBRead() const
+				{
+					return bread;
+				}
 
 				libmaus2::math::IntegerInterval<int64_t> aint() const
 				{

@@ -128,6 +128,44 @@ namespace libmaus2
 					}
 				}
 			};
+
+			struct SimpleOverlapParserGet
+			{
+				typedef SimpleOverlapParserGet this_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
+				SimpleOverlapParser & parser;
+				uint64_t i;
+
+				SimpleOverlapParserGet(SimpleOverlapParser & rparser) : parser(rparser), i(0) {}
+
+				bool getNext(std::pair<uint8_t const *, uint8_t const *> & P)
+				{
+					while ( true )
+					{
+						OverlapData & data = parser.getData();
+						if ( i < data.size() )
+						{
+							P = data.getData(i++);
+							return true;
+						}
+						else
+						{
+							bool const ok = parser.parseNextBlock();
+
+							if ( ok )
+							{
+								i = 0;
+							}
+							else
+							{
+								return false;
+							}
+						}
+					}
+				}
+			};
 		}
 	}
 }
