@@ -68,34 +68,34 @@ namespace libmaus2
 				OverlapDataInterfaceFullComparator() : p(0) {}
 				OverlapDataInterfaceFullComparator(uint8_t const * rp) : p(rp) {}
 
-				bool operator()(
+				static bool compare(
 					uint8_t const * pa,
 					uint8_t const * pb
-				) const
+				)
 				{
 
 					OverlapDataInterface const OA(pa);
 					OverlapDataInterface const OB(pb);
 
 					{
+						int64_t const a = OA.aread();
+						int64_t const b = OB.aread();
+
+						if ( a != b )
+							return a < b;
+					}
+
+					{
+						int64_t const a = OA.bread();
+						int64_t const b = OB.bread();
+
+						if ( a != b )
+							return a < b;
+					}
+
+					{
 						int64_t const a = OA.isInverse();
 						int64_t const b = OB.isInverse();
-
-						if ( a != b )
-							return a < b;
-					}
-
-					{
-						int64_t const a = OA.bread();
-						int64_t const b = OB.bread();
-
-						if ( a != b )
-							return a < b;
-					}
-
-					{
-						int64_t const a = OA.bread();
-						int64_t const b = OB.bread();
 
 						if ( a != b )
 							return a < b;
@@ -144,7 +144,7 @@ namespace libmaus2
 					uint8_t const * pa = p + A.offset;
 					uint8_t const * pb = p + B.offset;
 
-					return operator()(pa,pb);
+					return compare(pa,pb);
 				}
 			};
 
