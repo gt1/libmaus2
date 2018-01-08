@@ -35,9 +35,25 @@ namespace libmaus2
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
+				struct OverlapOffset
+				{
+					uint64_t offset;
+					uint64_t length;
+
+					OverlapOffset()
+					{
+
+					}
+
+					OverlapOffset(uint64_t const roffset, uint64_t const rlength)
+					: offset(roffset), length(rlength)
+					{
+
+					}
+				};
+
 				libmaus2::autoarray::AutoArray<uint8_t> Adata;
-				libmaus2::autoarray::AutoArray<uint64_t> Aoffsets;
-				libmaus2::autoarray::AutoArray<uint64_t> Alength;
+				libmaus2::autoarray::AutoArray<OverlapOffset> Aoffsets;
 				uint64_t overlapsInBuffer;
 
 				OverlapData() : overlapsInBuffer(0) {}
@@ -48,8 +64,8 @@ namespace libmaus2
 					{
 						return
 							std::pair<uint8_t const *, uint8_t const *>(
-								Adata.begin() + Aoffsets[i],
-								Adata.begin() + Aoffsets[i] + Alength[i]
+								Adata.begin() + Aoffsets[i].offset,
+								Adata.begin() + Aoffsets[i].offset + Aoffsets[i].length
 							);
 					}
 					else
@@ -67,8 +83,8 @@ namespace libmaus2
 					{
 						return
 							std::pair<uint8_t *, uint8_t *>(
-								Adata.begin() + Aoffsets[i],
-								Adata.begin() + Aoffsets[i] + Alength[i]
+								Adata.begin() + Aoffsets[i].offset,
+								Adata.begin() + Aoffsets[i].offset + Aoffsets[i].length
 							);
 					}
 					else
@@ -95,7 +111,7 @@ namespace libmaus2
 				{
 					Adata.swap(rhs.Adata);
 					Aoffsets.swap(rhs.Aoffsets);
-					Alength.swap(rhs.Alength);
+					// Alength.swap(rhs.Alength);
 					std::swap(overlapsInBuffer,rhs.overlapsInBuffer);
 				}
 

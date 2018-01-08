@@ -2175,7 +2175,8 @@ EXTRA_PROGRAMS = \
 	testConstantSumCombinatorics \
 	testmatrix \
 	testlibarchive \
-	testconvpowercache
+	testconvpowercache \
+	testlassort
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2773,3 +2774,8 @@ testconvpowercache_SOURCES  = test/testconvpowercache.cpp
 testconvpowercache_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la libmaus2fftw.a ${DLLIB} @FFTWLIBS@
 testconvpowercache_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS} @FFTWCPPFLAGS@
 testconvpowercache_LDFLAGS  = ${AM_LDFLAGS} @FFTWLDFLAGS@
+
+testlassort_SOURCES  = test/testlassort.cpp
+testlassort_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testlassort_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
+testlassort_LDFLAGS  = ${AM_LDFLAGS}
