@@ -890,7 +890,7 @@ namespace libmaus2
 
 				NNPCorLocalAlignerKmerMatches * const lastnextnull = 0;
 
-				if ( allocbuckets > Alasta.size() )
+				if ( allocbuckets > static_cast<int64_t>(Alasta.size()) )
 				{
 					uint64_t const oldsize = Alasta.size();
 
@@ -1030,10 +1030,10 @@ namespace libmaus2
 					int64_t const bucket = p->getDiag() >> bucketlog;
 
 					// if hit is superseded by a previous one
-					if ( p->getAntiDiag() < lasta[bucket] )
+					if ( p->getAntiDiag() < static_cast<int64_t>(lasta[bucket]) )
 					{
 						// skip
-						while ( p && p->getAntiDiag() < lasta[bucket] )
+						while ( p && p->getAntiDiag() < static_cast<int64_t>(lasta[bucket]) )
 							p = p->next;
 						// reque if score is still sufficienlty high
 						if ( p /* && p->score >= minbandscore */ )
