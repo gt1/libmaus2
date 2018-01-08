@@ -1,3 +1,11 @@
+libmaus2 (2.0.438-1) unstable; urgency=medium
+
+  * add testlassort program
+  * add SimpleOverlapParserGet class
+  * add OverlapDataInterfaceFullComparator
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 08 Jan 2018 12:52:25 +0100
+
 libmaus2 (2.0.437-1) unstable; urgency=medium
 
   * add intended fall through markers in DupMarkBase
