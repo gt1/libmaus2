@@ -459,7 +459,7 @@ namespace libmaus2
 					}
 				}
 
-				Path()
+				Path() : path(), tlen(0), diffs(0), abpos(0), bbpos(0), aepos(0), bepos(0)
 				{
 
 				}
