@@ -1,3 +1,11 @@
+libmaus2 (2.0.439-1) unstable; urgency=medium
+
+  * fix unused parameter warning
+  * fix signed/unsigned comparison warnings
+  * initialize fields in parameterless constructors
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 09 Jan 2018 12:01:42 +0100
+
 libmaus2 (2.0.438-1) unstable; urgency=medium
 
   * add testlassort program

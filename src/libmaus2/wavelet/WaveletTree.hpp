@@ -266,7 +266,7 @@ namespace libmaus2
 				::libmaus2::util::SimpleQueue<uint64_t> T;
 				::libmaus2::util::SimpleQueue<uint64_t> Tn;
 
-				void check(uint64_t const n, uint64_t const b)
+				void check(uint64_t const n, uint64_t const /* b */)
 				{
 					if ( AA0.size() < n )
 					{

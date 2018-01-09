@@ -37,7 +37,7 @@ namespace libmaus2
 				int64_t bbpos;
 				int64_t bepos;
 
-				OverlapInfo()
+				OverlapInfo() : aread(0), bread(0), abpos(0), aepos(0), bbpos(0), bepos(0)
 				{
 				}
 				OverlapInfo(
