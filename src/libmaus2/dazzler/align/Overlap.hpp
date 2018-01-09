@@ -242,7 +242,7 @@ namespace libmaus2
 						bread == O.bread;
 				}
 
-				Overlap()
+				Overlap() : path(), flags(0), aread(0), bread(0)
 				{
 
 				}
@@ -1411,14 +1411,14 @@ namespace libmaus2
 
 				template<typename path_type>
 				static Overlap subOverlap(
-					int64_t const tspace,
+					int64_t const /* tspace */,
 					int64_t const aread,
 					int64_t const bread,
 					bool const inv,
 					OffsetInfo const & from,
 					OffsetInfo const & to,
 					path_type const path,
-					uint64_t const pathsize
+					uint64_t const /* pathsize */
 				)
 				{
 					Overlap OVL;

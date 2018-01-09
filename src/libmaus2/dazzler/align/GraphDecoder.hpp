@@ -332,7 +332,7 @@ namespace libmaus2
 
 				uint64_t getOverlaps(
 					std::istream & graphISI, uint64_t const a, uint64_t const b,
-					std::vector<uint64_t> const & RL,
+					std::vector<uint64_t> const & /* RL */,
 					libmaus2::autoarray::AutoArray< std::pair<libmaus2::dazzler::align::OverlapHeader,uint64_t> > & AP
 				)
 				{
