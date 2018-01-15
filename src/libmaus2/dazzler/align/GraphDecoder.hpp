@@ -358,6 +358,39 @@ namespace libmaus2
 					return oAP;
 				}
 
+				libmaus2::dazzler::align::OverlapHeader getCoverOverlap(
+					std::istream & graphISI,
+					uint64_t const a,
+					uint64_t const b,
+					std::vector<uint64_t> const & RL
+				)
+				{
+					libmaus2::dazzler::align::GraphDecoderContext::shared_ptr_type scontext_a = getContext();
+					libmaus2::dazzler::align::GraphDecoderContext & context_a = *scontext_a;
+
+					decode(graphISI,a,b,context_a);
+
+					int64_t id = -1;
+					for ( uint64_t i = 0; i < context_a.size(); ++i )
+						if ( context_a[i].abpos == 0 && context_a[i].aepos == static_cast<int64_t>(RL[a]) )
+							id = i;
+
+					if ( id < 0 )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "getCoverOverlap(" << a << "," << b << "): no cover overlap found" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					assert ( id >= 0 );
+
+					libmaus2::dazzler::align::OverlapHeader const ovl = context_a[id];
+
+					returnContext(scontext_a);
+
+					return ovl;
+				}
 			};
 		}
 	}
