@@ -802,6 +802,28 @@ namespace libmaus2
 					);
 				}
 
+				static void rename(std::string const & from, std::string const & to)
+				{
+					libmaus2::aio::OutputStreamFactoryContainer::rename ( from, to );
+
+					if (
+						libmaus2::util::GetFileSize::fileExists(libmaus2::dazzler::align::OverlapIndexer::getIndexName(from))
+					)
+						libmaus2::aio::OutputStreamFactoryContainer::rename (
+							libmaus2::dazzler::align::OverlapIndexer::getIndexName(from),
+							libmaus2::dazzler::align::OverlapIndexer::getIndexName(to)
+						);
+					if (
+						libmaus2::util::GetFileSize::fileExists(libmaus2::dazzler::align::DalignerIndexDecoder::getDalignerIndexName(from))
+					)
+					{
+						libmaus2::aio::OutputStreamFactoryContainer::rename (
+							libmaus2::dazzler::align::DalignerIndexDecoder::getDalignerIndexName(from),
+							libmaus2::dazzler::align::DalignerIndexDecoder::getDalignerIndexName(to)
+						);
+					}
+				}
+
 				static void sort(
 					std::string const & in,
 					std::string tmpfilebase = std::string(),
@@ -825,24 +847,7 @@ namespace libmaus2
 						comparator
 					);
 
-					libmaus2::aio::OutputStreamFactoryContainer::rename ( tmpout, in );
-
-					if (
-						libmaus2::util::GetFileSize::fileExists(libmaus2::dazzler::align::OverlapIndexer::getIndexName(tmpout))
-					)
-						libmaus2::aio::OutputStreamFactoryContainer::rename (
-							libmaus2::dazzler::align::OverlapIndexer::getIndexName(tmpout),
-							libmaus2::dazzler::align::OverlapIndexer::getIndexName(in)
-						);
-					if (
-						libmaus2::util::GetFileSize::fileExists(libmaus2::dazzler::align::DalignerIndexDecoder::getDalignerIndexName(tmpout))
-					)
-					{
-						libmaus2::aio::OutputStreamFactoryContainer::rename (
-							libmaus2::dazzler::align::DalignerIndexDecoder::getDalignerIndexName(tmpout),
-							libmaus2::dazzler::align::DalignerIndexDecoder::getDalignerIndexName(in)
-						);
-					}
+					rename(tmpout,in);
 				}
 			};
 		}
