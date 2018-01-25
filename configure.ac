@@ -180,7 +180,7 @@ if [[ "${zlibpkg}" = "yes" ]] ; then
 	PKG_CHECK_MODULES([zlib],[zlib >= 0])
 
         AC_LANG_PUSH([C++])
-	LIBSSAVE="${LIBS}"
+	LIBS_SAVE="${LIBS}"
 	LIBS="${LIBS} ${zlib_LIBS}"
 	CPPFLAGSSAVE="${CPPFLAGS}"
 	CPPFLAGS="${CPPFLAGS} ${zlib_CFLAGS}"
@@ -196,7 +196,7 @@ if [[ "${zlibpkg}" = "yes" ]] ; then
 	deflateInit(&strm,Z_DEFAULT_COMPRESSION);
 	],[zlib=yes],[zlib=no])
         AC_MSG_RESULT([${zlib}])
-	LIBS="${LIBSSAVE}"
+	LIBS="${LIBS_SAVE}"
 	CPPFLAGS="${CPPFLAGSSAVE}"
         AC_LANG_POP
 
@@ -211,7 +211,7 @@ else
 	AC_MSG_WARN([zlib pkgconfig file is not installed. Trying if -lz for LIBS is enough.])
 
         AC_LANG_PUSH([C++])
-	LIBSSAVE="${LIBS}"
+	LIBS_SAVE="${LIBS}"
 	LIBS="${LIBS} -lz"
         AC_MSG_CHECKING([whether we can compile a zlib program])
         AC_TRY_LINK([#include <zlib.h>
@@ -225,7 +225,7 @@ else
 	deflateInit(&strm,Z_DEFAULT_COMPRESSION);
 	],[zlib=yes],[zlib=no])
         AC_MSG_RESULT([${zlib}])
-	LIBS="${LIBSSAVE}"
+	LIBS="${LIBS_SAVE}"
         AC_LANG_POP
 
 	if [[ "$zlib" = "no" ]] ; then
@@ -248,7 +248,7 @@ AC_ARG_WITH([snappy],
             [with_snappy=])
 
 if [[ "${with_snappy}" != "no" ]] ; then
-	LIBSSAVE="${LIBS}"
+	LIBS_SAVE="${LIBS}"
 	LDFLAGSSAVE="${LDFLAGS}"
 	CPPFLAGSSAVE="${CPPFLAGS}"
 
@@ -282,7 +282,7 @@ snappy::Compress(input,input_length,&output);
 
 	CPPFLAGS="${CPPFLAGSSAVE}"
 	LDFLAGS="${LDFLAGSSAVE}"
-	LIBS="${LIBSSAVE}"
+	LIBS="${LIBS_SAVE}"
 
 	if [[ "${snappy}" = "yes" ]] ; then
 		LIBMAUSHAVESNAPPY="#define LIBMAUS2_HAVE_SNAPPY"
@@ -2361,7 +2361,7 @@ if [[ "${have_dynamic_loading}" = "yes" -a "${getpagesize}" = "yes" -a "${posixm
 
 	CPPFLAGSSAVE="${CPPFLAGS}"
 	LDFLAGSSAVE="${LDFLAGS}"
-	LIBSSAVE="${LIBS}"
+	LIBS_SAVE="${LIBS}"
 	CPPFLAGS="${CPPFLAGS} ${IOLIBCPPFLAGS}"
 	LDFLAGS="${LDFLAGS} ${IOLIBLDFLAGS}"
 	LIBS="${LIBS} ${IOLIBLIBS} ${ZLIBLIBS} -lm"
@@ -2562,7 +2562,7 @@ if [[ "${have_dynamic_loading}" = "yes" -a "${getpagesize}" = "yes" -a "${posixm
 
 	CPPFLAGS="${CPPFLAGSSAVE}"
 	LDFLAGS="${LDFLAGSSAVE}"
-	LIBS="${LIBSSAVE}"
+	LIBS="${LIBS_SAVE}"
 
 	IOLIBDEFINE="#define LIBMAUS2_HAVE_IO_LIB"
 fi
@@ -2614,7 +2614,7 @@ if test "${with_lzma}" != "no" ; then
 	if test "${lzmapkg}" = "yes" ; then
 		AC_LANG_PUSH([C++])
 
-		LIBSSAVE="${LIBS}"
+		LIBS_SAVE="${LIBS}"
 		LIBS="${LIBS} ${liblzma_LIBS}"
 		CPPFLAGSSAVE="${CPPFLAGS}"	
 		CPPFLAGS="${CPPFLAGS} ${liblzma_CFLAGS}"
@@ -2641,7 +2641,7 @@ if test "${with_lzma}" != "no" ; then
 		],[have_lzma=yes],[have_lzma=no])
 		AC_MSG_RESULT([${have_lzma}])
 
-		LIBS="${LIBSSAVE}"
+		LIBS="${LIBS_SAVE}"
 		CPPFLAGS="${CPPFLAGSSAVE}"
 
 		AC_LANG_POP
@@ -2689,7 +2689,7 @@ if test "${with_libarchive}" != "no" ; then
 	if test "${libarchivepkg}" = "yes" ; then
 		AC_LANG_PUSH([C++])
 
-		LIBSSAVE="${LIBS}"
+		LIBS_SAVE="${LIBS}"
 		LIBS="${LIBS} ${libarchive_LIBS}"
 		CPPFLAGSSAVE="${CPPFLAGS}"
 		CPPFLAGS="${CPPFLAGS} ${libarchive_CFLAGS}"
@@ -2708,7 +2708,7 @@ if test "${with_libarchive}" != "no" ; then
 		],[have_libarchive=yes],[have_libarchive=no])
 		AC_MSG_RESULT([${have_libarchive}])
 
-		LIBS="${LIBSSAVE}"
+		LIBS="${LIBS_SAVE}"
 		CPPFLAGS="${CPPFLAGSSAVE}"
 
 		AC_LANG_POP
@@ -2754,7 +2754,7 @@ if test "${with_gnutls}" != "no" ; then
 	GNUTLS=
 	if [[ "${gnutlspkg}" = "yes" ]] ; then
 		AC_LANG_PUSH([C++])
-		LIBSSAVE="${LIBS}"
+		LIBS_SAVE="${LIBS}"
 		LIBS="${LIBS} ${gnutls_LIBS}"
 		CPPFLAGSSAVE="${CPPFLAGS}"
 		
@@ -2764,7 +2764,7 @@ if test "${with_gnutls}" != "no" ; then
 #include <gnutls/x509.h>		
 	],[;],[gnutls=yes],[gnutls=no])
 		AC_MSG_RESULT([${gnutls}])
-		LIBS="${LIBSSAVE}"
+		LIBS="${LIBS_SAVE}"
 		CPPFLAGS="${CPPFLAGSSAVE}"
 		
 		AC_LANG_POP
@@ -2813,7 +2813,7 @@ if test "${with_nettle}" != "no" ; then
 	NETTLE=
 	if [[ "${nettlepkg}" = "yes" ]] ; then
 		AC_LANG_PUSH([C++])
-		LIBSSAVE="${LIBS}"
+		LIBS_SAVE="${LIBS}"
 		LIBS="${LIBS} ${nettle_LIBS}"
 		CPPFLAGSSAVE="${CPPFLAGS}"
 		CPPFLAGS="${CPPFLAGS} ${nettle_CFLAGS}"
@@ -2822,7 +2822,7 @@ if test "${with_nettle}" != "no" ; then
 		AC_TRY_LINK([#include <nettle/sha.h>
 	],[;],[nettle=yes],[nettle=no])
 		AC_MSG_RESULT([${nettle}])
-		LIBS="${LIBSSAVE}"
+		LIBS="${LIBS_SAVE}"
 		CPPFLAGS="${CPPFLAGSSAVE}"
 		
 		AC_LANG_POP
@@ -2842,7 +2842,7 @@ if test "${with_nettle}" != "no" ; then
 
 	if [[ ! -z "${NETTLE}" ]] ; then
 		AC_LANG_PUSH([C++])
-		LIBSSAVE="${LIBS}"
+		LIBS_SAVE="${LIBS}"
 		LIBS="${LIBS} ${nettle_LIBS}"
 		CPPFLAGSSAVE="${CPPFLAGS}"
 		CPPFLAGS="${CPPFLAGS} ${nettle_CFLAGS}"
@@ -2851,7 +2851,7 @@ if test "${with_nettle}" != "no" ; then
 		AC_TRY_LINK([#include <nettle/sha3.h>
 	],[;],[nettle_sha_3=yes],[nettle_sha_3=no])
 		AC_MSG_RESULT([${nettle_sha_3}])
-		LIBS="${LIBSSAVE}"
+		LIBS="${LIBS_SAVE}"
 		CPPFLAGS="${CPPFLAGSSAVE}"
 
 		AC_LANG_POP
@@ -3098,10 +3098,6 @@ case $host_os in
     ;;
 esac
 
-CPPFLAGS="${CPPFLAGS} ${LIBMAUSCPPFLAGS}"
-CFLAGS="${CFLAGS} ${LIBMAUSCFLAGS}"
-CXXFLAGS="${CXXFLAGS} ${LIBMAUSCXXFLAGS}"
-LIBS="${LIBS} ${LIBMAUSLIBS}"
 
 PACKAGE_NAME=${PACKAGE}
 PACKAGE_VERSION=${VERSION}
@@ -3475,6 +3471,11 @@ if test ! -z "${ac_cv_sys_largefile_source}" ; then
 fi
 
 ac_cv_sys_largefile_source=1
+
+CPPFLAGS="${CPPFLAGS} ${LIBMAUSCPPFLAGS}"
+CFLAGS="${CFLAGS} ${LIBMAUSCFLAGS}"
+CXXFLAGS="${CXXFLAGS} ${LIBMAUSCXXFLAGS}"
+LIBS="${LIBS} ${LIBMAUSLIBS}"
 
 AC_SUBST([PACKAGE_NAME])
 AC_SUBST([PACKAGE_VERSION])
