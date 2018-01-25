@@ -258,6 +258,21 @@ namespace libmaus2
 				}
 			}
 
+			std::vector<std::string> operator()(std::string const & key) const
+			{
+				typedef std::multimap<std::string,std::string>::const_iterator it_type;
+				std::pair<it_type,it_type> P = kvargs.equal_range(key);
+				std::vector< std::string > V;
+				while ( P.first != P.second )
+				{
+					std::pair<std::string,std::string> const & S = *(P.first);
+					assert ( S.first == key );
+					V.push_back(S.second);
+					P.first++;
+				}
+				return V;
+			}
+
 			bool argPresent(std::string const & key) const
 			{
 				return kvargs.find(key) != kvargs.end();
