@@ -77,6 +77,28 @@ namespace libmaus2
                         }
 
 			template<typename iterator>
+			bool npCheck(
+                                iterator ab,
+                                iterator ae,
+                                iterator bb,
+                                iterator be,
+                                bool const self = false,
+                                bool const uniquetermval = false,
+                                int64_t const minband = NNPCor::getDefaultMinDiag(),
+                                int64_t const maxband = NNPCor::getDefaultMaxDiag()
+                        )
+                        {
+                        	std::pair<uint64_t,uint64_t> SL = alignForward(ab,ae,bb,be,self,uniquetermval,minband,maxband);
+
+                        	uint64_t const n_a = ae-ab;
+                        	uint64_t const n_b = be-bb;
+
+                        	bool const ok = (SL.first == n_a) && (SL.second == n_b);
+
+				return ok;
+			}
+
+			template<typename iterator>
                         std::pair<uint64_t,uint64_t> np(
                                 iterator ab,
                                 iterator ae,
