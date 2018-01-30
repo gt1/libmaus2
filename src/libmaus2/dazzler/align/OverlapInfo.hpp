@@ -53,6 +53,17 @@ namespace libmaus2
 					deserialise(in);
 				}
 
+				template<typename iterator>
+				OverlapInfo swappedInverse(iterator it) const
+				{
+					return swappedInverse(it[aread/2],it[bread/2]);
+				}
+
+				OverlapInfo swappedInverse(uint64_t const alen, uint64_t const blen) const
+				{
+					return inverse(alen,blen).swapped();
+				}
+
 				OverlapInfo swapped() const
 				{
 					return OverlapInfo(bread,aread,bbpos,bepos,abpos,aepos);
