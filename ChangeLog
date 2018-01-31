@@ -1,3 +1,12 @@
+libmaus2 (2.0.445-1) unstable; urgency=medium
+
+  * add output of threads and mem in CommandContainer
+  * add GenericPeeker class
+  * add npCheck method in NNPCorL
+  * add swappedInverse method in OverlapInfo
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 31 Jan 2018 10:40:25 +0100
+
 libmaus2 (2.0.444-1) unstable; urgency=medium
 
   * refactor configure.ac and move setting of LIBMAUSCPPFLAGS/LIBMAUSLDFLAGS into LIBS and CPPFLAGS down
