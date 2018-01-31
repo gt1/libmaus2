@@ -18,6 +18,9 @@
 #if ! defined(LIBMAUS2_AIO_GENERICPEEKER_HPP)
 #define LIBMAUS2_AIO_GENERICPEEKER_HPP
 
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+
 namespace libmaus2
 {
 	namespace aio
