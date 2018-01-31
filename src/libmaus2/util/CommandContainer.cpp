@@ -19,7 +19,11 @@
 
 std::ostream & libmaus2::util::operator<<(std::ostream & out, libmaus2::util::CommandContainer const & CC)
 {
-	out << "CommandContainer(id=" << CC.id << ",attempt=" << CC.attempt << ",depid={";
+	out << "CommandContainer(id=" << CC.id
+		<< ",attempt=" << CC.attempt
+		<< ",mem=" << CC.mem
+		<< ",threads=" << CC.threads
+		<< ",depid={";
 	for ( uint64_t i = 0; i < CC.depid.size(); ++i )
 		out << CC.depid[i] << ((i+1 < CC.depid.size())?",":"");
         out << "},rdepid={";
