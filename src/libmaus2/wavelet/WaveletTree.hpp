@@ -146,6 +146,28 @@ namespace libmaus2
 			typedef WaveletTree<rank_type,symbol_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
+			struct ProduceBitsContext
+			{
+				::libmaus2::autoarray::AutoArray<symbol_type> AA0;
+				::libmaus2::autoarray::AutoArray<symbol_type> AA1;
+				::libmaus2::util::SimpleQueue<uint64_t> T;
+				::libmaus2::util::SimpleQueue<uint64_t> Tn;
+
+				void check(uint64_t const n, uint64_t const /* b */)
+				{
+					if ( AA0.size() < n )
+					{
+						AA0 = ::libmaus2::autoarray::AutoArray<symbol_type>();
+						AA0 = ::libmaus2::autoarray::AutoArray<symbol_type>(n,false);
+					}
+					if ( AA1.size() < n )
+					{
+						AA1 = ::libmaus2::autoarray::AutoArray<symbol_type>();
+						AA1 = ::libmaus2::autoarray::AutoArray<symbol_type>(n,false);
+					}
+				}
+			};
+
 			private:
 			typedef typename rank_type::writer_type writer_type;
 			typedef typename writer_type::data_type data_type;
@@ -258,28 +280,6 @@ namespace libmaus2
 				}
 				#endif
 			}
-
-			struct ProduceBitsContext
-			{
-				::libmaus2::autoarray::AutoArray<symbol_type> AA0;
-				::libmaus2::autoarray::AutoArray<symbol_type> AA1;
-				::libmaus2::util::SimpleQueue<uint64_t> T;
-				::libmaus2::util::SimpleQueue<uint64_t> Tn;
-
-				void check(uint64_t const n, uint64_t const /* b */)
-				{
-					if ( AA0.size() < n )
-					{
-						AA0 = ::libmaus2::autoarray::AutoArray<symbol_type>();
-						AA0 = ::libmaus2::autoarray::AutoArray<symbol_type>(n,false);
-					}
-					if ( AA1.size() < n )
-					{
-						AA1 = ::libmaus2::autoarray::AutoArray<symbol_type>();
-						AA1 = ::libmaus2::autoarray::AutoArray<symbol_type>(n,false);
-					}
-				}
-			};
 
 			/**
 			 * produce wavelet tree bits with b layers from sequence a of length n.
