@@ -157,7 +157,7 @@ namespace libmaus2
 				out.put(4);   // FLG, extra data
 				putLEInteger(out,0,4); // MTIME
 				out.put(0); // XFL
-				out.put(255); // undefined OS
+				out.put(static_cast<char>(255)); // undefined OS
 				putLEInteger(out,6,2); // xlen
 				out.put('B');
 				out.put('C');
@@ -177,7 +177,7 @@ namespace libmaus2
 				out.put(0);   // FLG, none
 				putLEInteger(out,0,4); // MTIME
 				out.put(0); // XFL
-				out.put(255); // undefined OS
+				out.put(static_cast<char>(255)); // undefined OS
 
 				// number of bytes written
 				return 10;
