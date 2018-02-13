@@ -1,3 +1,12 @@
+libmaus2 (2.0.446-1) unstable; urgency=medium
+
+  * add nplCheck in NNPCorL class
+  * add getCoveredReadIntervalPrime method in BamAlignment class
+  * move ProduceBitsContext to public area in WaveletTree
+  * add cast in GzipHeader
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 13 Feb 2018 19:33:05 +0100
+
 libmaus2 (2.0.445-1) unstable; urgency=medium
 
   * add output of threads and mem in CommandContainer

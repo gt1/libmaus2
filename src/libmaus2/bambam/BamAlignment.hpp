@@ -2976,6 +2976,29 @@ namespace libmaus2
 			{
 				return libmaus2::bambam::BamAlignmentDecoderBase::getCoveredReadInterval(D.begin());
 			}
+
+			libmaus2::math::IntegerInterval<int64_t> getCoveredReadIntervalPrime() const
+			{
+				libmaus2::math::IntegerInterval<int64_t> I = getCoveredReadInterval();
+
+				if ( isReverse() )
+				{
+					uint64_t const l = libmaus2::bambam::BamAlignmentDecoderBase::getReadLengthByCigar(D.begin());
+
+					uint64_t apos = I.from;
+					uint64_t epos = I.to + 1;
+
+					std::swap(apos,epos);
+
+					apos = l - apos;
+					epos = l - epos;
+
+					I.from = apos;
+					I.to = epos-1;
+				}
+
+				return I;
+			}
 		};
 	}
 }
