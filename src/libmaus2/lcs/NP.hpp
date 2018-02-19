@@ -32,8 +32,8 @@ namespace libmaus2
 
 			struct NPElement
 			{
-				int offset;
-				int id;
+				int64_t offset;
+				int64_t id;
 			};
 
 			enum trace_op {
@@ -44,8 +44,8 @@ namespace libmaus2
 			};
 			struct TraceElement
 			{
-				int prev;
-				int slide;
+				int64_t prev;
+				int64_t slide;
 				trace_op op;
 			};
 
@@ -73,7 +73,7 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray<TraceElement,libmaus2::autoarray::alloc_type_c> trace;
 
 			template<typename iter_a, typename iter_b, bool neg>
-			static inline int slide(iter_a a, iter_a const ae, iter_b b, iter_b const be, int const offset)
+			static inline int64_t slide(iter_a a, iter_a const ae, iter_b b, iter_b const be, int64_t const offset)
 			{
 				a += offset;
 				b += offset;
@@ -105,7 +105,7 @@ namespace libmaus2
 			}
 
 			template<typename iter_a, typename iter_b>
-			int np(iter_a const a, iter_a const ae, iter_b const b, iter_b const be, bool const self_check = false)
+			int64_t np(iter_a const a, iter_a const ae, iter_b const b, iter_b const be, bool const self_check = false)
 			{
 				if ( self_check )
 					return npTemplate<iter_a,iter_b,true>(a,ae,b,be);
@@ -145,7 +145,7 @@ namespace libmaus2
 			// #define NP_VERBOSE
 
 			template<typename iter_a, typename iter_b, bool self_check>
-			int npTemplate(iter_a const a, iter_a const ae, iter_b const b, iter_b const be)
+			int64_t npTemplate(iter_a const a, iter_a const ae, iter_b const b, iter_b const be)
 			{
 				size_t const an = ae-a;
 				size_t const bn = be-b;
@@ -170,10 +170,10 @@ namespace libmaus2
 				}
 
 				size_t const sn = std::max(an,bn);
-				int const numdiag = (sn<<1)+1;
+				int64_t const numdiag = (sn<<1)+1;
 				int64_t id = 0;
 
-				if ( numdiag > static_cast<int>(DE.size()) )
+				if ( numdiag > static_cast<int64_t>(DE.size()) )
 				{
 					DE.resize(numdiag);
 					DO.resize(numdiag);
@@ -183,8 +183,25 @@ namespace libmaus2
 				NPElement * DN = DO.begin() + sn;
 
 				// diagonal containing bottom right of matrix
-				int const fdiag = (ae-a) - (be-b);
-				int const fdiagoff = std::min(ae-a,be-b);
+				int64_t const fdiag = (ae-a) - (be-b);
+				int64_t const fdiagoff = std::min(ae-a,be-b);
+				bool const ok =
+					( (static_cast<int64_t>(sn) + fdiag) >= 0 )
+					&&
+					( (static_cast<int64_t>(sn) + fdiag)  < static_cast<int64_t>(DE.size()) )
+					&&
+					( (static_cast<int64_t>(sn) + fdiag)  < static_cast<int64_t>(DO.size()) );
+
+				if ( ! ok )
+				{
+					std::cerr << "[E] ae-a=" << (ae-a) << std::endl;
+					std::cerr << "[E] be-b=" << (be-b) << std::endl;
+					std::cerr << "[E] sn=" << sn << std::endl;
+					std::cerr << "[E] numdiag=" << numdiag << std::endl;
+					std::cerr << "[E] fdiag=" << fdiag << std::endl;
+					assert ( ok );
+				}
+
 				DP[fdiag].offset = 0;
 				DN[fdiag].offset = 0;
 

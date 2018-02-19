@@ -385,6 +385,8 @@ namespace libmaus2
 					}
 				}
 
+				assert ( (c == w) || (t1 == te) );
+
 				// set first window error
 				double maxerr = e / static_cast<double>(c);
 				step_type const * maxt0 = t0;
