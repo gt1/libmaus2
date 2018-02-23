@@ -706,7 +706,7 @@ namespace libmaus2
 						throw lme;
 					}
 				}
-				if ( pos < 0 || pos >= static_cast<int32_t>(1u<<29) )
+				if ( pos < 0 || static_cast<int64_t>(pos) > static_cast<int64_t>((1ull << 31)-1) )
 				{
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: invalid pos field " << pos << "\n";
