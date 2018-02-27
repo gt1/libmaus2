@@ -417,6 +417,12 @@ namespace libmaus2
 
 			bool blocksetup;
 
+			int index_min_shift;
+			int index_depth;
+
+			libmaus2::autoarray::AutoArray<int> Abins;
+			std::map < int, uint64_t > Mloffset;
+
 			public:
 			BamIndexGenerator(
 				std::string const & tmpfileprefix,
@@ -434,7 +440,11 @@ namespace libmaus2
 			  chunkCOS(), linCOS(), metaOut(), metaOutWords(0),
 			  BCB(), binchunkfrags(), BLC(), linearchunkfrags(),
 			  verbose(rverbose), validate(rvalidate), debug(rdebug),
-			  blocksetup(false)
+			  blocksetup(false),
+			  index_min_shift(14),
+			  index_depth(5),
+			  Abins(),
+			  Mloffset()
 			{
 				::libmaus2::util::TempFileRemovalContainer::addTempFile(binchunktmpfilename);
 				::libmaus2::util::TempFileRemovalContainer::addTempFile(linchunktmpfilename);
@@ -453,6 +463,27 @@ namespace libmaus2
 					new ::libmaus2::aio::SynchronousGenericOutput< ::libmaus2::bambam::BamIndexMetaInfo >(*metaOutFile,128)
 				);
 				metaOut = UNIQUE_PTR_MOVE(tmetaOut);
+			}
+
+			bool binClash(int64_t const maxseqsize) const
+			{
+				std::vector < libmaus2::math::IntegerInterval<int64_t> > V;
+				for ( int d = 0; d < index_depth; ++d )
+				{
+					int const shift = index_min_shift + 3 * d;
+					int64_t const t = ((1<<((index_depth-d)*3)) - 1) / 7;
+					int64_t const maxbin = (maxseqsize - 1) >> shift;
+					libmaus2::math::IntegerInterval<int64_t> IA(t,t+maxbin);
+					V.push_back(IA);
+
+					// std::cerr << "[index] " << V.back() << std::endl;
+				}
+
+				for ( uint64_t i = 1; i < V.size(); ++i )
+					if ( !V[i-1].intersection(V[i]).isEmpty() )
+						return true;
+
+				return false;
 			}
 
 			//! add block
@@ -476,6 +507,29 @@ namespace libmaus2
 					{
 						header.init(bamheaderparsestate);
 						haveheader = true;
+
+						{
+							int64_t const maxseqsize = header.getMaximumSequenceSize();
+
+							if ( maxseqsize < 0 )
+							{
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "[E] BamIndexGenerator::addBlock: maxseqsize was computed as " << maxseqsize << std::endl;
+								lme.finish();
+								throw lme;
+							}
+							if ( maxseqsize )
+							{
+								assert ( maxseqsize > 0 );
+
+								// increate index_min_shift until bin intervals indices no longer collide
+								while ( binClash(maxseqsize) )
+									index_min_shift += 1;
+
+								// std::cerr << "[index] using index_min_shift=" << index_min_shift << std::endl;
+							}
+						}
+
 						pa = Bbegin + P.second;
 						pc = Bbegin + uncompsize;
 
@@ -570,7 +624,76 @@ namespace libmaus2
 									int64_t const thisrefid = algn.getRefID();
 									int64_t const thispos = algn.getPos();
 									int64_t const thisbin =
-										(thisrefid >= 0 && thispos >= 0) ? algn.computeBin() : -1;
+										(thisrefid >= 0 && thispos >= 0) ? algn.computeBin(index_min_shift,index_depth) : -1;
+
+									if ( thisrefid >= 0 && thispos >= 0 )
+									{
+										int64_t const rbeg = algn.getPos();
+										int64_t const rend = rbeg + algn.getReferenceLength();
+
+										uint64_t Abinso = 0;
+
+										if ( algn.isMapped() )
+										{
+											Abinso = libmaus2::bambam::BamAlignmentReg2Bin::reg2bins(
+												rbeg,
+												rend,
+												Abins,
+												index_min_shift,
+												index_depth
+											);
+										}
+										else
+										{
+											if ( rbeg < 0 )
+											{
+												Abinso = libmaus2::bambam::BamAlignmentReg2Bin::reg2bins(
+													-1, 0, Abins, index_min_shift, index_depth
+												);
+											}
+											else
+											{
+												Abinso = libmaus2::bambam::BamAlignmentReg2Bin::reg2bins(
+													rbeg,
+													rbeg+1,
+													Abins,
+													index_min_shift,
+													index_depth
+												);
+											}
+										}
+
+										uint64_t const virtpos = (alcmpstart << 16) | alstart;
+
+										bool foundthisbin = false;
+
+										for ( uint64_t i = 0; i < Abinso; ++i )
+										{
+											int const binid = Abins[i];
+
+											if ( binid == thisbin )
+												foundthisbin = true;
+
+											std::map < int, uint64_t >::iterator it = Mloffset.find(binid);
+
+											if ( it == Mloffset.end() )
+											{
+												Mloffset[binid] = virtpos;
+											}
+											else if ( virtpos < it->second )
+											{
+												it->second = virtpos;
+											}
+										}
+
+										if ( ! foundthisbin )
+										{
+											std::cerr << "[E index] cannot find " << thisbin << " inside ";
+											for ( uint64_t i = 0; i < Abinso; ++i )
+												std::cerr << Abins[i] << ";";
+											std::cerr << std::endl;
+										}
+									}
 
 									if ( thisrefid != prevrefid )
 									{
@@ -826,10 +949,29 @@ namespace libmaus2
 				::libmaus2::aio::InputStream::unique_ptr_type PmetaIn(::libmaus2::aio::InputStreamFactoryContainer::constructUnique(metatmpfilename));
 				::libmaus2::aio::SynchronousGenericInput< ::libmaus2::bambam::BamIndexMetaInfo > metaIn(*PmetaIn,128,metaOutWords);
 
-				out.put('B');
-				out.put('A');
-				out.put('I');
-				out.put('\1');
+				bool const write_csi = (index_min_shift != 14) || (index_depth != 5);
+				bool const write_bai = !write_csi;
+
+				if ( write_csi )
+				{
+					std::cerr << "[index] writing CSI with parameters min_shift=" << index_min_shift << " depth=" << index_depth << std::endl;
+
+					out.put('C');
+					out.put('S');
+					out.put('I');
+					out.put('\1');
+
+					::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,index_min_shift);
+					::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,index_depth);
+					::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,0 /* size of aux data */);
+				}
+				if ( write_bai )
+			  	{
+					out.put('B');
+					out.put('A');
+					out.put('I');
+					out.put('\1');
+				}
 				::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,header.getNumRef());
 
 				for ( uint64_t i = 0; i < header.getNumRef(); ++i )
@@ -858,7 +1000,9 @@ namespace libmaus2
 							std::cerr << "Distinct bins " << P.second << std::endl;
 
 						// number of distinct bins
-						::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,P.second + (havemeta?1:0));
+						::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(
+							out,P.second + ((write_bai&&havemeta)?1:0)
+						);
 
 						// iterate over bins
 						for ( uint64_t b = 0; b < P.second; ++b )
@@ -876,6 +1020,23 @@ namespace libmaus2
 
 							// bin
 							::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,Q.first);
+
+							if ( write_csi )
+							{
+								std::map<int,uint64_t>::const_iterator it = Mloffset.find(Q.first);
+
+								if ( it != Mloffset.end() )
+								{
+									// std::cerr << "[index] virtual offset for bin " << Q.first << " is " << it->second << std::endl;
+									::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,it->second);
+								}
+								else
+								{
+									std::cerr << "[E] virtual offset for bin " << Q.first << " is unknown" << std::endl;
+									::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,0);
+								}
+							}
+
 							// number of chunks
 							::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,Q.second);
 
@@ -898,18 +1059,21 @@ namespace libmaus2
 
 						if ( havemeta )
 						{
-							// bin id
-							::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,37450 /* meta bin id */);
-							// number of chunks
-							::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,2);
-							// start of ref id
-							::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.start);
-							// end of ref id
-							::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.end);
-							// number of mapped reads
-							::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.mapped);
-							// number of unmapped reads
-							::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.unmapped);
+							if ( write_bai )
+							{
+								// bin id
+								::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,37450 /* meta bin id */);
+								// number of chunks
+								::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,2);
+								// start of ref id
+								::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.start);
+								// end of ref id
+								::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.end);
+								// number of mapped reads
+								::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.mapped);
+								// number of unmapped reads
+								::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.unmapped);
+							}
 						}
 
 						while (
@@ -940,7 +1104,10 @@ namespace libmaus2
 							uint64_t const numchunks = Q.second+1; // maximum chunk id + 1
 
 							// number of linear chunks bins
-							::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,numchunks);
+							if ( write_bai )
+							{
+								::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,numchunks);
+							}
 							// previous offset value
 							uint64_t prevoff = 0;
 
@@ -951,14 +1118,20 @@ namespace libmaus2
 									::libmaus2::bambam::BamIndexLinearChunk LC;
 									linCIS.read(reinterpret_cast<char *>(&LC),sizeof(::libmaus2::bambam::BamIndexLinearChunk));
 									prevoff = LC.getOffset();
-									::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,prevoff);
+									if ( write_bai )
+									{
+										::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,prevoff);
+									}
 
 									if ( debug )
 										std::cerr << "LC[" << c << "]=" << LC << " -> " << prevoff << std::endl;
 								}
 								else
 								{
-									::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,prevoff);
+									if ( write_bai )
+									{
+										::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,prevoff);
+									}
 									if ( debug )
 										std::cerr << "LC[" << c << "]=" << "null -> " << prevoff << std::endl;
 								}
@@ -969,8 +1142,12 @@ namespace libmaus2
 					{
 						// number of distinct bins
 						::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,0);
-						// number of linear index chunks
-						::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,0);
+
+						if ( write_bai )
+						{
+							// number of linear index chunks
+							::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,0);
+						}
 					}
 				}
 
