@@ -20,6 +20,7 @@
 #define LIBMAUS2_BAMBAM_BAMALIGNMENTREG2BIN_HPP
 
 #include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
 namespace libmaus2
 {
@@ -27,22 +28,48 @@ namespace libmaus2
 	{
 		struct BamAlignmentReg2Bin
 		{
-			/**
-			 * reg2bin as defined in sam file format spec
-			 *
-			 * @param beg alignment start (inclusive)
-			 * @param end alignment end (exclusive)
-			 * @return bin for alignment interval
-			 **/
-			static inline int reg2bin(uint32_t beg, uint32_t end)
+			/* reg2bin as defined in CSI specs, somewhat reformatted (see https://github.com/samtools/hts-specs/blob/master/CSIv1.tex) */
+			static inline int reg2bin(int64_t const beg, int64_t end, int const min_shift = 14, int const depth = 5)
 			{
-				--end;
-				if (beg>>14 == end>>14) return ((1ul<<15)-1ul)/7ul + (beg>>14);
-				if (beg>>17 == end>>17) return ((1ul<<12)-1ul)/7ul + (beg>>17);
-				if (beg>>20 == end>>20) return ((1ul<<9)-1ul)/7ul  + (beg>>20);
-				if (beg>>23 == end>>23) return ((1ul<<6)-1ul)/7ul + (beg>>23);
-				if (beg>>26 == end>>26) return ((1ul<<3)-1ul)/7ul + (beg>>26);
+				int l = depth;
+				int s = min_shift;
+				int t = ((1<<depth*3) - 1) / 7;
+
+				end -= 1;
+
+				for ( ; l > 0; --l, s += 3, t -= 1<<l*3 )
+				{
+					if (beg>>s == end>>s)
+						return t + (beg>>s);
+				}
+
 				return 0;
+			}
+			
+			/* calculate the list of bins that may overlap with region [beg,end) (zero-based) */
+			static inline uint64_t reg2bins(int64_t beg, int64_t end, libmaus2::autoarray::AutoArray<int> & Abins, int const min_shift = 14, int const depth = 5)
+			{
+				uint64_t o = 0;
+
+				if ( end > beg )
+				{
+					int l = depth;
+					int s = min_shift;
+					int t = ((1<<depth*3) - 1) / 7;
+
+					end -= 1;
+
+					for ( ; l > 0; --l, s += 3, t -= 1<<l*3 )
+					{
+						int64_t const from = t + ( beg >> s );
+						int64_t const to = t + ( end >> s );
+						
+						for ( int64_t i = from; i <= to; ++i )
+							Abins.push(o,i);
+					}
+				}
+
+				return o;
 			}
 		};
 	}
