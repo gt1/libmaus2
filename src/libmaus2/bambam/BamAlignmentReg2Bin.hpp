@@ -45,7 +45,7 @@ namespace libmaus2
 
 				return 0;
 			}
-			
+
 			/* calculate the list of bins that may overlap with region [beg,end) (zero-based) */
 			static inline uint64_t reg2bins(int64_t beg, int64_t end, libmaus2::autoarray::AutoArray<int> & Abins, int const min_shift = 14, int const depth = 5)
 			{
@@ -63,7 +63,7 @@ namespace libmaus2
 					{
 						int64_t const from = t + ( beg >> s );
 						int64_t const to = t + ( end >> s );
-						
+
 						for ( int64_t i = from; i <= to; ++i )
 							Abins.push(o,i);
 					}
