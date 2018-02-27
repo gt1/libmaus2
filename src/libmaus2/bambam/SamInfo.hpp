@@ -751,14 +751,23 @@ namespace libmaus2
 						throw lme;
 					}
 				}
-				if ( pnext < 0 || pnext >= static_cast<int32_t>(1u<<29) )
+				if ( pnext < 0 || static_cast<int64_t>(pnext) > static_cast<int64_t>((1ull << 31)-1) )
 				{
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: invalid pnext field " << pnext << "\n";
 					lme.finish();
 					throw lme;
 				}
-				if ( tlen < ((-(static_cast<int32_t>(1u<<29)))+1) || tlen >= static_cast<int32_t>(1u<<29) )
+				if (
+					static_cast<int64_t>(tlen) < (
+						(-static_cast<int64_t>(1ull << 31))
+						+
+						static_cast<int64_t>(1)
+					)
+					||
+					static_cast<int64_t>(tlen) >
+						static_cast<int64_t>((1ull<<31)-1)
+				)
 				{
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: invalid tlen field " << tlen << "\n";

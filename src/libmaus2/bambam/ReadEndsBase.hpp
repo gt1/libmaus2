@@ -150,7 +150,7 @@ namespace libmaus2
 			uint32_t y;
 
 			//! shift to make signed numbers non-negative
-			static int64_t const signshift = (-(1l<<29))+1;
+			static int64_t const signshift = -2147483648l;
 
 			public:
 			/**
