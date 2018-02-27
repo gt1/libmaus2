@@ -1629,18 +1629,18 @@ namespace libmaus2
 			/**
 			 * @return bin field
 			 **/
-			uint32_t getBin() const
+			uint32_t getBin(int const min_shift = 14, int const depth = 5) const
 			{
 				if ( (getFlags() & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FCIGAR32) )
 				{
-					return computeBin();
+					return computeBin(min_shift,depth);
 				}
 				else
 				{
 					#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 					return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->Bin;
 					#else
-					return ::libmaus2::bambam::BamAlignmentDecoderBase::getBin(D.get());
+					return ::libmaus2::bambam::BamAlignmentDecoderBase::getBin(D.get(),min_shift,depth);
 					#endif
 				}
 			}
@@ -1836,21 +1836,21 @@ namespace libmaus2
 			/**
 			 * @return computed bin
 			 **/
-			uint64_t computeBin() const
+			uint64_t computeBin(int const min_shift = 14, int const depth = 5) const
 			{
 				if ( isMapped() )
 				{
 					uint64_t const rbeg = getPos();
 					uint64_t const rend = rbeg + getReferenceLength();
-					uint64_t const bin = libmaus2::bambam::BamAlignmentEncoderBase::reg2bin(rbeg,rend);
+					uint64_t const bin = libmaus2::bambam::BamAlignmentEncoderBase::reg2bin(rbeg,rend,min_shift,depth);
 					return bin;
 				}
 				else
 				{
 					if ( getPos() < 0 )
-						return 4680;
+						return libmaus2::bambam::BamAlignmentEncoderBase::reg2bin(-1,0,min_shift,depth);
 					else
-						return libmaus2::bambam::BamAlignmentEncoderBase::reg2bin(getPos(),getPos()+1);
+						return libmaus2::bambam::BamAlignmentEncoderBase::reg2bin(getPos(),getPos()+1,min_shift,depth);
 				}
 			}
 
