@@ -209,34 +209,6 @@ namespace libmaus2
 			/**
 			 * return list of bins for interval [beg,end)
 			 *
-			 * @param beg start offset
-			 * @param end end offset
-			 * @param bins array for storing bins
-			 * @return number of bins stored
-			 **/
-			static uint64_t reg2bins(uint64_t beg, uint64_t end, libmaus2::autoarray::AutoArray<uint16_t> & bins)
-			{
-				libmaus2::util::PushBuffer<uint16_t> PB;
-				PB.A = bins;
-
-				end -= 1;
-
-				PB.push(0);
-
-				for (uint64_t k = 1 + (beg>>26); k <= 1 + (end>>26); ++k) PB.push(k);
-				for (uint64_t k = 9 + (beg>>23); k <= 9 + (end>>23); ++k) PB.push(k);
-				for (uint64_t k = 73 + (beg>>20); k <= 73 + (end>>20); ++k) PB.push(k);
-				for (uint64_t k = 585 + (beg>>17); k <= 585 + (end>>17); ++k) PB.push(k);
-				for (uint64_t k = 4681 + (beg>>14); k <= 4681 + (end>>14); ++k) PB.push(k);
-
-				bins = PB.A;
-
-				return PB.f;
-			}
-
-			/**
-			 * return list of bins for interval [beg,end)
-			 *
 			 * @param refid reference id
 			 * @param beg start offset
 			 * @param end end offset
