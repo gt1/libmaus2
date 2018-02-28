@@ -59,14 +59,20 @@ namespace libmaus2
 
 					end -= 1;
 
+					int64_t range = 0;
+
 					for ( ; l > 0; --l, s += 3, t -= 1<<l*3 )
 					{
 						int64_t const from = t + ( beg >> s );
 						int64_t const to = t + ( end >> s );
+						range = to-from+1;
 
 						for ( int64_t i = from; i <= to; ++i )
 							Abins.push(o,i);
 					}
+
+					if ( range != 1 )
+						Abins.push(o,0);
 				}
 
 				return o;
