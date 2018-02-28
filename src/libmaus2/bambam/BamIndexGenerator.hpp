@@ -871,7 +871,7 @@ namespace libmaus2
 			}
 
 			template<typename output_stream_type>
-			void flush(output_stream_type & out)
+			void flush(output_stream_type & out, bool const force_csi = false)
 			{
 				if ( prevbin >= 0 )
 				{
@@ -949,7 +949,7 @@ namespace libmaus2
 				::libmaus2::aio::InputStream::unique_ptr_type PmetaIn(::libmaus2::aio::InputStreamFactoryContainer::constructUnique(metatmpfilename));
 				::libmaus2::aio::SynchronousGenericInput< ::libmaus2::bambam::BamIndexMetaInfo > metaIn(*PmetaIn,128,metaOutWords);
 
-				bool const write_csi = (index_min_shift != 14) || (index_depth != 5);
+				bool const write_csi = (index_min_shift != 14) || (index_depth != 5) || force_csi;
 				bool const write_bai = !write_csi;
 
 				if ( write_csi )
@@ -1164,8 +1164,10 @@ namespace libmaus2
 
 			void flush(std::string const & filename)
 			{
+				std::string const csisuffix = ".csi";
+				bool const force_csi = (filename.size() >= csisuffix.size()) && (filename.substr(filename.size()-csisuffix.size()) == csisuffix);
 				::libmaus2::aio::OutputStream::unique_ptr_type pCOS(::libmaus2::aio::OutputStreamFactoryContainer::constructUnique(filename));
-				flush(*pCOS);
+				flush(*pCOS,force_csi);
 			}
 		};
 	}
