@@ -58,15 +58,17 @@ namespace libmaus2
 			}
 
 			template<typename stream_type>
-			void flush(stream_type & stream)
+			void flush(stream_type & stream, bool const force_csi)
 			{
-				generator.flush(stream);
+				generator.flush(stream,force_csi);
 			}
 
 			void flush(std::string const & filename)
 			{
+				std::string const csisuffix = ".csi";
+				bool const force_csi = (filename.size() >= csisuffix.size()) && (filename.substr(filename.size()-csisuffix.size()) == csisuffix);
 				libmaus2::aio::OutputStream::unique_ptr_type pCOS(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(filename));
-				flush(*pCOS);
+				flush(*pCOS,force_csi);
 			}
 		};
 	}
