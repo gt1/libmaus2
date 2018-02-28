@@ -637,7 +637,7 @@ namespace libmaus2
 										{
 											Abinso = libmaus2::bambam::BamAlignmentReg2Bin::reg2bins(
 												rbeg,
-												rend,
+												std::max(rend,rbeg+1),
 												Abins,
 												index_min_shift,
 												index_depth
@@ -691,6 +691,7 @@ namespace libmaus2
 											std::cerr << "[E index] cannot find " << thisbin << " inside ";
 											for ( uint64_t i = 0; i < Abinso; ++i )
 												std::cerr << Abins[i] << ";";
+											std::cerr << " rbeg=" << rbeg << " rend=" << rend << " mapped=" << algn.isMapped() << " SAM=" << algn.formatAlignment(header);
 											std::cerr << std::endl;
 										}
 									}
