@@ -1002,7 +1002,7 @@ namespace libmaus2
 			 * @param D alignment block
 			 * @return read name length from D
 			 **/
-			static uint32_t     getBin      (uint8_t const * D)
+			static uint32_t     getBin      (uint8_t const * D, int const min_shift = 14, int const depth = 5)
 			{
 				// bin flag stores part of cigar string length
 				uint16_t const flags = getFlags(D);
@@ -1012,13 +1012,15 @@ namespace libmaus2
 					if ( flags & LIBMAUS2_BAMBAM_FUNMAP )
 					{
 						if ( getPos(D) < 0 )
-							return 4680; // reg2bin(-1,0)
+							return BamAlignmentReg2Bin::reg2bin(-1,0,min_shift,depth);
 						else
-							return BamAlignmentReg2Bin::reg2bin(getPos(D),getPos(D)+1);
+							return BamAlignmentReg2Bin::reg2bin(getPos(D),getPos(D)+1,min_shift,depth);
 					}
 					else
+					{
 						// compute bin from alignment data
 						return computeBin(D);
+					}
 				}
 				else
 				{
@@ -5531,7 +5533,7 @@ namespace libmaus2
 			/**
 			 * @return computed bin
 			 **/
-			static uint64_t computeBin(uint8_t const * D)
+			static uint64_t computeBin(uint8_t const * D, int const min_shift = 14, int const depth = 5)
 			{
 				uint16_t const flags = getFlags(D);
 				int64_t const rbeg = getPos(D);
@@ -5539,14 +5541,14 @@ namespace libmaus2
 				if ( flags & LIBMAUS2_BAMBAM_FUNMAP )
 				{
 					if ( rbeg < 0 )
-						return 4680; // reg2bin(-1,0)
+						return ::libmaus2::bambam::BamAlignmentReg2Bin::reg2bin(-1,0,min_shift,depth);
 					else
-						return ::libmaus2::bambam::BamAlignmentReg2Bin::reg2bin(rbeg,rbeg+1);
+						return ::libmaus2::bambam::BamAlignmentReg2Bin::reg2bin(rbeg,rbeg+1,min_shift,depth);
 				}
 				else
 				{
 					uint64_t const rend = rbeg + getReferenceLength(D);
-					uint64_t const bin = ::libmaus2::bambam::BamAlignmentReg2Bin::reg2bin(rbeg,rend);
+					uint64_t const bin = ::libmaus2::bambam::BamAlignmentReg2Bin::reg2bin(rbeg,rend,min_shift,depth);
 					return bin;
 				}
 			}

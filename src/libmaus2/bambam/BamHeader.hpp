@@ -73,6 +73,14 @@ namespace libmaus2
 			uint64_t numlibs;
 
 			public:
+			int64_t getMaximumSequenceSize() const
+			{
+				int64_t s = 0;
+				for ( uint64_t i = 0; i < chromosomes.size(); ++i )
+					s = std::max(s,static_cast<int64_t>(chromosomes[i].getLength()));
+				return s;
+			}
+
 			bool checkSequenceChecksumsCached(bool const dothrow)
 			{
 				libmaus2::fastx::RefPathLookup RPL;

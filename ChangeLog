@@ -1,3 +1,19 @@
+libmaus2 (2.0.449-1) unstable; urgency=medium
+
+  * force writing CSI index if indexing file name ends on .csi
+  * use block code instead of UTF8 for coordinate encoding in ReadEndsBase
+  * remove dead code from BamAlignment class
+  * add CSI support in BamIndexGenerator
+  * reformat bin computation in BamAlignmentEncoderBase and replace bin range check by truncation
+  * extend computeBin/getBin in BamAlignment/BamAlignmentDecoderBase to support CSI
+  * remove unused reg2bins variant in BamIndex class
+  * rewrite signedEncode/signedDecode in ReadEndsBase
+  * add getMaximumSequenceSize method in BamHeader class
+  * add CSI indexing support in BamAlignmentReg2Bin
+  * more changes for SAM spec updates
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 28 Feb 2018 15:17:53 +0100
+
 libmaus2 (2.0.448-1) unstable; urgency=medium
 
   * adapt check of position value to updated SAM specs

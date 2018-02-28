@@ -1977,22 +1977,25 @@ namespace libmaus2
 				}
 
 				template<typename output_stream_type>
-				void writeBamIndex(output_stream_type & out)
+				void writeBamIndex(output_stream_type & out, bool const force_csi)
 				{
-					Pbamindexgenerator->flush(out);
+					Pbamindexgenerator->flush(out, force_csi);
 				}
 
 				void writeBamIndex(std::string const & filename)
 				{
 					if ( Pbamindexgenerator )
 					{
+						std::string const csisuffix = ".csi";
+						bool const force_csi = (filename.size() >= csisuffix.size()) && (filename.substr(filename.size()-csisuffix.size()) == csisuffix);
+
 						libmaus2::aio::OutputStream::unique_ptr_type PPFOS(
 							libmaus2::aio::OutputStreamFactoryContainer::constructUnique(
 								filename
 							)
 						);
 						libmaus2::aio::OutputStream & PFOS = *PPFOS;
-						writeBamIndex(PFOS);
+						writeBamIndex(PFOS,force_csi);
 						PFOS.flush();
 					}
 				}
