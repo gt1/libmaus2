@@ -456,17 +456,31 @@ namespace libmaus2
 				if ( resetBuffer )
 					buffer.reset();
 
-				uint32_t const bin =
-					(cigarlen > 0xFFFFul)
-					?
-					(cigarlen >> 16)
-					:
-					(
-						(flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP) ?
-						((pos < 0) ? 4680 : reg2bin(pos,pos+1))
-						:
-						reg2bin(pos,endpos(pos,cigar,cigarlen))
-					);
+				uint64_t bin;
+
+				if (cigarlen > 0xFFFFul)
+				{
+					bin = cigarlen >> 16;
+				}
+				else
+				{
+					if (
+						(flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP) != 0
+					)
+					{
+						if ( pos < 0 )
+							bin = reg2bin(-1,0);
+						else
+							bin = reg2bin(pos,pos+1);
+					}
+					else
+					{
+						bin = reg2bin(pos,endpos(pos,cigar,cigarlen));
+					}
+				}
+
+				bin &= 0xFFFFull;
+
 				uint32_t const cflags = (cigarlen > 0xFFFFul) ? (flags | libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FCIGAR32) : flags;
 
 				bool const nameok = namelen+1 < (1ul << 8);
@@ -600,7 +614,7 @@ namespace libmaus2
 					:
 					(
 						(flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP) ?
-						((pos < 0) ? 4680 : reg2bin(pos,pos+1))
+						((pos < 0) ? reg2bin(-1,0) : reg2bin(pos,pos+1))
 						:
 						reg2bin(pos,endpos(pos,cigar,cigarlen))
 					);
