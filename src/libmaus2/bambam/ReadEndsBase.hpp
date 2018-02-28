@@ -1048,11 +1048,11 @@ namespace libmaus2
 				this->libraryId = ::libmaus2::util::UTF8::decodeUTF8Unchecked(G);
 				this->tagId = ::libmaus2::util::NumberSerialisation::deserialiseNumber(G);
 				this->read1Sequence = ::libmaus2::util::UTF8::decodeUTF8Unchecked(G);
-				this->read1Coordinate = ::libmaus2::util::UTF8::decodeUTF8Unchecked(G);
+				this->read1Coordinate = ::libmaus2::util::NumberSerialisation::deserialiseNumber(G);
 				this->orientation = static_cast<read_end_orientation>(G.get());
 
 				this->read2Sequence = ::libmaus2::util::UTF8::decodeUTF8Unchecked(G);
-				this->read2Coordinate = ::libmaus2::util::UTF8::decodeUTF8Unchecked(G);
+				this->read2Coordinate = ::libmaus2::util::NumberSerialisation::deserialiseNumber(G);
 
 				this->read1IndexInFile = ::libmaus2::util::NumberSerialisation::deserialiseNumber(G);
 				this->read2IndexInFile = ::libmaus2::util::NumberSerialisation::deserialiseNumber(G);
@@ -1083,11 +1083,11 @@ namespace libmaus2
 				::libmaus2::util::NumberSerialisation::serialiseNumber(P,this->tagId);
 
 				::libmaus2::util::UTF8::encodeUTF8(this->read1Sequence,P);
-				::libmaus2::util::UTF8::encodeUTF8(this->read1Coordinate,P);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(P,this->read1Coordinate);
 				P.put(static_cast<uint8_t>(this->orientation));
 
 				::libmaus2::util::UTF8::encodeUTF8(this->read2Sequence,P);
-				::libmaus2::util::UTF8::encodeUTF8(this->read2Coordinate,P);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(P,this->read2Coordinate);
 
 				::libmaus2::util::NumberSerialisation::serialiseNumber(P,this->read1IndexInFile);
 				::libmaus2::util::NumberSerialisation::serialiseNumber(P,this->read2IndexInFile);
