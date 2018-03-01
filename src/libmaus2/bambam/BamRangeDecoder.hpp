@@ -50,8 +50,20 @@ namespace libmaus2
 			{
 				std::string bainame;
 
+				// try to add .csi
+				if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(bamname+".csi") )
+				{
+					return bamname+".csi";
+				}
+				// try to clip off .bam and then add .csi
+				else if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(
+					libmaus2::util::OutputFileNameTools::clipOff(bamname,".bam")+".csi")
+				)
+				{
+					return libmaus2::util::OutputFileNameTools::clipOff(bamname,".bam")+".csi";
+				}
 				// try to add .bai
-				if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(bamname+".bai") )
+				else if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(bamname+".bai") )
 				{
 					return bamname+".bai";
 				}
