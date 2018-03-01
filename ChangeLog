@@ -1,3 +1,9 @@
+libmaus2 (2.0.450-1) unstable; urgency=medium
+
+  * fix problems with vectors of length 1 in GraphEncoder
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 01 Mar 2018 10:30:19 +0100
+
 libmaus2 (2.0.449-1) unstable; urgency=medium
 
   * force writing CSI index if indexing file name ends on .csi
