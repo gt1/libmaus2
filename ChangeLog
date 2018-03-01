@@ -1,3 +1,10 @@
+libmaus2 (2.0.451-1) unstable; urgency=medium
+
+  * check for presence of CSI index in BamRangeDecoder
+  * add decoding capabilities for CSI indexes in BamIndex
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 01 Mar 2018 12:23:39 +0100
+
 libmaus2 (2.0.450-1) unstable; urgency=medium
 
   * fix problems with vectors of length 1 in GraphEncoder
