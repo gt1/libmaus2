@@ -1,3 +1,9 @@
+libmaus2 (2.0.452-1) unstable; urgency=medium
+
+  * add operator==/operator!= in OverlapInfo class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 02 Mar 2018 11:09:14 +0100
+
 libmaus2 (2.0.451-1) unstable; urgency=medium
 
   * check for presence of CSI index in BamRangeDecoder
