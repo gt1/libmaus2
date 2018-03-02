@@ -139,6 +139,16 @@ namespace libmaus2
 						return bepos < O.bepos;
 					return false;
 				}
+
+				bool operator!=(OverlapInfo const & O) const
+				{
+					return (*this < O) || (O < *this);
+				}
+
+				bool operator==(OverlapInfo const & O) const
+				{
+					return !operator!=(O);
+				}
 			};
 
 			std::ostream & operator<<(std::ostream & out, OverlapInfo const & O);
