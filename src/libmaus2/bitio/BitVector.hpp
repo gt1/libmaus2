@@ -41,6 +41,7 @@ namespace libmaus2
 			typedef _data_type data_type;
 			typedef BitVectorTemplate<data_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			static unsigned int const bitsperword = 8*sizeof(data_type);
 			static unsigned int const bitsperwordshift = ::libmaus2::math::MetaLog2<bitsperword>::log;
@@ -302,6 +303,7 @@ namespace libmaus2
 		{
 			typedef IndexedBitVector this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			typedef ::libmaus2::rank::ERank222B rank_type;
 			typedef rank_type::unique_ptr_type rank_ptr_type;
