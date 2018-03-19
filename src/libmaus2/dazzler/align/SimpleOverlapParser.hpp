@@ -44,17 +44,23 @@ namespace libmaus2
 				uint64_t const limit;
 				uint64_t tr;
 
+				int64_t seekpos;
+				bool seekposenable;
+
 				SimpleOverlapParser(
 					std::istream & rin,
 					int64_t const rtspace,
 					uint64_t const bufsize = 32*1024,
-					OverlapParser::split_type const rsplittype = OverlapParser::overlapparser_do_split, int64_t const rlimit = -1
+					OverlapParser::split_type const rsplittype = OverlapParser::overlapparser_do_split,
+					int64_t const rlimit = -1,
+					int64_t const rseekpos = std::numeric_limits<int64_t>::min(),
+					bool const rseekposenable = false
 				)
-				: PISI(), in(rin), AF(), parser(rtspace), Abuffer(bufsize), splittype(rsplittype), limitset(rlimit != -1), limit(rlimit), tr(0) {}
+				: PISI(), in(rin), AF(), parser(rtspace), Abuffer(bufsize), splittype(rsplittype), limitset(rlimit != -1), limit(rlimit), tr(0), seekpos(rseekpos), seekposenable(rseekposenable) {}
 
 				SimpleOverlapParser(std::string const & fn, uint64_t const bufsize = 32*1024, OverlapParser::split_type const rsplittype = OverlapParser::overlapparser_do_split, int64_t const rlimit = -1)
 				: PISI(new libmaus2::aio::InputStreamInstance(fn)), in(*PISI), AF(in), parser(AF.tspace), Abuffer(bufsize), splittype(rsplittype),
-				  limitset(rlimit != -1), limit(rlimit), tr(0)
+				  limitset(rlimit != -1), limit(rlimit), tr(0), seekpos(std::numeric_limits<int64_t>::min()), seekposenable(false)
 				{}
 
 				std::istream & getStream()
@@ -69,6 +75,12 @@ namespace libmaus2
 
 				bool parseNextBlock()
 				{
+					if ( seekposenable )
+					{
+						in.clear();
+						in.seekg(seekpos);
+					}
+
 					if ( limitset )
 					{
 						uint64_t const rest = limit - tr;
@@ -91,6 +103,9 @@ namespace libmaus2
 					}
 
 					std::streamsize const r = in.gcount();
+
+					if ( seekposenable )
+						seekpos = in.tellg();
 
 					if ( ! r )
 					{
