@@ -95,6 +95,22 @@ namespace libmaus2
 					return UNIQUE_PTR_MOVE(ptr);
 				}
 
+				int64_t size() const
+				{
+					if ( VI.size() )
+						return VI.back().to + 1;
+					else
+						return std::numeric_limits<int64_t>::min();
+				}
+
+				std::pair<int64_t,int64_t> getInterval() const
+				{
+					if ( VI.size() )
+						return std::pair<int64_t,int64_t>(VI.front().from,VI.back().to+1);
+					else
+						return std::pair<int64_t,int64_t>(-1,-1);
+				}
+
 				LasIntervals(std::vector<std::string> const & rVin, uint64_t const nreads, std::ostream & errOSI)
 				: Vin(rVin), R(nreads)
 				{
@@ -150,12 +166,12 @@ namespace libmaus2
 
 					if ( IV.size() )
 					{
-						IV[0].from = 0;
+						//IV[0].from = 0;
 
 						for ( uint64_t i = 1; i < IV.size(); ++i )
 							IV[i-1].to = IV[i].from;
 
-						IV.back().to = nreads;
+						//IV.back().to = nreads;
 					}
 
 					for ( uint64_t i = 0; i < IV.size(); ++i )
