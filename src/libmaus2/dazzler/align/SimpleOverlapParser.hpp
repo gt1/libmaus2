@@ -20,6 +20,7 @@
 #define LIBMAUS2_DAZZLER_ALIGN_SIMPLEOVERLAPPARSER_HPP
 
 #include <libmaus2/dazzler/align/OverlapParser.hpp>
+#include <libmaus2/dazzler/align/LasFileRange.hpp>
 
 namespace libmaus2
 {
@@ -141,6 +142,88 @@ namespace libmaus2
 
 						return true;
 					}
+				}
+			};
+
+			struct SimpleOverlapParserConcat
+			{
+				typedef SimpleOverlapParserConcat this_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
+				libmaus2::aio::InputStreamInstance::unique_ptr_type PISI;
+				SimpleOverlapParser::unique_ptr_type Pparser;
+				int64_t const tspace;
+				OverlapParser::split_type const splittype;
+				std::vector < LasFileRange > ranges;
+				std::vector < std::string > Vfn;
+				uint64_t index;
+				uint64_t bufsize;
+
+				bool openNext()
+				{
+					if ( index == ranges.size() )
+					{
+						Pparser.reset();
+						PISI.reset();
+						return false;
+					}
+
+					LasFileRange const & FR = ranges[index++];
+
+					PISI.reset();
+
+					libmaus2::aio::InputStreamInstance::unique_ptr_type TISI(new libmaus2::aio::InputStreamInstance(Vfn[FR.id]));
+					PISI = UNIQUE_PTR_MOVE(TISI);
+					PISI->clear();
+					PISI->seekg(FR.startoffset);
+
+					Pparser.reset();
+
+					SimpleOverlapParser::unique_ptr_type Tparser(
+						new SimpleOverlapParser(
+							*PISI,
+							tspace,
+							bufsize,
+							splittype,
+							FR.endoffset - FR.startoffset
+						)
+					);
+
+					Pparser = UNIQUE_PTR_MOVE(Tparser);
+
+					return true;
+				}
+
+				SimpleOverlapParserConcat(
+					int64_t const rtspace,
+					std::vector < LasFileRange > const & rranges,
+					std::vector < std::string > const & rVfn,
+					uint64_t const rbufsize,
+					OverlapParser::split_type const rsplittype = OverlapParser::overlapparser_do_split
+				) : PISI(), Pparser(), tspace(rtspace), splittype(rsplittype), ranges(rranges), Vfn(rVfn), index(0), bufsize(rbufsize)
+				{
+					openNext();
+				}
+
+				OverlapData & getData()
+				{
+					return Pparser->getData();
+				}
+
+				bool parseNextBlock()
+				{
+					while ( Pparser )
+					{
+						bool const ok = Pparser->parseNextBlock();
+
+						if ( ok )
+							return true;
+						else
+							openNext();
+					}
+
+					return false;
 				}
 			};
 
