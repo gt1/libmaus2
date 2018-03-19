@@ -890,8 +890,14 @@ namespace libmaus2
 					libmaus2::lcs::Aligner & aligner
 				)
 				{
-					assert ( apos >= path.abpos );
-					assert ( apos  < path.aepos );
+					bool const inputok = apos >= path.abpos && apos < path.aepos;
+					if ( ! inputok )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "[E] Overlap::computeMapping apos=" << apos << " outside [" << path.abpos << "," << path.aepos << ")" << std::endl;
+						lme.finish();
+						throw lme;
+					}
 
 					// block on A containing apos
 					int64_t const ablock = apos / tspace;

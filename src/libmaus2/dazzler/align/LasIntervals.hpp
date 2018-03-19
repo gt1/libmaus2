@@ -20,6 +20,9 @@
 
 #include <libmaus2/dazzler/align/AlignmentFileCat.hpp>
 #include <libmaus2/geometry/RangeSet.hpp>
+#include <libmaus2/dazzler/align/DalignerIndexDecoder.hpp>
+#include <libmaus2/dazzler/align/LasFileRange.hpp>
+#include <libmaus2/dazzler/align/SimpleOverlapParser.hpp>
 
 namespace libmaus2
 {
@@ -62,7 +65,6 @@ namespace libmaus2
 				};
 
 				std::vector < std::string > Vin;
-				std::vector < libmaus2::math::IntegerInterval<int64_t> > VI;
 				std::vector < LasIntervalsIndexEntry > IV;
 				libmaus2::geometry::RangeSet<LasIntervalsIndexEntry> R;
 
@@ -81,6 +83,47 @@ namespace libmaus2
 					return R;
 				}
 
+				std::vector < LasFileRange > getFileRanges(uint64_t const from, uint64_t const to) const
+				{
+					std::vector<uint64_t> const R = getIds(from,to);
+					std::vector < LasFileRange > V;
+
+					for ( uint64_t i = 0; i < R.size(); ++i )
+					{
+						uint64_t const id = R[i];
+						libmaus2::dazzler::align::DalignerIndexDecoder index(Vin[id]);
+
+						uint64_t const startoffset = index[from];
+						uint64_t const endoffset = index[to];
+
+						if ( endoffset > startoffset )
+							V.push_back(LasFileRange(id,startoffset,endoffset));
+					}
+
+					return V;
+				}
+
+				SimpleOverlapParserConcat::unique_ptr_type getFileRangeParser(
+					uint64_t const from, uint64_t const to,
+					uint64_t const blocksize,
+					OverlapParser::split_type const rsplittype = OverlapParser::overlapparser_do_split
+				) const
+				{
+					std::vector < LasFileRange > const V = getFileRanges(from,to);
+					int64_t const tspace = V.size() ? libmaus2::dazzler::align::AlignmentFile::getTSpace(Vin[V.front().id]) : -1;
+
+					SimpleOverlapParserConcat::unique_ptr_type Pparser(
+						new SimpleOverlapParserConcat(
+							tspace,
+							V,
+							Vin,
+							blocksize,
+							rsplittype
+						)
+					);
+
+					return UNIQUE_PTR_MOVE(Pparser);
+				}
 
 				libmaus2::dazzler::align::AlignmentFileCat::unique_ptr_type openRange(uint64_t const from, uint64_t const to) const
 				{
@@ -97,16 +140,16 @@ namespace libmaus2
 
 				int64_t size() const
 				{
-					if ( VI.size() )
-						return VI.back().to + 1;
+					if ( IV.size() )
+						return IV.back().to;
 					else
 						return std::numeric_limits<int64_t>::min();
 				}
 
 				std::pair<int64_t,int64_t> getInterval() const
 				{
-					if ( VI.size() )
-						return std::pair<int64_t,int64_t>(VI.front().from,VI.back().to+1);
+					if ( IV.size() )
+						return std::pair<int64_t,int64_t>(IV.front().from,IV.back().to);
 					else
 						return std::pair<int64_t,int64_t>(-1,-1);
 				}
@@ -172,6 +215,11 @@ namespace libmaus2
 							IV[i-1].to = IV[i].from;
 
 						//IV.back().to = nreads;
+
+						#if 0
+						for ( uint64_t i = 0; i < IV.size(); ++i )
+							errOSI << "[V] IV[" << i << "]=" << IV[i].from << "," << IV[i].to << "," << IV[i].index << std::endl;
+						#endif
 					}
 
 					for ( uint64_t i = 0; i < IV.size(); ++i )
