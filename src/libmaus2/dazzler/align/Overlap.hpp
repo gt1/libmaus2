@@ -882,6 +882,59 @@ namespace libmaus2
 					}
 				}
 
+				int64_t computeMapping(
+					uint8_t const * aptr,
+					uint8_t const * bptr,
+					int64_t const apos,
+					int64_t const tspace,
+					libmaus2::lcs::Aligner & aligner
+				)
+				{
+					bool const inputok = apos >= path.abpos && apos < path.aepos;
+					if ( ! inputok )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "[E] Overlap::computeMapping apos=" << apos << " outside [" << path.abpos << "," << path.aepos << ")" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					// block on A containing apos
+					int64_t const ablock = apos / tspace;
+					// first block of alignment
+					int64_t const fblock = path.abpos / tspace;
+					// block offset on alignment
+					int64_t const block = ablock - fblock;
+					// block start for block containing apos
+					int64_t const blockstart = std::max(static_cast<int64_t>(path.abpos),(ablock+0) * tspace);
+					// block end for block containing apos
+					int64_t const blockend   = std::min(static_cast<int64_t>(path.aepos),(ablock+1) * tspace);
+					// offset inside block containing apos
+					int64_t const offset = apos - blockstart;
+
+					assert ( apos >= blockstart );
+					assert ( offset < tspace );
+
+					int64_t boff = path.bbpos;
+					for ( int64_t i = 0; i < block; ++i )
+						boff += path.path[i].second;
+
+					aptr += blockstart;
+					bptr += boff;
+
+					int64_t const bsize = (block < static_cast<int64_t>(path.path.size())) ? path.path[block].second : 0;
+
+					aligner.align(aptr,blockend-blockstart,bptr,bsize);
+
+					std::pair<uint64_t,uint64_t> const adv = aligner.getTraceContainer().advanceA(apos-blockstart);
+					std::pair<uint64_t,uint64_t> const SL = aligner.getTraceContainer().getStringLengthUsed(
+						aligner.getTraceContainer().ta,
+						aligner.getTraceContainer().ta + adv.second
+					);
+
+					return boff + SL.second;
+				}
+
 				/**
 				 * compute alignment trace
 				 *
