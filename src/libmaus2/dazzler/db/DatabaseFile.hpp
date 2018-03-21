@@ -1474,6 +1474,51 @@ namespace libmaus2
 					return SR;
 				}
 
+				template<typename iterator>
+				SplitResult splitDbRLPrefix(
+					uint64_t const maxmem,
+					uint64_t const pref,
+					iterator rl_ita,
+					iterator rl_ite
+				) const
+				{
+					SplitResult SR;
+
+					iterator const rl_its = rl_ita;
+
+					if ( rl_ita != rl_ite )
+					{
+						iterator const rl_low = rl_ita;
+
+						uint64_t s = *(rl_ita++);
+
+						while ( (rl_ita != rl_ite) && (s + *rl_ita <= maxmem) && (rl_ita - rl_low < static_cast< ::ptrdiff_t>(pref)) )
+							s += *(rl_ita++);
+
+						iterator const rl_high = rl_ita;
+
+						SR.push_back(SplitResultElement(rl_low-rl_its,rl_high-rl_its,s,0,0));
+					}
+
+					while ( rl_ita != rl_ite )
+					{
+						iterator const rl_low = rl_ita;
+
+						uint64_t s = *(rl_ita++);
+
+						while ( (rl_ita != rl_ite) && (s + *rl_ita <= maxmem) )
+							s += *(rl_ita++);
+
+						iterator const rl_high = rl_ita;
+
+						SR.push_back(SplitResultElement(rl_low-rl_its,rl_high-rl_its,s,0,0));
+					}
+
+					setUntrimmedSplit(SR);
+
+					return SR;
+				}
+
 				uint64_t trimmedToUntrimmed(size_t const i) const
 				{
 					if ( i >= size() )
