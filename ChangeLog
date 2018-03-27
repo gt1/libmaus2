@@ -1,3 +1,12 @@
+libmaus2 (2.0.457-1) unstable; urgency=medium
+
+  * add test for NPLinMem
+  * add NPNoTrace class
+  * add NPLinMem class
+  * add byteSize method in NP
+
+ -- German Tischler <tischler@mpi-cbg.de>  Tue, 27 Mar 2018 09:49:49 +0200
+
 libmaus2 (2.0.456-1) unstable; urgency=medium
 
   * add splitDbRLPrefix method in DatabaseFile
