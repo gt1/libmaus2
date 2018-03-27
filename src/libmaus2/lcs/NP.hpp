@@ -72,6 +72,11 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray<NPElement> DO;
 			libmaus2::autoarray::AutoArray<TraceElement,libmaus2::autoarray::alloc_type_c> trace;
 
+			uint64_t byteSize() const
+			{
+				return DE.byteSize() + DO.byteSize() + trace.byteSize();
+			}
+
 			template<typename iter_a, typename iter_b, bool neg>
 			static inline int64_t slide(iter_a a, iter_a const ae, iter_b b, iter_b const be, int64_t const offset)
 			{
