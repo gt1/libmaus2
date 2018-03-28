@@ -63,6 +63,11 @@ namespace libmaus2
 			libmaus2::lcs::NP npobj;
 			std::stack<Entry> Q;
 			uint64_t const d;
+			
+			uint64_t byteSize() const
+			{
+				return npt.byteSize() + npobj.byteSize() + sizeof(d);
+			}
 
 			NPLinMem(uint64_t const rd = 64) : d(rd) {}
 

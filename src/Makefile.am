@@ -2020,7 +2020,9 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/AlignmentOneAgainstManyFactory.hpp \
 	libmaus2/lcs/NNPCorL.hpp \
 	libmaus2/lcs/NPLinMem.hpp \
-	libmaus2/lcs/NPNoTrace.hpp
+	libmaus2/lcs/NPNoTrace.hpp \
+	libmaus2/lcs/NPLNoTrace.hpp \
+	libmaus2/lcs/NPLLinMem.hpp
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp
@@ -2182,7 +2184,8 @@ EXTRA_PROGRAMS = \
 	testmatrix \
 	testlibarchive \
 	testconvpowercache \
-	testlassort
+	testlassort \
+	testthreadpoolbgzfdecode
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2785,3 +2788,8 @@ testlassort_SOURCES  = test/testlassort.cpp
 testlassort_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testlassort_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
 testlassort_LDFLAGS  = ${AM_LDFLAGS}
+
+testthreadpoolbgzfdecode_SOURCES  = test/testthreadpoolbgzfdecode.cpp
+testthreadpoolbgzfdecode_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testthreadpoolbgzfdecode_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
+testthreadpoolbgzfdecode_LDFLAGS  = ${AM_LDFLAGS}
