@@ -27,6 +27,10 @@ namespace libmaus2
 	{
 		struct NPLLinMem : public libmaus2::lcs::NPLinMem
 		{
+			typedef NPLLinMem this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
 			libmaus2::lcs::NPLNoTrace nplnt;
 			
 			NPLLinMem() : nplnt() {}
