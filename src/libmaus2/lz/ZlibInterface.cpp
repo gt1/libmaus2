@@ -30,7 +30,7 @@ libmaus2::parallel::PosixMutex libmaus2::lz::ZlibInterface::initlock;
 #include <dlfcn.h>
 #endif
 
-#if defined(LIBMAUS2_HAVE_DL_FUNCS) && defined(RTLD_DEEPBIND) && defined(RTLD_LOCAL)
+#if defined(LIBMAUS2_HAVE_DL_FUNCS) && defined(RTLD_DEEPBIND) && defined(RTLD_LOCAL) && 0
 struct ZlibFunctions
 {
 	libmaus2::util::DynamicLibrary::unique_ptr_type zlib;
