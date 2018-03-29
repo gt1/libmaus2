@@ -1495,7 +1495,8 @@ libmaus2parallel_include_HEADERS=\
 	libmaus2/parallel/PosixConditionSemaphore.hpp \
 	libmaus2/parallel/NamedPosixSemaphore.hpp \
 	libmaus2/parallel/SimpleSemaphoreInterface.hpp \
-	libmaus2/parallel/TimedSemaphoreInterface.hpp
+	libmaus2/parallel/TimedSemaphoreInterface.hpp \
+	libmaus2/parallel/SynchronousConditionQueue.hpp
 
 libmaus2fastx_includedir=$(includedir)/libmaus2/fastx
 libmaus2fastx_include_HEADERS=\
