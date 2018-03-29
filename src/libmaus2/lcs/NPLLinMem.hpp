@@ -32,9 +32,9 @@ namespace libmaus2
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			libmaus2::lcs::NPLNoTrace nplnt;
-			
+
 			NPLLinMem() : nplnt() {}
-			
+
 			template<typename iter_a, typename iter_b>
 			int64_t np(iter_a const a, iter_a const ae, iter_b const b, iter_b const be)
 			{
@@ -46,7 +46,7 @@ namespace libmaus2
                         {
                         	np(a,a+l_a,b,b+l_b);
                         }
-			
+
 			uint64_t byteSize() const
 			{
 				return libmaus2::lcs::NPLinMem::byteSize() + nplnt.byteSize();
