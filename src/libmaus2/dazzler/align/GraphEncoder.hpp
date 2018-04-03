@@ -27,6 +27,7 @@
 #include <libmaus2/aio/SerialisedPeeker.hpp>
 #include <libmaus2/util/Histogram.hpp>
 #include <libmaus2/util/PrefixSums.hpp>
+#include <libmaus2/dazzler/align/OverlapDataInterface.hpp>
 
 namespace libmaus2
 {
@@ -326,97 +327,121 @@ namespace libmaus2
 						uint64_t const tlow = t * packsize;
 						uint64_t const thigh = tlow + packsize;
 
-						libmaus2::dazzler::align::AlignmentFileCat::unique_ptr_type AF(LAI.openRange(tlow,thigh));
+						libmaus2::dazzler::align::SimpleOverlapParserConcat::unique_ptr_type ARP(
+							LAI.getFileRangeParser(
+								tlow,thigh,
+								32*1024*1024,
+								libmaus2::dazzler::align::OverlapParser::overlapparser_do_not_split_a
+							)
+						);
+						libmaus2::autoarray::AutoArray<libmaus2::dazzler::align::OverlapDataInterface> V;
 
 						EncodeContext context;
 
-						libmaus2::dazzler::align::Overlap OVL;
-
-						while ( AF->peekNextOverlap(OVL) )
+						while ( ARP->parseNextBlock() )
 						{
-							int64_t const aid = OVL.aread;
-							std::vector < libmaus2::dazzler::align::Overlap > V;
-
-							while ( AF->peekNextOverlap(OVL) && OVL.aread == aid )
+							libmaus2::dazzler::align::OverlapData & data = ARP->getData();
+							for ( uint64_t plow = 0; plow < data.size(); )
 							{
-								AF->getNextOverlap(OVL);
-								V.push_back(OVL);
-							}
+								uint64_t v = 0;
+								int64_t const aid = libmaus2::dazzler::align::OverlapData::getARead(data.getData(plow).first);
+								uint64_t phigh = plow;
 
-							assert ( V.size() );
+								while ( phigh < data.size() && libmaus2::dazzler::align::OverlapData::getARead(data.getData(phigh).first) == aid )
+								{
+									V.push(v,
+										libmaus2::dazzler::align::OverlapDataInterface(data.getData(phigh).first)
+									);
+									++phigh;
+								}
 
-							for ( uint64_t i = 1; i < V.size(); ++i )
-							{
-								assert ( V[i-1].aread == V[i].aread );
-								assert ( V[i-1].bread <= V[i].bread );
-							}
+								assert ( v );
 
-							if ( context.bdif.find(V.size()) == context.bdif.end() )
-								context.bdif[V.size()] = 0;
-							for ( uint64_t i = 1; i < V.size(); ++i )
-								context.bdif[V.size()] += (V[i].bread - V[i-1].bread);
-							context.bdifcnt[V.size()] += V.size()-1;
+								for ( uint64_t i = 1; i < v; ++i )
+								{
+									assert ( V[i-1].aread() == V[i].aread() );
+									assert ( V[i-1].bread() <= V[i].bread() );
+								}
 
-							context.bfirst[V.size()] += V[0].bread;
-							context.bfirstcnt[V.size()] += 1;
+								if ( context.bdif.find(v) == context.bdif.end() )
+									context.bdif[v] = 0;
+								for ( uint64_t i = 1; i < v; ++i )
+									context.bdif[v] += (V[i].bread() - V[i-1].bread());
+								context.bdifcnt[v] += v-1;
 
-							std::vector<ASort> VA;
-							for ( uint64_t i = 0; i < V.size(); ++i )
-								VA.push_back(ASort(V[i].path.abpos,V[i].path.aepos,i));
-							std::sort(VA.begin(),VA.end());
+								context.bfirst[v] += V[0].bread();
+								context.bfirstcnt[v] += 1;
 
-							context.abfirst[V.size()] += VA[0].abpos;
-							context.abfirstcnt[V.size()] += 1;
+								std::vector<ASort> VA;
+								for ( uint64_t i = 0; i < v; ++i )
+									VA.push_back(ASort(V[i].abpos(),V[i].aepos(),i));
+								std::sort(VA.begin(),VA.end());
 
-							if ( context.abdif.find(V.size()) == context.abdif.end() )
-								context.abdif[V.size()] = 0;
-							for ( uint64_t i = 1; i < VA.size(); ++i )
-								context.abdif[V.size()] += (VA[i].abpos - VA[i-1].abpos);
-							context.abdifcnt[V.size()] += VA.size()-1;
+								context.abfirst[v] += VA[0].abpos;
+								context.abfirstcnt[v] += 1;
 
-							std::vector<ASort> VB;
-							for ( uint64_t i = 0; i < V.size(); ++i )
-								VB.push_back(ASort(V[i].path.bbpos,V[i].path.bepos,i));
-							std::sort(VB.begin(),VB.end());
+								if ( context.abdif.find(v) == context.abdif.end() )
+									context.abdif[v] = 0;
+								for ( uint64_t i = 1; i < VA.size(); ++i )
+									context.abdif[v] += (VA[i].abpos - VA[i-1].abpos);
+								context.abdifcnt[v] += VA.size()-1;
 
-							context.bbfirst[V.size()] += VB[0].abpos;
-							context.bbfirstcnt[V.size()] += 1;
+								std::vector<ASort> VB;
+								for ( uint64_t i = 0; i < v; ++i )
+									VB.push_back(ASort(V[i].bbpos(),V[i].bepos(),i));
+								std::sort(VB.begin(),VB.end());
 
-							if ( context.bbdif.find(V.size()) == context.bbdif.end() )
-								context.bbdif[V.size()] = 0;
-							for ( uint64_t i = 1; i < VB.size(); ++i )
-								context.bbdif[V.size()] += (VB[i].abpos - VB[i-1].abpos);
-							context.bbdifcnt[V.size()] += VB.size()-1;
+								context.bbfirst[v] += VB[0].abpos;
+								context.bbfirstcnt[v] += 1;
 
-							std::sort(VA.begin(),VA.end(),ASortRange());
-							context.abfirstrange[V.size()] += VA[0].getRange();
-							if ( context.abdifrange.find(V.size()) == context.abdifrange.end() )
-								context.abdifrange[V.size()] = 0;
-							for ( uint64_t i = 1; i < VA.size(); ++i )
-								context.abdifrange[V.size()] += VA[i].getRange() - VA[i-1].getRange();
-							context.abfirstrangecnt[V.size()] += 1;
-							context.abdifrangecnt[V.size()] += VA.size()-1;
+								if ( context.bbdif.find(v) == context.bbdif.end() )
+									context.bbdif[v] = 0;
+								for ( uint64_t i = 1; i < VB.size(); ++i )
+									context.bbdif[v] += (VB[i].abpos - VB[i-1].abpos);
+								context.bbdifcnt[v] += VB.size()-1;
 
-							std::sort(VB.begin(),VB.end(),ASortRange());
-							context.bbfirstrange[V.size()] += VB[0].getRange();
-							if ( context.bbdifrange.find(V.size()) == context.bbdifrange.end() )
-								context.bbdifrange[V.size()] = 0;
-							for ( uint64_t i = 1; i < VB.size(); ++i )
-								context.bbdifrange[V.size()] += VB[i].getRange() - VB[i-1].getRange();
-							context.bbfirstrangecnt[V.size()] += 1;
-							context.bbdifrangecnt[V.size()] += VA.size()-1;
+								std::sort(VA.begin(),VA.end(),ASortRange());
+								context.abfirstrange[v] += VA[0].getRange();
+								if ( context.abdifrange.find(v) == context.abdifrange.end() )
+									context.abdifrange[v] = 0;
+								for ( uint64_t i = 1; i < VA.size(); ++i )
+									context.abdifrange[v] += VA[i].getRange() - VA[i-1].getRange();
+								context.abfirstrangecnt[v] += 1;
+								context.abdifrangecnt[v] += VA.size()-1;
 
-							for ( uint64_t i = 0; i < V.size(); ++i )
-								context.emap[V[i].path.diffs]++;
+								std::sort(VB.begin(),VB.end(),ASortRange());
+								context.bbfirstrange[v] += VB[0].getRange();
+								if ( context.bbdifrange.find(v) == context.bbdifrange.end() )
+									context.bbdifrange[v] = 0;
+								for ( uint64_t i = 1; i < VB.size(); ++i )
+									context.bbdifrange[v] += VB[i].getRange() - VB[i-1].getRange();
+								context.bbfirstrangecnt[v] += 1;
+								context.bbdifrangecnt[v] += VA.size()-1;
 
-							context.linkcnthist(V.size());
-							for ( uint64_t i = 0; i < V.size(); ++i )
-								context.fmap[V[i].flags]++;
+								for ( uint64_t i = 0; i < v; ++i )
+									context.emap[V[i].diffs()]++;
 
-							if ( verbose && errOSI && ( (aid % (16*1024) == 0) || (!(AF->peekNextOverlap(OVL))) ) )
-							{
-								libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
-								*errOSI << "[V] " << aid << std::endl;
+								context.linkcnthist(v);
+								for ( uint64_t i = 0; i < v; ++i )
+									context.fmap[V[i].flags()]++;
+
+								if (
+									verbose
+									&&
+									errOSI
+									&&
+									(
+										(aid % (16*1024) == 0)
+										||
+										(phigh == data.size())
+									)
+								)
+								{
+									libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+									*errOSI << "[V] " << aid << std::endl;
+								}
+
+								plow = phigh;
 							}
 						}
 
@@ -574,6 +599,159 @@ namespace libmaus2
 						uint64_t const tlow = t * packsize;
 						uint64_t const thigh = tlow + packsize;
 
+						libmaus2::dazzler::align::SimpleOverlapParserConcat::unique_ptr_type ARP(
+							LAI.getFileRangeParser(
+								tlow,thigh,
+								32*1024*1024,
+								libmaus2::dazzler::align::OverlapParser::overlapparser_do_not_split_a
+							)
+						);
+						libmaus2::autoarray::AutoArray<libmaus2::dazzler::align::OverlapDataInterface> V;
+
+						while ( ARP->parseNextBlock() )
+						{
+							libmaus2::dazzler::align::OverlapData & data = ARP->getData();
+							for ( uint64_t plow = 0; plow < data.size(); )
+							{
+								uint64_t v = 0;
+								int64_t const aid = libmaus2::dazzler::align::OverlapData::getARead(data.getData(plow).first);
+								uint64_t phigh = plow;
+
+								while ( phigh < data.size() && libmaus2::dazzler::align::OverlapData::getARead(data.getData(phigh).first) == aid )
+								{
+									V.push(v,
+										libmaus2::dazzler::align::OverlapDataInterface(data.getData(phigh).first)
+									);
+									++phigh;
+								}
+
+								assert ( v );
+
+								libmaus2::huffman::HuffmanEncoderFileStd & LHEFS = *(AHEFS[tid]);
+
+								uint64_t const p = LHEFS.tellp();
+
+								uint64_t const nb = libmaus2::math::numbits(v-1);
+
+								std::vector<ASort> VA;
+								for ( uint64_t i = 0; i < v; ++i )
+									VA.push_back(ASort(V[i].abpos(),V[i].aepos(),i));
+								std::sort(VA.begin(),VA.end());
+
+								std::vector<ASort> VB;
+								for ( uint64_t i = 0; i < v; ++i )
+									VB.push_back(ASort(V[i].bbpos(),V[i].bepos(),i));
+								std::sort(VB.begin(),VB.end());
+
+								// length of vector
+								if ( linkcntesc )
+									esclinkcntenc->encode(LHEFS,v);
+								else
+									linkcntenc->encode(LHEFS,v);
+
+								for ( uint64_t i = 0; i < v; ++i )
+								{
+									int64_t const d = V[i].diffs();
+									if ( emapesc )
+										escemapenc->encode(LHEFS,d);
+									else
+										emapenc->encode(LHEFS,d);
+								}
+
+								for ( uint64_t i = 0; i < v; ++i )
+								{
+									int64_t const d = V[i].flags();
+									fmapenc->encode(LHEFS,d);
+								}
+
+								// inverse bit
+								for ( uint64_t i = 0; i < v; ++i )
+									LHEFS.write(V[i].isInverse(),1);
+
+								// sorting for ab and bb
+								for ( uint64_t i = 0; i < VA.size(); ++i )
+									LHEFS.write(VA[i].index,nb);
+								for ( uint64_t i = 0; i < VB.size(); ++i )
+									LHEFS.write(VB[i].index,nb);
+
+								// sorting for arange and brange
+								std::sort(VA.begin(),VA.end(),ASortRange());
+								std::sort(VB.begin(),VB.end(),ASortRange());
+								for ( uint64_t i = 0; i < VA.size(); ++i )
+									LHEFS.write(VA[i].index,nb);
+								for ( uint64_t i = 0; i < VB.size(); ++i )
+									LHEFS.write(VB[i].index,nb);
+
+								// restore sorting
+								std::sort(VA.begin(),VA.end());
+								std::sort(VB.begin(),VB.end());
+
+								libmaus2::huffman::OutputAdapter OA(LHEFS);
+								libmaus2::gamma::GammaEncoder<libmaus2::huffman::OutputAdapter> GE(OA);
+
+								// b
+								int64_t const bfirstavg = Mbfirst.find(v)->second;
+								int64_t const bdifavg = Mbdif.find(v)->second;
+								encodeSignedValue(GE,V[0].bread() - bfirstavg);
+								for ( uint64_t i = 1; i < v; ++i )
+									encodeSignedValue(GE,(V[i].bread()-V[i-1].bread()) - bdifavg);
+
+								// abpos
+								int64_t const abfirstavg = Mabfirst.find(v)->second;
+								int64_t const abdifavg = Mabdif.find(v)->second;
+								encodeSignedValue(GE,VA[0].abpos - abfirstavg);
+								for ( uint64_t i = 1; i < VA.size(); ++i )
+									encodeSignedValue(GE,(VA[i].abpos - VA[i-1].abpos)-abdifavg);
+
+								// bbpos
+								int64_t const bbfirstavg = Mbbfirst.find(v)->second;
+								int64_t const bbdifavg = Mbbdif.find(v)->second;
+								encodeSignedValue(GE,VB[0].abpos - bbfirstavg);
+								for ( uint64_t i = 1; i < VB.size(); ++i )
+									encodeSignedValue(GE,(VB[i].abpos - VB[i-1].abpos)-bbdifavg);
+
+								// arange
+								std::sort(VA.begin(),VA.end(),ASortRange());
+								int64_t const abfirstrangeavg = Mabfirstrange.find(v)->second;
+								int64_t const abdifrangeavg = Mabdifrange.find(v)->second;
+								encodeSignedValue(GE,VA[0].getRange() - abfirstrangeavg);
+								for ( uint64_t i = 1; i < VA.size(); ++i )
+									encodeSignedValue(GE,(VA[i].getRange() - VA[i-1].getRange()) - abdifrangeavg);
+
+								// brange
+								std::sort(VB.begin(),VB.end(),ASortRange());
+								int64_t const bbfirstrangeavg = Mbbfirstrange.find(v)->second;
+								int64_t const bbdifrangeavg = Mbbdifrange.find(v)->second;
+								encodeSignedValue(GE,VB[0].getRange() - bbfirstrangeavg);
+								for ( uint64_t i = 1; i < VB.size(); ++i )
+									encodeSignedValue(GE,(VB[i].getRange() - VB[i-1].getRange()) - bbdifrangeavg);
+
+								GE.flush();
+								LHEFS.flushBitStream();
+
+								PointerEntry(aid,p,tid).serialise(*(Atmpptr[tid]));
+
+								if (
+									verbose
+									&&
+									errOSI
+									&&
+									(
+										(aid % (16*1024) == 0)
+										||
+										(phigh == data.size())
+									)
+								)
+								{
+									libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+									*errOSI << "[V] " << aid << std::endl;
+								}
+
+								plow = phigh;
+							}
+						}
+
+						#if 0
 						libmaus2::dazzler::align::AlignmentFileCat::unique_ptr_type AF(LAI.openRange(tlow,thigh));
 						libmaus2::dazzler::align::Overlap OVL;
 
@@ -700,6 +878,7 @@ namespace libmaus2
 								*errOSI << "[V] " << aid << std::endl;
 							}
 						}
+						#endif
 					}
 
 					for ( uint64_t i = 0; i < numthreads; ++i )
