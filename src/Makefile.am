@@ -519,7 +519,13 @@ libmaus2lz_include_HEADERS = libmaus2/lz/Inflate.hpp libmaus2/lz/Deflate.hpp lib
 	libmaus2/lz/BlockInflate.hpp \
 	libmaus2/lz/ConcatBlockInflate.hpp \
 	libmaus2/lz/ZlibInterface.hpp \
-	libmaus2/lz/BgzfInflateFile.hpp
+	libmaus2/lz/BgzfInflateFile.hpp \
+	libmaus2/lz/BgzfInflateBaseTypeInfo.hpp \
+	libmaus2/lz/BgzfInflateBaseAllocator.hpp \
+	libmaus2/lz/BgzfInflateReadPackageDispatcher.hpp \
+	libmaus2/lz/BgzfInflateDecompressPackageDispatcher.hpp \
+	libmaus2/lz/BgzfInputContext.hpp \
+	libmaus2/lz/BgzfInflateThreadPoolReader.hpp
 
 libmaus2bambam_includedir=$(includedir)/libmaus2/bambam/
 libmaus2bambam_include_HEADERS = libmaus2/bambam/DecoderBase.hpp libmaus2/bambam/Chromosome.hpp \
@@ -1309,7 +1315,9 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/ContainerDescription.hpp \
 	libmaus2/util/ContainerDescriptionList.hpp \
 	libmaus2/util/TarWriter.hpp \
-	libmaus2/util/U.hpp
+	libmaus2/util/U.hpp \
+	libmaus2/util/AutoArrayCharBaseTypeInfo.hpp \
+	libmaus2/util/AutoArrayCharBaseAllocator.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
@@ -1450,7 +1458,10 @@ libmaus2aio_include_HEADERS=\
 	libmaus2/aio/SerialisedPeeker.hpp \
 	libmaus2/aio/GenericPeeker.hpp \
 	libmaus2/aio/InputOutputStreamPointerWrapper.hpp \
-	libmaus2/aio/InputOutputStreamInstance.hpp
+	libmaus2/aio/InputOutputStreamInstance.hpp \
+	libmaus2/aio/InputStreamObject.hpp \
+	libmaus2/aio/InputStreamObjectTypeInfo.hpp \
+	libmaus2/aio/InputStreamObjectAllocator.hpp
 	
 libmaus2parallel_includedir=$(includedir)/libmaus2/parallel
 libmaus2parallel_include_HEADERS=\
