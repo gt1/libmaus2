@@ -42,7 +42,7 @@ namespace libmaus2
 
 			libmaus2::autoarray::AutoArray<NPElement> DE;
 			libmaus2::autoarray::AutoArray<NPElement> DO;
-			
+
 			uint64_t byteSize() const
 			{
 				return DE.byteSize() + DO.byteSize();
@@ -69,20 +69,20 @@ namespace libmaus2
 				else
 					return bc-b;
 			}
-			
+
 			struct ReturnValue
 			{
 				uint64_t alen;
 				uint64_t blen;
 				uint64_t ed;
-				
+
 				ReturnValue() {}
 				ReturnValue(
 					uint64_t const ralen,
 					uint64_t const rblen,
 					uint64_t const red
 				) : alen(ralen), blen(rblen), ed(red) {}
-				
+
 				std::string toString() const
 				{
 					std::ostringstream ostr;
@@ -104,7 +104,7 @@ namespace libmaus2
 				{
 					return ReturnValue(an,bn,std::max(an,bn));
 				}
-				
+
 				size_t const sn = std::max(an,bn);
 				// number of diagonals
 				index_type const numdiag = (sn<<1)+1;
@@ -130,7 +130,7 @@ namespace libmaus2
 				if ( DP[0].offset >= static_cast<int64_t>(std::min(an,bn)) )
 				{
 					assert ( DP[0].offset == static_cast<int64_t>(std::min(an,bn)) );
-					
+
 					uint64_t const n = std::min(an,bn);
 					return ReturnValue(n,n,0);
 				}
@@ -160,7 +160,7 @@ namespace libmaus2
 				for ( ; d < maxd ; ++d )
 				{
 					// std::cerr << "d=" << d << std::endl;
-				
+
 					bool done = false;
 
 					for ( int64_t di = -d+1; di <= d-1; ++di )
@@ -172,7 +172,7 @@ namespace libmaus2
 
 						assert ( static_cast< uint64_t >(apos) <= an );
 						assert ( static_cast< uint64_t >(bpos) <= bn );
-						
+
 						// std::cerr << "d=" << d << " di=" << di << " apos=" << apos << " bpos=" << bpos << " an=" << an << " bn=" << bn << std::endl;
 
 						if (

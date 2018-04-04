@@ -19,8 +19,8 @@
 #define LIBMAUS2_LCS_NNPCORL_HPP
 
 #include <libmaus2/lcs/NNPCor.hpp>
-#include <libmaus2/lcs/NPL.hpp>
-#include <libmaus2/lcs/NP.hpp>
+#include <libmaus2/lcs/NPLLinMem.hpp>
+#include <libmaus2/lcs/NPLinMem.hpp>
 
 namespace libmaus2
 {
@@ -35,8 +35,8 @@ namespace libmaus2
 			libmaus2::lcs::NNPCor cor;
 			NNPTraceContainer tracecontainer;
 
-			libmaus2::lcs::NPL o_npl;
-			libmaus2::lcs::NP o_np;
+			libmaus2::lcs::NPLLinMem o_npl;
+			libmaus2::lcs::NPLinMem o_np;
 
 			NNPCorL(
 				double const mincor = NNPCor::getDefaultMinCorrelation(),
@@ -149,8 +149,6 @@ namespace libmaus2
                         		std::pair<uint64_t,uint64_t> SL_O = o_np.getStringLengthUsed();
                         		SL.first  += SL_O.first;
                         		SL.second += SL_O.second;
-
-                        		o_np.cutTrace(100);
                         	}
 
                         	return SL;
@@ -185,8 +183,6 @@ namespace libmaus2
                         		std::pair<uint64_t,uint64_t> SL_O = o_npl.getStringLengthUsed();
                         		SL.first  += SL_O.first;
                         		SL.second += SL_O.second;
-
-                        		o_npl.cutTrace(100);
                         	}
 
                         	return SL;

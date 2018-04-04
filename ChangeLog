@@ -1,3 +1,18 @@
+libmaus2 (2.0.459-1) unstable; urgency=medium
+
+  * fix include guards in SimpleThreadPoolThread.hpp
+  * use OverlapParser in GraphEncoder
+  * add data block writing in AlignmentWriter
+  * use LasIntervals for graph encoding
+  * fix graph check
+  * add constructIndexIf in OverlapIndexer
+  * add SynchronousConditionQueue class
+  * add full method in LockedGrowingFreeList/GrowingFreeList
+  * add timedWait method in PosixConditionSemaphore
+  * add pointer types in NPLLinMem, NPLinMem
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 04 Apr 2018 09:19:30 +0200
+
 libmaus2 (2.0.458-1) unstable; urgency=medium
 
   * added NPLNoTrace,NPLLinMem

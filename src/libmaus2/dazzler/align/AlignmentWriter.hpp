@@ -22,6 +22,7 @@
 #include <libmaus2/dazzler/align/AlignmentFile.hpp>
 #include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/aio/InputOutputStreamFactoryContainer.hpp>
+#include <libmaus2/dazzler/align/OverlapDataInterface.hpp>
 
 namespace libmaus2
 {
@@ -172,6 +173,29 @@ namespace libmaus2
 						PEMIG->put(libmaus2::dazzler::align::OverlapMeta(OVL), std::pair<uint64_t,uint64_t>(dpos,0));
 
 					dpos += OVL.serialiseWithPath(DOSI,small);
+				}
+
+				void put(uint8_t const * pa, uint8_t const * pe)
+				{
+					if ( (((novl++) & indexer_type::base_index_mask) == 0) && PEMIG )
+					{
+						libmaus2::dazzler::align::OverlapDataInterface ODI(pa);
+						PEMIG->put(
+							libmaus2::dazzler::align::OverlapMeta(
+								ODI.aread(),
+								ODI.bread(),
+								ODI.isInverse(),
+								ODI.abpos(),
+								ODI.aepos(),
+								ODI.bbpos(),
+								ODI.bepos()
+							),
+							std::pair<uint64_t,uint64_t>(dpos,0)
+						);
+					}
+
+					DOSI.write(reinterpret_cast<char const *>(pa),pe-pa);
+					dpos += (pe-pa);
 				}
 			};
 		}
