@@ -15,42 +15,34 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if !defined(LIBMAUS2_LCS_NPLLINMEM_HPP)
-#define LIBMAUS2_LCS_NPLLINMEM_HPP
+#if !defined(LIBMAUS2_AIO_INPUTSTREAMOBJECT_HPP)
+#define LIBMAUS2_AIO_INPUTSTREAMOBJECT_HPP
 
-#include <libmaus2/lcs/NPLNoTrace.hpp>
-#include <libmaus2/lcs/NPLinMem.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/types/types.hpp>
+#include <istream>
 
 namespace libmaus2
 {
-	namespace lcs
+	namespace aio
 	{
-		struct NPLLinMem : public libmaus2::lcs::NPLinMem
+		struct InputStreamObject
 		{
-			typedef NPLLinMem this_type;
+			typedef InputStreamObject this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			libmaus2::lcs::NPLNoTrace nplnt;
+			std::istream * istr;
+			uint64_t streamid;
+			uint64_t volatile blockid;
+			bool volatile eof;
 
-			NPLLinMem() : nplnt() {}
-
-			template<typename iter_a, typename iter_b>
-			int64_t np(iter_a const a, iter_a const ae, iter_b const b, iter_b const be)
-			{
-				libmaus2::lcs::NPLNoTrace::ReturnValue const RV = nplnt.np(a,ae,b,be);
-				return libmaus2::lcs::NPLinMem::np(a,a+RV.alen,b,b+RV.blen);
-			}
-
-                        void align(uint8_t const * a, size_t const l_a, uint8_t const * b, size_t const l_b)
-                        {
-                        	np(a,a+l_a,b,b+l_b);
-                        }
-
-			uint64_t byteSize() const
-			{
-				return libmaus2::lcs::NPLinMem::byteSize() + nplnt.byteSize();
-			}
+			InputStreamObject(
+				std::istream * ristr,
+				uint64_t const rstreamid,
+				uint64_t const rblockid = 0
+			) : istr(ristr), streamid(rstreamid), blockid(rblockid), eof(false) {}
 		};
 	}
 }

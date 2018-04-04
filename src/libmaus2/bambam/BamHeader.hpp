@@ -31,6 +31,7 @@
 #include <libmaus2/lz/BgzfInflateStream.hpp>
 #include <libmaus2/lz/BgzfInflateParallelStream.hpp>
 #include <libmaus2/lz/BgzfInflateDeflateParallelInputStream.hpp>
+#include <libmaus2/lz/BgzfInflateThreadPoolReader.hpp>
 #include <libmaus2/hashing/ConstantStringHash.hpp>
 #include <libmaus2/bambam/ReadGroup.hpp>
 #include <libmaus2/fastx/FastAStreamSet.hpp>
@@ -1198,6 +1199,15 @@ namespace libmaus2
 			 * @param in parallel bgzf decompressor
 			 **/
 			BamHeader(libmaus2::lz::BgzfInflateParallelStream & in)
+			{
+				init(in);
+			}
+			/**
+			 * constructor from thread pool based parallel bgzf decompressor
+			 *
+			 * @param in thread pool parallel bgzf decompressor
+			 **/
+			BamHeader(libmaus2::lz::BgzfInflateThreadPoolReader & in)
 			{
 				init(in);
 			}

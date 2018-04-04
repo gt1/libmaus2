@@ -55,8 +55,22 @@ namespace libmaus2
 
 							for ( ; ok && Plas->peekNextOverlap(OVL) && (OVL.aread == aread); ++z )
 							{
-								ok = ok && ( OVL.getHeader() == context_a[z] );
-								Plas->getNextOverlap(OVL);
+								if ( z < context_a.size() )
+								{
+									ok = ok && ( OVL.getHeader() == context_a[z] );
+									Plas->getNextOverlap(OVL);
+								}
+								else
+								{
+									errOSI << "[E] alignment " << OVL.getHeader() << " missing from encoded graph" << std::endl;
+									ok = false;
+								}
+							}
+
+							while ( z < context_a.size() )
+							{
+								errOSI << "[E] alignment " << context_a[z++] << " is in graph but not in input file" << std::endl;
+								ok = false;
 							}
 						}
 

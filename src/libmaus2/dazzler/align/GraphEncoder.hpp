@@ -19,6 +19,7 @@
 #define LIBMAUS2_DAZZLER_ALIGN_GRAPHENCODER_HPP
 
 #include <libmaus2/dazzler/align/OverlapIndexer.hpp>
+#include <libmaus2/dazzler/align/LasIntervals.hpp>
 #include <libmaus2/gamma/GammaEncoder.hpp>
 #include <libmaus2/huffman/CanonicalEncoder.hpp>
 #include <libmaus2/huffman/OutputAdapter.hpp>
@@ -26,6 +27,7 @@
 #include <libmaus2/aio/SerialisedPeeker.hpp>
 #include <libmaus2/util/Histogram.hpp>
 #include <libmaus2/util/PrefixSums.hpp>
+#include <libmaus2/dazzler/align/OverlapDataInterface.hpp>
 
 namespace libmaus2
 {
@@ -280,152 +282,172 @@ namespace libmaus2
 				{
 					EncodeContext gcontext;
 					libmaus2::parallel::PosixMutex gcontextlock;
+					int64_t volatile gmina = std::numeric_limits<int64_t>::max();
+					int64_t volatile gmaxa = std::numeric_limits<int64_t>::min();
 
+					#if defined(_OPENMP)
+					#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
+					#endif
 					for ( uint64_t i = 0; i < arg.size(); ++i )
 					{
-						std::string const lasindexname = libmaus2::dazzler::align::OverlapIndexer::getIndexName(arg[i]);
-						if (
-							! libmaus2::util::GetFileSize::fileExists(lasindexname)
-							||
-							libmaus2::util::GetFileSize::isOlder(lasindexname,arg[i])
-						)
-						{
-							if ( verbose )
-								libmaus2::dazzler::align::OverlapIndexer::constructIndex(arg[i],errOSI);
-							else
-								libmaus2::dazzler::align::OverlapIndexer::constructIndex(arg[i]);
-						}
+						libmaus2::dazzler::align::OverlapIndexer::constructIndexIf(arg[i],verbose ? errOSI : 0);
 
 						int64_t const mina = libmaus2::dazzler::align::OverlapIndexer::getMinimumARead(arg[i]);
 
 						if ( mina >= 0 )
 						{
 							int64_t const maxa = libmaus2::dazzler::align::OverlapIndexer::getMaximumARead(arg[i]);
-							if ( maxa < mina )
-							{
-								libmaus2::exception::LibMausException lme;
-								lme.getStream()
-									<< "[E] GraphEncoder::encodegraph mina=" << mina << " > maxa=" << maxa << " for " << arg[i]
-									<< " of size " << libmaus2::util::GetFileSize::getFileSize(arg[i])
-									<< std::endl;
-								lme.finish();
-								throw lme;
-							}
-							assert ( maxa >= mina );
 
-							uint64_t const range = (maxa - mina + 1);
-							uint64_t const readsperthread = ( range + numthreads - 1 ) / numthreads;
-							uint64_t const packs = ( range + readsperthread - 1 ) / readsperthread;
-							assert ( packs <= numthreads );
-
-							#if defined(_OPENMP)
-							#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
-							#endif
-							for ( uint64_t tt = 0; tt < packs; ++tt )
-							{
-								uint64_t const tlow = mina + tt * readsperthread;
-								uint64_t const thigh = std::min(tlow + readsperthread, static_cast<uint64_t>(mina + range) );
-
-								libmaus2::dazzler::align::AlignmentFileRegion::unique_ptr_type AF(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFileRegion(arg[i],tlow,thigh));
-
-								EncodeContext context;
-
-								libmaus2::dazzler::align::Overlap OVL;
-
-								while ( AF->peekNextOverlap(OVL) )
-								{
-									int64_t const aid = OVL.aread;
-									std::vector < libmaus2::dazzler::align::Overlap > V;
-
-									while ( AF->peekNextOverlap(OVL) && OVL.aread == aid )
-									{
-										AF->getNextOverlap(OVL);
-										V.push_back(OVL);
-									}
-
-									assert ( V.size() );
-
-									for ( uint64_t i = 1; i < V.size(); ++i )
-									{
-										assert ( V[i-1].aread == V[i].aread );
-										assert ( V[i-1].bread <= V[i].bread );
-									}
-
-									if ( context.bdif.find(V.size()) == context.bdif.end() )
-										context.bdif[V.size()] = 0;
-									for ( uint64_t i = 1; i < V.size(); ++i )
-										context.bdif[V.size()] += (V[i].bread - V[i-1].bread);
-									context.bdifcnt[V.size()] += V.size()-1;
-
-									context.bfirst[V.size()] += V[0].bread;
-									context.bfirstcnt[V.size()] += 1;
-
-									std::vector<ASort> VA;
-									for ( uint64_t i = 0; i < V.size(); ++i )
-										VA.push_back(ASort(V[i].path.abpos,V[i].path.aepos,i));
-									std::sort(VA.begin(),VA.end());
-
-									context.abfirst[V.size()] += VA[0].abpos;
-									context.abfirstcnt[V.size()] += 1;
-
-									if ( context.abdif.find(V.size()) == context.abdif.end() )
-										context.abdif[V.size()] = 0;
-									for ( uint64_t i = 1; i < VA.size(); ++i )
-										context.abdif[V.size()] += (VA[i].abpos - VA[i-1].abpos);
-									context.abdifcnt[V.size()] += VA.size()-1;
-
-									std::vector<ASort> VB;
-									for ( uint64_t i = 0; i < V.size(); ++i )
-										VB.push_back(ASort(V[i].path.bbpos,V[i].path.bepos,i));
-									std::sort(VB.begin(),VB.end());
-
-									context.bbfirst[V.size()] += VB[0].abpos;
-									context.bbfirstcnt[V.size()] += 1;
-
-									if ( context.bbdif.find(V.size()) == context.bbdif.end() )
-										context.bbdif[V.size()] = 0;
-									for ( uint64_t i = 1; i < VB.size(); ++i )
-										context.bbdif[V.size()] += (VB[i].abpos - VB[i-1].abpos);
-									context.bbdifcnt[V.size()] += VB.size()-1;
-
-									std::sort(VA.begin(),VA.end(),ASortRange());
-									context.abfirstrange[V.size()] += VA[0].getRange();
-									if ( context.abdifrange.find(V.size()) == context.abdifrange.end() )
-										context.abdifrange[V.size()] = 0;
-									for ( uint64_t i = 1; i < VA.size(); ++i )
-										context.abdifrange[V.size()] += VA[i].getRange() - VA[i-1].getRange();
-									context.abfirstrangecnt[V.size()] += 1;
-									context.abdifrangecnt[V.size()] += VA.size()-1;
-
-									std::sort(VB.begin(),VB.end(),ASortRange());
-									context.bbfirstrange[V.size()] += VB[0].getRange();
-									if ( context.bbdifrange.find(V.size()) == context.bbdifrange.end() )
-										context.bbdifrange[V.size()] = 0;
-									for ( uint64_t i = 1; i < VB.size(); ++i )
-										context.bbdifrange[V.size()] += VB[i].getRange() - VB[i-1].getRange();
-									context.bbfirstrangecnt[V.size()] += 1;
-									context.bbdifrangecnt[V.size()] += VA.size()-1;
-
-									for ( uint64_t i = 0; i < V.size(); ++i )
-										context.emap[V[i].path.diffs]++;
-
-									context.linkcnthist(V.size());
-									for ( uint64_t i = 0; i < V.size(); ++i )
-										context.fmap[V[i].flags]++;
-
-									if ( verbose && errOSI && ( (aid % (16*1024) == 0) || (!(AF->peekNextOverlap(OVL))) ) )
-									{
-										libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
-										*errOSI << "[V] " << aid << std::endl;
-									}
-								}
-
-								libmaus2::parallel::ScopePosixMutex sgcontextlock(gcontextlock);
-								gcontext.merge(context);
-							}
+							gcontextlock.lock();
+							if ( mina < gmina )
+								gmina = mina;
+							if ( maxa > gmaxa )
+								gmaxa = maxa;
+							gcontextlock.unlock();
 						}
 					}
 
+					uint64_t nreads = 0;
+					if ( gmina != std::numeric_limits<int64_t>::max() )
+						nreads = gmaxa + 1;
+
+					libmaus2::dazzler::align::LasIntervals LAI(arg,nreads,std::cerr);
+
+					std::pair<int64_t,int64_t> const LAIint = LAI.getInterval();
+					uint64_t const nn = LAIint.second;
+					uint64_t const tnumpacks = 4*numthreads;
+					uint64_t const packsize = (nn + tnumpacks - 1)/tnumpacks;
+					uint64_t const numpacks = packsize ? (nn+packsize-1)/packsize : 0;
+
+					#if defined(_OPENMP)
+					#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
+					#endif
+					for ( uint64_t t = 0; t < numpacks; ++t )
+					{
+						uint64_t const tlow = t * packsize;
+						uint64_t const thigh = tlow + packsize;
+
+						libmaus2::dazzler::align::SimpleOverlapParserConcat::unique_ptr_type ARP(
+							LAI.getFileRangeParser(
+								tlow,thigh,
+								32*1024*1024,
+								libmaus2::dazzler::align::OverlapParser::overlapparser_do_not_split_a
+							)
+						);
+						libmaus2::autoarray::AutoArray<libmaus2::dazzler::align::OverlapDataInterface> V;
+
+						EncodeContext context;
+
+						while ( ARP->parseNextBlock() )
+						{
+							libmaus2::dazzler::align::OverlapData & data = ARP->getData();
+							for ( uint64_t plow = 0; plow < data.size(); )
+							{
+								uint64_t v = 0;
+								int64_t const aid = libmaus2::dazzler::align::OverlapData::getARead(data.getData(plow).first);
+								uint64_t phigh = plow;
+
+								while ( phigh < data.size() && libmaus2::dazzler::align::OverlapData::getARead(data.getData(phigh).first) == aid )
+								{
+									V.push(v,
+										libmaus2::dazzler::align::OverlapDataInterface(data.getData(phigh).first)
+									);
+									++phigh;
+								}
+
+								assert ( v );
+
+								for ( uint64_t i = 1; i < v; ++i )
+								{
+									assert ( V[i-1].aread() == V[i].aread() );
+									assert ( V[i-1].bread() <= V[i].bread() );
+								}
+
+								if ( context.bdif.find(v) == context.bdif.end() )
+									context.bdif[v] = 0;
+								for ( uint64_t i = 1; i < v; ++i )
+									context.bdif[v] += (V[i].bread() - V[i-1].bread());
+								context.bdifcnt[v] += v-1;
+
+								context.bfirst[v] += V[0].bread();
+								context.bfirstcnt[v] += 1;
+
+								std::vector<ASort> VA;
+								for ( uint64_t i = 0; i < v; ++i )
+									VA.push_back(ASort(V[i].abpos(),V[i].aepos(),i));
+								std::sort(VA.begin(),VA.end());
+
+								context.abfirst[v] += VA[0].abpos;
+								context.abfirstcnt[v] += 1;
+
+								if ( context.abdif.find(v) == context.abdif.end() )
+									context.abdif[v] = 0;
+								for ( uint64_t i = 1; i < VA.size(); ++i )
+									context.abdif[v] += (VA[i].abpos - VA[i-1].abpos);
+								context.abdifcnt[v] += VA.size()-1;
+
+								std::vector<ASort> VB;
+								for ( uint64_t i = 0; i < v; ++i )
+									VB.push_back(ASort(V[i].bbpos(),V[i].bepos(),i));
+								std::sort(VB.begin(),VB.end());
+
+								context.bbfirst[v] += VB[0].abpos;
+								context.bbfirstcnt[v] += 1;
+
+								if ( context.bbdif.find(v) == context.bbdif.end() )
+									context.bbdif[v] = 0;
+								for ( uint64_t i = 1; i < VB.size(); ++i )
+									context.bbdif[v] += (VB[i].abpos - VB[i-1].abpos);
+								context.bbdifcnt[v] += VB.size()-1;
+
+								std::sort(VA.begin(),VA.end(),ASortRange());
+								context.abfirstrange[v] += VA[0].getRange();
+								if ( context.abdifrange.find(v) == context.abdifrange.end() )
+									context.abdifrange[v] = 0;
+								for ( uint64_t i = 1; i < VA.size(); ++i )
+									context.abdifrange[v] += VA[i].getRange() - VA[i-1].getRange();
+								context.abfirstrangecnt[v] += 1;
+								context.abdifrangecnt[v] += VA.size()-1;
+
+								std::sort(VB.begin(),VB.end(),ASortRange());
+								context.bbfirstrange[v] += VB[0].getRange();
+								if ( context.bbdifrange.find(v) == context.bbdifrange.end() )
+									context.bbdifrange[v] = 0;
+								for ( uint64_t i = 1; i < VB.size(); ++i )
+									context.bbdifrange[v] += VB[i].getRange() - VB[i-1].getRange();
+								context.bbfirstrangecnt[v] += 1;
+								context.bbdifrangecnt[v] += VA.size()-1;
+
+								for ( uint64_t i = 0; i < v; ++i )
+									context.emap[V[i].diffs()]++;
+
+								context.linkcnthist(v);
+								for ( uint64_t i = 0; i < v; ++i )
+									context.fmap[V[i].flags()]++;
+
+								if (
+									verbose
+									&&
+									errOSI
+									&&
+									(
+										(aid % (16*1024) == 0)
+										||
+										(phigh == data.size())
+									)
+								)
+								{
+									libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+									*errOSI << "[V] " << aid << std::endl;
+								}
+
+								plow = phigh;
+							}
+						}
+
+						libmaus2::parallel::ScopePosixMutex sgcontextlock(gcontextlock);
+						gcontext.merge(context);
+					}
 
 					std::map<uint64_t,uint64_t> Mbfirst;
 					for ( std::map<uint64_t,uint64_t>::const_iterator ita = gcontext.bfirst.begin(); ita != gcontext.bfirst.end(); ++ita )
@@ -563,164 +585,302 @@ namespace libmaus2
 					libmaus2::util::TempFileRemovalContainer::addTempFile(tmpptr);
 					libmaus2::util::TempFileRemovalContainer::addTempFile(tmpdata);
 
-					for ( uint64_t i = 0; i < arg.size(); ++i )
+					#if defined(_OPENMP)
+					#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
+					#endif
+					for ( uint64_t t = 0; t < numpacks; ++t )
 					{
-						int64_t const mina = libmaus2::dazzler::align::OverlapIndexer::getMinimumARead(arg[i]);
+						#if defined(_OPENMP)
+						uint64_t const tid = omp_get_thread_num();
+						#else
+						uint64_t const tid = 0;
+						#endif
 
-						if ( mina >= 0 )
+						uint64_t const tlow = t * packsize;
+						uint64_t const thigh = tlow + packsize;
+
+						libmaus2::dazzler::align::SimpleOverlapParserConcat::unique_ptr_type ARP(
+							LAI.getFileRangeParser(
+								tlow,thigh,
+								32*1024*1024,
+								libmaus2::dazzler::align::OverlapParser::overlapparser_do_not_split_a
+							)
+						);
+						libmaus2::autoarray::AutoArray<libmaus2::dazzler::align::OverlapDataInterface> V;
+
+						while ( ARP->parseNextBlock() )
 						{
-							int64_t const maxa = libmaus2::dazzler::align::OverlapIndexer::getMaximumARead(arg[i]);
-							assert ( maxa >= mina );
-
-							uint64_t const range = (maxa - mina + 1);
-							uint64_t const readsperthread = ( range + numthreads - 1 ) / numthreads;
-							uint64_t const packs = ( range + readsperthread - 1 ) / readsperthread;
-							assert ( packs <= numthreads );
-
-							#if defined(_OPENMP)
-							#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
-							#endif
-							for ( uint64_t tt = 0; tt < packs; ++tt )
+							libmaus2::dazzler::align::OverlapData & data = ARP->getData();
+							for ( uint64_t plow = 0; plow < data.size(); )
 							{
-								#if defined(_OPENMP)
-								uint64_t const tid = omp_get_thread_num();
-								#else
-								uint64_t const tid = 0;
-								#endif
+								uint64_t v = 0;
+								int64_t const aid = libmaus2::dazzler::align::OverlapData::getARead(data.getData(plow).first);
+								uint64_t phigh = plow;
 
-								uint64_t const tlow = mina + tt * readsperthread;
-								uint64_t const thigh = std::min(tlow + readsperthread, static_cast<uint64_t>(mina + range) );
-
-								libmaus2::dazzler::align::AlignmentFileRegion::unique_ptr_type AF(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFileRegion(arg[i],tlow,thigh));
-								libmaus2::dazzler::align::Overlap OVL;
-
-								while ( AF->peekNextOverlap(OVL) )
+								while ( phigh < data.size() && libmaus2::dazzler::align::OverlapData::getARead(data.getData(phigh).first) == aid )
 								{
-									int64_t const aid = OVL.aread;
-									std::vector < libmaus2::dazzler::align::Overlap > V;
-
-									while ( AF->peekNextOverlap(OVL) && OVL.aread == aid )
-									{
-										AF->getNextOverlap(OVL);
-										V.push_back(OVL);
-									}
-
-									assert ( V.size() );
-
-									libmaus2::huffman::HuffmanEncoderFileStd & LHEFS = *(AHEFS[tid]);
-
-									uint64_t const p = LHEFS.tellp();
-
-									uint64_t const nb = libmaus2::math::numbits(V.size()-1);
-
-									std::vector<ASort> VA;
-									for ( uint64_t i = 0; i < V.size(); ++i )
-										VA.push_back(ASort(V[i].path.abpos,V[i].path.aepos,i));
-									std::sort(VA.begin(),VA.end());
-
-									std::vector<ASort> VB;
-									for ( uint64_t i = 0; i < V.size(); ++i )
-										VB.push_back(ASort(V[i].path.bbpos,V[i].path.bepos,i));
-									std::sort(VB.begin(),VB.end());
-
-									// length of vector
-									if ( linkcntesc )
-										esclinkcntenc->encode(LHEFS,V.size());
-									else
-										linkcntenc->encode(LHEFS,V.size());
-
-									for ( uint64_t i = 0; i < V.size(); ++i )
-									{
-										int64_t const d = V[i].path.diffs;
-										if ( emapesc )
-											escemapenc->encode(LHEFS,d);
-										else
-											emapenc->encode(LHEFS,d);
-									}
-
-									for ( uint64_t i = 0; i < V.size(); ++i )
-									{
-										int64_t const d = V[i].flags;
-										fmapenc->encode(LHEFS,d);
-									}
-
-									// inverse bit
-									for ( uint64_t i = 0; i < V.size(); ++i )
-										LHEFS.write(V[i].isInverse(),1);
-
-									// sorting for ab and bb
-									for ( uint64_t i = 0; i < VA.size(); ++i )
-										LHEFS.write(VA[i].index,nb);
-									for ( uint64_t i = 0; i < VB.size(); ++i )
-										LHEFS.write(VB[i].index,nb);
-
-									// sorting for arange and brange
-									std::sort(VA.begin(),VA.end(),ASortRange());
-									std::sort(VB.begin(),VB.end(),ASortRange());
-									for ( uint64_t i = 0; i < VA.size(); ++i )
-										LHEFS.write(VA[i].index,nb);
-									for ( uint64_t i = 0; i < VB.size(); ++i )
-										LHEFS.write(VB[i].index,nb);
-
-									// restore sorting
-									std::sort(VA.begin(),VA.end());
-									std::sort(VB.begin(),VB.end());
-
-									libmaus2::huffman::OutputAdapter OA(LHEFS);
-									libmaus2::gamma::GammaEncoder<libmaus2::huffman::OutputAdapter> GE(OA);
-
-									// b
-									int64_t const bfirstavg = Mbfirst.find(V.size())->second;
-									int64_t const bdifavg = Mbdif.find(V.size())->second;
-									encodeSignedValue(GE,V[0].bread - bfirstavg);
-									for ( uint64_t i = 1; i < V.size(); ++i )
-										encodeSignedValue(GE,(V[i].bread-V[i-1].bread) - bdifavg);
-
-									// abpos
-									int64_t const abfirstavg = Mabfirst.find(V.size())->second;
-									int64_t const abdifavg = Mabdif.find(V.size())->second;
-									encodeSignedValue(GE,VA[0].abpos - abfirstavg);
-									for ( uint64_t i = 1; i < VA.size(); ++i )
-										encodeSignedValue(GE,(VA[i].abpos - VA[i-1].abpos)-abdifavg);
-
-									// bbpos
-									int64_t const bbfirstavg = Mbbfirst.find(V.size())->second;
-									int64_t const bbdifavg = Mbbdif.find(V.size())->second;
-									encodeSignedValue(GE,VB[0].abpos - bbfirstavg);
-									for ( uint64_t i = 1; i < VB.size(); ++i )
-										encodeSignedValue(GE,(VB[i].abpos - VB[i-1].abpos)-bbdifavg);
-
-									// arange
-									std::sort(VA.begin(),VA.end(),ASortRange());
-									int64_t const abfirstrangeavg = Mabfirstrange.find(V.size())->second;
-									int64_t const abdifrangeavg = Mabdifrange.find(V.size())->second;
-									encodeSignedValue(GE,VA[0].getRange() - abfirstrangeavg);
-									for ( uint64_t i = 1; i < VA.size(); ++i )
-										encodeSignedValue(GE,(VA[i].getRange() - VA[i-1].getRange()) - abdifrangeavg);
-
-									// brange
-									std::sort(VB.begin(),VB.end(),ASortRange());
-									int64_t const bbfirstrangeavg = Mbbfirstrange.find(V.size())->second;
-									int64_t const bbdifrangeavg = Mbbdifrange.find(V.size())->second;
-									encodeSignedValue(GE,VB[0].getRange() - bbfirstrangeavg);
-									for ( uint64_t i = 1; i < VB.size(); ++i )
-										encodeSignedValue(GE,(VB[i].getRange() - VB[i-1].getRange()) - bbdifrangeavg);
-
-									GE.flush();
-									LHEFS.flushBitStream();
-
-									PointerEntry(aid,p,tid).serialise(*(Atmpptr[tid]));
-
-									if ( verbose && errOSI && ( (aid % (16*1024) == 0) || (!(AF->peekNextOverlap(OVL))) ) )
-									{
-										libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
-										*errOSI << "[V] " << aid << std::endl;
-									}
+									V.push(v,
+										libmaus2::dazzler::align::OverlapDataInterface(data.getData(phigh).first)
+									);
+									++phigh;
 								}
 
+								assert ( v );
+
+								libmaus2::huffman::HuffmanEncoderFileStd & LHEFS = *(AHEFS[tid]);
+
+								uint64_t const p = LHEFS.tellp();
+
+								uint64_t const nb = libmaus2::math::numbits(v-1);
+
+								std::vector<ASort> VA;
+								for ( uint64_t i = 0; i < v; ++i )
+									VA.push_back(ASort(V[i].abpos(),V[i].aepos(),i));
+								std::sort(VA.begin(),VA.end());
+
+								std::vector<ASort> VB;
+								for ( uint64_t i = 0; i < v; ++i )
+									VB.push_back(ASort(V[i].bbpos(),V[i].bepos(),i));
+								std::sort(VB.begin(),VB.end());
+
+								// length of vector
+								if ( linkcntesc )
+									esclinkcntenc->encode(LHEFS,v);
+								else
+									linkcntenc->encode(LHEFS,v);
+
+								for ( uint64_t i = 0; i < v; ++i )
+								{
+									int64_t const d = V[i].diffs();
+									if ( emapesc )
+										escemapenc->encode(LHEFS,d);
+									else
+										emapenc->encode(LHEFS,d);
+								}
+
+								for ( uint64_t i = 0; i < v; ++i )
+								{
+									int64_t const d = V[i].flags();
+									fmapenc->encode(LHEFS,d);
+								}
+
+								// inverse bit
+								for ( uint64_t i = 0; i < v; ++i )
+									LHEFS.write(V[i].isInverse(),1);
+
+								// sorting for ab and bb
+								for ( uint64_t i = 0; i < VA.size(); ++i )
+									LHEFS.write(VA[i].index,nb);
+								for ( uint64_t i = 0; i < VB.size(); ++i )
+									LHEFS.write(VB[i].index,nb);
+
+								// sorting for arange and brange
+								std::sort(VA.begin(),VA.end(),ASortRange());
+								std::sort(VB.begin(),VB.end(),ASortRange());
+								for ( uint64_t i = 0; i < VA.size(); ++i )
+									LHEFS.write(VA[i].index,nb);
+								for ( uint64_t i = 0; i < VB.size(); ++i )
+									LHEFS.write(VB[i].index,nb);
+
+								// restore sorting
+								std::sort(VA.begin(),VA.end());
+								std::sort(VB.begin(),VB.end());
+
+								libmaus2::huffman::OutputAdapter OA(LHEFS);
+								libmaus2::gamma::GammaEncoder<libmaus2::huffman::OutputAdapter> GE(OA);
+
+								// b
+								int64_t const bfirstavg = Mbfirst.find(v)->second;
+								int64_t const bdifavg = Mbdif.find(v)->second;
+								encodeSignedValue(GE,V[0].bread() - bfirstavg);
+								for ( uint64_t i = 1; i < v; ++i )
+									encodeSignedValue(GE,(V[i].bread()-V[i-1].bread()) - bdifavg);
+
+								// abpos
+								int64_t const abfirstavg = Mabfirst.find(v)->second;
+								int64_t const abdifavg = Mabdif.find(v)->second;
+								encodeSignedValue(GE,VA[0].abpos - abfirstavg);
+								for ( uint64_t i = 1; i < VA.size(); ++i )
+									encodeSignedValue(GE,(VA[i].abpos - VA[i-1].abpos)-abdifavg);
+
+								// bbpos
+								int64_t const bbfirstavg = Mbbfirst.find(v)->second;
+								int64_t const bbdifavg = Mbbdif.find(v)->second;
+								encodeSignedValue(GE,VB[0].abpos - bbfirstavg);
+								for ( uint64_t i = 1; i < VB.size(); ++i )
+									encodeSignedValue(GE,(VB[i].abpos - VB[i-1].abpos)-bbdifavg);
+
+								// arange
+								std::sort(VA.begin(),VA.end(),ASortRange());
+								int64_t const abfirstrangeavg = Mabfirstrange.find(v)->second;
+								int64_t const abdifrangeavg = Mabdifrange.find(v)->second;
+								encodeSignedValue(GE,VA[0].getRange() - abfirstrangeavg);
+								for ( uint64_t i = 1; i < VA.size(); ++i )
+									encodeSignedValue(GE,(VA[i].getRange() - VA[i-1].getRange()) - abdifrangeavg);
+
+								// brange
+								std::sort(VB.begin(),VB.end(),ASortRange());
+								int64_t const bbfirstrangeavg = Mbbfirstrange.find(v)->second;
+								int64_t const bbdifrangeavg = Mbbdifrange.find(v)->second;
+								encodeSignedValue(GE,VB[0].getRange() - bbfirstrangeavg);
+								for ( uint64_t i = 1; i < VB.size(); ++i )
+									encodeSignedValue(GE,(VB[i].getRange() - VB[i-1].getRange()) - bbdifrangeavg);
+
+								GE.flush();
+								LHEFS.flushBitStream();
+
+								PointerEntry(aid,p,tid).serialise(*(Atmpptr[tid]));
+
+								if (
+									verbose
+									&&
+									errOSI
+									&&
+									(
+										(aid % (16*1024) == 0)
+										||
+										(phigh == data.size())
+									)
+								)
+								{
+									libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+									*errOSI << "[V] " << aid << std::endl;
+								}
+
+								plow = phigh;
 							}
 						}
+
+						#if 0
+						libmaus2::dazzler::align::AlignmentFileCat::unique_ptr_type AF(LAI.openRange(tlow,thigh));
+						libmaus2::dazzler::align::Overlap OVL;
+
+						while ( AF->peekNextOverlap(OVL) )
+						{
+							int64_t const aid = OVL.aread;
+							std::vector < libmaus2::dazzler::align::Overlap > V;
+
+							while ( AF->peekNextOverlap(OVL) && OVL.aread == aid )
+							{
+								AF->getNextOverlap(OVL);
+								V.push_back(OVL);
+							}
+
+							assert ( V.size() );
+
+							libmaus2::huffman::HuffmanEncoderFileStd & LHEFS = *(AHEFS[tid]);
+
+							uint64_t const p = LHEFS.tellp();
+
+							uint64_t const nb = libmaus2::math::numbits(V.size()-1);
+
+							std::vector<ASort> VA;
+							for ( uint64_t i = 0; i < V.size(); ++i )
+								VA.push_back(ASort(V[i].path.abpos,V[i].path.aepos,i));
+							std::sort(VA.begin(),VA.end());
+
+							std::vector<ASort> VB;
+							for ( uint64_t i = 0; i < V.size(); ++i )
+								VB.push_back(ASort(V[i].path.bbpos,V[i].path.bepos,i));
+							std::sort(VB.begin(),VB.end());
+
+							// length of vector
+							if ( linkcntesc )
+								esclinkcntenc->encode(LHEFS,V.size());
+							else
+								linkcntenc->encode(LHEFS,V.size());
+
+							for ( uint64_t i = 0; i < V.size(); ++i )
+							{
+								int64_t const d = V[i].path.diffs;
+								if ( emapesc )
+									escemapenc->encode(LHEFS,d);
+								else
+									emapenc->encode(LHEFS,d);
+							}
+
+							for ( uint64_t i = 0; i < V.size(); ++i )
+							{
+								int64_t const d = V[i].flags;
+								fmapenc->encode(LHEFS,d);
+							}
+
+							// inverse bit
+							for ( uint64_t i = 0; i < V.size(); ++i )
+								LHEFS.write(V[i].isInverse(),1);
+
+							// sorting for ab and bb
+							for ( uint64_t i = 0; i < VA.size(); ++i )
+								LHEFS.write(VA[i].index,nb);
+							for ( uint64_t i = 0; i < VB.size(); ++i )
+								LHEFS.write(VB[i].index,nb);
+
+							// sorting for arange and brange
+							std::sort(VA.begin(),VA.end(),ASortRange());
+							std::sort(VB.begin(),VB.end(),ASortRange());
+							for ( uint64_t i = 0; i < VA.size(); ++i )
+								LHEFS.write(VA[i].index,nb);
+							for ( uint64_t i = 0; i < VB.size(); ++i )
+								LHEFS.write(VB[i].index,nb);
+
+							// restore sorting
+							std::sort(VA.begin(),VA.end());
+							std::sort(VB.begin(),VB.end());
+
+							libmaus2::huffman::OutputAdapter OA(LHEFS);
+							libmaus2::gamma::GammaEncoder<libmaus2::huffman::OutputAdapter> GE(OA);
+
+							// b
+							int64_t const bfirstavg = Mbfirst.find(V.size())->second;
+							int64_t const bdifavg = Mbdif.find(V.size())->second;
+							encodeSignedValue(GE,V[0].bread - bfirstavg);
+							for ( uint64_t i = 1; i < V.size(); ++i )
+								encodeSignedValue(GE,(V[i].bread-V[i-1].bread) - bdifavg);
+
+							// abpos
+							int64_t const abfirstavg = Mabfirst.find(V.size())->second;
+							int64_t const abdifavg = Mabdif.find(V.size())->second;
+							encodeSignedValue(GE,VA[0].abpos - abfirstavg);
+							for ( uint64_t i = 1; i < VA.size(); ++i )
+								encodeSignedValue(GE,(VA[i].abpos - VA[i-1].abpos)-abdifavg);
+
+							// bbpos
+							int64_t const bbfirstavg = Mbbfirst.find(V.size())->second;
+							int64_t const bbdifavg = Mbbdif.find(V.size())->second;
+							encodeSignedValue(GE,VB[0].abpos - bbfirstavg);
+							for ( uint64_t i = 1; i < VB.size(); ++i )
+								encodeSignedValue(GE,(VB[i].abpos - VB[i-1].abpos)-bbdifavg);
+
+							// arange
+							std::sort(VA.begin(),VA.end(),ASortRange());
+							int64_t const abfirstrangeavg = Mabfirstrange.find(V.size())->second;
+							int64_t const abdifrangeavg = Mabdifrange.find(V.size())->second;
+							encodeSignedValue(GE,VA[0].getRange() - abfirstrangeavg);
+							for ( uint64_t i = 1; i < VA.size(); ++i )
+								encodeSignedValue(GE,(VA[i].getRange() - VA[i-1].getRange()) - abdifrangeavg);
+
+							// brange
+							std::sort(VB.begin(),VB.end(),ASortRange());
+							int64_t const bbfirstrangeavg = Mbbfirstrange.find(V.size())->second;
+							int64_t const bbdifrangeavg = Mbbdifrange.find(V.size())->second;
+							encodeSignedValue(GE,VB[0].getRange() - bbfirstrangeavg);
+							for ( uint64_t i = 1; i < VB.size(); ++i )
+								encodeSignedValue(GE,(VB[i].getRange() - VB[i-1].getRange()) - bbdifrangeavg);
+
+							GE.flush();
+							LHEFS.flushBitStream();
+
+							PointerEntry(aid,p,tid).serialise(*(Atmpptr[tid]));
+
+							if ( verbose && errOSI && ( (aid % (16*1024) == 0) || (!(AF->peekNextOverlap(OVL))) ) )
+							{
+								libmaus2::parallel::ScopePosixSpinLock slock(libmaus2::aio::StreamLock::cerrlock);
+								*errOSI << "[V] " << aid << std::endl;
+							}
+						}
+						#endif
 					}
+
 					for ( uint64_t i = 0; i < numthreads; ++i )
 					{
 						AHEFS[i]->flush();

@@ -97,6 +97,12 @@ namespace libmaus2
 				return base_type::capacity();
 			}
 
+			bool full()
+			{
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
+				return base_type::full();
+			}
+
 			size_t freeUnlocked()
 			{
 				return base_type::free();

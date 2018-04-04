@@ -65,6 +65,11 @@ namespace libmaus2
 				return alloclist.size();
 			}
 
+			bool full()
+			{
+				return freelistfill == freelist.size();
+			}
+
 			size_t free()
 			{
 				return freelistfill;

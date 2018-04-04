@@ -19,6 +19,7 @@
 #define LIBMAUS2_DAZZLER_ALIGN_OVERLAPDATAINTERFACE_HPP
 
 #include <libmaus2/dazzler/align/OverlapData.hpp>
+#include <libmaus2/dazzler/align/OverlapInfo.hpp>
 
 namespace libmaus2
 {
@@ -32,6 +33,16 @@ namespace libmaus2
 
 				OverlapDataInterface() : p(0) {}
 				OverlapDataInterface(uint8_t const * rp) : p(rp) {}
+
+				libmaus2::dazzler::align::OverlapInfo getInfo() const
+				{
+					return libmaus2::dazzler::align::OverlapInfo(
+						(aread()<<1),
+						(bread()<<1) | isInverse(),
+						abpos(),aepos(),
+						bbpos(),bepos()
+					);
+				}
 
 				int64_t aread() const { return OverlapData::getARead(p); }
 				int64_t bread() const { return OverlapData::getBRead(p); }

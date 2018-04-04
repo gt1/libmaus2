@@ -130,6 +130,33 @@ namespace libmaus2
 				return r;
 			}
 
+			bool timedWait()
+			{
+				ScopeMutexLock slock(mutex);
+
+				bool done = false;
+				while ( ! done )
+				{
+					if ( sigcnt )
+					{
+						sigcnt -= 1;
+						done = true;
+					}
+					else
+					{
+						struct timespec ts;
+						ts.tv_sec = 1;
+						ts.tv_nsec = 0;
+						int const r = pthread_cond_timedwait(&cond,&mutex,&ts);
+
+						if ( r == ETIMEDOUT )
+							return false;
+					}
+				}
+
+				return true;
+			}
+
 			void wait()
 			{
 				ScopeMutexLock slock(mutex);

@@ -29,6 +29,10 @@ namespace libmaus2
 		// linear space version of NP alignment using recursion
 		struct NPLinMem : libmaus2::lcs::AlignmentTraceContainer, libmaus2::lcs::Aligner
 		{
+			typedef NPLinMem this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
 			struct Entry
 			{
 				uint64_t abpos;
@@ -63,7 +67,7 @@ namespace libmaus2
 			libmaus2::lcs::NP npobj;
 			std::stack<Entry> Q;
 			uint64_t const d;
-			
+
 			uint64_t byteSize() const
 			{
 				return npt.byteSize() + npobj.byteSize() + sizeof(d);

@@ -712,6 +712,27 @@ namespace libmaus2
 					return indexfn;
 				}
 
+				static std::string constructIndexIf(std::string const & aligns, std::ostream * verbstr = 0)
+				{
+					std::string const lasindexname = libmaus2::dazzler::align::OverlapIndexer::getIndexName(aligns);
+					std::string const dalindexname = DalignerIndexDecoder::getDalignerIndexName(aligns);
+
+					bool const lasmissing =
+						! libmaus2::util::GetFileSize::fileExists(lasindexname)
+						||
+						libmaus2::util::GetFileSize::isOlder(lasindexname,aligns);
+					bool const dalmissing =
+						! libmaus2::util::GetFileSize::fileExists(dalindexname)
+						||
+						libmaus2::util::GetFileSize::isOlder(dalindexname,aligns);
+					bool const anymissing = lasmissing || dalmissing;
+
+					if ( anymissing )
+						libmaus2::dazzler::align::OverlapIndexer::constructIndex(aligns,verbstr);
+
+					return lasindexname;
+				}
+
 				static std::string constructBinIndex(std::string const & aligns, std::vector<uint64_t> const & RL, std::ostream * verbstr = 0)
 				{
 					libmaus2::dazzler::align::OverlapComparatorAIdAPos comp;
