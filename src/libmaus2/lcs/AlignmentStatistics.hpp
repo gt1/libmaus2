@@ -35,6 +35,16 @@ namespace libmaus2
 			uint64_t insertions;
 			uint64_t deletions;
 
+			uint64_t getReferenceLength() const
+			{
+				return matches + mismatches + deletions;
+			}
+
+			uint64_t getQueryLength() const
+			{
+				return matches + mismatches + insertions;
+			}
+
 			AlignmentStatistics()
 			: matches(0), mismatches(0), insertions(0), deletions(0)
 			{
