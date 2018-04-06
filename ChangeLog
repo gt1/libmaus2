@@ -1,3 +1,13 @@
+libmaus2 (2.0.460-1) unstable; urgency=medium
+
+  * use BamParallelThreadPoolDecoderWrapper in BamAlignmentDecoderFactory
+  * use BamParallelThreadPoolDecoder in testthreadpoolbgzfdecode
+  * add BamParallelThreadPoolDecoder class
+  * add copystr in BgzfInflateThreadPoolReader
+  * add getReferenceLength in AlignmentStatistics
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 06 Apr 2018 09:45:56 +0200
+
 libmaus2 (2.0.459-1) unstable; urgency=medium
 
   * fix include guards in SimpleThreadPoolThread.hpp

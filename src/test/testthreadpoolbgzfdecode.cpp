@@ -22,13 +22,13 @@ int main()
 {
 	try
 	{
-		libmaus2::lz::BgzfInflateThreadPoolReader R(std::cin,32);
-		libmaus2::bambam::BamDecoderTemplate<libmaus2::lz::BgzfInflateThreadPoolReader> BD(R);
+		libmaus2::bambam::BamParallelThreadPoolDecoderWrapper BD(std::cin,32);
+		libmaus2::bambam::BamAlignmentDecoder & dec = BD.getDecoder();
 
-		std::cerr << BD.getHeader().text;
+		std::cerr << dec.getHeader().text;
 
 		uint64_t r = 0;
-		while ( BD.readAlignment() )
+		while ( dec.readAlignment() )
 		{
 			++r;
 
@@ -37,18 +37,6 @@ int main()
 		}
 
 		std::cerr << r << std::endl;
-
-		#if 0
-		libmaus2::autoarray::AutoArray<char> C(256*1024*1024,false);
-
-		uint64_t r;
-		uint64_t c = 0;
-		while ( (r=R.read(C.begin(),C.size())) != 0 )
-		{
-			c += r;
-			std::cerr << "c=" << c << " r=" << r << std::endl;
-		}
-		#endif
 	}
 	catch(std::exception const & ex)
 	{
