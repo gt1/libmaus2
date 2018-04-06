@@ -41,9 +41,11 @@ namespace libmaus2
 			char const * pc;
 			char const * pe;
 			uint64_t gc;
+			std::ostream * copystr;
 
-			BgzfInflateThreadPoolReader(std::istream & ristr, uint64_t const numthreads)
-			: istr(ristr), PSTP(new libmaus2::parallel::SimpleThreadPool(numthreads)), STP(*PSTP), BIC(istr,STP), eof(false), res(), resvalid(false), pc(0), pe(0), gc(0)
+			BgzfInflateThreadPoolReader(std::istream & ristr, uint64_t const numthreads, std::ostream * rcopystr = 0)
+			: istr(ristr), PSTP(new libmaus2::parallel::SimpleThreadPool(numthreads)), STP(*PSTP), BIC(istr,STP), eof(false), res(), resvalid(false), pc(0), pe(0), gc(0),
+			  copystr(rcopystr)
 			{
 				BIC.init();
 			}
@@ -78,6 +80,18 @@ namespace libmaus2
 
 						pc = res.ablock->begin();
 						pe = res.ablock->begin() + res.ubytes;
+
+						if ( copystr )
+						{
+							copystr->write(pc,res.ubytes);
+							if ( ! *copystr )
+							{
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "[E] BgzfInflateThreadPoolReader::loadBlock: copy stream failed" << std::endl;
+								lme.finish();
+								throw lme;
+							}
+						}
 
 						eof = eof || res.eof;
 

@@ -23,6 +23,7 @@
 #include <libmaus2/lz/BgzfInflateStream.hpp>
 #include <libmaus2/lz/BgzfInflateParallelStream.hpp>
 #include <libmaus2/lz/BgzfInflateDeflateParallelInputStream.hpp>
+#include <libmaus2/lz/BgzfInflateThreadPoolReader.hpp>
 #include <libmaus2/aio/InputStream.hpp>
 #include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 
@@ -205,6 +206,8 @@ namespace libmaus2
 		typedef BamDecoderTemplate<libmaus2::lz::BgzfInflateParallelStream> BamParallelDecoder;
 		//! BAM file decoding class based on parallel bgzf input
 		typedef BamDecoderTemplate<libmaus2::lz::BgzfInflateDeflateParallelInputStream> BamParallelRewriteDecoder;
+		//! BAM file decoding class based on parallel thread pool based bgzf input
+		typedef BamDecoderTemplate<libmaus2::lz::BgzfInflateThreadPoolReader> BamParallelThreadPoolDecoder;
 
 		/**
 		 * wrapper class for serial BAM decoder
@@ -465,6 +468,143 @@ namespace libmaus2
 				bool const rputrank = false
 			)
 			: AISTR(new libmaus2::aio::InputStream(in)), istr(*AISTR), bgzf(istr,copyostr,numthreads,4*numthreads), bamdec(bgzf,rputrank) {}
+
+			/**
+			 * @return wrapped decoder
+			 **/
+			libmaus2::bambam::BamAlignmentDecoder & getDecoder()
+			{
+				return bamdec;
+			}
+		};
+
+		/**
+		 * wrapper class for parallel BAM decoder
+		 **/
+		struct BamParallelThreadPoolDecoderWrapper : public BamAlignmentDecoderWrapper
+		{
+			protected:
+			//!
+			libmaus2::aio::InputStream::unique_ptr_type AISTR;
+			//! input stream reference
+			std::istream & istr;
+			//! decompressor object
+			libmaus2::lz::BgzfInflateThreadPoolReader bgzf;
+			//! BAM decoder
+			libmaus2::bambam::BamParallelThreadPoolDecoder bamdec;
+
+			public:
+			/**
+			 * constructor from file name
+			 *
+			 * @param filename input file name
+			 * @param numthreads number of decoding threads
+			 * @param rputrank add rank aux field to each alignment at time of reading
+			 **/
+			BamParallelThreadPoolDecoderWrapper(
+				std::string const & filename,
+				uint64_t const numthreads,
+				bool const rputrank = false
+			)
+			: AISTR(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename)),
+			  istr(*AISTR),
+			  bgzf(istr,numthreads),
+			  bamdec(bgzf,rputrank)
+			{}
+
+			/**
+			 * constructor from stream
+			 *
+			 * @param filename input file name
+			 * @param numthreads number of decoding threads
+			 * @param rputrank add rank aux field to each alignment at time of reading
+			 **/
+			BamParallelThreadPoolDecoderWrapper(
+				libmaus2::aio::InputStream::unique_ptr_type & rAISTR,
+				uint64_t const numthreads,
+				bool const rputrank = false
+			)
+			: AISTR(UNIQUE_PTR_MOVE(rAISTR)),
+			  istr(*AISTR),
+			  bgzf(istr,numthreads),
+			  bamdec(bgzf,rputrank)
+			{}
+
+			/**
+			 * constructor from input file name and output stream;
+			 * the original input stream will be copied to the output stream
+			 * while processing the BAM file
+			 *
+			 * @param filename input file name
+			 * @param copyostr output stream
+			 * @param numthreads number of decoding threads
+			 * @param rputrank add rank aux field to each alignment at time of reading
+			 **/
+			BamParallelThreadPoolDecoderWrapper(
+				std::string const & filename,
+				std::ostream & copyostr,
+				uint64_t const numthreads,
+				bool const rputrank = false
+			)
+			: AISTR(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename)),
+			  istr(*AISTR),
+			  bgzf(istr,numthreads,&copyostr),
+			  bamdec(bgzf,rputrank)
+			{}
+
+			/**
+			 * constructor from input file name and output stream;
+			 * the original input stream will be copied to the output stream
+			 * while processing the BAM file
+			 *
+			 * @param filename input file name
+			 * @param copyostr output stream
+			 * @param numthreads number of decoding threads
+			 * @param rputrank add rank aux field to each alignment at time of reading
+			 **/
+			BamParallelThreadPoolDecoderWrapper(
+				libmaus2::aio::InputStream::unique_ptr_type & rAISTR,
+				std::ostream & copyostr,
+				uint64_t const numthreads,
+				bool const rputrank = false
+			)
+			: AISTR(UNIQUE_PTR_MOVE(rAISTR)),
+			  istr(*AISTR),
+			  bgzf(istr,numthreads,&copyostr),
+			  bamdec(bgzf,rputrank)
+			{}
+
+			/**
+			 * constructor by input stream
+			 *
+			 * @param in input stream
+			 * @param numthreads number of decoding threads
+			 * @param rputrank add rank aux field to each alignment at time of reading
+			 **/
+			BamParallelThreadPoolDecoderWrapper(
+				std::istream & in,
+				uint64_t const numthreads,
+				bool const rputrank = false
+			)
+			: AISTR(new libmaus2::aio::InputStream(in)), istr(*AISTR), bgzf(istr,numthreads), bamdec(bgzf,rputrank) {}
+
+			/**
+			 * constructor from input stream and output stream;
+			 * the original input stream will be copied to the output stream
+			 * while processing the BAM file
+			 *
+			 * @param in input stream
+			 * @param copyostr output stream
+			 * @param numthreads number of decoding threads
+			 * @param rputrank add rank aux field to each alignment at time of reading
+			 **/
+			BamParallelThreadPoolDecoderWrapper(
+				std::istream & in,
+				std::ostream & copyostr,
+				uint64_t const numthreads,
+				bool const rputrank = false
+			)
+			: AISTR(new libmaus2::aio::InputStream(in)), istr(*AISTR), bgzf(istr,numthreads,&copyostr), bamdec(bgzf,rputrank) {}
 
 			/**
 			 * @return wrapped decoder
