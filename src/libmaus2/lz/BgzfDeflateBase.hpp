@@ -69,6 +69,11 @@ namespace libmaus2
 				uncompsize = (pc-pa);
 				return BgzfDeflateZStreamBase::flush(*this,*this,fullflush);
 			}
+
+			BgzfDeflateZStreamBaseFlushInfo flush()
+			{
+				return flush(flushmode);
+			}
 		};
 
 		struct BgzfDeflateBaseTypeInfo
@@ -87,6 +92,30 @@ namespace libmaus2
 			{
 				return getNullPointer();
 			}
+		};
+
+		struct BgzfDeflateBaseAllocator
+		{
+			typedef BgzfDeflateBaseAllocator this_type;
+
+			typedef BgzfDeflateBase::shared_ptr_type pointer_type;
+
+			int level;
+			bool flushmode;
+			int64_t bufsize;
+
+			BgzfDeflateBaseAllocator() : level(-1), flushmode(false), bufsize(-1) {}
+			BgzfDeflateBaseAllocator(int const rlevel = Z_DEFAULT_COMPRESSION, bool const rflushmode = false, int64_t const rbufsize = -1)
+			: level(rlevel), flushmode(rflushmode), bufsize(rbufsize)
+			{
+
+			}
+
+                        pointer_type operator()() const
+                        {
+                        	pointer_type ptr(new BgzfDeflateBase(level,flushmode,bufsize));
+                        	return ptr;
+                        }
 		};
 
 	}
