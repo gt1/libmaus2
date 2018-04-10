@@ -32,6 +32,7 @@ namespace libmaus2
 		{
 			typedef BgzfDeflateBase this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			/* flush mode:
 			   - true: completely empty buffer when it runs full, write more than
@@ -68,7 +69,55 @@ namespace libmaus2
 				uncompsize = (pc-pa);
 				return BgzfDeflateZStreamBase::flush(*this,*this,fullflush);
 			}
+
+			BgzfDeflateZStreamBaseFlushInfo flush()
+			{
+				return flush(flushmode);
+			}
 		};
+
+		struct BgzfDeflateBaseTypeInfo
+		{
+			typedef BgzfDeflateBaseTypeInfo this_type;
+
+			typedef BgzfDeflateBase::shared_ptr_type pointer_type;
+
+			static pointer_type getNullPointer()
+			{
+				pointer_type p;
+				return p;
+			}
+
+			static pointer_type deallocate(pointer_type /* p */)
+			{
+				return getNullPointer();
+			}
+		};
+
+		struct BgzfDeflateBaseAllocator
+		{
+			typedef BgzfDeflateBaseAllocator this_type;
+
+			typedef BgzfDeflateBase::shared_ptr_type pointer_type;
+
+			int level;
+			bool flushmode;
+			int64_t bufsize;
+
+			BgzfDeflateBaseAllocator() : level(-1), flushmode(false), bufsize(-1) {}
+			BgzfDeflateBaseAllocator(int const rlevel = Z_DEFAULT_COMPRESSION, bool const rflushmode = false, int64_t const rbufsize = -1)
+			: level(rlevel), flushmode(rflushmode), bufsize(rbufsize)
+			{
+
+			}
+
+                        pointer_type operator()() const
+                        {
+                        	pointer_type ptr(new BgzfDeflateBase(level,flushmode,bufsize));
+                        	return ptr;
+                        }
+		};
+
 	}
 }
 #endif

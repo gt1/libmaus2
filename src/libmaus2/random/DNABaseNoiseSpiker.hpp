@@ -417,7 +417,7 @@ namespace libmaus2
 					if ( contains(errV,err_subst) )
 					{
 					    int insbase = -1;
-					    while ( ((insbase = libmaus2::fastx::remapChar(libmaus2::random::Random::rand8() & 3)) == origc) )
+					    while ( (insbase = libmaus2::fastx::remapChar(libmaus2::random::Random::rand8() & 3)) == origc )
 					    {
 					    }
 
@@ -688,7 +688,7 @@ namespace libmaus2
 					if ( contains(errV,err_subst) )
 					{
 					    int insbase = -1;
-					    while ( ((insbase = libmaus2::fastx::remapChar(libmaus2::random::Random::rand8() & 3)) == origc) )
+					    while ( (insbase = libmaus2::fastx::remapChar(libmaus2::random::Random::rand8() & 3)) == origc )
 					    {
 					    }
 
