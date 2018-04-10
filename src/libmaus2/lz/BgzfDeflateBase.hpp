@@ -32,6 +32,7 @@ namespace libmaus2
 		{
 			typedef BgzfDeflateBase this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			/* flush mode:
 			   - true: completely empty buffer when it runs full, write more than
@@ -69,6 +70,25 @@ namespace libmaus2
 				return BgzfDeflateZStreamBase::flush(*this,*this,fullflush);
 			}
 		};
+
+		struct BgzfDeflateBaseTypeInfo
+		{
+			typedef BgzfDeflateBaseTypeInfo this_type;
+
+			typedef BgzfDeflateBase::shared_ptr_type pointer_type;
+
+			static pointer_type getNullPointer()
+			{
+				pointer_type p;
+				return p;
+			}
+
+			static pointer_type deallocate(pointer_type /* p */)
+			{
+				return getNullPointer();
+			}
+		};
+
 	}
 }
 #endif
