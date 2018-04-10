@@ -344,6 +344,117 @@ namespace libmaus2
 				return lastw-ta;
 			}
 
+			static step_type const * lastGoodWindowBack(step_type const * ta, step_type const * te, uint64_t const w, double const derr)
+			{
+				uint64_t const me = static_cast<uint64_t>(derr * w + 0.5);
+
+				uint64_t c = 0;
+				uint64_t e = 0;
+
+				step_type const * t0 = te;
+				step_type const * t1 = te;
+
+				// accumulate positions until we reach w
+				while ( t0 != ta && c < w )
+				{
+					step_type const step = *--t0;
+
+					switch ( step )
+					{
+						case STEP_DEL:
+						case STEP_MISMATCH:
+							c++;
+							e++;
+							break;
+						case STEP_MATCH:
+							c++;
+							break;
+						case STEP_INS:
+							e++;
+							break;
+						default:
+							break;
+					}
+				}
+
+				// trace is too short for a full window
+				if ( c < w )
+				{
+					double const lerr = static_cast<double>(e) / static_cast<double>(c);
+
+					if ( lerr <= derr )
+						return te;
+					else
+						return ta;
+				}
+
+				assert ( c == w );
+
+				if ( e <= me )
+				{
+					assert ( t1 == te );
+					return t1;
+				}
+
+				// add more trace points
+				while ( t0 != ta )
+				{
+					step_type const step = *(--t0);
+					switch ( step )
+					{
+						case STEP_DEL:
+						case STEP_MISMATCH:
+							c++;
+							e++;
+							break;
+						case STEP_MATCH:
+							c++;
+							break;
+						case STEP_INS:
+							e++;
+							break;
+						default:
+							break;
+					}
+
+					// remove from front of window until we reach w
+					while ( t1 != t0 && c > w )
+					{
+						step_type const step = *(--t1);
+						switch ( step )
+						{
+							case STEP_DEL:
+							case STEP_MISMATCH:
+								--c;
+								--e;
+								break;
+							case STEP_MATCH:
+								--c;
+								break;
+							case STEP_INS:
+								--e;
+								break;
+							default:
+								break;
+						}
+					}
+					assert ( c == w );
+
+					if ( e <= me )
+						return t1;
+				}
+
+				return ta;
+			}
+
+			std::pair<uint64_t,uint64_t> lastGoodWindowBack(uint64_t const w, double const derr)
+			{
+				step_type const * tc = lastGoodWindowBack(ta,te,w,derr);
+				uint64_t const o = tc-ta;
+				std::pair<uint64_t,uint64_t> const SL = getStringLengthUsed(tc,te);
+				te = ta + o;
+				return SL;
+			}
 
 			struct WindowErrorLargeResult
 			{
