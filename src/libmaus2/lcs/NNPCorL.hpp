@@ -56,24 +56,20 @@ namespace libmaus2
                                 iterator ab,
                                 iterator ae,
                                 iterator bb,
-                                iterator be,
-                                bool const self = false,
-                                bool const uniquetermval = false,
-                                int64_t const minband = NNPCor::getDefaultMinDiag(),
-                                int64_t const maxband = NNPCor::getDefaultMaxDiag()
+                                iterator be
                         )
                         {
-                        	std::pair<uint64_t,uint64_t> const SL =
-                        		cor.alignForward(
-                        			ab,ae,bb,be,
-                        			tracecontainer,
-                        			*this,
-                        			self,
-                        			uniquetermval,
-                        			minband,
-                        			maxband
-                        		);
-				return SL;
+                        	libmaus2::lcs::AlignmentTraceContainer::reset();
+                        	libmaus2::lcs::NNPAlignResult const nres = cor.alignLinMemForward(ab,ae,bb,be,*this);
+
+                        	assert ( nres.abpos <= nres.aepos );
+                        	assert ( static_cast<ptrdiff_t>(nres.aepos) <= ae-ab );
+                        	assert ( nres.bbpos <= nres.bepos );
+                        	assert ( static_cast<ptrdiff_t>(nres.bepos) <= be-bb );
+                        	assert ( nres.abpos == 0 || nres.aepos-nres.abpos == 0 );
+                        	assert ( nres.bbpos == 0 || nres.bepos-nres.bbpos == 0 );
+
+				return std::pair<uint64_t,uint64_t>(nres.aepos-nres.abpos,nres.bepos-nres.bbpos);
                         }
 
 			template<typename iterator>
@@ -81,14 +77,10 @@ namespace libmaus2
                                 iterator ab,
                                 iterator ae,
                                 iterator bb,
-                                iterator be,
-                                bool const self = false,
-                                bool const uniquetermval = false,
-                                int64_t const minband = NNPCor::getDefaultMinDiag(),
-                                int64_t const maxband = NNPCor::getDefaultMaxDiag()
+                                iterator be
                         )
                         {
-                        	std::pair<uint64_t,uint64_t> SL = alignForward(ab,ae,bb,be,self,uniquetermval,minband,maxband);
+                        	std::pair<uint64_t,uint64_t> SL = alignForward(ab,ae,bb,be);
 
                         	uint64_t const n_a = ae-ab;
                         	uint64_t const n_b = be-bb;
@@ -103,14 +95,10 @@ namespace libmaus2
                                 iterator ab,
                                 iterator ae,
                                 iterator bb,
-                                iterator be,
-                                bool const self = false,
-                                bool const uniquetermval = false,
-                                int64_t const minband = NNPCor::getDefaultMinDiag(),
-                                int64_t const maxband = NNPCor::getDefaultMaxDiag()
+                                iterator be
                         )
                         {
-                        	std::pair<uint64_t,uint64_t> SL = alignForward(ab,ae,bb,be,self,uniquetermval,minband,maxband);
+                        	std::pair<uint64_t,uint64_t> SL = alignForward(ab,ae,bb,be);
 
                         	uint64_t const n_a = ae-ab;
                         	uint64_t const n_b = be-bb;
@@ -125,17 +113,16 @@ namespace libmaus2
                                 iterator ab,
                                 iterator ae,
                                 iterator bb,
-                                iterator be,
-                                bool const self = false,
-                                bool const uniquetermval = false,
-                                int64_t const minband = NNPCor::getDefaultMinDiag(),
-                                int64_t const maxband = NNPCor::getDefaultMaxDiag()
+                                iterator be
                         )
                         {
-                        	std::pair<uint64_t,uint64_t> SL = alignForward(ab,ae,bb,be,self,uniquetermval,minband,maxband);
+                        	std::pair<uint64_t,uint64_t> SL = alignForward(ab,ae,bb,be);
 
                         	uint64_t const n_a = ae-ab;
                         	uint64_t const n_b = be-bb;
+
+                        	assert ( SL.first <= n_a );
+                        	assert ( SL.second <= n_b );
 
                         	if ( SL.first != n_a || SL.second != n_b )
                         	{
@@ -159,17 +146,16 @@ namespace libmaus2
                                 iterator ab,
                                 iterator ae,
                                 iterator bb,
-                                iterator be,
-                                bool const self = false,
-                                bool const uniquetermval = false,
-                                int64_t const minband = NNPCor::getDefaultMinDiag(),
-                                int64_t const maxband = NNPCor::getDefaultMaxDiag()
+                                iterator be
                         )
                         {
-                        	std::pair<uint64_t,uint64_t> SL = alignForward(ab,ae,bb,be,self,uniquetermval,minband,maxband);
+                        	std::pair<uint64_t,uint64_t> SL = alignForward(ab,ae,bb,be);
 
                         	uint64_t const n_a = ae-ab;
                         	uint64_t const n_b = be-bb;
+
+                        	assert ( SL.first <= n_a );
+                        	assert ( SL.second <= n_b );
 
                         	if ( SL.first != n_a && SL.second != n_b )
                         	{

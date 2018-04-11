@@ -159,6 +159,92 @@ namespace libmaus2
 				}
 			};
 
+			struct OverlapDataInterfaceBAComparator
+			{
+				uint8_t const * p;
+
+				OverlapDataInterfaceBAComparator() : p(0) {}
+				OverlapDataInterfaceBAComparator(uint8_t const * rp) : p(rp) {}
+
+				static bool compare(
+					uint8_t const * pa,
+					uint8_t const * pb
+				)
+				{
+					OverlapDataInterface const OA(pa);
+					OverlapDataInterface const OB(pb);
+
+					{
+						int64_t const a = OA.bread();
+						int64_t const b = OB.bread();
+
+						if ( a != b )
+							return a < b;
+					}
+
+					{
+						int64_t const a = OA.aread();
+						int64_t const b = OB.aread();
+
+						if ( a != b )
+							return a < b;
+					}
+
+					{
+						int64_t const a = OA.isInverse();
+						int64_t const b = OB.isInverse();
+
+						if ( a != b )
+							return a < b;
+					}
+
+					{
+						int64_t const a = OA.abpos();
+						int64_t const b = OB.abpos();
+
+						if ( a != b )
+							return a < b;
+					}
+
+					{
+						int64_t const a = OA.aepos();
+						int64_t const b = OB.aepos();
+
+						if ( a != b )
+							return a < b;
+					}
+
+					{
+						int64_t const a = OA.bbpos();
+						int64_t const b = OB.bbpos();
+
+						if ( a != b )
+							return a < b;
+					}
+
+					{
+						int64_t const a = OA.bepos();
+						int64_t const b = OB.bepos();
+
+						if ( a != b )
+							return a < b;
+					}
+
+					return false;
+				}
+
+				bool operator()(
+					OverlapData::OverlapOffset const & A,
+					OverlapData::OverlapOffset const & B
+				) const
+				{
+					uint8_t const * pa = p + A.offset;
+					uint8_t const * pb = p + B.offset;
+
+					return compare(pa,pb);
+				}
+			};
+
 			std::ostream & operator<<(std::ostream & out, OverlapDataInterface const & O);
 		}
 	}
