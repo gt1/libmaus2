@@ -1,3 +1,13 @@
+libmaus2 (2.0.462-1) unstable; urgency=medium
+
+  * update testnpl for NNPCor
+  * use linear memory NNPCor methods in NNPCorL
+  * add alignLinMemForward in NNPCor
+  * make sure window error functions in AlignmentTraceContainer return value inside [0,1]
+  * add OverlapDataInterfaceBAComparator class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 11 Apr 2018 14:15:34 +0200
+
 libmaus2 (2.0.461-1) unstable; urgency=medium
 
   * add linear space variant in NNPCor

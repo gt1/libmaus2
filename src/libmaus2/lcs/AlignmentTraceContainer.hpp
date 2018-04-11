@@ -471,6 +471,7 @@ namespace libmaus2
 			{
 				uint64_t c = 0;
 				uint64_t e = 0;
+				uint64_t o = 0;
 
 				step_type const * t0 = ta;
 				step_type const * t1 = ta;
@@ -484,12 +485,15 @@ namespace libmaus2
 						case STEP_MISMATCH:
 							c++;
 							e++;
+							o++;
 							break;
 						case STEP_MATCH:
 							c++;
+							o++;
 							break;
 						case STEP_INS:
 							e++;
+							o++;
 							break;
 						default:
 							break;
@@ -499,7 +503,7 @@ namespace libmaus2
 				assert ( (c == w) || (t1 == te) );
 
 				// set first window error
-				double maxerr = e / static_cast<double>(c);
+				double maxerr = e / static_cast<double>(o);
 				step_type const * maxt0 = t0;
 				step_type const * maxt1 = t1;
 
@@ -512,12 +516,15 @@ namespace libmaus2
 						case STEP_MISMATCH:
 							c++;
 							e++;
+							o++;
 							break;
 						case STEP_MATCH:
 							c++;
+							o++;
 							break;
 						case STEP_INS:
 							e++;
+							o++;
 							break;
 						default:
 							break;
@@ -532,12 +539,15 @@ namespace libmaus2
 							case STEP_MISMATCH:
 								--c;
 								--e;
+								--o;
 								break;
 							case STEP_MATCH:
 								--c;
+								--o;
 								break;
 							case STEP_INS:
 								--e;
+								--o;
 								break;
 							default:
 								break;
@@ -546,7 +556,7 @@ namespace libmaus2
 					assert ( c == w );
 
 					// set new maximum
-					double const ed = e / static_cast<double>(c);
+					double const ed = e / static_cast<double>(o);
 					if ( ed > maxerr )
 					{
 						maxerr = ed;
@@ -562,6 +572,7 @@ namespace libmaus2
 			{
 				uint64_t c = 0;
 				uint64_t e = 0;
+				uint64_t o = 0;
 
 				step_type const * t0 = ta;
 				step_type const * t1 = ta;
@@ -575,12 +586,15 @@ namespace libmaus2
 						case STEP_MISMATCH:
 							c++;
 							e++;
+							o++;
 							break;
 						case STEP_MATCH:
 							c++;
+							o++;
 							break;
 						case STEP_INS:
 							e++;
+							o++;
 							break;
 						default:
 							break;
@@ -588,7 +602,7 @@ namespace libmaus2
 				}
 
 				// set first window error
-				double maxerr = e / static_cast<double>(c);
+				double maxerr = e / static_cast<double>(o);
 
 				// add more trace points
 				while ( t1 != te )
@@ -599,12 +613,15 @@ namespace libmaus2
 						case STEP_MISMATCH:
 							c++;
 							e++;
+							o++;
 							break;
 						case STEP_MATCH:
 							c++;
+							o++;
 							break;
 						case STEP_INS:
 							e++;
+							o++;
 							break;
 						default:
 							break;
@@ -617,13 +634,16 @@ namespace libmaus2
 						{
 							case STEP_DEL:
 							case STEP_MISMATCH:
+								--o;
 								--c;
 								--e;
 								break;
 							case STEP_MATCH:
+								--o;
 								--c;
 								break;
 							case STEP_INS:
+								--o;
 								--e;
 								break;
 							default:
@@ -633,7 +653,7 @@ namespace libmaus2
 					assert ( c == w );
 
 					// set new maximum
-					double const ed = e / static_cast<double>(c);
+					double const ed = e / static_cast<double>(o);
 					if ( ed > maxerr )
 						maxerr = ed;
 				}

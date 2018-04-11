@@ -194,6 +194,9 @@ namespace libmaus2
 					ptrdiff_t const alen = ae-a;
 					ptrdiff_t const blen = be-b;
 
+					assert ( a <= ae );
+					assert ( b <= be );
+
 					if ( alen <= blen )
 					{
 						iterator as = a;
@@ -227,6 +230,9 @@ namespace libmaus2
 				{
 					ptrdiff_t const alen = ae-a;
 					ptrdiff_t const blen = be-b;
+
+					assert ( a <= ae );
+					assert ( b <= be );
 
 					if ( alen <= blen )
 					{
@@ -884,8 +890,22 @@ namespace libmaus2
 					tracecontainer.reverse();
 			}
 
+			struct AlignMidResult
+			{
+				bool foundalignment;
+				int64_t mida;
+				int64_t midb;
+
+				AlignMidResult() : foundalignment(false), mida(0), midb(0) {}
+				AlignMidResult(
+					bool const rfoundalignment,
+					int64_t const rmida,
+					int64_t const rmidb
+				) : foundalignment(rfoundalignment), mida(rmida), midb(rmidb) {}
+			};
+
 			template<typename iterator, bool forward, bool self, bool uniquetermval>
-			std::pair<int32_t,int32_t> alignTemplateMid(
+			AlignMidResult alignTemplateMid(
 				iterator ab,
 				iterator ae,
 				iterator bb,
@@ -902,10 +922,6 @@ namespace libmaus2
 				ptrdiff_t const mlen2 = (mlen+1)/2;
 				bool const startdiagonalvalid = (minband <= 0 && maxband >= 0);
 
-				int64_t maxscore       = std::numeric_limits<int64_t>::min();
-				int64_t maxscorediag   = std::numeric_limits<int64_t>::min();
-				//int64_t maxscoreoffset = std::numeric_limits<int64_t>::min();
-
 				bool active = false;
 				bool foundalignment = false;
 
@@ -913,6 +929,10 @@ namespace libmaus2
 					std::numeric_limits<int32_t>::min(),
 					std::numeric_limits<int32_t>::min()
 				);
+
+				int64_t maxscore       = std::numeric_limits<int64_t>::min();
+				// int64_t maxscorediag   = std::numeric_limits<int64_t>::min();
+				std::pair<int32_t,int32_t> maxmid = Punset;
 
 				if ( startdiagonalvalid )
 				{
@@ -933,7 +953,7 @@ namespace libmaus2
 					if ( foundalignment )
 					{
 						maxscore = midcontrol[0].score;
-						maxscorediag = 0;
+						maxmid = midcontrol[0].mid;
 						//maxscoreoffset = midcontrol[0].offset;
 					}
 					else
@@ -1153,7 +1173,7 @@ namespace libmaus2
 										if ( nmidcontrol[d].score > maxscore )
 										{
 											maxscore = nmidcontrol[d].score;
-											maxscorediag = d;
+											maxmid = nmidcontrol[d].mid;
 											//maxscoreoffset = nmidcontrol[d].offset;
 										}
 									}
@@ -1188,7 +1208,7 @@ namespace libmaus2
 										if ( nmidcontrol[d].score > maxscore )
 										{
 											maxscore = nmidcontrol[d].score;
-											maxscorediag = d;
+											maxmid = nmidcontrol[d].mid;
 											//maxscoreoffset = nmidcontrol[d].offset;
 										}
 									}
@@ -1223,7 +1243,7 @@ namespace libmaus2
 										if ( nmidcontrol[d].score > maxscore )
 										{
 											maxscore = nmidcontrol[d].score;
-											maxscorediag = d;
+											maxmid = nmidcontrol[d].mid;
 											//maxscoreoffset = nmidcontrol[d].offset;
 										}
 									}
@@ -1257,7 +1277,7 @@ namespace libmaus2
 										if ( nmidcontrol[d].score > maxscore )
 										{
 											maxscore = nmidcontrol[d].score;
-											maxscorediag = d;
+											maxmid = nmidcontrol[d].mid;
 											//maxscoreoffset = nmidcontrol[d].offset;
 										}
 									}
@@ -1277,8 +1297,8 @@ namespace libmaus2
 
 							foundalignment = true;
 
-							maxscore = nmidcontrol[d].score;
-							maxscorediag = d;
+							maxscore = std::numeric_limits<int64_t>::max();
+							maxmid = nmidcontrol[d].mid;
 							//maxscoreoffset = nmidcontrol[d].offset;
 						}
 
@@ -1306,11 +1326,11 @@ namespace libmaus2
 
 				if ( foundalignment )
 				{
-					std::pair<int32_t,int32_t> const P = midcontrol[alen-blen].mid;
+					std::pair<int32_t,int32_t> const P = maxmid;
 
 					if ( P == Punset )
 					{
-						return std::pair<int32_t,int32_t>(0,0);
+						return AlignMidResult(foundalignment,0,0);
 					}
 					else
 					{
@@ -1318,29 +1338,59 @@ namespace libmaus2
 						int64_t const off = P.second;
 						int64_t const apre = (d >= 0) ? d : 0;
 						int64_t const bpre = (d >= 0) ? 0 : -d;
-						return std::pair<int32_t,int32_t>(apre + off,bpre+off);
+						assert ( apre + off >= 0 );
+						assert ( apre + off <= ae-ab );
+						assert ( bpre + off >= 0 );
+						assert ( bpre + off <= be-bb );
+						return AlignMidResult(foundalignment,apre + off,bpre+off);
 					}
 				}
 				else
 				{
 					if ( maxscore != std::numeric_limits<int64_t>::min() )
 					{
-						std::pair<int32_t,int32_t> const P = midcontrol[maxscorediag].mid;
+						std::pair<int32_t,int32_t> const P = maxmid;
 
 						if ( P == Punset )
-							return std::pair<int32_t,int32_t>(0,0);
+							return AlignMidResult(foundalignment,0,0);
 						else
 						{
 							int64_t const d = P.first;
 							int64_t const off = P.second;
 							int64_t const apre = (d >= 0) ? d : 0;
 							int64_t const bpre = (d >= 0) ? 0 : -d;
-							return std::pair<int32_t,int32_t>(apre + off,bpre+off);
+
+							assert ( apre + off >= 0 );
+
+							#if 0
+							if ( !(apre + off <= ae-ab) )
+							{
+								std::cerr << std::endl;
+								std::cerr << "a=" << std::string(ab,ae) << std::endl;
+								std::cerr << "b=" << std::string(bb,be) << std::endl;
+								std::cerr << "maxscore=" << maxscore << std::endl;
+								std::cerr << "P=" << P.first << "," << P.second << std::endl;
+								std::cerr << "d=" << d << std::endl;
+								std::cerr << "off=" << off << std::endl;
+								std::cerr << "apre=" << apre << std::endl;
+								std::cerr << "bpre=" << bpre << std::endl;
+								std::cerr << "apre+off=" << apre+off << std::endl;
+								std::cerr << "bpre+off=" << bpre+off << std::endl;
+								std::cerr << "an=" << (ae-ab) << std::endl;
+								std::cerr << "bn=" << (be-bb) << std::endl;
+							}
+							#endif
+
+							assert ( apre + off <= ae-ab );
+							assert ( bpre + off >= 0 );
+							assert ( bpre + off <= be-bb );
+
+							return AlignMidResult(foundalignment,apre + off,bpre+off);
 						}
 					}
 					else
 					{
-						return std::pair<int32_t,int32_t>(0,0);
+						return AlignMidResult(foundalignment,0,0);
 					}
 				}
 			}
@@ -1695,6 +1745,9 @@ namespace libmaus2
 							#endif
 
 							foundalignment = true;
+							maxscore = std::numeric_limits<int64_t>::max();
+							maxscorediagonal = d;
+							maxscoreoffset = ncontrol[d].offset;
 						}
 
 						if ( ncontrol[d].offset > maxroundoffset )
@@ -1829,7 +1882,7 @@ namespace libmaus2
 			}
 
 			template<typename iterator>
-			std::pair<int32_t,int32_t> alignMid(
+			AlignMidResult alignMid(
 				iterator ab,
 				iterator ae,
 				iterator bb,
@@ -1868,18 +1921,6 @@ namespace libmaus2
 							return alignTemplateMid<iterator,false,false,false>(ab,ae,bb,be,minband,maxband);
 				}
 			}
-
-			#if 0
-			template<typename iterator, bool forward, bool self, bool uniquetermval>
-			std::pair<uint64_t,uint64_t> alignTemplateNoTrace(
-				iterator ab,
-				iterator ae,
-				iterator bb,
-				iterator be,
-				int64_t const minband = getDefaultMinDiag(),
-				int64_t const maxband = getDefaultMaxDiag()
-			)
-			#endif
 
 			template<typename iterator>
 			NNPAlignResult alignLinMem(
@@ -1948,7 +1989,7 @@ namespace libmaus2
 						) >= d
 					)
 					{
-						std::pair<int32_t,int32_t> const P = alignMid(
+						AlignMidResult const P = alignMid(
 							ab + E.abpos,
 							ab + E.aepos,
 							bb + E.bbpos,
@@ -1959,19 +2000,22 @@ namespace libmaus2
 							funiquetermval
 						);
 
-						bool const aempty = (P.first==0);
-						bool const bempty = (P.second==0);
-						bool const empty = aempty && bempty;
-						bool const afull = P.first == static_cast<int64_t>(E.aepos-E.abpos);
-						bool const bfull = P.second == static_cast<int64_t>(E.bepos-E.bbpos);
-						bool const full = afull && bfull;
-						bool const trivial = empty || full;
-
-						if ( !trivial )
+						if ( P.foundalignment )
 						{
-							Q.push(Entry(E.abpos+P.first,E.aepos,E.bbpos+P.second,E.bepos));
-							Q.push(Entry(E.abpos,E.abpos+P.first,E.bbpos,E.bbpos+P.second));
-							split = true;
+							bool const aempty = (P.mida==0);
+							bool const bempty = (P.midb==0);
+							bool const empty = aempty && bempty;
+							bool const afull = P.mida == static_cast<int64_t>(E.aepos-E.abpos);
+							bool const bfull = P.midb == static_cast<int64_t>(E.bepos-E.bbpos);
+							bool const full = afull && bfull;
+							bool const trivial = empty || full;
+
+							if ( !trivial )
+							{
+								Q.push(Entry(E.abpos+P.mida,E.aepos,E.bbpos+P.midb,E.bepos));
+								Q.push(Entry(E.abpos,E.abpos+P.mida,E.bbpos,E.bbpos+P.midb));
+								split = true;
+							}
 						}
 					}
 
@@ -2005,6 +2049,165 @@ namespace libmaus2
 
 				// count number of errors
 				return NNPAlignResult(abpos,aepos,bbpos,bepos,ATC.getAlignmentStatistics().getEditDistance());
+			}
+
+
+			template<typename iterator>
+			NNPAlignResult alignLinMemForward(
+				std::pair<int32_t,int32_t> const SLA,
+				iterator ab, iterator ae, iterator bb, iterator be,
+				libmaus2::lcs::AlignmentTraceContainer & ATC,
+				uint64_t const d = 128,
+				bool const corclip = false
+			)
+			{
+				bool const self = false;
+
+				assert ( SLA.first  <= ae-ab );
+				assert ( SLA.second <= be-bb );
+
+				uint64_t abpos = 0;
+				uint64_t bbpos = 0;
+				uint64_t aepos = SLA.first;
+				uint64_t bepos = SLA.second;
+
+				struct Entry
+				{
+					uint64_t abpos;
+					uint64_t aepos;
+					uint64_t bbpos;
+					uint64_t bepos;
+
+					Entry()
+					{}
+
+					Entry(
+						uint64_t const rabpos,
+						uint64_t const raepos,
+						uint64_t const rbbpos,
+						uint64_t const rbepos
+					) : abpos(rabpos), aepos(raepos), bbpos(rbbpos), bepos(rbepos)
+					{
+
+					}
+
+					std::string toString() const
+					{
+						std::ostringstream ostr;
+
+						ostr << "(" << abpos << "," << aepos << "," << bbpos << "," << bepos << ")";
+
+						return ostr.str();
+					}
+				};
+				std::stack<Entry> Q;
+				Q.push(Entry(abpos,aepos,bbpos,bepos));
+				uint64_t ed = 0;
+
+				ATC.reset();
+
+				while ( !Q.empty() )
+				{
+					Entry E = Q.top();
+					Q.pop();
+
+					// std::cerr << E.toString() << std::endl;
+
+					assert ( E.aepos >= E.abpos );
+					assert ( E.bepos >= E.bbpos );
+					assert ( static_cast<ptrdiff_t>(E.aepos) <= ae-ab );
+					assert ( static_cast<ptrdiff_t>(E.bepos) <= be-bb );
+
+					bool split = false;
+
+					if (
+						std::max(
+							E.aepos-E.abpos,
+							E.bepos-E.bbpos
+						) >= d
+					)
+					{
+						AlignMidResult const P = alignMid(
+							ab + E.abpos,
+							ab + E.aepos,
+							bb + E.bbpos,
+							bb + E.bepos,
+							getDefaultMinDiag(),getDefaultMaxDiag(),
+							true /* forward */,
+							self,
+							funiquetermval
+						);
+
+						if ( P.foundalignment )
+						{
+							assert ( P.foundalignment );
+							assert ( P.mida <= static_cast<int64_t>(E.aepos-E.abpos) );
+							assert ( P.midb <= static_cast<int64_t>(E.bepos-E.bbpos) );
+
+							bool const aempty = (P.mida==0);
+							bool const bempty = (P.midb==0);
+							bool const empty = aempty && bempty;
+							bool const afull = P.mida == static_cast<int64_t>(E.aepos-E.abpos);
+							bool const bfull = P.midb == static_cast<int64_t>(E.bepos-E.bbpos);
+							bool const full = afull && bfull;
+							bool const trivial = empty || full;
+
+							if ( !trivial )
+							{
+								Q.push(Entry(E.abpos+P.mida,E.aepos,E.bbpos+P.midb,E.bepos));
+								Q.push(Entry(E.abpos,E.abpos+P.mida,E.bbpos,E.bbpos+P.midb));
+								split = true;
+							}
+						}
+					}
+
+					if ( ! split )
+					{
+						int64_t const led = npobj.np(
+							ab+E.abpos,
+							ab+E.aepos,
+							bb+E.bbpos,
+							bb+E.bepos,
+							self
+						);
+						ATC.push(npobj);
+						ed += led;
+					}
+				}
+
+				if ( corclip )
+				{
+					std::pair<uint64_t,uint64_t> clipBack = ATC.lastGoodWindowBack(getWindowSize(), static_cast<double>(maxcerr) / getWindowSize());
+					aepos -= clipBack.first;
+					bepos -= clipBack.second;
+
+					std::reverse(ATC.ta,ATC.te);
+					std::pair<uint64_t,uint64_t> clipFront = ATC.lastGoodWindowBack(getWindowSize(), static_cast<double>(maxcerr) / getWindowSize());
+					std::reverse(ATC.ta,ATC.te);
+
+					abpos += clipFront.first;
+					bbpos += clipFront.second;
+				}
+
+				// count number of errors
+				return NNPAlignResult(abpos,aepos,bbpos,bepos,ATC.getAlignmentStatistics().getEditDistance());
+			}
+
+			template<typename iterator>
+			NNPAlignResult alignLinMemForward(
+				iterator ab, iterator ae, iterator bb, iterator be,
+				libmaus2::lcs::AlignmentTraceContainer & ATC,
+				uint64_t const d = 128,
+				bool const corclip = false
+			)
+			{
+				bool const self = false;
+
+				std::pair<int32_t,int32_t> const SLA = alignNoTrace<iterator>(ab,ae,bb,be,getDefaultMinDiag(),getDefaultMaxDiag(),true /*forward*/,self,funiquetermval);
+				assert ( SLA.first  <= ae-ab );
+				assert ( SLA.second <= be-bb );
+
+				return alignLinMemForward<iterator>(SLA,ab,ae,bb,be,ATC,d,corclip);
 			}
 
 			template<typename iterator>
