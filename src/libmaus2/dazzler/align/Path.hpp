@@ -398,6 +398,26 @@ namespace libmaus2
 					return offset;
 				}
 
+				static uint64_t serialise(
+					std::ostream & out,
+					int64_t const tlen,
+					int64_t const diffs,
+					int64_t const abpos,
+					int64_t const aepos,
+					int64_t const bbpos,
+					int64_t const bepos)
+				{
+					uint64_t offset = 0;
+					putLittleEndianInteger4(out,tlen,offset);
+					putLittleEndianInteger4(out,diffs,offset);
+					putLittleEndianInteger4(out,abpos,offset);
+					putLittleEndianInteger4(out,bbpos,offset);
+					putLittleEndianInteger4(out,aepos,offset);
+					putLittleEndianInteger4(out,bepos,offset);
+					return offset;
+				}
+
+
 				uint64_t serialiseWithPath(std::ostream & out, bool const small) const
 				{
 					uint64_t s = 0;
@@ -450,6 +470,65 @@ namespace libmaus2
 						uint64_t offset = 0;
 
 						for ( uint64_t i = 0; i < path.size(); ++i )
+						{
+							putLittleEndianInteger2(out,path[i].first,offset);
+							putLittleEndianInteger2(out,path[i].second,offset);
+						}
+
+						return offset;
+					}
+				}
+
+				template<typename iterator>
+				static uint64_t serialisePath(
+					std::ostream & out,
+					iterator const & path,
+					uint64_t const pathsize,
+					bool const small
+				)
+				{
+					uint64_t s = 0;
+					if ( small )
+					{
+						for ( uint64_t i = 0; i < pathsize; ++i )
+						{
+							if (
+								static_cast<int64_t>(path[i].first)  > static_cast<int64_t>(std::numeric_limits<uint8_t>::max())
+								||
+								static_cast<int64_t>(path[i].second) > static_cast<int64_t>(std::numeric_limits<uint8_t>::max())
+							)
+							{
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "Path::serialisePath: path element (" << path[i].first << "," << path[i].second << ") is too large for small=" << small << std::endl;
+								lme.finish();
+								throw lme;
+							}
+							out.put(path[i].first);
+							if ( ! out )
+							{
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "Path::serialisePath: output error" << std::endl;
+								lme.finish();
+								throw lme;
+							}
+							s += 1;
+							out.put(path[i].second);
+							if ( ! out )
+							{
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "Path::serialisePath: output error" << std::endl;
+								lme.finish();
+								throw lme;
+							}
+							s += 1;
+						}
+						return s;
+					}
+					else
+					{
+						uint64_t offset = 0;
+
+						for ( uint64_t i = 0; i < pathsize; ++i )
 						{
 							putLittleEndianInteger2(out,path[i].first,offset);
 							putLittleEndianInteger2(out,path[i].second,offset);
