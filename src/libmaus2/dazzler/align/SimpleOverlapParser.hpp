@@ -206,6 +206,21 @@ namespace libmaus2
 					openNext();
 				}
 
+				SimpleOverlapParserConcat(
+					std::vector < std::string > const & rVfn,
+					uint64_t const rbufsize,
+					OverlapParser::split_type const rsplittype = OverlapParser::overlapparser_do_split
+				)
+				:
+					PISI(), Pparser(),
+					tspace(libmaus2::dazzler::align::AlignmentFile::getTSpace(rVfn)),
+					splittype(rsplittype), ranges(LasFileRange::construct(rVfn)),
+					Vfn(rVfn), index(0),
+					bufsize(rbufsize)
+				{
+					openNext();
+				}
+
 				OverlapData & getData()
 				{
 					return Pparser->getData();
