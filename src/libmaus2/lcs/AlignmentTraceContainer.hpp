@@ -2006,9 +2006,51 @@ namespace libmaus2
 				return std::pair<uint64_t,uint64_t>(apos,tc-ta);
 			}
 
+			// compute how many operations we consume when going adv steps forward on a
+			static std::pair<uint64_t,uint64_t> advanceMaxA(step_type const * ta, step_type const * te, uint64_t const adv)
+			{
+				uint64_t apos = 0, bpos = 0;
+				step_type const * tc = ta;
+
+				for ( ; apos < adv && tc != te; ++tc )
+				{
+					switch ( *tc )
+					{
+						case STEP_MATCH:
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_MISMATCH:
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_INS:
+							bpos += 1;
+							break;
+						case STEP_DEL:
+							apos += 1;
+							break;
+						case STEP_RESET:
+							break;
+					}
+				}
+				while ( tc != te && *tc == STEP_INS )
+				{
+					++tc;
+					++bpos;
+				}
+
+				return std::pair<uint64_t,uint64_t>(apos,tc-ta);
+			}
+
 			std::pair<uint64_t,uint64_t> advanceA(uint64_t const adv) const
 			{
 				return advanceA(ta,te,adv);
+			}
+
+			std::pair<uint64_t,uint64_t> advanceMaxA(uint64_t const adv) const
+			{
+				return advanceMaxA(ta,te,adv);
 			}
 
 			// compute how many operations we consume when going adv steps forward on b
