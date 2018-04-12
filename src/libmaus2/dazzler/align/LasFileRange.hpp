@@ -19,6 +19,8 @@
 #define LIBMAUS2_DAZZLER_ALIGN_LASFILERANGE_HPP
 
 #include <libmaus2/types/types.hpp>
+#include <libmaus2/dazzler/align/AlignmentFile.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
 
 namespace libmaus2
 {
@@ -38,6 +40,27 @@ namespace libmaus2
 					uint64_t const rstartoffset,
 					uint64_t const rendoffset
 				) : id(rid), startoffset(rstartoffset), endoffset(rendoffset) {}
+				LasFileRange(std::string const & rfilename, uint64_t const rid)
+				:
+					id(rid),
+					startoffset(libmaus2::dazzler::align::AlignmentFile::getSerialisedHeaderSize()),
+					endoffset(libmaus2::util::GetFileSize::getFileSize(rfilename))
+				{
+				}
+
+				static std::vector<LasFileRange> construct(std::vector<std::string> const & Vfn)
+				{
+					std::vector<LasFileRange> V;
+
+					for ( uint64_t i = 0; i < Vfn.size(); ++i )
+					{
+						LasFileRange const LFR = LasFileRange(Vfn[i],i);
+						if ( LFR.endoffset != LFR.startoffset )
+							V.push_back(LFR);
+					}
+
+					return V;
+				}
 			};
 		}
 	}
