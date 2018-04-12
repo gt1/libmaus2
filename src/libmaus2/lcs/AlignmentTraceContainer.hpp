@@ -53,6 +53,62 @@ namespace libmaus2
 			step_type * te;
 			step_type * ta;
 
+			void frontAlign()
+			{
+				if ( ta != trace.begin() )
+				{
+					std::ptrdiff_t const n = te-ta;
+
+					// copy in forward direction
+					for ( std::ptrdiff_t i = 0; i < n; ++i )
+						trace[i] = ta[i];
+
+					// set new pointers
+					ta = trace.begin();
+					te = ta + n;
+				}
+			}
+
+			void backAlign()
+			{
+				if ( te != trace.end() )
+				{
+					std::ptrdiff_t const n = te-ta;
+					step_type * to = trace.end();
+
+					// copy in backward direction
+					for ( std::ptrdiff_t i = 0; i < n; ++i )
+						*(--to) = *(--te);
+
+					te = trace.end();
+					ta = te - n;
+				}
+			}
+
+			void prepend(step_type const * ia, step_type const * ie)
+			{
+				frontAlign();
+
+				ptrdiff_t const n  = te-ta;
+				ptrdiff_t const in = ie-ia;
+
+				if ( static_cast<ptrdiff_t>(trace.size()) < n + in )
+				{
+					trace.resize(n + in);
+					ta = trace.begin();
+					te = ta + n;
+				}
+
+				assert ( static_cast<ptrdiff_t>(trace.size()) >= n + in );
+
+				backAlign();
+
+				assert ( ta-in >= trace.begin() );
+
+				for ( ptrdiff_t i = 0; i < in; ++i )
+					*(--ta) = *(--ie);
+			}
+
 			AlignmentTraceContainer(uint64_t const tracelen = 0)
 			: trace(tracelen), te(trace.end()), ta(te)
 			{
