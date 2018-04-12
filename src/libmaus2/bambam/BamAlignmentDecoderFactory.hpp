@@ -45,6 +45,36 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
+			static libmaus2::parallel::SimpleThreadPool * STP;
+
+			static void setThreadPool(libmaus2::parallel::SimpleThreadPool * rSTP)
+			{
+				if ( STP == 0 )
+				{
+					STP = rSTP;
+				}
+				else
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "[E] BamAlignmentDecoderFactory::setThreadPool: thread pool is already set" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+			}
+
+			static void resetThreadPool()
+			{
+				if ( STP )
+					STP = 0;
+				else
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "[E] BamAlignmentDecoderFactory::resetThreadPool: thread pool is not set" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+			}
+
 			BamAlignmentDecoderInfo const BADI;
 
 			BamAlignmentDecoderFactory(BamAlignmentDecoderInfo const & rBADI) : BADI(rBADI) {}
@@ -211,18 +241,38 @@ namespace libmaus2
 							if ( copystr )
 							{
 								libmaus2::aio::InputStream::unique_ptr_type iptr(new libmaus2::aio::InputStream(istdin));
-								libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-									new libmaus2::bambam::BamParallelThreadPoolDecoderWrapper(iptr,*copystr,inputthreads,putrank)
-								);
-								return UNIQUE_PTR_MOVE(tptr);
+								if ( STP )
+								{
+									libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+										new libmaus2::bambam::BamParallelThreadPoolDecoderWrapper(iptr,*copystr,*STP,putrank)
+									);
+									return UNIQUE_PTR_MOVE(tptr);
+								}
+								else
+								{
+									libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+										new libmaus2::bambam::BamParallelThreadPoolDecoderWrapper(iptr,*copystr,inputthreads,putrank)
+									);
+									return UNIQUE_PTR_MOVE(tptr);
+								}
 							}
 							else
 							{
 								libmaus2::aio::InputStream::unique_ptr_type iptr(new libmaus2::aio::InputStream(istdin));
-								libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-									new libmaus2::bambam::BamParallelThreadPoolDecoderWrapper(iptr,inputthreads,putrank)
-								);
-								return UNIQUE_PTR_MOVE(tptr);
+								if ( STP )
+								{
+									libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+										new libmaus2::bambam::BamParallelThreadPoolDecoderWrapper(iptr,*STP,putrank)
+									);
+									return UNIQUE_PTR_MOVE(tptr);
+								}
+								else
+								{
+									libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+										new libmaus2::bambam::BamParallelThreadPoolDecoderWrapper(iptr,inputthreads,putrank)
+									);
+									return UNIQUE_PTR_MOVE(tptr);
+								}
 							}
 						}
 						else
@@ -239,10 +289,20 @@ namespace libmaus2
 								libmaus2::aio::InputStream::unique_ptr_type iptr(
 									libmaus2::aio::InputStreamFactoryContainer::constructUnique(inputfilename)
 								);
-								libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-									new libmaus2::bambam::BamParallelThreadPoolDecoderWrapper(iptr,inputthreads,putrank)
-								);
-								return UNIQUE_PTR_MOVE(tptr);
+								if ( STP )
+								{
+									libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+										new libmaus2::bambam::BamParallelThreadPoolDecoderWrapper(iptr,*STP,putrank)
+									);
+									return UNIQUE_PTR_MOVE(tptr);
+								}
+								else
+								{
+									libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+										new libmaus2::bambam::BamParallelThreadPoolDecoderWrapper(iptr,inputthreads,putrank)
+									);
+									return UNIQUE_PTR_MOVE(tptr);
+								}
 							}
 						}
 					}
