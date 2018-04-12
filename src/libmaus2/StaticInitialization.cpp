@@ -639,3 +639,7 @@ static bool getCheckCrc()
 }
 
 int libmaus2::lz::BgzfInflateBase::checkCrc = getCheckCrc();
+
+#include <libmaus2/bambam/BamAlignmentDecoderFactory.hpp>
+
+libmaus2::parallel::SimpleThreadPool * libmaus2::bambam::BamAlignmentDecoderFactory::STP = 0;
