@@ -204,6 +204,20 @@ namespace libmaus2
 					return s;
 				}
 
+				static uint64_t serialise(
+					std::ostream & out,
+					int64_t const aread,
+					int64_t const bread,
+					int64_t const flags)
+				{
+					uint64_t offset = 0;
+					putUnsignedLittleEndianInteger4(out,flags,offset);
+					putLittleEndianInteger4(out,aread,offset);
+					putLittleEndianInteger4(out,bread,offset);
+					putLittleEndianInteger4(out,0,offset); // padding
+					return offset;
+				}
+
 				uint64_t serialiseWithPath(std::ostream & out, bool const small) const
 				{
 					uint64_t s = 0;
