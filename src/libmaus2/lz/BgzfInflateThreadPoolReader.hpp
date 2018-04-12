@@ -49,6 +49,12 @@ namespace libmaus2
 			{
 				BIC.init();
 			}
+			BgzfInflateThreadPoolReader(std::istream & ristr, libmaus2::parallel::SimpleThreadPool & rSTP, std::ostream * rcopystr = 0)
+			: istr(ristr), PSTP(), STP(rSTP), BIC(istr,STP), eof(false), res(), resvalid(false), pc(0), pe(0), gc(0),
+			  copystr(rcopystr)
+			{
+				BIC.init();
+			}
 			~BgzfInflateThreadPoolReader()
 			{
 				if ( PSTP )
