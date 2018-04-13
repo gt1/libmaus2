@@ -205,19 +205,27 @@ namespace libmaus2
 						assert ( aa + aright < ae );
 						assert ( ba + bright < be );
 
+						// quality for aleft
 						unsigned char const qa0 = aa[aleft];
+						// quality for block before aleft (or defaulterr)
 						unsigned char const qa1 = aleft ? aa[aleft-1] : defaulterr;
+						// quality for aright
 						unsigned char const ra0 = aa[aright];
+						// quality for block after aright (or defaulterr)
 						unsigned char const ra1 = ((aa + aright + 1) < ae) ? aa[aright+1] : defaulterr;
 
+						// quality for bleft
 						unsigned char const qb0 = ba[bleft];
+						// quality for block before bleft
 						unsigned char const qb1 =
 							OVL.isInverse()
 							?
 							((ba + bleft + 1 < be) ? ba[bleft+1] : defaulterr)
 							:
 							(bleft ? ba[bleft-1] : defaulterr);
+						// quality for bright
 						unsigned char const rb0 = ba[bright];
+						// quality for block after bright
 						unsigned char const rb1 =
 							OVL.isInverse()
 							?
@@ -225,6 +233,7 @@ namespace libmaus2
 							:
 							(((ba + bright + 1) < be) ? ba[bright+1] : defaulterr);
 
+						// turn to double
 						double const err_a_left_0 = qa0 / escale;
 						double const err_a_left_1 = qa1 / escale;
 						double const err_b_left_0 = qb0 / escale;
@@ -257,6 +266,7 @@ namespace libmaus2
 								<< err_b_right_1 << ")\n";
 						}
 
+						// bools for proper termination
 						bool const term_a_left_0 = err_a_left_0 >= termval;
 						bool const term_a_left_1 = err_a_left_1 >= termval;
 						bool const term_b_left_0 = err_b_left_0 >= termval;
@@ -272,7 +282,9 @@ namespace libmaus2
 						bool const term_a_right = term_a_right_0 || term_a_right_1;
 						bool const term_b_right = term_b_right_0 || term_b_right_1;
 
+						// proper termination on the left
 						bool const term_left = term_a_left || term_b_left;
+						// proper termination on the right
 						bool const term_right = term_a_right || term_b_right;
 
 						bool const proper = term_left && term_right;
