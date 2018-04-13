@@ -73,6 +73,9 @@ int main(int argc, char * argv[])
 			istr >> u0;
 			istr >> u1;
 
+			if ( ! line.size() )
+				continue;
+
 			// check read ids
 			if ( ! istr )
 			{
