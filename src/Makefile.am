@@ -2198,7 +2198,8 @@ EXTRA_PROGRAMS = \
 	testlibarchive \
 	testconvpowercache \
 	testlassort \
-	testthreadpoolbgzfdecode
+	testthreadpoolbgzfdecode \
+	testnnplocalaligner
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2806,3 +2807,8 @@ testthreadpoolbgzfdecode_SOURCES  = test/testthreadpoolbgzfdecode.cpp
 testthreadpoolbgzfdecode_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testthreadpoolbgzfdecode_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
 testthreadpoolbgzfdecode_LDFLAGS  = ${AM_LDFLAGS}
+
+testnnplocalaligner_SOURCES  = test/testnnplocalaligner.cpp
+testnnplocalaligner_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testnnplocalaligner_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS}
+testnnplocalaligner_LDFLAGS  = ${AM_LDFLAGS}
