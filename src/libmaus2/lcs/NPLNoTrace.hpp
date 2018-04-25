@@ -102,7 +102,7 @@ namespace libmaus2
 
 				if ( ! an || ! bn )
 				{
-					return ReturnValue(an,bn,std::max(an,bn));
+					return ReturnValue(0,0,0);
 				}
 
 				size_t const sn = std::max(an,bn);
