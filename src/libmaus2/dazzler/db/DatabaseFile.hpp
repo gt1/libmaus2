@@ -3068,6 +3068,55 @@ namespace libmaus2
 
 					return out;
 				}
+
+				std::ostream & serialise(std::ostream & out) const
+				{
+					out << "files = " << std::setw(9) << std::setfill(' ') << fileinfo.size() << std::setw(0) << "\n";
+					for ( uint64_t i = 0; i < fileinfo.size(); ++i )
+						out << "  " << std::setw(9) << std::setfill(' ') << fileinfo[i].fnumreads << std::setw(0) << " " << fileinfo[i].fastaprolog << " " << fileinfo[i].fastafn << "\n";
+					out << "blocks = " << std::setw(9) << std::setfill(' ') << 1 << std::setw(0) << "\n";
+					out << "size = " << std::setw(9) << std::setfill(' ') << blocksize << std::setw(0)
+						<< " cutoff = " << std::setw(9) << std::setfill(' ') << cutoff << std::setw(0)
+						<< " all = " << std::setw(1) << std::setfill(' ') << all << std::setw(0)
+						<< "\n";
+					for ( uint64_t i = 0; i < blocks.size(); ++i )
+						out << " "
+							<< std::setw(9) << std::setfill(' ') << blocks[i].first /* unfiltered */ << std::setw(0) << " "
+							<< std::setw(9) << std::setfill(' ') << blocks[i].second /* filtered */ << std::setw(0) << "\n";
+
+					return out;
+				}
+
+				std::ostream & serialise(std::ostream & out, SplitResult const & SR) const
+				{
+					out << "files = " << std::setw(9) << std::setfill(' ') << fileinfo.size() << std::setw(0) << "\n";
+					for ( uint64_t i = 0; i < fileinfo.size(); ++i )
+						out << "  " << std::setw(9) << std::setfill(' ') << fileinfo[i].fnumreads << std::setw(0) << " " << fileinfo[i].fastaprolog << " " << fileinfo[i].fastafn << "\n";
+					out << "blocks = " << std::setw(9) << std::setfill(' ') << SR.size() << std::setw(0) << "\n";
+					out << "size = " << std::setw(9) << std::setfill(' ') << blocksize << std::setw(0)
+						<< " cutoff = " << std::setw(9) << std::setfill(' ') << cutoff << std::setw(0)
+						<< " all = " << std::setw(1) << std::setfill(' ') << all << std::setw(0)
+						<< "\n";
+					if ( ! SR.size() )
+					{
+						out << " "
+							<< std::setw(9) << std::setfill(' ') << 0 /* unfiltered */ << std::setw(0) << " "
+							<< std::setw(9) << std::setfill(' ') << 0 /* filtered */ << std::setw(0) << "\n";
+					}
+					else
+					{
+						out << " "
+							<< std::setw(9) << std::setfill(' ') << SR[0].ulow /* unfiltered */ << std::setw(0) << " "
+							<< std::setw(9) << std::setfill(' ') << SR[0].low  /* filtered */ << std::setw(0) << "\n";
+
+						for ( uint64_t i = 0; i < blocks.size(); ++i )
+							out << " "
+								<< std::setw(9) << std::setfill(' ') << SR[i].uhigh /* unfiltered */ << std::setw(0) << " "
+								<< std::setw(9) << std::setfill(' ') << SR[i].high /* filtered */ << std::setw(0) << "\n";
+					}
+
+					return out;
+				}
 			};
 
 			std::ostream & operator<<(std::ostream & out, DatabaseFile const & D);
