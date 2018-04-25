@@ -1519,6 +1519,58 @@ namespace libmaus2
 					return SR;
 				}
 
+				template<typename iterator>
+				std::pair<SplitResult,uint64_t> splitDbRLPrefixStrict(
+					uint64_t const maxmem,
+					uint64_t pref,
+					iterator rl_ita,
+					iterator rl_ite
+				) const
+				{
+					SplitResult SR;
+
+					iterator const rl_its = rl_ita;
+
+					uint64_t numprefblocks = 0;
+
+					while ( pref && (rl_ita != rl_ite) )
+					{
+						iterator const rl_low = rl_ita;
+
+						uint64_t s = *(rl_ita++);
+						pref -= 1;
+
+						while ( pref && (rl_ita != rl_ite) && (s + *rl_ita <= maxmem) )
+						{
+							s += *(rl_ita++);
+							pref -= 1;
+						}
+
+						iterator const rl_high = rl_ita;
+
+						SR.push_back(SplitResultElement(rl_low-rl_its,rl_high-rl_its,s,0,0));
+						numprefblocks += 1;
+					}
+
+					while ( rl_ita != rl_ite )
+					{
+						iterator const rl_low = rl_ita;
+
+						uint64_t s = *(rl_ita++);
+
+						while ( (rl_ita != rl_ite) && (s + *rl_ita <= maxmem) )
+							s += *(rl_ita++);
+
+						iterator const rl_high = rl_ita;
+
+						SR.push_back(SplitResultElement(rl_low-rl_its,rl_high-rl_its,s,0,0));
+					}
+
+					setUntrimmedSplit(SR);
+
+					return std::pair<SplitResult,uint64_t>(SR,numprefblocks);
+				}
+
 				uint64_t trimmedToUntrimmed(size_t const i) const
 				{
 					if ( i >= size() )
@@ -3109,7 +3161,7 @@ namespace libmaus2
 							<< std::setw(9) << std::setfill(' ') << SR[0].ulow /* unfiltered */ << std::setw(0) << " "
 							<< std::setw(9) << std::setfill(' ') << SR[0].low  /* filtered */ << std::setw(0) << "\n";
 
-						for ( uint64_t i = 0; i < blocks.size(); ++i )
+						for ( uint64_t i = 0; i < SR.size(); ++i )
 							out << " "
 								<< std::setw(9) << std::setfill(' ') << SR[i].uhigh /* unfiltered */ << std::setw(0) << " "
 								<< std::setw(9) << std::setfill(' ') << SR[i].high /* filtered */ << std::setw(0) << "\n";
