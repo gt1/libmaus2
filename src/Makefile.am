@@ -1318,7 +1318,8 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/TarWriter.hpp \
 	libmaus2/util/U.hpp \
 	libmaus2/util/AutoArrayCharBaseTypeInfo.hpp \
-	libmaus2/util/AutoArrayCharBaseAllocator.hpp
+	libmaus2/util/AutoArrayCharBaseAllocator.hpp \
+	libmaus2/util/FileEnumerator.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
