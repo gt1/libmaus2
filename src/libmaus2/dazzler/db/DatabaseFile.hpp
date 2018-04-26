@@ -1475,6 +1475,67 @@ namespace libmaus2
 					return SR;
 				}
 
+				struct SplitDbRLTwoResult
+				{
+					SplitResult SR;
+					SplitResult TSR;
+					std::vector<uint64_t> V;
+
+					SplitDbRLTwoResult() {}
+				};
+
+				SplitDbRLTwoResult splitDbRLTwo(uint64_t const maxmem, uint64_t const superblocksize, std::vector<uint64_t> const & RL) const
+				{
+					SplitResult SR;
+					SplitResult TSR;
+					std::vector<uint64_t> V;
+
+					if ( RL.size() )
+					{
+						uint64_t low = 0;
+
+						while ( low < RL.size() )
+						{
+							uint64_t const tlow = low;
+
+							uint64_t t = 0;
+							uint64_t ti = 0;
+							while ( low < RL.size() && t < superblocksize )
+							{
+								uint64_t s = RL[low];
+								t += RL[low];
+								uint64_t high = low+1;
+
+								while ( high < RL.size() && s+RL[high] <= maxmem && t+RL[high] <= superblocksize )
+								{
+									t += RL[high];
+									s += RL[high++];
+								}
+
+								SR.push_back(SplitResultElement(low,high,s,0,0));
+								ti += 1;
+
+								low = high;
+							}
+
+							uint64_t const thigh = low;
+
+							TSR.push_back(SplitResultElement(tlow,thigh,t,0,0));
+							V.push_back(ti);
+						}
+					}
+
+					setUntrimmedSplit(SR);
+					setUntrimmedSplit(TSR);
+
+					SplitDbRLTwoResult R;
+					R.SR = SR;
+					R.TSR = TSR;
+					R.V = V;
+
+					return R;
+				}
+
 				template<typename iterator>
 				SplitResult splitDbRLPrefix(
 					uint64_t const maxmem,
