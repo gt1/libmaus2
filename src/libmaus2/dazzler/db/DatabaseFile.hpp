@@ -29,6 +29,7 @@
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
 #include <libmaus2/aio/ArrayFileSet.hpp>
 #include <libmaus2/util/PrefixSums.hpp>
+#include <libmaus2/util/FileEnumerator.hpp>
 
 namespace libmaus2
 {
@@ -3168,6 +3169,21 @@ namespace libmaus2
 					}
 
 					return out;
+				}
+
+				std::vector < std::string > enumerateTracks() const
+				{
+					libmaus2::util::FileEnumerator D(path);
+					std::vector < std::string > V;
+
+					std::string const prefix = "." + root + ".";
+					std::string const suffix = ".anno";
+
+					std::string fn;
+					while ( D.getNextFile(fn,prefix,suffix) )
+						V.push_back(fn);
+
+					return V;
 				}
 			};
 
