@@ -3246,6 +3246,140 @@ namespace libmaus2
 
 					return V;
 				}
+
+				void writeSplitDatabase(
+					std::string const & outfn,
+					bool const force,
+					libmaus2::dazzler::db::DatabaseFile::SplitResult const & SR,
+					std::ostream * errstr = 0
+				)
+				{
+					if ( ! force && libmaus2::util::GetFileSize::fileExists(outfn) )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "[E] file " << outfn << " does already exist" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					if ( libmaus2::util::GetFileSize::fileExists(outfn) )
+					{
+						if ( errstr )
+							*errstr << "[W] removing " << outfn << std::endl;
+						libmaus2::aio::FileRemoval::removeFile(outfn);
+					}
+
+					libmaus2::aio::OutputStreamInstance::unique_ptr_type pOSI(new libmaus2::aio::OutputStreamInstance(outfn));
+
+					this->serialise(*pOSI,SR);
+
+					pOSI->flush();
+					pOSI.reset();
+
+					bool const isdb = libmaus2::dazzler::db::DatabaseFile::endsOn(outfn,".db");
+					bool const isdam = libmaus2::dazzler::db::DatabaseFile::endsOn(outfn,".dam");
+					bool const issup = isdb || isdam;
+
+					if ( ! issup )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "Output file has unknown suffix (not .db or .dam)" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					std::string const path = libmaus2::dazzler::db::DatabaseFile::getPath(outfn);
+					std::string const root = isdam ? libmaus2::dazzler::db::DatabaseFile::getRoot(outfn,".dam") : libmaus2::dazzler::db::DatabaseFile::getRoot(outfn,".db");
+					std::string const outidxpath = path + "/." + root + ".idx";
+					std::string const outbpspath = path + "/." + root + ".bps";
+
+					if ( force && libmaus2::util::GetFileSize::fileExists(outidxpath) )
+					{
+						if ( errstr )
+							*errstr << "[W] removing " << outidxpath << std::endl;
+						libmaus2::aio::FileRemoval::removeFile(outidxpath);
+					}
+
+					int r;
+					r = symlink(this->idxpath.c_str(),outidxpath.c_str());
+
+					if ( r < 0 )
+					{
+						int const error = errno;
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "[E] linking " << this->idxpath << " to " << outidxpath << ": " << strerror(error) << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					if ( force && libmaus2::util::GetFileSize::fileExists(outbpspath) )
+					{
+						if ( errstr )
+							*errstr << "[W] removing " << outbpspath << std::endl;
+						libmaus2::aio::FileRemoval::removeFile(outbpspath);
+					}
+
+					r = symlink(this->bpspath.c_str(),outbpspath.c_str());
+
+					if ( r < 0 )
+					{
+						int const error = errno;
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "[E] linking " << this->bpspath << " to " << outbpspath << ": " << strerror(error) << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					std::vector < std::string > VT = this->enumerateTracks();
+					for ( uint64_t i = 0; i < VT.size(); ++i )
+					{
+						std::string const trackname = VT[i];
+
+						std::string const annosrc = this->path + "/." + this->root + "." + trackname + ".anno";
+						std::string const datasrc = this->path + "/." + this->root + "." + trackname + ".data";
+						std::string const annotgt = path + "/." + root + "." + trackname + ".anno";
+						std::string const datatgt = path + "/." + root + "." + trackname + ".data";
+
+						if ( force && libmaus2::util::GetFileSize::fileExists(annotgt) )
+						{
+							if ( errstr )
+								*errstr << "[W] removing " << annotgt << std::endl;
+							libmaus2::aio::FileRemoval::removeFile(annotgt);
+						}
+						if ( force && libmaus2::util::GetFileSize::fileExists(datatgt) )
+						{
+							if ( errstr )
+								*errstr << "[W] removing " << datatgt << std::endl;
+							libmaus2::aio::FileRemoval::removeFile(datatgt);
+						}
+
+						int r;
+						r = symlink(annosrc.c_str(),annotgt.c_str());
+
+						if ( r < 0 )
+						{
+							int const error = errno;
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "[E] linking " << annosrc << " to " << annotgt << ": " << strerror(error) << std::endl;
+							lme.finish();
+							throw lme;
+						}
+
+						if ( libmaus2::util::GetFileSize::fileExists(datasrc) )
+						{
+							r = symlink(datasrc.c_str(),datatgt.c_str());
+
+							if ( r < 0 )
+							{
+								int const error = errno;
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "[E] linking " << datasrc << " to " << datatgt << ": " << strerror(error) << std::endl;
+								lme.finish();
+								throw lme;
+							}
+						}
+					}
+				}
 			};
 
 			std::ostream & operator<<(std::ostream & out, DatabaseFile const & D);
