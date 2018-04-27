@@ -1484,7 +1484,7 @@ namespace libmaus2
 					SplitDbRLTwoResult() {}
 				};
 
-				SplitDbRLTwoResult splitDbRLTwo(uint64_t const maxmem, uint64_t const superblocksize, std::vector<uint64_t> const & RL) const
+				SplitDbRLTwoResult splitDbRLTwo(uint64_t const maxmem, uint64_t const superblocksize, std::vector<uint64_t> const & RL, double const fuzz = 0.01) const
 				{
 					SplitResult SR;
 					SplitResult TSR;
@@ -1500,7 +1500,7 @@ namespace libmaus2
 
 							uint64_t t = 0;
 							uint64_t ti = 0;
-							while ( low < RL.size() && t < superblocksize )
+							while ( low < RL.size() && t+RL[low] <= superblocksize )
 							{
 								uint64_t s = RL[low];
 								t += RL[low];
@@ -1509,7 +1509,8 @@ namespace libmaus2
 								while ( high < RL.size() && s+RL[high] <= maxmem && t+RL[high] <= superblocksize )
 								{
 									t += RL[high];
-									s += RL[high++];
+									s += RL[high];
+									high += 1;
 								}
 
 								SR.push_back(SplitResultElement(low,high,s,0,0));
@@ -1519,6 +1520,17 @@ namespace libmaus2
 							}
 
 							uint64_t const thigh = low;
+
+							while (
+								ti > 1 &&
+								(SR[SR.size()-2].size + SR[SR.size()-1].size) <= (maxmem * (1.0+fuzz))
+							)
+							{
+								SR[SR.size()-2].size += SR[SR.size()-1].size;
+								SR[SR.size()-2].high = SR[SR.size()-1].high;
+								SR.pop_back();
+								ti -= 1;
+							}
 
 							TSR.push_back(SplitResultElement(tlow,thigh,t,0,0));
 							V.push_back(ti);
