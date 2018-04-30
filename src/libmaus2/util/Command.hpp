@@ -30,8 +30,8 @@ namespace libmaus2
 			std::string in;
 			std::string out;
 			std::string err;
-			std::string returncode;
-			std::vector<std::string> args;
+			std::string shell;
+			std::string script;
 
 			uint64_t numattempts;
 			uint64_t maxattempts;
@@ -43,8 +43,8 @@ namespace libmaus2
 			{
 
 			}
-			Command(std::string const & rin, std::string const & rout, std::string const & rerr, std::string const & rreturncode, std::vector<std::string> const & rargs)
-			: in(rin), out(rout), err(rerr), returncode(rreturncode), args(rargs), numattempts(0), maxattempts(0), completed(false), ignorefail(false), deepsleep(false)
+			Command(std::string const & rin, std::string const & rout, std::string const & rerr, std::string const & rshell, std::string const & rscript)
+			: in(rin), out(rout), err(rerr), shell(rshell), script(rscript), numattempts(0), maxattempts(0), completed(false), ignorefail(false), deepsleep(false)
 			{
 			}
 			Command(std::istream & istr)
@@ -67,8 +67,8 @@ namespace libmaus2
 				libmaus2::util::StringSerialisation::serialiseString(ostr,in);
 				libmaus2::util::StringSerialisation::serialiseString(ostr,out);
 				libmaus2::util::StringSerialisation::serialiseString(ostr,err);
-				libmaus2::util::StringSerialisation::serialiseString(ostr,returncode);
-				libmaus2::util::StringSerialisation::serialiseStringVector(ostr,args);
+				libmaus2::util::StringSerialisation::serialiseString(ostr,shell);
+				libmaus2::util::StringSerialisation::serialiseString(ostr,script);
 				libmaus2::util::NumberSerialisation::serialiseNumber(ostr,numattempts);
 				libmaus2::util::NumberSerialisation::serialiseNumber(ostr,maxattempts);
 				libmaus2::util::NumberSerialisation::serialiseNumber(ostr,completed);
@@ -81,8 +81,8 @@ namespace libmaus2
 				in = libmaus2::util::StringSerialisation::deserialiseString(istr);
 				out = libmaus2::util::StringSerialisation::deserialiseString(istr);
 				err = libmaus2::util::StringSerialisation::deserialiseString(istr);
-				returncode = libmaus2::util::StringSerialisation::deserialiseString(istr);
-				args = libmaus2::util::StringSerialisation::deserialiseStringVector(istr);
+				shell = libmaus2::util::StringSerialisation::deserialiseString(istr);
+				script = libmaus2::util::StringSerialisation::deserialiseString(istr);
 				numattempts = libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
 				maxattempts = libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
 				completed = libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
@@ -90,58 +90,7 @@ namespace libmaus2
 				deepsleep = libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
 			}
 
-			// check return code
-			bool check() const
-			{
-				try
-				{
-					if ( libmaus2::util::GetFileSize::fileExists(returncode) )
-					{
-						libmaus2::aio::InputStreamInstance ISI(returncode);
-
-						uint64_t num = 0;
-						unsigned int numcnt = 0;
-
-						while ( ISI && ISI.peek() != std::istream::traits_type::eof() && isdigit(ISI.peek()) )
-						{
-							int c = ISI.get();
-
-							num *= 10;
-							num += c-'0';
-							++numcnt;
-						}
-
-						if ( ! numcnt )
-							return false;
-
-						if (
-							! ISI
-							||
-							ISI.peek() == std::istream::traits_type::eof()
-							||
-							ISI.peek() != '\n'
-						)
-							return false;
-
-						ISI.get();
-
-						return
-							ISI.peek() == std::istream::traits_type::eof()
-							&&
-							num == 0;
-					}
-					else
-					{
-						return false;
-					}
-				}
-				catch(...)
-				{
-					return false;
-				}
-			}
-
-			int dispatch() const;
+			int dispatch(std::string const & fn) const;
 		};
 
 		std::ostream & operator<<(std::ostream & out, Command const & C);
