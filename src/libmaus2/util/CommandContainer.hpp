@@ -42,37 +42,6 @@ namespace libmaus2
 				deserialise(in);
 			}
 
-			CommandContainer check(int const verbose = 0, std::ostream * errstream = 0, std::vector<uint64_t> * failids = 0) const
-			{
-				CommandContainer CC;
-				CC = *this;
-				CC.attempt += 1;
-				CC.V.resize(0);
-
-				for ( uint64_t i = 0; i < V.size(); ++i )
-				{
-					Command const & C = V[i];
-
-					if ( C.check() )
-					{
-						if ( verbose && errstream )
-							*errstream << "[V] command " << C << " finished succesfully" << std::endl;
-					}
-					else
-					{
-						if ( verbose && errstream )
-							*errstream << "[V] command " << C << " FAILED" << std::endl;
-
-						CC.V.push_back(C);
-
-						if ( failids )
-							failids->push_back(i);
-					}
-				}
-
-				return CC;
-			}
-
 			bool isComplete() const
 			{
 				bool iscomplete = true;
@@ -131,12 +100,12 @@ namespace libmaus2
 					V[i].deserialise(in);
 			}
 
-			int dispatch(uint64_t const i) const
+			int dispatch(uint64_t const i, std::string const & fn) const
 			{
-				return V.at(i).dispatch();
+				return V.at(i).dispatch(fn);
 			}
 
-			static int dispatch(std::istream & istr, uint64_t const i)
+			static int dispatch(std::istream & istr, uint64_t const i, std::string const & fn)
 			{
 				istr.clear();
 				istr.seekg(0,std::ios::beg);
@@ -158,13 +127,13 @@ namespace libmaus2
 				istr.seekg(p);
 
 				Command const C(istr);
-				return C.dispatch();
+				return C.dispatch(fn);
 			}
 
-			static int dispatch(std::string const & fn, uint64_t const i)
+			static int dispatch(std::string const & fn, uint64_t const i, std::string const & scriptfn)
 			{
 				libmaus2::aio::InputStreamInstance ISI(fn);
-				return dispatch(ISI,i);
+				return dispatch(ISI,i,scriptfn);
 			}
 		};
 
