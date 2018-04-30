@@ -43,8 +43,26 @@ static char ** getEnviron()
 	#endif
 }
 
-int libmaus2::util::Command::dispatch() const
+int libmaus2::util::Command::dispatch(std::string const & fn) const
 {
+	{
+		libmaus2::aio::OutputStreamInstance OSI(fn);
+		OSI << script;
+		OSI.flush();
+
+		if ( ! OSI )
+		{
+			libmaus2::exception::LibMausException lme;
+			lme.getStream() << "[E] failed to write script " << fn << std::endl;
+			lme.finish();
+			throw lme;
+		}
+	}
+
+	std::vector<std::string> args;
+	args.push_back(shell);
+	args.push_back(fn);
+
 	libmaus2::autoarray::AutoArray < libmaus2::util::WriteableString::unique_ptr_type > AW(args.size());
 	for ( uint64_t i = 0; i < args.size(); ++i )
 	{
@@ -161,15 +179,13 @@ std::ostream & libmaus2::util::operator<<(std::ostream & out, Command const & C)
 		<< "in=" << C.in
 		<< ",out=" << C.out
 		<< ",err=" << C.err
-		<< ",returncode=" << C.returncode
 		<< ",numattempts=" << C.numattempts
 		<< ",maxattempts=" << C.maxattempts
 		<< ",completed=" << C.completed
 		<< ",ignorefail=" << C.ignorefail
 		<< ",deepsleep=" << C.deepsleep
-		<< ",args=[";
-	for ( uint64_t i = 0; i < C.args.size(); ++i )
-		out << C.args[i] << ((i+1 < C.args.size()) ? ";" : "");
-	out << "])";
+		<< ",shell=" << C.shell
+		<< ",script=" << C.script
+		<< "])";
 	return out;
 }
