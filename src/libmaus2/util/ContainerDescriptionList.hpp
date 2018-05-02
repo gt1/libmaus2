@@ -27,6 +27,7 @@ namespace libmaus2
 		struct ContainerDescriptionList
 		{
 			std::vector < ContainerDescription > V;
+			std::vector < uint64_t > O;
 
 			ContainerDescriptionList()
 			{
@@ -38,6 +39,15 @@ namespace libmaus2
 				deserialise(in);
 			}
 
+			void replace(uint64_t const i, ContainerDescription const & CD, std::ostream & out)
+			{
+				uint64_t const s = CD.serialisedSize();
+				assert ( O[i+1]-O[i] == s );
+				out.clear();
+				out.seekp(O[i]);
+				CD.serialise(out);
+			}
+
 			std::istream & deserialise(std::istream & in)
 			{
 				uint64_t const n = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
@@ -45,14 +55,27 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < n; ++i )
 					V.push_back(ContainerDescription(in));
 
+				O.resize(n+1);
+				for ( uint64_t i = 0; i < n+1; ++i )
+					O[i] = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+
 				return in;
 			}
 
 			std::ostream & serialise(std::ostream & out) const
 			{
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,V.size());
+				std::vector < uint64_t > O(V.size()+1);
 				for ( uint64_t i = 0; i < V.size(); ++i )
+				{
+					O[i] = out.tellp();
 					V[i].serialise(out);
+				}
+				O[V.size()] = out.tellp();
+
+				for ( uint64_t i = 0; i < O.size(); ++i )
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,V.size());
+
 				return out;
 			}
 		};
