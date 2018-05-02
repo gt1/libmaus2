@@ -55,6 +55,13 @@ namespace libmaus2
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,finished);
 				return out;
 			}
+
+			uint64_t serialisedSize() const
+			{
+				std::ostringstream ostr;
+				serialise(ostr);
+				return ostr.str().size();
+			}
 		};
 	}
 }
