@@ -74,7 +74,7 @@ namespace libmaus2
 				O[V.size()] = out.tellp();
 
 				for ( uint64_t i = 0; i < O.size(); ++i )
-					libmaus2::util::NumberSerialisation::serialiseNumber(out,V.size());
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,O[i]);
 
 				return out;
 			}
