@@ -33,7 +33,7 @@ namespace libmaus2
 		{
 			static libmaus2::lcs::AlignmentOneAgainstManyInterface::unique_ptr_type uconstruct()
 			{
-				#if defined(LIBMAUS2_HAVE_x86_64)
+				#if defined(LIBMAUS2_HAVE_x86_64) && defined(LIBMAUS2_USE_ASSEMBLY)
 				if ( libmaus2::util::I386CacheLineSize::hasAVX2() )
 				{
 					libmaus2::lcs::AlignmentOneAgainstManyInterface::unique_ptr_type tptr(
