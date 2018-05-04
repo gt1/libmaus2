@@ -269,7 +269,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/util/CommandContainer.cpp \
 	libmaus2/aio/InputOutputStreamInstance.cpp \
 	libmaus2/dazzler/align/OverlapInfo.cpp \
-	libmaus2/dazzler/align/OverlapDataInterface.cpp
+	libmaus2/dazzler/align/OverlapDataInterface.cpp \
+	libmaus2/util/PathTools.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1319,7 +1320,8 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/U.hpp \
 	libmaus2/util/AutoArrayCharBaseTypeInfo.hpp \
 	libmaus2/util/AutoArrayCharBaseAllocator.hpp \
-	libmaus2/util/FileEnumerator.hpp
+	libmaus2/util/FileEnumerator.hpp \
+	libmaus2/util/PathTools.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
