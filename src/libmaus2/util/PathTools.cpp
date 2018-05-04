@@ -23,13 +23,13 @@ void libmaus2::util::PathTools::lchdir(std::string const & s)
 	while ( running )
 	{
 		int const r = chdir(s.c_str());
-		
+
 		if ( r == 0 )
 			running = false;
 		else
 		{
 			int const error = errno;
-			
+
 			switch ( error )
 			{
 				case EAGAIN:
@@ -74,12 +74,12 @@ std::string libmaus2::util::PathTools::getAbsPath(std::string const fn)
 	std::string const d = libmaus2::util::ArgInfo::getDirName(fn);
 
 	lchdir(d);
-	
+
 	std::string const absd = libmaus2::util::ArgInfo::getCurDir();
-	
+
 	lchdir(rundir);
-	
+
 	std::string const absp = absd + "/" + sbasename(fn);
-	
+
 	return absp;
 }
