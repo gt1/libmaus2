@@ -1,3 +1,10 @@
+libmaus2 (2.0.477-1) unstable; urgency=medium
+
+  * use absolute paths for symlink sources in DatabaseFile
+  * add PathTools
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 04 May 2018 14:36:37 +0200
+
 libmaus2 (2.0.476-1) unstable; urgency=medium
 
   * fix serialise in ContainerDescriptionList

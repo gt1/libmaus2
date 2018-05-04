@@ -30,6 +30,7 @@
 #include <libmaus2/aio/ArrayFileSet.hpp>
 #include <libmaus2/util/PrefixSums.hpp>
 #include <libmaus2/util/FileEnumerator.hpp>
+#include <libmaus2/util/PathTools.hpp>
 
 namespace libmaus2
 {
@@ -3313,7 +3314,7 @@ namespace libmaus2
 					}
 
 					int r;
-					r = symlink(this->idxpath.c_str(),outidxpath.c_str());
+					r = symlink(libmaus2::util::PathTools::getAbsPath(this->idxpath).c_str(),outidxpath.c_str());
 
 					if ( r < 0 )
 					{
@@ -3331,7 +3332,7 @@ namespace libmaus2
 						libmaus2::aio::FileRemoval::removeFile(outbpspath);
 					}
 
-					r = symlink(this->bpspath.c_str(),outbpspath.c_str());
+					r = symlink(libmaus2::util::PathTools::getAbsPath(this->bpspath).c_str(),outbpspath.c_str());
 
 					if ( r < 0 )
 					{
@@ -3366,7 +3367,7 @@ namespace libmaus2
 						}
 
 						int r;
-						r = symlink(annosrc.c_str(),annotgt.c_str());
+						r = symlink(libmaus2::util::PathTools::getAbsPath(annosrc).c_str(),annotgt.c_str());
 
 						if ( r < 0 )
 						{
@@ -3379,7 +3380,7 @@ namespace libmaus2
 
 						if ( libmaus2::util::GetFileSize::fileExists(datasrc) )
 						{
-							r = symlink(datasrc.c_str(),datatgt.c_str());
+							r = symlink(libmaus2::util::PathTools::getAbsPath(datasrc).c_str(),datatgt.c_str());
 
 							if ( r < 0 )
 							{
