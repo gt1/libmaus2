@@ -60,7 +60,7 @@ namespace libmaus2
 			 * @param bufsize buffer size (in elements)
 			 **/
 			BufferedOutputBase(uint64_t const bufsize)
-			: B(bufsize), pa(B.begin()), pc(pa), pe(B.end()), totalwrittenbytes(0), totalwrittenwords(0)
+			: B(bufsize,false), pa(B.begin()), pc(pa), pe(B.end()), totalwrittenbytes(0), totalwrittenwords(0)
 			{
 
 			}
