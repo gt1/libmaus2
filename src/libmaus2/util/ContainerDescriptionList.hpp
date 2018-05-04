@@ -41,6 +41,7 @@ namespace libmaus2
 
 			void replace(uint64_t const i, ContainerDescription const & CD, std::ostream & out)
 			{
+				assert ( i < V.size() );
 				uint64_t const s = CD.serialisedSize();
 				assert ( O[i+1]-O[i] == s );
 				out.clear();
@@ -65,13 +66,16 @@ namespace libmaus2
 			std::ostream & serialise(std::ostream & out) const
 			{
 				libmaus2::util::NumberSerialisation::serialiseNumber(out,V.size());
+
+				uint64_t o = sizeof(uint64_t);
 				std::vector < uint64_t > O(V.size()+1);
 				for ( uint64_t i = 0; i < V.size(); ++i )
 				{
-					O[i] = out.tellp();
+					O.at(i) = o;
+					o += V[i].serialisedSize();
 					V[i].serialise(out);
 				}
-				O[V.size()] = out.tellp();
+				O[V.size()] = o;
 
 				for ( uint64_t i = 0; i < O.size(); ++i )
 					libmaus2::util::NumberSerialisation::serialiseNumber(out,O[i]);
