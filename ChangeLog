@@ -1,3 +1,9 @@
+libmaus2 (2.0.480-1) unstable; urgency=medium
+
+  * add modcall field in Command class
+
+ -- German Tischler <tischler@mpi-cbg.de>  Sat, 05 May 2018 22:23:06 +0200
+
 libmaus2 (2.0.479-1) unstable; urgency=medium
 
   * add Base64 class
