@@ -38,13 +38,14 @@ namespace libmaus2
 			bool completed;
 			bool ignorefail;
 			bool deepsleep;
+			bool modcall;
 
 			Command()
 			{
 
 			}
 			Command(std::string const & rin, std::string const & rout, std::string const & rerr, std::string const & rshell, std::string const & rscript)
-			: in(rin), out(rout), err(rerr), shell(rshell), script(rscript), numattempts(0), maxattempts(0), completed(false), ignorefail(false), deepsleep(false)
+			: in(rin), out(rout), err(rerr), shell(rshell), script(rscript), numattempts(0), maxattempts(0), completed(false), ignorefail(false), deepsleep(false), modcall(false)
 			{
 			}
 			Command(std::istream & istr)
@@ -74,6 +75,7 @@ namespace libmaus2
 				libmaus2::util::NumberSerialisation::serialiseNumber(ostr,completed);
 				libmaus2::util::NumberSerialisation::serialiseNumber(ostr,ignorefail);
 				libmaus2::util::NumberSerialisation::serialiseNumber(ostr,deepsleep);
+				libmaus2::util::NumberSerialisation::serialiseNumber(ostr,modcall);
 			}
 
 			void deserialise(std::istream & istr)
@@ -88,6 +90,7 @@ namespace libmaus2
 				completed = libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
 				ignorefail = libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
 				deepsleep = libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
+				modcall = libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
 			}
 
 			int dispatch(std::string const & fn) const;
