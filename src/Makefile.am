@@ -1321,7 +1321,8 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/AutoArrayCharBaseTypeInfo.hpp \
 	libmaus2/util/AutoArrayCharBaseAllocator.hpp \
 	libmaus2/util/FileEnumerator.hpp \
-	libmaus2/util/PathTools.hpp
+	libmaus2/util/PathTools.hpp \
+	libmaus2/util/Base64.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
