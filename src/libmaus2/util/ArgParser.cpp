@@ -16,6 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <libmaus2/util/ArgParser.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/PathTools.hpp>
 
 std::ostream & libmaus2::util::operator<<(std::ostream & out, libmaus2::util::ArgParser const & O)
 {
@@ -31,4 +33,50 @@ std::ostream & libmaus2::util::operator<<(std::ostream & out, libmaus2::util::Ar
 	out << "]";
 	out << ")";
 	return out;
+}
+
+std::string libmaus2::util::ArgParser::getAbsProgName() const
+{
+	#if defined(__linux__)
+	char buf[PATH_MAX+1];
+	std::fill(
+		&buf[0],&buf[sizeof(buf)/sizeof(buf[0])],0);
+	if ( readlink("/proc/self/exe", &buf[0], PATH_MAX) < 0 )
+		throw std::runtime_error("readlink(/proc/self/exe) failed.");
+	return std::string(&buf[0]);
+	#else
+	// absolute path
+	if ( progname.size() > 0 && progname[0] == '/' )
+		return progname;
+
+	// does progname contain a slash anywhere?
+	bool containsSlash = false;
+	for ( uint64_t i = 0; i < progname.size(); ++i )
+		if ( progname[i] == '/' )
+			containsSlash = true;
+	if ( containsSlash )
+		return libmaus2::util::PathTools::getCurDir() + "/" + progname;
+
+	// otherwise try PATH
+	char const * cPATH = getenv("PATH");
+	while ( *cPATH != 0 )
+	{
+		char const * bPATH = cPATH;
+		while ( *cPATH != 0 && *cPATH != ':' )
+			++cPATH;
+		assert ( *cPATH == 0 || *cPATH == ':' );
+
+		std::string const pd(bPATH,cPATH);
+		std::string const e = pd + "/" + progname;
+		if ( libmaus2::util::GetFileSize::fileExists(e) )
+			// should check whether e is executable
+			return e;
+
+		if ( *cPATH == ':' )
+			++cPATH;
+	}
+
+	// not found
+	return progname;
+	#endif
 }

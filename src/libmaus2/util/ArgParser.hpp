@@ -380,6 +380,8 @@ namespace libmaus2
 					throw lme;
 				}
 			}
+
+			std::string getAbsProgName() const;
 		};
 
 		std::ostream & operator<<(std::ostream & out, ArgParser const & O);
