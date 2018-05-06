@@ -83,3 +83,42 @@ std::string libmaus2::util::PathTools::getAbsPath(std::string const fn)
 
 	return absp;
 }
+
+std::string libmaus2::util::PathTools::getCurDir()
+{
+	size_t len = PATH_MAX;
+	char * p = 0;
+
+	while ( true )
+	{
+		::libmaus2::autoarray::AutoArray<char> Acurdir = ::libmaus2::autoarray::AutoArray<char>(len+1);
+
+		#if defined(_WIN32)
+		p = _getcwd(Acurdir.get(), Acurdir.size()-1);
+		#else
+		p = getcwd ( Acurdir.get(), Acurdir.size()-1 );
+		#endif
+
+		if ( p )
+			return std::string(Acurdir.begin());
+
+		int const error = errno;
+
+		switch ( error )
+		{
+			case ERANGE:
+				len *= 2;
+				break;
+			case EINTR:
+			case EAGAIN:
+				break;
+			default:
+			{
+				libmaus2::exception::LibMausException lme;
+				lme.getStream() << "[E] PathTools::getCurDir: " << strerror(error) << std::endl;
+				lme.finish();
+				throw lme;
+			}
+		}
+	}
+}

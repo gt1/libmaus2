@@ -30,6 +30,7 @@ namespace libmaus2
 			static std::string sbasename(std::string const & s);
 			static std::string sdirname(std::string const & s);
 			static std::string getAbsPath(std::string const fn);
+			static std::string getCurDir();
 		};
 	}
 }
