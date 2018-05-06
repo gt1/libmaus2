@@ -1,3 +1,11 @@
+libmaus2 (2.0.481-1) unstable; urgency=medium
+
+  * add getAbsProgName in ArgParser
+  * add getCurDir in PathTools
+  * update getAbsProgName in ArgInfo
+
+ -- German Tischler <tischler@mpi-cbg.de>  Sun, 06 May 2018 10:06:55 +0200
+
 libmaus2 (2.0.480-1) unstable; urgency=medium
 
   * add modcall field in Command class
