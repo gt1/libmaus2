@@ -39,11 +39,22 @@ namespace libmaus2
 				deserialise(in);
 			}
 
+			std::pair<uint64_t,uint64_t> getOffset(uint64_t const i) const
+			{
+				return std::pair<uint64_t,uint64_t>(O[i],O[i+1]);
+			}
+
+			bool checkSize(uint64_t const i, ContainerDescription const & CD) const
+			{
+				uint64_t const s = CD.serialisedSize();
+				return (O[i+1]-O[i]) == s;
+			}
+
 			void replace(uint64_t const i, ContainerDescription const & CD, std::ostream & out)
 			{
 				assert ( i < V.size() );
-				uint64_t const s = CD.serialisedSize();
-				assert ( O[i+1]-O[i] == s );
+				assert ( checkSize(i,CD) );
+
 				out.clear();
 				out.seekp(O[i]);
 				CD.serialise(out);
