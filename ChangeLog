@@ -1,3 +1,9 @@
+libmaus2 (2.0.483-1) unstable; urgency=medium
+
+  * add getOffset and checkSize in ContainerDescriptionList
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 07 May 2018 17:31:30 +0200
+
 libmaus2 (2.0.482-1) unstable; urgency=medium
 
   * add output of modcall flag in Command
