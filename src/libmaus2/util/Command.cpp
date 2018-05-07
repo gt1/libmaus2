@@ -184,6 +184,7 @@ std::ostream & libmaus2::util::operator<<(std::ostream & out, Command const & C)
 		<< ",completed=" << C.completed
 		<< ",ignorefail=" << C.ignorefail
 		<< ",deepsleep=" << C.deepsleep
+		<< ",modcall=" << C.modcall
 		<< ",shell=" << C.shell
 		<< ",script=" << C.script
 		<< "])";
