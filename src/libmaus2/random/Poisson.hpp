@@ -82,8 +82,23 @@ namespace libmaus2
 				return V;
 			}
 
-			uint64_t thresLow(double const thres) const
+			uint64_t thresLow(double const thres, uint64_t const limit = 100) const
 			{
+				double s = 0.0;
+				uint64_t i = 0;
+				uint64_t const bailout = limit * d_lambda;
+
+				for ( uint64_t i = 0; true; ++i )
+				{
+					double const v = poissonViaLog(i);
+
+					if ( s + v > thres || i >= bailout )
+						return i;
+
+					s += v;
+				}
+
+				#if 0
 				double f = e_lambda;
 				double s = 0.0;
 				std::vector<double> V;
@@ -95,6 +110,7 @@ namespace libmaus2
 					s += f;
 					f *= (d_lambda/i);
 				}
+				#endif
 			}
 
 			double thresLowInv(uint64_t const thres) const
