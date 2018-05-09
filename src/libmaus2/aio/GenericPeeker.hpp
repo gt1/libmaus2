@@ -44,7 +44,7 @@ namespace libmaus2
 			data_type slot;
 			bool slotfilled;
 
-			GenericPeeker(reader_type & rreader) : reader(rreader) {}
+			GenericPeeker(reader_type & rreader) : reader(rreader), slotfilled(false) {}
 
 			bool peekNext(data_type & D)
 			{
