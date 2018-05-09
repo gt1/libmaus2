@@ -1,3 +1,9 @@
+libmaus2 (2.0.485-1) unstable; urgency=medium
+
+  * add missing initialisation of slotfilled field in GenericPeeker
+
+ -- German Tischler <tischler@mpi-cbg.de>  Wed, 09 May 2018 11:11:52 +0200
+
 libmaus2 (2.0.484-1) unstable; urgency=medium
 
   * avoid endless loop in thresLow of Poisson
