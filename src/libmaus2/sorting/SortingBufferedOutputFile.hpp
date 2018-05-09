@@ -137,12 +137,13 @@ namespace libmaus2
 				std::string const & fn,
 				uint64_t const blocksize = 1024ull,
 				uint64_t const backblocksize = 1024ull,
-				uint64_t const maxfan = 16ull
+				uint64_t const maxfan = 16ull,
+				uint64_t const sortthreads = 1ull
 			)
 			{
 				std::string const tmpfn = fn + ".tmp";
 				libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfn);
-				reduce(std::vector<std::string>(1,fn),tmpfn,blocksize,backblocksize,maxfan);
+				reduce(std::vector<std::string>(1,fn),tmpfn,blocksize,backblocksize,maxfan,sortthreads);
 				libmaus2::aio::OutputStreamFactoryContainer::rename(tmpfn,fn);
 			}
 
@@ -151,12 +152,13 @@ namespace libmaus2
 				IndexCallback & indexer,
 				uint64_t const blocksize = 1024ull,
 				uint64_t const backblocksize = 1024ull,
-				uint64_t const maxfan = 16ull
+				uint64_t const maxfan = 16ull,
+				uint64_t const sortthreads = 1ull
 			)
 			{
 				std::string const tmpfn = fn + ".tmp";
 				libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfn);
-				reduce(std::vector<std::string>(1,fn),indexer,tmpfn,blocksize,backblocksize,maxfan);
+				reduce(std::vector<std::string>(1,fn),indexer,tmpfn,blocksize,backblocksize,maxfan,sortthreads);
 				libmaus2::aio::OutputStreamFactoryContainer::rename(tmpfn,fn);
 			}
 
@@ -165,12 +167,13 @@ namespace libmaus2
 				std::string const & out,
 				uint64_t const blocksize = 1024ull,
 				uint64_t const backblocksize = 1024ull,
-				uint64_t const maxfan = 16ull
+				uint64_t const maxfan = 16ull,
+				uint64_t const sortthreads = 1ull
 			)
 			{
 				std::string const tmp = out + ".tmp";
 				libmaus2::util::TempFileRemovalContainer::addTempFile(tmp);
-				unique_ptr_type U(new this_type(tmp,blocksize));
+				unique_ptr_type U(new this_type(tmp,blocksize,sortthreads));
 				data_type D;
 
 				for ( uint64_t i = 0; i < Vfn.size(); ++i )
@@ -200,12 +203,13 @@ namespace libmaus2
 				std::string const & out,
 				uint64_t const blocksize = 1024ull,
 				uint64_t const backblocksize = 1024ull,
-				uint64_t const maxfan = 16ull
+				uint64_t const maxfan = 16ull,
+				uint64_t const sortthreads = 1ull
 			)
 			{
 				std::string const tmp = out + ".tmp";
 				libmaus2::util::TempFileRemovalContainer::addTempFile(tmp);
-				unique_ptr_type U(new this_type(tmp,blocksize));
+				unique_ptr_type U(new this_type(tmp,blocksize,sortthreads));
 				data_type D;
 
 				for ( uint64_t i = 0; i < Vfn.size(); ++i )
@@ -236,12 +240,13 @@ namespace libmaus2
 				std::string const & fn,
 				uint64_t const blocksize = 1024ull,
 				uint64_t const backblocksize = 1024ull,
-				uint64_t const maxfan = 16ull
+				uint64_t const maxfan = 16ull,
+				uint64_t const sortthreads = 1ull
 			)
 			{
 				std::string const tmpfn = fn + ".tmp";
 				libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfn);
-				reduceUnique(std::vector<std::string>(1,fn),tmpfn,blocksize,backblocksize,maxfan);
+				reduceUnique(std::vector<std::string>(1,fn),tmpfn,blocksize,backblocksize,maxfan,sortthreads);
 				libmaus2::aio::OutputStreamFactoryContainer::rename(tmpfn,fn);
 			}
 
@@ -250,12 +255,13 @@ namespace libmaus2
 				IndexCallback & indexer,
 				uint64_t const blocksize = 1024ull,
 				uint64_t const backblocksize = 1024ull,
-				uint64_t const maxfan = 16ull
+				uint64_t const maxfan = 16ull,
+				uint64_t const sortthreads = 1ull
 			)
 			{
 				std::string const tmpfn = fn + ".tmp";
 				libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfn);
-				reduceUnique(std::vector<std::string>(1,fn),indexer,tmpfn,blocksize,backblocksize,maxfan);
+				reduceUnique(std::vector<std::string>(1,fn),indexer,tmpfn,blocksize,backblocksize,maxfan,sortthreads);
 				libmaus2::aio::OutputStreamFactoryContainer::rename(tmpfn,fn);
 			}
 
@@ -264,12 +270,13 @@ namespace libmaus2
 				std::string const & out,
 				uint64_t const blocksize = 1024ull,
 				uint64_t const backblocksize = 1024ull,
-				uint64_t const maxfan = 16ull
+				uint64_t const maxfan = 16ull,
+				uint64_t const sortthreads = 1ull
 			)
 			{
 				std::string const tmp = out + ".tmp";
 				libmaus2::util::TempFileRemovalContainer::addTempFile(tmp);
-				unique_ptr_type U(new this_type(tmp,blocksize));
+				unique_ptr_type U(new this_type(tmp,blocksize,sortthreads));
 				data_type D;
 
 				for ( uint64_t i = 0; i < Vfn.size(); ++i )
@@ -313,12 +320,13 @@ namespace libmaus2
 				std::string const & out,
 				uint64_t const blocksize = 1024ull,
 				uint64_t const backblocksize = 1024ull,
-				uint64_t const maxfan = 16ull
+				uint64_t const maxfan = 16ull,
+				uint64_t const sortthreads = 1ull
 			)
 			{
 				std::string const tmp = out + ".tmp";
 				libmaus2::util::TempFileRemovalContainer::addTempFile(tmp);
-				unique_ptr_type U(new this_type(tmp,blocksize));
+				unique_ptr_type U(new this_type(tmp,blocksize,sortthreads));
 				data_type D;
 
 				for ( uint64_t i = 0; i < Vfn.size(); ++i )
