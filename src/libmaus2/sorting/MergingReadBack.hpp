@@ -144,6 +144,8 @@ namespace libmaus2
 				order(*Porder),
 				// heap order adapter
 				HOA(&order),
+				//
+				Q(HOA),
 				// block sizes
 				blocksizes(rblocksizes),
 				// read back block size
@@ -263,7 +265,7 @@ namespace libmaus2
 			{
 				order_type * order;
 
-				HeapOrderAdapter(order_type * rorder = 0) : order(rorder) {}
+				HeapOrderAdapter(order_type * rorder) : order(rorder) {}
 
 				bool operator()(std::pair<uint64_t, data_type> const & A, std::pair<uint64_t, data_type> const & B)
 				{
@@ -363,6 +365,8 @@ namespace libmaus2
 				order(*Porder),
 				// heap order adapter
 				HOA(&order),
+				// queue
+				Q(HOA),
 				// block sizes
 				blocksizes(rblocksizes),
 				// read back block size
@@ -390,6 +394,8 @@ namespace libmaus2
 				order(rorder),
 				// heap order adapter
 				HOA(&order),
+				// queue
+				Q(HOA),
 				// block sizes
 				blocksizes(rblocksizes),
 				// read back block size
