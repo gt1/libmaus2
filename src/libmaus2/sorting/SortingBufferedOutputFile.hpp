@@ -441,6 +441,7 @@ namespace libmaus2
 				typedef Merger this_type;
 				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef _data_type data_type;
 
 				struct MergeObject
 				{
