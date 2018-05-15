@@ -22,6 +22,7 @@
 #include <libmaus2/dazzler/db/OutputBase.hpp>
 #include <libmaus2/math/IntegerInterval.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/utf8.hpp>
 #include <utility>
 #include <cassert>
 
@@ -42,6 +43,45 @@ namespace libmaus2
 				int32_t bbpos;
 				int32_t aepos;
 				int32_t bepos;
+
+				uint64_t simpleSerialise(std::ostream & out) const
+				{
+					uint64_t l = 0;
+					l += libmaus2::util::UTF8::encodeUTF8(path.size(),out);
+					for ( uint64_t i = 0; i < path.size(); ++i )
+					{
+						l += libmaus2::util::UTF8::encodeUTF8(path[i].first,out);
+						l += libmaus2::util::UTF8::encodeUTF8(path[i].second,out);
+					}
+					l += libmaus2::util::UTF8::encodeUTF8(tlen,out);
+					l += libmaus2::util::UTF8::encodeUTF8(diffs,out);
+					l += libmaus2::util::UTF8::encodeUTF8(abpos,out);
+					l += libmaus2::util::UTF8::encodeUTF8(aepos,out);
+					l += libmaus2::util::UTF8::encodeUTF8(bbpos,out);
+					l += libmaus2::util::UTF8::encodeUTF8(bepos,out);
+
+					return l;
+				}
+
+				uint64_t simpleDeserialise(std::istream & in)
+				{
+					uint64_t l = 0;
+					uint64_t const n = libmaus2::util::UTF8::decodeUTF8(in,l);
+					path.resize(n);
+					for ( uint64_t i = 0; i < path.size(); ++i )
+					{
+						path[i].first = libmaus2::util::UTF8::decodeUTF8(in,l);
+						path[i].second = libmaus2::util::UTF8::decodeUTF8(in,l);
+					}
+					tlen = libmaus2::util::UTF8::decodeUTF8(in,l);
+					diffs = libmaus2::util::UTF8::decodeUTF8(in,l);
+					abpos = libmaus2::util::UTF8::decodeUTF8(in,l);
+					aepos = libmaus2::util::UTF8::decodeUTF8(in,l);
+					bbpos = libmaus2::util::UTF8::decodeUTF8(in,l);
+					bepos = libmaus2::util::UTF8::decodeUTF8(in,l);
+
+					return l;
+				}
 
 				libmaus2::math::IntegerInterval<int64_t> aint() const
 				{

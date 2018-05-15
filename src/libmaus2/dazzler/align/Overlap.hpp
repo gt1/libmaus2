@@ -43,6 +43,30 @@ namespace libmaus2
 				int32_t aread;
 				int32_t bread;
 
+				uint64_t simpleSerialise(std::ostream & out) const
+				{
+					uint64_t l = 0;
+					l += path.simpleSerialise(out);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,flags,4);
+					l += 4;
+					l += libmaus2::util::UTF8::encodeUTF8(aread,out);
+					l += libmaus2::util::UTF8::encodeUTF8(bread,out);
+					return l;
+				}
+
+				uint64_t simpleDeserialise(std::istream & in)
+				{
+					uint64_t l = 0;
+
+					l += path.simpleDeserialise(in);
+					flags = libmaus2::util::NumberSerialisation::deserialiseNumber(in,4);
+					l += 4;
+					aread = libmaus2::util::UTF8::decodeUTF8(in,l);
+					bread = libmaus2::util::UTF8::decodeUTF8(in,l);
+
+					return l;
+				}
+
 				uint32_t getFlags() const
 				{
 					return flags;
@@ -2029,7 +2053,7 @@ namespace libmaus2
 
 			struct OverlapFullComparator
 			{
-				bool operator()(Overlap const & lhs, Overlap const & rhs) const
+				static bool compare(Overlap const & lhs, Overlap const & rhs)
 				{
 					if ( lhs.aread != rhs.aread )
 						return lhs.aread < rhs.aread;
@@ -2047,6 +2071,11 @@ namespace libmaus2
 						return lhs.path.bepos < rhs.path.bepos;
 					else
 						return false;
+				}
+
+				bool operator()(Overlap const & lhs, Overlap const & rhs) const
+				{
+					return compare(lhs,rhs);
 				}
 			};
 
