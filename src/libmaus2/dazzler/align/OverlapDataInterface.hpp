@@ -20,6 +20,7 @@
 
 #include <libmaus2/dazzler/align/OverlapData.hpp>
 #include <libmaus2/dazzler/align/OverlapInfo.hpp>
+#include <libmaus2/dazzler/align/Overlap.hpp>
 
 namespace libmaus2
 {
@@ -54,10 +55,45 @@ namespace libmaus2
 				int64_t diffs() const  { return OverlapData::getDiffs(p); }
 				int64_t flags() const  { return OverlapData::getFlags(p); }
 				int64_t isInverse() const  { return OverlapData::getInverseFlag(p); }
-				uint64_t decodeTraceVector(libmaus2::autoarray::AutoArray<std::pair<uint16_t,uint16_t> > & A, int64_t const tspace)
+				uint64_t decodeTraceVector(libmaus2::autoarray::AutoArray<std::pair<uint16_t,uint16_t> > & A, int64_t const tspace) const
 				{ return OverlapData::decodeTraceVector(p,A,libmaus2::dazzler::align::AlignmentFile::tspaceToSmall(tspace)); }
 				double getErrorRate() const
 				{ return (aepos() > abpos()) ? (static_cast<double>(diffs()) / static_cast<double>(aepos()-abpos())) : 0.0; }
+
+				void getOverlap(
+					libmaus2::dazzler::align::Overlap & OVL,
+					libmaus2::autoarray::AutoArray<std::pair<uint16_t,uint16_t> > & A,
+					int64_t const tspace
+				) const
+				{
+					uint64_t const tracelen = decodeTraceVector(A,tspace);
+					OVL.flags = flags();
+					OVL.aread = aread();
+					OVL.bread = bread();
+					OVL.path.abpos = abpos();
+					OVL.path.aepos = aepos();
+					OVL.path.bbpos = bbpos();
+					OVL.path.bepos = bepos();
+					OVL.path.diffs = diffs();
+					OVL.path.tlen = tracelen * 2;
+					OVL.path.path.resize(tracelen);
+					std::copy(A.begin(),A.begin()+tracelen,OVL.path.path.begin());
+				}
+
+				libmaus2::dazzler::align::Overlap getOverlap(libmaus2::autoarray::AutoArray<std::pair<uint16_t,uint16_t> > & A, int64_t const tspace) const
+				{
+					libmaus2::dazzler::align::Overlap OVL;
+					getOverlap(OVL,A,tspace);
+					return OVL;
+				}
+
+				libmaus2::dazzler::align::Overlap getOverlap(int64_t const tspace) const
+				{
+					libmaus2::dazzler::align::Overlap OVL;
+					libmaus2::autoarray::AutoArray<std::pair<uint16_t,uint16_t> > A;
+					getOverlap(OVL,A,tspace);
+					return OVL;
+				}
 
 				void computeTrace(
 					libmaus2::autoarray::AutoArray<std::pair<uint16_t,uint16_t> > & A,

@@ -338,7 +338,8 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/GraphCheck.hpp \
 	libmaus2/dazzler/align/FilterUnique.hpp \
 	libmaus2/dazzler/align/LasFileRange.hpp \
-	libmaus2/dazzler/align/LasSort2.hpp
+	libmaus2/dazzler/align/LasSort2.hpp \
+	libmaus2/dazzler/align/OverlapAdapter.hpp
 
 libmaus2dazzlerstringgraph_includedir=$(includedir)/libmaus2/dazzler/stringgraph
 libmaus2dazzlerstringgraph_include_HEADERS = libmaus2/dazzler/stringgraph/Edge.hpp \
