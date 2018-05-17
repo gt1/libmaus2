@@ -1,3 +1,9 @@
+libmaus2 (2.0.490-1) unstable; urgency=medium
+
+  * update debian control files
+
+ -- German Tischler <tischler@mpi-cbg.de>  Thu, 17 May 2018 10:34:55 +0200
+
 libmaus2 (2.0.489-1) unstable; urgency=medium
 
   * add typedef in SortingBufferedOutputFile
