@@ -48,9 +48,15 @@ int main(int argc, char * argv[])
 		uint64_t const maxmatches = 100000; /* maximum set of kmer matches */
 		uint64_t const minbandscore = 2*anak; /* score required in band (and neighboring) */
 		uint64_t const minlength = 500; /* minimum length of alignment reported */
+		uint64_t const maxalign = std::numeric_limits<uint64_t>::max();
+		double const mincor = libmaus2::lcs::NNPCor::getDefaultMinCorrelation();
+		double const minlocalcor = libmaus2::lcs::NNPCor::getDefaultMinLocalCorrelation();
+		int64_t const maxback = libmaus2::lcs::NNPCor::getDefaultMaxBack();
 
 		// aligner
-		libmaus2::lcs::NNPCorLocalAligner nnplo(bucketlog,anak,maxmatches,minbandscore,minlength);
+		libmaus2::lcs::NNPCorLocalAligner nnplo(
+			bucketlog,anak,maxmatches,minbandscore,minlength,maxalign,mincor,minlocalcor,maxback
+		);
 		// dense trace container
 		libmaus2::lcs::AlignmentTraceContainer ATC;
 
