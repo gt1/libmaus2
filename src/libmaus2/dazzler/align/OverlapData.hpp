@@ -176,6 +176,26 @@ namespace libmaus2
 					p[3] = ((f>>24) & 0xFF);
 				}
 
+				static void putARead(uint8_t * p, uint32_t const f)
+				{
+					p += 7*sizeof(int32_t);
+
+					p[0] = ((f>> 0) & 0xFF);
+					p[1] = ((f>> 8) & 0xFF);
+					p[2] = ((f>>16) & 0xFF);
+					p[3] = ((f>>24) & 0xFF);
+				}
+
+				static void putBRead(uint8_t * p, uint32_t const f)
+				{
+					p += 8*sizeof(int32_t);
+
+					p[0] = ((f>> 0) & 0xFF);
+					p[1] = ((f>> 8) & 0xFF);
+					p[2] = ((f>>16) & 0xFF);
+					p[3] = ((f>>24) & 0xFF);
+				}
+
 				static void addPrimaryFlag(uint8_t * p)
 				{
 					putFlags(
