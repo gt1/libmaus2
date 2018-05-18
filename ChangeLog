@@ -1,3 +1,9 @@
+libmaus2 (2.0.491-1) unstable; urgency=medium
+
+  * add putARead and putBRead in OverlapData
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 18 May 2018 10:13:34 +0200
+
 libmaus2 (2.0.490-1) unstable; urgency=medium
 
   * update debian control files
