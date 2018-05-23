@@ -26,6 +26,10 @@ namespace libmaus2
 	{
 		struct FastaPeeker
 		{
+			typedef FastaPeeker this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
 			libmaus2::fastx::FastAReader dec;
 			libmaus2::fastx::FastAReader::pattern_type slot;
 			bool slotfilled;
