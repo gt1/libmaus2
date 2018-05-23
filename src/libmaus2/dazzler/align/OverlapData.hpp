@@ -292,6 +292,55 @@ namespace libmaus2
 					return tlen2;
 				}
 
+				static uint64_t getTracePoints(
+					uint8_t const * p,
+					int64_t const tspace,
+					uint64_t const traceid,
+					libmaus2::autoarray::AutoArray<TracePoint> & V,
+					libmaus2::autoarray::AutoArray<std::pair<uint16_t,uint16_t> > & A,
+					bool const fullonly,
+					uint64_t o = 0
+				)
+				{
+					uint64_t const numt = decodeTraceVector(p,A,libmaus2::dazzler::align::AlignmentFile::tspaceToSmall(tspace));
+
+					// current point on A
+					int32_t a_i = ( getABPos(p) / tspace ) * tspace;
+					// current point on B
+					int32_t b_i = ( getBBPos(p) );
+
+					for ( size_t i = 0; i < numt; ++i )
+					{
+						// block start point on A
+						int32_t const a_i_0 = std::max ( a_i, static_cast<int32_t>(getABPos(p)) );
+						// block end point on A
+						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(getAEPos(p)) );
+						// block end point on B
+						int32_t const b_i_1 = b_i + A[i].second;
+
+						if ( (!fullonly) || ((a_i_0%tspace) == 0) )
+							V.push(o,TracePoint(a_i_0,b_i,traceid));
+
+						// update start points
+						b_i = b_i_1;
+						a_i = a_i_1;
+					}
+
+					if ( o )
+					{
+						if ( (!fullonly) || ((a_i%tspace) == 0) )
+							V.push(o,TracePoint(a_i,b_i,traceid));
+					}
+					else
+					{
+						if ( (!fullonly) || ((getABPos(p)%tspace) == 0) )
+							V.push(o,TracePoint(getABPos(p),getBBPos(p),traceid));
+					}
+
+					return o;
+				}
+
+
 				static void computeTrace(
 					uint8_t const * p,
 					libmaus2::autoarray::AutoArray<std::pair<uint16_t,uint16_t> > & A,
