@@ -1,3 +1,9 @@
+libmaus2 (2.0.494-1) unstable; urgency=medium
+
+  * add missing include in ArgParser.cpp
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 25 May 2018 14:41:21 +0200
+
 libmaus2 (2.0.493-1) unstable; urgency=medium
 
   * add getTracePoints function OverlapData

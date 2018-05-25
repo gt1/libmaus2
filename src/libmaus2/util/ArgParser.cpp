@@ -18,6 +18,7 @@
 #include <libmaus2/util/ArgParser.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/util/PathTools.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
 
 std::ostream & libmaus2::util::operator<<(std::ostream & out, libmaus2::util::ArgParser const & O)
 {
