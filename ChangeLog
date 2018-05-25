@@ -1,3 +1,9 @@
+libmaus2 (2.0.495-1) unstable; urgency=medium
+
+  * fix min call by cast
+
+ -- German Tischler <tischler@mpi-cbg.de>  Fri, 25 May 2018 15:23:32 +0200
+
 libmaus2 (2.0.494-1) unstable; urgency=medium
 
   * add missing include in ArgParser.cpp
