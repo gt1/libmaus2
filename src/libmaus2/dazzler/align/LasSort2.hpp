@@ -155,7 +155,7 @@ namespace libmaus2
 						for ( uint64_t y = 0; y < numout; ++y )
 						{
 							uint64_t const ilow = y * fanin;
-							uint64_t const ihigh = std::min(ilow+fanin,V.size());
+							uint64_t const ihigh = std::min(ilow+fanin,static_cast<uint64_t>(V.size()));
 							uint64_t const isize = ihigh-ilow;
 
 							if ( err )
