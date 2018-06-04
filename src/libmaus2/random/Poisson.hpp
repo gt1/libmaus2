@@ -85,7 +85,7 @@ namespace libmaus2
 			uint64_t thresLow(double const thres, uint64_t const limit = 100) const
 			{
 				double s = 0.0;
-				uint64_t i = 0;
+				// uint64_t i = 0;
 				uint64_t const bailout = limit * d_lambda;
 
 				for ( uint64_t i = 0; true; ++i )
