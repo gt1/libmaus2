@@ -1,3 +1,9 @@
+libmaus2 (2.0.496-1) unstable; urgency=medium
+
+  * fix warning
+
+ -- German Tischler <tischler@mpi-cbg.de>  Mon, 04 Jun 2018 16:52:01 +0200
+
 libmaus2 (2.0.495-1) unstable; urgency=medium
 
   * fix min call by cast
