@@ -108,7 +108,7 @@ namespace libmaus2
 				{
 					libmaus2::bambam::cigar_operation const op = *(it++);
 					out << op.second;
-					if ( op.first < bound )
+					if ( op.first < static_cast<int32_t>(bound) )
 						out.put(C[op.first]);
 					else
 						out.put('?');
