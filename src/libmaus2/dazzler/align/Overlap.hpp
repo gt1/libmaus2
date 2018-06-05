@@ -315,6 +315,11 @@ namespace libmaus2
 					return (1ull << 30);
 				}
 
+				static uint64_t getHaploFlag()
+				{
+					return (1ull << 29);
+				}
+
 				static uint64_t getACompFlag()
 				{
 					return 0x2;
@@ -365,9 +370,19 @@ namespace libmaus2
 					return (flags & getTrueFlag()) != 0;
 				}
 
+				bool isHaploFlag() const
+				{
+					return (flags & getHaploFlag()) != 0;
+				}
+
 				void setPrimary()
 				{
 					flags |= getPrimaryFlag();
+				}
+
+				void setHaploFlag()
+				{
+					flags |= getHaploFlag();
 				}
 
 				uint64_t getNumErrors() const

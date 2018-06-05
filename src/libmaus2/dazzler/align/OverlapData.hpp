@@ -242,6 +242,12 @@ namespace libmaus2
 					return (flags & libmaus2::dazzler::align::Overlap::getBestFlag()) != 0;
 				}
 
+				static bool getHaploFlag(uint8_t const * p)
+				{
+					uint32_t const flags = getFlags(p);
+					return (flags & libmaus2::dazzler::align::Overlap::getHaploFlag()) != 0;
+				}
+
 				static int32_t getARead(uint8_t const * p)
 				{
 					return libmaus2::util::loadValueLE4(p + 7*sizeof(int32_t));
