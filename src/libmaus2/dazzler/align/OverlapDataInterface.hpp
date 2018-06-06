@@ -55,6 +55,8 @@ namespace libmaus2
 				int64_t diffs() const  { return OverlapData::getDiffs(p); }
 				int64_t flags() const  { return OverlapData::getFlags(p); }
 				int64_t isInverse() const  { return OverlapData::getInverseFlag(p); }
+				bool getHaploFlag() const { return OverlapData::getHaploFlag(p); }
+				bool getTrueFlag() const { return OverlapData::getTrueFlag(p); }
 				uint64_t decodeTraceVector(libmaus2::autoarray::AutoArray<std::pair<uint16_t,uint16_t> > & A, int64_t const tspace) const
 				{ return OverlapData::decodeTraceVector(p,A,libmaus2::dazzler::align::AlignmentFile::tspaceToSmall(tspace)); }
 				double getErrorRate() const
