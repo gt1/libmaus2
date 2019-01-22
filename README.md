@@ -1,6 +1,13 @@
 libmaus2
 ========
 
+-------------------------------------------------------------------------------
+
+Important notice: this is legacy code, recent development on libmaus2 can be
+found at https://gitlab.com/german.tischler/libmaus2 .
+
+-------------------------------------------------------------------------------
+
 libmaus2 is a collection of data structures and algorithms. It contains
 
  - I/O classes (single byte and UTF-8)
